@@ -10,14 +10,14 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
@@ -31,10 +31,20 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
-		System.out.println("Request URL: " + request.getRequestURL());
+		// System.out.println("Request URL: " + request.getRequestURL());
 
 		if (StringUtils.containsIgnoreCase(request.getRequestURL(), "/webjars/")) {
 			return true;
+		}
+
+		if (StringUtils.containsIgnoreCase(request.getRequestURL(), "/login")) {
+			return true;
+		}
+
+		if (StringUtils.containsIgnoreCase(request.getRequestURL(), "/logoff")) {
+			cookieDelete(request, response);
+			response.sendRedirect("/login");
+			return false;
 		}
 
 		Map<String, String> params = new HashMap<>();
@@ -44,6 +54,7 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 			params.put(key, request.getParameter(key));
 		}
 
+		boolean loggedIn = false;
 		if (params.containsKey("login_username")) {
 			if (!StringUtils.trimToEmpty(params.get("login_cookieok")).equals("true")) {
 				response.sendRedirect("/loginCookieCheck");
@@ -52,6 +63,8 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 				if (!login(params, request, response)) {
 					response.sendRedirect("/loginFailed");
 					return false;
+				} else {
+					loggedIn = true;
 				}
 			}
 		}
@@ -62,6 +75,9 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 			return false;
 		}
 
+		if (!loggedIn) {
+			setNewCookie(request, response, user);
+		}
 		return true;
 	}
 
@@ -69,7 +85,12 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 
 		String loginUser = StringUtils.trimToEmpty(params.get("login_username"));
 		String loginPass = StringUtils.trimToEmpty(params.get("login_password"));
-		return checkAuthentication(loginUser, loginPass);
+		if (checkAuthentication(loginUser, loginPass)) {
+			setNewCookie(request, response, loginUser);
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	public boolean checkAuthentication(String user, String pass) {
@@ -79,18 +100,17 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 			RestTemplate rest = new RestTemplate();
 			HttpHeaders headers = new HttpHeaders();
 			headers.add("Accept", "*/*");
+			headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-			HttpEntity<String> requestEntity = new HttpEntity<String>("", headers);
-			ResponseEntity<String> responseEntity = rest.exchange(url, HttpMethod.GET, requestEntity, String.class);
+			MultiValueMap<String, String> map = new LinkedMultiValueMap<String, String>();
+			map.add("user", user);
+			map.add("pass", pass);
+			map.add("application", "home");
 
-			String response = responseEntity.getBody();
+			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<MultiValueMap<String, String>>(map, headers);
+			ResponseEntity<String> responseEntity = rest.postForEntity(authURL, request, String.class);
+			return responseEntity.getStatusCode().is2xxSuccessful();
 
-			HttpClient client = new HttpClient();
-			PostMethod method = new PostMethod(url);
-
-			method.addParameter("user", user);
-			method.addParameter("pass", pass);
-			return client.executeMethod(method) == 200;
 		} catch (Exception e) {
 			System.out.println(e);
 			return false;
