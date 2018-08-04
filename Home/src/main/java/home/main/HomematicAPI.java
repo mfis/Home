@@ -1,8 +1,6 @@
 package home.main;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.nio.charset.Charset;
@@ -12,7 +10,6 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -114,29 +111,17 @@ public class HomematicAPI {
 
 	}
 
-	public Properties getApplicationProperties() {
-
-		Properties properties = new Properties();
-		try {
-			File file = new File(System.getProperty("user.home") + "/documents/config/home.properties");
-			properties.load(new FileInputStream(file));
-			return properties;
-		} catch (Exception e) {
-			throw new RuntimeException("Properties could not be loaded", e);
-		}
-	}
-
 	HttpHeaders createHeaders() {
-
-		Properties properties = getApplicationProperties();
 
 		return new HttpHeaders() {
 			private static final long serialVersionUID = 1L;
 			{
-				String auth = properties.getProperty("xmlapi.auth.user") + ":" + properties.getProperty("xmlapi.auth.pass");
+				String auth = ExternalPropertiesDAO.getInstance().read("xmlapi.auth.user") + ":" + ExternalPropertiesDAO.getInstance().read("xmlapi.auth.pass");
 				byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(Charset.forName("US-ASCII")));
 				String authHeader = "Basic " + new String(encodedAuth);
 				set("Authorization", authHeader);
+				set("Accept", "*/*");
+				set("Cache-Control", "no-cache");
 			}
 		};
 	}
@@ -145,7 +130,6 @@ public class HomematicAPI {
 
 		RestTemplate rest = new RestTemplate();
 		HttpHeaders headers = createHeaders();
-		headers.add("Accept", "*/*");
 
 		HttpEntity<String> requestEntity = new HttpEntity<String>("", headers);
 		ResponseEntity<String> responseEntity = rest.exchange(url, HttpMethod.GET, requestEntity, String.class);

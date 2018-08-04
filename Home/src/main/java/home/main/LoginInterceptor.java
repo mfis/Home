@@ -69,8 +69,8 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 			}
 		}
 
-		String user = StringUtils.trimToNull(CookieMap.getInstance().read(cookieRead(request)));
-		if (user == null) {
+		String user = StringUtils.trimToNull(ExternalPropertiesDAO.getInstance().read(cookieRead(request)));
+		if (user == null && !loggedIn) {
 			response.sendRedirect("/login");
 			return false;
 		}
@@ -100,6 +100,7 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 			RestTemplate rest = new RestTemplate();
 			HttpHeaders headers = new HttpHeaders();
 			headers.add("Accept", "*/*");
+			headers.add("Cache-Control", "no-cache");
 			headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
 			MultiValueMap<String, String> map = new LinkedMultiValueMap<String, String>();
@@ -137,10 +138,10 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 
 		String uuid = UUID.randomUUID().toString();
 		cookieWrite(response, uuid);
-		CookieMap.getInstance().write(uuid, loginUser);
+		ExternalPropertiesDAO.getInstance().write(uuid, loginUser);
 		if (StringUtils.isNotBlank(oldCookieID)) {
 			if (oldCookieID != null) {
-				CookieMap.getInstance().delete(oldCookieID);
+				ExternalPropertiesDAO.getInstance().delete(oldCookieID);
 			}
 		}
 
@@ -151,7 +152,7 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 
 		String oldCookie = cookieRead(request);
 		if (oldCookie != null) {
-			CookieMap.getInstance().delete(oldCookie);
+			ExternalPropertiesDAO.getInstance().delete(oldCookie);
 		}
 
 		Cookie cookie = new Cookie(COOKIE_NAME, "");
