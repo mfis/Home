@@ -1,0 +1,76 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>Zuhause</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<link rel='stylesheet' href='/webjars/bootstrap/css/bootstrap.min.css'>
+<link rel="stylesheet" href="main.css" />
+
+</head>
+<body>
+
+	<div
+		th:replace="fragments :: navigation (brand='Zuhause', item='Historie', itemlink='#')"></div>
+
+	<div class="container">
+
+		<div style="height: 20px;"></div>
+
+		<!-- Wohnzimmer -->
+		<div th:replace="fragments :: title (name='Wohnzimmer')"></div>
+		<div th:replace="fragments :: temperature 
+				(postfix='', class=${tempLivingroom_colorClass}, temp=${tempLivingroom}, hint='', boost='')">
+		</div>
+
+		<!-- Küche -->
+		<div th:replace="fragments :: title (name='Küche')"></div>
+		<div class="alert alert-secondary">
+			<a>Fenster-Lampe</a>
+			<h4 th:text="${switchKitchen}"></h4>
+			<button type="button" th:onclick="${switchKitchen_link}"
+				class="btn btn-secondary btn-sm" th:text="${switchKitchen_label}"></button>
+		</div>
+		
+		<!-- Badezimmer -->
+		<div th:replace="fragments :: title (name='Badezimmer')"></div>
+		<div th:replace="fragments :: temperature 
+				(postfix='', class=${tempBathroom_colorClass}, temp=${tempBathroom}, hint='', boost=${tempBathroom_linkBoost})">
+		</div>
+
+		<!-- Kinderzimmer -->
+		<div th:replace="fragments :: title (name='Kinderzimmer')"></div>
+
+		<div th:replace="fragments :: temperature 
+				(postfix='', class=${tempKids_colorClass}, temp=${tempKids}, hint='', boost='')">
+		</div>
+
+		<!-- Schlafzimmer -->
+		<div th:replace="fragments :: title (name='Schlafzimmer')"></div>
+
+		<div th:replace="fragments :: temperature 
+				(postfix='', class=${tempBedroom_colorClass}, temp=${tempBedroom}, hint='', boost='')">
+		</div>
+
+		<!-- Draussen -->
+		<div th:replace="fragments :: title (name='Draußen')"></div>
+		<div th:replace="fragments :: temperature 
+				(postfix='Fassade', class=${tempMinHouse_colorClass}, temp=${tempMinHouse}, hint='', boost='')">
+		</div>
+		<div th:replace="fragments :: sunStatus (name='Wetter', class=${tempDiffHouse_colorClass}, text=${tempDiffHouse})"></div>
+
+		<!-- Energie -->
+		<div th:replace="fragments :: title (name='Energie')"></div>
+
+		<div class="alert alert-secondary">
+			<a>Stromverbrauch</a>
+			<h4 th:text="${powerHouse}"></h4>
+		</div>
+
+	</div>
+
+	<script type="text/javascript" src="/webjars/jquery/jquery.min.js"></script>
+	<script type="text/javascript" src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,47 @@
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+<title>Zuhause - Login</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel='stylesheet' href='/webjars/bootstrap/css/bootstrap.min.css'>
+</head>
+
+<body>
+
+	<div class="container">
+		<div class="page-header">
+			<h1>Login</h1>
+			<p class="lead">Bitte erst einloggen</p>
+		</div>
+	</div>
+
+	<form name="f" th:action="@{/login}" method="post">
+		<fieldset>
+			<legend>Please Login</legend>
+			<div th:if="${param.error}" class="alert alert-error">Invalid
+				username and password.</div>
+			<div th:if="${param.logout}" class="alert alert-success">You
+				have been logged out.</div>
+			<label for="username">Username</label> <input type="text"
+				id="username" name="login_username" /> <label for="password">Password</label>
+			<input type="password" id="login_password" name="password" />
+			
+				<a><b>Cookie-Information:</b><br/>Diese Internetseite verwendet so genannte Cookies. Um mehr zu erfahren, klicken Sie bitte hier:</a>
+				<p/>
+				<a href="/*LAWLINK*/" target="_blank">Impressum und Datenschutzerkl&auml;rung</a><br/><br/>
+				<input type="checkbox" id="cookiecheck" name="cookieok" value="true"></input>
+				<label for="cookiecheck">Ich bin einverstanden</label>
+				<br/><br/>
+							
+			<div class="form-actions">
+				<button type="submit" class="btn">Log in</button>
+			</div>
+		</fieldset>
+	</form>
+
+	<script type="text/javascript" src="/webjars/jquery/jquery.min.js"></script>
+	<script type="text/javascript"
+		src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+
+</body>
+</html>

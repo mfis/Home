@@ -1,0 +1,55 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+	<!-- Navigation -->
+	<nav class="navbar navbar-expand-lg navbar-dark bg-dark"
+		th:fragment="navigation (brand, item, itemlink)"
+		th:assert="${!#strings.isEmpty(brand) and !#strings.isEmpty(item) and !#strings.isEmpty(itemlink)}">
+		<a class="navbar-brand" href="#" th:text="${brand}">brand</a>
+		<button class="navbar-toggler" type="button" data-toggle="collapse"
+			data-target="#navbarSupportedContent"
+			aria-controls="navbarSupportedContent" aria-expanded="false"
+			aria-label="Toggle navigation">
+			<span class="navbar-toggler-icon"></span>
+		</button>
+		<div class="collapse navbar-collapse" id="navbarSupportedContent">
+			<ul class="navbar-nav mr-auto">
+				<li class="nav-item"><a class="nav-link" th:href="${itemlink}"
+					th:text="${item}">item</a></li>
+			</ul>
+		</div>
+	</nav>
+
+	<!-- Titel -->
+	<div class="starter-template" th:fragment="title (name)"
+		th:assert="${!#strings.isEmpty(name)}">
+		<h4>
+			<span th:text="${name}">Name</span>
+		</h4>
+	</div>
+
+	<!-- Temperature -->
+	<div th:fragment="temperature (postfix, class, temp, hint, boost)"
+		th:class="'alert alert-' + ${class}">
+		<a th:text="'Temperatur ' + ${postfix}">postfix</a>
+		<h4 th:text="${temp}"></h4>
+		<span th:if="${!#strings.isEmpty(hint)}"
+			class="badge badge-pill badge-dark"
+			th:text="'Empfehlung: ' + ${hint}">hint</span>
+		<button th:if="${#strings.startsWith(boost,'window.location.href')}"
+			type="button" th:onclick="${boost}" class="btn btn-secondary btn-sm">Heizung
+			Boost</button>
+		<button disabled th:if="${#strings.equals(boost,'#')}" type="button"
+			class="btn btn-outline-secondary btn-sm">Heizung Boost ist
+			eingeschaltet</button>
+	</div>
+
+	<!-- Sonne -->
+	<div th:fragment="sunStatus (name, class, text)" th:class="'alert alert-' + ${class}">
+		<a th:text="${name}">(title</a>
+		<h4 th:text="${text}"></h4>
+	</div>
+
+</body>
+</html>
