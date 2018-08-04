@@ -3,10 +3,8 @@ package home.main;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +12,7 @@ import java.util.Map;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -116,10 +115,9 @@ public class HomematicAPI {
 		return new HttpHeaders() {
 			private static final long serialVersionUID = 1L;
 			{
-				String auth = ExternalPropertiesDAO.getInstance().read("xmlapi.auth.user") + ":" + ExternalPropertiesDAO.getInstance().read("xmlapi.auth.pass");
-				byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(Charset.forName("US-ASCII")));
-				String authHeader = "Basic " + new String(encodedAuth);
-				set("Authorization", authHeader);
+				String plainClientCredentials = ExternalPropertiesDAO.getInstance().read("xmlapi.auth.user") + ":" + ExternalPropertiesDAO.getInstance().read("xmlapi.auth.pass");
+				String base64ClientCredentials = new String(Base64.encodeBase64(plainClientCredentials.getBytes()));
+				set("Authorization", "Basic " + base64ClientCredentials);
 				set("Accept", "*/*");
 				set("Cache-Control", "no-cache");
 			}
