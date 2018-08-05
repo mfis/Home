@@ -55,13 +55,12 @@
 		<!-- Draussen -->
 		<div th:replace="fragments :: title (name='Draußen')"></div>
 		<div th:replace="fragments :: temperature 
-				(postfix='Fassade', class=${tempMinHouse_colorClass}, temp=${tempMinHouse}, hint='', boost='')">
+				(postfix=${tempMinHouse_postfix}, class=${tempMinHouse_colorClass}, temp=${tempMinHouse}, hint='', boost='')">
 		</div>
-		<div th:replace="fragments :: sunStatus (name='Wetter', class=${tempDiffHouse_colorClass}, text=${tempDiffHouse})"></div>
+		<div th:replace="fragments :: sunStatus (name=${tempMaxHouse_name}, class=${tempMaxHouse_colorClass}, text=${tempMaxHouse})"></div>
 
 		<!-- Energie -->
 		<div th:replace="fragments :: title (name='Energie')"></div>
-
 		<div class="alert alert-secondary">
 			<a>Stromverbrauch</a>
 			<h4 th:text="${powerHouse}"></h4>

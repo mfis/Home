@@ -4,7 +4,6 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
-import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,14 +47,6 @@ public class HomematicAPI {
 	public Boolean getAsBoolean(String key) {
 		if (currentValues.containsKey(key)) {
 			return Boolean.valueOf(currentValues.get(key));
-		} else {
-			return null;
-		}
-	}
-
-	public String getAsFormattedBigDecimal(String key) {
-		if (currentValues.containsKey(key)) {
-			return new DecimalFormat("0.#").format(new BigDecimal(currentValues.get(key)));
 		} else {
 			return null;
 		}

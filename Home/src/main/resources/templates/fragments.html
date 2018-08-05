@@ -48,7 +48,7 @@
 	</div>
 
 	<!-- Sonne -->
-	<div th:fragment="sunStatus (name, class, text)" th:class="'alert alert-' + ${class}">
+	<div th:fragment="sunStatus (name, class, text)" th:if="${!#strings.isEmpty(text)}" th:class="'alert alert-' + ${class}">
 		<a th:text="${name}">(title</a>
 		<h4 th:text="${text}"></h4>
 	</div>
