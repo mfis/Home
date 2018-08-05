@@ -3,9 +3,9 @@ package domain;
 public enum Intensity {
 
 	NO("", ""), //
-	LOW("leicht sonnig", "leicht aufgeheizt"), //
-	MEDIUM("sonnig", "aufgeheizt"), //
-	HIGH("stark sonnig", "stark aufgeheizt"), //
+	LOW("Leicht sonnig", "Leicht aufgeheizt"), //
+	MEDIUM("Sonnig", "Aufgeheizt"), //
+	HIGH("Stark sonnig", "Stark aufgeheizt"), //
 	;
 
 	private String sun;

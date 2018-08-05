@@ -5,7 +5,6 @@ import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.ui.Model;
 
 import home.main.HomematicAPI;
@@ -188,15 +187,11 @@ public class HouseService {
 		model.addAttribute(viewKeyMin + "_postfix", house.getConclusionFacadeMinTempName());
 		formatTemperature(model, viewKeyMin, house.getConclusionFacadeMinTemp(), null, null);
 
-		String valueSun = house.getConclusionFacadeMaxTempSunIntensity().getSun();
-		String valueHeating = house.getConclusionFacadeMaxTempHeatingIntensity().getHeating();
-		String value = valueSun;
-		if (StringUtils.isNotBlank(valueSun) && StringUtils.isNotBlank(valueHeating)) {
-			value += ", ";
+		if (house.getConclusionFacadeMaxTempSunIntensity().ordinal() >= house.getConclusionFacadeMaxTempHeatingIntensity().ordinal()) {
+			model.addAttribute(viewKeyMax, house.getConclusionFacadeMaxTempSunIntensity().getSun());
+		} else {
+			model.addAttribute(viewKeyMax, house.getConclusionFacadeMaxTempHeatingIntensity().getHeating());
 		}
-		value += valueHeating;
-
-		model.addAttribute(viewKeyMax, value);
 		model.addAttribute(viewKeyMax + "_name", "Fassade " + house.getConclusionFacadeMaxTempName());
 
 		switch (Intensity.max(house.getConclusionFacadeMaxTempSunIntensity(), house.getConclusionFacadeMaxTempHeatingIntensity())) {
