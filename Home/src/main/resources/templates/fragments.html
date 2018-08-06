@@ -36,15 +36,15 @@
 		th:class="'alert alert-' + ${class}">
 		<a th:text="'Temperatur ' + ${postfix}">postfix</a>
 		<h4 th:text="${temp}"></h4>
-		<span th:if="${!#strings.isEmpty(hint)}"
-			class="badge badge-pill badge-dark"
-			th:text="'Empfehlung: ' + ${hint}">hint</span>
 		<button th:if="${#strings.startsWith(boost,'window.location.href')}"
 			type="button" th:onclick="${boost}" class="btn btn-secondary btn-sm">Heizung
 			Boost</button>
 		<button disabled th:if="${#strings.equals(boost,'#')}" type="button"
 			class="btn btn-outline-secondary btn-sm">Heizung Boost ist
 			eingeschaltet</button>
+		<span th:if="${!#strings.isEmpty(hint)}"
+			class="badge badge-pill badge-light"
+			th:text="'Empfehlung: ' + ${hint}">hint</span>
 	</div>
 
 	<!-- Sonne -->

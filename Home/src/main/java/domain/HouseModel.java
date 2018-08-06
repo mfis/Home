@@ -50,6 +50,14 @@ public class HouseModel {
 
 	private Intensity conclusionFacadeMaxTempHeatingIntensity;
 
+	private String conclusionHintKidsRoom;
+
+	private String conclusionHintBathRoom;
+
+	private String conclusionHintBedRoom;
+
+	private String conclusionHintLivingRoom;
+
 	// ----------
 
 	public BigDecimal getKidsRoomTemperature() {
@@ -226,5 +234,37 @@ public class HouseModel {
 
 	public void setConclusionFacadeMaxTempHeatingIntensity(Intensity conclusionFacadeMaxTempHeatingIntensity) {
 		this.conclusionFacadeMaxTempHeatingIntensity = conclusionFacadeMaxTempHeatingIntensity;
+	}
+
+	public String getConclusionHintKidsRoom() {
+		return conclusionHintKidsRoom;
+	}
+
+	public void setConclusionHintKidsRoom(String conclusionHintKidsRoom) {
+		this.conclusionHintKidsRoom = conclusionHintKidsRoom;
+	}
+
+	public String getConclusionHintBathRoom() {
+		return conclusionHintBathRoom;
+	}
+
+	public void setConclusionHintBathRoom(String conclusionHintBathRoom) {
+		this.conclusionHintBathRoom = conclusionHintBathRoom;
+	}
+
+	public String getConclusionHintBedRoom() {
+		return conclusionHintBedRoom;
+	}
+
+	public void setConclusionHintBedRoom(String conclusionHintBedRoom) {
+		this.conclusionHintBedRoom = conclusionHintBedRoom;
+	}
+
+	public String getConclusionHintLivingRoom() {
+		return conclusionHintLivingRoom;
+	}
+
+	public void setConclusionHintLivingRoom(String conclusionHintLivingRoom) {
+		this.conclusionHintLivingRoom = conclusionHintLivingRoom;
 	}
 }

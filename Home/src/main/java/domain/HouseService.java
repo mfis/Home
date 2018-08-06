@@ -5,11 +5,14 @@ import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.ui.Model;
 
 import home.main.HomematicAPI;
 
 public class HouseService {
+
+	private final static int TARGET_TEMPERATURE_INSIDE = 22;
 
 	private HouseModel house;
 
@@ -76,33 +79,52 @@ public class HouseService {
 
 		house.setConclusionFacadeSidesDifference(house.getConclusionFacadeMaxTemp().subtract(house.getConclusionFacadeMinTemp()).abs());
 
-		if (house.getConclusionFacadeMaxTempSunHeating().intValue() < 2) {
-			house.setConclusionFacadeMaxTempSunIntensity(Intensity.NO);
-		} else if (house.getConclusionFacadeMaxTempSunHeating().intValue() < 6) {
-			house.setConclusionFacadeMaxTempSunIntensity(Intensity.LOW);
-		} else if (house.getConclusionFacadeMaxTempSunHeating().intValue() < 13) {
-			house.setConclusionFacadeMaxTempSunIntensity(Intensity.MEDIUM);
-		} else {
-			house.setConclusionFacadeMaxTempSunIntensity(Intensity.HIGH);
+		house.setConclusionFacadeMaxTempSunIntensity(lookupIntensity(house.getConclusionFacadeMaxTempSunHeating().intValue()));
+		house.setConclusionFacadeMaxTempHeatingIntensity(lookupIntensity(house.getConclusionFacadeSidesDifference().intValue()));
+
+		house.setConclusionHintKidsRoom(lookupHint(house.getKidsRoomTemperature(), house.getEntranceTemperature(), lookupIntensity(house.getEntranceSunHeatingDiff().intValue())));
+		house.setConclusionHintBathRoom(lookupHint(house.getBathRoomTemperature(), house.getEntranceTemperature(), lookupIntensity(house.getEntranceSunHeatingDiff().intValue())));
+		house.setConclusionHintBedRoom(lookupHint(house.getBedRoomTemperature(), house.getTerraceTemperature(), lookupIntensity(house.getTerraceSunHeatingDiff().intValue())));
+		house.setConclusionHintLivingRoom(
+				lookupHint(house.getLivingRoomTemperature(), house.getTerraceTemperature(), lookupIntensity(house.getTerraceSunHeatingDiff().intValue())));
+
+	}
+
+	private String lookupHint(BigDecimal insideTemperature, BigDecimal outsideTemperature, Intensity sunIntensity) {
+
+		if (insideTemperature == null) {
+			return null;
+		} else if (insideTemperature.intValue() <= TARGET_TEMPERATURE_INSIDE) {
+			// TODO: using sun heating in the winter for warming up rooms
+			return null;
+		} else if (insideTemperature.compareTo(new BigDecimal(TARGET_TEMPERATURE_INSIDE)) > 0 && outsideTemperature.compareTo(insideTemperature) < 0
+				&& sunIntensity.ordinal() <= Intensity.LOW.ordinal()) {
+			return "Fenster öffnen";
+		} else if (insideTemperature.compareTo(new BigDecimal(TARGET_TEMPERATURE_INSIDE)) > 0 && sunIntensity.ordinal() > Intensity.LOW.ordinal()) {
+			return "Rolladen schließen";
 		}
 
-		if (house.getConclusionFacadeSidesDifference().intValue() < 2) {
-			house.setConclusionFacadeMaxTempHeatingIntensity(Intensity.NO);
-		} else if (house.getConclusionFacadeSidesDifference().intValue() < 6) {
-			house.setConclusionFacadeMaxTempHeatingIntensity(Intensity.LOW);
-		} else if (house.getConclusionFacadeSidesDifference().intValue() < 13) {
-			house.setConclusionFacadeMaxTempHeatingIntensity(Intensity.MEDIUM);
+		return null;
+	}
+
+	private Intensity lookupIntensity(int value) {
+		if (value < 3) {
+			return Intensity.NO;
+		} else if (value < 6) {
+			return Intensity.LOW;
+		} else if (value < 13) {
+			return Intensity.MEDIUM;
 		} else {
-			house.setConclusionFacadeMaxTempHeatingIntensity(Intensity.HIGH);
+			return Intensity.HIGH;
 		}
 	}
 
 	public void fillViewModel(Model model) {
 
-		formatTemperature(model, "tempBathroom", house.getBathRoomTemperature(), null, house.isBathRoomBoost());
-		formatTemperature(model, "tempKids", house.getKidsRoomTemperature(), house.getKidsRoomHumidity(), null);
-		formatTemperature(model, "tempLivingroom", house.getLivingRoomTemperature(), house.getLivingRoomHumidity(), null);
-		formatTemperature(model, "tempBedroom", house.getBedRoomTemperature(), house.getBedRoomHumidity(), null);
+		formatTemperature(model, "tempBathroom", house.getBathRoomTemperature(), null, house.isBathRoomBoost(), house.getConclusionHintBathRoom());
+		formatTemperature(model, "tempKids", house.getKidsRoomTemperature(), house.getKidsRoomHumidity(), null, house.getConclusionHintKidsRoom());
+		formatTemperature(model, "tempLivingroom", house.getLivingRoomTemperature(), house.getLivingRoomHumidity(), null, house.getConclusionHintLivingRoom());
+		formatTemperature(model, "tempBedroom", house.getBedRoomTemperature(), house.getBedRoomHumidity(), null, house.getConclusionHintBedRoom());
 
 		formatFacadeTemperatures(model, "tempMinHouse", "tempMaxHouse", house);
 
@@ -146,7 +168,7 @@ public class HouseService {
 		}
 	}
 
-	private void formatTemperature(Model model, String viewKey, BigDecimal temperature, BigDecimal humidity, Boolean boost) {
+	private void formatTemperature(Model model, String viewKey, BigDecimal temperature, BigDecimal humidity, Boolean boost, String hint) {
 
 		String frmt = "";
 		String colorClass = "secondary";
@@ -180,12 +202,13 @@ public class HouseService {
 		model.addAttribute(viewKey, frmt);
 		model.addAttribute(viewKey + "_colorClass", colorClass);
 		model.addAttribute(viewKey + "_linkBoost", linkBoost);
+		model.addAttribute(viewKey + "_hint", StringUtils.trimToEmpty(hint));
 	}
 
 	private void formatFacadeTemperatures(Model model, String viewKeyMin, String viewKeyMax, HouseModel house) {
 
 		model.addAttribute(viewKeyMin + "_postfix", house.getConclusionFacadeMinTempName());
-		formatTemperature(model, viewKeyMin, house.getConclusionFacadeMinTemp(), null, null);
+		formatTemperature(model, viewKeyMin, house.getConclusionFacadeMinTemp(), null, null, null);
 
 		if (house.getConclusionFacadeMaxTempSunIntensity().ordinal() >= house.getConclusionFacadeMaxTempHeatingIntensity().ordinal()) {
 			model.addAttribute(viewKeyMax, house.getConclusionFacadeMaxTempSunIntensity().getSun());
