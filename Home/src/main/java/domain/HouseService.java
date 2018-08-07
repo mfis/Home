@@ -79,14 +79,13 @@ public class HouseService {
 
 		house.setConclusionFacadeSidesDifference(house.getConclusionFacadeMaxTemp().subtract(house.getConclusionFacadeMinTemp()).abs());
 
-		house.setConclusionFacadeMaxTempSunIntensity(lookupIntensity(house.getConclusionFacadeMaxTempSunHeating().intValue()));
-		house.setConclusionFacadeMaxTempHeatingIntensity(lookupIntensity(house.getConclusionFacadeSidesDifference().intValue()));
+		house.setConclusionFacadeMaxTempSunIntensity(lookupIntensity(house.getConclusionFacadeMaxTempSunHeating(), 3));
+		house.setConclusionFacadeMaxTempHeatingIntensity(lookupIntensity(house.getConclusionFacadeSidesDifference(), 1));
 
-		house.setConclusionHintKidsRoom(lookupHint(house.getKidsRoomTemperature(), house.getEntranceTemperature(), lookupIntensity(house.getEntranceSunHeatingDiff().intValue())));
-		house.setConclusionHintBathRoom(lookupHint(house.getBathRoomTemperature(), house.getEntranceTemperature(), lookupIntensity(house.getEntranceSunHeatingDiff().intValue())));
-		house.setConclusionHintBedRoom(lookupHint(house.getBedRoomTemperature(), house.getTerraceTemperature(), lookupIntensity(house.getTerraceSunHeatingDiff().intValue())));
-		house.setConclusionHintLivingRoom(
-				lookupHint(house.getLivingRoomTemperature(), house.getTerraceTemperature(), lookupIntensity(house.getTerraceSunHeatingDiff().intValue())));
+		house.setConclusionHintKidsRoom(lookupHint(house.getKidsRoomTemperature(), house.getEntranceTemperature(), lookupIntensity(house.getEntranceSunHeatingDiff(), 3)));
+		house.setConclusionHintBathRoom(lookupHint(house.getBathRoomTemperature(), house.getEntranceTemperature(), lookupIntensity(house.getEntranceSunHeatingDiff(), 3)));
+		house.setConclusionHintBedRoom(lookupHint(house.getBedRoomTemperature(), house.getTerraceTemperature(), lookupIntensity(house.getTerraceSunHeatingDiff(), 1)));
+		house.setConclusionHintLivingRoom(lookupHint(house.getLivingRoomTemperature(), house.getTerraceTemperature(), lookupIntensity(house.getTerraceSunHeatingDiff(), 1)));
 
 	}
 
@@ -107,12 +106,12 @@ public class HouseService {
 		return null;
 	}
 
-	private Intensity lookupIntensity(int value) {
-		if (value < 3) {
+	private Intensity lookupIntensity(BigDecimal value, int noIntensityGate) {
+		if (value.compareTo(new BigDecimal(noIntensityGate)) < 0) {
 			return Intensity.NO;
-		} else if (value < 6) {
+		} else if (value.compareTo(new BigDecimal(6)) < 0) {
 			return Intensity.LOW;
-		} else if (value < 13) {
+		} else if (value.compareTo(new BigDecimal(13)) < 0) {
 			return Intensity.MEDIUM;
 		} else {
 			return Intensity.HIGH;
@@ -177,7 +176,7 @@ public class HouseService {
 			// Temperature and humidity
 			frmt += format(temperature) + " " + "\u00b0" + "C";
 			if (humidity != null) {
-				frmt += ", " + format(humidity) + " % r.F.";
+				frmt += ", " + format(humidity) + " %";
 			}
 			// Background color
 			if (temperature.compareTo(new BigDecimal("25")) > 0) {
