@@ -39,11 +39,11 @@ public class HouseService {
 		house.setKidsRoomTemperature(readActTemperature("HmIP-RF.000E97099314A3", "1"));
 		house.setKidsRoomHumidity(readHumidity("HmIP-RF.000E97099314A3", "1"));
 
-		house.setLivingRoomTemperature(readActTemperature("?", "?"));
-		house.setLivingRoomHumidity(readHumidity("?", "?"));
+		house.setLivingRoomTemperature(readActTemperature("HmIP-RF.000E97099312D5", "1"));
+		house.setLivingRoomHumidity(readHumidity("HmIP-RF.000E97099312D5", "1"));
 
-		house.setBedRoomTemperature(readActTemperature("?", "?"));
-		house.setBedRoomHumidity(readHumidity("?", "?"));
+		house.setBedRoomTemperature(readActTemperature("HmIP-RF.000E97099314C4", "1"));
+		house.setBedRoomHumidity(readHumidity("HmIP-RF.000E97099314C4", "1"));
 
 		house.setTerraceTemperature(readTemperature("BidCos-RF.OEQ0801741", "2"));
 		house.setTerraceSunHeatingDiff(readTemperature("BidCos-RF.OEQ0801741", "3"));
@@ -84,8 +84,8 @@ public class HouseService {
 
 		house.setConclusionHintKidsRoom(lookupHint(house.getKidsRoomTemperature(), house.getEntranceTemperature(), lookupIntensity(house.getEntranceSunHeatingDiff(), 3)));
 		house.setConclusionHintBathRoom(lookupHint(house.getBathRoomTemperature(), house.getEntranceTemperature(), lookupIntensity(house.getEntranceSunHeatingDiff(), 3)));
-		house.setConclusionHintBedRoom(lookupHint(house.getBedRoomTemperature(), house.getTerraceTemperature(), lookupIntensity(house.getTerraceSunHeatingDiff(), 1)));
-		house.setConclusionHintLivingRoom(lookupHint(house.getLivingRoomTemperature(), house.getTerraceTemperature(), lookupIntensity(house.getTerraceSunHeatingDiff(), 1)));
+		house.setConclusionHintBedRoom(lookupHint(house.getBedRoomTemperature(), house.getTerraceTemperature(), lookupIntensity(house.getTerraceSunHeatingDiff(), 3)));
+		house.setConclusionHintLivingRoom(lookupHint(house.getLivingRoomTemperature(), house.getTerraceTemperature(), lookupIntensity(house.getTerraceSunHeatingDiff(), 3)));
 
 	}
 
@@ -174,9 +174,9 @@ public class HouseService {
 		String linkBoost = "";
 		if (temperature != null) {
 			// Temperature and humidity
-			frmt += format(temperature) + " " + "\u00b0" + "C";
+			frmt += format(temperature) + "\u00b0" + "C";
 			if (humidity != null) {
-				frmt += ", " + format(humidity) + " %";
+				frmt += ", " + format(humidity) + "%rF";
 			}
 			// Background color
 			if (temperature.compareTo(new BigDecimal("25")) > 0) {
