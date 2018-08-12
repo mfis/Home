@@ -37,6 +37,10 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 			return true;
 		}
 
+		if (StringUtils.endsWithIgnoreCase(request.getRequestURL(), ".png") || StringUtils.endsWithIgnoreCase(request.getRequestURL(), ".ico")) {
+			return true;
+		}
+
 		if (StringUtils.containsIgnoreCase(request.getRequestURL(), "/login")) {
 			return true;
 		}
