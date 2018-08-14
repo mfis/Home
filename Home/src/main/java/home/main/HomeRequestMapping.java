@@ -39,7 +39,7 @@ public class HomeRequestMapping {
 
 	@RequestMapping("/")
 	public String homePage(Model model, HttpServletRequest request, HttpServletResponse response) throws Exception {
-		HouseModel house = callController(env.getProperty("controllerURL"));
+		HouseModel house = callController(env.getProperty("controllerURL") + "actualstate");
 		new HouseView().fillViewModel(model, house);
 		return "home";
 	}
