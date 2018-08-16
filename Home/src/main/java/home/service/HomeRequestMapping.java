@@ -31,6 +31,9 @@ public class HomeRequestMapping {
 	@Autowired
 	private Environment env;
 
+	@Autowired
+	private HouseView houseView;
+
 	@RequestMapping("/toggle")
 	public String toggle(@RequestParam("key") String key) throws Exception {
 		call(env.getProperty("controllerURL") + "toggle?key=" + key);
@@ -40,7 +43,7 @@ public class HomeRequestMapping {
 	@RequestMapping("/")
 	public String homePage(Model model, HttpServletRequest request, HttpServletResponse response) throws Exception {
 		HouseModel house = callForObject(env.getProperty("controllerURL") + "actualstate");
-		new HouseView().fillViewModel(model, house);
+		houseView.fillViewModel(model, house);
 		return "home";
 	}
 

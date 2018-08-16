@@ -4,8 +4,10 @@ import java.math.BigDecimal;
 import java.text.DecimalFormat;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Component;
 import org.springframework.ui.Model;
 
+@Component
 public class HouseView {
 
 	public void fillViewModel(Model model, HouseModel house) {
