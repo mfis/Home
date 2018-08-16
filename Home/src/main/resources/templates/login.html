@@ -1,10 +1,6 @@
 <html xmlns:th="http://www.thymeleaf.org">
 
-<head>
-<title>Home - Login</title>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<link rel='stylesheet' href='/webjars/bootstrap/css/bootstrap.min.css'>
-</head>
+<head th:replace="fragments :: head (name='Zuhause - Login')"></head>
 
 <body>
 
@@ -21,22 +17,26 @@
 		<div th:class="'alert alert-secondary'">
 			<fieldset>
 				<label for="username">Benutzername</label> 
+				<br/>
 				<input type="text" id="username" name="login_username" /> 
 				<br/>
 				<label for="password">Passwort</label>
+				<br/>
 				<input type="password" id="password" name="login_password" />
 				<br/>
+				<br/>
 				
-					<a><b>Cookie-Information:</b><br/>Diese Internetseite verwendet so genannte Cookies. Um mehr zu erfahren, klicken Sie bitte hier:</a>
-					<p/>
-					<a th:href="${lawLink}" target="_blank">Impressum und Datenschutzerkl&auml;rung</a><br/><br/>
-					<input type="checkbox" id="cookiecheck" name="login_cookieok" value="true"></input>
-					<label for="cookiecheck">Ich bin einverstanden</label>
-					<br/><br/>
+				<a><b>Cookie-Information:</b><br/>Diese Internetseite verwendet so genannte Cookies. <br/>Um mehr zu erfahren, klicken Sie bitte hier:</a>
+				<p/>
+				<a th:href="${lawLink}" target="_blank">Impressum und Datenschutzerkl&auml;rung</a><br/><br/>
+				<input type="checkbox" id="cookiecheck" name="login_cookieok" value="true"></input>
+				<label for="cookiecheck">Ich bin einverstanden</label>
+				<br/>
 								
 				<div class="form-actions">
-					<button type="submit" class="btn">anmelden</button>
+					<button type="submit" class="bbtn btn-secondary btn-smtn">anmelden</button>
 				</div>
+				
 			</fieldset>
 		</div>
 	</form>
