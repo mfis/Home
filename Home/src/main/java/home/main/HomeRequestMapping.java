@@ -33,34 +33,36 @@ public class HomeRequestMapping {
 
 	@RequestMapping("/toggle")
 	public String toggle(@RequestParam("key") String key) throws Exception {
-		callController(env.getProperty("controllerURL") + "toggle?key=" + key);
+		call(env.getProperty("controllerURL") + "toggle?key=" + key);
 		return "redirect:/";
 	}
 
 	@RequestMapping("/")
 	public String homePage(Model model, HttpServletRequest request, HttpServletResponse response) throws Exception {
-		HouseModel house = callController(env.getProperty("controllerURL") + "actualstate");
+		HouseModel house = callForObject(env.getProperty("controllerURL") + "actualstate");
 		new HouseView().fillViewModel(model, house);
 		return "home";
 	}
 
-	private HouseModel callController(String url) {
+	private HouseModel callForObject(String url) {
+
+		ResponseEntity<String> responseEntity = call(url);
+		try {
+			return new ObjectMapper().readValue(responseEntity.getBody(), HouseModel.class);
+		} catch (Exception e) {
+			throw new RuntimeException("Could not parse JSON file");
+		}
+
+	}
+
+	private ResponseEntity<String> call(String url) {
 
 		RestTemplate rest = new RestTemplate();
 		HttpHeaders headers = createHeaders();
 
 		HttpEntity<String> requestEntity = new HttpEntity<String>("", headers);
 		ResponseEntity<String> responseEntity = rest.exchange(url, HttpMethod.GET, requestEntity, String.class);
-
-		String response = responseEntity.getBody();
-
-		ObjectMapper mapper = new ObjectMapper();
-		try {
-			return mapper.readValue(response, HouseModel.class);
-		} catch (Exception e) {
-			throw new RuntimeException("Could not parse JSON file");
-		}
-
+		return responseEntity;
 	}
 
 	HttpHeaders createHeaders() {
