@@ -1,4 +1,4 @@
-package home.main;
+package home.service;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;

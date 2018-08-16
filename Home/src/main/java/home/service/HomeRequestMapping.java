@@ -1,4 +1,4 @@
-package home.main;
+package home.service;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -19,8 +19,8 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import domain.HouseModel;
-import domain.HouseView;
+import home.domain.HouseModel;
+import home.domain.HouseView;
 
 @Controller
 public class HomeRequestMapping {
@@ -50,7 +50,7 @@ public class HomeRequestMapping {
 		try {
 			return new ObjectMapper().readValue(responseEntity.getBody(), HouseModel.class);
 		} catch (Exception e) {
-			throw new RuntimeException("Could not parse JSON file");
+			throw new RuntimeException("Could not parse JSON file", e);
 		}
 
 	}

@@ -1,8 +1,14 @@
-package domain;
+package home.domain;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.Date;
 
-public class HouseModel {
+public class HouseModel implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+
+	private long dateTime;
 
 	private BigDecimal kidsRoomTemperature;
 
@@ -59,6 +65,11 @@ public class HouseModel {
 	private String conclusionHintLivingRoom;
 
 	// ----------
+
+	public HouseModel() {
+		super();
+		dateTime = new Date().getTime();
+	}
 
 	public BigDecimal getKidsRoomTemperature() {
 		return kidsRoomTemperature;
@@ -266,5 +277,9 @@ public class HouseModel {
 
 	public void setConclusionHintLivingRoom(String conclusionHintLivingRoom) {
 		this.conclusionHintLivingRoom = conclusionHintLivingRoom;
+	}
+
+	public long getDateTime() {
+		return dateTime;
 	}
 }

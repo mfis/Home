@@ -1,4 +1,4 @@
-package domain;
+package home.domain;
 
 public enum Intensity {
 
