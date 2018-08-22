@@ -79,12 +79,16 @@
 	</div>
 	
 	<!-- Strom Listen Eintrag -->
-	<th:block th:fragment="powerEntry (month, energy)">
-	  <div class="list-group-item list-group-item-action flex-column align-items-start">
+	<th:block th:fragment="powerEntry (month, energy, calculated, colorClass)">
+	  <div th:class="'list-group-item list-group-item-' + ${colorClass} + ' flex-column align-items-start'">
 	    <div class="d-flex w-100 justify-content-between">
-	      <h5 class="mb-1" th:text="${month}">List group item heading</h5>
-	      <small th:text="${energy}">3 days ago</small>
+	      <a class="mb-1" th:text="${month}">List group item heading</a>
+	      <a th:text="${energy}">3 days ago</a>
 	    </div>
+	    <div th:if="${!#strings.isEmpty(calculated)}" class="d-flex w-100 justify-content-between">
+	      <small class="mb-1">hochgrechnet</small>
+	      <a th:text="${calculated}">3 days ago</a>
+	    </div>	    
 	  </div>
 	</th:block>
 

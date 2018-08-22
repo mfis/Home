@@ -1,8 +1,5 @@
 package home.service;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -25,7 +22,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import home.domain.HistoryModel;
 import home.domain.HouseModel;
 import home.domain.HouseView;
-import home.domain.PowerHistoryEntry;
 
 @Controller
 public class HomeRequestMapping {
@@ -55,14 +51,7 @@ public class HomeRequestMapping {
 	@RequestMapping("/history")
 	public String history(Model model, HttpServletRequest request, HttpServletResponse response) throws Exception {
 		HistoryModel history = callForObject(env.getProperty("controllerURL") + "history", HistoryModel.class);
-		List<PowerHistoryEntry> list = new LinkedList<>();
-		for (long key : history.getMonthlyPowerConsumption().keySet()) {
-			PowerHistoryEntry entry = new PowerHistoryEntry();
-			entry.setKey("" + key);
-			entry.setValue(history.getMonthlyPowerConsumption().get(key).toString());
-			list.add(entry);
-		}
-		model.addAttribute("power", list);
+		houseView.fillHistoryViewModel(model, history);
 		return "history";
 	}
 

@@ -2,6 +2,13 @@ package home.domain;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.time.YearMonth;
+import java.util.Collections;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -21,6 +28,33 @@ public class HouseView {
 
 		formatSwitch(model, "switchKitchen", house.isKitchenLightSwitchState());
 		formatPower(model, "powerHouse", house.getHouseElectricalPowerConsumption());
+	}
+
+	public void fillHistoryViewModel(Model model, HistoryModel history) {
+
+		List<PowerHistoryEntry> list = new LinkedList<>();
+		PowerHistoryEntry entry = null;
+		BigDecimal lastValue = null;
+		for (long key : history.getMonthlyPowerConsumption().keySet()) {
+			if (lastValue != null) {
+				BigDecimal val = history.getMonthlyPowerConsumption().get(key).subtract(lastValue).divide(new BigDecimal(1000));
+				entry = new PowerHistoryEntry();
+				entry.setColorClass("action");
+				entry.setKey(new SimpleDateFormat("MMM yyyy", Locale.GERMANY).format(new Date(key)));
+				entry.setValue(new DecimalFormat("0").format(val) + " kW/h");
+				list.add(entry);
+			}
+			lastValue = history.getMonthlyPowerConsumption().get(key);
+		}
+
+		YearMonth yearMonthObject = YearMonth.of(1999, 2);
+		int daysInMonth = yearMonthObject.lengthOfMonth();
+
+		entry.setColorClass("secondary");
+		entry.setKey(entry.getKey() + " bisher");
+		entry.setCalculated("nnn kW/h");
+		Collections.reverse(list);
+		model.addAttribute("power", list);
 	}
 
 	private String format(BigDecimal val) {
