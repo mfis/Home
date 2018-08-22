@@ -1,5 +1,8 @@
 package home.service;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -19,8 +22,10 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import home.domain.HistoryModel;
 import home.domain.HouseModel;
 import home.domain.HouseView;
+import home.domain.PowerHistoryEntry;
 
 @Controller
 public class HomeRequestMapping {
@@ -42,16 +47,30 @@ public class HomeRequestMapping {
 
 	@RequestMapping("/")
 	public String homePage(Model model, HttpServletRequest request, HttpServletResponse response) throws Exception {
-		HouseModel house = callForObject(env.getProperty("controllerURL") + "actualstate");
+		HouseModel house = callForObject(env.getProperty("controllerURL") + "actualstate", HouseModel.class);
 		houseView.fillViewModel(model, house);
 		return "home";
 	}
 
-	private HouseModel callForObject(String url) {
+	@RequestMapping("/history")
+	public String history(Model model, HttpServletRequest request, HttpServletResponse response) throws Exception {
+		HistoryModel history = callForObject(env.getProperty("controllerURL") + "history", HistoryModel.class);
+		List<PowerHistoryEntry> list = new LinkedList<>();
+		for (long key : history.getMonthlyPowerConsumption().keySet()) {
+			PowerHistoryEntry entry = new PowerHistoryEntry();
+			entry.setKey("" + key);
+			entry.setValue(history.getMonthlyPowerConsumption().get(key).toString());
+			list.add(entry);
+		}
+		model.addAttribute("power", list);
+		return "history";
+	}
+
+	private <T> T callForObject(String url, Class<T> clazz) {
 
 		ResponseEntity<String> responseEntity = call(url);
 		try {
-			return new ObjectMapper().readValue(responseEntity.getBody(), HouseModel.class);
+			return new ObjectMapper().readValue(responseEntity.getBody(), clazz);
 		} catch (Exception e) {
 			throw new RuntimeException("Could not parse JSON file", e);
 		}

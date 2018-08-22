@@ -1,0 +1,45 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="fragments :: head (name='Historie')"></head>
+
+<body>
+
+	<div
+		th:replace="fragments :: navigation (brand='Historie', item='Zuhause', itemlink='/')"></div>
+
+	<div class="container">
+
+		<div style="height: 20px;"></div>
+
+		<!-- Stromverbrauch -->
+		<div th:replace="fragments :: title (name='Stromverbrauch')"></div>
+
+		<div class="list-group">
+			<th:block th:each="entry : ${power}">
+				<div th:replace="fragments :: powerEntry (month=${entry.key}, energy=${entry.value})"></div>
+			</th:block>
+		</div>
+
+	</div>
+
+	<script type="text/javascript" src="/webjars/jquery/jquery.min.js"></script>
+	<script type="text/javascript"
+		src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+	<script type="text/javascript"
+		src="/webjars/github-com-BoxFactura-pulltorefresh-js/pulltorefresh.min.js"></script>
+
+	<script>
+		var ptr = PullToRefresh.init({
+			mainElement : 'body',
+			instructionsPullToRefresh : 'Ziehen zum aktualisieren',
+			instructionsReleaseToRefresh : 'Loslassen zum aktualisieren',
+			instructionsRefreshing : 'aktualisieren...',
+			onRefresh : function() {
+				window.location.reload();
+			}
+		});
+	</script>
+
+</body>
+</html>

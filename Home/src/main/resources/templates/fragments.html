@@ -60,7 +60,7 @@
 	<div th:fragment="temperature (postfix, class, temp, hint, boost)"
 		th:class="'alert alert-' + ${class}">
 		<a th:text="'Temperatur ' + ${postfix}">postfix</a>
-		<h4><span th:text="${temp}"></span><span th:if="${#strings.endsWith(temp,'%')}">&Phi;</i></span></h4>
+		<h4><span th:text="${temp}"></span><span th:if="${#strings.endsWith(temp,'%')}">&Phi;</span></h4>
 		<button th:if="${#strings.startsWith(boost,'window.location.href')}"
 			type="button" th:onclick="${boost}" class="btn btn-secondary btn-sm">Heizung
 			Boost</button>
@@ -77,6 +77,16 @@
 		<a th:text="${name}">(title</a>
 		<h4 th:text="${text}"></h4>
 	</div>
+	
+	<!-- Strom Listen Eintrag -->
+	<th:block th:fragment="powerEntry (month, energy)">
+	  <div class="list-group-item list-group-item-action flex-column align-items-start">
+	    <div class="d-flex w-100 justify-content-between">
+	      <h5 class="mb-1" th:text="${month}">List group item heading</h5>
+	      <small th:text="${energy}">3 days ago</small>
+	    </div>
+	  </div>
+	</th:block>
 
 </body>
 </html>
