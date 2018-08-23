@@ -1,11 +1,13 @@
 package home.domain;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.time.YearMonth;
+import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -34,25 +36,33 @@ public class HouseView {
 
 		List<PowerHistoryEntry> list = new LinkedList<>();
 		PowerHistoryEntry entry = null;
+		Calendar cal = null;
+		BigDecimal value = null;
 		BigDecimal lastValue = null;
 		for (long key : history.getMonthlyPowerConsumption().keySet()) {
 			if (lastValue != null) {
-				BigDecimal val = history.getMonthlyPowerConsumption().get(key).subtract(lastValue).divide(new BigDecimal(1000));
+				cal = new GregorianCalendar();
+				cal.setTimeInMillis(key);
+				value = history.getMonthlyPowerConsumption().get(key).subtract(lastValue).divide(new BigDecimal(1000));
 				entry = new PowerHistoryEntry();
 				entry.setColorClass("action");
-				entry.setKey(new SimpleDateFormat("MMM yyyy", Locale.GERMANY).format(new Date(key)));
-				entry.setValue(new DecimalFormat("0").format(val) + " kW/h");
+				entry.setKey(new SimpleDateFormat("MMM yyyy", Locale.GERMANY).format(cal.getTime()));
+				entry.setValue(new DecimalFormat("0").format(value) + " kW/h");
 				list.add(entry);
 			}
 			lastValue = history.getMonthlyPowerConsumption().get(key);
 		}
 
-		YearMonth yearMonthObject = YearMonth.of(1999, 2);
+		YearMonth yearMonthObject = YearMonth.of(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1);
 		int daysInMonth = yearMonthObject.lengthOfMonth();
+		int hoursAgo = ((cal.get(Calendar.DAY_OF_MONTH) - 1) * 24) + cal.get(Calendar.HOUR_OF_DAY);
+		int hoursToGo = (daysInMonth * 24) - hoursAgo;
+		BigDecimal calculated = value.add(value.divide(new BigDecimal(hoursAgo), 2, RoundingMode.HALF_UP).multiply(new BigDecimal(hoursToGo)));
 
 		entry.setColorClass("secondary");
 		entry.setKey(entry.getKey() + " bisher");
-		entry.setCalculated("nnn kW/h");
+		entry.setCalculated(new DecimalFormat("0").format(calculated) + " kW/h");
+
 		Collections.reverse(list);
 		model.addAttribute("power", list);
 	}
