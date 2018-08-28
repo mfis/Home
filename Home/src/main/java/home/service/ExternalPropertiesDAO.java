@@ -33,7 +33,7 @@ public class ExternalPropertiesDAO {
 	public synchronized void write(String key, String value) {
 		properties.setProperty(key, value);
 		try {
-			FileOutputStream fos = new FileOutputStream(new File(System.getProperty("user.home") + "/documents/config/home.properties"));
+			FileOutputStream fos = new FileOutputStream(new File(System.getProperty("user.home") + "/documents/config/login.properties"));
 			properties.store(fos, "");
 			fos.flush();
 			fos.close();
@@ -56,7 +56,7 @@ public class ExternalPropertiesDAO {
 	public Properties getApplicationProperties() {
 		properties = new Properties();
 		try {
-			File file = new File(System.getProperty("user.home") + "/documents/config/home.properties");
+			File file = new File(System.getProperty("user.home") + "/documents/config/login.properties");
 			properties.load(new FileInputStream(file));
 			return properties;
 		} catch (Exception e) {

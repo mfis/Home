@@ -37,20 +37,20 @@ public class HomeRequestMapping {
 
 	@RequestMapping("/toggle")
 	public String toggle(@RequestParam("key") String key) throws Exception {
-		call(env.getProperty("controllerURL") + "toggle?key=" + key);
+		call(env.getProperty("controller.url") + "toggle?key=" + key);
 		return "redirect:/";
 	}
 
 	@RequestMapping("/")
 	public String homePage(Model model, HttpServletRequest request, HttpServletResponse response) throws Exception {
-		HouseModel house = callForObject(env.getProperty("controllerURL") + "actualstate", HouseModel.class);
+		HouseModel house = callForObject(env.getProperty("controller.url") + "actualstate", HouseModel.class);
 		houseView.fillViewModel(model, house);
 		return "home";
 	}
 
 	@RequestMapping("/history")
 	public String history(Model model, HttpServletRequest request, HttpServletResponse response) throws Exception {
-		HistoryModel history = callForObject(env.getProperty("controllerURL") + "history", HistoryModel.class);
+		HistoryModel history = callForObject(env.getProperty("controller.url") + "history", HistoryModel.class);
 		houseView.fillHistoryViewModel(model, history);
 		return "history";
 	}
@@ -81,7 +81,7 @@ public class HomeRequestMapping {
 		return new HttpHeaders() {
 			private static final long serialVersionUID = 1L;
 			{
-				String plainClientCredentials = ExternalPropertiesDAO.getInstance().read("xmlapi.auth.user") + ":" + ExternalPropertiesDAO.getInstance().read("xmlapi.auth.pass");
+				String plainClientCredentials = env.getProperty("controller.user") + ":" + env.getProperty("controller.pass");
 				String base64ClientCredentials = new String(Base64.encodeBase64(plainClientCredentials.getBytes()));
 				set("Authorization", "Basic " + base64ClientCredentials);
 				set("Accept", "*/*");
