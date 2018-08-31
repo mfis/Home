@@ -39,29 +39,35 @@ public class HouseView {
 		Calendar cal = null;
 		BigDecimal value = null;
 		BigDecimal lastValue = null;
+		int count = 0;
 		for (long key : history.getMonthlyPowerConsumption().keySet()) {
 			if (lastValue != null) {
 				cal = new GregorianCalendar();
 				cal.setTimeInMillis(key);
 				value = history.getMonthlyPowerConsumption().get(key).subtract(lastValue).divide(new BigDecimal(1000));
 				entry = new PowerHistoryEntry();
-				entry.setColorClass("action");
 				entry.setKey(new SimpleDateFormat("MMM yyyy", Locale.GERMANY).format(cal.getTime()));
 				entry.setValue(new DecimalFormat("0").format(value) + " kW/h");
+				if (count < history.getMonthlyPowerConsumption().size() - 3) {
+					entry.setCollapse(" collapse multi-collapse electricity");
+				}
 				list.add(entry);
 			}
 			lastValue = history.getMonthlyPowerConsumption().get(key);
+			count++;
 		}
 
-		YearMonth yearMonthObject = YearMonth.of(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1);
-		int daysInMonth = yearMonthObject.lengthOfMonth();
-		int hoursAgo = ((cal.get(Calendar.DAY_OF_MONTH) - 1) * 24) + cal.get(Calendar.HOUR_OF_DAY);
-		int hoursToGo = (daysInMonth * 24) - hoursAgo;
-		BigDecimal calculated = value.add(value.divide(new BigDecimal(hoursAgo), 2, RoundingMode.HALF_UP).multiply(new BigDecimal(hoursToGo)));
+		if (cal.get(Calendar.DAY_OF_MONTH) > 1) {
+			YearMonth yearMonthObject = YearMonth.of(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1);
+			int daysInMonth = yearMonthObject.lengthOfMonth();
+			int hoursAgo = ((cal.get(Calendar.DAY_OF_MONTH) - 1) * 24) + cal.get(Calendar.HOUR_OF_DAY);
+			int hoursToGo = (daysInMonth * 24) - hoursAgo;
+			BigDecimal calculated = value.add(value.divide(new BigDecimal(hoursAgo), 2, RoundingMode.HALF_UP).multiply(new BigDecimal(hoursToGo)));
+			entry.setCalculated(new DecimalFormat("0").format(calculated) + " kW/h");
+		}
 
-		entry.setColorClass("secondary");
+		entry.setColorClass(" list-group-item-secondary");
 		entry.setKey(entry.getKey() + " bisher");
-		entry.setCalculated(new DecimalFormat("0").format(calculated) + " kW/h");
 
 		Collections.reverse(list);
 		model.addAttribute("power", list);

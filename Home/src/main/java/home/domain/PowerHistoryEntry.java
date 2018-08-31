@@ -10,10 +10,13 @@ public class PowerHistoryEntry {
 
 	private String calculated;
 
+	private String collapse;
+
 	public PowerHistoryEntry() {
 		super();
 		colorClass = "";
 		calculated = "";
+		collapse = "";
 	}
 
 	public String getKey() {
@@ -46,5 +49,13 @@ public class PowerHistoryEntry {
 
 	public void setCalculated(String calculated) {
 		this.calculated = calculated;
+	}
+
+	public String getCollapse() {
+		return collapse;
+	}
+
+	public void setCollapse(String collapse) {
+		this.collapse = collapse;
 	}
 }
