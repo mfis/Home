@@ -68,9 +68,9 @@
 			<plugin>
 				<groupId>StaticResourceProcessing</groupId>
 				<artifactId>StaticResourceProcessing</artifactId>
-				<version>1.2.1</version>
+				<version>1.4.0</version>
 				<configuration>
-					<webContentSourceDir>src/main/resources</webContentSourceDir>
+					<webContentSourceDir>src/main/resources/static</webContentSourceDir>
 					<webContentDestDir>src/main/resources/static</webContentDestDir>
 					<webContentTempDir>src/main/resources/static/temp</webContentTempDir>
 					<versionsMapFile></versionsMapFile>
@@ -104,7 +104,7 @@
 											StaticResourceProcessing
 										</artifactId>
 										<versionRange>
-											[1.2.1,)
+											[1.4.0,)
 										</versionRange>
 										<goals>
 											<goal>

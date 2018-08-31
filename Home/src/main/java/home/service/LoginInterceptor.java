@@ -11,6 +11,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -28,10 +30,10 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 
 	private static final String COOKIE_NAME = "HomeLoginCookie";
 
+	private Log logger = LogFactory.getLog(LoginInterceptor.class);
+
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-
-		// System.out.println("Request URL: " + request.getRequestURL());
 
 		if (StringUtils.containsIgnoreCase(request.getRequestURL(), "/webjars/")) {
 			return true;
@@ -45,7 +47,12 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 			return true;
 		}
 
+		if (StringUtils.containsIgnoreCase(request.getRequestURL(), "/error")) {
+			return true;
+		}
+
 		if (StringUtils.containsIgnoreCase(request.getRequestURL(), "/logoff")) {
+			logger.info("manual logout");
 			cookieDelete(request, response);
 			response.sendRedirect("/login");
 			return false;
@@ -65,6 +72,7 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 				return false;
 			} else {
 				if (!login(params, request, response)) {
+					logger.info("login failed");
 					response.sendRedirect("/loginFailed");
 					return false;
 				} else {
@@ -75,6 +83,7 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 
 		String user = StringUtils.trimToNull(ExternalPropertiesDAO.getInstance().read(cookieRead(request)));
 		if (user == null && !loggedIn) {
+			logger.info("no user - redirect to login page - " + request.getRequestURL());
 			response.sendRedirect("/login");
 			return false;
 		}
@@ -140,13 +149,17 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 
 		String oldCookieID = cookieRead(request);
 
-		String uuid = UUID.randomUUID().toString();
+		String uuid = null;
+		if (StringUtils.isBlank(oldCookieID)) {
+			uuid = UUID.randomUUID().toString();
+		} else {
+			uuid = oldCookieID;
+		}
 		cookieWrite(response, uuid);
 		ExternalPropertiesDAO.getInstance().write(uuid, loginUser);
-		if (StringUtils.isNotBlank(oldCookieID)) {
-			if (oldCookieID != null) {
-				ExternalPropertiesDAO.getInstance().delete(oldCookieID);
-			}
+
+		if (!StringUtils.equals(oldCookieID, uuid) && oldCookieID != null) {
+			ExternalPropertiesDAO.getInstance().delete(oldCookieID);
 		}
 
 		return uuid;

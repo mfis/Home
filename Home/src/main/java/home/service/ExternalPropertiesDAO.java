@@ -6,6 +6,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 
+import org.apache.commons.lang3.StringUtils;
+
 public class ExternalPropertiesDAO {
 
 	private static ExternalPropertiesDAO instance;
@@ -31,6 +33,10 @@ public class ExternalPropertiesDAO {
 	}
 
 	public synchronized void write(String key, String value) {
+		String oldValue = read(key);
+		if (StringUtils.equals(oldValue, value)) {
+			return;
+		}
 		properties.setProperty(key, value);
 		try {
 			FileOutputStream fos = new FileOutputStream(new File(System.getProperty("user.home") + "/documents/config/login.properties"));
