@@ -62,8 +62,10 @@ public class HouseView {
 			int daysInMonth = yearMonthObject.lengthOfMonth();
 			int hoursAgo = ((cal.get(Calendar.DAY_OF_MONTH) - 1) * 24) + cal.get(Calendar.HOUR_OF_DAY);
 			int hoursToGo = (daysInMonth * 24) - hoursAgo;
-			BigDecimal calculated = value.add(value.divide(new BigDecimal(hoursAgo), 2, RoundingMode.HALF_UP).multiply(new BigDecimal(hoursToGo)));
-			entry.setCalculated(new DecimalFormat("0").format(calculated) + " kW/h");
+			if (hoursAgo > 0) {
+				BigDecimal calculated = value.add(value.divide(new BigDecimal(hoursAgo), 2, RoundingMode.HALF_UP).multiply(new BigDecimal(hoursToGo)));
+				entry.setCalculated(new DecimalFormat("0").format(calculated) + " kW/h");
+			}
 		}
 
 		entry.setColorClass(" list-group-item-secondary");
