@@ -20,9 +20,9 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import home.domain.HistoryModel;
-import home.domain.HouseModel;
-import home.domain.HouseView;
+import home.domain.service.HouseView;
+import homecontroller.domain.model.HistoryModel;
+import homecontroller.domain.model.HouseModel;
 
 @Controller
 public class HomeRequestMapping {

@@ -1,4 +1,4 @@
-package home.domain;
+package home.domain.service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -15,6 +15,11 @@ import java.util.Locale;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.Model;
+
+import home.domain.model.PowerHistoryEntry;
+import homecontroller.domain.model.HistoryModel;
+import homecontroller.domain.model.HouseModel;
+import homecontroller.domain.model.Intensity;
 
 @Component
 public class HouseView {

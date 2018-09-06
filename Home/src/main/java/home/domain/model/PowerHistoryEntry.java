@@ -1,4 +1,4 @@
-package home.domain;
+package home.domain.model;
 
 public class PowerHistoryEntry {
 
