@@ -88,6 +88,11 @@ public class HouseView {
 		String frmt = "";
 		String colorClass = "secondary";
 		String linkBoost = "";
+
+		if (temperature != null && temperature.compareTo(BigDecimal.ZERO) == 0 && humidity != null && humidity.compareTo(BigDecimal.ZERO) == 0) {
+			frmt = "unbekannt";
+		}
+
 		if (temperature != null) {
 			// Temperature and humidity
 			frmt += format(temperature) + "\u00b0" + "C";

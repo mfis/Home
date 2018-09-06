@@ -4,6 +4,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -57,13 +58,13 @@ public class HomeRequestMapping {
 
 	private <T> T callForObject(String url, Class<T> clazz) {
 
-		ResponseEntity<String> responseEntity = call(url);
 		try {
+			ResponseEntity<String> responseEntity = call(url);
 			return new ObjectMapper().readValue(responseEntity.getBody(), clazz);
 		} catch (Exception e) {
-			throw new RuntimeException("Could not parse JSON file", e);
+			LogFactory.getLog(HomeRequestMapping.class).error("Could not call controller!", e);
+			return null;
 		}
-
 	}
 
 	private ResponseEntity<String> call(String url) {

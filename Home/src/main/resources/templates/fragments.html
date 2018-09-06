@@ -62,7 +62,7 @@
 	<div th:fragment="temperature (postfix, class, temp, hint, boost)"
 		th:class="'alert alert-' + ${class}">
 		<a th:text="'Temperatur ' + ${postfix}">postfix</a>
-		<h4><span th:text="${temp}"></span><span th:if="${#strings.endsWith(temp,'%')}">&Phi;</span></h4>
+		<h4><span th:text="${temp}"></span></h4>
 		<button th:if="${#strings.startsWith(boost,'window.location.href')}"
 			type="button" th:onclick="${boost}" class="btn btn-secondary btn-sm">Heizung
 			Boost</button>
