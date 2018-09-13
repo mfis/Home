@@ -42,6 +42,18 @@ public class HomeRequestMapping {
 		return "redirect:/";
 	}
 
+	@RequestMapping("/heatingboost")
+	public String heatingBoost(@RequestParam("prefix") String prefix) throws Exception {
+		call(env.getProperty("controller.url") + "heatingboost?prefix=" + prefix);
+		return "redirect:/";
+	}
+
+	@RequestMapping("/heatingmanual")
+	public String heatingManual(@RequestParam("prefix") String prefix, @RequestParam("temperature") String temperature) throws Exception {
+		call(env.getProperty("controller.url") + "heatingmanual?prefix=" + prefix + "&temperature=" + temperature);
+		return "redirect:/";
+	}
+
 	@RequestMapping("/")
 	public String homePage(Model model, HttpServletRequest request, HttpServletResponse response) throws Exception {
 		HouseModel house = callForObject(env.getProperty("controller.url") + "actualstate", HouseModel.class);

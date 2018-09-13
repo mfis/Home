@@ -95,6 +95,8 @@ public class HouseView {
 		String frmt = "";
 		String colorClass = "secondary";
 		String linkBoost = "";
+		String linkManual = "";
+		String targetTemp = "";
 
 		if (temperature != null && temperature.compareTo(BigDecimal.ZERO) == 0 && humidity != null && humidity.compareTo(BigDecimal.ZERO) == 0) {
 			frmt = "unbekannt";
@@ -119,8 +121,10 @@ public class HouseView {
 				if (heating.isBoostActive()) {
 					linkBoost = String.valueOf(heating.getBoostMinutesLeft());
 				} else {
-					linkBoost = "window.location.href = '/toggle?key=" + viewKey + "_boost'";
+					linkBoost = "/heatingboost?prefix=" + heating.getProgramNamePrefix();
 				}
+				linkManual = "/heatingmanual?prefix=" + heating.getProgramNamePrefix();
+				targetTemp = format(heating.getTargetTemperature());
 			}
 		} else {
 			frmt += "?";
@@ -129,6 +133,8 @@ public class HouseView {
 		model.addAttribute(viewKey, frmt);
 		model.addAttribute(viewKey + "_colorClass", colorClass);
 		model.addAttribute(viewKey + "_linkBoost", linkBoost);
+		model.addAttribute(viewKey + "_linkManual", linkManual);
+		model.addAttribute(viewKey + "_targetTemp", targetTemp);
 		model.addAttribute(viewKey + "_hint", StringUtils.trimToEmpty(hint));
 	}
 

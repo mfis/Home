@@ -59,7 +59,7 @@
 	</div>
 
 	<!-- Temperature <i class="fab fa-gitter"> -->
-	<div th:fragment="temperature (id, postfix, class, temp, hint, boost, targetTemp)"
+	<div th:fragment="temperature (id, postfix, class, temp, hint, boost, manual, targetTemp)"
 		th:class="'alert alert-' + ${class}">
 		<div><a th:text="'Temperatur ' + ${postfix}">postfix</a></div>
 		<h4><span th:text="${temp}"></span></h4>
@@ -69,13 +69,13 @@
 			<div style="padding-top:5px;"></div>
 			<div class="btn-group" role="group" aria-label="heating">
 	  			<button type="button" th:id="'idHeatMinus' + ${id}" class="btn btn-secondary btn-sm" th:onclick="'adjustHeating' + ${id} + '(-0.5)'">&nbsp;-&nbsp;</button>
-	  			<button type="button" th:id="'idHeatTarget' + ${id}" class="btn btn-secondary btn-sm"><span th:id="'idHeatTargetLabel' + ${id}" th:text="${targetTemp}"></span><span>°C</span></button>
+	  			<button type="button" th:id="'idHeatTarget' + ${id}" class="btn btn-outline-secondary btn-sm"><span th:id="'idHeatTargetLabel' + ${id}" th:text="${targetTemp}"></span><span>°C</span></button>
 	  			<button type="button" th:id="'idHeatPlus' + ${id}" class="btn btn-secondary btn-sm" th:onclick="'adjustHeating' + ${id} + '(+0.5)'">&nbsp;+&nbsp;</button>
 			</div>
 			<span>&nbsp;</span>
-			<button th:if="${#strings.startsWith(boost,'window.location.href')}"
-				type="button" th:onclick="${boost}" class="btn btn-secondary btn-sm">Schnell aufheizen</button>
-			<button disabled th:unless="${#strings.startsWith(boost,'window.location.href')}" type="button"
+			<button th:if="${#strings.startsWith(boost,'/')}"
+				type="button" th:onclick="'window.location.href = \'' + ${boost} + '\''" class="btn btn-secondary btn-sm">Schnell aufheizen</button>
+			<button disabled th:unless="${#strings.startsWith(boost,'/')}" type="button"
 				class="btn btn-outline-secondary btn-sm" th:text="'Noch ' + ${boost} + ' Min. aufheizen'">Boost ist eingeschaltet</button>
 			<script type="text/javascript">
 				var timeout[[${id}]] = null;
@@ -85,15 +85,14 @@
 						clearTimeout(timeout[[${id}]]);
 					}
 					newTargetTemp[[${id}]] = newTargetTemp[[${id}]] + diff;
-					document.getElementById("idHeatTarget[[${id}]]").className = "btn btn-danger btn-sm";
+					document.getElementById("idHeatTarget[[${id}]]").className = "btn btn-outline-danger btn-sm";
 					document.getElementById("idHeatTargetLabel[[${id}]]").innerHTML = newTargetTemp[[${id}]].toFixed(1).replace('.', ',');
 					timeout[[${id}]] = setTimeout(setHeating[[${id}]], 1000 * 1.5);
 				}
 				function setHeating[[${id}]](){
-					document.getElementById("idHeatTarget[[${id}]]").className = "btn btn-success btn-sm";
-					/*** TEST ***/
-					setTimeout(function(){ document.getElementById("idHeatTarget[[${id}]]").className = "btn btn-secondary btn-sm"; }, 500);
-					/*** TEST ***/
+					document.getElementById("idHeatTarget[[${id}]]").className = "btn btn-outline-success btn-sm";
+					// setTimeout(function(){ document.getElementById("idHeatTarget[[${id}]]").className = "btn btn-secondary btn-sm"; }, 500);
+					window.location.href = "[[${manual}]]&temperature=" + newTargetTemp[[${id}]];
 				}
 			</script>
 		</div>	
