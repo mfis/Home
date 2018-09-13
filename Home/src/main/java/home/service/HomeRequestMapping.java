@@ -37,8 +37,8 @@ public class HomeRequestMapping {
 	private HouseView houseView;
 
 	@RequestMapping("/toggle")
-	public String toggle(@RequestParam("key") String key) throws Exception {
-		call(env.getProperty("controller.url") + "toggle?key=" + key);
+	public String toggle(@RequestParam("devIdVar") String devIdVar) throws Exception {
+		call(env.getProperty("controller.url") + "toggle?devIdVar=" + devIdVar);
 		return "redirect:/";
 	}
 

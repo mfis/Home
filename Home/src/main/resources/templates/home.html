@@ -15,7 +15,7 @@
 		<!-- Wohnzimmer -->
 		<div th:replace="fragments :: title (name='Wohnzimmer')"></div>
 		<div th:replace="fragments :: temperature 
-				(postfix='', class=${tempLivingroom_colorClass}, temp=${tempLivingroom}, hint=${tempLivingroom_hint}, boost='')">
+				(id='WO', postfix='', class=${tempLivingroom_colorClass}, temp=${tempLivingroom}, hint=${tempLivingroom_hint}, boost='', targetTemp='')">
 		</div>
 
 		<!-- Küche -->
@@ -30,25 +30,25 @@
 		<!-- Badezimmer -->
 		<div th:replace="fragments :: title (name='Badezimmer')"></div>
 		<div th:replace="fragments :: temperature 
-				(postfix='', class=${tempBathroom_colorClass}, temp=${tempBathroom}, hint=${tempBathroom_hint}, boost=${tempBathroom_linkBoost})">
+				(id='BD', postfix='', class=${tempBathroom_colorClass}, temp=${tempBathroom}, hint=${tempBathroom_hint}, boost=${tempBathroom_linkBoost}, targetTemp='22,0')">
 		</div>
 
 		<!-- Kinderzimmer -->
 		<div th:replace="fragments :: title (name='Kinderzimmer')"></div>
 		<div th:replace="fragments :: temperature 
-				(postfix='', class=${tempKids_colorClass}, temp=${tempKids}, hint=${tempKids_hint}, boost='')">
+				(id='KI', postfix='', class=${tempKids_colorClass}, temp=${tempKids}, hint=${tempKids_hint}, boost='', targetTemp='')">
 		</div>
 
 		<!-- Schlafzimmer -->
 		<div th:replace="fragments :: title (name='Schlafzimmer')"></div>
 		<div th:replace="fragments :: temperature 
-				(postfix='', class=${tempBedroom_colorClass}, temp=${tempBedroom}, hint=${tempBedroom_hint}, boost='')">
+				(id='SC', postfix='', class=${tempBedroom_colorClass}, temp=${tempBedroom}, hint=${tempBedroom_hint}, boost='', targetTemp='')">
 		</div>
 
 		<!-- Draussen -->
 		<div th:replace="fragments :: title (name='Draußen')"></div>
 		<div th:replace="fragments :: temperature 
-				(postfix=${tempMinHouse_postfix}, class=${tempMinHouse_colorClass}, temp=${tempMinHouse}, hint='', boost='')">
+				(id='DR', postfix=${tempMinHouse_postfix}, class=${tempMinHouse_colorClass}, temp=${tempMinHouse}, hint='', boost='', targetTemp='')">
 		</div>
 		<div th:replace="fragments :: sunStatus (name=${tempMaxHouse_name}, class=${tempMaxHouse_colorClass}, text=${tempMaxHouse})"></div>
 

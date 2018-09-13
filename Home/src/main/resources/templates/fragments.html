@@ -59,16 +59,45 @@
 	</div>
 
 	<!-- Temperature <i class="fab fa-gitter"> -->
-	<div th:fragment="temperature (postfix, class, temp, hint, boost)"
+	<div th:fragment="temperature (id, postfix, class, temp, hint, boost, targetTemp)"
 		th:class="'alert alert-' + ${class}">
-		<a th:text="'Temperatur ' + ${postfix}">postfix</a>
+		<div><a th:text="'Temperatur ' + ${postfix}">postfix</a></div>
 		<h4><span th:text="${temp}"></span></h4>
-		<button th:if="${#strings.startsWith(boost,'window.location.href')}"
-			type="button" th:onclick="${boost}" class="btn btn-secondary btn-sm">Heizung
-			Boost</button>
-		<button disabled th:if="${#strings.equals(boost,'#')}" type="button"
-			class="btn btn-outline-secondary btn-sm">Heizung Boost ist
-			eingeschaltet</button>
+			
+		<div th:if="${#strings.length(targetTemp) > 0}">
+			<div><a th:text="'Heizkörpersteuerung'">heating</a></div>	
+			<div style="padding-top:5px;"></div>
+			<div class="btn-group" role="group" aria-label="heating">
+	  			<button type="button" th:id="'idHeatMinus' + ${id}" class="btn btn-secondary btn-sm" th:onclick="'adjustHeating' + ${id} + '(-0.5)'">&nbsp;-&nbsp;</button>
+	  			<button type="button" th:id="'idHeatTarget' + ${id}" class="btn btn-secondary btn-sm"><span th:id="'idHeatTargetLabel' + ${id}" th:text="${targetTemp}"></span><span>°C</span></button>
+	  			<button type="button" th:id="'idHeatPlus' + ${id}" class="btn btn-secondary btn-sm" th:onclick="'adjustHeating' + ${id} + '(+0.5)'">&nbsp;+&nbsp;</button>
+			</div>
+			<span>&nbsp;</span>
+			<button th:if="${#strings.startsWith(boost,'window.location.href')}"
+				type="button" th:onclick="${boost}" class="btn btn-secondary btn-sm">Schnell aufheizen</button>
+			<button disabled th:unless="${#strings.startsWith(boost,'window.location.href')}" type="button"
+				class="btn btn-outline-secondary btn-sm" th:text="'Noch ' + ${boost} + ' Min. aufheizen'">Boost ist eingeschaltet</button>
+			<script type="text/javascript">
+				var timeout[[${id}]] = null;
+				var newTargetTemp[[${id}]] = parseFloat("[[${targetTemp}]]".replace(/,/, '.'));
+				function adjustHeating[[${id}]](diff){
+					if(timeout[[${id}]]){
+						clearTimeout(timeout[[${id}]]);
+					}
+					newTargetTemp[[${id}]] = newTargetTemp[[${id}]] + diff;
+					document.getElementById("idHeatTarget[[${id}]]").className = "btn btn-danger btn-sm";
+					document.getElementById("idHeatTargetLabel[[${id}]]").innerHTML = newTargetTemp[[${id}]].toFixed(1).replace('.', ',');
+					timeout[[${id}]] = setTimeout(setHeating[[${id}]], 1000 * 1.5);
+				}
+				function setHeating[[${id}]](){
+					document.getElementById("idHeatTarget[[${id}]]").className = "btn btn-success btn-sm";
+					/*** TEST ***/
+					setTimeout(function(){ document.getElementById("idHeatTarget[[${id}]]").className = "btn btn-secondary btn-sm"; }, 500);
+					/*** TEST ***/
+				}
+			</script>
+		</div>	
+			
 		<span th:if="${!#strings.isEmpty(hint)}"
 			class="badge badge-pill badge-light"
 			th:text="'Empfehlung: ' + ${hint}">hint</span>

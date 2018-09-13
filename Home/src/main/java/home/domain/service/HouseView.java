@@ -17,23 +17,25 @@ import org.springframework.stereotype.Component;
 import org.springframework.ui.Model;
 
 import home.domain.model.PowerHistoryEntry;
+import homecontroller.domain.model.HeatingModel;
 import homecontroller.domain.model.HistoryModel;
 import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.Intensity;
+import homecontroller.domain.model.SwitchModel;
 
 @Component
 public class HouseView {
 
 	public void fillViewModel(Model model, HouseModel house) {
 
-		formatTemperature(model, "tempBathroom", house.getBathRoomTemperature(), null, house.isBathRoomBoost(), house.getConclusionHintBathRoom());
+		formatTemperature(model, "tempBathroom", house.getBathRoomTemperature(), null, house.getBathRoomHeating(), house.getConclusionHintBathRoom());
 		formatTemperature(model, "tempKids", house.getKidsRoomTemperature(), house.getKidsRoomHumidity(), null, house.getConclusionHintKidsRoom());
 		formatTemperature(model, "tempLivingroom", house.getLivingRoomTemperature(), house.getLivingRoomHumidity(), null, house.getConclusionHintLivingRoom());
 		formatTemperature(model, "tempBedroom", house.getBedRoomTemperature(), house.getBedRoomHumidity(), null, house.getConclusionHintBedRoom());
 
 		formatFacadeTemperatures(model, "tempMinHouse", "tempMaxHouse", house);
 
-		formatSwitch(model, "switchKitchen", house.isKitchenLightSwitchState());
+		formatSwitch(model, "switchKitchen", house.getKitchenWindowLightSwitch());
 		formatPower(model, "powerHouse", house.getHouseElectricalPowerConsumption());
 	}
 
@@ -88,7 +90,7 @@ public class HouseView {
 		}
 	}
 
-	private void formatTemperature(Model model, String viewKey, BigDecimal temperature, BigDecimal humidity, Boolean boost, String hint) {
+	private void formatTemperature(Model model, String viewKey, BigDecimal temperature, BigDecimal humidity, HeatingModel heating, String hint) {
 
 		String frmt = "";
 		String colorClass = "secondary";
@@ -112,10 +114,10 @@ public class HouseView {
 			} else {
 				colorClass = "success";
 			}
-			// Boost
-			if (boost != null) {
-				if (boost) {
-					linkBoost = "#";
+			// Heating
+			if (heating != null) {
+				if (heating.isBoostActive()) {
+					linkBoost = String.valueOf(heating.getBoostMinutesLeft());
 				} else {
 					linkBoost = "window.location.href = '/toggle?key=" + viewKey + "_boost'";
 				}
@@ -173,15 +175,15 @@ public class HouseView {
 		model.addAttribute(viewKey, frmt);
 	}
 
-	private void formatSwitch(Model model, String viewKey, Boolean state) {
+	private void formatSwitch(Model model, String viewKey, SwitchModel switchModel) {
 
 		String frmt = "";
 		String label = "";
 		String link = "#";
-		if (state != null) {
-			frmt += (state ? "Eingeschaltet" : "Ausgeschaltet");
-			label += (state ? "ausschalten" : "einschalten");
-			link = "window.location.href = '/toggle?key=" + viewKey + "'";
+		if (switchModel != null) {
+			frmt += (switchModel.isState() ? "Eingeschaltet" : "Ausgeschaltet");
+			label += (switchModel.isState() ? "ausschalten" : "einschalten");
+			link = "window.location.href = '/toggle?devIdVar=" + switchModel.getDeviceIdVar() + "'";
 		} else {
 			frmt += "?";
 		}
