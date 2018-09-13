@@ -82,9 +82,9 @@ public class HouseView {
 		model.addAttribute("power", list);
 	}
 
-	private String format(BigDecimal val) {
+	private String format(BigDecimal val, boolean rounded) {
 		if (val != null) {
-			return new DecimalFormat("0.#").format(val);
+			return new DecimalFormat("0." + (rounded ? "#" : "0")).format(val);
 		} else {
 			return null;
 		}
@@ -104,9 +104,9 @@ public class HouseView {
 
 		if (temperature != null) {
 			// Temperature and humidity
-			frmt += format(temperature) + "\u00b0" + "C";
+			frmt += format(temperature, false) + "\u00b0" + "C";
 			if (humidity != null) {
-				frmt += ", " + format(humidity) + "%rF";
+				frmt += ", " + format(humidity, true) + "%rF";
 			}
 			// Background color
 			if (temperature.compareTo(new BigDecimal("25")) > 0) {
@@ -124,7 +124,7 @@ public class HouseView {
 					linkBoost = "/heatingboost?prefix=" + heating.getProgramNamePrefix();
 				}
 				linkManual = "/heatingmanual?prefix=" + heating.getProgramNamePrefix();
-				targetTemp = format(heating.getTargetTemperature());
+				targetTemp = format(heating.getTargetTemperature(), false);
 			}
 		} else {
 			frmt += "?";
