@@ -24,23 +24,8 @@
 
 	</div>
 
-	<script type="text/javascript" src="/webjars/jquery/jquery.min.js"></script>
-	<script type="text/javascript"
-		src="/webjars/bootstrap/js/bootstrap.min.js"></script>
-	<script type="text/javascript"
-		src="/webjars/github-com-BoxFactura-pulltorefresh-js/pulltorefresh.min.js"></script>
-
-	<script>
-		var ptr = PullToRefresh.init({
-			mainElement : 'body',
-			instructionsPullToRefresh : 'Ziehen zum aktualisieren',
-			instructionsReleaseToRefresh : 'Loslassen zum aktualisieren',
-			instructionsRefreshing : 'aktualisieren...',
-			onRefresh : function() {
-				window.location.reload();
-			}
-		});
-	</script>
+	<div th:replace="fragments :: scriptresources"></div>
+	<div th:replace="fragments :: pulltorefresh"></div>
 
 </body>
 </html>
