@@ -59,46 +59,51 @@
 	</div>
 
 	<!-- Temperature <i class="fab fa-gitter"> -->
-	<div th:fragment="temperature (id, postfix, class, temp, hint, boost, manual, targetTemp)"
+	<div th:fragment="temperature (postfix, class, temp, hint)"
 		th:class="'alert alert-' + ${class}">
 		<div><a th:text="'Temperatur ' + ${postfix}">postfix</a></div>
 		<h4><span th:text="${temp}"></span></h4>
-			
-		<div th:if="${#strings.length(targetTemp) > 0}">
-			<div><a th:text="'Heizkörpersteuerung'">heating</a></div>	
-			<div style="padding-top:5px;"></div>
-			<div class="btn-group" role="group" aria-label="heating">
-	  			<button type="button" th:if="${#strings.startsWith(boost,'/')}" th:id="'idHeatMinus' + ${id}" class="btn btn-secondary btn-sm" th:onclick="'adjustHeating' + ${id} + '(-0.5)'">&nbsp;-&nbsp;</button>
-	  			<button type="button" th:if="${#strings.startsWith(boost,'/')}" th:id="'idHeatTarget' + ${id}" class="btn btn-outline-secondary btn-sm"><span th:id="'idHeatTargetLabel' + ${id}" th:text="${targetTemp}"></span><span>°C</span></button>
-	  			<button type="button" th:if="${#strings.startsWith(boost,'/')}" th:id="'idHeatPlus' + ${id}" class="btn btn-secondary btn-sm" th:onclick="'adjustHeating' + ${id} + '(+0.5)'">&nbsp;+&nbsp;</button>
-			</div>
-			<span th:if="${#strings.startsWith(boost,'/')}">&nbsp;</span>
-			<button th:if="${#strings.startsWith(boost,'/')}"
-				type="button" th:onclick="'window.location.href = \'' + ${boost} + '\''" class="btn btn-secondary btn-sm">Schnell aufheizen</button>
-			<button th:unless="${#strings.startsWith(boost,'/')}" type="button"
-				class="btn btn-secondary btn-sm" th:onclick="'setHeating' + ${id} + '()'" th:text="'Aufheizen (noch ' + ${boost} + ' Min.) abbrechen'">Boost ist eingeschaltet</button>
-			<script type="text/javascript">
-				var timeout[[${id}]] = null;
-				var newTargetTemp[[${id}]] = parseFloat("[[${targetTemp}]]".replace(/,/, '.'));
-				function adjustHeating[[${id}]](diff){
-					if(timeout[[${id}]]){
-						clearTimeout(timeout[[${id}]]);
-					}
-					newTargetTemp[[${id}]] = newTargetTemp[[${id}]] + diff;
-					document.getElementById("idHeatTarget[[${id}]]").className = "btn btn-danger btn-sm";
-					document.getElementById("idHeatTargetLabel[[${id}]]").innerHTML = newTargetTemp[[${id}]].toFixed(1).replace('.', ',');
-					timeout[[${id}]] = setTimeout(setHeating[[${id}]], 1000 * 1.5);
-				}
-				function setHeating[[${id}]](){
-					window.location.href = "[[${manual}]]&temperature=" + newTargetTemp[[${id}]];
-				}
-			</script>
-		</div>	
 			
 		<span th:if="${!#strings.isEmpty(hint)}"
 			class="badge badge-pill badge-light"
 			th:text="'Empfehlung: ' + ${hint}">hint</span>
 	</div>
+	
+	<!-- Thermostat -->
+	<div th:fragment="thermostat (id, boost, manual, targetTemp)"
+		th:class="'alert alert-secondary'">
+		<div><a th:text="'Heizkörpersteuerung'">heating</a></div>
+		<h4 th:if="${#strings.startsWith(boost,'/')}"><span th:text="'Manuell auf ' + ${targetTemp} + '°C'"></span></h4>
+		<h4 th:unless="${#strings.startsWith(boost,'/')}"><span th:text="'Aufheizen - noch ' + ${boost} + ' Min.'"></span></h4>
+			
+		<div th:if="${#strings.startsWith(boost,'/')}" class="btn-group" role="group" aria-label="heating">
+  			<button type="button" th:id="'idHeatMinus' + ${id}" class="btn btn-secondary btn-sm" th:onclick="'adjustHeating' + ${id} + '(-0.5)'">&nbsp;-&nbsp;</button>
+  			<button type="button" th:id="'idHeatTarget' + ${id}" class="btn btn-outline-secondary btn-sm" disabled><span th:id="'idHeatTargetLabel' + ${id}" th:text="${targetTemp}"></span><span>°C</span></button>
+  			<button type="button" th:id="'idHeatPlus' + ${id}" class="btn btn-secondary btn-sm" th:onclick="'adjustHeating' + ${id} + '(+0.5)'">&nbsp;+&nbsp;</button>
+		</div>
+		<span th:if="${#strings.startsWith(boost,'/')}">&nbsp;</span>
+		
+		<button th:if="${#strings.startsWith(boost,'/')}"
+			type="button" th:onclick="'window.location.href = \'' + ${boost} + '\''" class="btn btn-secondary btn-sm">Schnell aufheizen</button>
+		<button th:unless="${#strings.startsWith(boost,'/')}" type="button"
+			class="btn btn-secondary btn-sm" th:onclick="'setHeating' + ${id} + '()'" th:text="'abbrechen'">Boost ist eingeschaltet</button>
+		<script type="text/javascript">
+			var timeout[[${id}]] = null;
+			var newTargetTemp[[${id}]] = parseFloat("[[${targetTemp}]]".replace(/,/, '.'));
+			function adjustHeating[[${id}]](diff){
+				if(timeout[[${id}]]){
+					clearTimeout(timeout[[${id}]]);
+				}
+				newTargetTemp[[${id}]] = newTargetTemp[[${id}]] + diff;
+				document.getElementById("idHeatTarget[[${id}]]").className = "btn btn-danger btn-sm";
+				document.getElementById("idHeatTargetLabel[[${id}]]").innerHTML = newTargetTemp[[${id}]].toFixed(1).replace('.', ',');
+				timeout[[${id}]] = setTimeout(setHeating[[${id}]], 1000 * 1.5);
+			}
+			function setHeating[[${id}]](){
+				window.location.href = "[[${manual}]]&temperature=" + newTargetTemp[[${id}]];
+			}
+		</script>
+	</div>	
 
 	<!-- Sonne -->
 	<div th:fragment="sunStatus (name, class, text)" th:if="${!#strings.isEmpty(text)}" th:class="'alert alert-' + ${class}">
