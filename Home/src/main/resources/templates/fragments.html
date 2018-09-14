@@ -58,6 +58,27 @@
 		</h4>
 	</div>
 
+	<!-- Switch -->
+	<div th:fragment="switch (id, name, state, link, label)"
+		th:class="'alert alert-secondary'">
+		<a th:text="${name}">Switch name</a>
+		<h4 th:text="${state}"></h4>
+		<button type="button" th:onclick="'toggleSwitch' + ${id} + '()'"
+			class="btn btn-secondary btn-sm" th:text="${label}"></button>
+		<script type="text/javascript">
+			function toggleSwitch[[${id}]](){
+				window.location.href = "[[${link}]]";
+			}		
+		</script>
+	</div>
+	
+	<!-- State -->
+	<div th:fragment="state (name, value)"
+		th:class="'alert alert-secondary'">
+		<a th:text="${name}">State name</a>
+		<h4 th:text="${value}"></h4>
+	</div>	
+
 	<!-- Temperature <i class="fab fa-gitter"> -->
 	<div th:fragment="temperature (postfix, class, temp, hint)"
 		th:class="'alert alert-' + ${class}">
@@ -84,7 +105,7 @@
 		<span th:if="${#strings.startsWith(boost,'/')}">&nbsp;</span>
 		
 		<button th:if="${#strings.startsWith(boost,'/')}"
-			type="button" th:onclick="'window.location.href = \'' + ${boost} + '\''" class="btn btn-secondary btn-sm">Schnell aufheizen</button>
+			type="button" th:onclick="'setBoost' + ${id} + '()'" class="btn btn-secondary btn-sm">Schnell aufheizen</button>
 		<button th:unless="${#strings.startsWith(boost,'/')}" type="button"
 			class="btn btn-secondary btn-sm" th:onclick="'setHeating' + ${id} + '()'" th:text="'abbrechen'">Boost ist eingeschaltet</button>
 		<script type="text/javascript">
@@ -102,6 +123,9 @@
 			function setHeating[[${id}]](){
 				window.location.href = "[[${manual}]]&temperature=" + newTargetTemp[[${id}]];
 			}
+			function setBoost[[${id}]](){
+				window.location.href = "[[${boost}]]";
+			}			
 		</script>
 	</div>	
 

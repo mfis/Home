@@ -189,7 +189,7 @@ public class HouseView {
 		if (switchModel != null) {
 			frmt += (switchModel.isState() ? "Eingeschaltet" : "Ausgeschaltet");
 			label += (switchModel.isState() ? "ausschalten" : "einschalten");
-			link = "window.location.href = '/toggle?devIdVar=" + switchModel.getDeviceIdVar() + "'";
+			link = "/toggle?devIdVar=" + switchModel.getDeviceIdVar();
 		} else {
 			frmt += "?";
 		}

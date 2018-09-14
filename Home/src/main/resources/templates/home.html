@@ -20,12 +20,9 @@
 
 		<!-- Küche -->
 		<div th:replace="fragments :: title (name='Küche')"></div>
-		<div class="alert alert-secondary">
-			<a>Fenster-Lampe</a>
-			<h4 th:text="${switchKitchen}"></h4>
-			<button type="button" th:onclick="${switchKitchen_link}"
-				class="btn btn-secondary btn-sm" th:text="${switchKitchen_label}"></button>
-		</div>
+		<div th:replace="fragments :: switch 
+				(id='SWKU', name='Leuchte Fenster', state=${switchKitchen}, link=${switchKitchen_link}, label=${switchKitchen_label})">
+		</div>		
 		
 		<!-- Badezimmer -->
 		<div th:replace="fragments :: title (name='Badezimmer')"></div>
@@ -33,7 +30,7 @@
 				(postfix='', class=${tempBathroom_colorClass}, temp=${tempBathroom}, hint=${tempBathroom_hint})">
 		</div>
 		<div th:replace="fragments :: thermostat 
-				(id='BD', boost=${tempBathroom_linkBoost}, manual=${tempBathroom_linkManual}, targetTemp=${tempBathroom_targetTemp})">
+				(id='THBD', boost=${tempBathroom_linkBoost}, manual=${tempBathroom_linkManual}, targetTemp=${tempBathroom_targetTemp})">
 		</div>
 
 		<!-- Kinderzimmer -->
@@ -57,11 +54,9 @@
 
 		<!-- Energie -->
 		<div th:replace="fragments :: title (name='Energie')"></div>
-		<div class="alert alert-secondary">
-			<a>Stromverbrauch</a>
-			<h4 th:text="${powerHouse}"></h4>
-		</div>
-
+		<div th:replace="fragments :: state 
+				(name='Stromverbrauch', value=${powerHouse})">
+		</div>		
 	</div>
 
 	<script type="text/javascript" src="/webjars/jquery/jquery.min.js"></script>
