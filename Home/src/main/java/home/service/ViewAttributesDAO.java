@@ -13,6 +13,8 @@ public class ViewAttributesDAO {
 
 	public final static String Y_POS_HOME = "Y_POS_HOME";
 
+	public final static String USER_NAME = "USER_NAME";
+
 	private ViewAttributesDAO() {
 		super();
 	}

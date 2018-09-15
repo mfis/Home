@@ -6,7 +6,7 @@
 <body>
 
 	<div
-		th:replace="fragments :: navigation (brand='Zuhause', item='Historie', itemlink='/history')"></div>
+		th:replace="fragments :: navigation (brand='Zuhause', item='Historie', itemlink='/history', user=${USER_NAME})"></div>
 
 	<div class="container">
 
@@ -59,7 +59,7 @@
 		</div>		
 	</div>
 
-	<div th:replace="fragments :: scriptresources (yPos=${Y_POS_HOME})"></div>
+	<div th:replace="fragments :: scriptresources (yPos=${yPos})"></div>
 	<div th:replace="fragments :: pulltorefresh"></div>
 
 </body>

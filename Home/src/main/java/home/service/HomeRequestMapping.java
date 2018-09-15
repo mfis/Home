@@ -57,14 +57,15 @@ public class HomeRequestMapping {
 
 	@RequestMapping("/")
 	public String homePage(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie) throws Exception {
-		restoreYPos(model, userCookie);
+		fillUserAttributes(model, userCookie, ViewAttributesDAO.Y_POS_HOME);
 		HouseModel house = callForObject(env.getProperty("controller.url") + "actualstate", HouseModel.class);
 		houseView.fillViewModel(model, house);
 		return "home";
 	}
 
 	@RequestMapping("/history")
-	public String history(Model model) throws Exception {
+	public String history(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie) throws Exception {
+		fillUserAttributes(model, userCookie, null);
 		HistoryModel history = callForObject(env.getProperty("controller.url") + "history", HistoryModel.class);
 		houseView.fillHistoryViewModel(model, history);
 		return "history";
@@ -77,10 +78,13 @@ public class HomeRequestMapping {
 		}
 	}
 
-	private void restoreYPos(Model model, String userCookie) {
+	private void fillUserAttributes(Model model, String userCookie, String yPosAttribute) {
 		String user = ExternalPropertiesDAO.getInstance().read(userCookie);
-		String y = ViewAttributesDAO.getInstance().pull(user, ViewAttributesDAO.Y_POS_HOME);
-		model.addAttribute(ViewAttributesDAO.Y_POS_HOME, StringUtils.trimToEmpty(y));
+		model.addAttribute(ViewAttributesDAO.USER_NAME, user);
+		if (yPosAttribute != null) {
+			String y = ViewAttributesDAO.getInstance().pull(user, yPosAttribute);
+			model.addAttribute("yPos", StringUtils.trimToEmpty(y));
+		}
 	}
 
 	private <T> T callForObject(String url, Class<T> clazz) {
