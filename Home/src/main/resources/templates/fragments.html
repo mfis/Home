@@ -27,10 +27,18 @@
 	<!-- link rel="stylesheet" href="/webjars/font-awesome/css/all.css" crossorigin="anonymous" -->
 </head>
 
-<th:block th:fragment="scriptresources">
+<th:block th:fragment="scriptresources (yPos)">
 	<script type="text/javascript" src="/webjars/jquery/jquery.min.js"></script>
 	<script type="text/javascript" src="/webjars/bootstrap/js/bootstrap.min.js"></script>
 	<script type="text/javascript" src="/webjars/github-com-BoxFactura-pulltorefresh-js/pulltorefresh.min.js"></script>
+	
+	<script th:if="${!#strings.isEmpty(yPos)}">
+		var y = parseInt("[[${yPos}]]");
+		if (y > 0) {
+			window.scrollTo(0, y);
+		}
+	</script>
+	
 </th:block>
 
 <script th:fragment="pulltorefresh">
@@ -83,7 +91,7 @@
 			class="btn btn-secondary btn-sm" th:text="${label}"></button>
 		<script type="text/javascript">
 			function toggleSwitch[[${id}]](){
-				window.location.href = "[[${link}]]";
+				window.location.href = "[[${link}]]&y=" + window.scrollY;
 			}		
 		</script>
 	</div>
@@ -137,10 +145,10 @@
 				timeout[[${id}]] = setTimeout(setHeating[[${id}]], 1000 * 1.5);
 			}
 			function setHeating[[${id}]](){
-				window.location.href = "[[${manual}]]&temperature=" + newTargetTemp[[${id}]];
+				window.location.href = "[[${manual}]]&temperature=" + newTargetTemp[[${id}]] + "&y=" + window.scrollY;
 			}
 			function setBoost[[${id}]](){
-				window.location.href = "[[${boost}]]";
+				window.location.href = "[[${boost}]]&y=" + window.scrollY;
 			}			
 		</script>
 	</div>	

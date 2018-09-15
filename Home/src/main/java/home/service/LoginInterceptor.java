@@ -28,7 +28,7 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 	@Value("${authenticationURL}")
 	private String authURL;
 
-	private static final String COOKIE_NAME = "HomeLoginCookie";
+	public static final String COOKIE_NAME = "HomeLoginCookie";
 
 	private Log logger = LogFactory.getLog(LoginInterceptor.class);
 
