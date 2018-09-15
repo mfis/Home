@@ -1,12 +1,12 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
 
-<head th:replace="fragments :: head (name='Zuhause')"></head>
+<head th:replace="fragments :: head (name=${MENU_SELECTED.name})"></head>
 
 <body>
 
 	<div
-		th:replace="fragments :: navigation (brand='Zuhause', item='Historie', itemlink='/history', user=${USER_NAME})"></div>
+		th:replace="fragments :: navigation (selected=${MENU_SELECTED}, selectable=${MENU_SELECTABLE})"></div>
 
 	<div class="container">
 

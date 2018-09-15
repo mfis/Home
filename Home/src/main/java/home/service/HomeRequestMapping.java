@@ -18,6 +18,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import home.domain.model.Pages;
 import home.domain.service.HouseView;
 import homecontroller.domain.model.HistoryModel;
 import homecontroller.domain.model.HouseModel;
@@ -36,7 +37,7 @@ public class HomeRequestMapping {
 			@RequestParam(name = "y", required = false) String y) throws Exception {
 		saveYPos(userCookie, y);
 		call(env.getProperty("controller.url") + "toggle?devIdVar=" + devIdVar);
-		return "redirect:/";
+		return "redirect:" + Pages.PATH_HOME;
 	}
 
 	@RequestMapping("/heatingboost")
@@ -44,7 +45,7 @@ public class HomeRequestMapping {
 			@RequestParam(name = "y", required = false) String y) throws Exception {
 		saveYPos(userCookie, y);
 		call(env.getProperty("controller.url") + "heatingboost?prefix=" + prefix);
-		return "redirect:/";
+		return "redirect:" + Pages.PATH_HOME;
 	}
 
 	@RequestMapping("/heatingmanual")
@@ -52,23 +53,32 @@ public class HomeRequestMapping {
 			@RequestParam("temperature") String temperature, @RequestParam(name = "y", required = false) String y) throws Exception {
 		saveYPos(userCookie, y);
 		call(env.getProperty("controller.url") + "heatingmanual?prefix=" + prefix + "&temperature=" + temperature);
-		return "redirect:/";
+		return "redirect:" + Pages.PATH_HOME;
 	}
 
-	@RequestMapping("/")
+	@RequestMapping(Pages.PATH_HOME)
 	public String homePage(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie) throws Exception {
+		fillMenu(Pages.PATH_HOME, model);
 		fillUserAttributes(model, userCookie, ViewAttributesDAO.Y_POS_HOME);
 		HouseModel house = callForObject(env.getProperty("controller.url") + "actualstate", HouseModel.class);
 		houseView.fillViewModel(model, house);
-		return "home";
+		return Pages.getEntry(Pages.PATH_HOME).getTemplate();
 	}
 
-	@RequestMapping("/history")
+	@RequestMapping(Pages.PATH_HISTORY)
 	public String history(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie) throws Exception {
+		fillMenu(Pages.PATH_HISTORY, model);
 		fillUserAttributes(model, userCookie, null);
 		HistoryModel history = callForObject(env.getProperty("controller.url") + "history", HistoryModel.class);
 		houseView.fillHistoryViewModel(model, history);
-		return "history";
+		return Pages.getEntry(Pages.PATH_HISTORY).getTemplate();
+	}
+
+	@RequestMapping(Pages.PATH_LINKS)
+	public String links(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie) throws Exception {
+		fillMenu(Pages.PATH_LINKS, model);
+		fillUserAttributes(model, userCookie, null);
+		return Pages.getEntry(Pages.PATH_LINKS).getTemplate();
 	}
 
 	private void saveYPos(String userCookie, String y) {
@@ -85,6 +95,11 @@ public class HomeRequestMapping {
 			String y = ViewAttributesDAO.getInstance().pull(user, yPosAttribute);
 			model.addAttribute("yPos", StringUtils.trimToEmpty(y));
 		}
+	}
+
+	private void fillMenu(String pathHome, Model model) {
+		model.addAttribute("MENU_SELECTED", Pages.getEntry(pathHome));
+		model.addAttribute("MENU_SELECTABLE", Pages.getOtherEntries(pathHome));
 	}
 
 	private <T> T callForObject(String url, Class<T> clazz) {
