@@ -114,6 +114,9 @@ public class HouseView {
 			if (temperature.compareTo(new BigDecimal("25")) > 0) {
 				colorClass = "danger";
 				icon = "fas fa-thermometer-full";
+			} else if (temperature.compareTo(new BigDecimal("3")) < 0) {
+				colorClass = "info";
+				icon = "far fa-snowflake";
 			} else if (temperature.compareTo(new BigDecimal("19")) < 0) {
 				colorClass = "info";
 				icon = "fas fa-thermometer-empty";
