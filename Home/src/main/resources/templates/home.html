@@ -15,47 +15,47 @@
 		<!-- Wohnzimmer -->
 		<div th:replace="fragments :: title (name='Wohnzimmer')"></div>
 		<div th:replace="fragments :: temperature 
-				(postfix='', class=${tempLivingroom_colorClass}, temp=${tempLivingroom}, hint=${tempLivingroom_hint})">
+				(icon=${tempLivingroom_icon}, postfix='', class=${tempLivingroom_colorClass}, temp=${tempLivingroom}, hint=${tempLivingroom_hint})">
 		</div>
 
 		<!-- Küche -->
 		<div th:replace="fragments :: title (name='Küche')"></div>
 		<div th:replace="fragments :: switch 
-				(id='SWKU', name='Leuchte Fenster', state=${switchKitchen}, link=${switchKitchen_link}, label=${switchKitchen_label})">
+				(id='SWKU', icon=${switchKitchen_icon}, name='Leuchte Fenster', state=${switchKitchen}, link=${switchKitchen_link}, label=${switchKitchen_label})">
 		</div>		
 		
 		<!-- Badezimmer -->
 		<div th:replace="fragments :: title (name='Badezimmer')"></div>
 		<div th:replace="fragments :: temperature 
-				(postfix='', class=${tempBathroom_colorClass}, temp=${tempBathroom}, hint=${tempBathroom_hint})">
+				(icon=${tempBathroom_icon}, postfix='', class=${tempBathroom_colorClass}, temp=${tempBathroom}, hint=${tempBathroom_hint})">
 		</div>
 		<div th:replace="fragments :: thermostat 
-				(id='THBD', boost=${tempBathroom_linkBoost}, manual=${tempBathroom_linkManual}, targetTemp=${tempBathroom_targetTemp})">
+				(id='THBD', icon=${tempBathroom_heatericon}, boost=${tempBathroom_linkBoost}, manual=${tempBathroom_linkManual}, targetTemp=${tempBathroom_targetTemp})">
 		</div>
 
 		<!-- Kinderzimmer -->
 		<div th:replace="fragments :: title (name='Kinderzimmer')"></div>
 		<div th:replace="fragments :: temperature 
-				(postfix='', class=${tempKids_colorClass}, temp=${tempKids}, hint=${tempKids_hint})">
+				(icon=${tempKids_icon}, postfix='', class=${tempKids_colorClass}, temp=${tempKids}, hint=${tempKids_hint})">
 		</div>
 
 		<!-- Schlafzimmer -->
 		<div th:replace="fragments :: title (name='Schlafzimmer')"></div>
 		<div th:replace="fragments :: temperature 
-				(postfix='', class=${tempBedroom_colorClass}, temp=${tempBedroom}, hint=${tempBedroom_hint})">
+				(icon=${tempBedroom_icon}, postfix='', class=${tempBedroom_colorClass}, temp=${tempBedroom}, hint=${tempBedroom_hint})">
 		</div>
 
 		<!-- Draussen -->
 		<div th:replace="fragments :: title (name='Draußen')"></div>
 		<div th:replace="fragments :: temperature 
-				(postfix=${tempMinHouse_postfix}, class=${tempMinHouse_colorClass}, temp=${tempMinHouse}, hint='')">
+				(icon=${tempMinHouse_icon}, postfix=${tempMinHouse_postfix}, class=${tempMinHouse_colorClass}, temp=${tempMinHouse}, hint='')">
 		</div>
-		<div th:replace="fragments :: sunStatus (name=${tempMaxHouse_name}, class=${tempMaxHouse_colorClass}, text=${tempMaxHouse})"></div>
+		<div th:replace="fragments :: sunStatus (icon=${tempMaxHouse_icon}, name=${tempMaxHouse_name}, class=${tempMaxHouse_colorClass}, text=${tempMaxHouse})"></div>
 
 		<!-- Energie -->
 		<div th:replace="fragments :: title (name='Energie')"></div>
 		<div th:replace="fragments :: state 
-				(name='Stromverbrauch', value=${powerHouse})">
+				(icon=${powerHouse_icon}, name='Stromverbrauch', value=${powerHouse})">
 		</div>		
 	</div>
 

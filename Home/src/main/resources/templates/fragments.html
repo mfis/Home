@@ -24,7 +24,7 @@
 	<link rel="shortcut icon" href="favicon.ico"></link>
 	
 	<link rel='stylesheet' href='/webjars/bootstrap/css/bootstrap.min.css'>
-	<!-- link rel="stylesheet" href="/webjars/font-awesome/css/all.css" crossorigin="anonymous" -->
+	<link rel="stylesheet" href="/webjars/font-awesome/css/all.css" crossorigin="anonymous">
 </head>
 
 <th:block th:fragment="scriptresources (yPos)">
@@ -75,17 +75,27 @@
 	</nav>
 
 	<!-- Titel -->
-	<div class="starter-template" th:fragment="title (name)"
+	<div th:fragment="title (name)"
 		th:assert="${!#strings.isEmpty(name)}">
 		<h4>
 			<span th:text="${name}">Name</span>
 		</h4>
 	</div>
+	
+	<!-- Name -->
+	<div th:fragment="elementname (icon, name)">
+		<div>
+			<a>
+				<span th:if="${!#strings.isEmpty(icon)}"><i th:class="${icon}"></i></span>
+				<span th:text="${name}"></span>
+			</a>
+		</div>
+	</div>	
 
 	<!-- Switch -->
-	<div th:fragment="switch (id, name, state, link, label)"
+	<div th:fragment="switch (id, icon, name, state, link, label)"
 		th:class="'alert alert-secondary'">
-		<a th:text="${name}">Switch name</a>
+		<div th:replace="fragments :: elementname (icon=${icon}, name=${name})"></div>
 		<h4 th:text="${state}"></h4>
 		<button type="button" th:onclick="'toggleSwitch' + ${id} + '()'"
 			class="btn btn-secondary btn-sm" th:text="${label}"></button>
@@ -97,16 +107,16 @@
 	</div>
 	
 	<!-- State -->
-	<div th:fragment="state (name, value)"
+	<div th:fragment="state (icon, name, value)"
 		th:class="'alert alert-secondary'">
-		<a th:text="${name}">State name</a>
+		<div th:replace="fragments :: elementname (icon=${icon}, name=${name})"></div>
 		<h4 th:text="${value}"></h4>
 	</div>	
 
-	<!-- Temperature <i class="fab fa-gitter"> -->
-	<div th:fragment="temperature (postfix, class, temp, hint)"
+	<!-- Temperature fas fa-thermometer-half -->
+	<div th:fragment="temperature (icon, postfix, class, temp, hint)"
 		th:class="'alert alert-' + ${class}">
-		<div><a th:text="'Temperatur ' + ${postfix}">postfix</a></div>
+		<div th:replace="fragments :: elementname (icon=${icon}, name='Temperatur ' + ${postfix})"></div>
 		<h4><span th:text="${temp}"></span></h4>
 			
 		<span th:if="${!#strings.isEmpty(hint)}"
@@ -115,9 +125,9 @@
 	</div>
 	
 	<!-- Thermostat -->
-	<div th:fragment="thermostat (id, boost, manual, targetTemp)"
+	<div th:fragment="thermostat (id, icon, boost, manual, targetTemp)"
 		th:class="'alert alert-secondary'">
-		<div><a th:text="'Heizkörpersteuerung'">heating</a></div>
+		<div th:replace="fragments :: elementname (icon=${icon}, name='Heizkörpersteuerung')"></div>
 		<h4 th:if="${#strings.startsWith(boost,'/')}"><span th:text="'Manuell auf ' + ${targetTemp} + '°C'"></span></h4>
 		<h4 th:unless="${#strings.startsWith(boost,'/')}"><span th:text="'Aufheizen - noch ' + ${boost} + ' Min.'"></span></h4>
 			
@@ -154,8 +164,8 @@
 	</div>	
 
 	<!-- Sonne -->
-	<div th:fragment="sunStatus (name, class, text)" th:if="${!#strings.isEmpty(text)}" th:class="'alert alert-' + ${class}">
-		<a th:text="${name}">(title</a>
+	<div th:fragment="sunStatus (icon, name, class, text)" th:if="${!#strings.isEmpty(text)}" th:class="'alert alert-' + ${class}">
+		<div th:replace="fragments :: elementname (icon=${icon}, name=${name})"></div>
 		<h4 th:text="${text}"></h4>
 	</div>
 	

@@ -97,6 +97,8 @@ public class HouseView {
 		String linkBoost = "";
 		String linkManual = "";
 		String targetTemp = "";
+		String icon = "";
+		String heatericon = "";
 
 		if (temperature != null && temperature.compareTo(BigDecimal.ZERO) == 0 && humidity != null && humidity.compareTo(BigDecimal.ZERO) == 0) {
 			frmt = "unbekannt";
@@ -111,10 +113,13 @@ public class HouseView {
 			// Background color
 			if (temperature.compareTo(new BigDecimal("25")) > 0) {
 				colorClass = "danger";
+				icon = "fas fa-thermometer-full";
 			} else if (temperature.compareTo(new BigDecimal("19")) < 0) {
 				colorClass = "info";
+				icon = "fas fa-thermometer-empty";
 			} else {
 				colorClass = "success";
+				icon = "fas fa-thermometer-half";
 			}
 			// Heating
 			if (heating != null) {
@@ -125,6 +130,7 @@ public class HouseView {
 				}
 				linkManual = "/heatingmanual?prefix=" + heating.getProgramNamePrefix();
 				targetTemp = format(heating.getTargetTemperature(), false);
+				heatericon = "fab fa-hotjar";
 			}
 		} else {
 			frmt += "?";
@@ -132,6 +138,8 @@ public class HouseView {
 
 		model.addAttribute(viewKey, frmt);
 		model.addAttribute(viewKey + "_colorClass", colorClass);
+		model.addAttribute(viewKey + "_icon", icon);
+		model.addAttribute(viewKey + "_heatericon", heatericon);
 		model.addAttribute(viewKey + "_linkBoost", linkBoost);
 		model.addAttribute(viewKey + "_linkManual", linkManual);
 		model.addAttribute(viewKey + "_targetTemp", targetTemp);
@@ -160,12 +168,15 @@ public class HouseView {
 			break;
 		case LOW:
 			model.addAttribute(viewKeyMax + "_colorClass", "dark");
+			model.addAttribute(viewKeyMax + "_icon", "far fa-sun");
 			break;
 		case MEDIUM:
 			model.addAttribute(viewKeyMax + "_colorClass", "warning");
+			model.addAttribute(viewKeyMax + "_icon", "far fa-sun");
 			break;
 		case HIGH:
 			model.addAttribute(viewKeyMax + "_colorClass", "danger");
+			model.addAttribute(viewKeyMax + "_icon", "fas fa-sun");
 		}
 
 	}
@@ -179,6 +190,7 @@ public class HouseView {
 			frmt += "?";
 		}
 		model.addAttribute(viewKey, frmt);
+		model.addAttribute(viewKey + "_icon", "fas fa-bolt");
 	}
 
 	private void formatSwitch(Model model, String viewKey, SwitchModel switchModel) {
@@ -186,9 +198,11 @@ public class HouseView {
 		String frmt = "";
 		String label = "";
 		String link = "#";
+		String icon = "";
 		if (switchModel != null) {
 			frmt += (switchModel.isState() ? "Eingeschaltet" : "Ausgeschaltet");
 			label += (switchModel.isState() ? "ausschalten" : "einschalten");
+			icon += (switchModel.isState() ? "fas fa-toggle-on" : "fas fa-toggle-off");
 			link = "/toggle?devIdVar=" + switchModel.getDeviceIdVar();
 		} else {
 			frmt += "?";
@@ -196,6 +210,7 @@ public class HouseView {
 		model.addAttribute(viewKey, frmt);
 		model.addAttribute(viewKey + "_label", label);
 		model.addAttribute(viewKey + "_link", link);
+		model.addAttribute(viewKey + "_icon", icon);
 	}
 
 }
