@@ -28,6 +28,12 @@ import homecontroller.domain.model.SwitchModel;
 @Component
 public class HouseView {
 
+	private final static BigDecimal HIGH_TEMP = new BigDecimal("25");
+	private final static BigDecimal LOW_TEMP = new BigDecimal("19");
+	private final static BigDecimal FROST_TEMP = new BigDecimal("3");
+
+	private final static BigDecimal _1000 = new BigDecimal("1000");
+
 	@Autowired
 	private Environment env;
 
@@ -56,7 +62,7 @@ public class HouseView {
 			if (lastValue != null) {
 				cal = new GregorianCalendar();
 				cal.setTimeInMillis(key);
-				value = history.getMonthlyPowerConsumption().get(key).subtract(lastValue).divide(new BigDecimal(1000));
+				value = history.getMonthlyPowerConsumption().get(key).subtract(lastValue).divide(_1000);
 				entry = new PowerHistoryEntry();
 				entry.setKey(new SimpleDateFormat("MMM yyyy", Locale.GERMANY).format(cal.getTime()));
 				entry.setValue(new DecimalFormat("0").format(value) + " kW/h");
@@ -116,13 +122,13 @@ public class HouseView {
 				frmt += ", " + format(humidity, true) + "%rF";
 			}
 			// Background color
-			if (temperature.compareTo(new BigDecimal("25")) > 0) {
+			if (temperature.compareTo(HIGH_TEMP) > 0) {
 				colorClass = "danger";
 				icon = "fas fa-thermometer-full";
-			} else if (temperature.compareTo(new BigDecimal("3")) < 0) {
+			} else if (temperature.compareTo(FROST_TEMP) < 0) {
 				colorClass = "info";
 				icon = "far fa-snowflake";
-			} else if (temperature.compareTo(new BigDecimal("19")) < 0) {
+			} else if (temperature.compareTo(LOW_TEMP) < 0) {
 				colorClass = "info";
 				icon = "fas fa-thermometer-empty";
 			} else {
