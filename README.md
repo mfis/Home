@@ -7,4 +7,4 @@ Commented application.properties needed to be configured in external 'homeapp.pr
 
 Sources in /domain/ -packages are depending on individual Homematic setup and therefore needed to be changed.
 
-Application is based on Spring Boot.
+Application is based on [Spring Boot](https://spring.io/projects/spring-boot) and uses [Thymeleaf](https://www.thymeleaf.org) for GUI rendering and [Font Awesome](https://fontawesome.com) for icons.
