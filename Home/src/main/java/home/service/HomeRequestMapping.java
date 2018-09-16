@@ -78,6 +78,7 @@ public class HomeRequestMapping {
 	public String links(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie) throws Exception {
 		fillMenu(Pages.PATH_LINKS, model);
 		fillUserAttributes(model, userCookie, null);
+		houseView.fillLinks(model);
 		return Pages.getEntry(Pages.PATH_LINKS).getTemplate();
 	}
 

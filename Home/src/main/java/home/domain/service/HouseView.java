@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Locale;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.Model;
 
@@ -25,6 +27,9 @@ import homecontroller.domain.model.SwitchModel;
 
 @Component
 public class HouseView {
+
+	@Autowired
+	private Environment env;
 
 	public void fillViewModel(Model model, HouseModel house) {
 
@@ -214,6 +219,14 @@ public class HouseView {
 		model.addAttribute(viewKey + "_label", label);
 		model.addAttribute(viewKey + "_link", link);
 		model.addAttribute(viewKey + "_icon", icon);
+	}
+
+	public void fillLinks(Model model) {
+		model.addAttribute("link_internet_ccu2", env.getProperty("link.internet.ccu2"));
+		model.addAttribute("link_local_ccu2", env.getProperty("link.local.ccu2"));
+		model.addAttribute("link_internet_historian", env.getProperty("link.internet.historian"));
+		model.addAttribute("link_local_historian", env.getProperty("link.local.historian"));
+
 	}
 
 }
