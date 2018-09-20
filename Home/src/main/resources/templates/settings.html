@@ -1,0 +1,54 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="fragments :: head (name=${MENU_SELECTED.name})"></head>
+
+<body>
+
+	<div
+		th:replace="fragments :: navigation (selected=${MENU_SELECTED}, selectable=${MENU_SELECTABLE})"></div>
+
+	<div class="container">
+
+		<div style="height: 20px;"></div>
+
+		<h3>Anwender: <span class="badge badge-secondary" th:text="${USER_NAME}"></span></h3>
+
+		<div style="height: 10px;"></div>
+
+		<!-- Push -->
+		<div th:replace="fragments :: title (name='Push-Nachrichten')"></div>
+		<div
+			th:replace="fragments :: switch 
+				(id='SWPU', icon=${switchPush_icon}, name='Versand', state=${switchPush}, link=${switchPush_link}, label=${switchPush_label})">
+		</div>
+
+		<!-- Pushover -->
+		<div th:replace="fragments :: title (name='Pushover Account')"></div>
+		<div class="alert alert-secondary" role="alert">
+			<form th:action="${switchPushover_link}" method="post">
+				<div class="form-group">
+					<label for="pushoverApiToken">API-Token</label> <input
+						type="text" class="form-control" id="pushoverApiToken" name="pushoverApiToken"
+						placeholder="" th:value="${textPushoverApi}">
+					<div style="height: 7px;"></div>
+					<label for="pushoverUserId">User-ID</label> <input
+						type="text" class="form-control" id="pushoverUserId" name="pushoverUserId"
+						placeholder="" th:value="${textPushoverUser}">
+					<div style="height: 7px;"></div>	
+					<label for="pushoverDevice">Empfänger Gerät</label> <input
+						type="text" class="form-control" id="pushoverDevice" name="pushoverDevice"
+						placeholder="" th:value="${textPushoverDevice}">										 
+				</div>
+				<button type="submit" class="btn btn-secondary" th:text="'Speichern'"></button>
+			</form>		
+		</div>
+
+
+	</div>
+
+	<div th:replace="fragments :: scriptresources (yPos=${yPos})"></div>
+	<div th:replace="fragments :: pulltorefresh"></div>
+
+</body>
+</html>

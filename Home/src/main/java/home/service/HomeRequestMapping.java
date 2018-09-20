@@ -22,6 +22,7 @@ import home.domain.model.Pages;
 import home.domain.service.HouseView;
 import homecontroller.domain.model.HistoryModel;
 import homecontroller.domain.model.HouseModel;
+import homecontroller.domain.model.SettingsModel;
 
 @Controller
 public class HomeRequestMapping {
@@ -31,6 +32,9 @@ public class HomeRequestMapping {
 
 	@Autowired
 	private HouseView houseView;
+
+	@Autowired
+	private SettingsView settingsView;
 
 	@RequestMapping("/toggle")
 	public String toggle(@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, @RequestParam("devIdVar") String devIdVar,
@@ -54,6 +58,20 @@ public class HomeRequestMapping {
 		saveYPos(userCookie, y);
 		call(env.getProperty("controller.url") + "heatingmanual?prefix=" + prefix + "&temperature=" + temperature);
 		return "redirect:" + Pages.PATH_HOME;
+	}
+
+	@RequestMapping("/settingspushtoggle")
+	public String settingspushtoggle(@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie) throws Exception {
+		call(env.getProperty("controller.url") + "settingspushtoggle?user=" + ExternalPropertiesDAO.getInstance().read(userCookie));
+		return "redirect:" + Pages.PATH_SETTINGS;
+	}
+
+	@RequestMapping("/settingspushover")
+	public String settingspushover(@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, @RequestParam("pushoverApiToken") String pushoverApiToken,
+			@RequestParam("pushoverUserId") String pushoverUserId, @RequestParam("pushoverDevice") String pushoverDevice) throws Exception {
+		call(env.getProperty("controller.url") + "settingspushover?user=" + ExternalPropertiesDAO.getInstance().read(userCookie) + "&token=" + pushoverApiToken + "&userid="
+				+ pushoverUserId + "&device=" + pushoverDevice);
+		return "redirect:" + Pages.PATH_SETTINGS;
 	}
 
 	@RequestMapping(Pages.PATH_HOME)
@@ -80,6 +98,15 @@ public class HomeRequestMapping {
 		fillUserAttributes(model, userCookie, null);
 		houseView.fillLinks(model);
 		return Pages.getEntry(Pages.PATH_LINKS).getTemplate();
+	}
+
+	@RequestMapping(Pages.PATH_SETTINGS)
+	public String settings(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie) throws Exception {
+		fillMenu(Pages.PATH_SETTINGS, model);
+		fillUserAttributes(model, userCookie, null);
+		SettingsModel settings = callForObject(env.getProperty("controller.url") + "settings?user=" + ExternalPropertiesDAO.getInstance().read(userCookie), SettingsModel.class);
+		settingsView.fillSettings(model, settings);
+		return Pages.getEntry(Pages.PATH_SETTINGS).getTemplate();
 	}
 
 	private void saveYPos(String userCookie, String y) {

@@ -11,6 +11,8 @@ public class Pages {
 
 	public final static String PATH_LINKS = "/links";
 
+	public final static String PATH_SETTINGS = "/settings";
+
 	public final static String PATH_LOGOFF = "/logoff";
 
 	private final static List<PageEntry> ENTRIES = new LinkedList<>();
@@ -19,6 +21,7 @@ public class Pages {
 		ENTRIES.add(new PageEntry("Zuhause", PATH_HOME, "fas fa-home", "home"));
 		ENTRIES.add(new PageEntry("Historie", PATH_HISTORY, "fas fa-history", "history"));
 		ENTRIES.add(new PageEntry("Links", PATH_LINKS, "fas fa-link", "links"));
+		ENTRIES.add(new PageEntry("Einstellungen", PATH_SETTINGS, "fas fa-sliders-h", "settings"));
 		ENTRIES.add(new PageEntry("abmelden", PATH_LOGOFF, "", ""));
 	}
 
