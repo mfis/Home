@@ -20,6 +20,7 @@ import org.springframework.ui.Model;
 
 import home.domain.model.PowerHistoryEntry;
 import homecontroller.domain.model.HeatingModel;
+import homecontroller.domain.model.Hint;
 import homecontroller.domain.model.HistoryModel;
 import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.Intensity;
@@ -101,7 +102,7 @@ public class HouseView {
 		}
 	}
 
-	private void formatTemperature(Model model, String viewKey, BigDecimal temperature, BigDecimal humidity, HeatingModel heating, String hint) {
+	private void formatTemperature(Model model, String viewKey, BigDecimal temperature, BigDecimal humidity, HeatingModel heating, Hint hint) {
 
 		String frmt = "";
 		String colorClass = "secondary";
@@ -157,7 +158,7 @@ public class HouseView {
 		model.addAttribute(viewKey + "_linkBoost", linkBoost);
 		model.addAttribute(viewKey + "_linkManual", linkManual);
 		model.addAttribute(viewKey + "_targetTemp", targetTemp);
-		model.addAttribute(viewKey + "_hint", StringUtils.trimToEmpty(hint));
+		model.addAttribute(viewKey + "_hint", StringUtils.trimToEmpty(hint.getText()));
 	}
 
 	private void formatFacadeTemperatures(Model model, String viewKeyMin, String viewKeyMax, HouseModel house) {
