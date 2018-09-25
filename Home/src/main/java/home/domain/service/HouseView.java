@@ -158,7 +158,7 @@ public class HouseView {
 		model.addAttribute(viewKey + "_linkBoost", linkBoost);
 		model.addAttribute(viewKey + "_linkManual", linkManual);
 		model.addAttribute(viewKey + "_targetTemp", targetTemp);
-		model.addAttribute(viewKey + "_hint", StringUtils.trimToEmpty(hint.getText()));
+		model.addAttribute(viewKey + "_hint", StringUtils.trimToEmpty(hint == null ? null : hint.getText()));
 	}
 
 	private void formatFacadeTemperatures(Model model, String viewKeyMin, String viewKeyMax, HouseModel house) {
