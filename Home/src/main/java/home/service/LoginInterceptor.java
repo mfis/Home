@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -27,6 +28,9 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 
 	@Value("${authenticationURL}")
 	private String authURL;
+
+	@Autowired
+	private RestTemplate restTemplate;
 
 	public static final String COOKIE_NAME = "HomeLoginCookie";
 
@@ -110,7 +114,6 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 
 		try {
 
-			RestTemplate rest = new RestTemplate();
 			HttpHeaders headers = new HttpHeaders();
 			headers.add("Accept", "*/*");
 			headers.add("Cache-Control", "no-cache");
@@ -122,7 +125,7 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 			map.add("application", "home");
 
 			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<MultiValueMap<String, String>>(map, headers);
-			ResponseEntity<String> responseEntity = rest.postForEntity(authURL, request, String.class);
+			ResponseEntity<String> responseEntity = restTemplate.postForEntity(authURL, request, String.class);
 			return responseEntity.getStatusCode().is2xxSuccessful();
 
 		} catch (Exception e) {

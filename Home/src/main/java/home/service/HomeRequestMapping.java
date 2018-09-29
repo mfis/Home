@@ -36,6 +36,9 @@ public class HomeRequestMapping {
 	@Autowired
 	private SettingsView settingsView;
 
+	@Autowired
+	private RestTemplate restTemplate;
+
 	@RequestMapping("/toggle")
 	public String toggle(@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, @RequestParam("devIdVar") String devIdVar,
 			@RequestParam(name = "y", required = false) String y) throws Exception {
@@ -143,11 +146,10 @@ public class HomeRequestMapping {
 
 	private ResponseEntity<String> call(String url) {
 
-		RestTemplate rest = new RestTemplate();
 		HttpHeaders headers = createHeaders();
 
 		HttpEntity<String> requestEntity = new HttpEntity<String>("", headers);
-		ResponseEntity<String> responseEntity = rest.exchange(url, HttpMethod.GET, requestEntity, String.class);
+		ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.GET, requestEntity, String.class);
 		return responseEntity;
 	}
 
