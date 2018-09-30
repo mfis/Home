@@ -16,11 +16,9 @@ public class SettingsView {
 		model.addAttribute("switchPush_label",
 				(settingsModel.isPushActive() ? "ausschalten" : "einschalten"));
 
-		model.addAttribute("textPushoverApi", settingsModel.getPushoverApiToken());
-		model.addAttribute("textPushoverUser", settingsModel.getPushoverUserId());
 		model.addAttribute("textPushoverDevice", settingsModel.getPushoverDevice());
 
-		model.addAttribute("switchPushover_link", "/settingspushover");
+		model.addAttribute("switchPushover_link", "/settingpushoverdevice");
 	}
 
 }

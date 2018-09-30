@@ -80,14 +80,11 @@ public class HomeRequestMapping {
 		return "redirect:" + Pages.PATH_SETTINGS;
 	}
 
-	@RequestMapping("/settingspushover")
+	@RequestMapping("/settingpushoverdevice")
 	public String settingspushover(@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
-			@RequestParam("pushoverApiToken") String pushoverApiToken,
-			@RequestParam("pushoverUserId") String pushoverUserId,
 			@RequestParam("pushoverDevice") String pushoverDevice) throws Exception {
-		call(env.getProperty("controller.url") + "settingspushover", ActionModel.class,
+		call(env.getProperty("controller.url") + "settingpushoverdevice", ActionModel.class,
 				new URIParameter().add("user", ExternalPropertiesDAO.getInstance().read(userCookie))
-						.add("token", pushoverApiToken).add("userid", pushoverUserId)
 						.add("device", pushoverDevice).build());
 		return "redirect:" + Pages.PATH_SETTINGS;
 	}
