@@ -21,7 +21,8 @@ public class LoginController {
 	@RequestMapping("/loginCookieCheck")
 	public String loginCookieCheck(Model model) {
 		model.addAttribute("lawLink", lawLink);
-		model.addAttribute("loginMessage", "Sie müssen den Datenschutzbestimmungen zustimmen, um die Anwendung nutzen zu können.");
+		model.addAttribute("loginMessage",
+				"Sie müssen den Datenschutzbestimmungen zustimmen, um die Anwendung nutzen zu können.");
 		return "login";
 	}
 

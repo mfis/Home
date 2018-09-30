@@ -40,10 +40,14 @@ public class HouseView {
 
 	public void fillViewModel(Model model, HouseModel house) {
 
-		formatTemperature(model, "tempBathroom", house.getBathRoomTemperature(), null, house.getBathRoomHeating(), house.getConclusionHintBathRoom());
-		formatTemperature(model, "tempKids", house.getKidsRoomTemperature(), house.getKidsRoomHumidity(), null, house.getConclusionHintKidsRoom());
-		formatTemperature(model, "tempLivingroom", house.getLivingRoomTemperature(), house.getLivingRoomHumidity(), null, house.getConclusionHintLivingRoom());
-		formatTemperature(model, "tempBedroom", house.getBedRoomTemperature(), house.getBedRoomHumidity(), null, house.getConclusionHintBedRoom());
+		formatTemperature(model, "tempBathroom", house.getBathRoomTemperature(), null,
+				house.getBathRoomHeating(), house.getConclusionHintBathRoom());
+		formatTemperature(model, "tempKids", house.getKidsRoomTemperature(), house.getKidsRoomHumidity(),
+				null, house.getConclusionHintKidsRoom());
+		formatTemperature(model, "tempLivingroom", house.getLivingRoomTemperature(),
+				house.getLivingRoomHumidity(), null, house.getConclusionHintLivingRoom());
+		formatTemperature(model, "tempBedroom", house.getBedRoomTemperature(), house.getBedRoomHumidity(),
+				null, house.getConclusionHintBedRoom());
 
 		formatFacadeTemperatures(model, "tempMinHouse", "tempMaxHouse", house);
 
@@ -82,7 +86,9 @@ public class HouseView {
 			int hoursAgo = ((cal.get(Calendar.DAY_OF_MONTH) - 1) * 24) + cal.get(Calendar.HOUR_OF_DAY);
 			int hoursToGo = (daysInMonth * 24) - hoursAgo;
 			if (hoursAgo > 0) {
-				BigDecimal calculated = value.add(value.divide(new BigDecimal(hoursAgo), 2, RoundingMode.HALF_UP).multiply(new BigDecimal(hoursToGo)));
+				BigDecimal calculated = value
+						.add(value.divide(new BigDecimal(hoursAgo), 2, RoundingMode.HALF_UP)
+								.multiply(new BigDecimal(hoursToGo)));
 				entry.setCalculated(new DecimalFormat("0").format(calculated) + " kW/h");
 			}
 		}
@@ -102,7 +108,8 @@ public class HouseView {
 		}
 	}
 
-	private void formatTemperature(Model model, String viewKey, BigDecimal temperature, BigDecimal humidity, HeatingModel heating, Hint hint) {
+	private void formatTemperature(Model model, String viewKey, BigDecimal temperature, BigDecimal humidity,
+			HeatingModel heating, Hint hint) {
 
 		String frmt = "";
 		String colorClass = "secondary";
@@ -112,7 +119,8 @@ public class HouseView {
 		String icon = "";
 		String heatericon = "";
 
-		if (temperature != null && temperature.compareTo(BigDecimal.ZERO) == 0 && humidity != null && humidity.compareTo(BigDecimal.ZERO) == 0) {
+		if (temperature != null && temperature.compareTo(BigDecimal.ZERO) == 0 && humidity != null
+				&& humidity.compareTo(BigDecimal.ZERO) == 0) {
 			frmt = "unbekannt";
 		}
 
@@ -161,19 +169,22 @@ public class HouseView {
 		model.addAttribute(viewKey + "_hint", StringUtils.trimToEmpty(hint == null ? null : hint.getText()));
 	}
 
-	private void formatFacadeTemperatures(Model model, String viewKeyMin, String viewKeyMax, HouseModel house) {
+	private void formatFacadeTemperatures(Model model, String viewKeyMin, String viewKeyMax,
+			HouseModel house) {
 
 		model.addAttribute(viewKeyMin + "_postfix", house.getConclusionFacadeMinTempName());
 		formatTemperature(model, viewKeyMin, house.getConclusionFacadeMinTemp(), null, null, null);
 
-		if (house.getConclusionFacadeMaxTempSunIntensity().ordinal() >= house.getConclusionFacadeMaxTempHeatingIntensity().ordinal()) {
+		if (house.getConclusionFacadeMaxTempSunIntensity().ordinal() >= house
+				.getConclusionFacadeMaxTempHeatingIntensity().ordinal()) {
 			model.addAttribute(viewKeyMax, house.getConclusionFacadeMaxTempSunIntensity().getSun());
 		} else {
 			model.addAttribute(viewKeyMax, house.getConclusionFacadeMaxTempHeatingIntensity().getHeating());
 		}
 		model.addAttribute(viewKeyMax + "_name", "Fassade " + house.getConclusionFacadeMaxTempName());
 
-		switch (Intensity.max(house.getConclusionFacadeMaxTempSunIntensity(), house.getConclusionFacadeMaxTempHeatingIntensity())) {
+		switch (Intensity.max(house.getConclusionFacadeMaxTempSunIntensity(),
+				house.getConclusionFacadeMaxTempHeatingIntensity())) {
 		case NO:
 			model.addAttribute(viewKeyMin + "_postfix", ""); // No sun, no
 																// heating -> no

@@ -13,7 +13,8 @@ public class SettingsView {
 		model.addAttribute("switchPush_icon", "far fa-envelope");
 		model.addAttribute("switchPush", (settingsModel.isPushActive() ? "Eingeschaltet" : "Ausgeschaltet"));
 		model.addAttribute("switchPush_link", "/settingspushtoggle?");
-		model.addAttribute("switchPush_label", (settingsModel.isPushActive() ? "ausschalten" : "einschalten"));
+		model.addAttribute("switchPush_label",
+				(settingsModel.isPushActive() ? "ausschalten" : "einschalten"));
 
 		model.addAttribute("textPushoverApi", settingsModel.getPushoverApiToken());
 		model.addAttribute("textPushoverUser", settingsModel.getPushoverUserId());

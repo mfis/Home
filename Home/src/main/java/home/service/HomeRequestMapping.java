@@ -7,10 +7,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -20,9 +21,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import home.domain.model.Pages;
 import home.domain.service.HouseView;
+import homecontroller.domain.model.ActionModel;
 import homecontroller.domain.model.HistoryModel;
 import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.SettingsModel;
+import homecontroller.util.URIParameter;
 
 @Controller
 public class HomeRequestMapping {
@@ -40,63 +43,80 @@ public class HomeRequestMapping {
 	private RestTemplate restTemplate;
 
 	@RequestMapping("/toggle")
-	public String toggle(@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, @RequestParam("devIdVar") String devIdVar,
-			@RequestParam(name = "y", required = false) String y) throws Exception {
+	public String toggle(@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
+			@RequestParam("devIdVar") String devIdVar, @RequestParam(name = "y", required = false) String y)
+			throws Exception {
 		saveYPos(userCookie, y);
-		call(env.getProperty("controller.url") + "toggle?devIdVar=" + devIdVar);
+		call(env.getProperty("controller.url") + "toggle", ActionModel.class,
+				new URIParameter().add("devIdVar", devIdVar).build());
 		return "redirect:" + Pages.PATH_HOME;
 	}
 
 	@RequestMapping("/heatingboost")
-	public String heatingBoost(@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, @RequestParam("prefix") String prefix,
-			@RequestParam(name = "y", required = false) String y) throws Exception {
+	public String heatingBoost(@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
+			@RequestParam("prefix") String prefix, @RequestParam(name = "y", required = false) String y)
+			throws Exception {
 		saveYPos(userCookie, y);
-		call(env.getProperty("controller.url") + "heatingboost?prefix=" + prefix);
+		call(env.getProperty("controller.url") + "heatingboost", ActionModel.class,
+				new URIParameter().add("prefix", prefix).build());
 		return "redirect:" + Pages.PATH_HOME;
 	}
 
 	@RequestMapping("/heatingmanual")
-	public String heatingManual(@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, @RequestParam("prefix") String prefix,
-			@RequestParam("temperature") String temperature, @RequestParam(name = "y", required = false) String y) throws Exception {
+	public String heatingManual(@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
+			@RequestParam("prefix") String prefix, @RequestParam("temperature") String temperature,
+			@RequestParam(name = "y", required = false) String y) throws Exception {
 		saveYPos(userCookie, y);
-		call(env.getProperty("controller.url") + "heatingmanual?prefix=" + prefix + "&temperature=" + temperature);
+		call(env.getProperty("controller.url") + "heatingmanual", ActionModel.class,
+				new URIParameter().add("prefix", prefix).add("temperature", temperature).build());
 		return "redirect:" + Pages.PATH_HOME;
 	}
 
 	@RequestMapping("/settingspushtoggle")
-	public String settingspushtoggle(@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie) throws Exception {
-		call(env.getProperty("controller.url") + "settingspushtoggle?user=" + ExternalPropertiesDAO.getInstance().read(userCookie));
+	public String settingspushtoggle(@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie)
+			throws Exception {
+		call(env.getProperty("controller.url") + "settingspushtoggle", ActionModel.class,
+				new URIParameter().add("user", ExternalPropertiesDAO.getInstance().read(userCookie)).build());
 		return "redirect:" + Pages.PATH_SETTINGS;
 	}
 
 	@RequestMapping("/settingspushover")
-	public String settingspushover(@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, @RequestParam("pushoverApiToken") String pushoverApiToken,
-			@RequestParam("pushoverUserId") String pushoverUserId, @RequestParam("pushoverDevice") String pushoverDevice) throws Exception {
-		call(env.getProperty("controller.url") + "settingspushover?user=" + ExternalPropertiesDAO.getInstance().read(userCookie) + "&token=" + pushoverApiToken + "&userid="
-				+ pushoverUserId + "&device=" + pushoverDevice);
+	public String settingspushover(@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
+			@RequestParam("pushoverApiToken") String pushoverApiToken,
+			@RequestParam("pushoverUserId") String pushoverUserId,
+			@RequestParam("pushoverDevice") String pushoverDevice) throws Exception {
+		call(env.getProperty("controller.url") + "settingspushover", ActionModel.class,
+				new URIParameter().add("user", ExternalPropertiesDAO.getInstance().read(userCookie))
+						.add("token", pushoverApiToken).add("userid", pushoverUserId)
+						.add("device", pushoverDevice).build());
 		return "redirect:" + Pages.PATH_SETTINGS;
 	}
 
 	@RequestMapping(Pages.PATH_HOME)
-	public String homePage(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie) throws Exception {
+	public String homePage(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie)
+			throws Exception {
 		fillMenu(Pages.PATH_HOME, model);
 		fillUserAttributes(model, userCookie, ViewAttributesDAO.Y_POS_HOME);
-		HouseModel house = callForObject(env.getProperty("controller.url") + "actualstate", HouseModel.class);
+		HouseModel house = call(env.getProperty("controller.url") + "actualstate", HouseModel.class,
+				new URIParameter().build());
 		houseView.fillViewModel(model, house);
 		return Pages.getEntry(Pages.PATH_HOME).getTemplate();
 	}
 
 	@RequestMapping(Pages.PATH_HISTORY)
-	public String history(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie) throws Exception {
+	public String history(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie)
+			throws Exception {
 		fillMenu(Pages.PATH_HISTORY, model);
 		fillUserAttributes(model, userCookie, null);
-		HistoryModel history = callForObject(env.getProperty("controller.url") + "history", HistoryModel.class);
+		HistoryModel history = call(env.getProperty("controller.url") + "history", HistoryModel.class,
+				new URIParameter().build());
 		houseView.fillHistoryViewModel(model, history);
 		return Pages.getEntry(Pages.PATH_HISTORY).getTemplate();
 	}
 
 	@RequestMapping(Pages.PATH_LINKS)
-	public String links(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie) throws Exception {
+	public String links(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie)
+			throws Exception {
 		fillMenu(Pages.PATH_LINKS, model);
 		fillUserAttributes(model, userCookie, null);
 		houseView.fillLinks(model);
@@ -104,10 +124,12 @@ public class HomeRequestMapping {
 	}
 
 	@RequestMapping(Pages.PATH_SETTINGS)
-	public String settings(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie) throws Exception {
+	public String settings(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie)
+			throws Exception {
 		fillMenu(Pages.PATH_SETTINGS, model);
 		fillUserAttributes(model, userCookie, null);
-		SettingsModel settings = callForObject(env.getProperty("controller.url") + "settings?user=" + ExternalPropertiesDAO.getInstance().read(userCookie), SettingsModel.class);
+		SettingsModel settings = call(env.getProperty("controller.url") + "settings", SettingsModel.class,
+				new URIParameter().add("user", ExternalPropertiesDAO.getInstance().read(userCookie)).build());
 		settingsView.fillSettings(model, settings);
 		return Pages.getEntry(Pages.PATH_SETTINGS).getTemplate();
 	}
@@ -133,24 +155,19 @@ public class HomeRequestMapping {
 		model.addAttribute("MENU_SELECTABLE", Pages.getOtherEntries(pathHome));
 	}
 
-	private <T> T callForObject(String url, Class<T> clazz) {
+	private <T> T call(String url, Class<T> clazz, MultiValueMap<String, String> parameters) {
 
 		try {
-			ResponseEntity<String> responseEntity = call(url);
-			return new ObjectMapper().readValue(responseEntity.getBody(), clazz);
+			HttpHeaders headers = createHeaders();
+			headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<MultiValueMap<String, String>>(
+					parameters, headers);
+			ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+			return new ObjectMapper().readValue(response.getBody(), clazz);
 		} catch (Exception e) {
 			LogFactory.getLog(HomeRequestMapping.class).error("Could not call controller!", e);
 			return null;
 		}
-	}
-
-	private ResponseEntity<String> call(String url) {
-
-		HttpHeaders headers = createHeaders();
-
-		HttpEntity<String> requestEntity = new HttpEntity<String>("", headers);
-		ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.GET, requestEntity, String.class);
-		return responseEntity;
 	}
 
 	HttpHeaders createHeaders() {
@@ -158,8 +175,10 @@ public class HomeRequestMapping {
 		return new HttpHeaders() {
 			private static final long serialVersionUID = 1L;
 			{
-				String plainClientCredentials = env.getProperty("controller.user") + ":" + env.getProperty("controller.pass");
-				String base64ClientCredentials = new String(Base64.encodeBase64(plainClientCredentials.getBytes()));
+				String plainClientCredentials = env.getProperty("controller.user") + ":"
+						+ env.getProperty("controller.pass");
+				String base64ClientCredentials = new String(
+						Base64.encodeBase64(plainClientCredentials.getBytes()));
 				set("Authorization", "Basic " + base64ClientCredentials);
 				set("Accept", "*/*");
 				set("Cache-Control", "no-cache");

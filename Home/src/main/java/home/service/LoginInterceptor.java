@@ -37,13 +37,15 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 	private Log logger = LogFactory.getLog(LoginInterceptor.class);
 
 	@Override
-	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+			throws Exception {
 
 		if (StringUtils.containsIgnoreCase(request.getRequestURL(), "/webjars/")) {
 			return true;
 		}
 
-		if (StringUtils.endsWithIgnoreCase(request.getRequestURL(), ".png") || StringUtils.endsWithIgnoreCase(request.getRequestURL(), ".ico")) {
+		if (StringUtils.endsWithIgnoreCase(request.getRequestURL(), ".png")
+				|| StringUtils.endsWithIgnoreCase(request.getRequestURL(), ".ico")) {
 			return true;
 		}
 
@@ -98,7 +100,8 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 		return true;
 	}
 
-	private boolean login(Map<String, String> params, HttpServletRequest request, HttpServletResponse response) throws IOException {
+	private boolean login(Map<String, String> params, HttpServletRequest request,
+			HttpServletResponse response) throws IOException {
 
 		String loginUser = StringUtils.trimToEmpty(params.get("login_username"));
 		String loginPass = StringUtils.trimToEmpty(params.get("login_password"));
@@ -124,8 +127,10 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 			map.add("pass", pass);
 			map.add("application", "home");
 
-			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<MultiValueMap<String, String>>(map, headers);
-			ResponseEntity<String> responseEntity = restTemplate.postForEntity(authURL, request, String.class);
+			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<MultiValueMap<String, String>>(
+					map, headers);
+			ResponseEntity<String> responseEntity = restTemplate.postForEntity(authURL, request,
+					String.class);
 			return responseEntity.getStatusCode().is2xxSuccessful();
 
 		} catch (Exception e) {

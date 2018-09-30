@@ -39,7 +39,8 @@ public class ExternalPropertiesDAO {
 		}
 		properties.setProperty(key, value);
 		try {
-			FileOutputStream fos = new FileOutputStream(new File(System.getProperty("user.home") + "/documents/config/login.properties"));
+			FileOutputStream fos = new FileOutputStream(
+					new File(System.getProperty("user.home") + "/documents/config/login.properties"));
 			properties.store(fos, "");
 			fos.flush();
 			fos.close();
