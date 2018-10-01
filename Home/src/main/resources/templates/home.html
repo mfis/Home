@@ -11,6 +11,16 @@
 	<div class="container">
 
 		<div style="height: 20px;"></div>
+		
+		<!-- Batterie-Warnungen -->
+		<th:block th:each="entry : ${lowBattery}">
+			<div th:class="'alert alert-danger'">
+				<h4>
+					<span><i class="fas fa-battery-quarter"></i></span>
+					<span th:text="'Batterie fast leer: ' + ${entry}"></span>
+				</h4>
+			</div>
+		</th:block>
 
 		<!-- Wohnzimmer -->
 		<div th:replace="fragments :: title (name='Wohnzimmer')"></div>

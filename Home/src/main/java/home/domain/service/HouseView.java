@@ -53,6 +53,8 @@ public class HouseView {
 
 		formatSwitch(model, "switchKitchen", house.getKitchenWindowLightSwitch());
 		formatPower(model, "powerHouse", house.getHouseElectricalPowerConsumption());
+
+		formatLowBattery(model, house.getLowBatteryDevices());
 	}
 
 	public void fillHistoryViewModel(Model model, HistoryModel history) {
@@ -217,6 +219,10 @@ public class HouseView {
 		}
 		model.addAttribute(viewKey, frmt);
 		model.addAttribute(viewKey + "_icon", "fas fa-bolt");
+	}
+
+	private void formatLowBattery(Model model, List<String> lowBatteryDevices) {
+		model.addAttribute("lowBattery", lowBatteryDevices);
 	}
 
 	private void formatSwitch(Model model, String viewKey, SwitchModel switchModel) {
