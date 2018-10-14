@@ -19,11 +19,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.ui.Model;
 
 import home.domain.model.PowerHistoryEntry;
-import homecontroller.domain.model.HeatingModel;
-import homecontroller.domain.model.Hint;
+import homecontroller.domain.model.Climate;
 import homecontroller.domain.model.HistoryModel;
 import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.Intensity;
+import homecontroller.domain.model.RoomClimate;
 import homecontroller.domain.model.SwitchModel;
 
 @Component
@@ -40,14 +40,10 @@ public class HouseView {
 
 	public void fillViewModel(Model model, HouseModel house) {
 
-		formatTemperature(model, "tempBathroom", house.getBathRoomTemperature(), null,
-				house.getBathRoomHeating(), house.getConclusionHintBathRoom());
-		formatTemperature(model, "tempKids", house.getKidsRoomTemperature(), house.getKidsRoomHumidity(),
-				null, house.getConclusionHintKidsRoom());
-		formatTemperature(model, "tempLivingroom", house.getLivingRoomTemperature(),
-				house.getLivingRoomHumidity(), null, house.getConclusionHintLivingRoom());
-		formatTemperature(model, "tempBedroom", house.getBedRoomTemperature(), house.getBedRoomHumidity(),
-				null, house.getConclusionHintBedRoom());
+		formatClimate(model, "tempBathroom", house.getClimateBathRoom());
+		formatClimate(model, "tempKids", house.getClimateKidsRoom());
+		formatClimate(model, "tempLivingroom", house.getClimateLivingRoom());
+		formatClimate(model, "tempBedroom", house.getClimateBedRoom());
 
 		formatFacadeTemperatures(model, "tempMinHouse", "tempMaxHouse", house);
 
@@ -110,8 +106,7 @@ public class HouseView {
 		}
 	}
 
-	private void formatTemperature(Model model, String viewKey, BigDecimal temperature, BigDecimal humidity,
-			HeatingModel heating, Hint hint) {
+	private void formatClimate(Model model, String viewKey, Climate climate) {
 
 		String frmt = "";
 		String colorClass = "secondary";
@@ -121,25 +116,25 @@ public class HouseView {
 		String icon = "";
 		String heatericon = "";
 
-		if (temperature != null && temperature.compareTo(BigDecimal.ZERO) == 0 && humidity != null
-				&& humidity.compareTo(BigDecimal.ZERO) == 0) {
+		if (climate.getTemperature() != null && climate.getTemperature().compareTo(BigDecimal.ZERO) == 0
+				&& climate.getHumidity() != null && climate.getHumidity().compareTo(BigDecimal.ZERO) == 0) {
 			frmt = "unbekannt";
 		}
 
-		if (temperature != null) {
+		if (climate.getTemperature() != null) {
 			// Temperature and humidity
-			frmt += format(temperature, false) + "\u00b0" + "C";
-			if (humidity != null) {
-				frmt += ", " + format(humidity, true) + "%rF";
+			frmt += format(climate.getTemperature(), false) + "\u00b0" + "C";
+			if (climate.getHumidity() != null) {
+				frmt += ", " + format(climate.getHumidity(), true) + "%rH";
 			}
 			// Background color
-			if (temperature.compareTo(HIGH_TEMP) > 0) {
+			if (climate.getTemperature().compareTo(HIGH_TEMP) > 0) {
 				colorClass = "danger";
 				icon = "fas fa-thermometer-full";
-			} else if (temperature.compareTo(FROST_TEMP) < 0) {
+			} else if (climate.getTemperature().compareTo(FROST_TEMP) < 0) {
 				colorClass = "info";
 				icon = "far fa-snowflake";
-			} else if (temperature.compareTo(LOW_TEMP) < 0) {
+			} else if (climate.getTemperature().compareTo(LOW_TEMP) < 0) {
 				colorClass = "info";
 				icon = "fas fa-thermometer-empty";
 			} else {
@@ -147,14 +142,15 @@ public class HouseView {
 				icon = "fas fa-thermometer-half";
 			}
 			// Heating
-			if (heating != null) {
-				if (heating.isBoostActive()) {
-					linkBoost = String.valueOf(heating.getBoostMinutesLeft());
+			if (climate instanceof RoomClimate && ((RoomClimate) climate).getHeating() != null) {
+				RoomClimate room = (RoomClimate) climate;
+				if (room.getHeating().isBoostActive()) {
+					linkBoost = String.valueOf(room.getHeating().getBoostMinutesLeft());
 				} else {
-					linkBoost = "/heatingboost?prefix=" + heating.getProgramNamePrefix();
+					linkBoost = "/heatingboost?prefix=" + room.getHeating().getProgramNamePrefix();
 				}
-				linkManual = "/heatingmanual?prefix=" + heating.getProgramNamePrefix();
-				targetTemp = format(heating.getTargetTemperature(), false);
+				linkManual = "/heatingmanual?prefix=" + room.getHeating().getProgramNamePrefix();
+				targetTemp = format(room.getHeating().getTargetTemperature(), false);
 				heatericon = "fab fa-hotjar";
 			}
 		} else {
@@ -168,25 +164,33 @@ public class HouseView {
 		model.addAttribute(viewKey + "_linkBoost", linkBoost);
 		model.addAttribute(viewKey + "_linkManual", linkManual);
 		model.addAttribute(viewKey + "_targetTemp", targetTemp);
-		model.addAttribute(viewKey + "_hint", StringUtils.trimToEmpty(hint == null ? null : hint.getText()));
+		if (climate instanceof RoomClimate && ((RoomClimate) climate).getHint() != null) {
+			model.addAttribute(viewKey + "_hint",
+					StringUtils.trimToEmpty(((RoomClimate) climate).getHint().getText()));
+		} else {
+			model.addAttribute(viewKey + "_hint", null);
+		}
 	}
 
 	private void formatFacadeTemperatures(Model model, String viewKeyMin, String viewKeyMax,
 			HouseModel house) {
 
-		model.addAttribute(viewKeyMin + "_postfix", house.getConclusionFacadeMinTempName());
-		formatTemperature(model, viewKeyMin, house.getConclusionFacadeMinTemp(), null, null, null);
+		model.addAttribute(viewKeyMin + "_postfix", house.getConclusionClimateFacadeMin().getPlaceName());
+		formatClimate(model, viewKeyMin, house.getConclusionClimateFacadeMin());
 
-		if (house.getConclusionFacadeMaxTempSunIntensity().ordinal() >= house
-				.getConclusionFacadeMaxTempHeatingIntensity().ordinal()) {
-			model.addAttribute(viewKeyMax, house.getConclusionFacadeMaxTempSunIntensity().getSun());
+		if (house.getConclusionClimateFacadeMax().getSunBeamIntensity().ordinal() >= house
+				.getConclusionClimateFacadeMax().getSunHeatingInContrastToShadeIntensity().ordinal()) {
+			model.addAttribute(viewKeyMax,
+					house.getConclusionClimateFacadeMax().getSunBeamIntensity().getSun());
 		} else {
-			model.addAttribute(viewKeyMax, house.getConclusionFacadeMaxTempHeatingIntensity().getHeating());
+			model.addAttribute(viewKeyMax, house.getConclusionClimateFacadeMax()
+					.getSunHeatingInContrastToShadeIntensity().getHeating());
 		}
-		model.addAttribute(viewKeyMax + "_name", "Fassade " + house.getConclusionFacadeMaxTempName());
+		model.addAttribute(viewKeyMax + "_name",
+				"Fassade " + house.getConclusionClimateFacadeMax().getPlaceName());
 
-		switch (Intensity.max(house.getConclusionFacadeMaxTempSunIntensity(),
-				house.getConclusionFacadeMaxTempHeatingIntensity())) {
+		switch (Intensity.max(house.getConclusionClimateFacadeMax().getSunBeamIntensity(),
+				house.getConclusionClimateFacadeMax().getSunHeatingInContrastToShadeIntensity())) {
 		case NO:
 			model.addAttribute(viewKeyMin + "_postfix", ""); // No sun, no
 																// heating -> no
