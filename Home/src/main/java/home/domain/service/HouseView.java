@@ -20,6 +20,7 @@ import org.springframework.ui.Model;
 
 import home.domain.model.PowerHistoryEntry;
 import homecontroller.domain.model.Climate;
+import homecontroller.domain.model.Datapoint;
 import homecontroller.domain.model.HistoryModel;
 import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.Intensity;
@@ -234,18 +235,33 @@ public class HouseView {
 		String frmt = "";
 		String label = "";
 		String link = "#";
+		String linkAuto = "#";
+		String linkManual = "#";
 		String icon = "";
 		if (switchModel != null) {
 			frmt += (switchModel.isState() ? "Eingeschaltet" : "Ausgeschaltet");
+			if (switchModel.getAutomation() != null) {
+				if (switchModel.getAutomation() == true) {
+					frmt += ", automatisch";
+					linkManual = "/toggle?devIdVar=" + switchModel.getDevice().programNamePrefix()
+							+ "Automatic";
+				} else {
+					frmt += ", manuell";
+					linkAuto = "/toggle?devIdVar=" + switchModel.getDevice().programNamePrefix()
+							+ "Automatic";
+				}
+			}
 			label += (switchModel.isState() ? "ausschalten" : "einschalten");
 			icon += (switchModel.isState() ? "fas fa-toggle-on" : "fas fa-toggle-off");
-			link = "/toggle?devIdVar=" + switchModel.getDeviceIdVar();
+			link = "/toggle?devIdVar=" + switchModel.getDevice().accessKeyXmlApi(Datapoint.STATE);
 		} else {
 			frmt += "?";
 		}
 		model.addAttribute(viewKey, frmt);
 		model.addAttribute(viewKey + "_label", label);
 		model.addAttribute(viewKey + "_link", link);
+		model.addAttribute(viewKey + "_linkAuto", linkAuto);
+		model.addAttribute(viewKey + "_linkManual", linkManual);
 		model.addAttribute(viewKey + "_icon", icon);
 	}
 

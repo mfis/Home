@@ -104,10 +104,11 @@
 	</div>	
 
 	<!-- Switch -->
-	<div th:fragment="switch (id, icon, name, state, link, label)"
+	<div th:fragment="switch (id, icon, name, state, link, linkAuto, linkManual, label)"
 		th:class="'alert alert-secondary'">
 		<div th:replace="fragments :: elementname (icon=${icon}, name=${name})"></div>
 		<h4 th:text="${state}"></h4>
+		
 		<button type="button" th:onclick="'toggleSwitch' + ${id} + '()'"
 			class="btn btn-secondary btn-sm" th:text="${label}"></button>
 		<script type="text/javascript">
@@ -115,6 +116,24 @@
 				window.location.href = "[[${link}]]&y=" + window.scrollY;
 			}		
 		</script>
+		
+		<th:block th:if="${!#strings.startsWith(linkAuto, '#') or !#strings.startsWith(linkManual, '#')}">
+			<span>&nbsp;</span>
+			<div class="btn-group" role="group" aria-label="heating">
+	  			<button th:if="${#strings.startsWith(linkAuto, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><i th:class="'fas fa-cogs'"></i></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(linkAuto, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="'toggleToManual' + ${id} + '()'"><span>&nbsp;</span><span><i th:class="'fas fa-cogs'"></i></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(linkManual, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><i th:class="'fas fa-hand-paper'"></i></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(linkManual, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="'toggleToAuto' + ${id} + '()'"><span>&nbsp;</span><span><i th:class="'fas fa-hand-paper'"></i></span><span>&nbsp;</span></button>
+	  			<script type="text/javascript">
+					function toggleToAuto[[${id}]](){
+						window.location.href = "[[${linkManual}]]&y=" + window.scrollY;
+					}
+					function toggleToManual[[${id}]](){
+						window.location.href = "[[${linkAuto}]]&y=" + window.scrollY;
+					}					
+				</script>
+			</div>
+		</th:block>
 	</div>
 	
 	<!-- State -->
