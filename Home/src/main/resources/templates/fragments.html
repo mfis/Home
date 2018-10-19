@@ -104,7 +104,7 @@
 	</div>	
 
 	<!-- Switch -->
-	<div th:fragment="switch (id, icon, name, state, link, linkAuto, linkManual, label)"
+	<div th:fragment="switch (id, icon, name, state, link, linkAuto, linkManual, autoInfoText, label)"
 		th:class="'alert alert-secondary'">
 		<div th:replace="fragments :: elementname (icon=${icon}, name=${name})"></div>
 		<h4 th:text="${state}"></h4>
@@ -124,15 +124,34 @@
 	  			<button th:if="${#strings.startsWith(linkAuto, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="'toggleToManual' + ${id} + '()'"><span>&nbsp;</span><span><i th:class="'fas fa-cogs'"></i></span><span>&nbsp;</span></button>
 	  			<button th:if="${#strings.startsWith(linkManual, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><i th:class="'fas fa-hand-paper'"></i></span><span>&nbsp;</span></button>
 	  			<button th:if="${#strings.startsWith(linkManual, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="'toggleToAuto' + ${id} + '()'"><span>&nbsp;</span><span><i th:class="'fas fa-hand-paper'"></i></span><span>&nbsp;</span></button>
-	  			<script type="text/javascript">
-					function toggleToAuto[[${id}]](){
-						window.location.href = "[[${linkManual}]]&y=" + window.scrollY;
-					}
-					function toggleToManual[[${id}]](){
-						window.location.href = "[[${linkAuto}]]&y=" + window.scrollY;
-					}					
-				</script>
 			</div>
+  			<script type="text/javascript">
+				function toggleToAuto[[${id}]](){
+					window.location.href = "[[${linkManual}]]&y=" + window.scrollY;
+				}
+				function toggleToManual[[${id}]](){
+					window.location.href = "[[${linkAuto}]]&y=" + window.scrollY;
+				}					
+			</script>
+				<button type="button" class="btn btn-link" data-toggle="modal" th:data-target="'#modalAuto' + ${id}">
+					<span 
+						class="badge badge-pill badge-secondary" th:text="'?'">
+					</span>
+				</button>
+				<!-- Modal -->
+				<div class="modal fade" th:id="'modalAuto' + ${id}" tabindex="-1" role="dialog" th:aria-labelledby="'#modalAutoLabel' + ${id}" aria-hidden="true">
+				  <div class="modal-dialog modal-dialog-centered" role="document">
+				    <div class="modal-content">
+				      <div class="modal-header">
+				        <h5 class="modal-title" id="exampleModalLongTitle" th:text="'Automatik: ' + ${name}"></h5>
+				        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+				          <span aria-hidden="true">&times;</span>
+				        </button>
+				      </div>
+				      <div class="modal-body"><a th:utext="${autoInfoText}"></a></div>
+				    </div>
+				  </div>
+				</div>
 		</th:block>
 	</div>
 	

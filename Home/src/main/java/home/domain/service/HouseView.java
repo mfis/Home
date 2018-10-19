@@ -237,6 +237,7 @@ public class HouseView {
 		String link = "#";
 		String linkAuto = "#";
 		String linkManual = "#";
+		String autoInfoText = "";
 		String icon = "";
 		if (switchModel != null) {
 			frmt += (switchModel.isState() ? "Eingeschaltet" : "Ausgeschaltet");
@@ -250,6 +251,7 @@ public class HouseView {
 					linkAuto = "/toggle?devIdVar=" + switchModel.getDevice().programNamePrefix()
 							+ "Automatic";
 				}
+				autoInfoText = StringUtils.trimToEmpty(switchModel.getAutomationInfoText());
 			}
 			label += (switchModel.isState() ? "ausschalten" : "einschalten");
 			icon += (switchModel.isState() ? "fas fa-toggle-on" : "fas fa-toggle-off");
@@ -262,6 +264,7 @@ public class HouseView {
 		model.addAttribute(viewKey + "_link", link);
 		model.addAttribute(viewKey + "_linkAuto", linkAuto);
 		model.addAttribute(viewKey + "_linkManual", linkManual);
+		model.addAttribute(viewKey + "_autoInfoText", autoInfoText);
 		model.addAttribute(viewKey + "_icon", icon);
 	}
 
