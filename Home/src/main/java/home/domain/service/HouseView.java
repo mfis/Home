@@ -24,6 +24,7 @@ import homecontroller.domain.model.Datapoint;
 import homecontroller.domain.model.HistoryModel;
 import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.Intensity;
+import homecontroller.domain.model.PowerConsumptionMonth;
 import homecontroller.domain.model.RoomClimate;
 import homecontroller.domain.model.SwitchModel;
 
@@ -33,8 +34,6 @@ public class HouseView {
 	private final static BigDecimal HIGH_TEMP = new BigDecimal("25");
 	private final static BigDecimal LOW_TEMP = new BigDecimal("19");
 	private final static BigDecimal FROST_TEMP = new BigDecimal("3");
-
-	private final static BigDecimal _1000 = new BigDecimal("1000");
 
 	@Autowired
 	private Environment env;
@@ -59,41 +58,38 @@ public class HouseView {
 		List<PowerHistoryEntry> list = new LinkedList<>();
 		PowerHistoryEntry entry = null;
 		Calendar cal = null;
-		BigDecimal value = null;
-		BigDecimal lastValue = null;
 		int count = 0;
-		for (long key : history.getMonthlyPowerConsumption().keySet()) {
-			if (lastValue != null) {
-				cal = new GregorianCalendar();
-				cal.setTimeInMillis(key);
-				value = history.getMonthlyPowerConsumption().get(key).subtract(lastValue).divide(_1000);
-				entry = new PowerHistoryEntry();
-				entry.setKey(new SimpleDateFormat("MMM yyyy", Locale.GERMANY).format(cal.getTime()));
-				entry.setValue(new DecimalFormat("0").format(value) + " kW/h");
-				if (count < history.getMonthlyPowerConsumption().size() - 3) {
-					entry.setCollapse(" collapse multi-collapse electricity");
-				}
-				list.add(entry);
+		for (PowerConsumptionMonth pcm : history.getElectricPowerConsumption().values()) {
+			cal = new GregorianCalendar();
+			cal.setTimeInMillis(pcm.getMeasurePointMax());
+			entry = new PowerHistoryEntry();
+			entry.setKey(new SimpleDateFormat("MMM yyyy", Locale.GERMANY).format(cal.getTime()));
+			entry.setValue(new DecimalFormat("0").format(pcm.getPowerConsumption()) + " kW/h");
+			if (count < history.getElectricPowerConsumption().size() - 3) {
+				entry.setCollapse(" collapse multi-collapse electricity");
 			}
-			lastValue = history.getMonthlyPowerConsumption().get(key);
+			if (count == history.getElectricPowerConsumption().size() - 1) {
+				if (cal.get(Calendar.DAY_OF_MONTH) > 1) {
+					YearMonth yearMonthObject = YearMonth.of(cal.get(Calendar.YEAR),
+							cal.get(Calendar.MONTH) + 1);
+					int daysInMonth = yearMonthObject.lengthOfMonth();
+					int hoursAgo = ((cal.get(Calendar.DAY_OF_MONTH) - 1) * 24)
+							+ cal.get(Calendar.HOUR_OF_DAY);
+					int hoursToGo = (daysInMonth * 24) - hoursAgo;
+					if (hoursAgo > 0) {
+						BigDecimal actualValue = new BigDecimal(pcm.getPowerConsumption());
+						BigDecimal calculated = actualValue
+								.add(actualValue.divide(new BigDecimal(hoursAgo), 2, RoundingMode.HALF_UP)
+										.multiply(new BigDecimal(hoursToGo)));
+						entry.setCalculated(new DecimalFormat("0").format(calculated) + " kW/h");
+					}
+				}
+				entry.setColorClass(" list-group-item-secondary");
+				entry.setKey(entry.getKey() + " bisher");
+			}
+			list.add(entry);
 			count++;
 		}
-
-		if (cal.get(Calendar.DAY_OF_MONTH) > 1) {
-			YearMonth yearMonthObject = YearMonth.of(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1);
-			int daysInMonth = yearMonthObject.lengthOfMonth();
-			int hoursAgo = ((cal.get(Calendar.DAY_OF_MONTH) - 1) * 24) + cal.get(Calendar.HOUR_OF_DAY);
-			int hoursToGo = (daysInMonth * 24) - hoursAgo;
-			if (hoursAgo > 0) {
-				BigDecimal calculated = value
-						.add(value.divide(new BigDecimal(hoursAgo), 2, RoundingMode.HALF_UP)
-								.multiply(new BigDecimal(hoursToGo)));
-				entry.setCalculated(new DecimalFormat("0").format(calculated) + " kW/h");
-			}
-		}
-
-		entry.setColorClass(" list-group-item-secondary");
-		entry.setKey(entry.getKey() + " bisher");
 
 		Collections.reverse(list);
 		model.addAttribute("power", list);
