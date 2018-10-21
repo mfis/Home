@@ -3,14 +3,12 @@ package home.domain.service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
-import java.util.Calendar;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
-import java.util.GregorianCalendar;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +33,9 @@ public class HouseView {
 	private final static BigDecimal LOW_TEMP = new BigDecimal("19");
 	private final static BigDecimal FROST_TEMP = new BigDecimal("3");
 
+	private final static long KWH_FACTOR = 1000L;
+	private final static DateTimeFormatter MONTH_YEAR_FORMATTER = DateTimeFormatter.ofPattern("MMM yyyy");
+
 	@Autowired
 	private Environment env;
 
@@ -56,22 +57,19 @@ public class HouseView {
 	public void fillHistoryViewModel(Model model, HistoryModel history) {
 
 		List<PowerHistoryEntry> list = new LinkedList<>();
-		PowerHistoryEntry entry = null;
-		Calendar cal = null;
+		DecimalFormat decimalFormat = new DecimalFormat("0");
 		int index = 0;
 		for (PowerConsumptionMonth pcm : history.getElectricPowerConsumption()) {
 			if (pcm.getPowerConsumption() != null) {
-				cal = new GregorianCalendar();
-				cal.setTimeInMillis(pcm.getMeasurePointMax());
-				entry = new PowerHistoryEntry();
-				entry.setKey(new SimpleDateFormat("MMM yyyy", Locale.GERMANY).format(cal.getTime()));
-				entry.setValue(new DecimalFormat("0").format(pcm.getPowerConsumption() / 1000) + " kW/h");
+				PowerHistoryEntry entry = new PowerHistoryEntry();
+				entry.setKey(MONTH_YEAR_FORMATTER.format(pcm.measurePointMaxDateTime()));
+				entry.setValue(decimalFormat.format(pcm.getPowerConsumption() / KWH_FACTOR) + " kW/h");
 				if (index < history.getElectricPowerConsumption().size() - 3) {
 					entry.setCollapse(" collapse multi-collapse electricity");
 				}
 				if (index == history.getElectricPowerConsumption().size() - 1) {
-					if (cal.get(Calendar.DAY_OF_MONTH) > 1) {
-						calculateProjectedConsumption(entry, cal, pcm);
+					if (pcm.measurePointMaxDateTime().getDayOfMonth() > 1) {
+						calculateProjectedConsumption(entry, pcm.measurePointMaxDateTime(), pcm);
 					}
 					entry.setColorClass(" list-group-item-secondary");
 					entry.setKey(entry.getKey() + " bisher");
@@ -85,19 +83,19 @@ public class HouseView {
 		model.addAttribute("power", list);
 	}
 
-	private void calculateProjectedConsumption(PowerHistoryEntry entry, Calendar cal,
+	private void calculateProjectedConsumption(PowerHistoryEntry entry, LocalDateTime dateTime,
 			PowerConsumptionMonth pcm) {
 
-		YearMonth yearMonthObject = YearMonth.of(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1);
+		YearMonth yearMonthObject = YearMonth.of(dateTime.getYear(), dateTime.getMonthValue());
 		int daysInMonth = yearMonthObject.lengthOfMonth();
-		int hoursAgo = ((cal.get(Calendar.DAY_OF_MONTH) - 1) * 24) + cal.get(Calendar.HOUR_OF_DAY);
+		int hoursAgo = ((dateTime.getDayOfMonth() - 1) * 24) + dateTime.getHour();
 		int hoursToGo = (daysInMonth * 24) - hoursAgo;
 		if (hoursAgo > 0) {
 			BigDecimal actualValue = new BigDecimal(pcm.getPowerConsumption());
 			BigDecimal calculated = actualValue
 					.add(actualValue.divide(new BigDecimal(hoursAgo), 2, RoundingMode.HALF_UP)
 							.multiply(new BigDecimal(hoursToGo)));
-			entry.setCalculated(new DecimalFormat("0").format(calculated.longValue() / 1000) + " kW/h");
+			entry.setCalculated(new DecimalFormat("0").format(calculated.longValue() / KWH_FACTOR) + " kW/h");
 		}
 	}
 
