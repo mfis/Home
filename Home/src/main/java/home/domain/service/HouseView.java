@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.ui.Model;
 
 import home.domain.model.PowerHistoryEntry;
+import home.domain.model.SwitchView;
 import homecontroller.domain.model.Climate;
 import homecontroller.domain.model.Datapoint;
 import homecontroller.domain.model.HistoryModel;
@@ -232,40 +233,26 @@ public class HouseView {
 
 	private void formatSwitch(Model model, String viewKey, SwitchModel switchModel) {
 
-		String frmt = "";
-		String label = "";
-		String link = "#";
-		String linkAuto = "#";
-		String linkManual = "#";
-		String autoInfoText = "";
-		String icon = "";
-		if (switchModel != null) {
-			frmt += (switchModel.isState() ? "Eingeschaltet" : "Ausgeschaltet");
-			if (switchModel.getAutomation() != null) {
-				if (switchModel.getAutomation() == true) {
-					frmt += ", automatisch";
-					linkManual = "/toggle?devIdVar=" + switchModel.getDevice().programNamePrefix()
-							+ "Automatic";
-				} else {
-					frmt += ", manuell";
-					linkAuto = "/toggle?devIdVar=" + switchModel.getDevice().programNamePrefix()
-							+ "Automatic";
-				}
-				autoInfoText = StringUtils.trimToEmpty(switchModel.getAutomationInfoText());
+		SwitchView view = new SwitchView();
+		view.setId("SWKU");
+		view.setName(switchModel.getDevice().getType());
+		view.setState(switchModel.isState() ? "Eingeschaltet" : "Ausgeschaltet");
+		if (switchModel.getAutomation() != null) {
+			if (switchModel.getAutomation() == true) {
+				view.setState(view.getState() + ", automatisch");
+				view.setLinkManual(
+						"/toggle?devIdVar=" + switchModel.getDevice().programNamePrefix() + "Automatic");
+			} else {
+				view.setState(view.getState() + ", manuell");
+				view.setLinkAuto(
+						"/toggle?devIdVar=" + switchModel.getDevice().programNamePrefix() + "Automatic");
 			}
-			label += (switchModel.isState() ? "ausschalten" : "einschalten");
-			icon += (switchModel.isState() ? "fas fa-toggle-on" : "fas fa-toggle-off");
-			link = "/toggle?devIdVar=" + switchModel.getDevice().accessKeyXmlApi(Datapoint.STATE);
-		} else {
-			frmt += "?";
+			view.setAutoInfoText(StringUtils.trimToEmpty(switchModel.getAutomationInfoText()));
 		}
-		model.addAttribute(viewKey, frmt);
-		model.addAttribute(viewKey + "_label", label);
-		model.addAttribute(viewKey + "_link", link);
-		model.addAttribute(viewKey + "_linkAuto", linkAuto);
-		model.addAttribute(viewKey + "_linkManual", linkManual);
-		model.addAttribute(viewKey + "_autoInfoText", autoInfoText);
-		model.addAttribute(viewKey + "_icon", icon);
+		view.setLabel(switchModel.isState() ? "ausschalten" : "einschalten");
+		view.setIcon(switchModel.isState() ? "fas fa-toggle-on" : "fas fa-toggle-off");
+		view.setLink("/toggle?devIdVar=" + switchModel.getDevice().accessKeyXmlApi(Datapoint.STATE));
+		model.addAttribute(viewKey, view);
 	}
 
 	public void fillLinks(Model model) {
