@@ -20,7 +20,7 @@ import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import home.domain.model.Pages;
-import home.domain.service.HouseView;
+import home.domain.service.HouseViewService;
 import homecontroller.domain.model.ActionModel;
 import homecontroller.domain.model.HistoryModel;
 import homecontroller.domain.model.HouseModel;
@@ -34,7 +34,7 @@ public class HomeRequestMapping {
 	private Environment env;
 
 	@Autowired
-	private HouseView houseView;
+	private HouseViewService houseView;
 
 	@Autowired
 	private SettingsView settingsView;

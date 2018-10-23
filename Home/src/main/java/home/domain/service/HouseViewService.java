@@ -29,7 +29,7 @@ import homecontroller.domain.model.RoomClimate;
 import homecontroller.domain.model.SwitchModel;
 
 @Component
-public class HouseView {
+public class HouseViewService {
 
 	private final static BigDecimal HIGH_TEMP = new BigDecimal("25");
 	private final static BigDecimal LOW_TEMP = new BigDecimal("19");
