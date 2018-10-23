@@ -162,59 +162,57 @@
 	</div>	
 
 	<!-- Temperature fas fa-thermometer-half -->
-	<div th:fragment="temperature (icon, postfix, class, temp, hint)"
-		th:class="'alert alert-' + ${class}">
-		<div th:replace="fragments :: elementname (icon=${icon}, name='Temperatur ' + ${postfix})"></div>
-		<h4><span th:text="${temp}"></span></h4>
+	<div th:fragment="temperature (model)" th:class="'alert alert-' + ${model.colorClass}">
+		<div th:replace="fragments :: elementname (icon=${model.icon}, name='Temperatur ' + ${model.postfix})"></div>
+		<h4><span th:text="${model.state}"></span></h4>
 			
-		<span th:if="${!#strings.isEmpty(hint)}"
+		<span th:if="${!#strings.isEmpty(model.hint)}"
 			class="badge badge-pill badge-light"
-			th:text="'Empfehlung: ' + ${hint}">hint</span>
+			th:text="'Empfehlung: ' + ${model.hint}">hint</span>
 	</div>
 	
 	<!-- Thermostat -->
-	<div th:fragment="thermostat (id, icon, boost, manual, targetTemp)"
-		th:class="'alert alert-secondary'">
-		<div th:replace="fragments :: elementname (icon=${icon}, name='Heizkörpersteuerung')"></div>
-		<h4 th:if="${#strings.startsWith(boost,'/')}"><span th:text="'Manuell auf ' + ${targetTemp} + '°C'"></span></h4>
-		<h4 th:unless="${#strings.startsWith(boost,'/')}"><span th:text="'Aufheizen - noch ' + ${boost} + ' Min.'"></span></h4>
+	<div th:fragment="thermostat (model)" th:class="'alert alert-secondary'">
+		<div th:replace="fragments :: elementname (icon=${model.icon}, name='Heizkörpersteuerung')"></div>
+		<h4 th:if="${#strings.startsWith(model.linkBoost,'/')}"><span th:text="'Manuell auf ' + ${model.targetTemp} + '°C'"></span></h4>
+		<h4 th:unless="${#strings.startsWith(model.linkBoost,'/')}"><span th:text="'Aufheizen - noch ' + ${model.linkBoost} + ' Min.'"></span></h4>
 			
-		<div th:if="${#strings.startsWith(boost,'/')}" class="btn-group" role="group" aria-label="heating">
-  			<button type="button" th:id="'idHeatMinus' + ${id}" class="btn btn-secondary btn-sm" th:onclick="'adjustHeating' + ${id} + '(-0.5)'">&nbsp;-&nbsp;</button>
-  			<button type="button" th:id="'idHeatTarget' + ${id}" class="btn btn-outline-secondary btn-sm" disabled><span th:id="'idHeatTargetLabel' + ${id}" th:text="${targetTemp}"></span><span>°C</span></button>
-  			<button type="button" th:id="'idHeatPlus' + ${id}" class="btn btn-secondary btn-sm" th:onclick="'adjustHeating' + ${id} + '(+0.5)'">&nbsp;+&nbsp;</button>
+		<div th:if="${#strings.startsWith(model.linkBoost,'/')}" class="btn-group" role="group" aria-label="heating">
+  			<button type="button" th:id="'idHeatMinus' + ${model.id}" class="btn btn-secondary btn-sm" th:onclick="'adjustHeating' + ${model.id} + '(-0.5)'">&nbsp;-&nbsp;</button>
+  			<button type="button" th:id="'idHeatTarget' + ${model.id}" class="btn btn-outline-secondary btn-sm" disabled><span th:id="'idHeatTargetLabel' + ${model.id}" th:text="${model.targetTemp}"></span><span>°C</span></button>
+  			<button type="button" th:id="'idHeatPlus' + ${model.id}" class="btn btn-secondary btn-sm" th:onclick="'adjustHeating' + ${model.id} + '(+0.5)'">&nbsp;+&nbsp;</button>
 		</div>
-		<span th:if="${#strings.startsWith(boost,'/')}">&nbsp;</span>
+		<span th:if="${#strings.startsWith(model.linkBoost,'/')}">&nbsp;</span>
 		
-		<button th:if="${#strings.startsWith(boost,'/')}"
-			type="button" th:onclick="'setBoost' + ${id} + '()'" class="btn btn-secondary btn-sm">Schnell aufheizen</button>
-		<button th:unless="${#strings.startsWith(boost,'/')}" type="button"
-			class="btn btn-secondary btn-sm" th:onclick="'setHeating' + ${id} + '()'" th:text="'abbrechen'">Boost ist eingeschaltet</button>
+		<button th:if="${#strings.startsWith(model.linkBoost,'/')}"
+			type="button" th:onclick="'setBoost' + ${model.id} + '()'" class="btn btn-secondary btn-sm">Schnell aufheizen</button>
+		<button th:unless="${#strings.startsWith(model.linkBoost,'/')}" type="button"
+			class="btn btn-secondary btn-sm" th:onclick="'setHeating' + ${model.id} + '()'" th:text="'abbrechen'">Boost ist eingeschaltet</button>
 		<script type="text/javascript">
-			var timeout[[${id}]] = null;
-			var newTargetTemp[[${id}]] = parseFloat("[[${targetTemp}]]".replace(/,/, '.'));
-			function adjustHeating[[${id}]](diff){
-				if(timeout[[${id}]]){
-					clearTimeout(timeout[[${id}]]);
+			var timeout[[${model.id}]] = null;
+			var newTargetTemp[[${model.id}]] = parseFloat("[[${model.targetTemp}]]".replace(/,/, '.'));
+			function adjustHeating[[${model.id}]](diff){
+				if(timeout[[${model.id}]]){
+					clearTimeout(timeout[[${model.id}]]);
 				}
-				newTargetTemp[[${id}]] = newTargetTemp[[${id}]] + diff;
-				document.getElementById("idHeatTarget[[${id}]]").className = "btn btn-danger btn-sm";
-				document.getElementById("idHeatTargetLabel[[${id}]]").innerHTML = newTargetTemp[[${id}]].toFixed(1).replace('.', ',');
-				timeout[[${id}]] = setTimeout(setHeating[[${id}]], 1000 * 1.5);
+				newTargetTemp[[${model.id}]] = newTargetTemp[[${model.id}]] + diff;
+				document.getElementById("idHeatTarget[[${model.id}]]").className = "btn btn-danger btn-sm";
+				document.getElementById("idHeatTargetLabel[[${model.id}]]").innerHTML = newTargetTemp[[${model.id}]].toFixed(1).replace('.', ',');
+				timeout[[${model.id}]] = setTimeout(setHeating[[${model.id}]], 1000 * 1.5);
 			}
-			function setHeating[[${id}]](){
-				window.location.href = "[[${manual}]]&temperature=" + newTargetTemp[[${id}]] + "&y=" + window.scrollY;
+			function setHeating[[${model.id}]](){
+				window.location.href = "[[${model.linkManual}]]&temperature=" + newTargetTemp[[${model.id}]] + "&y=" + window.scrollY;
 			}
-			function setBoost[[${id}]](){
-				window.location.href = "[[${boost}]]&y=" + window.scrollY;
+			function setBoost[[${model.id}]](){
+				window.location.href = "[[${model.linkBoost}]]&y=" + window.scrollY;
 			}			
 		</script>
 	</div>	
 
 	<!-- Sonne -->
-	<div th:fragment="sunStatus (icon, name, class, text)" th:if="${!#strings.isEmpty(text)}" th:class="'alert alert-' + ${class}">
-		<div th:replace="fragments :: elementname (icon=${icon}, name=${name})"></div>
-		<h4 th:text="${text}"></h4>
+	<div th:fragment="sunStatus (model)" th:if="${!#strings.isEmpty(model.state)}" th:class="'alert alert-' + ${model.colorClass}">
+		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name})"></div>
+		<h4 th:text="${model.state}"></h4>
 	</div>
 	
 	<!-- Strom Listen Eintrag -->

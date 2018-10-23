@@ -16,6 +16,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.Model;
 
+import home.domain.model.ClimateView;
 import home.domain.model.PowerHistoryEntry;
 import home.domain.model.SwitchView;
 import homecontroller.domain.model.Climate;
@@ -109,110 +110,103 @@ public class HouseView {
 	}
 
 	private void formatClimate(Model model, String viewKey, Climate climate) {
+		ClimateView view = formatClimate(climate, viewKey);
+		model.addAttribute(viewKey, view);
+	}
 
-		String frmt = "";
-		String colorClass = "secondary";
-		String linkBoost = "";
-		String linkManual = "";
-		String targetTemp = "";
-		String icon = "";
-		String heatericon = "";
+	private ClimateView formatClimate(Climate climate, String viewKey) {
+
+		ClimateView view = new ClimateView();
+		view.setId(viewKey);
 
 		if (climate.getTemperature() != null && climate.getTemperature().compareTo(BigDecimal.ZERO) == 0
 				&& climate.getHumidity() != null && climate.getHumidity().compareTo(BigDecimal.ZERO) == 0) {
-			frmt = "unbekannt";
+			view.setState("unbekannt");
 		}
 
 		if (climate.getTemperature() != null) {
 			// Temperature and humidity
-			frmt += format(climate.getTemperature(), false) + "\u00b0" + "C";
+			view.setState(format(climate.getTemperature(), false) + "\u00b0" + "C");
 			if (climate.getHumidity() != null) {
-				frmt += ", " + format(climate.getHumidity(), true) + "%rH";
+				view.setState(view.getState() + ", " + format(climate.getHumidity(), true) + "%rH");
 			}
 			// Background color
 			if (climate.getTemperature().compareTo(HIGH_TEMP) > 0) {
-				colorClass = "danger";
-				icon = "fas fa-thermometer-full";
+				view.setColorClass("danger");
+				view.setIcon("fas fa-thermometer-full");
 			} else if (climate.getTemperature().compareTo(FROST_TEMP) < 0) {
-				colorClass = "info";
-				icon = "far fa-snowflake";
+				view.setColorClass("info");
+				view.setIcon("far fa-snowflake");
 			} else if (climate.getTemperature().compareTo(LOW_TEMP) < 0) {
-				colorClass = "info";
-				icon = "fas fa-thermometer-empty";
+				view.setColorClass("info");
+				view.setIcon("fas fa-thermometer-empty");
 			} else {
-				colorClass = "success";
-				icon = "fas fa-thermometer-half";
+				view.setColorClass("success");
+				view.setIcon("fas fa-thermometer-half");
 			}
 			// Heating
 			if (climate instanceof RoomClimate && ((RoomClimate) climate).getHeating() != null) {
 				RoomClimate room = (RoomClimate) climate;
 				if (room.getHeating().isBoostActive()) {
-					linkBoost = String.valueOf(room.getHeating().getBoostMinutesLeft());
+					view.setLinkBoost(String.valueOf(room.getHeating().getBoostMinutesLeft()));
 				} else {
-					linkBoost = "/heatingboost?prefix=" + room.getHeating().getProgramNamePrefix();
+					view.setLinkBoost("/heatingboost?prefix=" + room.getHeating().getProgramNamePrefix());
 				}
-				linkManual = "/heatingmanual?prefix=" + room.getHeating().getProgramNamePrefix();
-				targetTemp = format(room.getHeating().getTargetTemperature(), false);
-				heatericon = "fab fa-hotjar";
+				view.setLinkManual("/heatingmanual?prefix=" + room.getHeating().getProgramNamePrefix());
+				view.setTargetTemp(format(room.getHeating().getTargetTemperature(), false));
+				view.setHeatericon("fab fa-hotjar");
 			}
 		} else {
-			frmt += "?";
+			view.setState("?");
 		}
 
-		model.addAttribute(viewKey, frmt);
-		model.addAttribute(viewKey + "_colorClass", colorClass);
-		model.addAttribute(viewKey + "_icon", icon);
-		model.addAttribute(viewKey + "_heatericon", heatericon);
-		model.addAttribute(viewKey + "_linkBoost", linkBoost);
-		model.addAttribute(viewKey + "_linkManual", linkManual);
-		model.addAttribute(viewKey + "_targetTemp", targetTemp);
 		if (climate instanceof RoomClimate && ((RoomClimate) climate).getHint() != null) {
-			model.addAttribute(viewKey + "_hint",
-					StringUtils.trimToEmpty(((RoomClimate) climate).getHint().getText()));
-		} else {
-			model.addAttribute(viewKey + "_hint", null);
+			view.setHint(StringUtils.trimToEmpty(((RoomClimate) climate).getHint().getText()));
 		}
+
+		return view;
 	}
 
 	private void formatFacadeTemperatures(Model model, String viewKeyMin, String viewKeyMax,
 			HouseModel house) {
 
-		model.addAttribute(viewKeyMin + "_postfix", house.getConclusionClimateFacadeMin().getPlaceName());
-		formatClimate(model, viewKeyMin, house.getConclusionClimateFacadeMin());
+		ClimateView viewMin = formatClimate(house.getConclusionClimateFacadeMin(), viewKeyMin);
+		ClimateView viewMax = new ClimateView();
+		viewMax.setId(viewKeyMax);
+
+		viewMin.setPostfix(house.getConclusionClimateFacadeMin().getPlaceName());
 
 		if (house.getConclusionClimateFacadeMax().getSunBeamIntensity().ordinal() >= house
 				.getConclusionClimateFacadeMax().getSunHeatingInContrastToShadeIntensity().ordinal()) {
-			model.addAttribute(viewKeyMax,
-					house.getConclusionClimateFacadeMax().getSunBeamIntensity().getSun());
+			viewMax.setState(house.getConclusionClimateFacadeMax().getSunBeamIntensity().getSun());
 		} else {
-			model.addAttribute(viewKeyMax, house.getConclusionClimateFacadeMax()
-					.getSunHeatingInContrastToShadeIntensity().getHeating());
+			viewMax.setState(house.getConclusionClimateFacadeMax().getSunHeatingInContrastToShadeIntensity()
+					.getHeating());
 		}
-		model.addAttribute(viewKeyMax + "_name",
-				"Fassade " + house.getConclusionClimateFacadeMax().getPlaceName());
+		viewMax.setName("Fassade " + house.getConclusionClimateFacadeMax().getPlaceName());
 
 		switch (Intensity.max(house.getConclusionClimateFacadeMax().getSunBeamIntensity(),
 				house.getConclusionClimateFacadeMax().getSunHeatingInContrastToShadeIntensity())) {
 		case NO:
-			model.addAttribute(viewKeyMin + "_postfix", ""); // No sun, no
-																// heating -> no
-																// special house
-																// side name
-			model.addAttribute(viewKeyMax + "_colorClass", "secondary");
+			viewMin.setPostfix(""); // No sun, no heating -> no special house
+									// side name
+			viewMax.setColorClass("secondary");
 			break;
 		case LOW:
-			model.addAttribute(viewKeyMax + "_colorClass", "dark");
-			model.addAttribute(viewKeyMax + "_icon", "far fa-sun");
+			viewMax.setColorClass("dark");
+			viewMax.setIcon("far fa-sun");
 			break;
 		case MEDIUM:
-			model.addAttribute(viewKeyMax + "_colorClass", "warning");
-			model.addAttribute(viewKeyMax + "_icon", "far fa-sun");
+			viewMax.setColorClass("warning");
+			viewMax.setIcon("far fa-sun");
 			break;
 		case HIGH:
-			model.addAttribute(viewKeyMax + "_colorClass", "danger");
-			model.addAttribute(viewKeyMax + "_icon", "fas fa-sun");
+			viewMax.setColorClass("danger");
+			viewMax.setIcon("fas fa-sun");
 		}
 
+		model.addAttribute(viewKeyMin, viewMin);
+		model.addAttribute(viewKeyMax, viewMax);
 	}
 
 	private void formatPower(Model model, String viewKey, Integer consumption) {
@@ -234,7 +228,7 @@ public class HouseView {
 	private void formatSwitch(Model model, String viewKey, SwitchModel switchModel) {
 
 		SwitchView view = new SwitchView();
-		view.setId("SWKU");
+		view.setId(viewKey);
 		view.setName(switchModel.getDevice().getType());
 		view.setState(switchModel.isState() ? "Eingeschaltet" : "Ausgeschaltet");
 		if (switchModel.getAutomation() != null) {
