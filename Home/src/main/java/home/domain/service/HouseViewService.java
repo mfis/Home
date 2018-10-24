@@ -18,6 +18,7 @@ import org.springframework.ui.Model;
 
 import home.domain.model.ClimateView;
 import home.domain.model.PowerHistoryEntry;
+import home.domain.model.PowerView;
 import home.domain.model.SwitchView;
 import homecontroller.domain.model.Climate;
 import homecontroller.domain.model.Datapoint;
@@ -25,6 +26,7 @@ import homecontroller.domain.model.HistoryModel;
 import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.Intensity;
 import homecontroller.domain.model.PowerConsumptionMonth;
+import homecontroller.domain.model.PowerMeterModel;
 import homecontroller.domain.model.RoomClimate;
 import homecontroller.domain.model.SwitchModel;
 
@@ -51,7 +53,7 @@ public class HouseViewService {
 		formatFacadeTemperatures(model, "tempMinHouse", "tempMaxHouse", house);
 
 		formatSwitch(model, "switchKitchen", house.getKitchenWindowLightSwitch());
-		formatPower(model, "powerHouse", house.getHouseElectricalPowerConsumption());
+		formatPower(model, house.getElectricalPowerConsumption());
 
 		formatLowBattery(model, house.getLowBatteryDevices());
 	}
@@ -209,16 +211,13 @@ public class HouseViewService {
 		model.addAttribute(viewKeyMax, viewMax);
 	}
 
-	private void formatPower(Model model, String viewKey, Integer consumption) {
+	private void formatPower(Model model, PowerMeterModel powerMeter) {
 
-		String frmt = "";
-		if (consumption != null) {
-			frmt += consumption + " Watt";
-		} else {
-			frmt += "?";
-		}
-		model.addAttribute(viewKey, frmt);
-		model.addAttribute(viewKey + "_icon", "fas fa-bolt");
+		PowerView power = new PowerView();
+		power.setState(powerMeter.getActualConsumption() + " Watt");
+		power.setName(powerMeter.getDevice().getType());
+		power.setIcon("fas fa-bolt");
+		model.addAttribute(powerMeter.getDevice().programNamePrefix(), power);
 	}
 
 	private void formatLowBattery(Model model, List<String> lowBatteryDevices) {

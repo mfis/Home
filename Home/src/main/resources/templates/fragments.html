@@ -154,11 +154,11 @@
 		</th:block>
 	</div>
 	
-	<!-- State -->
-	<div th:fragment="state (icon, name, value)"
+	<!-- Actual Power Consumption -->
+	<div th:fragment="actualPowerConsumption (model)"
 		th:class="'alert alert-secondary'">
-		<div th:replace="fragments :: elementname (icon=${icon}, name=${name})"></div>
-		<h4 th:text="${value}"></h4>
+		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name})"></div>
+		<h4 th:text="${model.state}"></h4>
 	</div>	
 
 	<!-- Temperature fas fa-thermometer-half -->
@@ -173,7 +173,7 @@
 	
 	<!-- Thermostat -->
 	<div th:fragment="thermostat (model)" th:class="'alert alert-secondary'">
-		<div th:replace="fragments :: elementname (icon=${model.icon}, name='Heizkörpersteuerung')"></div>
+		<div th:replace="fragments :: elementname (icon=${model.heatericon}, name='Heizkörpersteuerung')"></div>
 		<h4 th:if="${#strings.startsWith(model.linkBoost,'/')}"><span th:text="'Manuell auf ' + ${model.targetTemp} + '°C'"></span></h4>
 		<h4 th:unless="${#strings.startsWith(model.linkBoost,'/')}"><span th:text="'Aufheizen - noch ' + ${model.linkBoost} + ' Min.'"></span></h4>
 			
@@ -214,6 +214,18 @@
 		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name})"></div>
 		<h4 th:text="${model.state}"></h4>
 	</div>
+
+	<!-- Batterie-Warnung -->
+	<th:block th:fragment="deviceBatterieWarning (model)">
+		<th:block th:each="entry : ${model}">
+			<div th:class="'alert alert-danger'">
+				<h4>
+					<span><i class="fas fa-battery-quarter"></i></span> <span
+						th:text="'Batterie fast leer: ' + ${entry}"></span>
+				</h4>
+			</div>
+		</th:block>	
+	</th:block>
 	
 	<!-- Strom Listen Eintrag -->
 	<th:block th:fragment="powerEntry (month, energy, calculated, colorClass, collapse)">

@@ -13,14 +13,7 @@
 		<div style="height: 20px;"></div>
 
 		<!-- Batterie-Warnungen -->
-		<th:block th:each="entry : ${lowBattery}">
-			<div th:class="'alert alert-danger'">
-				<h4>
-					<span><i class="fas fa-battery-quarter"></i></span> <span
-						th:text="'Batterie fast leer: ' + ${entry}"></span>
-				</h4>
-			</div>
-		</th:block>
+		<div th:replace="fragments :: deviceBatterieWarning (model=${lowBattery})"></div>
 
 		<!-- Wohnzimmer -->
 		<div th:replace="fragments :: title (name='Wohnzimmer')"></div>
@@ -50,10 +43,7 @@
 
 		<!-- Energie -->
 		<div th:replace="fragments :: title (name='Energie')"></div>
-		<div
-			th:replace="fragments :: state 
-				(icon=${powerHouse_icon}, name='Stromverbrauch', value=${powerHouse})">
-		</div>
+		<div th:replace="fragments :: actualPowerConsumption (model=${StromverbrauchHaus})"></div>
 	</div>
 
 	<div th:replace="fragments :: scriptresources (yPos=${yPos})"></div>
