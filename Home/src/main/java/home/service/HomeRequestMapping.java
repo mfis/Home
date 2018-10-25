@@ -37,7 +37,7 @@ public class HomeRequestMapping {
 	private HouseViewService houseView;
 
 	@Autowired
-	private SettingsView settingsView;
+	private SettingsViewService settingsView;
 
 	@Autowired
 	private RestTemplate restTemplate;
@@ -90,7 +90,8 @@ public class HomeRequestMapping {
 	}
 
 	@RequestMapping(Pages.PATH_HOME)
-	public String homePage(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie)
+	public String homePage(Model model,
+			@CookieValue(name = LoginInterceptor.COOKIE_NAME, required = false) String userCookie)
 			throws Exception {
 		fillMenu(Pages.PATH_HOME, model);
 		fillUserAttributes(model, userCookie, ViewAttributesDAO.Y_POS_HOME);
@@ -140,10 +141,12 @@ public class HomeRequestMapping {
 
 	private void fillUserAttributes(Model model, String userCookie, String yPosAttribute) {
 		String user = ExternalPropertiesDAO.getInstance().read(userCookie);
-		model.addAttribute(ViewAttributesDAO.USER_NAME, user);
-		if (yPosAttribute != null) {
-			String y = ViewAttributesDAO.getInstance().pull(user, yPosAttribute);
-			model.addAttribute("yPos", StringUtils.trimToEmpty(y));
+		if (user != null) {
+			model.addAttribute(ViewAttributesDAO.USER_NAME, user);
+			if (yPosAttribute != null) {
+				String y = ViewAttributesDAO.getInstance().pull(user, yPosAttribute);
+				model.addAttribute("yPos", StringUtils.trimToEmpty(y));
+			}
 		}
 	}
 

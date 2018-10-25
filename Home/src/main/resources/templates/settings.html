@@ -18,10 +18,7 @@
 
 		<!-- Push -->
 		<div th:replace="fragments :: title (name='Push-Nachrichten')"></div>
-		<div
-			th:replace="fragments :: switch 
-				(id='SWPU', icon=${switchPush_icon}, name='Versand', state=${switchPush}, link=${switchPush_link}, label=${switchPush_label})">
-		</div>
+		<div th:replace="fragments :: switch (model=${switchPush})"></div>
 
 		<!-- Pushover -->
 		<div th:replace="fragments :: title (name='Pushover Account')"></div>
