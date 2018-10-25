@@ -6,6 +6,7 @@ public class ClimateView {
 	private String name = "";
 	private String postfix = "";
 	private String state = "";
+	private String statePostfixIcon = "";
 	private String colorClass = "secondary";
 	private String linkBoost = "";
 	private String linkManual = "";
@@ -100,6 +101,14 @@ public class ClimateView {
 
 	public void setPostfix(String postfix) {
 		this.postfix = postfix;
+	}
+
+	public String getStatePostfixIcon() {
+		return statePostfixIcon;
+	}
+
+	public void setStatePostfixIcon(String statePostfixIcon) {
+		this.statePostfixIcon = statePostfixIcon;
 	}
 
 }

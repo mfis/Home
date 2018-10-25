@@ -164,7 +164,10 @@
 	<!-- Temperature fas fa-thermometer-half -->
 	<div th:fragment="temperature (model)" th:class="'alert alert-' + ${model.colorClass}">
 		<div th:replace="fragments :: elementname (icon=${model.icon}, name='Temperatur ' + ${model.postfix})"></div>
-		<h4><span th:text="${model.state}"></span></h4>
+		<h4>
+			<span th:text="${model.state}"></span>
+			<span th:if="${!#strings.isEmpty(model.statePostfixIcon)}"><i th:class="${model.statePostfixIcon}"></i></span>
+		</h4>
 			
 		<span th:if="${!#strings.isEmpty(model.hint)}"
 			class="badge badge-pill badge-light"
