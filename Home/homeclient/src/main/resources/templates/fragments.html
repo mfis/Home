@@ -71,7 +71,7 @@
 		<div class="collapse navbar-collapse" id="navbarSupportedContent">
 			<ul class="navbar-nav mr-auto">
 				<th:block th:each="entry : ${selectable}">
-				<li class="nav-item"><a class="nav-link" th:onclick="'menu_' + ${entry.name} + '()'"
+				<li class="nav-item"><a class="nav-link" th:onclick="@{'menu_' + ${entry.name} + '()'}"
 					th:text="${entry.name}">name</a></li>
 				</th:block>
 			</ul>
@@ -108,7 +108,7 @@
 		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name})"></div>
 		<h4 th:text="${model.state}"></h4>
 		
-		<button type="button" th:onclick="'toggleSwitch' + ${model.id} + '()'"
+		<button type="button" th:onclick="@{'toggleSwitch' + ${model.id} + '()'}"
 			class="btn btn-secondary btn-sm" th:text="${model.label}"></button>
 		<script type="text/javascript">
 			function toggleSwitch[[${model.id}]](){
@@ -120,9 +120,9 @@
 			<span>&nbsp;</span>
 			<div class="btn-group" role="group" aria-label="heating">
 	  			<button th:if="${#strings.startsWith(model.linkAuto, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><i th:class="'fas fa-cogs'"></i></span><span>&nbsp;</span></button>
-	  			<button th:if="${#strings.startsWith(model.linkAuto, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="'toggleToManual' + ${model.id} + '()'"><span>&nbsp;</span><span><i th:class="'fas fa-cogs'"></i></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(model.linkAuto, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToManual' + ${model.id} + '()'}"><span>&nbsp;</span><span><i th:class="'fas fa-cogs'"></i></span><span>&nbsp;</span></button>
 	  			<button th:if="${#strings.startsWith(model.linkManual, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><i th:class="'fas fa-hand-paper'"></i></span><span>&nbsp;</span></button>
-	  			<button th:if="${#strings.startsWith(model.linkManual, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="'toggleToAuto' + ${model.id} + '()'"><span>&nbsp;</span><span><i th:class="'fas fa-hand-paper'"></i></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(model.linkManual, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToAuto' + ${model.id} + '()'}"><span>&nbsp;</span><span><i th:class="'fas fa-hand-paper'"></i></span><span>&nbsp;</span></button>
 			</div>
   			<script type="text/javascript">
 				function toggleToAuto[[${model.id}]](){
@@ -181,16 +181,16 @@
 		<h4 th:unless="${#strings.startsWith(model.linkBoost,'/')}"><span th:text="'Aufheizen - noch ' + ${model.linkBoost} + ' Min.'"></span></h4>
 			
 		<div th:if="${#strings.startsWith(model.linkBoost,'/')}" class="btn-group" role="group" aria-label="heating">
-  			<button type="button" th:id="'idHeatMinus' + ${model.id}" class="btn btn-secondary btn-sm" th:onclick="'adjustHeating' + ${model.id} + '(-0.5)'">&nbsp;-&nbsp;</button>
+  			<button type="button" th:id="'idHeatMinus' + ${model.id}" class="btn btn-secondary btn-sm" th:onclick="@{'adjustHeating' + ${model.id} + '(-0.5)'}">&nbsp;-&nbsp;</button>
   			<button type="button" th:id="'idHeatTarget' + ${model.id}" class="btn btn-outline-secondary btn-sm" disabled><span th:id="'idHeatTargetLabel' + ${model.id}" th:text="${model.targetTemp}"></span><span>°C</span></button>
-  			<button type="button" th:id="'idHeatPlus' + ${model.id}" class="btn btn-secondary btn-sm" th:onclick="'adjustHeating' + ${model.id} + '(+0.5)'">&nbsp;+&nbsp;</button>
+  			<button type="button" th:id="'idHeatPlus' + ${model.id}" class="btn btn-secondary btn-sm" th:onclick="@{'adjustHeating' + ${model.id} + '(+0.5)'}">&nbsp;+&nbsp;</button>
 		</div>
 		<span th:if="${#strings.startsWith(model.linkBoost,'/')}">&nbsp;</span>
 		
 		<button th:if="${#strings.startsWith(model.linkBoost,'/')}"
-			type="button" th:onclick="'setBoost' + ${model.id} + '()'" class="btn btn-secondary btn-sm">Schnell aufheizen</button>
+			type="button" th:onclick="@{'setBoost' + ${model.id} + '()'}" class="btn btn-secondary btn-sm">Schnell aufheizen</button>
 		<button th:unless="${#strings.startsWith(model.linkBoost,'/')}" type="button"
-			class="btn btn-secondary btn-sm" th:onclick="'setHeating' + ${model.id} + '()'" th:text="'abbrechen'">Boost ist eingeschaltet</button>
+			class="btn btn-secondary btn-sm" th:onclick="@{'setHeating' + ${model.id} + '()'}" th:text="'abbrechen'">Boost ist eingeschaltet</button>
 		<script type="text/javascript">
 			var timeout[[${model.id}]] = null;
 			var newTargetTemp[[${model.id}]] = parseFloat("[[${model.targetTemp}]]".replace(/,/, '.'));
