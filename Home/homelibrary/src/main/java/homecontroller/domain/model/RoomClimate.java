@@ -6,7 +6,7 @@ public class RoomClimate extends Climate implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private HeatingModel heating;
+	private HeatingModel heating = null;
 
 	private Hint hint;
 

@@ -1,5 +1,6 @@
 package homecontroller.domain.service;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import homecontroller.database.mapper.BigDecimalRowMapper;
 import homecontroller.database.mapper.TimestampRowMapper;
 import homecontroller.database.mapper.TimestampValuePair;
 import homecontroller.database.mapper.TimestampValueRowMapper;
@@ -40,9 +42,28 @@ public class HistoryDAO {
 		return timeElapsed.toMinutes();
 	}
 
+	public BigDecimal readMaxValue(Device device, Datapoint datapoint, LocalDateTime optionalFromDateTime) {
+
+		String startTs = formatTimestamp(optionalFromDateTime);
+		BigDecimal value = jdbcTemplate
+				.queryForObject(
+						"select max(value) as value FROM " + device.accessKeyHistorian(datapoint)
+								+ " where ts > '" + startTs + "';",
+						new Object[] {}, new BigDecimalRowMapper("value"));
+		return value;
+	}
+
 	public List<TimestampValuePair> readValues(Device device, Datapoint datapoint,
 			LocalDateTime optionalFromDateTime) {
 
+		String startTs = formatTimestamp(optionalFromDateTime);
+		List<TimestampValuePair> timestampValues = jdbcTemplate.query("select ts, value FROM "
+				+ device.accessKeyHistorian(datapoint) + " where ts > '" + startTs + "' order by ts asc;",
+				new Object[] {}, new TimestampValueRowMapper());
+		return timestampValues;
+	}
+
+	private String formatTimestamp(LocalDateTime optionalFromDateTime) {
 		String startTs;
 		if (optionalFromDateTime == null) {
 			startTs = SQL_TIMESTAMP_FORMATTER
@@ -50,11 +71,7 @@ public class HistoryDAO {
 		} else {
 			startTs = SQL_TIMESTAMP_FORMATTER.format(optionalFromDateTime);
 		}
-
-		List<TimestampValuePair> timestampValues = jdbcTemplate.query("select ts, value FROM "
-				+ device.accessKeyHistorian(datapoint) + " where ts > '" + startTs + "' order by ts asc;",
-				new Object[] {}, new TimestampValueRowMapper());
-		return timestampValues;
+		return startTs;
 	}
 
 }

@@ -28,7 +28,10 @@ import homecontroller.service.PushService;
 @Component
 public class HouseService {
 
-	private final static BigDecimal TARGET_TEMPERATURE_INSIDE = new BigDecimal("22");
+	private final static BigDecimal TARGET_TEMPERATURE_INSIDE = new BigDecimal("21");
+	private final static BigDecimal TARGET_TEMPERATURE_TOLERANCE_OFFSET = new BigDecimal("1");
+	private final static BigDecimal TEMPERATURE_DIFFERENCE_INSIDE_OUTSIDE_NO_ROOM_COOLDOWN_NEEDED = new BigDecimal(
+			"6");
 
 	private final static BigDecimal SUN_INTENSITY_NO = new BigDecimal("3");
 	private final static BigDecimal SUN_INTENSITY_LOW = new BigDecimal("8");
@@ -77,6 +80,9 @@ public class HouseService {
 			}
 		}
 
+		updateHomematicSystemVariables(oldModel, newModel);
+
+		calculateHints(newModel);
 		pushService.send(oldModel, newModel);
 	}
 
@@ -122,37 +128,62 @@ public class HouseService {
 				.subtract(newModel.getConclusionClimateFacadeMin().getTemperature()).abs();
 		newModel.getConclusionClimateFacadeMax()
 				.setSunHeatingInContrastToShadeIntensity(lookupIntensity(sunShadeDiff));
+	}
+
+	public void calculateHints(HouseModel newModel) {
 
 		lookupHint(newModel.getClimateKidsRoom(), newModel.getClimateEntrance());
 		lookupHint(newModel.getClimateBathRoom(), newModel.getClimateEntrance());
 		lookupHint(newModel.getClimateBedRoom(), newModel.getClimateTerrace());
 		lookupHint(newModel.getClimateLivingRoom(), newModel.getClimateTerrace());
-
 	}
 
 	private void lookupHint(RoomClimate room, OutdoorClimate outdoor) {
 
+		BigDecimal targetTemperature = room.getHeating() != null ? room.getHeating().getTargetTemperature()
+				: TARGET_TEMPERATURE_INSIDE;
+		BigDecimal temperatureLimit = targetTemperature.add(TARGET_TEMPERATURE_TOLERANCE_OFFSET);
+
 		if (room.getTemperature() == null) {
 			return;
-		} else if (room.getTemperature().compareTo(TARGET_TEMPERATURE_INSIDE) < 0) {
+		} else if (room.getTemperature().compareTo(temperatureLimit) < 0) {
 			// TODO: using sun heating in the winter for warming up rooms
 			return;
-		} else if (room.getTemperature().compareTo(TARGET_TEMPERATURE_INSIDE) > 0
+		} else if (isTooColdOutsideSoNoNeedToCoolingDownRoom(room.getTemperature())) {
+			return;
+		} else if (room.getTemperature().compareTo(temperatureLimit) > 0
 				&& outdoor.getTemperature().compareTo(room.getTemperature()) < 0
 				&& outdoor.getSunBeamIntensity().ordinal() <= Intensity.LOW.ordinal()) {
-			if (room.getHeating() != null && (room.getHeating().isBoostActive()
-					|| room.getHeating().getTargetTemperature().compareTo(TARGET_TEMPERATURE_INSIDE) > 0
-					|| historyDAO.minutesSinceLastHeatingBoost(room) < HINT_TIMEOUT_MINUTES_AFTER_BOOST)) {
+			if (isHeatingIsCauseForHighRoomTemperature(room, temperatureLimit)) {
 				return;
 			} else {
 				room.setHint(Hint.OPEN_WINDOW);
 			}
-		} else if (room.getTemperature().compareTo(TARGET_TEMPERATURE_INSIDE) > 0
+		} else if (room.getTemperature().compareTo(temperatureLimit) > 0
 				&& outdoor.getSunBeamIntensity().ordinal() > Intensity.LOW.ordinal()) {
 			room.setHint(Hint.CLOSE_ROLLER_SHUTTER);
 		}
 
 		return;
+	}
+
+	private boolean isHeatingIsCauseForHighRoomTemperature(RoomClimate room, BigDecimal temperatureLimit) {
+		return room.getHeating() != null && (room.getHeating().isBoostActive()
+				|| room.getHeating().getTargetTemperature().compareTo(temperatureLimit) > 0
+				|| historyDAO.minutesSinceLastHeatingBoost(room) < HINT_TIMEOUT_MINUTES_AFTER_BOOST);
+	}
+
+	private boolean isTooColdOutsideSoNoNeedToCoolingDownRoom(BigDecimal roomTemperature) {
+
+		if (ModelDAO.getInstance().readHistoryModel().getHighestOutsideTemperatureInLast24Hours() == null) {
+			return true;
+		}
+
+		BigDecimal roomMinusOutside = roomTemperature.subtract(
+				ModelDAO.getInstance().readHistoryModel().getHighestOutsideTemperatureInLast24Hours());
+		boolean tooCold = roomMinusOutside
+				.compareTo(TEMPERATURE_DIFFERENCE_INSIDE_OUTSIDE_NO_ROOM_COOLDOWN_NEEDED) > 0;
+		return tooCold;
 	}
 
 	private Intensity lookupIntensity(BigDecimal value) {
@@ -187,6 +218,15 @@ public class HouseService {
 		api.runProgram(prefix + "Manual");
 		synchronized (REFRESH_MONITOR) {
 			REFRESH_MONITOR.wait(REFRESH_TIMEOUT);
+		}
+	}
+
+	private void updateHomematicSystemVariables(HouseModel oldModel, HouseModel newModel) {
+
+		if (oldModel == null || oldModel.getConclusionClimateFacadeMin().getTemperature()
+				.compareTo(newModel.getConclusionClimateFacadeMin().getTemperature()) != 0) {
+			api.changeValue(Device.AUSSENTEMPERATUR.getType(),
+					newModel.getConclusionClimateFacadeMin().getTemperature().toString());
 		}
 	}
 

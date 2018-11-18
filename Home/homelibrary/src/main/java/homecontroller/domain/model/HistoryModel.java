@@ -1,6 +1,7 @@
 package homecontroller.domain.model;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.LinkedList;
 
@@ -13,6 +14,8 @@ public class HistoryModel implements Serializable {
 	private LinkedList<PowerConsumptionMonth> electricPowerConsumption;
 
 	private boolean electricPowerConsumptionInitialized = false;
+
+	private BigDecimal highestOutsideTemperatureInLast24Hours;
 
 	// ----------
 
@@ -40,6 +43,14 @@ public class HistoryModel implements Serializable {
 
 	public void setElectricPowerConsumptionInitialized(boolean electricPowerConsumptionInitialized) {
 		this.electricPowerConsumptionInitialized = electricPowerConsumptionInitialized;
+	}
+
+	public BigDecimal getHighestOutsideTemperatureInLast24Hours() {
+		return highestOutsideTemperatureInLast24Hours;
+	}
+
+	public void setHighestOutsideTemperatureInLast24Hours(BigDecimal highestOutsideTemperatureInLast24Hours) {
+		this.highestOutsideTemperatureInLast24Hours = highestOutsideTemperatureInLast24Hours;
 	}
 
 }

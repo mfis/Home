@@ -13,6 +13,7 @@ public enum Datapoint {
 	LOWBAT(ValueFormat.DEC), //
 	LOW_BAT(ValueFormat.DEC), //
 	ENERGY_COUNTER(ValueFormat.DEC), //
+	VALUE(ValueFormat.DEC), //
 	;
 
 	private ValueFormat valueFormat;

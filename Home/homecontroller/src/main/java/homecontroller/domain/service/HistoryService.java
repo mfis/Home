@@ -1,5 +1,6 @@
 package homecontroller.domain.service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -23,6 +24,8 @@ public class HistoryService {
 
 	@Autowired
 	private HistoryDAO historyDAO;
+
+	private final static long HIGHEST_OUTSIDE_TEMPERATURE_PERIOD_HOURS = 24L;
 
 	@PostConstruct
 	public void init() {
@@ -62,6 +65,10 @@ public class HistoryService {
 			calculateElectricPowerConsumption(model, model.getElectricPowerConsumption()
 					.get(model.getElectricPowerConsumption().size() - 1).measurePointMaxDateTime());
 		}
+
+		BigDecimal maxValue = historyDAO.readMaxValue(Device.AUSSENTEMPERATUR, Datapoint.VALUE,
+				LocalDateTime.now().minusHours(HIGHEST_OUTSIDE_TEMPERATURE_PERIOD_HOURS));
+		model.setHighestOutsideTemperatureInLast24Hours(maxValue);
 	}
 
 	private void calculateElectricPowerConsumption(HistoryModel newModel, LocalDateTime fromDateTime) {

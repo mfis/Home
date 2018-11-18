@@ -14,19 +14,20 @@ public enum Device {
 	DIFFERENZTEMPERATUR_EINFAHRT_DIFF(Protocol.HM, "OEQ0801807", 3, "Sonnensensor", "Einfahrt"), //
 	SCHALTER_KUECHE_LICHT(Protocol.HM, "OEQ0712456", 1, "Schalter Fensterlicht", "Küche"), //
 	STROMZAEHLER(Protocol.HM, "NEQ0861520", 1, "Stromverbrauch", "Haus"), //
+	AUSSENTEMPERATUR(Protocol.SYSVAR, "2867", null, "ConclusionOutsideTemperature", "Aussen"), //
 	;
 
 	private Protocol protocol;
 
 	private String id;
 
-	private int channel;
+	private Integer channel;
 
 	private String type;
 
 	private String placeName;
 
-	private Device(Protocol protocol, String id, int channel, String type, String placeName) {
+	private Device(Protocol protocol, String id, Integer channel, String type, String placeName) {
 		this.protocol = protocol;
 		this.id = id;
 		this.channel = channel;
@@ -44,8 +45,8 @@ public enum Device {
 	}
 
 	public String accessKeyHistorian(Datapoint datapoint) {
-		return datapoint.getHistorianPrefix() + "_" + protocol.toHistorianString() + "_" + id + "_"
-				+ Integer.toString(channel) + "_" + datapoint.name();
+		return datapoint.getHistorianPrefix() + "_" + protocol.toHistorianString() + "_" + id
+				+ (channel != null ? ("_" + Integer.toString(channel)) : "") + "_" + datapoint.name();
 	}
 
 	public String programNamePrefix() {
@@ -71,7 +72,7 @@ public enum Device {
 
 	private enum Protocol {
 
-		HM("BidCos"), HMIP("HmIP");
+		HM("BidCos"), HMIP("HmIP"), SYSVAR("SysVar");
 
 		private String protocol;
 
@@ -82,11 +83,11 @@ public enum Device {
 		}
 
 		public String toXmlApiString() {
-			return protocol + "-" + RF;
+			return protocol + ((protocol.equals(SYSVAR.protocol) ? "" : "-" + RF));
 		}
 
 		public String toHistorianString() {
-			return protocol.toUpperCase() + "_" + RF;
+			return protocol.toUpperCase() + ((protocol.equals(SYSVAR.protocol) ? "" : "_" + RF));
 		}
 	}
 
