@@ -1,7 +1,26 @@
-<!DOCTYPE html>
-<html>
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="fragments :: head (name='Home - Fehler')"></head>
+
 <body>
-<h3>Es ist ein Fehler aufgetreten.</h3>
-<a href="/">zur&uuml;ck</a>
+
+	<div class="container">
+		<div style="height: 20px;"></div>
+		<div th:class="'alert alert-danger'">
+			<h4>Es ist ein Fehler aufgetreten.</h4>
+		</div>
+		<button type="button" th:onclick="@{'back()'}"  class="btn btn-secondary" th:text="'zurück'"></button>
+	</div>
+
+	<div th:replace="fragments :: scriptresources (yPos='')"></div>
+	<div th:replace="fragments :: pulltorefresh"></div>
+
+	<script type="text/javascript">
+		function back(){
+			window.location.href = "/";
+		}			
+	</script>
+
 </body>
 </html>
