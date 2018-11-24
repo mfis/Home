@@ -33,44 +33,11 @@ public class PushService {
 	@Autowired
 	private SettingsService settingsService;
 
-	// private final static String CROSS = "\u274C";
-
 	private final static Log LOG = LogFactory.getLog(PushService.class);
-
-	// public static void main(String[] args) {
-	//
-	// // TEST
-	// long started = System.currentTimeMillis();
-	//
-	// PushService ps = new PushService();
-	// ps.settingsService = new SettingsService();
-	//
-	// HouseModel oldModel = new HouseModel();
-	// oldModel.setClimateBathRoom(new RoomClimate());
-	// oldModel.setClimateLivingRoom(new RoomClimate());
-	// oldModel.getClimateBathRoom().getHints().add(Hint.OPEN_WINDOW);
-	// oldModel.getClimateLivingRoom().getHints().add(Hint.INCREASE_HUMIDITY);
-	//
-	// HouseModel newModel = new HouseModel();
-	// newModel.setClimateBathRoom(new RoomClimate());
-	// newModel.setClimateLivingRoom(new RoomClimate());
-	// newModel.getClimateBathRoom().getHints().add(Hint.OPEN_WINDOW); // SAME
-	// // REMOVED
-	// //
-	// newModel.getClimateLivingRoom().getHints().add(Hint.INCREASE_HUMIDITY);
-	// newModel.getClimateLivingRoom().getHints().add(Hint.CLOSE_ROLLER_SHUTTER);
-	// // NEW
-	//
-	// ps.send(oldModel, newModel);
-	//
-	// long ended = System.currentTimeMillis();
-	// System.out.println("Duration: " + (ended - started) + "ms");
-	// // TEST
-	// }
 
 	public void send(HouseModel oldModel, HouseModel newModel) {
 
-		String messages = formatMessages(hintList(oldModel), hintList(newModel));
+		String messages = formatMessages(oldModel, newModel);
 		if (StringUtils.isBlank(messages)) {
 			return;
 		}
@@ -83,7 +50,10 @@ public class PushService {
 
 	}
 
-	private String formatMessages(List<String> oldHints, List<String> newHints) {
+	public String formatMessages(HouseModel oldModel, HouseModel newModel) {
+
+		List<String> oldHints = hintList(oldModel);
+		List<String> newHints = hintList(newModel);
 
 		StringBuilder messages = new StringBuilder(300);
 
