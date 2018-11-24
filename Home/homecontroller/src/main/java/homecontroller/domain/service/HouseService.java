@@ -33,6 +33,9 @@ public class HouseService {
 	private final static BigDecimal TEMPERATURE_DIFFERENCE_INSIDE_OUTSIDE_NO_ROOM_COOLDOWN_NEEDED = new BigDecimal(
 			"6");
 
+	private final static BigDecimal TARGET_HUMIDITY_MIN_INSIDE = new BigDecimal("45");
+	private final static BigDecimal TARGET_HUMIDITY_MAX_INSIDE = new BigDecimal("65");
+
 	private final static BigDecimal SUN_INTENSITY_NO = new BigDecimal("3");
 	private final static BigDecimal SUN_INTENSITY_LOW = new BigDecimal("8");
 	private final static BigDecimal SUN_INTENSITY_MEDIUM = new BigDecimal("15");
@@ -140,6 +143,27 @@ public class HouseService {
 
 	private void lookupHint(RoomClimate room, OutdoorClimate outdoor) {
 
+		lookupTemperatureHint(room, outdoor);
+		lookupHumidityHint(room);
+
+		return;
+	}
+
+	private void lookupHumidityHint(RoomClimate room) {
+
+		if (room.getHumidity() == null) {
+			return;
+		}
+
+		if (room.getHumidity().compareTo(TARGET_HUMIDITY_MAX_INSIDE) > 0) {
+			room.getHints().add(Hint.DECREASE_HUMIDITY);
+		} else if (room.getHumidity().compareTo(TARGET_HUMIDITY_MIN_INSIDE) < 0) {
+			room.getHints().add(Hint.INCREASE_HUMIDITY);
+		}
+	}
+
+	private void lookupTemperatureHint(RoomClimate room, OutdoorClimate outdoor) {
+
 		BigDecimal targetTemperature = room.getHeating() != null ? room.getHeating().getTargetTemperature()
 				: TARGET_TEMPERATURE_INSIDE;
 		BigDecimal temperatureLimit = targetTemperature.add(TARGET_TEMPERATURE_TOLERANCE_OFFSET);
@@ -157,14 +181,12 @@ public class HouseService {
 			if (isHeatingIsCauseForHighRoomTemperature(room, temperatureLimit)) {
 				return;
 			} else {
-				room.setHint(Hint.OPEN_WINDOW);
+				room.getHints().add(Hint.OPEN_WINDOW);
 			}
 		} else if (room.getTemperature().compareTo(temperatureLimit) > 0
 				&& outdoor.getSunBeamIntensity().ordinal() > Intensity.LOW.ordinal()) {
-			room.setHint(Hint.CLOSE_ROLLER_SHUTTER);
+			room.getHints().add(Hint.CLOSE_ROLLER_SHUTTER);
 		}
-
-		return;
 	}
 
 	private boolean isHeatingIsCauseForHighRoomTemperature(RoomClimate room, BigDecimal temperatureLimit) {

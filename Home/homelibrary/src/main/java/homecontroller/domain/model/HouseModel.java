@@ -50,7 +50,7 @@ public class HouseModel implements Serializable {
 		List<RoomClimate> results = new LinkedList<RoomClimate>();
 		try {
 			for (Field field : fields) {
-				if (field.getType().equals(RoomClimate.class)) {
+				if (field.getType().equals(RoomClimate.class) && field.get(this) != null) {
 					results.add((RoomClimate) field.get(this));
 				}
 			}

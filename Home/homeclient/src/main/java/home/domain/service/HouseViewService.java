@@ -22,6 +22,7 @@ import home.domain.model.PowerView;
 import home.domain.model.SwitchView;
 import homecontroller.domain.model.Climate;
 import homecontroller.domain.model.Datapoint;
+import homecontroller.domain.model.Hint;
 import homecontroller.domain.model.HistoryModel;
 import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.Intensity;
@@ -163,8 +164,10 @@ public class HouseViewService {
 			view.setState("?");
 		}
 
-		if (climate instanceof RoomClimate && ((RoomClimate) climate).getHint() != null) {
-			view.setHint(StringUtils.trimToEmpty(((RoomClimate) climate).getHint().getText()));
+		if (climate instanceof RoomClimate) {
+			for (Hint hint : ((RoomClimate) climate).getHints()) {
+				view.getHints().add(hint.getText());
+			}
 		}
 
 		return view;

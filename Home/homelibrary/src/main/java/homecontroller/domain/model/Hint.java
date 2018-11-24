@@ -4,6 +4,8 @@ public enum Hint {
 
 	OPEN_WINDOW("Fenster öffnen"), //
 	CLOSE_ROLLER_SHUTTER("Rolllade schließen"), //
+	INCREASE_HUMIDITY("Luftfeuchtigkeit erhöhen"), //
+	DECREASE_HUMIDITY("Luftfeuchtigkeit verringern"), //
 	;
 
 	private String text;

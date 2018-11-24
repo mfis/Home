@@ -16,6 +16,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import homecontroller.domain.model.Hint;
 import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.RoomClimate;
 import homecontroller.domain.model.SettingsModel;
@@ -45,18 +46,20 @@ public class PushService {
 	// ps.settingsService = new SettingsService();
 	//
 	// HouseModel oldModel = new HouseModel();
-	// oldModel.setConclusionHintBathRoom(new Hint("Fenster öffnen",
-	// "Badezimmer"));
-	// oldModel.setConclusionHintLivingRoom(new Hint("Gleich Wohn",
-	// "Wohnzimmer"));
+	// oldModel.setClimateBathRoom(new RoomClimate());
+	// oldModel.setClimateLivingRoom(new RoomClimate());
+	// oldModel.getClimateBathRoom().getHints().add(Hint.OPEN_WINDOW);
+	// oldModel.getClimateLivingRoom().getHints().add(Hint.INCREASE_HUMIDITY);
 	//
 	// HouseModel newModel = new HouseModel();
-	// newModel.setConclusionHintLivingRoom(new Hint("Gleich Wohn",
-	// "Wohnzimmer"));
-	// newModel.setConclusionHintKidsRoom(new Hint("Fenster öffnen",
-	// "Kinderzimmer"));
-	// newModel.setConclusionHintBedRoom(new Hint("Rolladen schließen",
-	// "Schlafzimmer"));
+	// newModel.setClimateBathRoom(new RoomClimate());
+	// newModel.setClimateLivingRoom(new RoomClimate());
+	// newModel.getClimateBathRoom().getHints().add(Hint.OPEN_WINDOW); // SAME
+	// // REMOVED
+	// //
+	// newModel.getClimateLivingRoom().getHints().add(Hint.INCREASE_HUMIDITY);
+	// newModel.getClimateLivingRoom().getHints().add(Hint.CLOSE_ROLLER_SHUTTER);
+	// // NEW
 	//
 	// ps.send(oldModel, newModel);
 	//
@@ -85,28 +88,26 @@ public class PushService {
 		StringBuilder messages = new StringBuilder(300);
 
 		int hintcounter = 0;
-		for (int i = 0; i < oldHints.size(); i++) {
-			if (!StringUtils.equals(oldHints.get(i), newHints.get(i))
-					&& StringUtils.isBlank(oldHints.get(i))) {
+		for (String newHint : newHints) {
+			if (!oldHints.contains(newHint)) {
 				if (hintcounter > 0) {
 					messages.append("\n");
 				}
-				messages.append("- " + newHints.get(i));
+				messages.append("- " + newHint);
 				hintcounter++;
 			}
 		}
 
 		int cancelcounter = 0;
-		for (int i = 0; i < oldHints.size(); i++) {
-			if (!StringUtils.equals(oldHints.get(i), newHints.get(i))
-					&& StringUtils.isBlank(newHints.get(i))) {
+		for (String oldHint : oldHints) {
+			if (!newHints.contains(oldHint)) {
 				if (hintcounter > 0 && cancelcounter == 0) {
 					messages.append("\n");
 				}
 				if (cancelcounter == 0) {
 					messages.append("Aufgehoben:");
 				}
-				messages.append("\n- " + oldHints.get(i));
+				messages.append("\n- " + oldHint);
 				cancelcounter++;
 			}
 		}
@@ -120,8 +121,11 @@ public class PushService {
 
 		List<String> hintStrings = new LinkedList<>();
 		for (RoomClimate room : m.lookupRooms()) {
-			hintStrings.add((room != null && room.getHint() != null) ? room.getHint().formatWithRoomName(room)
-					: null);
+			for (Hint hint : room.getHints()) {
+				if (room != null && hint != null) {
+					hintStrings.add(hint.formatWithRoomName(room));
+				}
+			}
 		}
 		return hintStrings;
 	}

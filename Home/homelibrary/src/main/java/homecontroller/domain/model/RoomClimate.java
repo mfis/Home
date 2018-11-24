@@ -1,6 +1,8 @@
 package homecontroller.domain.model;
 
 import java.io.Serializable;
+import java.util.LinkedList;
+import java.util.List;
 
 public class RoomClimate extends Climate implements Serializable {
 
@@ -8,7 +10,7 @@ public class RoomClimate extends Climate implements Serializable {
 
 	private HeatingModel heating = null;
 
-	private Hint hint;
+	private List<Hint> hints = new LinkedList<Hint>();
 
 	private Device deviceHeating;
 
@@ -20,19 +22,19 @@ public class RoomClimate extends Climate implements Serializable {
 		this.heating = heating;
 	}
 
-	public Hint getHint() {
-		return hint;
-	}
-
-	public void setHint(Hint hint) {
-		this.hint = hint;
-	}
-
 	public Device getDeviceHeating() {
 		return deviceHeating;
 	}
 
 	public void setDeviceHeating(Device deviceHeating) {
 		this.deviceHeating = deviceHeating;
+	}
+
+	public List<Hint> getHints() {
+		return hints;
+	}
+
+	public void setHints(List<Hint> hints) {
+		this.hints = hints;
 	}
 }

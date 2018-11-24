@@ -181,9 +181,9 @@
 			<span th:if="${!#strings.isEmpty(model.statePostfixIcon)}"><i th:class="${model.statePostfixIcon}"></i></span>
 		</h4>
 			
-		<span th:if="${!#strings.isEmpty(model.hint)}"
-			class="badge badge-pill badge-light"
-			th:text="'Empfehlung: ' + ${model.hint}">hint</span>
+		<th:block th:each="hint : ${model.hints}">
+			<span class="badge badge-pill badge-light" th:text="'Empfehlung: ' + ${hint}">hint</span>
+		</th:block>	
 	</div>
 	
 	<!-- Thermostat -->

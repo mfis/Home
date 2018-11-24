@@ -1,5 +1,8 @@
 package home.domain.model;
 
+import java.util.LinkedList;
+import java.util.List;
+
 public class ClimateView {
 
 	private String id = "";
@@ -13,7 +16,7 @@ public class ClimateView {
 	private String targetTemp = "";
 	private String icon = "";
 	private String heatericon = "";
-	private String hint = "";
+	private List<String> hints = new LinkedList<>();
 
 	public String getId() {
 		return id;
@@ -87,14 +90,6 @@ public class ClimateView {
 		this.heatericon = heatericon;
 	}
 
-	public String getHint() {
-		return hint;
-	}
-
-	public void setHint(String hint) {
-		this.hint = hint;
-	}
-
 	public String getPostfix() {
 		return postfix;
 	}
@@ -109,6 +104,14 @@ public class ClimateView {
 
 	public void setStatePostfixIcon(String statePostfixIcon) {
 		this.statePostfixIcon = statePostfixIcon;
+	}
+
+	public List<String> getHints() {
+		return hints;
+	}
+
+	public void setHints(List<String> hints) {
+		this.hints = hints;
 	}
 
 }
