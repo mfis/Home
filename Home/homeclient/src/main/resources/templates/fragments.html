@@ -129,8 +129,8 @@
 		<th:block th:if="${!#strings.startsWith(model.linkAuto, '#') or !#strings.startsWith(model.linkManual, '#')}">
 			<span>&nbsp;</span>
 			<div class="btn-group" role="group" aria-label="heating">
-	  			<button th:if="${#strings.startsWith(model.linkAuto, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><i th:class="'fas fa-cogs'"></i></span><span>&nbsp;</span></button>
-	  			<button th:if="${#strings.startsWith(model.linkAuto, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToManual' + ${model.id} + '()'}"><span>&nbsp;</span><span><i th:class="'fas fa-cogs'"></i></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(model.linkAuto, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><i th:class="'far fa-clock'"></i></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(model.linkAuto, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToManual' + ${model.id} + '()'}"><span>&nbsp;</span><span><i th:class="'far fa-clock'"></i></span><span>&nbsp;</span></button>
 	  			<button th:if="${#strings.startsWith(model.linkManual, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><i th:class="'fas fa-hand-paper'"></i></span><span>&nbsp;</span></button>
 	  			<button th:if="${#strings.startsWith(model.linkManual, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToAuto' + ${model.id} + '()'}"><span>&nbsp;</span><span><i th:class="'fas fa-hand-paper'"></i></span><span>&nbsp;</span></button>
 			</div>
