@@ -2,7 +2,7 @@
 
 Home automation controlling web application.
 
-Client: Commented application.properties needed to be configured in external 'homeapp.properties'.
+Client: Commented application.properties needed to be configured in external 'homeapp.properties'.  
 Controller: Commented application.properties needed to be configured in external 'homecontroller.properties'.
 
 Sources in /domain/ -packages are depending on individual Homematic setup and therefore needed to be changed.
