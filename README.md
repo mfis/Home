@@ -37,3 +37,10 @@ CCU System variables:
 CCU Programs:
 * [devicename]Boost - starts boost mode
 * [devicename]Manual - starts manual mode with destination temperature from system variable [devicename]Temperature
+
+# Recommended control principles:
+Simple programs (based on clocks, timers etc) are written in the CCU to ensure function even if the Home application is not running or accessible.  
+
+More complex programs are splitted. The trigger of the actor is implemented over an CCU program or Homematic XML-API call. The activator is implemented in Home application e.g. based on a hint.  
+
+Example: A roller shutter motor has CCU programs to automatically drive up and down based on sunrise and sunset times. An additional CCU program drives the shutter down if a CCU system variable (which is linked to the ‚close roller shutter‘ hint based on temperature and sunshine) is set to true.
