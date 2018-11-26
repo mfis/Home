@@ -2,12 +2,17 @@
 
 Home automation controlling web application.
 
-Client: Commented application.properties needed to be configured in external 'homeapp.properties'.  
-Controller: Commented application.properties needed to be configured in external 'homecontroller.properties'.
+Application is based on [Spring Boot](https://spring.io/projects/spring-boot) and uses [Thymeleaf](https://www.thymeleaf.org) for GUI rendering and [Font Awesome](https://fontawesome.com) for icons (all not included).
 
+# Customizing
 Sources in /domain/ -packages are depending on individual Homematic setup and therefore needed to be changed.
 
-Application is based on [Spring Boot](https://spring.io/projects/spring-boot) and uses [Thymeleaf](https://www.thymeleaf.org) for GUI rendering and [Font Awesome](https://fontawesome.com) for icons (all not included).
+# Installation
+Build Home.jar and HomeController.jar with Maven.  
+Install both spring boot applications as described here: [Spring Documentation - Installing Spring Boot Applications] (https://docs.spring.io/spring-boot/docs/current/reference/html/deployment-install.html)  
+
+Client (Home.jar): Commented application.properties needed to be configured in external 'homeapp.properties'.  
+Controller (HomeController.jar): Commented application.properties needed to be configured in external 'homecontroller.properties'.
 
 # Naming conventions inside CCU
 Some functions are needing CCU system variables and CCU programs with names corresponding to the devices.
