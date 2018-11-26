@@ -1,6 +1,5 @@
-# Home
-
-Home automation controlling web application.
+# General
+This is a Home automation controlling web application.
 
 Application is based on [Spring Boot](https://spring.io/projects/spring-boot) and uses [Thymeleaf](https://www.thymeleaf.org) for GUI rendering and [Font Awesome](https://fontawesome.com) for icons (all not included).
 
