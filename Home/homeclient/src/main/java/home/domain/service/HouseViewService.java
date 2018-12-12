@@ -19,6 +19,7 @@ import org.springframework.ui.Model;
 import home.domain.model.ClimateView;
 import home.domain.model.PowerHistoryEntry;
 import home.domain.model.PowerView;
+import home.domain.model.ShutterView;
 import home.domain.model.SwitchView;
 import homecontroller.domain.model.Climate;
 import homecontroller.domain.model.Datapoint;
@@ -50,6 +51,8 @@ public class HouseViewService {
 		formatClimate(model, "tempKids", house.getClimateKidsRoom());
 		formatClimate(model, "tempLivingroom", house.getClimateLivingRoom());
 		formatClimate(model, "tempBedroom", house.getClimateBedRoom());
+
+		// formatShutter(model, "shutterBedroom", null); // DUMMY
 
 		formatFacadeTemperatures(model, "tempMinHouse", "tempMaxHouse", house);
 
@@ -249,6 +252,42 @@ public class HouseViewService {
 		view.setLabel(switchModel.isState() ? "ausschalten" : "einschalten");
 		view.setIcon(switchModel.isState() ? "fas fa-toggle-on" : "fas fa-toggle-off");
 		view.setLink("/toggle?devIdVar=" + switchModel.getDevice().accessKeyXmlApi(Datapoint.STATE));
+		model.addAttribute(viewKey, view);
+	}
+
+	private void formatShutter(Model model, String viewKey, Object shutterModel) {
+
+		ShutterView view = new ShutterView();
+		view.setId(viewKey);
+		view.setName("Rollade"); // shutterModel.getDevice().getType()
+		view.setState("Geöffnet"); // shutterModel.isState() ? "Eingeschaltet" :
+									// "Ausgeschaltet"
+		if (true) { // shutterModel.getAutomation() != null
+			if (true) { // shutterModel.getAutomation() == true
+				view.setState(view.getState() + ", automatisch");
+				view.setLinkManual("/toggle?devIdVar="
+						+ /* shutterModel.getDevice().programNamePrefix() + */ "Automatic");
+			} else {
+				view.setState(view.getState() + ", manuell");
+				view.setLinkAuto("/toggle?devIdVar="
+						+ /* shutterModel.getDevice().programNamePrefix() + */ "Automatic");
+			}
+			view.setAutoInfoText("TEST"); // StringUtils.trimToEmpty(shutterModel.getAutomationInfoText())
+		}
+		view.setIcon("far fa-square");
+		view.setIconOpen("far fa-square");
+		view.setIconHalf("far fa-window-maximize");
+		view.setIconSunshade("fas fa-th");
+		view.setIconClose("fas fa-square");
+		view.setLinkClose(
+				"/toggle?devIdVar=" /*
+									 * + shutterModel.getDevice().
+									 * accessKeyXmlApi(Datapoint.STATE)
+									 */ );
+		// view.setLinkOpen(?);
+		view.setLinkHalf("/......");
+		view.setLinkSunshade("/.......");
+
 		model.addAttribute(viewKey, view);
 	}
 

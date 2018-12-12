@@ -129,8 +129,8 @@
 		<th:block th:if="${!#strings.startsWith(model.linkAuto, '#') or !#strings.startsWith(model.linkManual, '#')}">
 			<span>&nbsp;</span>
 			<div class="btn-group" role="group" aria-label="heating">
-	  			<button th:if="${#strings.startsWith(model.linkAuto, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><i th:class="'far fa-clock'"></i></span><span>&nbsp;</span></button>
-	  			<button th:if="${#strings.startsWith(model.linkAuto, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToManual' + ${model.id} + '()'}"><span>&nbsp;</span><span><i th:class="'far fa-clock'"></i></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(model.linkAuto, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><i th:class="'far fa-cogs'"></i></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(model.linkAuto, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToManual' + ${model.id} + '()'}"><span>&nbsp;</span><span><i th:class="'far fa-cogs'"></i></span><span>&nbsp;</span></button>
 	  			<button th:if="${#strings.startsWith(model.linkManual, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><i th:class="'fas fa-hand-paper'"></i></span><span>&nbsp;</span></button>
 	  			<button th:if="${#strings.startsWith(model.linkManual, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToAuto' + ${model.id} + '()'}"><span>&nbsp;</span><span><i th:class="'fas fa-hand-paper'"></i></span><span>&nbsp;</span></button>
 			</div>
@@ -165,6 +165,81 @@
 				</div>
 		</th:block>
 	</div>
+	
+	<!-- Shutter -->
+	<div th:fragment="shutter (model)" th:class="'alert alert-secondary'">
+		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name})"></div>
+		<h4 th:text="${model.state}"></h4>
+		
+		<div class="btn-group" role="group" aria-label="shutterControl">
+  			<button th:if="${#strings.startsWith(model.linkOpen, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><i th:class="${model.iconOpen}"></i></span><span>&nbsp;</span></button>
+  			<button th:if="${#strings.startsWith(model.linkOpen, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'openShutter' + ${model.id} + '()'}"><span>&nbsp;</span><span><i th:class="${model.iconOpen}"></i></span><span>&nbsp;</span></button>
+			<button th:if="${#strings.startsWith(model.linkHalf, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><i th:class="${model.iconHalf}"></i></span><span>&nbsp;</span></button>
+  			<button th:if="${#strings.startsWith(model.linkHalf, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'halfShutter' + ${model.id} + '()'}"><span>&nbsp;</span><span><i th:class="${model.iconHalf}"></i></span><span>&nbsp;</span></button>  			
+  			<button th:if="${#strings.startsWith(model.linkSunshade, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><i th:class="${model.iconSunshade}"></i></span><span>&nbsp;</span></button>
+  			<button th:if="${#strings.startsWith(model.linkSunshade, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'sunshadeShutter' + ${model.id} + '()'}"><span>&nbsp;</span><span><i th:class="${model.iconSunshade}"></i></span><span>&nbsp;</span></button>
+  			<button th:if="${#strings.startsWith(model.linkClose, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><i th:class="${model.iconClose}"></i></span><span>&nbsp;</span></button>
+  			<button th:if="${#strings.startsWith(model.linkClose, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'closeShutter' + ${model.id} + '()'}"><span>&nbsp;</span><span><i th:class="${model.iconClose}"></i></span><span>&nbsp;</span></button>
+		</div>		
+		
+		<script type="text/javascript">
+			function openShutter[[${model.id}]](){
+				showSpinner();
+				window.location.href = "[[${model.linkOpen}]]&y=" + window.scrollY;
+			}
+			function closeShutter[[${model.id}]](){
+				showSpinner();
+				window.location.href = "[[${model.linkClose}]]&y=" + window.scrollY;
+			}
+			function halfShutter[[${model.id}]](){
+				showSpinner();
+				window.location.href = "[[${model.linkHalf}]]&y=" + window.scrollY;
+			}			
+			function sunshadeShutter[[${model.id}]](){
+				showSpinner();
+				window.location.href = "[[${model.linkSunshade}]]&y=" + window.scrollY;
+			}			
+		</script>
+		
+		<th:block th:if="${!#strings.startsWith(model.linkAuto, '#') or !#strings.startsWith(model.linkManual, '#')}">
+			<span>&nbsp;</span>
+			<div class="btn-group" role="group" aria-label="shutterMode">
+	  			<button th:if="${#strings.startsWith(model.linkAuto, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><i th:class="'far fa-cogs'"></i></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(model.linkAuto, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleShutterToManual' + ${model.id} + '()'}"><span>&nbsp;</span><span><i th:class="'far fa-cogs'"></i></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(model.linkManual, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><i th:class="'fas fa-hand-paper'"></i></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(model.linkManual, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleShutterToAuto' + ${model.id} + '()'}"><span>&nbsp;</span><span><i th:class="'fas fa-hand-paper'"></i></span><span>&nbsp;</span></button>
+			</div>
+  			<script type="text/javascript">
+				function toggleShutterToAuto[[${model.id}]](){
+					showSpinner();
+					window.location.href = "[[${model.linkManual}]]&y=" + window.scrollY;
+				}
+				function toggleShutterToManual[[${model.id}]](){
+					showSpinner();
+					window.location.href = "[[${model.linkAuto}]]&y=" + window.scrollY;
+				}					
+			</script>
+				<button type="button" class="btn btn-link" data-toggle="modal" th:data-target="'#modalAuto' + ${model.id}">
+					<span 
+						class="badge badge-pill badge-secondary" th:text="'?'">
+					</span>
+				</button>
+				<!-- Modal -->
+				<div class="modal fade" th:id="'modalAuto' + ${model.id}" tabindex="-1" role="dialog" th:aria-labelledby="'#modalAutoLabel' + ${model.id}" aria-hidden="true">
+				  <div class="modal-dialog modal-dialog-centered" role="document">
+				    <div class="modal-content">
+				      <div class="modal-header">
+				        <h5 class="modal-title" id="exampleModalLongTitle" th:text="'Automatik: ' + ${model.name}"></h5>
+				        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+				          <span aria-hidden="true">&times;</span>
+				        </button>
+				      </div>
+				      <div class="modal-body"><a th:utext="${model.autoInfoText}"></a></div>
+				    </div>
+				  </div>
+				</div>
+		</th:block>
+	</div>	
 	
 	<!-- Actual Power Consumption -->
 	<div th:fragment="actualPowerConsumption (model)"
