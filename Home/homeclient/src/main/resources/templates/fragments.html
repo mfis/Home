@@ -166,8 +166,8 @@
 		</th:block>
 	</div>
 	
-	<!-- Shutter -->
-	<div th:fragment="shutter (model)" th:class="'alert alert-secondary'">
+	<!-- Window -->
+	<div th:fragment="window (model)" th:class="'alert alert-secondary'">
 		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name})"></div>
 		<h4 th:text="${model.state}"></h4>
 		

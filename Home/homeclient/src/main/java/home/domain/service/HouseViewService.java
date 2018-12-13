@@ -30,7 +30,9 @@ import homecontroller.domain.model.Intensity;
 import homecontroller.domain.model.PowerConsumptionMonth;
 import homecontroller.domain.model.PowerMeterModel;
 import homecontroller.domain.model.RoomClimate;
+import homecontroller.domain.model.ShutterPosition;
 import homecontroller.domain.model.SwitchModel;
+import homecontroller.domain.model.Window;
 
 @Component
 public class HouseViewService {
@@ -52,7 +54,7 @@ public class HouseViewService {
 		formatClimate(model, "tempLivingroom", house.getClimateLivingRoom());
 		formatClimate(model, "tempBedroom", house.getClimateBedRoom());
 
-		// formatShutter(model, "shutterBedroom", null); // DUMMY
+		formatWindow(model, "leftWindowBedroom", house.getLeftWindowBedRoom());
 
 		formatFacadeTemperatures(model, "tempMinHouse", "tempMaxHouse", house);
 
@@ -255,40 +257,48 @@ public class HouseViewService {
 		model.addAttribute(viewKey, view);
 	}
 
-	private void formatShutter(Model model, String viewKey, Object shutterModel) {
+	private void formatWindow(Model model, String viewKey, Window windowModel) {
 
 		ShutterView view = new ShutterView();
 		view.setId(viewKey);
-		view.setName("Rollade"); // shutterModel.getDevice().getType()
-		view.setState("Geöffnet"); // shutterModel.isState() ? "Eingeschaltet" :
-									// "Ausgeschaltet"
-		if (true) { // shutterModel.getAutomation() != null
-			if (true) { // shutterModel.getAutomation() == true
+		view.setName(windowModel.getShutterDevice().getType());
+		view.setState(windowModel.getShutterPosition().getText(windowModel.getShutterPositionPercentage()));
+
+		if (windowModel.getShutterAutomation() != null) {
+			if (windowModel.getShutterAutomation()) {
 				view.setState(view.getState() + ", automatisch");
-				view.setLinkManual("/toggle?devIdVar="
-						+ /* shutterModel.getDevice().programNamePrefix() + */ "Automatic");
+				view.setLinkManual("/toggle?devIdVar=" + windowModel.getShutterDevice().programNamePrefix()
+						+ "Automatic");
 			} else {
 				view.setState(view.getState() + ", manuell");
-				view.setLinkAuto("/toggle?devIdVar="
-						+ /* shutterModel.getDevice().programNamePrefix() + */ "Automatic");
+				view.setLinkAuto("/toggle?devIdVar=" + windowModel.getShutterDevice().programNamePrefix()
+						+ "Automatic");
 			}
-			view.setAutoInfoText("TEST"); // StringUtils.trimToEmpty(shutterModel.getAutomationInfoText())
+			view.setAutoInfoText(windowModel.getShutterAutomationInfoText());
 		}
-		view.setIcon("far fa-square");
-		view.setIconOpen("far fa-square");
-		view.setIconHalf("far fa-window-maximize");
-		view.setIconSunshade("fas fa-th");
-		view.setIconClose("fas fa-square");
-		view.setLinkClose(
-				"/toggle?devIdVar=" /*
-									 * + shutterModel.getDevice().
-									 * accessKeyXmlApi(Datapoint.STATE)
-									 */ );
-		// view.setLinkOpen(?);
-		view.setLinkHalf("/......");
-		view.setLinkSunshade("/.......");
+
+		view.setIcon(windowModel.getShutterPosition().getIcon());
+		view.setIconOpen(ShutterPosition.OPEN.getIcon());
+		view.setIconHalf(ShutterPosition.HALF.getIcon());
+		view.setIconSunshade(ShutterPosition.SUNSHADE.getIcon());
+		view.setIconClose(ShutterPosition.CLOSE.getIcon());
+
+		view.setLinkClose(shutterLink(windowModel, ShutterPosition.CLOSE));
+		view.setLinkOpen(shutterLink(windowModel, ShutterPosition.OPEN));
+		view.setLinkHalf(shutterLink(windowModel, ShutterPosition.HALF));
+		view.setLinkSunshade(shutterLink(windowModel, ShutterPosition.SUNSHADE));
 
 		model.addAttribute(viewKey, view);
+	}
+
+	private String shutterLink(Window windowModel, ShutterPosition shutterPosition) {
+		if (shutterPosition == windowModel.getShutterPosition()) {
+			return "#";
+		} else {
+			return "/shutterSetPosition?devIdVar="
+					+ windowModel.getShutterDevice().accessKeyXmlApi(Datapoint.STATE) + "&shutterSetPosition="
+					+ shutterPosition.getControlPosition();
+		}
 	}
 
 	public void fillLinks(Model model) {

@@ -21,7 +21,9 @@ import homecontroller.domain.model.Intensity;
 import homecontroller.domain.model.OutdoorClimate;
 import homecontroller.domain.model.PowerMeterModel;
 import homecontroller.domain.model.RoomClimate;
+import homecontroller.domain.model.ShutterPosition;
 import homecontroller.domain.model.SwitchModel;
+import homecontroller.domain.model.Window;
 import homecontroller.service.HomematicAPI;
 import homecontroller.service.PushService;
 
@@ -99,6 +101,8 @@ public class HouseService {
 		newModel.setClimateKidsRoom(readRoomClimate(Device.THERMOMETER_KINDERZIMMER));
 		newModel.setClimateLivingRoom(readRoomClimate(Device.THERMOMETER_WOHNZIMMER));
 		newModel.setClimateBedRoom(readRoomClimate(Device.THERMOMETER_SCHLAFZIMMER));
+
+		newModel.setLeftWindowBedRoom(readWindow(Device.ROLLLADE_SCHLAFZIMMER_LINKS));
 
 		newModel.setClimateTerrace(readOutdoorClimate(Device.DIFFERENZTEMPERATUR_TERRASSE_AUSSEN,
 				Device.DIFFERENZTEMPERATUR_TERRASSE_DIFF));
@@ -287,6 +291,16 @@ public class HouseService {
 		roomClimate.setDeviceHeating(heating);
 
 		return roomClimate;
+	}
+
+	private Window readWindow(Device shutter) { // TODO: D_U_M_M_Y
+		Window window = new Window();
+		window.setShutterDevice(shutter);
+		window.setShutterPositionPercentage(30);
+		window.setShutterPosition(ShutterPosition.fromPosition(window.getShutterPositionPercentage()));
+		window.setShutterAutomation(true);
+		window.setShutterAutomationInfoText("Dummy Text");
+		return window;
 	}
 
 	private SwitchModel readSwitchState(Device device) {

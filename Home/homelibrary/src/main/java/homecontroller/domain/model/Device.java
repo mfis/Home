@@ -8,6 +8,7 @@ public enum Device {
 	THERMOMETER_KINDERZIMMER(Protocol.HMIP, "000E97099314A3", 1, "Thermometer", "Kinderzimmer"), //
 	THERMOMETER_WOHNZIMMER(Protocol.HMIP, "000E97099312D5", 1, "Thermometer", "Wohnzimmer"), //
 	THERMOMETER_SCHLAFZIMMER(Protocol.HMIP, "000E97099314C4", 1, "Thermometer", "Schlafzimmer"), //
+	ROLLLADE_SCHLAFZIMMER_LINKS(Protocol.HM, "D_U_M_M_Y", 1, "Rolllade links", "Schlafzimmer"), //
 	DIFFERENZTEMPERATUR_TERRASSE_AUSSEN(Protocol.HM, "OEQ0801741", 2, "Thermometer", "Terrasse"), //
 	DIFFERENZTEMPERATUR_TERRASSE_DIFF(Protocol.HM, "OEQ0801741", 3, "Sonnensensor", "Terrasse"), //
 	DIFFERENZTEMPERATUR_EINFAHRT_AUSSEN(Protocol.HM, "OEQ0801807", 2, "Thermometer", "Einfahrt"), //

@@ -72,6 +72,17 @@ public class HomeRequestMapping {
 		return "redirect:" + Pages.PATH_HOME;
 	}
 
+	@RequestMapping("/shutterSetPosition")
+	public String shutterSetPosition(@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
+			@RequestParam("devIdVar") String devIdVar,
+			@RequestParam("positionPercentage") String positionPercentage,
+			@RequestParam(name = "y", required = false) String y) throws Exception {
+		saveYPos(userCookie, y);
+		call(env.getProperty("controller.url") + "shutterSetPosition", ActionModel.class, new URIParameter()
+				.add("devIdVar", devIdVar).add("positionPercentage", positionPercentage).build());
+		return "redirect:" + Pages.PATH_HOME;
+	}
+
 	@RequestMapping("/settingspushtoggle")
 	public String settingspushtoggle(@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie)
 			throws Exception {

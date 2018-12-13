@@ -18,6 +18,8 @@ public class HouseModel implements Serializable {
 
 	private RoomClimate climateBedRoom;
 
+	private Window leftWindowBedRoom;
+
 	private RoomClimate climateLivingRoom;
 
 	private OutdoorClimate climateTerrace;
@@ -150,6 +152,14 @@ public class HouseModel implements Serializable {
 
 	public void setElectricalPowerConsumption(PowerMeterModel electricalPowerConsumption) {
 		this.electricalPowerConsumption = electricalPowerConsumption;
+	}
+
+	public Window getLeftWindowBedRoom() {
+		return leftWindowBedRoom;
+	}
+
+	public void setLeftWindowBedRoom(Window leftWindowBedRoom) {
+		this.leftWindowBedRoom = leftWindowBedRoom;
 	}
 
 }
