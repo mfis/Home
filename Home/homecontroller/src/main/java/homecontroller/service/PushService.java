@@ -90,7 +90,7 @@ public class PushService {
 		HouseModel m = model != null ? model : new HouseModel();
 
 		List<String> hintStrings = new LinkedList<>();
-		for (RoomClimate room : m.lookupRooms()) {
+		for (RoomClimate room : m.lookupFields(RoomClimate.class).values()) {
 			for (Hint hint : room.getHints()) {
 				if (room != null && hint != null) {
 					hintStrings.add(hint.formatWithRoomName(room));

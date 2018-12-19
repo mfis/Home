@@ -1,6 +1,7 @@
 package homecontroller.domain.service;
 
 import java.math.BigDecimal;
+import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
@@ -11,6 +12,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import homecontroller.dao.ModelDAO;
+import homecontroller.domain.model.Climate;
 import homecontroller.domain.model.Datapoint;
 import homecontroller.domain.model.Device;
 import homecontroller.domain.model.HeatingModel;
@@ -23,6 +25,7 @@ import homecontroller.domain.model.PowerMeterModel;
 import homecontroller.domain.model.RoomClimate;
 import homecontroller.domain.model.ShutterPosition;
 import homecontroller.domain.model.SwitchModel;
+import homecontroller.domain.model.Tendency;
 import homecontroller.domain.model.Window;
 import homecontroller.service.HomematicAPI;
 import homecontroller.service.PushService;
@@ -34,6 +37,7 @@ public class HouseService {
 	private final static BigDecimal TARGET_TEMPERATURE_TOLERANCE_OFFSET = new BigDecimal("1");
 	private final static BigDecimal TEMPERATURE_DIFFERENCE_INSIDE_OUTSIDE_NO_ROOM_COOLDOWN_NEEDED = new BigDecimal(
 			"6");
+	private final static BigDecimal TEMPERATURE_TENDENCY_DIFF = new BigDecimal("0.199");
 
 	private final static BigDecimal TARGET_HUMIDITY_MIN_INSIDE = new BigDecimal("45");
 	private final static BigDecimal TARGET_HUMIDITY_MAX_INSIDE = new BigDecimal("65");
@@ -76,7 +80,7 @@ public class HouseService {
 		HouseModel oldModel = ModelDAO.getInstance().readHouseModel();
 
 		HouseModel newModel = refreshModel();
-		calculateConclusion(newModel);
+		calculateConclusion(oldModel, newModel);
 		ModelDAO.getInstance().write(newModel);
 
 		if (notify) {
@@ -120,7 +124,7 @@ public class HouseService {
 		return newModel;
 	}
 
-	public void calculateConclusion(HouseModel newModel) {
+	public void calculateConclusion(HouseModel oldModel, HouseModel newModel) {
 
 		if (newModel.getClimateTerrace().getTemperature()
 				.compareTo(newModel.getClimateEntrance().getTemperature()) < 0) {
@@ -135,6 +139,38 @@ public class HouseService {
 				.subtract(newModel.getConclusionClimateFacadeMin().getTemperature()).abs();
 		newModel.getConclusionClimateFacadeMax()
 				.setSunHeatingInContrastToShadeIntensity(lookupIntensity(sunShadeDiff));
+
+		calculateTendencies(oldModel, newModel);
+	}
+
+	void calculateTendencies(HouseModel oldModel, HouseModel newModel) {
+
+		Map<String, Climate> places = newModel.lookupFields(Climate.class);
+
+		for (String field : places.keySet()) {
+
+			Climate climateNew = places.get(field);
+			Climate climateOld = oldModel != null ? oldModel.lookupField(field, Climate.class) : null;
+			if (climateOld == null) {
+				climateNew.setTemperatureReference(climateNew.getTemperature());
+			} else if (climateOld.getTemperatureReference() == null) {
+				climateNew.setTemperatureReference(climateOld.getTemperature());
+			} else {
+				climateNew.setTemperatureReference(climateOld.getTemperatureReference());
+			}
+
+			BigDecimal diff = climateNew.getTemperature().subtract(climateNew.getTemperatureReference());
+			if (diff.compareTo(BigDecimal.ZERO) > 0 && diff.compareTo(TEMPERATURE_TENDENCY_DIFF) > 0) {
+				climateNew.setTemperatureTendency(Tendency.RISE);
+				climateNew.setTemperatureReference(climateNew.getTemperature());
+			} else if (diff.compareTo(BigDecimal.ZERO) < 0
+					&& diff.abs().compareTo(TEMPERATURE_TENDENCY_DIFF) > 0) {
+				climateNew.setTemperatureTendency(Tendency.FALL);
+				climateNew.setTemperatureReference(climateNew.getTemperature());
+			} else {
+				climateNew.setTemperatureTendency(Tendency.EQUAL);
+			}
+		}
 	}
 
 	public void calculateHints(HouseModel newModel) {

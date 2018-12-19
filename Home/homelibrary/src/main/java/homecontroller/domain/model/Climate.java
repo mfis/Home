@@ -9,6 +9,12 @@ public class Climate implements Serializable {
 
 	private BigDecimal temperature;
 
+	private BigDecimal temperatureReference;
+
+	private long temperatureReferenceDateTime;
+
+	private Tendency temperatureTendency;
+
 	private BigDecimal humidity;
 
 	private String placeName;
@@ -45,6 +51,30 @@ public class Climate implements Serializable {
 
 	public void setDeviceThermometer(Device deviceThermometer) {
 		this.deviceThermometer = deviceThermometer;
+	}
+
+	public Tendency getTemperatureTendency() {
+		return temperatureTendency;
+	}
+
+	public void setTemperatureTendency(Tendency temperatureTendency) {
+		this.temperatureTendency = temperatureTendency;
+	}
+
+	public BigDecimal getTemperatureReference() {
+		return temperatureReference;
+	}
+
+	public void setTemperatureReference(BigDecimal temperatureReference) {
+		this.temperatureReference = temperatureReference;
+	}
+
+	public long getTemperatureReferenceDateTime() {
+		return temperatureReferenceDateTime;
+	}
+
+	public void setTemperatureReferenceDateTime(long temperatureReferenceDateTime) {
+		this.temperatureReferenceDateTime = temperatureReferenceDateTime;
 	}
 
 }
