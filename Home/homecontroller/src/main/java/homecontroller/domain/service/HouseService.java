@@ -2,6 +2,7 @@ package homecontroller.domain.service;
 
 import java.math.BigDecimal;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.annotation.PostConstruct;
 
@@ -26,6 +27,7 @@ import homecontroller.domain.model.RoomClimate;
 import homecontroller.domain.model.ShutterPosition;
 import homecontroller.domain.model.SwitchModel;
 import homecontroller.domain.model.Tendency;
+import homecontroller.domain.model.ValueWithTendency;
 import homecontroller.domain.model.Window;
 import homecontroller.service.HomematicAPI;
 import homecontroller.service.PushService;
@@ -126,8 +128,8 @@ public class HouseService {
 
 	public void calculateConclusion(HouseModel oldModel, HouseModel newModel) {
 
-		if (newModel.getClimateTerrace().getTemperature()
-				.compareTo(newModel.getClimateEntrance().getTemperature()) < 0) {
+		if (newModel.getClimateTerrace().getTemperature().getValue()
+				.compareTo(newModel.getClimateEntrance().getTemperature().getValue()) < 0) {
 			newModel.setConclusionClimateFacadeMin(newModel.getClimateTerrace());
 			newModel.setConclusionClimateFacadeMax(newModel.getClimateEntrance());
 		} else {
@@ -135,8 +137,8 @@ public class HouseService {
 			newModel.setConclusionClimateFacadeMax(newModel.getClimateTerrace());
 		}
 
-		BigDecimal sunShadeDiff = newModel.getConclusionClimateFacadeMax().getTemperature()
-				.subtract(newModel.getConclusionClimateFacadeMin().getTemperature()).abs();
+		BigDecimal sunShadeDiff = newModel.getConclusionClimateFacadeMax().getTemperature().getValue()
+				.subtract(newModel.getConclusionClimateFacadeMin().getTemperature().getValue()).abs();
 		newModel.getConclusionClimateFacadeMax()
 				.setSunHeatingInContrastToShadeIntensity(lookupIntensity(sunShadeDiff));
 
@@ -147,28 +149,35 @@ public class HouseService {
 
 		Map<String, Climate> places = newModel.lookupFields(Climate.class);
 
-		for (String field : places.keySet()) {
+		for (Entry<String, Climate> entry : places.entrySet()) {
 
-			Climate climateNew = places.get(field);
-			Climate climateOld = oldModel != null ? oldModel.lookupField(field, Climate.class) : null;
+			Climate climateNew = entry.getValue();
+			Climate climateOld = oldModel != null ? oldModel.lookupField(entry.getKey(), Climate.class)
+					: null;
+			ValueWithTendency<BigDecimal> reference;
+
 			if (climateOld == null) {
-				climateNew.setTemperatureReference(climateNew.getTemperature());
-			} else if (climateOld.getTemperatureReference() == null) {
-				climateNew.setTemperatureReference(climateOld.getTemperature());
+				reference = climateNew.getTemperature();
+				reference.setReferenceValue(reference.getValue());
 			} else {
-				climateNew.setTemperatureReference(climateOld.getTemperatureReference());
+				reference = climateOld.getTemperature();
 			}
 
-			BigDecimal diff = climateNew.getTemperature().subtract(climateNew.getTemperatureReference());
+			BigDecimal diff = climateNew.getTemperature().getValue().subtract(reference.getReferenceValue());
 			if (diff.compareTo(BigDecimal.ZERO) > 0 && diff.compareTo(TEMPERATURE_TENDENCY_DIFF) > 0) {
-				climateNew.setTemperatureTendency(Tendency.RISE);
-				climateNew.setTemperatureReference(climateNew.getTemperature());
+				climateNew.getTemperature().setTendency(Tendency.RISE);
+				climateNew.getTemperature().setReferenceValue(climateNew.getTemperature().getValue());
+				climateNew.getTemperature().setReferenceDateTime(newModel.getDateTime());
 			} else if (diff.compareTo(BigDecimal.ZERO) < 0
 					&& diff.abs().compareTo(TEMPERATURE_TENDENCY_DIFF) > 0) {
-				climateNew.setTemperatureTendency(Tendency.FALL);
-				climateNew.setTemperatureReference(climateNew.getTemperature());
+				climateNew.getTemperature().setTendency(Tendency.FALL);
+				climateNew.getTemperature().setReferenceValue(climateNew.getTemperature().getValue());
+				climateNew.getTemperature().setReferenceDateTime(newModel.getDateTime());
 			} else {
-				climateNew.setTemperatureTendency(Tendency.EQUAL);
+				long timeDiff = newModel.getDateTime() - reference.getReferenceDateTime();
+				climateNew.getTemperature().setTendency(Tendency.calculate(reference, timeDiff));
+				climateNew.getTemperature().setReferenceValue(reference.getReferenceValue());
+				climateNew.getTemperature().setReferenceDateTime(reference.getReferenceDateTime());
 			}
 		}
 	}
@@ -182,11 +191,8 @@ public class HouseService {
 	}
 
 	private void lookupHint(RoomClimate room, OutdoorClimate outdoor) {
-
 		lookupTemperatureHint(room, outdoor);
 		lookupHumidityHint(room);
-
-		return;
 	}
 
 	private void lookupHumidityHint(RoomClimate room) {
@@ -210,20 +216,20 @@ public class HouseService {
 
 		if (room.getTemperature() == null) {
 			return;
-		} else if (room.getTemperature().compareTo(temperatureLimit) < 0) {
+		} else if (room.getTemperature().getValue().compareTo(temperatureLimit) < 0) {
 			// TODO: using sun heating in the winter for warming up rooms
 			return;
-		} else if (isTooColdOutsideSoNoNeedToCoolingDownRoom(room.getTemperature())) {
+		} else if (isTooColdOutsideSoNoNeedToCoolingDownRoom(room.getTemperature().getValue())) {
 			return;
-		} else if (room.getTemperature().compareTo(temperatureLimit) > 0
-				&& outdoor.getTemperature().compareTo(room.getTemperature()) < 0
+		} else if (room.getTemperature().getValue().compareTo(temperatureLimit) > 0
+				&& outdoor.getTemperature().getValue().compareTo(room.getTemperature().getValue()) < 0
 				&& outdoor.getSunBeamIntensity().ordinal() <= Intensity.LOW.ordinal()) {
 			if (isHeatingIsCauseForHighRoomTemperature(room, temperatureLimit)) {
 				return;
 			} else {
 				room.getHints().add(Hint.OPEN_WINDOW);
 			}
-		} else if (room.getTemperature().compareTo(temperatureLimit) > 0
+		} else if (room.getTemperature().getValue().compareTo(temperatureLimit) > 0
 				&& outdoor.getSunBeamIntensity().ordinal() > Intensity.LOW.ordinal()) {
 			room.getHints().add(Hint.CLOSE_ROLLER_SHUTTER);
 		}
@@ -285,8 +291,8 @@ public class HouseService {
 
 	private void updateHomematicSystemVariables(HouseModel oldModel, HouseModel newModel) {
 
-		if (oldModel == null || oldModel.getConclusionClimateFacadeMin().getTemperature()
-				.compareTo(newModel.getConclusionClimateFacadeMin().getTemperature()) != 0) {
+		if (oldModel == null || oldModel.getConclusionClimateFacadeMin().getTemperature().getValue()
+				.compareTo(newModel.getConclusionClimateFacadeMin().getTemperature().getValue()) != 0) {
 			api.changeValue(Device.AUSSENTEMPERATUR.getType(),
 					newModel.getConclusionClimateFacadeMin().getTemperature().toString());
 		}
@@ -294,7 +300,8 @@ public class HouseService {
 
 	private OutdoorClimate readOutdoorClimate(Device outside, Device diff) {
 		OutdoorClimate outdoorClimate = new OutdoorClimate();
-		outdoorClimate.setTemperature(api.getAsBigDecimal(outside.accessKeyXmlApi(Datapoint.TEMPERATURE)));
+		outdoorClimate.setTemperature(new ValueWithTendency<BigDecimal>(
+				api.getAsBigDecimal(outside.accessKeyXmlApi(Datapoint.TEMPERATURE))));
 		outdoorClimate.setSunBeamIntensity(
 				lookupIntensity(api.getAsBigDecimal(diff.accessKeyXmlApi(Datapoint.TEMPERATURE))));
 		outdoorClimate.setPlaceName(outside.getPlaceName());
@@ -304,8 +311,8 @@ public class HouseService {
 
 	private RoomClimate readRoomClimate(Device thermometer) {
 		RoomClimate roomClimate = new RoomClimate();
-		roomClimate.setTemperature(
-				api.getAsBigDecimal(thermometer.accessKeyXmlApi(Datapoint.ACTUAL_TEMPERATURE)));
+		roomClimate.setTemperature(new ValueWithTendency<BigDecimal>(
+				api.getAsBigDecimal(thermometer.accessKeyXmlApi(Datapoint.ACTUAL_TEMPERATURE))));
 		roomClimate.setHumidity(api.getAsBigDecimal(thermometer.accessKeyXmlApi(Datapoint.HUMIDITY)));
 		roomClimate.setPlaceName(thermometer.getPlaceName());
 		roomClimate.setDeviceThermometer(thermometer);

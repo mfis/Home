@@ -127,22 +127,23 @@ public class HouseViewService {
 		ClimateView view = new ClimateView();
 		view.setId(viewKey);
 
-		if (climate.getTemperature() != null && climate.getTemperature().compareTo(BigDecimal.ZERO) == 0
+		if (climate.getTemperature() != null
+				&& climate.getTemperature().getValue().compareTo(BigDecimal.ZERO) == 0
 				&& climate.getHumidity() != null && climate.getHumidity().compareTo(BigDecimal.ZERO) == 0) {
 			view.setState("unbekannt");
 		}
 
 		if (climate.getTemperature() != null) {
 			// Temperature and humidity
-			view.setState(format(climate.getTemperature(), false) + "\u00b0" + "C");
+			view.setState(format(climate.getTemperature().getValue(), false) + "\u00b0" + "C");
 			if (climate.getHumidity() != null) {
 				view.setState(view.getState() + ", " + format(climate.getHumidity(), true) + "%rH");
 			}
 			// Background color
-			if (climate.getTemperature().compareTo(HIGH_TEMP) > 0) {
+			if (climate.getTemperature().getValue().compareTo(HIGH_TEMP) > 0) {
 				view.setColorClass("danger");
 				view.setIcon("fas fa-thermometer-full");
-			} else if (climate.getTemperature().compareTo(LOW_TEMP) < 0) {
+			} else if (climate.getTemperature().getValue().compareTo(LOW_TEMP) < 0) {
 				view.setColorClass("info");
 				view.setIcon("fas fa-thermometer-empty");
 			} else {
@@ -150,7 +151,7 @@ public class HouseViewService {
 				view.setIcon("fas fa-thermometer-half");
 			}
 			// Postfix icon
-			if (climate.getTemperature().compareTo(FROST_TEMP) < 0) {
+			if (climate.getTemperature().getValue().compareTo(FROST_TEMP) < 0) {
 				view.setStatePostfixIcon("far fa-snowflake");
 			}
 			// Heating
