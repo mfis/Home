@@ -25,7 +25,7 @@ public enum Tendency {
 	public static Tendency calculate(ValueWithTendency<BigDecimal> reference, long timeDiff) {
 
 		if (reference.getTendency() == null) {
-			return Tendency.NONE;
+			return Tendency.EQUAL;
 		}
 
 		switch (reference.getTendency()) {
