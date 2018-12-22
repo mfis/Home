@@ -4,23 +4,28 @@ import java.math.BigDecimal;
 
 public enum Tendency {
 
-	RISE(0), //
-	RISE_SLIGHT(Constants.ONE_MINUTE * 30), //
-	EQUAL(Constants.ONE_MINUTE * 60), //
-	FALL_SLIGHT(Constants.ONE_MINUTE * 30), //
-	FALL(0), //
+	NONE(0, ""), //
+
+	RISE(0, "far fa-arrow-alt-circle-up"), //
+	RISE_SLIGHT(Constants.ONE_MINUTE * 30, "far fa-arrow-alt-circle-up fa-rotate-45"), //
+	EQUAL(Constants.ONE_MINUTE * 60, "far fa-arrow-alt-circle-right"), //
+	FALL_SLIGHT(Constants.ONE_MINUTE * 30, "far fa-arrow-alt-circle-right fa-rotate-45"), //
+	FALL(0, "far fa-arrow-alt-circle-down"), //
 	;
 
 	private long timeDiff;
 
-	private Tendency(long timeDiff) {
+	private String iconCssClass;
+
+	private Tendency(long timeDiff, String iconCssClass) {
 		this.timeDiff = timeDiff;
+		this.iconCssClass = iconCssClass;
 	}
 
 	public static Tendency calculate(ValueWithTendency<BigDecimal> reference, long timeDiff) {
 
 		if (reference.getTendency() == null) {
-			return Tendency.EQUAL;
+			return Tendency.NONE;
 		}
 
 		switch (reference.getTendency()) {
@@ -63,10 +68,14 @@ public enum Tendency {
 			super();
 		}
 
-		public static final long ONE_MINUTE = 1000 * 60;
+		public static final long ONE_MINUTE = 1000L * 60L;
 	}
 
 	public long getTimeDiff() {
 		return timeDiff;
+	}
+
+	public String getIconCssClass() {
+		return iconCssClass;
 	}
 }

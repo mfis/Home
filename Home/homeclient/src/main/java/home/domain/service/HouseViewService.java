@@ -129,15 +129,17 @@ public class HouseViewService {
 
 		if (climate.getTemperature() != null
 				&& climate.getTemperature().getValue().compareTo(BigDecimal.ZERO) == 0
-				&& climate.getHumidity() != null && climate.getHumidity().compareTo(BigDecimal.ZERO) == 0) {
-			view.setState("unbekannt");
+				&& climate.getHumidity() != null
+				&& climate.getHumidity().getValue().compareTo(BigDecimal.ZERO) == 0) {
+			view.setStateTemperature("unbekannt");
+			return view;
 		}
 
 		if (climate.getTemperature() != null) {
 			// Temperature and humidity
-			view.setState(format(climate.getTemperature().getValue(), false) + "\u00b0" + "C");
+			view.setStateTemperature(format(climate.getTemperature().getValue(), false) + "\u00b0" + "C");
 			if (climate.getHumidity() != null) {
-				view.setState(view.getState() + ", " + format(climate.getHumidity(), true) + "%rH");
+				view.setStateHumidity(format(climate.getHumidity().getValue(), true) + "%rH");
 			}
 			// Background color
 			if (climate.getTemperature().getValue().compareTo(HIGH_TEMP) > 0) {
@@ -152,7 +154,14 @@ public class HouseViewService {
 			}
 			// Postfix icon
 			if (climate.getTemperature().getValue().compareTo(FROST_TEMP) < 0) {
-				view.setStatePostfixIcon("far fa-snowflake");
+				view.setStatePostfixIconTemperature("far fa-snowflake");
+			}
+			// Tendency icons
+			if (climate.getTemperature().getTendency() != null) {
+				view.setTendencyIconTemperature(climate.getTemperature().getTendency().getIconCssClass());
+			}
+			if (climate.getHumidity() != null && climate.getHumidity().getTendency() != null) {
+				view.setTendencyIconHumidity(climate.getHumidity().getTendency().getIconCssClass());
 			}
 			// Heating
 			if (climate instanceof RoomClimate && ((RoomClimate) climate).getHeating() != null) {
@@ -167,7 +176,7 @@ public class HouseViewService {
 				view.setHeatericon("fab fa-hotjar");
 			}
 		} else {
-			view.setState("?");
+			view.setStateTemperature("?");
 		}
 
 		if (climate instanceof RoomClimate) {
@@ -190,10 +199,10 @@ public class HouseViewService {
 
 		if (house.getConclusionClimateFacadeMax().getSunBeamIntensity().ordinal() >= house
 				.getConclusionClimateFacadeMax().getSunHeatingInContrastToShadeIntensity().ordinal()) {
-			viewMax.setState(house.getConclusionClimateFacadeMax().getSunBeamIntensity().getSun());
+			viewMax.setStateTemperature(house.getConclusionClimateFacadeMax().getSunBeamIntensity().getSun());
 		} else {
-			viewMax.setState(house.getConclusionClimateFacadeMax().getSunHeatingInContrastToShadeIntensity()
-					.getHeating());
+			viewMax.setStateTemperature(house.getConclusionClimateFacadeMax()
+					.getSunHeatingInContrastToShadeIntensity().getHeating());
 		}
 		viewMax.setName("Fassade " + house.getConclusionClimateFacadeMax().getPlaceName());
 

@@ -9,19 +9,11 @@ public class Climate implements Serializable {
 
 	private ValueWithTendency<BigDecimal> temperature;
 
-	private BigDecimal humidity;
+	private ValueWithTendency<BigDecimal> humidity;
 
 	private String placeName;
 
 	private Device deviceThermometer;
-
-	public BigDecimal getHumidity() {
-		return humidity;
-	}
-
-	public void setHumidity(BigDecimal humidity) {
-		this.humidity = humidity;
-	}
 
 	public String getPlaceName() {
 		return placeName;
@@ -45,6 +37,14 @@ public class Climate implements Serializable {
 
 	public void setTemperature(ValueWithTendency<BigDecimal> temperature) {
 		this.temperature = temperature;
+	}
+
+	public ValueWithTendency<BigDecimal> getHumidity() {
+		return humidity;
+	}
+
+	public void setHumidity(ValueWithTendency<BigDecimal> humidity) {
+		this.humidity = humidity;
 	}
 
 }

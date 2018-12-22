@@ -39,7 +39,9 @@ public class HouseService {
 	private final static BigDecimal TARGET_TEMPERATURE_TOLERANCE_OFFSET = new BigDecimal("1");
 	private final static BigDecimal TEMPERATURE_DIFFERENCE_INSIDE_OUTSIDE_NO_ROOM_COOLDOWN_NEEDED = new BigDecimal(
 			"6");
+
 	private final static BigDecimal TEMPERATURE_TENDENCY_DIFF = new BigDecimal("0.199");
+	private final static BigDecimal HUMIDITY_TENDENCY_DIFF = new BigDecimal("1.99");
 
 	private final static BigDecimal TARGET_HUMIDITY_MIN_INSIDE = new BigDecimal("45");
 	private final static BigDecimal TARGET_HUMIDITY_MAX_INSIDE = new BigDecimal("65");
@@ -154,31 +156,51 @@ public class HouseService {
 			Climate climateNew = entry.getValue();
 			Climate climateOld = oldModel != null ? oldModel.lookupField(entry.getKey(), Climate.class)
 					: null;
-			ValueWithTendency<BigDecimal> reference;
 
+			// Temperature
+			ValueWithTendency<BigDecimal> referenceTemperature;
 			if (climateOld == null) {
-				reference = climateNew.getTemperature();
-				reference.setReferenceValue(reference.getValue());
+				referenceTemperature = climateNew.getTemperature();
+				referenceTemperature.setReferenceValue(referenceTemperature.getValue());
 			} else {
-				reference = climateOld.getTemperature();
+				referenceTemperature = climateOld.getTemperature();
 			}
+			calculateTendency(newModel, referenceTemperature, climateNew.getTemperature(),
+					TEMPERATURE_TENDENCY_DIFF);
 
-			BigDecimal diff = climateNew.getTemperature().getValue().subtract(reference.getReferenceValue());
-			if (diff.compareTo(BigDecimal.ZERO) > 0 && diff.compareTo(TEMPERATURE_TENDENCY_DIFF) > 0) {
-				climateNew.getTemperature().setTendency(Tendency.RISE);
-				climateNew.getTemperature().setReferenceValue(climateNew.getTemperature().getValue());
-				climateNew.getTemperature().setReferenceDateTime(newModel.getDateTime());
-			} else if (diff.compareTo(BigDecimal.ZERO) < 0
-					&& diff.abs().compareTo(TEMPERATURE_TENDENCY_DIFF) > 0) {
-				climateNew.getTemperature().setTendency(Tendency.FALL);
-				climateNew.getTemperature().setReferenceValue(climateNew.getTemperature().getValue());
-				climateNew.getTemperature().setReferenceDateTime(newModel.getDateTime());
-			} else {
-				long timeDiff = newModel.getDateTime() - reference.getReferenceDateTime();
-				climateNew.getTemperature().setTendency(Tendency.calculate(reference, timeDiff));
-				climateNew.getTemperature().setReferenceValue(reference.getReferenceValue());
-				climateNew.getTemperature().setReferenceDateTime(reference.getReferenceDateTime());
+			// Humidity
+			if (climateNew.getHumidity() != null) {
+				ValueWithTendency<BigDecimal> referenceHumidity;
+				if (climateOld == null) {
+					referenceHumidity = climateNew.getHumidity();
+					referenceHumidity.setReferenceValue(referenceHumidity.getValue());
+				} else {
+					referenceHumidity = climateOld.getHumidity();
+				}
+				calculateTendency(newModel, referenceHumidity, climateNew.getHumidity(),
+						HUMIDITY_TENDENCY_DIFF);
 			}
+		}
+	}
+
+	private void calculateTendency(HouseModel newModel, ValueWithTendency<BigDecimal> reference,
+			ValueWithTendency<BigDecimal> actual, BigDecimal diffValue) {
+
+		BigDecimal diff = actual.getValue().subtract(reference.getReferenceValue());
+
+		if (diff.compareTo(BigDecimal.ZERO) > 0 && diff.compareTo(diffValue) > 0) {
+			actual.setTendency(Tendency.RISE);
+			actual.setReferenceValue(actual.getValue());
+			actual.setReferenceDateTime(newModel.getDateTime());
+		} else if (diff.compareTo(BigDecimal.ZERO) < 0 && diff.abs().compareTo(diffValue) > 0) {
+			actual.setTendency(Tendency.FALL);
+			actual.setReferenceValue(actual.getValue());
+			actual.setReferenceDateTime(newModel.getDateTime());
+		} else {
+			long timeDiff = newModel.getDateTime() - reference.getReferenceDateTime();
+			actual.setTendency(Tendency.calculate(reference, timeDiff));
+			actual.setReferenceValue(reference.getReferenceValue());
+			actual.setReferenceDateTime(reference.getReferenceDateTime());
 		}
 	}
 
@@ -201,9 +223,9 @@ public class HouseService {
 			return;
 		}
 
-		if (room.getHumidity().compareTo(TARGET_HUMIDITY_MAX_INSIDE) > 0) {
+		if (room.getHumidity().getValue().compareTo(TARGET_HUMIDITY_MAX_INSIDE) > 0) {
 			room.getHints().add(Hint.DECREASE_HUMIDITY);
-		} else if (room.getHumidity().compareTo(TARGET_HUMIDITY_MIN_INSIDE) < 0) {
+		} else if (room.getHumidity().getValue().compareTo(TARGET_HUMIDITY_MIN_INSIDE) < 0) {
 			room.getHints().add(Hint.INCREASE_HUMIDITY);
 		}
 	}
@@ -313,7 +335,10 @@ public class HouseService {
 		RoomClimate roomClimate = new RoomClimate();
 		roomClimate.setTemperature(new ValueWithTendency<BigDecimal>(
 				api.getAsBigDecimal(thermometer.accessKeyXmlApi(Datapoint.ACTUAL_TEMPERATURE))));
-		roomClimate.setHumidity(api.getAsBigDecimal(thermometer.accessKeyXmlApi(Datapoint.HUMIDITY)));
+		BigDecimal humidity = api.getAsBigDecimal(thermometer.accessKeyXmlApi(Datapoint.HUMIDITY));
+		if (humidity != null) {
+			roomClimate.setHumidity(new ValueWithTendency<BigDecimal>(humidity));
+		}
 		roomClimate.setPlaceName(thermometer.getPlaceName());
 		roomClimate.setDeviceThermometer(thermometer);
 		return roomClimate;

@@ -8,8 +8,12 @@ public class ClimateView {
 	private String id = "";
 	private String name = "";
 	private String postfix = "";
-	private String state = "";
-	private String statePostfixIcon = "";
+	private String stateTemperature = "";
+	private String statePostfixIconTemperature = "";
+	private String tendencyIconTemperature = "";
+	private String stateHumidity = "";
+	private String statePostfixIconHumidity = "";
+	private String tendencyIconHumidity = "";
 	private String colorClass = "secondary";
 	private String linkBoost = "";
 	private String linkManual = "";
@@ -32,14 +36,6 @@ public class ClimateView {
 
 	public void setName(String name) {
 		this.name = name;
-	}
-
-	public String getState() {
-		return state;
-	}
-
-	public void setState(String state) {
-		this.state = state;
 	}
 
 	public String getColorClass() {
@@ -98,20 +94,60 @@ public class ClimateView {
 		this.postfix = postfix;
 	}
 
-	public String getStatePostfixIcon() {
-		return statePostfixIcon;
-	}
-
-	public void setStatePostfixIcon(String statePostfixIcon) {
-		this.statePostfixIcon = statePostfixIcon;
-	}
-
 	public List<String> getHints() {
 		return hints;
 	}
 
 	public void setHints(List<String> hints) {
 		this.hints = hints;
+	}
+
+	public String getStateTemperature() {
+		return stateTemperature;
+	}
+
+	public void setStateTemperature(String stateTemperature) {
+		this.stateTemperature = stateTemperature;
+	}
+
+	public String getStatePostfixIconTemperature() {
+		return statePostfixIconTemperature;
+	}
+
+	public void setStatePostfixIconTemperature(String statePostfixIconTemperature) {
+		this.statePostfixIconTemperature = statePostfixIconTemperature;
+	}
+
+	public String getTendencyIconTemperature() {
+		return tendencyIconTemperature;
+	}
+
+	public void setTendencyIconTemperature(String tendencyIconTemperature) {
+		this.tendencyIconTemperature = tendencyIconTemperature;
+	}
+
+	public String getStateHumidity() {
+		return stateHumidity;
+	}
+
+	public void setStateHumidity(String stateHumidity) {
+		this.stateHumidity = stateHumidity;
+	}
+
+	public String getStatePostfixIconHumidity() {
+		return statePostfixIconHumidity;
+	}
+
+	public void setStatePostfixIconHumidity(String statePostfixIconHumidity) {
+		this.statePostfixIconHumidity = statePostfixIconHumidity;
+	}
+
+	public String getTendencyIconHumidity() {
+		return tendencyIconHumidity;
+	}
+
+	public void setTendencyIconHumidity(String tendencyIconHumidity) {
+		this.tendencyIconHumidity = tendencyIconHumidity;
 	}
 
 }

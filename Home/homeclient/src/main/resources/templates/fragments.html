@@ -23,8 +23,10 @@
 	<link rel="icon" sizes="180x180" href="apple-touch-icon-180x180.png">
 	<link rel="shortcut icon" href="favicon.ico"></link>
 	
-	<link rel='stylesheet' href='/webjars/bootstrap/css/bootstrap.min.css'>
-	<link rel="stylesheet" href="/webjars/font-awesome/css/all.min.css" crossorigin="anonymous">
+	<link rel='stylesheet' href='style.css'/>
+	
+	<link rel='stylesheet' href='/webjars/bootstrap/css/bootstrap.min.css'/>
+	<link rel="stylesheet" href="/webjars/font-awesome/css/all.min.css" crossorigin="anonymous"/>
 </head>
 
 <th:block th:fragment="scriptresources (yPos)">
@@ -252,8 +254,13 @@
 	<div th:fragment="temperature (model)" th:class="'alert alert-' + ${model.colorClass}">
 		<div th:replace="fragments :: elementname (icon=${model.icon}, name='Temperatur ' + ${model.postfix})"></div>
 		<h4>
-			<span th:text="${model.state}"></span>
-			<span th:if="${!#strings.isEmpty(model.statePostfixIcon)}"><i th:class="${model.statePostfixIcon}"></i></span>
+			<span th:if="${!#strings.isEmpty(model.stateTemperature)}" th:text="${model.stateTemperature}"></span>
+			<span th:if="${!#strings.isEmpty(model.tendencyIconTemperature)}"><i th:class="${model.tendencyIconTemperature}"></i></span>
+			<span th:if="${!#strings.isEmpty(model.statePostfixIconTemperature)}"><i th:class="${model.statePostfixIconTemperature}"></i></span>
+			<span th:if="${!#strings.isEmpty(model.stateHumidity)}" th:utext="'&nbsp;&ndash;&nbsp;'"></span>
+			<span th:if="${!#strings.isEmpty(model.stateHumidity)}" th:text="${model.stateHumidity}"></span>
+			<span th:if="${!#strings.isEmpty(model.tendencyIconHumidity)}"><i th:class="${model.tendencyIconHumidity}"></i></span>
+			<span th:if="${!#strings.isEmpty(model.statePostfixIconHumidity)}"><i th:class="${model.statePostfixIconHumidity}"></i></span>			
 		</h4>
 			
 		<th:block th:each="hint : ${model.hints}">
@@ -302,9 +309,9 @@
 	</div>	
 
 	<!-- Sonne -->
-	<div th:fragment="sunStatus (model)" th:if="${!#strings.isEmpty(model.state)}" th:class="'alert alert-' + ${model.colorClass}">
+	<div th:fragment="sunStatus (model)" th:if="${!#strings.isEmpty(model.stateTemperature)}" th:class="'alert alert-' + ${model.colorClass}">
 		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name})"></div>
-		<h4 th:text="${model.state}"></h4>
+		<h4 th:text="${model.stateTemperature}"></h4>
 	</div>
 
 	<!-- Batterie-Warnung -->
