@@ -34,32 +34,30 @@ public enum Tendency {
 				return Tendency.EQUAL;
 			} else if (timeDiff >= Tendency.RISE_SLIGHT.getTimeDiff()) {
 				return Tendency.RISE_SLIGHT;
-			} else {
-				return Tendency.RISE;
 			}
+			break;
 		case FALL:
 			if (timeDiff >= Tendency.EQUAL.getTimeDiff()) {
 				return Tendency.EQUAL;
 			} else if (timeDiff >= Tendency.FALL_SLIGHT.getTimeDiff()) {
 				return Tendency.FALL_SLIGHT;
-			} else {
-				return Tendency.FALL;
 			}
+			break;
 		case RISE_SLIGHT:
 			if (timeDiff >= Tendency.EQUAL.getTimeDiff()) {
 				return Tendency.EQUAL;
-			} else {
-				return Tendency.RISE_SLIGHT;
 			}
+			break;
 		case FALL_SLIGHT:
 			if (timeDiff >= Tendency.EQUAL.getTimeDiff()) {
 				return Tendency.EQUAL;
-			} else {
-				return Tendency.FALL_SLIGHT;
 			}
+			break;
 		default:
 			return Tendency.EQUAL;
 		}
+
+		return reference.getTendency();
 	}
 
 	public static class Constants {

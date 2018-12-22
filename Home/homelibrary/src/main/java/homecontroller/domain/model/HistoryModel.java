@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.List;
 
 public class HistoryModel implements Serializable {
 
@@ -11,7 +12,7 @@ public class HistoryModel implements Serializable {
 
 	private long dateTime;
 
-	private LinkedList<PowerConsumptionMonth> electricPowerConsumption;
+	private List<PowerConsumptionMonth> electricPowerConsumption;
 
 	private boolean electricPowerConsumptionInitialized = false;
 
@@ -29,11 +30,11 @@ public class HistoryModel implements Serializable {
 		return dateTime;
 	}
 
-	public LinkedList<PowerConsumptionMonth> getElectricPowerConsumption() {
+	public List<PowerConsumptionMonth> getElectricPowerConsumption() {
 		return electricPowerConsumption;
 	}
 
-	public void setElectricPowerConsumption(LinkedList<PowerConsumptionMonth> electricPowerConsumption) {
+	public void setElectricPowerConsumption(List<PowerConsumptionMonth> electricPowerConsumption) {
 		this.electricPowerConsumption = electricPowerConsumption;
 	}
 

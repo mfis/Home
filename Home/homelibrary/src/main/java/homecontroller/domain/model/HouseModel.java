@@ -52,7 +52,7 @@ public class HouseModel implements Serializable {
 	public <T> Map<String, T> lookupFields(Class<T> clazz) {
 
 		Field[] fields = this.getClass().getDeclaredFields();
-		Map<String, T> results = new HashMap<String, T>();
+		Map<String, T> results = new HashMap<>();
 		try {
 			for (Field field : fields) {
 				if ((field.getType().equals(clazz) || (field.getType().getSuperclass() != null
@@ -61,7 +61,7 @@ public class HouseModel implements Serializable {
 				}
 			}
 		} catch (IllegalArgumentException | IllegalAccessException e) {
-			throw new RuntimeException("Exception collecting fields:", e);
+			throw new IllegalArgumentException("Exception collecting fields:", e);
 		}
 		return results;
 	}
@@ -72,7 +72,8 @@ public class HouseModel implements Serializable {
 			return (T) this.getClass().getDeclaredField(field).get(this);
 		} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException
 				| SecurityException e) {
-			throw new RuntimeException("Exception reading field '" + field + "':", e);
+			throw new IllegalArgumentException(
+					"Exception reading field '" + field + " of class" + clazz + "':", e);
 		}
 
 	}

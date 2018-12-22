@@ -2,7 +2,7 @@ package homecontroller.domain.model;
 
 import java.io.Serializable;
 
-public class ValueWithTendency<T> implements Serializable {
+public class ValueWithTendency<T extends Serializable> implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 

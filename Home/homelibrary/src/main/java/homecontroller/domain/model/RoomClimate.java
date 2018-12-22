@@ -10,7 +10,7 @@ public class RoomClimate extends Climate implements Serializable {
 
 	private HeatingModel heating = null;
 
-	private List<Hint> hints = new LinkedList<Hint>();
+	private List<Hint> hints = new LinkedList<>();
 
 	private Device deviceHeating;
 
