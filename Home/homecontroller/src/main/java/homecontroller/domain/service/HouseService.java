@@ -42,6 +42,7 @@ public class HouseService {
 
 	private final static BigDecimal TEMPERATURE_TENDENCY_DIFF = new BigDecimal("0.199");
 	private final static BigDecimal HUMIDITY_TENDENCY_DIFF = new BigDecimal("1.99");
+	private final static BigDecimal POWER_TENDENCY_DIFF = new BigDecimal("99.99");
 
 	private final static BigDecimal TARGET_HUMIDITY_MIN_INSIDE = new BigDecimal("45");
 	private final static BigDecimal TARGET_HUMIDITY_MAX_INSIDE = new BigDecimal("65");
@@ -181,6 +182,17 @@ public class HouseService {
 						HUMIDITY_TENDENCY_DIFF);
 			}
 		}
+
+		// Power consumption
+		ValueWithTendency<BigDecimal> referencePower;
+		if (oldModel == null) {
+			referencePower = newModel.getElectricalPowerConsumption().getActualConsumption();
+			referencePower.setReferenceValue(referencePower.getValue());
+		} else {
+			referencePower = oldModel.getElectricalPowerConsumption().getActualConsumption();
+		}
+		calculateTendency(newModel, referencePower,
+				newModel.getElectricalPowerConsumption().getActualConsumption(), POWER_TENDENCY_DIFF);
 	}
 
 	private void calculateTendency(HouseModel newModel, ValueWithTendency<BigDecimal> reference,
@@ -384,7 +396,8 @@ public class HouseService {
 
 		PowerMeterModel model = new PowerMeterModel();
 		model.setDevice(device);
-		model.setActualConsumption(api.getAsBigDecimal(device.accessKeyXmlApi(Datapoint.POWER)).intValue());
+		model.setActualConsumption(new ValueWithTendency<BigDecimal>(
+				api.getAsBigDecimal(device.accessKeyXmlApi(Datapoint.POWER))));
 		return model;
 	}
 

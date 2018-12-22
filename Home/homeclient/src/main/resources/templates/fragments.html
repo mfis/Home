@@ -247,7 +247,10 @@
 	<div th:fragment="actualPowerConsumption (model)"
 		th:class="'alert alert-secondary'">
 		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name})"></div>
-		<h4 th:text="${model.state}"></h4>
+		<h4>
+			<span th:text="${model.state}"></span>
+			<span th:if="${!#strings.isEmpty(model.tendencyIcon)}"><i th:class="${model.tendencyIcon}"></i></span>
+		</h4>
 	</div>	
 
 	<!-- Temperature fas fa-thermometer-half -->

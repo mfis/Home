@@ -1,6 +1,7 @@
 package homecontroller.domain.model;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 public class PowerMeterModel implements Serializable {
 
@@ -10,17 +11,9 @@ public class PowerMeterModel implements Serializable {
 		super();
 	}
 
-	private int actualConsumption;
+	private ValueWithTendency<BigDecimal> actualConsumption;
 
 	private Device device;
-
-	public int getActualConsumption() {
-		return actualConsumption;
-	}
-
-	public void setActualConsumption(int actualConsumption) {
-		this.actualConsumption = actualConsumption;
-	}
 
 	public Device getDevice() {
 		return device;
@@ -28,6 +21,14 @@ public class PowerMeterModel implements Serializable {
 
 	public void setDevice(Device device) {
 		this.device = device;
+	}
+
+	public ValueWithTendency<BigDecimal> getActualConsumption() {
+		return actualConsumption;
+	}
+
+	public void setActualConsumption(ValueWithTendency<BigDecimal> actualConsumption) {
+		this.actualConsumption = actualConsumption;
 	}
 
 }
