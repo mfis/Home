@@ -46,7 +46,7 @@ public class SettingsService {
 
 		boolean state = Boolean.parseBoolean(
 				StringUtils.trimToEmpty(ExternalPropertiesDAO.getInstance().read(user + PUSH_ACTIVE)));
-		ExternalPropertiesDAO.getInstance().write(user + PUSH_ACTIVE, Boolean.toString(!state).toString());
+		ExternalPropertiesDAO.getInstance().write(user + PUSH_ACTIVE, Boolean.toString(!state));
 	}
 
 	public void setupPushDevice(String user, String device) {

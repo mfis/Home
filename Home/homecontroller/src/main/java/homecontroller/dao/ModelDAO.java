@@ -13,19 +13,13 @@ public class ModelDAO {
 
 	private HistoryModel historyModel;
 
-	private static final Object monitor = new Object();
-
 	private ModelDAO() {
 		super();
 	}
 
-	public static ModelDAO getInstance() {
+	public static synchronized ModelDAO getInstance() {
 		if (instance == null) {
-			synchronized (monitor) {
-				if (instance == null) {
-					instance = new ModelDAO();
-				}
-			}
+			instance = new ModelDAO();
 		}
 		return instance;
 	}

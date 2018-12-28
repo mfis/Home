@@ -23,49 +23,48 @@ public class HomeClientRequestMapping {
 	private SettingsService settingsService;
 
 	@PostMapping("/controller/toggle")
-	public ActionModel toggle(@RequestParam("devIdVar") String devIdVar) throws Exception {
+	public ActionModel toggle(@RequestParam("devIdVar") String devIdVar) {
 		houseService.toggle(devIdVar);
 		return new ActionModel("OK");
 	}
 
 	@PostMapping("/controller/heatingboost")
-	public ActionModel heatingBoost(@RequestParam("prefix") String prefix) throws Exception {
+	public ActionModel heatingBoost(@RequestParam("prefix") String prefix) throws InterruptedException {
 		houseService.heatingBoost(prefix);
 		return new ActionModel("OK");
 	}
 
 	@PostMapping("/controller/heatingmanual")
 	public ActionModel heatingManual(@RequestParam("prefix") String prefix,
-			@RequestParam("temperature") String temperature) throws Exception {
+			@RequestParam("temperature") String temperature) throws InterruptedException {
 		houseService.heatingManual(prefix, temperature);
 		return new ActionModel("OK");
 	}
 
 	@PostMapping("/controller/actualstate")
-	public HouseModel actualstate() throws Exception {
+	public HouseModel actualstate() {
 		return ModelDAO.getInstance().readHouseModel();
 	}
 
 	@PostMapping("/controller/history")
-	public HistoryModel history() throws Exception {
+	public HistoryModel history() {
 		return ModelDAO.getInstance().readHistoryModel();
 	}
 
 	@PostMapping("/controller/settings")
-	public SettingsModel settings(@RequestParam("user") String user) throws Exception {
-		SettingsModel settings = settingsService.read(user);
-		return settings;
+	public SettingsModel settings(@RequestParam("user") String user) {
+		return settingsService.read(user);
 	}
 
 	@PostMapping("/controller/settingspushtoggle")
-	public ActionModel settingspushtoggle(@RequestParam("user") String user) throws Exception {
+	public ActionModel settingspushtoggle(@RequestParam("user") String user) {
 		settingsService.togglePush(user);
 		return new ActionModel("OK");
 	}
 
 	@PostMapping("/controller/settingpushoverdevice")
 	public ActionModel settingspushover(@RequestParam("user") String user,
-			@RequestParam("device") String device) throws Exception {
+			@RequestParam("device") String device) {
 		settingsService.setupPushDevice(user, device);
 		return new ActionModel("OK");
 	}

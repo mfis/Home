@@ -35,26 +35,26 @@ import homecontroller.service.PushService;
 @Component
 public class HouseService {
 
-	private final static BigDecimal TARGET_TEMPERATURE_INSIDE = new BigDecimal("21");
-	private final static BigDecimal TARGET_TEMPERATURE_TOLERANCE_OFFSET = new BigDecimal("1");
-	private final static BigDecimal TEMPERATURE_DIFFERENCE_INSIDE_OUTSIDE_NO_ROOM_COOLDOWN_NEEDED = new BigDecimal(
+	private static final BigDecimal TARGET_TEMPERATURE_INSIDE = new BigDecimal("21");
+	private static final BigDecimal TARGET_TEMPERATURE_TOLERANCE_OFFSET = new BigDecimal("1");
+	private static final BigDecimal TEMPERATURE_DIFFERENCE_INSIDE_OUTSIDE_NO_ROOM_COOLDOWN_NEEDED = new BigDecimal(
 			"6");
 
-	private final static BigDecimal TEMPERATURE_TENDENCY_DIFF = new BigDecimal("0.199");
-	private final static BigDecimal HUMIDITY_TENDENCY_DIFF = new BigDecimal("1.99");
-	private final static BigDecimal POWER_TENDENCY_DIFF = new BigDecimal("99.99");
+	private static final BigDecimal TEMPERATURE_TENDENCY_DIFF = new BigDecimal("0.199");
+	private static final BigDecimal HUMIDITY_TENDENCY_DIFF = new BigDecimal("1.99");
+	private static final BigDecimal POWER_TENDENCY_DIFF = new BigDecimal("99.99");
 
-	private final static BigDecimal TARGET_HUMIDITY_MIN_INSIDE = new BigDecimal("45");
-	private final static BigDecimal TARGET_HUMIDITY_MAX_INSIDE = new BigDecimal("65");
+	private static final BigDecimal TARGET_HUMIDITY_MIN_INSIDE = new BigDecimal("45");
+	private static final BigDecimal TARGET_HUMIDITY_MAX_INSIDE = new BigDecimal("65");
 
-	private final static BigDecimal SUN_INTENSITY_NO = new BigDecimal("3");
-	private final static BigDecimal SUN_INTENSITY_LOW = new BigDecimal("8");
-	private final static BigDecimal SUN_INTENSITY_MEDIUM = new BigDecimal("15");
+	private static final BigDecimal SUN_INTENSITY_NO = new BigDecimal("3");
+	private static final BigDecimal SUN_INTENSITY_LOW = new BigDecimal("8");
+	private static final BigDecimal SUN_INTENSITY_MEDIUM = new BigDecimal("15");
 
-	private final static long HINT_TIMEOUT_MINUTES_AFTER_BOOST = 90L;
+	private static final long HINT_TIMEOUT_MINUTES_AFTER_BOOST = 90L;
 
-	private final static Object REFRESH_MONITOR = new Object();
-	private final static long REFRESH_TIMEOUT = 5 * 1000; // 5 sec
+	private static final Object REFRESH_MONITOR = new Object();
+	private static final long REFRESH_TIMEOUT = 5L * 1000L; // 5 sec
 
 	@Autowired
 	private HomematicAPI api;
@@ -90,7 +90,7 @@ public class HouseService {
 
 		if (notify) {
 			synchronized (REFRESH_MONITOR) {
-				REFRESH_MONITOR.notify();
+				REFRESH_MONITOR.notifyAll();
 			}
 		}
 
@@ -249,17 +249,16 @@ public class HouseService {
 		BigDecimal temperatureLimit = targetTemperature.add(TARGET_TEMPERATURE_TOLERANCE_OFFSET);
 
 		if (room.getTemperature() == null) {
-			return;
+			// nothing to do
 		} else if (room.getTemperature().getValue().compareTo(temperatureLimit) < 0) {
 			// TODO: using sun heating in the winter for warming up rooms
-			return;
 		} else if (isTooColdOutsideSoNoNeedToCoolingDownRoom(room.getTemperature().getValue())) {
-			return;
+			// no hint
 		} else if (room.getTemperature().getValue().compareTo(temperatureLimit) > 0
 				&& outdoor.getTemperature().getValue().compareTo(room.getTemperature().getValue()) < 0
 				&& outdoor.getSunBeamIntensity().ordinal() <= Intensity.LOW.ordinal()) {
 			if (isHeatingIsCauseForHighRoomTemperature(room, temperatureLimit)) {
-				return;
+				// no hint
 			} else {
 				room.getHints().add(Hint.OPEN_WINDOW);
 			}
@@ -283,9 +282,7 @@ public class HouseService {
 
 		BigDecimal roomMinusOutside = roomTemperature.subtract(
 				ModelDAO.getInstance().readHistoryModel().getHighestOutsideTemperatureInLast24Hours());
-		boolean tooCold = roomMinusOutside
-				.compareTo(TEMPERATURE_DIFFERENCE_INSIDE_OUTSIDE_NO_ROOM_COOLDOWN_NEEDED) > 0;
-		return tooCold;
+		return roomMinusOutside.compareTo(TEMPERATURE_DIFFERENCE_INSIDE_OUTSIDE_NO_ROOM_COOLDOWN_NEEDED) > 0;
 	}
 
 	private Intensity lookupIntensity(BigDecimal value) {
@@ -300,26 +297,32 @@ public class HouseService {
 		}
 	}
 
-	public void toggle(String devIdVar) throws Exception {
+	public void toggle(String devIdVar) {
 		api.toggleBooleanState(devIdVar);
 		refreshHouseModel(false);
 	}
 
-	public synchronized void heatingBoost(String prefix) throws Exception {
+	public synchronized void heatingBoost(String prefix) throws InterruptedException {
 		api.runProgram(prefix + "Boost");
 		synchronized (REFRESH_MONITOR) {
-			REFRESH_MONITOR.wait(REFRESH_TIMEOUT);
+			// Just trying to wait for notification from CCU.
+			// It's no big problem if this is the wrong notification.
+			// We're only showing once the old value.
+			REFRESH_MONITOR.wait(REFRESH_TIMEOUT); // NOSONAR
 		}
 	}
 
 	// needs to be synchronized because of using ccu-systemwide temperature
 	// variable
-	public synchronized void heatingManual(String prefix, String temperature) throws Exception {
+	public synchronized void heatingManual(String prefix, String temperature) throws InterruptedException {
 		temperature = StringUtils.replace(temperature, ",", "."); // decimalpoint
 		api.changeValue(prefix + "Temperature", temperature);
 		api.runProgram(prefix + "Manual");
 		synchronized (REFRESH_MONITOR) {
-			REFRESH_MONITOR.wait(REFRESH_TIMEOUT);
+			// Just trying to wait for notification from CCU.
+			// It's no big problem if this is the wrong notification.
+			// We're only showing once the old value.
+			REFRESH_MONITOR.wait(REFRESH_TIMEOUT); // NOSONAR
 		}
 	}
 
@@ -403,14 +406,15 @@ public class HouseService {
 
 	private void checkLowBattery(HouseModel model, Device device) {
 
-		Boolean state = null;
+		boolean state = false;
+
 		if (device.isHomematic()) {
 			state = api.getAsBoolean(device.accessMainDeviceKeyXmlApi(Datapoint.LOWBAT));
 		} else if (device.isHomematicIP()) {
 			state = api.getAsBoolean(device.accessMainDeviceKeyXmlApi(Datapoint.LOW_BAT));
 		}
 
-		if (state != null && state == true) {
+		if (state) {
 			model.getLowBatteryDevices().add(device.getDescription());
 		}
 	}

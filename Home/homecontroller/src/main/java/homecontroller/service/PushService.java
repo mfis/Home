@@ -33,7 +33,7 @@ public class PushService {
 	@Autowired
 	private SettingsService settingsService;
 
-	private final static Log LOG = LogFactory.getLog(PushService.class);
+	private static final Log LOG = LogFactory.getLog(PushService.class);
 
 	public void send(HouseModel oldModel, HouseModel newModel) {
 
@@ -57,23 +57,17 @@ public class PushService {
 
 		StringBuilder messages = new StringBuilder(300);
 
-		int hintcounter = 0;
 		for (String newHint : newHints) {
 			if (!oldHints.contains(newHint)) {
-				if (hintcounter > 0) {
-					messages.append("\n");
-				}
+				messages.append("\n");
 				messages.append("- " + newHint);
-				hintcounter++;
 			}
 		}
 
 		int cancelcounter = 0;
 		for (String oldHint : oldHints) {
 			if (!newHints.contains(oldHint)) {
-				if (hintcounter > 0 && cancelcounter == 0) {
-					messages.append("\n");
-				}
+				messages.append("\n");
 				if (cancelcounter == 0) {
 					messages.append("Aufgehoben:");
 				}
@@ -82,7 +76,7 @@ public class PushService {
 			}
 		}
 
-		return messages.toString();
+		return messages.toString().trim();
 	}
 
 	private List<String> hintList(HouseModel model) {
@@ -92,7 +86,7 @@ public class PushService {
 		List<String> hintStrings = new LinkedList<>();
 		for (RoomClimate room : m.lookupFields(RoomClimate.class).values()) {
 			for (Hint hint : room.getHints()) {
-				if (room != null && hint != null) {
+				if (hint != null) {
 					hintStrings.add(hint.formatWithRoomName(room));
 				}
 			}
@@ -107,7 +101,9 @@ public class PushService {
 
 		try {
 			future.get(15, TimeUnit.SECONDS);
-		} catch (TimeoutException | ExecutionException | InterruptedException e) {
+		} catch (TimeoutException | ExecutionException | InterruptedException e) { // NOSONAR
+			// Future object is canceled here and the loss of the push
+			// notification is no big problem
 			future.cancel(true);
 			LOG.error("Could not send push message (#3).", e);
 		}

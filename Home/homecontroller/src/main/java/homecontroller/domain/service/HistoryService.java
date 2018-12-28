@@ -25,7 +25,7 @@ public class HistoryService {
 	@Autowired
 	private HistoryDAO historyDAO;
 
-	private final static long HIGHEST_OUTSIDE_TEMPERATURE_PERIOD_HOURS = 24L;
+	private static final long HIGHEST_OUTSIDE_TEMPERATURE_PERIOD_HOURS = 24L;
 
 	@PostConstruct
 	public void init() {
@@ -85,7 +85,7 @@ public class HistoryService {
 			}
 			if (dest == null) {
 				dest = new PowerConsumptionMonth();
-				if (newModel.getElectricPowerConsumption().size() > 0) {
+				if (!newModel.getElectricPowerConsumption().isEmpty()) {
 					dest.setMeasurePointMin(newModel.getElectricPowerConsumption()
 							.get(newModel.getElectricPowerConsumption().size() - 1).getMeasurePointMax());
 					dest.setLastSingleValue(newModel.getElectricPowerConsumption()

@@ -27,6 +27,16 @@ import org.w3c.dom.NodeList;
 @Component
 public class HomematicAPI {
 
+	private static final String ID = "id";
+
+	private static final String ISE_ID = "ise_id";
+
+	private static final String NAME = "name";
+
+	private static final String TYPE = "type";
+
+	private static final String VALUE = "value";
+
 	@Autowired
 	private Environment env;
 
@@ -51,11 +61,11 @@ public class HomematicAPI {
 		}
 	}
 
-	public Boolean getAsBoolean(String key) {
+	public boolean getAsBoolean(String key) {
 		if (currentValues.containsKey(key)) {
 			return Boolean.valueOf(currentValues.get(key));
 		} else {
-			return null;
+			return false;
 		}
 	}
 
@@ -102,12 +112,12 @@ public class HomematicAPI {
 		for (int dap = 0; dap < datapoints.getLength(); dap++) {
 			Node c = datapoints.item(dap);
 			Element eElement = (Element) c;
-			if (eElement.getAttribute("value") != null && eElement.getAttribute("value").length() > 0) {
-				currentValues.put(eElement.getAttribute("name"), eElement.getAttribute("value"));
+			if (eElement.getAttribute(VALUE) != null && eElement.getAttribute(VALUE).length() > 0) {
+				currentValues.put(eElement.getAttribute(NAME), eElement.getAttribute(VALUE));
 			}
-			if (eElement.getAttribute("type") != null
-					&& eElement.getAttribute("type").equalsIgnoreCase("STATE")) {
-				currentStateIDs.put(eElement.getAttribute("name"), eElement.getAttribute("ise_id"));
+			if (eElement.getAttribute(TYPE) != null
+					&& eElement.getAttribute(TYPE).equalsIgnoreCase("STATE")) {
+				currentStateIDs.put(eElement.getAttribute(NAME), eElement.getAttribute(ISE_ID));
 			}
 		}
 
@@ -116,10 +126,10 @@ public class HomematicAPI {
 		for (int dap = 0; dap < systemVariables.getLength(); dap++) {
 			Node c = systemVariables.item(dap);
 			Element eElement = (Element) c;
-			if (eElement.getAttribute("value") != null && eElement.getAttribute("value").length() > 0) {
-				currentValues.put(eElement.getAttribute("name"), eElement.getAttribute("value"));
+			if (eElement.getAttribute(VALUE) != null && eElement.getAttribute(VALUE).length() > 0) {
+				currentValues.put(eElement.getAttribute(NAME), eElement.getAttribute(VALUE));
 			}
-			currentStateIDs.put(eElement.getAttribute("name"), eElement.getAttribute("ise_id"));
+			currentStateIDs.put(eElement.getAttribute(NAME), eElement.getAttribute(ISE_ID));
 		}
 
 		doc = documentFromUrl(host + "/addons/xmlapi/programlist.cgi");
@@ -127,27 +137,24 @@ public class HomematicAPI {
 		for (int dap = 0; dap < programs.getLength(); dap++) {
 			Node c = programs.item(dap);
 			Element eElement = (Element) c;
-			currentStateIDs.put(eElement.getAttribute("name"), eElement.getAttribute("id"));
+			currentStateIDs.put(eElement.getAttribute(NAME), eElement.getAttribute(ID));
 		}
 
 	}
 
 	HttpHeaders createHeaders() {
 
-		return new HttpHeaders() {
-			private static final long serialVersionUID = 1L;
-			{
-				set("Accept", "*/*");
-				set("Cache-Control", "no-cache");
-			}
-		};
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.set("Accept", "*/*");
+		httpHeaders.set("Cache-Control", "no-cache");
+		return httpHeaders;
 	}
 
 	private Document documentFromUrl(String url) {
 
 		HttpHeaders headers = createHeaders();
 
-		HttpEntity<String> requestEntity = new HttpEntity<String>("", headers);
+		HttpEntity<String> requestEntity = new HttpEntity<>("", headers);
 		ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.GET, requestEntity,
 				String.class);
 
@@ -161,7 +168,7 @@ public class HomematicAPI {
 			doc.getDocumentElement().normalize();
 			return doc;
 		} catch (Exception e) {
-			throw new RuntimeException("Error parsing document", e);
+			throw new IllegalStateException("Error parsing document", e);
 		}
 	}
 

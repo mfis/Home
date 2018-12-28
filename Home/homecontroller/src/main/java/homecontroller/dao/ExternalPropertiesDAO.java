@@ -16,20 +16,14 @@ public class ExternalPropertiesDAO {
 
 	Properties properties = null;
 
-	private static final Object monitor = new Object();
-
 	private ExternalPropertiesDAO() {
 		super();
 		properties = getApplicationProperties();
 	}
 
-	public static ExternalPropertiesDAO getInstance() {
+	public static synchronized ExternalPropertiesDAO getInstance() {
 		if (instance == null) {
-			synchronized (monitor) {
-				if (instance == null) {
-					instance = new ExternalPropertiesDAO();
-				}
-			}
+			instance = new ExternalPropertiesDAO();
 		}
 		return instance;
 	}
@@ -43,7 +37,7 @@ public class ExternalPropertiesDAO {
 			fos.flush();
 			fos.close();
 		} catch (IOException ioe) {
-			throw new RuntimeException("error writing external properties:", ioe);
+			throw new IllegalStateException("error writing external properties:", ioe);
 		}
 	}
 
@@ -77,7 +71,7 @@ public class ExternalPropertiesDAO {
 			properties.load(new FileInputStream(file));
 			return properties;
 		} catch (Exception e) {
-			throw new RuntimeException("Properties could not be loaded", e);
+			throw new IllegalStateException("Properties could not be loaded", e);
 		}
 	}
 

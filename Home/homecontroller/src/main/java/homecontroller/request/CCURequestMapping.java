@@ -15,8 +15,8 @@ public class CCURequestMapping {
 	private HouseService houseService;
 
 	@GetMapping("/controller/refresh")
-	public ActionModel refresh(@RequestParam("notify") String notifyString) throws Exception {
-		boolean notify = Boolean.valueOf(notifyString);
+	public ActionModel refresh(@RequestParam("notify") String notifyString) {
+		boolean notify = Boolean.parseBoolean(notifyString);
 		houseService.refreshHouseModel(notify);
 		return new ActionModel("OK");
 	}

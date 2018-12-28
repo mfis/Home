@@ -25,7 +25,7 @@ import homecontroller.domain.model.RoomClimate;
 @Component
 public class HistoryDAO {
 
-	private final static DateTimeFormatter SQL_TIMESTAMP_FORMATTER = DateTimeFormatter
+	private static final DateTimeFormatter SQL_TIMESTAMP_FORMATTER = DateTimeFormatter
 			.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
 	@Autowired
@@ -45,22 +45,20 @@ public class HistoryDAO {
 	public BigDecimal readMaxValue(Device device, Datapoint datapoint, LocalDateTime optionalFromDateTime) {
 
 		String startTs = formatTimestamp(optionalFromDateTime);
-		BigDecimal value = jdbcTemplate
+		return jdbcTemplate
 				.queryForObject(
 						"select max(value) as value FROM " + device.accessKeyHistorian(datapoint)
 								+ " where ts > '" + startTs + "';",
 						new Object[] {}, new BigDecimalRowMapper("value"));
-		return value;
 	}
 
 	public List<TimestampValuePair> readValues(Device device, Datapoint datapoint,
 			LocalDateTime optionalFromDateTime) {
 
 		String startTs = formatTimestamp(optionalFromDateTime);
-		List<TimestampValuePair> timestampValues = jdbcTemplate.query("select ts, value FROM "
-				+ device.accessKeyHistorian(datapoint) + " where ts > '" + startTs + "' order by ts asc;",
-				new Object[] {}, new TimestampValueRowMapper());
-		return timestampValues;
+		return jdbcTemplate.query("select ts, value FROM " + device.accessKeyHistorian(datapoint)
+				+ " where ts > '" + startTs + "' order by ts asc;", new Object[] {},
+				new TimestampValueRowMapper());
 	}
 
 	private String formatTimestamp(LocalDateTime optionalFromDateTime) {
