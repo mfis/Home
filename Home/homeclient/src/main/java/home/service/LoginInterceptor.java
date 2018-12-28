@@ -1,6 +1,5 @@
 package home.service;
 
-import java.io.IOException;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,6 +25,8 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 public class LoginInterceptor extends HandlerInterceptorAdapter {
 
+	private static final String LOGIN = "/login";
+
 	@Value("${authenticationURL}")
 	private String authURL;
 
@@ -40,27 +41,14 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
 			throws Exception {
 
-		if (StringUtils.containsIgnoreCase(request.getRequestURL(), "/webjars/")) {
-			return true;
-		}
-
-		if (StringUtils.endsWithIgnoreCase(request.getRequestURL(), ".png")
-				|| StringUtils.endsWithIgnoreCase(request.getRequestURL(), ".ico")) {
-			return true;
-		}
-
-		if (StringUtils.containsIgnoreCase(request.getRequestURL(), "/login")) {
-			return true;
-		}
-
-		if (StringUtils.containsIgnoreCase(request.getRequestURL(), "/error")) {
+		if (exlusion(request)) {
 			return true;
 		}
 
 		if (StringUtils.containsIgnoreCase(request.getRequestURL(), "/logoff")) {
 			logger.info("manual logout");
 			cookieDelete(request, response);
-			response.sendRedirect("/login");
+			response.sendRedirect(LOGIN);
 			return false;
 		}
 
@@ -90,7 +78,7 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 		String user = StringUtils.trimToNull(ExternalPropertiesDAO.getInstance().read(cookieRead(request)));
 		if (user == null && !loggedIn) {
 			logger.info("no user - redirect to login page - " + request.getRequestURL());
-			response.sendRedirect("/login");
+			response.sendRedirect(LOGIN);
 			return false;
 		}
 
@@ -100,8 +88,26 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 		return true;
 	}
 
+	private boolean exlusion(HttpServletRequest request) {
+
+		if (StringUtils.containsIgnoreCase(request.getRequestURL(), "/webjars/")) {
+			return true;
+		}
+
+		if (StringUtils.endsWithIgnoreCase(request.getRequestURL(), ".png")
+				|| StringUtils.endsWithIgnoreCase(request.getRequestURL(), ".ico")) {
+			return true;
+		}
+
+		if (StringUtils.containsIgnoreCase(request.getRequestURL(), LOGIN)) {
+			return true;
+		}
+
+		return StringUtils.containsIgnoreCase(request.getRequestURL(), "/error");
+	}
+
 	private boolean login(Map<String, String> params, HttpServletRequest request,
-			HttpServletResponse response) throws IOException {
+			HttpServletResponse response) {
 
 		String loginUser = StringUtils.trimToEmpty(params.get("login_username"));
 		String loginPass = StringUtils.trimToEmpty(params.get("login_password"));
@@ -122,19 +128,18 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 			headers.add("Cache-Control", "no-cache");
 			headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-			MultiValueMap<String, String> map = new LinkedMultiValueMap<String, String>();
+			MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
 			map.add("user", user);
 			map.add("pass", pass);
 			map.add("application", "home");
 
-			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<MultiValueMap<String, String>>(
-					map, headers);
+			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
 			ResponseEntity<String> responseEntity = restTemplate.postForEntity(authURL, request,
 					String.class);
 			return responseEntity.getStatusCode().is2xxSuccessful();
 
 		} catch (Exception e) {
-			System.out.println(e);
+			logger.error("Checking authentication not successful.", e);
 			return false;
 		}
 	}

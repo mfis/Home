@@ -9,23 +9,17 @@ public class ViewAttributesDAO {
 
 	private Map<String, Map<String, String>> attributes = new HashMap<>();
 
-	private static final Object monitor = new Object();
+	public static final String Y_POS_HOME = "Y_POS_HOME";
 
-	public final static String Y_POS_HOME = "Y_POS_HOME";
-
-	public final static String USER_NAME = "USER_NAME";
+	public static final String USER_NAME = "USER_NAME";
 
 	private ViewAttributesDAO() {
 		super();
 	}
 
-	public static ViewAttributesDAO getInstance() {
+	public static synchronized ViewAttributesDAO getInstance() {
 		if (instance == null) {
-			synchronized (monitor) {
-				if (instance == null) {
-					instance = new ViewAttributesDAO();
-				}
-			}
+			instance = new ViewAttributesDAO();
 		}
 		return instance;
 	}

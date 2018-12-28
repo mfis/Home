@@ -37,12 +37,14 @@ import homecontroller.domain.model.Window;
 @Component
 public class HouseViewService {
 
-	private final static BigDecimal HIGH_TEMP = new BigDecimal("25");
-	private final static BigDecimal LOW_TEMP = new BigDecimal("19");
-	private final static BigDecimal FROST_TEMP = new BigDecimal("3");
+	private static final String TOGGLE_DEV_ID_VAR = "/toggle?devIdVar=";
+	private static final String AUTOMATIC = "Automatic";
+	private static final BigDecimal HIGH_TEMP = new BigDecimal("25");
+	private static final BigDecimal LOW_TEMP = new BigDecimal("19");
+	private static final BigDecimal FROST_TEMP = new BigDecimal("3");
 
-	private final static long KWH_FACTOR = 1000L;
-	private final static DateTimeFormatter MONTH_YEAR_FORMATTER = DateTimeFormatter.ofPattern("MMM yyyy");
+	private static final long KWH_FACTOR = 1000L;
+	private static final DateTimeFormatter MONTH_YEAR_FORMATTER = DateTimeFormatter.ofPattern("MMM yyyy");
 
 	@Autowired
 	private Environment env;
@@ -141,40 +143,19 @@ public class HouseViewService {
 			if (climate.getHumidity() != null) {
 				view.setStateHumidity(format(climate.getHumidity().getValue(), true) + "%rH");
 			}
-			// Background color
-			if (climate.getTemperature().getValue().compareTo(HIGH_TEMP) > 0) {
-				view.setColorClass("danger");
-				view.setIcon("fas fa-thermometer-full");
-			} else if (climate.getTemperature().getValue().compareTo(LOW_TEMP) < 0) {
-				view.setColorClass("info");
-				view.setIcon("fas fa-thermometer-empty");
-			} else {
-				view.setColorClass("success");
-				view.setIcon("fas fa-thermometer-half");
-			}
-			// Postfix icon
 			if (climate.getTemperature().getValue().compareTo(FROST_TEMP) < 0) {
 				view.setStatePostfixIconTemperature("far fa-snowflake");
 			}
+
+			// Background color
+			formatClimateBackground(climate, view);
+
 			// Tendency icons
-			if (climate.getTemperature().getTendency() != null) {
-				view.setTendencyIconTemperature(climate.getTemperature().getTendency().getIconCssClass());
-			}
-			if (climate.getHumidity() != null && climate.getHumidity().getTendency() != null) {
-				view.setTendencyIconHumidity(climate.getHumidity().getTendency().getIconCssClass());
-			}
+			formatClimateTendency(climate, view);
+
 			// Heating
-			if (climate instanceof RoomClimate && ((RoomClimate) climate).getHeating() != null) {
-				RoomClimate room = (RoomClimate) climate;
-				if (room.getHeating().isBoostActive()) {
-					view.setLinkBoost(String.valueOf(room.getHeating().getBoostMinutesLeft()));
-				} else {
-					view.setLinkBoost("/heatingboost?prefix=" + room.getHeating().getProgramNamePrefix());
-				}
-				view.setLinkManual("/heatingmanual?prefix=" + room.getHeating().getProgramNamePrefix());
-				view.setTargetTemp(format(room.getHeating().getTargetTemperature(), false));
-				view.setHeatericon("fab fa-hotjar");
-			}
+			formatClimateHeating(climate, view);
+
 		} else {
 			view.setStateTemperature("?");
 		}
@@ -186,6 +167,45 @@ public class HouseViewService {
 		}
 
 		return view;
+	}
+
+	private void formatClimateTendency(Climate climate, ClimateView view) {
+
+		if (climate.getTemperature().getTendency() != null) {
+			view.setTendencyIconTemperature(climate.getTemperature().getTendency().getIconCssClass());
+		}
+		if (climate.getHumidity() != null && climate.getHumidity().getTendency() != null) {
+			view.setTendencyIconHumidity(climate.getHumidity().getTendency().getIconCssClass());
+		}
+	}
+
+	private void formatClimateHeating(Climate climate, ClimateView view) {
+
+		if (climate instanceof RoomClimate && ((RoomClimate) climate).getHeating() != null) {
+			RoomClimate room = (RoomClimate) climate;
+			if (room.getHeating().isBoostActive()) {
+				view.setLinkBoost(String.valueOf(room.getHeating().getBoostMinutesLeft()));
+			} else {
+				view.setLinkBoost("/heatingboost?prefix=" + room.getHeating().getProgramNamePrefix());
+			}
+			view.setLinkManual("/heatingmanual?prefix=" + room.getHeating().getProgramNamePrefix());
+			view.setTargetTemp(format(room.getHeating().getTargetTemperature(), false));
+			view.setHeatericon("fab fa-hotjar");
+		}
+	}
+
+	private void formatClimateBackground(Climate climate, ClimateView view) {
+
+		if (climate.getTemperature().getValue().compareTo(HIGH_TEMP) > 0) {
+			view.setColorClass("danger");
+			view.setIcon("fas fa-thermometer-full");
+		} else if (climate.getTemperature().getValue().compareTo(LOW_TEMP) < 0) {
+			view.setColorClass("info");
+			view.setIcon("fas fa-thermometer-empty");
+		} else {
+			view.setColorClass("success");
+			view.setIcon("fas fa-thermometer-half");
+		}
 	}
 
 	private void formatFacadeTemperatures(Model model, String viewKeyMin, String viewKeyMax,
@@ -253,20 +273,19 @@ public class HouseViewService {
 		view.setName(switchModel.getDevice().getType());
 		view.setState(switchModel.isState() ? "Eingeschaltet" : "Ausgeschaltet");
 		if (switchModel.getAutomation() != null) {
-			if (switchModel.getAutomation() == true) {
+			if (switchModel.getAutomation()) {
 				view.setState(view.getState() + ", automatisch");
 				view.setLinkManual(
-						"/toggle?devIdVar=" + switchModel.getDevice().programNamePrefix() + "Automatic");
+						TOGGLE_DEV_ID_VAR + switchModel.getDevice().programNamePrefix() + AUTOMATIC);
 			} else {
 				view.setState(view.getState() + ", manuell");
-				view.setLinkAuto(
-						"/toggle?devIdVar=" + switchModel.getDevice().programNamePrefix() + "Automatic");
+				view.setLinkAuto(TOGGLE_DEV_ID_VAR + switchModel.getDevice().programNamePrefix() + AUTOMATIC);
 			}
 			view.setAutoInfoText(StringUtils.trimToEmpty(switchModel.getAutomationInfoText()));
 		}
 		view.setLabel(switchModel.isState() ? "ausschalten" : "einschalten");
 		view.setIcon(switchModel.isState() ? "fas fa-toggle-on" : "fas fa-toggle-off");
-		view.setLink("/toggle?devIdVar=" + switchModel.getDevice().accessKeyXmlApi(Datapoint.STATE));
+		view.setLink(TOGGLE_DEV_ID_VAR + switchModel.getDevice().accessKeyXmlApi(Datapoint.STATE));
 		model.addAttribute(viewKey, view);
 	}
 
@@ -280,12 +299,12 @@ public class HouseViewService {
 		if (windowModel.getShutterAutomation() != null) {
 			if (windowModel.getShutterAutomation()) {
 				view.setState(view.getState() + ", automatisch");
-				view.setLinkManual("/toggle?devIdVar=" + windowModel.getShutterDevice().programNamePrefix()
-						+ "Automatic");
+				view.setLinkManual(
+						TOGGLE_DEV_ID_VAR + windowModel.getShutterDevice().programNamePrefix() + AUTOMATIC);
 			} else {
 				view.setState(view.getState() + ", manuell");
-				view.setLinkAuto("/toggle?devIdVar=" + windowModel.getShutterDevice().programNamePrefix()
-						+ "Automatic");
+				view.setLinkAuto(
+						TOGGLE_DEV_ID_VAR + windowModel.getShutterDevice().programNamePrefix() + AUTOMATIC);
 			}
 			view.setAutoInfoText(windowModel.getShutterAutomationInfoText());
 		}
