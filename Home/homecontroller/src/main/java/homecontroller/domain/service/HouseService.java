@@ -152,47 +152,57 @@ public class HouseService {
 
 		Map<String, Climate> places = newModel.lookupFields(Climate.class);
 
+		// Climate
 		for (Entry<String, Climate> entry : places.entrySet()) {
-
 			Climate climateNew = entry.getValue();
 			Climate climateOld = oldModel != null ? oldModel.lookupField(entry.getKey(), Climate.class)
 					: null;
-
-			// Temperature
-			ValueWithTendency<BigDecimal> referenceTemperature;
-			if (climateOld == null) {
-				referenceTemperature = climateNew.getTemperature();
-				referenceTemperature.setReferenceValue(referenceTemperature.getValue());
-			} else {
-				referenceTemperature = climateOld.getTemperature();
-			}
-			calculateTendency(newModel, referenceTemperature, climateNew.getTemperature(),
-					TEMPERATURE_TENDENCY_DIFF);
-
-			// Humidity
-			if (climateNew.getHumidity() != null) {
-				ValueWithTendency<BigDecimal> referenceHumidity;
-				if (climateOld == null) {
-					referenceHumidity = climateNew.getHumidity();
-					referenceHumidity.setReferenceValue(referenceHumidity.getValue());
-				} else {
-					referenceHumidity = climateOld.getHumidity();
-				}
-				calculateTendency(newModel, referenceHumidity, climateNew.getHumidity(),
-						HUMIDITY_TENDENCY_DIFF);
-			}
+			calculateClimateTendencies(newModel, climateNew, climateOld);
 		}
 
 		// Power consumption
-		ValueWithTendency<BigDecimal> referencePower;
-		if (oldModel == null) {
-			referencePower = newModel.getElectricalPowerConsumption().getActualConsumption();
-			referencePower.setReferenceValue(referencePower.getValue());
-		} else {
-			referencePower = oldModel.getElectricalPowerConsumption().getActualConsumption();
+		calculatePowerConsumptionTendencies(oldModel, newModel);
+	}
+
+	private void calculatePowerConsumptionTendencies(HouseModel oldModel, HouseModel newModel) {
+
+		if (newModel.getElectricalPowerConsumption() != null) {
+			ValueWithTendency<BigDecimal> referencePower;
+			if (oldModel == null) {
+				referencePower = newModel.getElectricalPowerConsumption().getActualConsumption();
+				referencePower.setReferenceValue(referencePower.getValue());
+			} else {
+				referencePower = oldModel.getElectricalPowerConsumption().getActualConsumption();
+			}
+			calculateTendency(newModel, referencePower,
+					newModel.getElectricalPowerConsumption().getActualConsumption(), POWER_TENDENCY_DIFF);
 		}
-		calculateTendency(newModel, referencePower,
-				newModel.getElectricalPowerConsumption().getActualConsumption(), POWER_TENDENCY_DIFF);
+	}
+
+	private void calculateClimateTendencies(HouseModel newModel, Climate climateNew, Climate climateOld) {
+
+		// Temperature
+		ValueWithTendency<BigDecimal> referenceTemperature;
+		if (climateOld == null) {
+			referenceTemperature = climateNew.getTemperature();
+			referenceTemperature.setReferenceValue(referenceTemperature.getValue());
+		} else {
+			referenceTemperature = climateOld.getTemperature();
+		}
+		calculateTendency(newModel, referenceTemperature, climateNew.getTemperature(),
+				TEMPERATURE_TENDENCY_DIFF);
+
+		// Humidity
+		if (climateNew.getHumidity() != null) {
+			ValueWithTendency<BigDecimal> referenceHumidity;
+			if (climateOld == null) {
+				referenceHumidity = climateNew.getHumidity();
+				referenceHumidity.setReferenceValue(referenceHumidity.getValue());
+			} else {
+				referenceHumidity = climateOld.getHumidity();
+			}
+			calculateTendency(newModel, referenceHumidity, climateNew.getHumidity(), HUMIDITY_TENDENCY_DIFF);
+		}
 	}
 
 	private void calculateTendency(HouseModel newModel, ValueWithTendency<BigDecimal> reference,
