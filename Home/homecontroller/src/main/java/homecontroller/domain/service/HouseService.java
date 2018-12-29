@@ -44,7 +44,7 @@ public class HouseService {
 	private static final BigDecimal HUMIDITY_TENDENCY_DIFF = new BigDecimal("1.99");
 	private static final BigDecimal POWER_TENDENCY_DIFF = new BigDecimal("99.99");
 
-	private static final BigDecimal TARGET_HUMIDITY_MIN_INSIDE = new BigDecimal("45");
+	private static final BigDecimal TARGET_HUMIDITY_MIN_INSIDE = new BigDecimal("40");
 	private static final BigDecimal TARGET_HUMIDITY_MAX_INSIDE = new BigDecimal("65");
 
 	private static final BigDecimal SUN_INTENSITY_NO = new BigDecimal("3");
