@@ -81,7 +81,7 @@
 				<artifactId>StaticResourceProcessing</artifactId>
 				<version>1.4.0</version>
 				<configuration>
-					<webContentSourceDir>src/main/resources/static</webContentSourceDir>
+					<webContentSourceDir>src/main/resources/orig</webContentSourceDir>
 					<webContentDestDir>src/main/resources/static</webContentDestDir>
 					<webContentTempDir>src/main/resources/static/temp</webContentTempDir>
 					<versionsMapFile></versionsMapFile>
