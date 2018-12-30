@@ -7,9 +7,9 @@ public enum Tendency {
 	NONE(0, ""), //
 
 	RISE(0, "far fa-arrow-alt-circle-up"), //
-	RISE_SLIGHT(Constants.ONE_MINUTE * 30, "far fa-arrow-alt-circle-up fa-rotate-45"), //
-	EQUAL(Constants.ONE_MINUTE * 60, "far fa-arrow-alt-circle-right"), //
-	FALL_SLIGHT(Constants.ONE_MINUTE * 30, "far fa-arrow-alt-circle-right fa-rotate-45"), //
+	RISE_SLIGHT(Constants.ONE_MINUTE * 25, "far fa-arrow-alt-circle-up fa-rotate-45"), //
+	EQUAL(Constants.ONE_MINUTE * 75, "far fa-arrow-alt-circle-right"), //
+	FALL_SLIGHT(Constants.ONE_MINUTE * 25, "far fa-arrow-alt-circle-right fa-rotate-45"), //
 	FALL(0, "far fa-arrow-alt-circle-down"), //
 	;
 
