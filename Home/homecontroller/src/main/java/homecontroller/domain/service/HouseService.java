@@ -182,15 +182,17 @@ public class HouseService {
 	private void calculateClimateTendencies(HouseModel newModel, Climate climateNew, Climate climateOld) {
 
 		// Temperature
-		ValueWithTendency<BigDecimal> referenceTemperature;
-		if (climateOld == null) {
-			referenceTemperature = climateNew.getTemperature();
-			referenceTemperature.setReferenceValue(referenceTemperature.getValue());
-		} else {
-			referenceTemperature = climateOld.getTemperature();
+		if (climateNew.getTemperature() != null) {
+			ValueWithTendency<BigDecimal> referenceTemperature;
+			if (climateOld == null) {
+				referenceTemperature = climateNew.getTemperature();
+				referenceTemperature.setReferenceValue(referenceTemperature.getValue());
+			} else {
+				referenceTemperature = climateOld.getTemperature();
+			}
+			calculateTendency(newModel, referenceTemperature, climateNew.getTemperature(),
+					TEMPERATURE_TENDENCY_DIFF);
 		}
-		calculateTendency(newModel, referenceTemperature, climateNew.getTemperature(),
-				TEMPERATURE_TENDENCY_DIFF);
 
 		// Humidity
 		if (climateNew.getHumidity() != null) {
