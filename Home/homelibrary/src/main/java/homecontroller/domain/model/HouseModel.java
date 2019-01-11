@@ -18,6 +18,8 @@ public class HouseModel implements Serializable {
 
 	private RoomClimate climateBathRoom;
 
+	private HeatingModel heatingBathRoom;
+
 	private RoomClimate climateBedRoom;
 
 	private Window leftWindowBedRoom;
@@ -176,6 +178,14 @@ public class HouseModel implements Serializable {
 
 	public void setLeftWindowBedRoom(Window leftWindowBedRoom) {
 		this.leftWindowBedRoom = leftWindowBedRoom;
+	}
+
+	public HeatingModel getHeatingBathRoom() {
+		return heatingBathRoom;
+	}
+
+	public void setHeatingBathRoom(HeatingModel heatingBathRoom) {
+		this.heatingBathRoom = heatingBathRoom;
 	}
 
 }

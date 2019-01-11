@@ -11,17 +11,7 @@ public class Climate implements Serializable {
 
 	private ValueWithTendency<BigDecimal> humidity;
 
-	private String placeName;
-
 	private Device deviceThermometer;
-
-	public String getPlaceName() {
-		return placeName;
-	}
-
-	public void setPlaceName(String placeName) {
-		this.placeName = placeName;
-	}
 
 	public Device getDeviceThermometer() {
 		return deviceThermometer;

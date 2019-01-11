@@ -106,7 +106,8 @@ public class HouseService {
 
 		HouseModel newModel = new HouseModel();
 
-		newModel.setClimateBathRoom(readRoomClimate(Device.THERMOSTAT_BAD, Device.THERMOSTAT_BAD));
+		newModel.setClimateBathRoom(readRoomClimate(Device.THERMOSTAT_BAD));
+		newModel.setHeatingBathRoom(readHeating(Device.THERMOSTAT_BAD));
 		newModel.setClimateKidsRoom(readRoomClimate(Device.THERMOMETER_KINDERZIMMER));
 		newModel.setClimateLivingRoom(readRoomClimate(Device.THERMOMETER_WOHNZIMMER));
 		newModel.setClimateBedRoom(readRoomClimate(Device.THERMOMETER_SCHLAFZIMMER));
@@ -230,14 +231,15 @@ public class HouseService {
 
 	public void calculateHints(HouseModel newModel) {
 
-		lookupHint(newModel.getClimateKidsRoom(), newModel.getClimateEntrance());
-		lookupHint(newModel.getClimateBathRoom(), newModel.getClimateEntrance());
-		lookupHint(newModel.getClimateBedRoom(), newModel.getClimateTerrace());
-		lookupHint(newModel.getClimateLivingRoom(), newModel.getClimateTerrace());
+		lookupHint(newModel.getClimateKidsRoom(), null, newModel.getClimateEntrance());
+		lookupHint(newModel.getClimateBathRoom(), newModel.getHeatingBathRoom(),
+				newModel.getClimateEntrance());
+		lookupHint(newModel.getClimateBedRoom(), null, newModel.getClimateTerrace());
+		lookupHint(newModel.getClimateLivingRoom(), null, newModel.getClimateTerrace());
 	}
 
-	private void lookupHint(RoomClimate room, OutdoorClimate outdoor) {
-		lookupTemperatureHint(room, outdoor);
+	private void lookupHint(RoomClimate room, HeatingModel heating, OutdoorClimate outdoor) {
+		lookupTemperatureHint(room, heating, outdoor);
 		lookupHumidityHint(room);
 	}
 
@@ -254,9 +256,9 @@ public class HouseService {
 		}
 	}
 
-	private void lookupTemperatureHint(RoomClimate room, OutdoorClimate outdoor) {
+	private void lookupTemperatureHint(RoomClimate room, HeatingModel heating, OutdoorClimate outdoor) {
 
-		BigDecimal targetTemperature = room.getHeating() != null ? room.getHeating().getTargetTemperature()
+		BigDecimal targetTemperature = heating != null ? heating.getTargetTemperature()
 				: TARGET_TEMPERATURE_INSIDE;
 		BigDecimal temperatureLimit = targetTemperature.add(TARGET_TEMPERATURE_TOLERANCE_OFFSET);
 
@@ -269,7 +271,7 @@ public class HouseService {
 		} else if (room.getTemperature().getValue().compareTo(temperatureLimit) > 0
 				&& outdoor.getTemperature().getValue().compareTo(room.getTemperature().getValue()) < 0
 				&& outdoor.getSunBeamIntensity().ordinal() <= Intensity.LOW.ordinal()) {
-			if (isHeatingIsCauseForHighRoomTemperature(room, temperatureLimit)) {
+			if (isHeatingIsCauseForHighRoomTemperature(heating, temperatureLimit)) {
 				// no hint
 			} else {
 				room.getHints().add(Hint.OPEN_WINDOW);
@@ -280,10 +282,11 @@ public class HouseService {
 		}
 	}
 
-	private boolean isHeatingIsCauseForHighRoomTemperature(RoomClimate room, BigDecimal temperatureLimit) {
-		return room.getHeating() != null && (room.getHeating().isBoostActive()
-				|| room.getHeating().getTargetTemperature().compareTo(temperatureLimit) > 0
-				|| historyDAO.minutesSinceLastHeatingBoost(room) < HINT_TIMEOUT_MINUTES_AFTER_BOOST);
+	private boolean isHeatingIsCauseForHighRoomTemperature(HeatingModel heating,
+			BigDecimal temperatureLimit) {
+		return heating != null && (heating.isBoostActive()
+				|| heating.getTargetTemperature().compareTo(temperatureLimit) > 0
+				|| historyDAO.minutesSinceLastHeatingBoost(heating) < HINT_TIMEOUT_MINUTES_AFTER_BOOST);
 	}
 
 	private boolean isTooColdOutsideSoNoNeedToCoolingDownRoom(BigDecimal roomTemperature) {
@@ -342,7 +345,7 @@ public class HouseService {
 
 		if (oldModel == null || oldModel.getConclusionClimateFacadeMin().getTemperature().getValue()
 				.compareTo(newModel.getConclusionClimateFacadeMin().getTemperature().getValue()) != 0) {
-			api.changeValue(Device.AUSSENTEMPERATUR.getType(),
+			api.changeValue(Device.AUSSENTEMPERATUR.getType().getTypeName(),
 					newModel.getConclusionClimateFacadeMin().getTemperature().toString());
 		}
 	}
@@ -353,7 +356,6 @@ public class HouseService {
 				api.getAsBigDecimal(outside.accessKeyXmlApi(Datapoint.TEMPERATURE))));
 		outdoorClimate.setSunBeamIntensity(
 				lookupIntensity(api.getAsBigDecimal(diff.accessKeyXmlApi(Datapoint.TEMPERATURE))));
-		outdoorClimate.setPlaceName(outside.getPlaceName());
 		outdoorClimate.setDeviceThermometer(outside);
 		return outdoorClimate;
 	}
@@ -366,13 +368,11 @@ public class HouseService {
 		if (humidity != null) {
 			roomClimate.setHumidity(new ValueWithTendency<BigDecimal>(humidity));
 		}
-		roomClimate.setPlaceName(thermometer.getPlaceName());
 		roomClimate.setDeviceThermometer(thermometer);
 		return roomClimate;
 	}
 
-	private RoomClimate readRoomClimate(Device thermometer, Device heating) {
-		RoomClimate roomClimate = readRoomClimate(thermometer);
+	private HeatingModel readHeating(Device heating) {
 		HeatingModel heatingModel = new HeatingModel();
 		heatingModel.setBoostActive(api.getAsBigDecimal(heating.accessKeyXmlApi(Datapoint.CONTROL_MODE))
 				.compareTo(HomematicConstants.HEATING_CONTROL_MODE_BOOST) == 0);
@@ -381,11 +381,9 @@ public class HouseService {
 		heatingModel.setTargetTemperature(
 				api.getAsBigDecimal(heating.accessKeyXmlApi(Datapoint.SET_TEMPERATURE)));
 		heatingModel.setProgramNamePrefix(heating.programNamePrefix());
-		roomClimate.setHeating(heatingModel);
-		roomClimate.setPlaceName(thermometer.getPlaceName());
-		roomClimate.setDeviceHeating(heating);
+		heatingModel.setDeviceHeating(heating);
 
-		return roomClimate;
+		return heatingModel;
 	}
 
 	private Window readWindow(Device shutter) { // TODO: D_U_M_M_Y

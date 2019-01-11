@@ -23,6 +23,7 @@ import home.domain.model.ShutterView;
 import home.domain.model.SwitchView;
 import homecontroller.domain.model.Climate;
 import homecontroller.domain.model.Datapoint;
+import homecontroller.domain.model.HeatingModel;
 import homecontroller.domain.model.Hint;
 import homecontroller.domain.model.HistoryModel;
 import homecontroller.domain.model.HouseModel;
@@ -51,10 +52,10 @@ public class HouseViewService {
 
 	public void fillViewModel(Model model, HouseModel house) {
 
-		formatClimate(model, "tempBathroom", house.getClimateBathRoom());
-		formatClimate(model, "tempKids", house.getClimateKidsRoom());
-		formatClimate(model, "tempLivingroom", house.getClimateLivingRoom());
-		formatClimate(model, "tempBedroom", house.getClimateBedRoom());
+		formatClimate(model, "tempBathroom", house.getClimateBathRoom(), house.getHeatingBathRoom());
+		formatClimate(model, "tempKids", house.getClimateKidsRoom(), null);
+		formatClimate(model, "tempLivingroom", house.getClimateLivingRoom(), null);
+		formatClimate(model, "tempBedroom", house.getClimateBedRoom(), null);
 
 		formatWindow(model, "leftWindowBedroom", house.getLeftWindowBedRoom());
 
@@ -119,12 +120,12 @@ public class HouseViewService {
 		}
 	}
 
-	private void formatClimate(Model model, String viewKey, Climate climate) {
-		ClimateView view = formatClimate(climate, viewKey);
+	private void formatClimate(Model model, String viewKey, Climate climate, HeatingModel heating) {
+		ClimateView view = formatClimate(climate, heating, viewKey);
 		model.addAttribute(viewKey, view);
 	}
 
-	private ClimateView formatClimate(Climate climate, String viewKey) {
+	private ClimateView formatClimate(Climate climate, HeatingModel heating, String viewKey) {
 
 		ClimateView view = new ClimateView();
 		view.setId(viewKey);
@@ -154,7 +155,7 @@ public class HouseViewService {
 			formatClimateTendency(climate, view);
 
 			// Heating
-			formatClimateHeating(climate, view);
+			formatClimateHeating(heating, view);
 
 		} else {
 			view.setStateTemperature("?");
@@ -179,17 +180,16 @@ public class HouseViewService {
 		}
 	}
 
-	private void formatClimateHeating(Climate climate, ClimateView view) {
+	private void formatClimateHeating(HeatingModel heating, ClimateView view) {
 
-		if (climate instanceof RoomClimate && ((RoomClimate) climate).getHeating() != null) {
-			RoomClimate room = (RoomClimate) climate;
-			if (room.getHeating().isBoostActive()) {
-				view.setLinkBoost(String.valueOf(room.getHeating().getBoostMinutesLeft()));
+		if (heating != null) {
+			if (heating.isBoostActive()) {
+				view.setLinkBoost(String.valueOf(heating.getBoostMinutesLeft()));
 			} else {
-				view.setLinkBoost("/heatingboost?prefix=" + room.getHeating().getProgramNamePrefix());
+				view.setLinkBoost("/heatingboost?prefix=" + heating.getProgramNamePrefix());
 			}
-			view.setLinkManual("/heatingmanual?prefix=" + room.getHeating().getProgramNamePrefix());
-			view.setTargetTemp(format(room.getHeating().getTargetTemperature(), false));
+			view.setLinkManual("/heatingmanual?prefix=" + heating.getProgramNamePrefix());
+			view.setTargetTemp(format(heating.getTargetTemperature(), false));
 			view.setHeatericon("fab fa-hotjar");
 		}
 	}
@@ -211,11 +211,12 @@ public class HouseViewService {
 	private void formatFacadeTemperatures(Model model, String viewKeyMin, String viewKeyMax,
 			HouseModel house) {
 
-		ClimateView viewMin = formatClimate(house.getConclusionClimateFacadeMin(), viewKeyMin);
+		ClimateView viewMin = formatClimate(house.getConclusionClimateFacadeMin(), null, viewKeyMin);
 		ClimateView viewMax = new ClimateView();
 		viewMax.setId(viewKeyMax);
 
-		viewMin.setPostfix(house.getConclusionClimateFacadeMin().getPlaceName());
+		viewMin.setPostfix(
+				house.getConclusionClimateFacadeMin().getDeviceThermometer().getPlace().getPlaceName());
 
 		if (house.getConclusionClimateFacadeMax().getSunBeamIntensity().ordinal() >= house
 				.getConclusionClimateFacadeMax().getSunHeatingInContrastToShadeIntensity().ordinal()) {
@@ -224,7 +225,8 @@ public class HouseViewService {
 			viewMax.setStateTemperature(house.getConclusionClimateFacadeMax()
 					.getSunHeatingInContrastToShadeIntensity().getHeating());
 		}
-		viewMax.setName("Fassade " + house.getConclusionClimateFacadeMax().getPlaceName());
+		viewMax.setName("Fassade "
+				+ house.getConclusionClimateFacadeMax().getDeviceThermometer().getPlace().getPlaceName());
 
 		switch (Intensity.max(house.getConclusionClimateFacadeMax().getSunBeamIntensity(),
 				house.getConclusionClimateFacadeMax().getSunHeatingInContrastToShadeIntensity())) {
@@ -254,7 +256,7 @@ public class HouseViewService {
 
 		PowerView power = new PowerView();
 		power.setState(powerMeter.getActualConsumption().getValue().intValue() + " Watt");
-		power.setName(powerMeter.getDevice().getType());
+		power.setName(powerMeter.getDevice().getType().getTypeName());
 		power.setIcon("fas fa-bolt");
 		if (powerMeter.getActualConsumption().getTendency() != null) {
 			power.setTendencyIcon(powerMeter.getActualConsumption().getTendency().getIconCssClass());
@@ -270,7 +272,7 @@ public class HouseViewService {
 
 		SwitchView view = new SwitchView();
 		view.setId(viewKey);
-		view.setName(switchModel.getDevice().getType());
+		view.setName(switchModel.getDevice().getType().getTypeName());
 		view.setState(switchModel.isState() ? "Eingeschaltet" : "Ausgeschaltet");
 		if (switchModel.getAutomation() != null) {
 			if (switchModel.getAutomation()) {
@@ -293,7 +295,7 @@ public class HouseViewService {
 
 		ShutterView view = new ShutterView();
 		view.setId(viewKey);
-		view.setName(windowModel.getShutterDevice().getType());
+		view.setName(windowModel.getShutterDevice().getType().getTypeName());
 		view.setState(windowModel.getShutterPosition().getText(windowModel.getShutterPositionPercentage()));
 
 		if (windowModel.getShutterAutomation() != null) {

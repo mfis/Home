@@ -18,7 +18,7 @@ public enum Hint {
 		if (text == null || text.trim().length() == 0) {
 			return null;
 		}
-		return roomClimate.getPlaceName() + ": " + text;
+		return roomClimate.getDeviceThermometer().getPlace().getPlaceName() + ": " + text;
 	}
 
 	public String getText() {

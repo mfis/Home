@@ -90,6 +90,10 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 
 	private boolean exlusion(HttpServletRequest request) {
 
+		if (StringUtils.containsIgnoreCase(request.getRequestURL(), "/textquery")) {
+			return true; // FIXME
+		}
+
 		if (StringUtils.containsIgnoreCase(request.getRequestURL(), "/webjars/")) {
 			return true;
 		}

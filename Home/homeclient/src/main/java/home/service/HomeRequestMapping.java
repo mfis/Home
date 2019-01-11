@@ -48,6 +48,16 @@ public class HomeRequestMapping {
 	@Autowired
 	private RestTemplate restTemplate;
 
+	@RequestMapping("/textquery")
+	public String textquery(Model model, @RequestParam("text") String text, @RequestParam("user") String user,
+			@RequestParam("pass") String pass) {
+		// call(env.getProperty(CONTROLLER_URL) + "toggle", ActionModel.class,
+		// new URIParameter().add("devIdVar", devIdVar).build());
+		System.out.println(user + ":" + pass + " -> " + text);
+		model.addAttribute("responsetext", "Deine Anfrage lautete: " + text);
+		return "textquery";
+	}
+
 	@RequestMapping("/toggle")
 	public String toggle(@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
 			@RequestParam("devIdVar") String devIdVar, @RequestParam(name = "y", required = false) String y) {

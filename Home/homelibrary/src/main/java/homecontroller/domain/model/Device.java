@@ -4,18 +4,18 @@ import org.springframework.util.StringUtils;
 
 public enum Device {
 
-	THERMOSTAT_BAD(Protocol.HM, "OEQ0854602", 4, "Thermostat", "Bad"), //
-	THERMOMETER_KINDERZIMMER(Protocol.HMIP, "000E97099314A3", 1, Const.THERMOMETER, "Kinderzimmer"), //
-	THERMOMETER_WOHNZIMMER(Protocol.HMIP, "000E97099312D5", 1, Const.THERMOMETER, "Wohnzimmer"), //
-	THERMOMETER_SCHLAFZIMMER(Protocol.HMIP, "000E97099314C4", 1, Const.THERMOMETER, Const.SCHLAFZIMMER), //
-	ROLLLADE_SCHLAFZIMMER_LINKS(Protocol.HM, "D_U_M_M_Y", 1, "Rolllade links", Const.SCHLAFZIMMER), //
-	DIFFERENZTEMPERATUR_TERRASSE_AUSSEN(Protocol.HM, "OEQ0801741", 2, Const.THERMOMETER, Const.TERRASSE), //
-	DIFFERENZTEMPERATUR_TERRASSE_DIFF(Protocol.HM, "OEQ0801741", 3, Const.SONNENSENSOR, Const.TERRASSE), //
-	DIFFERENZTEMPERATUR_EINFAHRT_AUSSEN(Protocol.HM, "OEQ0801807", 2, Const.THERMOMETER, Const.EINFAHRT), //
-	DIFFERENZTEMPERATUR_EINFAHRT_DIFF(Protocol.HM, "OEQ0801807", 3, Const.SONNENSENSOR, Const.EINFAHRT), //
-	SCHALTER_KUECHE_LICHT(Protocol.HM, "OEQ0712456", 1, "Schalter Fensterlicht", "Küche"), //
-	STROMZAEHLER(Protocol.HM, "NEQ0861520", 1, "Stromverbrauch", "Haus"), //
-	AUSSENTEMPERATUR(Protocol.SYSVAR, "2867", null, "ConclusionOutsideTemperature", "Aussen"), //
+	THERMOSTAT_BAD(Protocol.HM, "OEQ0854602", 4, Type.THERMOSTAT, Place.BATHROOM), //
+	THERMOMETER_KINDERZIMMER(Protocol.HMIP, "000E97099314A3", 1, Type.THERMOMETER, Place.KIDSROOM), //
+	THERMOMETER_WOHNZIMMER(Protocol.HMIP, "000E97099312D5", 1, Type.THERMOMETER, Place.LIVINGROOM), //
+	THERMOMETER_SCHLAFZIMMER(Protocol.HMIP, "000E97099314C4", 1, Type.THERMOMETER, Place.BEDROOM), //
+	ROLLLADE_SCHLAFZIMMER_LINKS(Protocol.HM, "D_U_M_M_Y", 1, Type.SHUTTER_LEFT, Place.BEDROOM), //
+	DIFFERENZTEMPERATUR_TERRASSE_AUSSEN(Protocol.HM, "OEQ0801741", 2, Type.THERMOMETER, Place.TERRACE), //
+	DIFFERENZTEMPERATUR_TERRASSE_DIFF(Protocol.HM, "OEQ0801741", 3, Type.SUN_SENSOR, Place.TERRACE), //
+	DIFFERENZTEMPERATUR_EINFAHRT_AUSSEN(Protocol.HM, "OEQ0801807", 2, Type.THERMOMETER, Place.ENTRANCE), //
+	DIFFERENZTEMPERATUR_EINFAHRT_DIFF(Protocol.HM, "OEQ0801807", 3, Type.SUN_SENSOR, Place.ENTRANCE), //
+	SCHALTER_KUECHE_LICHT(Protocol.HM, "OEQ0712456", 1, Type.SWITCH_WINDOWLIGHT, Place.KITCHEN), //
+	STROMZAEHLER(Protocol.HM, "NEQ0861520", 1, Type.ELECTRIC_POWER, Place.HOUSE), //
+	AUSSENTEMPERATUR(Protocol.SYSVAR, "2867", null, Type.CONCLUSION_OUTSIDE_TEMPERATURE, Place.OUTSIDE), //
 	;
 
 	private Protocol protocol;
@@ -24,24 +24,16 @@ public enum Device {
 
 	private Integer channel;
 
-	private String type;
+	private Type type;
 
-	private String placeName;
+	private Place place;
 
-	private Device(Protocol protocol, String id, Integer channel, String type, String placeName) {
+	private Device(Protocol protocol, String id, Integer channel, Type type, Place place) {
 		this.protocol = protocol;
 		this.id = id;
 		this.channel = channel;
 		this.type = type;
-		this.placeName = placeName;
-	}
-
-	private class Const {
-		public static final String THERMOMETER = "Thermometer";
-		public static final String SONNENSENSOR = "Sonnensensor";
-		public static final String SCHLAFZIMMER = "Schlafzimmer";
-		public static final String EINFAHRT = "Einfahrt";
-		public static final String TERRASSE = "Terrasse";
+		this.place = place;
 	}
 
 	public String accessKeyXmlApi(Datapoint datapoint) {
@@ -101,15 +93,15 @@ public enum Device {
 	}
 
 	public String getDescription() {
-		return type + " " + placeName;
+		return type.getTypeName() + " " + place.getPlaceName();
 	}
 
-	public String getType() {
+	public Type getType() {
 		return type;
 	}
 
-	public String getPlaceName() {
-		return placeName;
+	public Place getPlace() {
+		return place;
 	}
 
 }
