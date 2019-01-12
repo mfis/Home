@@ -114,10 +114,10 @@ public class HouseService {
 
 		newModel.setLeftWindowBedRoom(readWindow(Device.ROLLLADE_SCHLAFZIMMER_LINKS));
 
-		newModel.setClimateTerrace(readOutdoorClimate(Device.DIFFERENZTEMPERATUR_TERRASSE_AUSSEN,
-				Device.DIFFERENZTEMPERATUR_TERRASSE_DIFF));
-		newModel.setClimateEntrance(readOutdoorClimate(Device.DIFFERENZTEMPERATUR_EINFAHRT_AUSSEN,
-				Device.DIFFERENZTEMPERATUR_EINFAHRT_DIFF));
+		newModel.setClimateTerrace(readOutdoorClimate(Device.DIFF_TEMPERATUR_TERRASSE_AUSSEN,
+				Device.DIFF_TEMPERATUR_TERRASSE_DIFF));
+		newModel.setClimateEntrance(readOutdoorClimate(Device.DIFF_TEMPERATUR_EINFAHRT_AUSSEN,
+				Device.DIFF_TEMPERATUR_EINFAHRT_DIFF));
 
 		newModel.setKitchenWindowLightSwitch(readSwitchState(Device.SCHALTER_KUECHE_LICHT));
 

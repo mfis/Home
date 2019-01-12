@@ -46,6 +46,9 @@ public class HomeRequestMapping {
 	private SettingsViewService settingsView;
 
 	@Autowired
+	private TextQueryService textQueryService;
+
+	@Autowired
 	private RestTemplate restTemplate;
 
 	@RequestMapping("/textquery")
@@ -54,7 +57,9 @@ public class HomeRequestMapping {
 		// call(env.getProperty(CONTROLLER_URL) + "toggle", ActionModel.class,
 		// new URIParameter().add("devIdVar", devIdVar).build());
 		System.out.println(user + ":" + pass + " -> " + text);
-		model.addAttribute("responsetext", "Deine Anfrage lautete: " + text);
+		HouseModel house = call(env.getProperty(CONTROLLER_URL) + "actualstate", HouseModel.class,
+				new URIParameter().build());
+		model.addAttribute("responsetext", textQueryService.execute(house, text));
 		return "textquery";
 	}
 

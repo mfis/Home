@@ -1,37 +1,57 @@
 package home.domain.model;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 import homecontroller.domain.model.Place;
 import homecontroller.domain.model.Type;
 
 public class TextSynonymes {
 
-	private static final Map<String, String> SYNONYMES = new LinkedHashMap<>();
+	private static final List<Synonym<Place>> PLACE_SYNONYMES = new LinkedList<>();
+	private static final List<Synonym<Type>> TYPE_SYNONYMES = new LinkedList<>();
+	private static final List<String> CONTROL_SYNONYMES = new LinkedList<>();
 
 	static {
-		SYNONYMES.put(Place.KIDSROOM.getPlaceName(), "Bastians Zimmer");
-		SYNONYMES.put(Place.HOUSE.getPlaceName(), "Außen");
-		SYNONYMES.put(Place.HOUSE.getPlaceName(), "Draußen");
-		SYNONYMES.put(Place.TERRACE.getPlaceName(), "Garten");
+		PLACE_SYNONYMES.add(new Synonym<Place>("Bastian", Place.KIDSROOM));
+		PLACE_SYNONYMES.add(new Synonym<Place>("Bastians", Place.KIDSROOM));
 
-		SYNONYMES.put(Type.THERMOSTAT.getTypeName(), "Heizkörper");
-		SYNONYMES.put(Type.THERMOSTAT.getTypeName(), "Heizung");
-		SYNONYMES.put(Type.THERMOMETER.getTypeName(), "Temperatur");
-		SYNONYMES.put(Type.THERMOMETER.getTypeName(), "Warm");
-		SYNONYMES.put(Type.SUN_SENSOR.getTypeName(), "Sonne");
-		SYNONYMES.put(Type.SUN_SENSOR.getTypeName(), "sonnig");
-		SYNONYMES.put(Type.SHUTTER_LEFT.getTypeName(), "Rollladen links");
-		SYNONYMES.put(Type.SHUTTER_LEFT.getTypeName(), "Rollo links");
-		SYNONYMES.put(Type.SHUTTER_RIGHT.getTypeName(), "Rollladen rechts");
-		SYNONYMES.put(Type.SHUTTER_RIGHT.getTypeName(), "Rollo rechts");
-		SYNONYMES.put(Type.SWITCH_WINDOWLIGHT.getTypeName(), "Licht am Fenster");
-		SYNONYMES.put(Type.SWITCH_WINDOWLIGHT.getTypeName(), "Licht");
-		SYNONYMES.put(Type.ELECTRIC_POWER.getTypeName(), "Strom");
-		SYNONYMES.put(Type.CONCLUSION_OUTSIDE_TEMPERATURE.getTypeName(), "Thermometer");
-		SYNONYMES.put(Type.CONCLUSION_OUTSIDE_TEMPERATURE.getTypeName(), "Temperatur");
-		SYNONYMES.put(Type.CONCLUSION_OUTSIDE_TEMPERATURE.getTypeName(), "Warm");
+		PLACE_SYNONYMES.add(new Synonym<Place>("Badezimmer", Place.BATHROOM));
+
+		PLACE_SYNONYMES.add(new Synonym<Place>("Außen", Place.HOUSE));
+		PLACE_SYNONYMES.add(new Synonym<Place>("Draußen", Place.HOUSE));
+		PLACE_SYNONYMES.add(new Synonym<Place>("Garten", Place.TERRACE));
+
+		TYPE_SYNONYMES.add(new Synonym<Type>("Heizkörper", Type.THERMOSTAT));
+		TYPE_SYNONYMES.add(new Synonym<Type>("Heizung", Type.THERMOSTAT));
+
+		TYPE_SYNONYMES.add(new Synonym<Type>("Temperatur", Type.THERMOMETER));
+		TYPE_SYNONYMES.add(new Synonym<Type>("Warm", Type.THERMOMETER));
+
+		TYPE_SYNONYMES.add(new Synonym<Type>("Sonne", Type.SUN_SENSOR));
+		TYPE_SYNONYMES.add(new Synonym<Type>("sonnig", Type.SUN_SENSOR));
+
+		TYPE_SYNONYMES.add(new Synonym<Type>("Rollladen links", Type.SHUTTER_LEFT));
+		TYPE_SYNONYMES.add(new Synonym<Type>("Rollo links", Type.SHUTTER_LEFT));
+
+		TYPE_SYNONYMES.add(new Synonym<Type>("Rollladen rechts", Type.SHUTTER_RIGHT));
+		TYPE_SYNONYMES.add(new Synonym<Type>("Rollo rechts", Type.SHUTTER_RIGHT));
+
+		TYPE_SYNONYMES.add(new Synonym<Type>("Licht am Fenster", Type.SWITCH_WINDOWLIGHT));
+		TYPE_SYNONYMES.add(new Synonym<Type>("Licht", Type.SWITCH_WINDOWLIGHT));
+
+		TYPE_SYNONYMES.add(new Synonym<Type>("Strom", Type.ELECTRIC_POWER));
+
+		TYPE_SYNONYMES.add(new Synonym<Type>("Thermometer", Type.CONCLUSION_OUTSIDE_TEMPERATURE));
+		TYPE_SYNONYMES.add(new Synonym<Type>("Temperatur", Type.CONCLUSION_OUTSIDE_TEMPERATURE));
+		TYPE_SYNONYMES.add(new Synonym<Type>("Warm", Type.CONCLUSION_OUTSIDE_TEMPERATURE));
+
+		CONTROL_SYNONYMES.add("Setze");
+		CONTROL_SYNONYMES.add("Stelle");
+		CONTROL_SYNONYMES.add("Schalte");
+		CONTROL_SYNONYMES.add("Öffne");
+		CONTROL_SYNONYMES.add("Schließe");
 
 	}
 
@@ -39,4 +59,15 @@ public class TextSynonymes {
 		super();
 	}
 
+	public static List<Synonym<Place>> getPlaceSynonymes() {
+		return Collections.unmodifiableList(PLACE_SYNONYMES);
+	}
+
+	public static List<Synonym<Type>> getTypeSynonymes() {
+		return Collections.unmodifiableList(TYPE_SYNONYMES);
+	}
+
+	public static List<String> getControlSynonymes() {
+		return Collections.unmodifiableList(CONTROL_SYNONYMES);
+	}
 }
