@@ -28,6 +28,7 @@ import homecontroller.domain.model.Hint;
 import homecontroller.domain.model.HistoryModel;
 import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.Intensity;
+import homecontroller.domain.model.OutdoorClimate;
 import homecontroller.domain.model.PowerConsumptionMonth;
 import homecontroller.domain.model.PowerMeter;
 import homecontroller.domain.model.RoomClimate;
@@ -217,13 +218,7 @@ public class HouseViewService {
 
 		viewMin.setPostfix(house.getConclusionClimateFacadeMin().getDevice().getPlace().getPlaceName());
 
-		if (house.getConclusionClimateFacadeMax().getSunBeamIntensity().ordinal() >= house
-				.getConclusionClimateFacadeMax().getSunHeatingInContrastToShadeIntensity().ordinal()) {
-			viewMax.setStateTemperature(house.getConclusionClimateFacadeMax().getSunBeamIntensity().getSun());
-		} else {
-			viewMax.setStateTemperature(house.getConclusionClimateFacadeMax()
-					.getSunHeatingInContrastToShadeIntensity().getHeating());
-		}
+		viewMax.setStateTemperature(lookupSunHeating(house.getConclusionClimateFacadeMax()));
 		viewMax.setName(
 				"Fassade " + house.getConclusionClimateFacadeMax().getDevice().getPlace().getPlaceName());
 
@@ -249,6 +244,20 @@ public class HouseViewService {
 
 		model.addAttribute(viewKeyMin, viewMin);
 		model.addAttribute(viewKeyMax, viewMax);
+	}
+
+	public String lookupSunHeating(OutdoorClimate outdoorMaxClimate) {
+
+		if (outdoorMaxClimate == null) {
+			return StringUtils.EMPTY;
+		}
+
+		if (outdoorMaxClimate.getSunBeamIntensity().ordinal() >= outdoorMaxClimate
+				.getSunHeatingInContrastToShadeIntensity().ordinal()) {
+			return outdoorMaxClimate.getSunBeamIntensity().getSun();
+		} else {
+			return outdoorMaxClimate.getSunHeatingInContrastToShadeIntensity().getHeating();
+		}
 	}
 
 	private void formatPower(Model model, PowerMeter powerMeter) {

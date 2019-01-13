@@ -19,8 +19,8 @@ public class TextSynonymes {
 
 		PLACE_SYNONYMES.add(new Synonym<Place>("Badezimmer", Place.BATHROOM));
 
-		PLACE_SYNONYMES.add(new Synonym<Place>("Außen", Place.HOUSE));
-		PLACE_SYNONYMES.add(new Synonym<Place>("Draußen", Place.HOUSE));
+		PLACE_SYNONYMES.add(new Synonym<Place>("Außen", Place.OUTSIDE));
+		PLACE_SYNONYMES.add(new Synonym<Place>("Draußen", Place.OUTSIDE));
 		PLACE_SYNONYMES.add(new Synonym<Place>("Garten", Place.TERRACE));
 
 		TYPE_SYNONYMES.add(new Synonym<Type>("Heizkörper", Type.THERMOSTAT));
@@ -28,6 +28,8 @@ public class TextSynonymes {
 
 		TYPE_SYNONYMES.add(new Synonym<Type>("Temperatur", Type.THERMOMETER));
 		TYPE_SYNONYMES.add(new Synonym<Type>("Warm", Type.THERMOMETER));
+		TYPE_SYNONYMES.add(new Synonym<Type>("Kalt", Type.THERMOMETER));
+		TYPE_SYNONYMES.add(new Synonym<Type>("Wetter", Type.THERMOMETER));
 
 		TYPE_SYNONYMES.add(new Synonym<Type>("Sonne", Type.SUN_SENSOR));
 		TYPE_SYNONYMES.add(new Synonym<Type>("sonnig", Type.SUN_SENSOR));

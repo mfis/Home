@@ -8,6 +8,8 @@ public class SentenceBuilder {
 
 	private int wordCount = 0;
 
+	private boolean isNewSentence = true;
+
 	private SentenceBuilder() {
 		super();
 	}
@@ -22,11 +24,20 @@ public class SentenceBuilder {
 		}
 		sb.append(word.trim());
 		wordCount++;
+		isNewSentence = false;
 		return this;
 	}
 
-	public String getSentence() {
-		sb.append(". ");
+	public SentenceBuilder newSentence() {
+		if (!isNewSentence) {
+			sb.append(". ");
+			isNewSentence = true;
+		}
+		return this;
+	}
+
+	public String getText() {
+		newSentence();
 		return sb.toString();
 	}
 

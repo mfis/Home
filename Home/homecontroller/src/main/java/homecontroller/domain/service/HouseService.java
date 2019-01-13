@@ -147,6 +147,10 @@ public class HouseService {
 		newModel.getConclusionClimateFacadeMax()
 				.setSunHeatingInContrastToShadeIntensity(lookupIntensity(sunShadeDiff));
 
+		newModel.getConclusionClimateFacadeMin().setDevice(Device.AUSSENTEMPERATUR);
+		newModel.getConclusionClimateFacadeMin()
+				.setMaxSideSunHeating(newModel.getConclusionClimateFacadeMax());
+
 		calculateTendencies(oldModel, newModel);
 	}
 
@@ -345,7 +349,7 @@ public class HouseService {
 
 		if (oldModel == null || oldModel.getConclusionClimateFacadeMin().getTemperature().getValue()
 				.compareTo(newModel.getConclusionClimateFacadeMin().getTemperature().getValue()) != 0) {
-			api.changeValue(Device.AUSSENTEMPERATUR.getType().getTypeName(),
+			api.changeValue(newModel.getConclusionClimateFacadeMin().getDevice().getType().getTypeName(),
 					newModel.getConclusionClimateFacadeMin().getTemperature().toString());
 		}
 	}
@@ -357,6 +361,7 @@ public class HouseService {
 		outdoorClimate.setSunBeamIntensity(
 				lookupIntensity(api.getAsBigDecimal(diff.accessKeyXmlApi(Datapoint.TEMPERATURE))));
 		outdoorClimate.setDevice(outside);
+
 		return outdoorClimate;
 	}
 

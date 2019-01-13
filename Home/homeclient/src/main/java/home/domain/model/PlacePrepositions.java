@@ -17,7 +17,7 @@ public class PlacePrepositions {
 		PLACE_PREPOSITIONS.put(Place.HOUSE, "Im");
 		PLACE_PREPOSITIONS.put(Place.KIDSROOM, "Im");
 		PLACE_PREPOSITIONS.put(Place.LIVINGROOM, "Im");
-		PLACE_PREPOSITIONS.put(Place.OUTSIDE, "Im");
+		PLACE_PREPOSITIONS.put(Place.OUTSIDE, "");
 		PLACE_PREPOSITIONS.put(Place.TERRACE, "Auf der");
 	}
 

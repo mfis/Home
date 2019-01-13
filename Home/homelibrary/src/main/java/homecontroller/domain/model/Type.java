@@ -16,7 +16,7 @@ public enum Type {
 	// with sub-types
 	THERMOSTAT("Thermostat", Type.THERMOMETER), //
 	// pseudo-types
-	CONCLUSION_OUTSIDE_TEMPERATURE("ConclusionOutsideTemperature"), //
+	CONCLUSION_OUTSIDE_TEMPERATURE("ConclusionOutsideTemperature", Type.THERMOMETER), //
 	;
 
 	private final String typeName;

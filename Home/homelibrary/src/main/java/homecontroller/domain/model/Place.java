@@ -7,8 +7,8 @@ public enum Place {
 	KIDSROOM("Kinderzimmer"), //
 	BATHROOM("Bad"), //
 	BEDROOM("Schlafzimmer"), //
-	OUTSIDE("Haus"), //
 	HOUSE("Haus"), //
+	OUTSIDE("Draußen"), //
 	ENTRANCE("Einfahrt"), //
 	TERRACE("Terrasse"), //
 	;

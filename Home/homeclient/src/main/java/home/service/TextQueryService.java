@@ -5,20 +5,26 @@ import java.text.DecimalFormat;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import home.domain.model.PlacePrepositions;
 import home.domain.model.Synonym;
 import home.domain.model.TextSynonymes;
+import home.domain.service.HouseViewService;
 import homecontroller.domain.model.AbstractDeviceModel;
+import homecontroller.domain.model.Climate;
 import homecontroller.domain.model.Device;
 import homecontroller.domain.model.HouseModel;
+import homecontroller.domain.model.OutdoorClimate;
 import homecontroller.domain.model.Place;
-import homecontroller.domain.model.RoomClimate;
 import homecontroller.domain.model.Type;
 
 @Component
 public class TextQueryService {
+
+	@Autowired
+	private HouseViewService houseViewService;
 
 	public String execute(HouseModel house, String input) {
 
@@ -46,7 +52,7 @@ public class TextQueryService {
 		device = lookupDevice(place, type);
 		if (device == null) {
 			return "Entschuldige, für den Ort " + place.getPlaceName() + " konnte ich das Gerät "
-					+ type.getTypeName() + "nicht finden.";
+					+ type.getTypeName() + " nicht finden.";
 		}
 
 		return invokeQuery(lookupModelObject(house, device));
@@ -54,30 +60,42 @@ public class TextQueryService {
 
 	private String invokeQuery(Object modelObject) {
 
-		if (modelObject instanceof RoomClimate) {
-			return invokeQueryRoomClimate((RoomClimate) modelObject);
+		if (modelObject instanceof Climate) {
+			return invokeQueryClimate((Climate) modelObject);
 		}
 
 		return "Entschuldige, da hat etwas nicht funktioniert.";
 	}
 
-	private String invokeQueryRoomClimate(RoomClimate roomClimate) {
+	private String invokeQueryClimate(Climate climate) {
 
 		SentenceBuilder builder = SentenceBuilder.newInstance() //
-				.add(PlacePrepositions.getPreposition(roomClimate.getDevice().getPlace())) //
-				.add(roomClimate.getDevice().getPlace().getPlaceName()) //
+				.add(PlacePrepositions.getPreposition(climate.getDevice().getPlace())) //
+				.add(climate.getDevice().getPlace().getPlaceName()) //
 				.add("ist zur Zeit eine Temperatur von") //
-				.add(new DecimalFormat("0.0").format(roomClimate.getTemperature().getValue())) //
+				.add(new DecimalFormat("0.0").format(climate.getTemperature().getValue())) //
 				.add("Grad");
 
-		if (roomClimate.getHumidity() != null) {
+		if (climate.getHumidity() != null) {
 			builder //
 					.add("bei einer Luftfeuchtigkeit von") //
-					.add(new DecimalFormat("0").format(roomClimate.getHumidity().getValue())) //
+					.add(new DecimalFormat("0").format(climate.getHumidity().getValue())) //
 					.add("Prozent"); //
 		}
 
-		return builder.getSentence();
+		if (climate instanceof OutdoorClimate) {
+			OutdoorClimate outdoorClimate = (OutdoorClimate) climate;
+			String sunHeating = houseViewService.lookupSunHeating(outdoorClimate.getMaxSideSunHeating());
+			if (StringUtils.isNotBlank(sunHeating)) {
+				builder.newSentence();
+				builder.add("Auf der");
+				builder.add(outdoorClimate.getMaxSideSunHeating().getDevice().getPlace().getPlaceName());
+				builder.add("ist es");
+				builder.add(sunHeating.toLowerCase());
+			}
+		}
+
+		return builder.getText();
 	}
 
 	private Object lookupModelObject(HouseModel house, Device device) {
