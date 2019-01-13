@@ -22,48 +22,28 @@ public class TextQueryService {
 
 	public String execute(HouseModel house, String input) {
 
+		String[] words = splitTextIntoWords(input);
 		Place place = null;
 		Type type = null;
 		Device device = null;
 		boolean controlQuery = false;
 
-		String[] words = splitTextIntoWOrds(input);
-
-		for (String word : words) {
-			controlQuery = lookupControlQuery(word);
-			if (controlQuery) {
-				break;
-			}
-		}
-
+		controlQuery = lookupControlQuery(words);
 		if (controlQuery) {
 			return "Ich kann zur Zeit nur Werte auslesen. Die Stererung von Geräten ist noch nicht möglich.";
 		}
 
-		for (String word : words) {
-			place = lookupPlace(word);
-			if (place != null) {
-				break;
-			}
-		}
-
+		place = lookupPlace(words);
 		if (place == null) {
 			return "Entschuldige, ich habe nicht verstanden, welchen Raum oder Ort Du meinst.";
 		}
 
-		for (String word : words) {
-			type = lookupType(word);
-			if (type != null) {
-				break;
-			}
-		}
-
+		type = lookupType(words);
 		if (type == null) {
 			return "Entschuldige, ich habe nicht verstanden, welches Gerät Du meinst.";
 		}
 
 		device = lookupDevice(place, type);
-
 		if (device == null) {
 			return "Entschuldige, für den Ort " + place.getPlaceName() + " konnte ich das Gerät "
 					+ type.getTypeName() + "nicht finden.";
@@ -127,7 +107,7 @@ public class TextQueryService {
 		return method.getName().startsWith("get");
 	}
 
-	private String[] splitTextIntoWOrds(String text) {
+	private String[] splitTextIntoWords(String text) {
 
 		text = StringUtils.remove(text, '.');
 		text = StringUtils.remove(text, ',');
@@ -138,40 +118,46 @@ public class TextQueryService {
 		return StringUtils.splitByWholeSeparator(text, StringUtils.SPACE);
 	}
 
-	private boolean lookupControlQuery(String word) {
-		for (String synonyme : TextSynonymes.getControlSynonymes()) {
-			if (synonyme.equalsIgnoreCase(word)) {
-				return true;
+	private boolean lookupControlQuery(String[] words) {
+		for (String word : words) {
+			for (String synonyme : TextSynonymes.getControlSynonymes()) {
+				if (synonyme.equalsIgnoreCase(word)) {
+					return true;
+				}
 			}
 		}
 		return false;
 	}
 
-	private Place lookupPlace(String placeString) {
+	private Place lookupPlace(String[] placeStrings) {
 
-		for (Place place : Place.values()) {
-			if (place.getPlaceName().equalsIgnoreCase(placeString)) {
-				return place;
+		for (String placeString : placeStrings) {
+			for (Place place : Place.values()) {
+				if (place.getPlaceName().equalsIgnoreCase(placeString)) {
+					return place;
+				}
 			}
-		}
-		for (Synonym<Place> entry : TextSynonymes.getPlaceSynonymes()) {
-			if (entry.getSynonymWord().equalsIgnoreCase(placeString)) {
-				return entry.getBase();
+			for (Synonym<Place> entry : TextSynonymes.getPlaceSynonymes()) {
+				if (entry.getSynonymWord().equalsIgnoreCase(placeString)) {
+					return entry.getBase();
+				}
 			}
 		}
 		return null;
 	}
 
-	private Type lookupType(String typeString) {
+	private Type lookupType(String[] typeStrings) {
 
-		for (Type type : Type.values()) {
-			if (type.getTypeName().equalsIgnoreCase(typeString)) {
-				return type;
+		for (String typeString : typeStrings) {
+			for (Type type : Type.values()) {
+				if (type.getTypeName().equalsIgnoreCase(typeString)) {
+					return type;
+				}
 			}
-		}
-		for (Synonym<Type> entry : TextSynonymes.getTypeSynonymes()) {
-			if (entry.getSynonymWord().equalsIgnoreCase(typeString)) {
-				return entry.getBase();
+			for (Synonym<Type> entry : TextSynonymes.getTypeSynonymes()) {
+				if (entry.getSynonymWord().equalsIgnoreCase(typeString)) {
+					return entry.getBase();
+				}
 			}
 		}
 		return null;
