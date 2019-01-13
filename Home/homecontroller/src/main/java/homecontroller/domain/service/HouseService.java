@@ -16,17 +16,18 @@ import homecontroller.dao.ModelDAO;
 import homecontroller.domain.model.Climate;
 import homecontroller.domain.model.Datapoint;
 import homecontroller.domain.model.Device;
-import homecontroller.domain.model.HeatingModel;
+import homecontroller.domain.model.Heating;
 import homecontroller.domain.model.Hint;
 import homecontroller.domain.model.HomematicConstants;
 import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.Intensity;
 import homecontroller.domain.model.OutdoorClimate;
-import homecontroller.domain.model.PowerMeterModel;
+import homecontroller.domain.model.PowerMeter;
 import homecontroller.domain.model.RoomClimate;
 import homecontroller.domain.model.ShutterPosition;
-import homecontroller.domain.model.SwitchModel;
+import homecontroller.domain.model.Switch;
 import homecontroller.domain.model.Tendency;
+import homecontroller.domain.model.Type;
 import homecontroller.domain.model.ValueWithTendency;
 import homecontroller.domain.model.Window;
 import homecontroller.service.HomematicAPI;
@@ -238,7 +239,7 @@ public class HouseService {
 		lookupHint(newModel.getClimateLivingRoom(), null, newModel.getClimateTerrace());
 	}
 
-	private void lookupHint(RoomClimate room, HeatingModel heating, OutdoorClimate outdoor) {
+	private void lookupHint(RoomClimate room, Heating heating, OutdoorClimate outdoor) {
 		lookupTemperatureHint(room, heating, outdoor);
 		lookupHumidityHint(room);
 	}
@@ -256,7 +257,7 @@ public class HouseService {
 		}
 	}
 
-	private void lookupTemperatureHint(RoomClimate room, HeatingModel heating, OutdoorClimate outdoor) {
+	private void lookupTemperatureHint(RoomClimate room, Heating heating, OutdoorClimate outdoor) {
 
 		BigDecimal targetTemperature = heating != null ? heating.getTargetTemperature()
 				: TARGET_TEMPERATURE_INSIDE;
@@ -282,8 +283,7 @@ public class HouseService {
 		}
 	}
 
-	private boolean isHeatingIsCauseForHighRoomTemperature(HeatingModel heating,
-			BigDecimal temperatureLimit) {
+	private boolean isHeatingIsCauseForHighRoomTemperature(Heating heating, BigDecimal temperatureLimit) {
 		return heating != null && (heating.isBoostActive()
 				|| heating.getTargetTemperature().compareTo(temperatureLimit) > 0
 				|| historyDAO.minutesSinceLastHeatingBoost(heating) < HINT_TIMEOUT_MINUTES_AFTER_BOOST);
@@ -356,7 +356,7 @@ public class HouseService {
 				api.getAsBigDecimal(outside.accessKeyXmlApi(Datapoint.TEMPERATURE))));
 		outdoorClimate.setSunBeamIntensity(
 				lookupIntensity(api.getAsBigDecimal(diff.accessKeyXmlApi(Datapoint.TEMPERATURE))));
-		outdoorClimate.setDeviceThermometer(outside);
+		outdoorClimate.setDevice(outside);
 		return outdoorClimate;
 	}
 
@@ -368,12 +368,15 @@ public class HouseService {
 		if (humidity != null) {
 			roomClimate.setHumidity(new ValueWithTendency<BigDecimal>(humidity));
 		}
-		roomClimate.setDeviceThermometer(thermometer);
+		roomClimate.setDevice(thermometer);
+		if (thermometer.getType() != Type.THERMOMETER) {
+			roomClimate.setSubType(Type.THERMOMETER);
+		}
 		return roomClimate;
 	}
 
-	private HeatingModel readHeating(Device heating) {
-		HeatingModel heatingModel = new HeatingModel();
+	private Heating readHeating(Device heating) {
+		Heating heatingModel = new Heating();
 		heatingModel.setBoostActive(api.getAsBigDecimal(heating.accessKeyXmlApi(Datapoint.CONTROL_MODE))
 				.compareTo(HomematicConstants.HEATING_CONTROL_MODE_BOOST) == 0);
 		heatingModel.setBoostMinutesLeft(
@@ -381,14 +384,14 @@ public class HouseService {
 		heatingModel.setTargetTemperature(
 				api.getAsBigDecimal(heating.accessKeyXmlApi(Datapoint.SET_TEMPERATURE)));
 		heatingModel.setProgramNamePrefix(heating.programNamePrefix());
-		heatingModel.setDeviceHeating(heating);
+		heatingModel.setDevice(heating);
 
 		return heatingModel;
 	}
 
 	private Window readWindow(Device shutter) { // TODO: D_U_M_M_Y
 		Window window = new Window();
-		window.setShutterDevice(shutter);
+		window.setDevice(shutter);
 		window.setShutterPositionPercentage(30);
 		window.setShutterPosition(ShutterPosition.fromPosition(window.getShutterPositionPercentage()));
 		window.setShutterAutomation(true);
@@ -396,8 +399,8 @@ public class HouseService {
 		return window;
 	}
 
-	private SwitchModel readSwitchState(Device device) {
-		SwitchModel switchModel = new SwitchModel();
+	private Switch readSwitchState(Device device) {
+		Switch switchModel = new Switch();
 		switchModel.setState(api.getAsBoolean(device.accessKeyXmlApi(Datapoint.STATE)));
 		switchModel.setDevice(device);
 		switchModel.setAutomation(api.getAsBoolean(device.programNamePrefix() + "Automatic"));
@@ -405,9 +408,9 @@ public class HouseService {
 		return switchModel;
 	}
 
-	private PowerMeterModel readPowerConsumption(Device device) {
+	private PowerMeter readPowerConsumption(Device device) {
 
-		PowerMeterModel model = new PowerMeterModel();
+		PowerMeter model = new PowerMeter();
 		model.setDevice(device);
 		model.setActualConsumption(new ValueWithTendency<BigDecimal>(
 				api.getAsBigDecimal(device.accessKeyXmlApi(Datapoint.POWER))));

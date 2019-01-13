@@ -23,15 +23,15 @@ public class PushServiceTest {
 
 		HouseModel oldModel = new HouseModel();
 		oldModel.setClimateBathRoom(new RoomClimate());
-		oldModel.getClimateBathRoom().setDeviceThermometer(Device.THERMOSTAT_BAD);
+		oldModel.getClimateBathRoom().setDevice(Device.THERMOSTAT_BAD);
 		oldModel.setClimateLivingRoom(new RoomClimate());
-		oldModel.getClimateLivingRoom().setDeviceThermometer(Device.THERMOMETER_WOHNZIMMER);
+		oldModel.getClimateLivingRoom().setDevice(Device.THERMOMETER_WOHNZIMMER);
 
 		HouseModel newModel = new HouseModel();
 		newModel.setClimateBathRoom(new RoomClimate());
-		newModel.getClimateBathRoom().setDeviceThermometer(Device.THERMOSTAT_BAD);
+		newModel.getClimateBathRoom().setDevice(Device.THERMOSTAT_BAD);
 		newModel.setClimateLivingRoom(new RoomClimate());
-		newModel.getClimateLivingRoom().setDeviceThermometer(Device.THERMOMETER_WOHNZIMMER);
+		newModel.getClimateLivingRoom().setDevice(Device.THERMOMETER_WOHNZIMMER);
 		newModel.getClimateBathRoom().getHints().add(Hint.OPEN_WINDOW); // same
 		newModel.getClimateLivingRoom().getHints().add(Hint.INCREASE_HUMIDITY); // same
 		newModel.getClimateLivingRoom().getHints().add(Hint.CLOSE_ROLLER_SHUTTER); // new
@@ -48,18 +48,18 @@ public class PushServiceTest {
 
 		HouseModel oldModel = new HouseModel();
 		oldModel.setClimateBathRoom(new RoomClimate());
-		oldModel.getClimateBathRoom().setDeviceThermometer(Device.THERMOSTAT_BAD);
+		oldModel.getClimateBathRoom().setDevice(Device.THERMOSTAT_BAD);
 		oldModel.setClimateLivingRoom(new RoomClimate());
-		oldModel.getClimateLivingRoom().setDeviceThermometer(Device.THERMOMETER_WOHNZIMMER);
+		oldModel.getClimateLivingRoom().setDevice(Device.THERMOMETER_WOHNZIMMER);
 		oldModel.getClimateBathRoom().getHints().add(Hint.OPEN_WINDOW);
 		oldModel.getClimateBathRoom().getHints().add(Hint.DECREASE_HUMIDITY);
 		oldModel.getClimateLivingRoom().getHints().add(Hint.INCREASE_HUMIDITY);
 
 		HouseModel newModel = new HouseModel();
 		newModel.setClimateBathRoom(new RoomClimate());
-		newModel.getClimateBathRoom().setDeviceThermometer(Device.THERMOSTAT_BAD);
+		newModel.getClimateBathRoom().setDevice(Device.THERMOSTAT_BAD);
 		newModel.setClimateLivingRoom(new RoomClimate());
-		newModel.getClimateLivingRoom().setDeviceThermometer(Device.THERMOMETER_WOHNZIMMER);
+		newModel.getClimateLivingRoom().setDevice(Device.THERMOMETER_WOHNZIMMER);
 		newModel.getClimateBathRoom().getHints().add(Hint.OPEN_WINDOW); // same
 		newModel.getClimateLivingRoom().getHints().add(Hint.INCREASE_HUMIDITY); // same
 		newModel.getClimateLivingRoom().getHints().add(Hint.CLOSE_ROLLER_SHUTTER); // new

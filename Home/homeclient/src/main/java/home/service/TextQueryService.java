@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import home.domain.model.PlacePrepositions;
 import home.domain.model.Synonym;
 import home.domain.model.TextSynonymes;
+import homecontroller.domain.model.AbstractDeviceModel;
 import homecontroller.domain.model.Device;
 import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.Place;
@@ -22,6 +23,7 @@ public class TextQueryService {
 	public String execute(HouseModel house, String input) {
 
 		Place place = null;
+		Type type = null;
 		Device device = null;
 		boolean controlQuery = false;
 
@@ -46,19 +48,25 @@ public class TextQueryService {
 		}
 
 		if (place == null) {
-			return "Entschuldige, ich konnte für die Anfrage keinen Ort identifizieren.";
+			return "Entschuldige, ich habe nicht verstanden, welchen Raum oder Ort Du meinst.";
 		}
 
 		for (String word : words) {
-			device = lookupDevice(place, word);
-			if (device != null) {
+			type = lookupType(word);
+			if (type != null) {
 				break;
 			}
 		}
 
+		if (type == null) {
+			return "Entschuldige, ich habe nicht verstanden, welches Gerät Du meinst.";
+		}
+
+		device = lookupDevice(place, type);
+
 		if (device == null) {
-			return "Entschuldige, für den Ort " + place.getPlaceName()
-					+ " konnte ich kein entsprechendes Gerät identifizieren.";
+			return "Entschuldige, für den Ort " + place.getPlaceName() + " konnte ich das Gerät "
+					+ type.getTypeName() + "nicht finden.";
 		}
 
 		return invokeQuery(lookupModelObject(house, device));
@@ -76,8 +84,8 @@ public class TextQueryService {
 	private String invokeQueryRoomClimate(RoomClimate roomClimate) {
 
 		SentenceBuilder builder = SentenceBuilder.newInstance() //
-				.add(PlacePrepositions.getPreposition(roomClimate.getDeviceThermometer().getPlace())) //
-				.add(roomClimate.getDeviceThermometer().getPlace().getPlaceName()) //
+				.add(PlacePrepositions.getPreposition(roomClimate.getDevice().getPlace())) //
+				.add(roomClimate.getDevice().getPlace().getPlaceName()) //
 				.add("ist zur Zeit eine Temperatur von") //
 				.add(new DecimalFormat("0.0").format(roomClimate.getTemperature().getValue())) //
 				.add("Grad");
@@ -97,11 +105,13 @@ public class TextQueryService {
 		try {
 			for (Method method : house.getClass().getMethods()) {
 				if (isGetter(method)) {
-					Object subModel = method.invoke(house);
-					for (Method subModelMethod : subModel.getClass().getMethods()) {
-						if (returnsDeviceObject(subModelMethod)
-								&& (Device) subModelMethod.invoke(subModel) == device) {
-							return subModel;
+					Object model = method.invoke(house);
+					if (model instanceof AbstractDeviceModel) {
+						Device modelDevice = ((AbstractDeviceModel) model).getDevice();
+						Type subType = ((AbstractDeviceModel) model).getSubType();
+						if (modelDevice == device && (subType == null
+								|| modelDevice.getType().getSubTypes().contains(subType))) {
+							return model;
 						}
 					}
 				}
@@ -111,10 +121,6 @@ public class TextQueryService {
 		}
 
 		return null;
-	}
-
-	private boolean returnsDeviceObject(Method subModelMethod) {
-		return subModelMethod.getReturnType().isAssignableFrom(Device.class);
 	}
 
 	private boolean isGetter(Method method) {
@@ -156,33 +162,38 @@ public class TextQueryService {
 		return null;
 	}
 
-	private Device lookupDevice(Place place, String typeString) {
+	private Type lookupType(String typeString) {
 
 		for (Type type : Type.values()) {
 			if (type.getTypeName().equalsIgnoreCase(typeString)) {
-				Device device = lookupDevice(place, type);
-				if (device != null) {
-					return device;
-				}
+				return type;
 			}
 		}
 		for (Synonym<Type> entry : TextSynonymes.getTypeSynonymes()) {
 			if (entry.getSynonymWord().equalsIgnoreCase(typeString)) {
-				Device device = lookupDevice(place, entry.getBase());
-				if (device != null) {
-					return device;
-				}
+				return entry.getBase();
 			}
 		}
 		return null;
 	}
 
 	private Device lookupDevice(Place place, Type type) {
+
+		// search for device with place and type
 		for (Device device : Device.values()) {
 			if (device.getPlace() == place && device.getType() == type && device.isTextQueryEnabled()) {
 				return device;
 			}
 		}
+
+		// then search with optional device sub-types
+		for (Device device : Device.values()) {
+			for (Type subType : device.getType().getSubTypes())
+				if (device.getPlace() == place && subType == type && device.isTextQueryEnabled()) {
+					return device;
+				}
+		}
+
 		return null;
 	}
 }

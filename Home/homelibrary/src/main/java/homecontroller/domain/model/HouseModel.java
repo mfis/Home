@@ -18,7 +18,7 @@ public class HouseModel implements Serializable {
 
 	private RoomClimate climateBathRoom;
 
-	private HeatingModel heatingBathRoom;
+	private Heating heatingBathRoom;
 
 	private RoomClimate climateBedRoom;
 
@@ -30,9 +30,9 @@ public class HouseModel implements Serializable {
 
 	private OutdoorClimate climateEntrance;
 
-	private SwitchModel kitchenWindowLightSwitch;
+	private Switch kitchenWindowLightSwitch;
 
-	private PowerMeterModel electricalPowerConsumption;
+	private PowerMeter electricalPowerConsumption;
 
 	private List<String> lowBatteryDevices;
 
@@ -84,11 +84,11 @@ public class HouseModel implements Serializable {
 		return dateTime;
 	}
 
-	public SwitchModel getKitchenWindowLightSwitch() {
+	public Switch getKitchenWindowLightSwitch() {
 		return kitchenWindowLightSwitch;
 	}
 
-	public void setKitchenWindowLightSwitch(SwitchModel kitchenWindowLightSwitch) {
+	public void setKitchenWindowLightSwitch(Switch kitchenWindowLightSwitch) {
 		this.kitchenWindowLightSwitch = kitchenWindowLightSwitch;
 	}
 
@@ -164,11 +164,11 @@ public class HouseModel implements Serializable {
 		this.conclusionClimateFacadeMax = conclusionClimateFacadeMax;
 	}
 
-	public PowerMeterModel getElectricalPowerConsumption() {
+	public PowerMeter getElectricalPowerConsumption() {
 		return electricalPowerConsumption;
 	}
 
-	public void setElectricalPowerConsumption(PowerMeterModel electricalPowerConsumption) {
+	public void setElectricalPowerConsumption(PowerMeter electricalPowerConsumption) {
 		this.electricalPowerConsumption = electricalPowerConsumption;
 	}
 
@@ -180,11 +180,11 @@ public class HouseModel implements Serializable {
 		this.leftWindowBedRoom = leftWindowBedRoom;
 	}
 
-	public HeatingModel getHeatingBathRoom() {
+	public Heating getHeatingBathRoom() {
 		return heatingBathRoom;
 	}
 
-	public void setHeatingBathRoom(HeatingModel heatingBathRoom) {
+	public void setHeatingBathRoom(Heating heatingBathRoom) {
 		this.heatingBathRoom = heatingBathRoom;
 	}
 

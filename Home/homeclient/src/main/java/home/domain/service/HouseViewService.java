@@ -23,16 +23,16 @@ import home.domain.model.ShutterView;
 import home.domain.model.SwitchView;
 import homecontroller.domain.model.Climate;
 import homecontroller.domain.model.Datapoint;
-import homecontroller.domain.model.HeatingModel;
+import homecontroller.domain.model.Heating;
 import homecontroller.domain.model.Hint;
 import homecontroller.domain.model.HistoryModel;
 import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.Intensity;
 import homecontroller.domain.model.PowerConsumptionMonth;
-import homecontroller.domain.model.PowerMeterModel;
+import homecontroller.domain.model.PowerMeter;
 import homecontroller.domain.model.RoomClimate;
 import homecontroller.domain.model.ShutterPosition;
-import homecontroller.domain.model.SwitchModel;
+import homecontroller.domain.model.Switch;
 import homecontroller.domain.model.Window;
 
 @Component
@@ -120,12 +120,12 @@ public class HouseViewService {
 		}
 	}
 
-	private void formatClimate(Model model, String viewKey, Climate climate, HeatingModel heating) {
+	private void formatClimate(Model model, String viewKey, Climate climate, Heating heating) {
 		ClimateView view = formatClimate(climate, heating, viewKey);
 		model.addAttribute(viewKey, view);
 	}
 
-	private ClimateView formatClimate(Climate climate, HeatingModel heating, String viewKey) {
+	private ClimateView formatClimate(Climate climate, Heating heating, String viewKey) {
 
 		ClimateView view = new ClimateView();
 		view.setId(viewKey);
@@ -180,7 +180,7 @@ public class HouseViewService {
 		}
 	}
 
-	private void formatClimateHeating(HeatingModel heating, ClimateView view) {
+	private void formatClimateHeating(Heating heating, ClimateView view) {
 
 		if (heating != null) {
 			if (heating.isBoostActive()) {
@@ -215,8 +215,7 @@ public class HouseViewService {
 		ClimateView viewMax = new ClimateView();
 		viewMax.setId(viewKeyMax);
 
-		viewMin.setPostfix(
-				house.getConclusionClimateFacadeMin().getDeviceThermometer().getPlace().getPlaceName());
+		viewMin.setPostfix(house.getConclusionClimateFacadeMin().getDevice().getPlace().getPlaceName());
 
 		if (house.getConclusionClimateFacadeMax().getSunBeamIntensity().ordinal() >= house
 				.getConclusionClimateFacadeMax().getSunHeatingInContrastToShadeIntensity().ordinal()) {
@@ -225,8 +224,8 @@ public class HouseViewService {
 			viewMax.setStateTemperature(house.getConclusionClimateFacadeMax()
 					.getSunHeatingInContrastToShadeIntensity().getHeating());
 		}
-		viewMax.setName("Fassade "
-				+ house.getConclusionClimateFacadeMax().getDeviceThermometer().getPlace().getPlaceName());
+		viewMax.setName(
+				"Fassade " + house.getConclusionClimateFacadeMax().getDevice().getPlace().getPlaceName());
 
 		switch (Intensity.max(house.getConclusionClimateFacadeMax().getSunBeamIntensity(),
 				house.getConclusionClimateFacadeMax().getSunHeatingInContrastToShadeIntensity())) {
@@ -252,7 +251,7 @@ public class HouseViewService {
 		model.addAttribute(viewKeyMax, viewMax);
 	}
 
-	private void formatPower(Model model, PowerMeterModel powerMeter) {
+	private void formatPower(Model model, PowerMeter powerMeter) {
 
 		PowerView power = new PowerView();
 		power.setState(powerMeter.getActualConsumption().getValue().intValue() + " Watt");
@@ -268,7 +267,7 @@ public class HouseViewService {
 		model.addAttribute("lowBattery", lowBatteryDevices);
 	}
 
-	private void formatSwitch(Model model, String viewKey, SwitchModel switchModel) {
+	private void formatSwitch(Model model, String viewKey, Switch switchModel) {
 
 		SwitchView view = new SwitchView();
 		view.setId(viewKey);
@@ -295,18 +294,17 @@ public class HouseViewService {
 
 		ShutterView view = new ShutterView();
 		view.setId(viewKey);
-		view.setName(windowModel.getShutterDevice().getType().getTypeName());
+		view.setName(windowModel.getDevice().getType().getTypeName());
 		view.setState(windowModel.getShutterPosition().getText(windowModel.getShutterPositionPercentage()));
 
 		if (windowModel.getShutterAutomation() != null) {
 			if (windowModel.getShutterAutomation()) {
 				view.setState(view.getState() + ", automatisch");
 				view.setLinkManual(
-						TOGGLE_DEV_ID_VAR + windowModel.getShutterDevice().programNamePrefix() + AUTOMATIC);
+						TOGGLE_DEV_ID_VAR + windowModel.getDevice().programNamePrefix() + AUTOMATIC);
 			} else {
 				view.setState(view.getState() + ", manuell");
-				view.setLinkAuto(
-						TOGGLE_DEV_ID_VAR + windowModel.getShutterDevice().programNamePrefix() + AUTOMATIC);
+				view.setLinkAuto(TOGGLE_DEV_ID_VAR + windowModel.getDevice().programNamePrefix() + AUTOMATIC);
 			}
 			view.setAutoInfoText(windowModel.getShutterAutomationInfoText());
 		}
@@ -329,9 +327,8 @@ public class HouseViewService {
 		if (shutterPosition == windowModel.getShutterPosition()) {
 			return "#";
 		} else {
-			return "/shutterSetPosition?devIdVar="
-					+ windowModel.getShutterDevice().accessKeyXmlApi(Datapoint.STATE) + "&shutterSetPosition="
-					+ shutterPosition.getControlPosition();
+			return "/shutterSetPosition?devIdVar=" + windowModel.getDevice().accessKeyXmlApi(Datapoint.STATE)
+					+ "&shutterSetPosition=" + shutterPosition.getControlPosition();
 		}
 	}
 

@@ -48,10 +48,19 @@ public class TextSynonymes {
 		TYPE_SYNONYMES.add(new Synonym<Type>("Warm", Type.CONCLUSION_OUTSIDE_TEMPERATURE));
 
 		CONTROL_SYNONYMES.add("Setze");
+		CONTROL_SYNONYMES.add("setzen");
 		CONTROL_SYNONYMES.add("Stelle");
+		CONTROL_SYNONYMES.add("stellen");
 		CONTROL_SYNONYMES.add("Schalte");
+		CONTROL_SYNONYMES.add("schalten");
 		CONTROL_SYNONYMES.add("Öffne");
+		CONTROL_SYNONYMES.add("öffnen");
 		CONTROL_SYNONYMES.add("Schließe");
+		CONTROL_SYNONYMES.add("schließen");
+		CONTROL_SYNONYMES.add("Steuere");
+		CONTROL_SYNONYMES.add("steuern");
+		CONTROL_SYNONYMES.add("Regle");
+		CONTROL_SYNONYMES.add("reglen");
 
 	}
 

@@ -3,7 +3,7 @@ package homecontroller.domain.model;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
-public class HeatingModel implements Serializable {
+public class Heating extends AbstractDeviceModel implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -13,12 +13,10 @@ public class HeatingModel implements Serializable {
 
 	private BigDecimal targetTemperature;
 
-	private Device deviceHeating;
-
 	// Needs programs: "...Manual", "...Boost" and variable "...Temperature"
 	private String programNamePrefix;
 
-	public HeatingModel() {
+	public Heating() {
 		super();
 	}
 
@@ -52,14 +50,6 @@ public class HeatingModel implements Serializable {
 
 	public void setProgramNamePrefix(String programNamePrefix) {
 		this.programNamePrefix = programNamePrefix;
-	}
-
-	public Device getDeviceHeating() {
-		return deviceHeating;
-	}
-
-	public void setDeviceHeating(Device deviceHeating) {
-		this.deviceHeating = deviceHeating;
 	}
 
 }

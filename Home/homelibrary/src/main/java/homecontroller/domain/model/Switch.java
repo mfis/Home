@@ -2,17 +2,15 @@ package homecontroller.domain.model;
 
 import java.io.Serializable;
 
-public class SwitchModel implements Serializable {
+public class Switch extends AbstractDeviceModel implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	public SwitchModel() {
+	public Switch() {
 		super();
 	}
 
 	private boolean state;
-
-	private Device device;
 
 	private Boolean automation;
 
@@ -24,14 +22,6 @@ public class SwitchModel implements Serializable {
 
 	public void setState(boolean state) {
 		this.state = state;
-	}
-
-	public Device getDevice() {
-		return device;
-	}
-
-	public void setDevice(Device device) {
-		this.device = device;
 	}
 
 	public Boolean getAutomation() {
