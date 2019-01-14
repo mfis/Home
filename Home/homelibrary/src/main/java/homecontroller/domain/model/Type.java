@@ -2,6 +2,7 @@ package homecontroller.domain.model;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 public enum Type {
@@ -37,4 +38,12 @@ public enum Type {
 	public List<Type> getSubTypes() {
 		return subTypes;
 	}
+
+	public List<Type> allTypes() {
+		List<Type> list = new LinkedList<>();
+		list.add(this);
+		list.addAll(subTypes);
+		return list;
+	}
+
 }

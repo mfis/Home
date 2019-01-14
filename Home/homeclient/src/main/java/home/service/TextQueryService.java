@@ -184,17 +184,13 @@ public class TextQueryService {
 	private Device lookupDevice(Place place, Type type) {
 
 		// search for device with place and type
+		// then search with optional sub-types
 		for (Device device : Device.values()) {
-			if (device.getPlace() == place && device.getType() == type && device.isTextQueryEnabled()) {
-				return device;
-			}
-		}
-
-		// then search with optional device sub-types
-		for (Device device : Device.values()) {
-			for (Type subType : device.getType().getSubTypes())
-				if (device.getPlace() == place && subType == type && device.isTextQueryEnabled()) {
-					return device;
+			for (Place devicePlaces : device.getPlace().allPlaces())
+				for (Type deviceTypes : device.getType().allTypes()) {
+					if (devicePlaces == place && deviceTypes == type && device.isTextQueryEnabled()) {
+						return device;
+					}
 				}
 		}
 
