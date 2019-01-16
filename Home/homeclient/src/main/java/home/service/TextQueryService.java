@@ -15,6 +15,7 @@ import home.domain.service.HouseViewService;
 import homecontroller.domain.model.AbstractDeviceModel;
 import homecontroller.domain.model.Climate;
 import homecontroller.domain.model.Device;
+import homecontroller.domain.model.Heating;
 import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.OutdoorClimate;
 import homecontroller.domain.model.Place;
@@ -55,7 +56,7 @@ public class TextQueryService {
 					+ type.getTypeName() + " nicht finden.";
 		}
 
-		return invokeQuery(lookupModelObject(house, device));
+		return invokeQuery(lookupModelObject(house, device, type));
 	}
 
 	private String invokeQuery(Object modelObject) {
@@ -63,8 +64,11 @@ public class TextQueryService {
 		if (modelObject instanceof Climate) {
 			return invokeQueryClimate((Climate) modelObject);
 		}
+		if (modelObject instanceof Heating) {
+			return invokeQueryHeating((Heating) modelObject);
+		}
 
-		return "Entschuldige, da hat etwas nicht funktioniert.";
+		return "Entschuldige, ich habe leider keinen Zugriff darauf.";
 	}
 
 	private String invokeQueryClimate(Climate climate) {
@@ -98,7 +102,30 @@ public class TextQueryService {
 		return builder.getText();
 	}
 
-	private Object lookupModelObject(HouseModel house, Device device) {
+	private String invokeQueryHeating(Heating heating) {
+
+		SentenceBuilder builder = SentenceBuilder.newInstance() //
+				.add(PlacePrepositions.getPreposition(heating.getDevice().getPlace())) //
+				.add(heating.getDevice().getPlace().getPlaceName()) //
+				.add("ist das Thermostat");
+
+		if (heating.isBoostActive()) {
+			builder //
+					.add("noch für") //
+					.add(Integer.toString(heating.getBoostMinutesLeft())) //
+					.add("Minuten auf schnelles Aufheizen"); //
+		} else {
+			builder //
+					.add("auf") //
+					.add(new DecimalFormat("0.0").format(heating.getTargetTemperature())) //
+					.add("Grad"); //
+		}
+		builder.add("eingestellt");
+
+		return builder.getText();
+	}
+
+	private Object lookupModelObject(HouseModel house, Device device, Type type) {
 
 		try {
 			for (Method method : house.getClass().getMethods()) {
@@ -106,15 +133,17 @@ public class TextQueryService {
 					Object model = method.invoke(house);
 					if (model instanceof AbstractDeviceModel) {
 						Device modelDevice = ((AbstractDeviceModel) model).getDevice();
-						Type subType = ((AbstractDeviceModel) model).getSubType();
-						if (modelDevice == device && (subType == null
-								|| modelDevice.getType().getSubTypes().contains(subType))) {
+						Type modelSubType = ((AbstractDeviceModel) model).getSubType();
+						if (modelDevice == device && (modelSubType == null && modelDevice.getType() == type)
+								|| modelSubType == type) {
 							return model;
 						}
 					}
 				}
 			}
-		} catch (Exception e) {
+		} catch (
+
+		Exception e) {
 			LogFactory.getLog(TextQueryService.class).error("Could not read model.", e);
 		}
 
