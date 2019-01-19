@@ -2,6 +2,8 @@ package home.service;
 
 import java.lang.reflect.Method;
 import java.text.DecimalFormat;
+import java.util.Arrays;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.LogFactory;
@@ -19,6 +21,7 @@ import homecontroller.domain.model.Heating;
 import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.OutdoorClimate;
 import homecontroller.domain.model.Place;
+import homecontroller.domain.model.Switch;
 import homecontroller.domain.model.Type;
 
 @Component
@@ -29,7 +32,7 @@ public class TextQueryService {
 
 	public String execute(HouseModel house, String input) {
 
-		String[] words = splitTextIntoWords(input);
+		List<String> words = splitTextIntoWords(input);
 		Place place = null;
 		Type type = null;
 		Device device = null;
@@ -66,6 +69,9 @@ public class TextQueryService {
 		}
 		if (modelObject instanceof Heating) {
 			return invokeQueryHeating((Heating) modelObject);
+		}
+		if (modelObject instanceof Switch) {
+			return invokeQuerySwitch((Switch) modelObject);
 		}
 
 		return "Entschuldige, ich habe leider keinen Zugriff darauf.";
@@ -125,6 +131,26 @@ public class TextQueryService {
 		return builder.getText();
 	}
 
+	private String invokeQuerySwitch(Switch powerswitch) {
+
+		SentenceBuilder builder = SentenceBuilder.newInstance() //
+				.add(PlacePrepositions.getPreposition(powerswitch.getDevice().getPlace())) //
+				.add(powerswitch.getDevice().getPlace().getPlaceName()) //
+				.add("ist der") //
+				.add(powerswitch.getDevice().getType().getTypeName()) //
+				.add(powerswitch.isState() ? "eingeschaltet" : "ausgeschaltet") //
+				.newSentence();
+
+		if (powerswitch.getAutomation() != null) {
+			builder //
+					.add("Die Bedienung ist zu Zeit auf") //
+					.add(powerswitch.getAutomation() ? "Automatik" : "manuell") //
+					.add("eingestellt");
+		}
+
+		return builder.getText();
+	}
+
 	private Object lookupModelObject(HouseModel house, Device device, Type type) {
 
 		try {
@@ -154,18 +180,19 @@ public class TextQueryService {
 		return method.getName().startsWith("get");
 	}
 
-	private String[] splitTextIntoWords(String text) {
+	private List<String> splitTextIntoWords(String text) {
 
 		text = StringUtils.remove(text, '.');
 		text = StringUtils.remove(text, ',');
 		text = StringUtils.remove(text, '!');
 		text = StringUtils.remove(text, '?');
 		text = StringUtils.remove(text, '\'');
+		text = text.toLowerCase();
 
-		return StringUtils.splitByWholeSeparator(text, StringUtils.SPACE);
+		return Arrays.asList(StringUtils.splitByWholeSeparator(text, StringUtils.SPACE));
 	}
 
-	private boolean lookupControlQuery(String[] words) {
+	private boolean lookupControlQuery(List<String> words) {
 		for (String word : words) {
 			for (String synonyme : TextSynonymes.getControlSynonymes()) {
 				if (synonyme.equalsIgnoreCase(word)) {
@@ -176,35 +203,25 @@ public class TextQueryService {
 		return false;
 	}
 
-	private Place lookupPlace(String[] placeStrings) {
+	private Place lookupPlace(List<String> words) {
 
-		for (String placeString : placeStrings) {
-			for (Place place : Place.values()) {
-				if (place.getPlaceName().equalsIgnoreCase(placeString)) {
-					return place;
-				}
-			}
-			for (Synonym<Place> entry : TextSynonymes.getPlaceSynonymes()) {
-				if (entry.getSynonymWord().equalsIgnoreCase(placeString)) {
-					return entry.getBase();
-				}
+		for (Synonym<Place> entry : TextSynonymes.getPlaceSynonymes()) {
+			List<String> synonym = Arrays.asList(
+					StringUtils.splitByWholeSeparator(entry.getSynonym().toLowerCase(), StringUtils.SPACE));
+			if (words.containsAll(synonym)) {
+				return entry.getBase();
 			}
 		}
 		return null;
 	}
 
-	private Type lookupType(String[] typeStrings) {
+	private Type lookupType(List<String> words) {
 
-		for (String typeString : typeStrings) {
-			for (Type type : Type.values()) {
-				if (type.getTypeName().equalsIgnoreCase(typeString)) {
-					return type;
-				}
-			}
-			for (Synonym<Type> entry : TextSynonymes.getTypeSynonymes()) {
-				if (entry.getSynonymWord().equalsIgnoreCase(typeString)) {
-					return entry.getBase();
-				}
+		for (Synonym<Type> entry : TextSynonymes.getTypeSynonymes()) {
+			List<String> synonym = Arrays.asList(
+					StringUtils.splitByWholeSeparator(entry.getSynonym().toLowerCase(), StringUtils.SPACE));
+			if (words.containsAll(synonym)) {
+				return entry.getBase();
 			}
 		}
 		return null;

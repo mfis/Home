@@ -14,6 +14,15 @@ public class TextSynonymes {
 	private static final List<String> CONTROL_SYNONYMES = new LinkedList<>();
 
 	static {
+
+		for (Place place : Place.values()) {
+			PLACE_SYNONYMES.add(new Synonym<Place>(place.getPlaceName(), place));
+		}
+
+		for (Type type : Type.values()) {
+			TYPE_SYNONYMES.add(new Synonym<Type>(type.getTypeName(), type));
+		}
+
 		PLACE_SYNONYMES.add(new Synonym<Place>("Bastian", Place.KIDSROOM));
 		PLACE_SYNONYMES.add(new Synonym<Place>("Bastians", Place.KIDSROOM));
 
@@ -35,13 +44,21 @@ public class TextSynonymes {
 		TYPE_SYNONYMES.add(new Synonym<Type>("sonnig", Type.SUN_SENSOR));
 
 		TYPE_SYNONYMES.add(new Synonym<Type>("Rollladen links", Type.SHUTTER_LEFT));
+		TYPE_SYNONYMES.add(new Synonym<Type>("Linke Rollladen", Type.SHUTTER_LEFT));
+		TYPE_SYNONYMES.add(new Synonym<Type>("Rollladen linken", Type.SHUTTER_LEFT));
 		TYPE_SYNONYMES.add(new Synonym<Type>("Rollo links", Type.SHUTTER_LEFT));
+		TYPE_SYNONYMES.add(new Synonym<Type>("Linkes Rollo", Type.SHUTTER_LEFT));
+		TYPE_SYNONYMES.add(new Synonym<Type>("Rollo linken", Type.SHUTTER_LEFT));
 
 		TYPE_SYNONYMES.add(new Synonym<Type>("Rollladen rechts", Type.SHUTTER_RIGHT));
-		TYPE_SYNONYMES.add(new Synonym<Type>("Rollo rechts", Type.SHUTTER_RIGHT));
+		TYPE_SYNONYMES.add(new Synonym<Type>("Rechte Rollladen", Type.SHUTTER_RIGHT));
+		TYPE_SYNONYMES.add(new Synonym<Type>("Rollladen rechten", Type.SHUTTER_RIGHT));
+		TYPE_SYNONYMES.add(new Synonym<Type>("Rechtes Rollo", Type.SHUTTER_RIGHT));
+		TYPE_SYNONYMES.add(new Synonym<Type>("Rollo rechten", Type.SHUTTER_RIGHT));
 
-		TYPE_SYNONYMES.add(new Synonym<Type>("Licht am Fenster", Type.SWITCH_WINDOWLIGHT));
-		TYPE_SYNONYMES.add(new Synonym<Type>("Licht", Type.SWITCH_WINDOWLIGHT));
+		TYPE_SYNONYMES.add(new Synonym<Type>("Licht (Fenster)", Type.SWITCH_WINDOWLIGHT));
+		TYPE_SYNONYMES.add(new Synonym<Type>("Lampe (Fenster)", Type.SWITCH_WINDOWLIGHT));
+		TYPE_SYNONYMES.add(new Synonym<Type>("Leuchte (Fenster)", Type.SWITCH_WINDOWLIGHT));
 
 		TYPE_SYNONYMES.add(new Synonym<Type>("Strom", Type.ELECTRIC_POWER));
 

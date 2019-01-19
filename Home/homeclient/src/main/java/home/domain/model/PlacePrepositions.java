@@ -11,6 +11,7 @@ public class PlacePrepositions {
 	private static final EnumMap<Place, String> PLACE_PREPOSITIONS = new EnumMap<>(Place.class);
 
 	static {
+		PLACE_PREPOSITIONS.put(Place.KITCHEN, "In der");
 		PLACE_PREPOSITIONS.put(Place.BATHROOM, "Im");
 		PLACE_PREPOSITIONS.put(Place.BEDROOM, "Im");
 		PLACE_PREPOSITIONS.put(Place.ENTRANCE, "Auf der");

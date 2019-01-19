@@ -2,12 +2,12 @@ package home.domain.model;
 
 public class Synonym<T> {
 
-	private final String synonymWord;
+	private final String synonym;
 
 	private final T base;
 
-	public Synonym(String synonymWord, T base) {
-		this.synonymWord = synonymWord;
+	public Synonym(String synonym, T base) {
+		this.synonym = synonym;
 		this.base = base;
 	}
 
@@ -15,8 +15,8 @@ public class Synonym<T> {
 		return base;
 	}
 
-	public String getSynonymWord() {
-		return synonymWord;
+	public String getSynonym() {
+		return synonym;
 	}
 
 }
