@@ -20,7 +20,11 @@ public class Synonym<T> {
 		this.base = base;
 	}
 
-	public static <T> Set<T> lookup(Class<T> t, List<String> words) {
+	public static void checkForCompoundWords(List<String> words) {
+
+	}
+
+	public static <T> Set<T> lookupSynonyms(Class<T> t, List<String> words) {
 
 		Map<T, SynonymMatch> matchingItems = new HashMap<>();
 		boolean hasOptionals = false;

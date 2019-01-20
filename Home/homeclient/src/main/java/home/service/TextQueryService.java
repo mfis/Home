@@ -46,12 +46,12 @@ public class TextQueryService {
 			return "Ich kann zur Zeit nur Werte auslesen. Die Stererung von Geräten ist noch nicht möglich.";
 		}
 
-		places = Synonym.lookup(Place.class, words);
+		places = Synonym.lookupSynonyms(Place.class, words);
 		if (places.isEmpty()) {
 			return "Entschuldige, ich habe nicht verstanden, welchen Raum oder Ort Du meinst.";
 		}
 
-		types = Synonym.lookup(Type.class, words);
+		types = Synonym.lookupSynonyms(Type.class, words);
 		if (types.isEmpty()) {
 			return "Entschuldige, ich habe nicht verstanden, welches Gerät Du meinst.";
 		}
