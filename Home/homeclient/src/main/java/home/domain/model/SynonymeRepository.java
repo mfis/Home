@@ -28,7 +28,8 @@ public class SynonymeRepository {
 		SYNONYMES.add(new Synonym<Place>("Außen|Draußen|Garten", Place.OUTSIDE));
 
 		SYNONYMES.add(new Synonym<Type>("Heizkörper|Heizung", Type.THERMOSTAT));
-		SYNONYMES.add(new Synonym<Type>("Temperatur|warm|kalt|Wetter", Type.THERMOMETER));
+		SYNONYMES.add(new Synonym<Type>("Temperatur|warm|kalt|Wärme|Kälte|Grad|Wetter|Luftfeuchtigkeit",
+				Type.THERMOMETER));
 		SYNONYMES.add(new Synonym<Type>("Sonne|sonnig|Schatten|schatting", Type.SUN_SENSOR));
 		SYNONYMES.add(new Synonym<Type>("sonnig", Type.SUN_SENSOR));
 		SYNONYMES.add(new Synonym<Type>("Rollade|Rollladen|Rollo|Rollos (links|linke|linken|linkes)",
@@ -37,7 +38,8 @@ public class SynonymeRepository {
 				Type.SHUTTER_RIGHT));
 		SYNONYMES.add(new Synonym<Type>("Licht|Lampe|Leuchte (Fenster)", Type.SWITCH_WINDOWLIGHT));
 		SYNONYMES.add(new Synonym<Type>("Strom", Type.ELECTRIC_POWER));
-		SYNONYMES.add(new Synonym<Type>("Thermometer|Temperatur|warm|kalt|Wetter",
+		SYNONYMES.add(new Synonym<Type>(
+				"Thermometer|Temperatur|warm|kalt|Wärme|Kälte|Grad|Wetter|sonnig|Sonne|Luftfeuchtigkeit",
 				Type.CONCLUSION_OUTSIDE_TEMPERATURE));
 
 		CONTROL_SYNONYMES.add("Setze");
