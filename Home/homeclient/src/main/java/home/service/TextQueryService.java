@@ -4,11 +4,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.DecimalFormat;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -41,7 +38,7 @@ public class TextQueryService {
 		List<String> words = splitTextIntoWords(input);
 		Set<Place> places = null;
 		Set<Type> types = null;
-		Map<Type, Device> devices = null;
+		List<TypeAndDevice> devices = null;
 		boolean controlQuery = false;
 
 		controlQuery = lookupControlQuery(words);
@@ -171,11 +168,11 @@ public class TextQueryService {
 		return builder.getText();
 	}
 
-	private List<Object> lookupModelObjects(HouseModel house, Map<Type, Device> map) {
+	private List<Object> lookupModelObjects(HouseModel house, List<TypeAndDevice> list) {
 
 		List<Object> modelObjects = new LinkedList<>();
 
-		for (Entry<Type, Device> entry : map.entrySet()) {
+		for (TypeAndDevice entry : list) {
 			Object object = lookupModelObject(house, entry);
 			if (object != null) {
 				modelObjects.add(object);
@@ -185,7 +182,7 @@ public class TextQueryService {
 		return modelObjects;
 	}
 
-	private Object lookupModelObject(HouseModel house, Entry<Type, Device> entry) {
+	private Object lookupModelObject(HouseModel house, TypeAndDevice entry) {
 
 		for (Method method : house.getClass().getMethods()) {
 			if (isGetter(method)) {
@@ -193,9 +190,9 @@ public class TextQueryService {
 				if (model instanceof AbstractDeviceModel) {
 					Device modelDevice = ((AbstractDeviceModel) model).getDevice();
 					Type modelSubType = ((AbstractDeviceModel) model).getSubType();
-					if (modelDevice == entry.getValue()
-							&& ((modelSubType == null && modelDevice.getType() == entry.getKey())
-									|| modelSubType == entry.getKey())) {
+					if (modelDevice == entry.device
+							&& ((modelSubType == null && modelDevice.getType() == entry.type)
+									|| modelSubType == entry.type)) {
 						return model;
 					}
 				}
@@ -240,20 +237,20 @@ public class TextQueryService {
 		return false;
 	}
 
-	private Map<Type, Device> lookupDevices(Set<Place> places, Set<Type> types) {
+	private List<TypeAndDevice> lookupDevices(Set<Place> places, Set<Type> types) {
 
-		Map<Type, Device> map = new LinkedHashMap<>();
+		List<TypeAndDevice> list = new LinkedList<>();
 
 		for (Place place : places) {
 			for (Type type : types) {
-				lookupDevice(map, place, type);
+				lookupDevice(list, place, type);
 			}
 		}
 
-		return map;
+		return list;
 	}
 
-	private void lookupDevice(Map<Type, Device> map, Place place, Type type) {
+	private void lookupDevice(List<TypeAndDevice> list, Place place, Type type) {
 
 		// search for device with place and type
 		// then search with optional sub-types
@@ -261,10 +258,21 @@ public class TextQueryService {
 			for (Place devicePlaces : device.getPlace().allPlaces()) {
 				for (Type deviceTypes : device.getType().allTypes()) {
 					if (devicePlaces == place && deviceTypes == type && device.isTextQueryEnabled()) {
-						map.put(type, device);
+						TypeAndDevice typeAndDevice = new TypeAndDevice();
+						typeAndDevice.type = type;
+						typeAndDevice.device = device;
+						list.add(typeAndDevice);
 					}
 				}
 			}
 		}
+	}
+
+	private class TypeAndDevice {
+
+		private Type type;
+
+		private Device device;
+
 	}
 }
