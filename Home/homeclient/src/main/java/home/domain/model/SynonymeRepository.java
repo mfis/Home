@@ -24,6 +24,7 @@ public class SynonymeRepository {
 
 		SYNONYMES.add(new Synonym<Place>("Bastian|Bastians", Place.KIDSROOM));
 		SYNONYMES.add(new Synonym<Place>("Badezimmer", Place.BATHROOM));
+		SYNONYMES.add(new Synonym<Place>("Küchen", Place.KITCHEN));
 		SYNONYMES.add(new Synonym<Place>("Außen|Draußen|Garten", Place.OUTSIDE));
 
 		SYNONYMES.add(new Synonym<Type>("Heizkörper|Heizung", Type.THERMOSTAT));
@@ -61,6 +62,10 @@ public class SynonymeRepository {
 
 	public static List<String> getControlSynonymes() {
 		return Collections.unmodifiableList(CONTROL_SYNONYMES);
+	}
+
+	public static List<Synonym<?>> getAllSynonymes() { // NOSONAR
+		return Collections.unmodifiableList(SYNONYMES);
 	}
 
 	@SuppressWarnings("unchecked")

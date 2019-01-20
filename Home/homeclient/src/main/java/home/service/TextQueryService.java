@@ -3,6 +3,7 @@ package home.service;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -223,7 +224,10 @@ public class TextQueryService {
 		text = StringUtils.remove(text, '\'');
 		text = text.toLowerCase();
 
-		return Arrays.asList(StringUtils.splitByWholeSeparator(text, StringUtils.SPACE));
+		List<String> words = Arrays.asList(StringUtils.splitByWholeSeparator(text, StringUtils.SPACE));
+		words = new ArrayList<>(words);
+		Synonym.checkForCompoundWords(words);
+		return words;
 	}
 
 	private boolean lookupControlQuery(List<String> words) {

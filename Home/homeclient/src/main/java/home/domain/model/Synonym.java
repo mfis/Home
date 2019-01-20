@@ -1,7 +1,9 @@
 package home.domain.model;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -22,6 +24,52 @@ public class Synonym<T> {
 
 	public static void checkForCompoundWords(List<String> words) {
 
+		List<Synonym<?>> allSynonymes = SynonymeRepository.getAllSynonymes();
+		List<String> synonymWordTokens = new LinkedList<>();
+		for (Synonym<?> synonym : allSynonymes) {
+			String expression = StringUtils.replace(synonym.getExpression(), "|", StringUtils.SPACE);
+			synonymWordTokens.addAll(Arrays.asList(StringUtils.split(expression, StringUtils.SPACE)));
+		}
+
+		synonymWordTokens.sort((String s1, String s2) -> Integer.compare(s1.length(), s2.length()) * -1);
+
+		for (int w = words.size() - 1; w > -1; w--) {
+			String word = words.get(w);
+			if (!synonymWordTokens.contains(word)) {
+				List<String> replacements = new LinkedList<>();
+				String wordOld;
+				do {
+					wordOld = word;
+					word = splitCompound(synonymWordTokens, wordOld, replacements);
+				} while (!word.equals(wordOld));
+				if (!replacements.isEmpty() && StringUtils.isBlank(word)) {
+					replaceCompound(words, w, replacements);
+				}
+			}
+		}
+	}
+
+	private static void replaceCompound(List<String> words, int w, List<String> replacements) {
+
+		for (int r = 0; r < replacements.size(); r++) {
+			if (r == 0) {
+				words.set(w + r, replacements.get(r).toLowerCase());
+			} else {
+				words.add(w + r, replacements.get(r).toLowerCase());
+			}
+		}
+	}
+
+	private static String splitCompound(List<String> synonymWordTokens, String word,
+			List<String> replacements) {
+
+		for (String synonymWordToken : synonymWordTokens) {
+			if (StringUtils.startsWithIgnoreCase(word, synonymWordToken)) {
+				replacements.add(synonymWordToken);
+				word = StringUtils.removeStartIgnoreCase(word, synonymWordToken);
+			}
+		}
+		return word;
 	}
 
 	public static <T> Set<T> lookupSynonyms(Class<T> t, List<String> words) {
