@@ -45,7 +45,13 @@ public class HouseViewService {
 	private static final BigDecimal LOW_TEMP = new BigDecimal("19");
 	private static final BigDecimal FROST_TEMP = new BigDecimal("3");
 
+	private static final int COMPARE_PERCENTAGE_GREEN_UNTIL = -1;
+	private static final int COMPARE_PERCENTAGE_GRAY_UNTIL = +2;
+	private static final int COMPARE_PERCENTAGE_ORANGE_UNTIL = +15;
+
+	private static final BigDecimal BD100 = new BigDecimal(100);
 	private static final long KWH_FACTOR = 1000L;
+
 	private static final DateTimeFormatter MONTH_YEAR_FORMATTER = DateTimeFormatter.ofPattern("MMM yyyy");
 
 	@Autowired
@@ -76,6 +82,7 @@ public class HouseViewService {
 		for (PowerConsumptionMonth pcm : history.getElectricPowerConsumption()) {
 			if (pcm.getPowerConsumption() != null) {
 				PowerHistoryEntry entry = new PowerHistoryEntry();
+				Long calculated = null;
 				entry.setKey(MONTH_YEAR_FORMATTER.format(pcm.measurePointMaxDateTime()));
 				entry.setValue(decimalFormat.format(pcm.getPowerConsumption() / KWH_FACTOR) + " kW/h");
 				if (index < history.getElectricPowerConsumption().size() - 3) {
@@ -83,11 +90,13 @@ public class HouseViewService {
 				}
 				if (index == history.getElectricPowerConsumption().size() - 1) {
 					if (pcm.measurePointMaxDateTime().getDayOfMonth() > 1) {
-						calculateProjectedConsumption(entry, pcm.measurePointMaxDateTime(), pcm);
+						calculated = calculateProjectedConsumption(entry, pcm.measurePointMaxDateTime(), pcm);
 					}
 					entry.setColorClass(" list-group-item-secondary");
 					entry.setKey(entry.getKey() + " bisher");
 				}
+				calculatePreviousYearDifference(entry, pcm, history.getElectricPowerConsumption(),
+						pcm.getPowerConsumption(), calculated);
 				list.add(entry);
 			}
 			index++;
@@ -97,7 +106,41 @@ public class HouseViewService {
 		model.addAttribute("power", list);
 	}
 
-	private void calculateProjectedConsumption(PowerHistoryEntry entry, LocalDateTime dateTime,
+	private void calculatePreviousYearDifference(PowerHistoryEntry entry, PowerConsumptionMonth pcm,
+			List<PowerConsumptionMonth> history, Long actual, Long calculated) {
+
+		DecimalFormat decimalFormat = new DecimalFormat("+0;-0");
+		LocalDateTime baseDateTime = pcm.measurePointMaxDateTime();
+		Long baseValue = calculated != null ? calculated : actual;
+		Long compareValue = null;
+
+		for (PowerConsumptionMonth historyEntry : history) {
+			LocalDateTime otherDateTime = historyEntry.measurePointMaxDateTime();
+			if (otherDateTime.getYear() + 1 == baseDateTime.getYear()
+					&& otherDateTime.getMonthValue() == baseDateTime.getMonthValue()) {
+				compareValue = historyEntry.getPowerConsumption();
+				break;
+			}
+		}
+
+		if (baseValue != null && compareValue != null) {
+			long diff = baseValue - compareValue;
+			BigDecimal percentage = new BigDecimal(diff)
+					.divide(new BigDecimal(baseValue), 4, RoundingMode.HALF_UP).multiply(BD100);
+			entry.setPreviousYearCompare(decimalFormat.format(percentage) + "%");
+			if (percentage.intValue() <= COMPARE_PERCENTAGE_GREEN_UNTIL) {
+				entry.setPreviousYearCompareClass("badge-success");
+			} else if (percentage.intValue() <= COMPARE_PERCENTAGE_GRAY_UNTIL) {
+				entry.setPreviousYearCompareClass("badge-secondary");
+			} else if (percentage.intValue() <= COMPARE_PERCENTAGE_ORANGE_UNTIL) {
+				entry.setPreviousYearCompareClass("badge-warning");
+			} else {
+				entry.setPreviousYearCompareClass("badge-danger");
+			}
+		}
+	}
+
+	private Long calculateProjectedConsumption(PowerHistoryEntry entry, LocalDateTime dateTime,
 			PowerConsumptionMonth pcm) {
 
 		YearMonth yearMonthObject = YearMonth.of(dateTime.getYear(), dateTime.getMonthValue());
@@ -109,8 +152,11 @@ public class HouseViewService {
 			BigDecimal calculated = actualValue
 					.add(actualValue.divide(new BigDecimal(hoursAgo), 2, RoundingMode.HALF_UP)
 							.multiply(new BigDecimal(hoursToGo)));
-			entry.setCalculated(new DecimalFormat("0").format(calculated.longValue() / KWH_FACTOR) + " kW/h");
+			entry.setCalculated(
+					"≈" + new DecimalFormat("0").format(calculated.longValue() / KWH_FACTOR) + " kW/h");
+			return calculated.longValue();
 		}
+		return null;
 	}
 
 	private String format(BigDecimal val, boolean rounded) {

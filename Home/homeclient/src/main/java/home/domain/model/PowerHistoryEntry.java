@@ -10,12 +10,17 @@ public class PowerHistoryEntry {
 
 	private String calculated;
 
+	private String previousYearCompare;
+
+	private String previousYearCompareClass;
+
 	private String collapse;
 
 	public PowerHistoryEntry() {
 		super();
 		colorClass = "";
 		calculated = "";
+		previousYearCompare = "";
 		collapse = "";
 	}
 
@@ -57,5 +62,21 @@ public class PowerHistoryEntry {
 
 	public void setCollapse(String collapse) {
 		this.collapse = collapse;
+	}
+
+	public String getPreviousYearCompare() {
+		return previousYearCompare;
+	}
+
+	public void setPreviousYearCompare(String previousYearCompare) {
+		this.previousYearCompare = previousYearCompare;
+	}
+
+	public String getPreviousYearCompareClass() {
+		return previousYearCompareClass;
+	}
+
+	public void setPreviousYearCompareClass(String previousYearCompareClass) {
+		this.previousYearCompareClass = previousYearCompareClass;
 	}
 }

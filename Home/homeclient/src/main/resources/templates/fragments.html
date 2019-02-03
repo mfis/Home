@@ -151,7 +151,7 @@
 			</script>
 				<button type="button" class="btn btn-link" data-toggle="modal" th:data-target="'#modalAuto' + ${model.id}">
 					<span 
-						class="badge badge-pill badge-secondary" th:text="'?'">
+						class="badge badge-secondary" th:text="'?'">
 					</span>
 				</button>
 				<!-- Modal -->
@@ -226,7 +226,7 @@
 			</script>
 				<button type="button" class="btn btn-link" data-toggle="modal" th:data-target="'#modalAuto' + ${model.id}">
 					<span 
-						class="badge badge-pill badge-secondary" th:text="'?'">
+						class="badge badge-secondary" th:text="'?'">
 					</span>
 				</button>
 				<!-- Modal -->
@@ -270,7 +270,7 @@
 		</h4>
 			
 		<th:block th:each="hint : ${model.hints}">
-			<span class="badge badge-pill badge-light" th:text="'Empfehlung: ' + ${hint}">hint</span>
+			<span class="badge badge-light" th:text="'Empfehlung: ' + ${hint}">hint</span>
 		</th:block>	
 	</div>
 	
@@ -333,16 +333,26 @@
 	</th:block>
 	
 	<!-- Strom Listen Eintrag -->
-	<th:block th:fragment="powerEntry (month, energy, calculated, colorClass, collapse)">
-	  <div th:class="'list-group-item' + ${colorClass} + ' flex-column align-items-start' + ${collapse}">
+	
+	month=${entry.key}, energy=${entry.value}, calculated=${entry.calculated}, colorClass=${entry.colorClass}, collapse=${entry.collapse}
+	
+	<th:block th:fragment="powerEntry (entry)">
+	  <div th:class="'list-group-item' + ${entry.colorClass} + ' flex-column align-items-start' + ${entry.collapse}">
 	    <div class="d-flex w-100 justify-content-between">
-	      <a class="mb-1" th:text="${month}">List group item heading</a>
-	      <h4 th:text="${energy}">3 days ago</h4>
+	      <a class="mb-1" th:text="${entry.key}">List group item heading</a>
+	      <h4 th:text="${entry.value}">x kW/h</h4>
 	    </div>
-	    <div th:if="${!#strings.isEmpty(calculated)}" class="d-flex w-100 justify-content-between">
-	      <a class="mb-1">hochgerechnet</a>
-	      <h4 th:text="${calculated}">3 days ago</h4>
-	    </div>	    
+	    <div th:if="${!#strings.isEmpty(entry.calculated)}" class="d-flex w-100 justify-content-between">
+	      <a class="mb-1">Hochgerechnet</a>
+	      <h4 th:text="${entry.calculated}">3 days ago</h4>
+	    </div>
+	    <div th:if="${!#strings.isEmpty(entry.previousYearCompare)}" class="d-flex w-100 justify-content-end">
+		  <div>
+		  	<span 	
+				th:class="'badge ' + ${entry.previousYearCompareClass}" th:text="${entry.previousYearCompare}">
+			</span>
+		  </div>	      	
+	    </div>	
 	  </div>
 	</th:block>
 
