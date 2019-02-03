@@ -17,7 +17,7 @@
 		<div style="height: 10px;"></div>
 		<div class="list-group">
 			<th:block th:each="entry : ${power}">
-				<div th:replace="fragments :: powerEntry (month=${entry.key}, energy=${entry.value}, calculated=${entry.calculated}, colorClass=${entry.colorClass}, collapse=${entry.collapse})"></div>
+				<div th:replace="fragments :: powerEntry (entry=${entry})"></div>
 			</th:block>
 		</div>
 
