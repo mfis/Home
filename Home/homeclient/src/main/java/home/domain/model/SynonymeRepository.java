@@ -53,6 +53,14 @@ public class SynonymeRepository {
 		
 		SYNONYMES.add(new Synonym<Integer>("ein|eins", 1));
 		SYNONYMES.add(new Synonym<Integer>("zwei", 2));
+		SYNONYMES.add(new Synonym<Integer>("drei", 3));
+		SYNONYMES.add(new Synonym<Integer>("vier", 4));
+		SYNONYMES.add(new Synonym<Integer>("fünf", 5));
+		SYNONYMES.add(new Synonym<Integer>("sechs", 6));
+		SYNONYMES.add(new Synonym<Integer>("sieben", 7));
+		SYNONYMES.add(new Synonym<Integer>("acht", 8));
+		SYNONYMES.add(new Synonym<Integer>("neun", 9));
+		SYNONYMES.add(new Synonym<Integer>("zehn", 10));
 		
 		CONTROL_SYNONYMES.add("Setze");
 		CONTROL_SYNONYMES.add("setzen");

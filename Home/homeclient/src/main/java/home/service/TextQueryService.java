@@ -194,9 +194,8 @@ public class TextQueryService {
 				if (model instanceof AbstractDeviceModel) {
 					Device modelDevice = ((AbstractDeviceModel) model).getDevice();
 					Type modelSubType = ((AbstractDeviceModel) model).getSubType();
-					if (modelDevice == entry.device
-							&& ((modelSubType == null && modelDevice.getType() == entry.type)
-									|| modelSubType == entry.type)) {
+					if (modelDevice == entry.device && ((modelSubType == null && modelDevice.getType() == entry.type)
+							|| modelSubType == entry.type)) {
 						return model;
 					}
 				}
@@ -245,29 +244,36 @@ public class TextQueryService {
 	}
 
 	private QueryValue lookupValue(List<String> words) {
-		
+
 		QueryValue queryValue = new QueryValue();
-		
+
 		Set<ShutterPosition> shutterPositionValues = Synonym.lookupSynonyms(ShutterPosition.class, words);
-		if(shutterPositionValues.size()==1) {
+		if (shutterPositionValues.size() == 1) {
 			queryValue.setShutterPositionValue(shutterPositionValues.iterator().next());
 		}
-		
+
 		Set<Boolean> booleanValues = Synonym.lookupSynonyms(Boolean.class, words);
-		if(booleanValues.size()==1) {
+		if (booleanValues.size() == 1) {
 			queryValue.setBooleanValue(booleanValues.iterator().next());
 		}
-		
+
 		for (String word : words) {
-			if(StringUtils.isNumeric(word)) {
+			if (StringUtils.isNumeric(word)) {
 				queryValue.setIntegerValue(Integer.parseInt(word));
 				break;
 			}
 		}
-		
+
+		if (queryValue.getIntegerValue() == null) {
+			Set<Integer> integerValues = Synonym.lookupSynonyms(Integer.class, words);
+			if (integerValues.size() == 1) {
+				queryValue.setIntegerValue(integerValues.iterator().next());
+			}
+		}
+
 		return queryValue;
 	}
-	
+
 	private List<TypeAndDevice> lookupDevices(Set<Place> places, Set<Type> types) {
 
 		List<TypeAndDevice> list = new LinkedList<>();
