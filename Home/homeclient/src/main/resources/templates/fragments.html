@@ -346,13 +346,25 @@
 	      <a class="mb-1">Hochgerechnet</a>
 	      <h4 th:text="${entry.calculated}">3 days ago</h4>
 	    </div>
-	    <div th:if="${!#strings.isEmpty(entry.previousYearCompare)}" class="d-flex w-100 justify-content-end">
-		  <div>
-		  	<span 	
-				th:class="'badge ' + ${entry.previousYearCompareClass}" th:text="${entry.previousYearCompare}">
-			</span>
-		  </div>	      	
-	    </div>	
+	    <th:block th:if="${#strings.isEmpty(entry.calculated)}">
+		    <div th:if="${!#strings.isEmpty(entry.previousYearCompare)}" class="d-flex w-100 justify-content-end">
+			  <div>
+			  	<span 	
+					th:class="'badge ' + ${entry.previousYearCompareClass}" th:text="${entry.previousYearCompare}">
+				</span>
+			  </div>	      	
+		    </div>	
+	    </th:block>
+	    <th:block th:if="${!#strings.isEmpty(entry.calculated)}">
+		    <div th:if="${!#strings.isEmpty(entry.previousYearCompare)}" class="d-flex w-100 justify-content-between">
+		    <a class="mb-1">Vergleich Vorjahr</a>
+			  <div>
+			  	<span 	
+					th:class="'badge ' + ${entry.previousYearCompareClass}" th:text="${entry.previousYearCompare}">
+				</span>
+			  </div>	      	
+		    </div>	    
+	    </th:block>	    
 	  </div>
 	</th:block>
 
