@@ -10,6 +10,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @PropertySource(value = "classpath:application.properties")
 @PropertySource(value = "file:/Users/mfi/documents/config/homecontroller.properties", ignoreResourceNotFound = true)
 @PropertySource(value = "file:/home/homecontroller/homecontroller.properties", ignoreResourceNotFound = true)
+@PropertySource(value = "file:///C:/Users/Matthias/home/homecontroller/application.properties", ignoreResourceNotFound = true)
 public class Application {
 	public static void main(String[] args) {
 		SpringApplication.run(Application.class, args);
