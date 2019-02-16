@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import home.domain.model.PlacePrepositions;
+import home.domain.model.QueryValue;
 import home.domain.model.Synonym;
 import home.domain.model.SynonymeRepository;
 import home.domain.service.HouseViewService;
@@ -25,6 +26,7 @@ import homecontroller.domain.model.Heating;
 import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.OutdoorClimate;
 import homecontroller.domain.model.Place;
+import homecontroller.domain.model.ShutterPosition;
 import homecontroller.domain.model.Switch;
 import homecontroller.domain.model.Type;
 
@@ -41,10 +43,11 @@ public class TextQueryService {
 		Set<Type> types = null;
 		List<TypeAndDevice> devices = null;
 		boolean controlQuery = false;
+		QueryValue value;
 
 		controlQuery = lookupControlQuery(words);
 		if (controlQuery) {
-			return "Ich kann zur Zeit nur Werte auslesen. Die Stererung von Geräten ist noch nicht möglich.";
+			value = lookupValue(words);
 		}
 
 		places = Synonym.lookupSynonyms(Place.class, words);
@@ -241,6 +244,30 @@ public class TextQueryService {
 		return false;
 	}
 
+	private QueryValue lookupValue(List<String> words) {
+		
+		QueryValue queryValue = new QueryValue();
+		
+		Set<ShutterPosition> shutterPositionValues = Synonym.lookupSynonyms(ShutterPosition.class, words);
+		if(shutterPositionValues.size()==1) {
+			queryValue.setShutterPositionValue(shutterPositionValues.iterator().next());
+		}
+		
+		Set<Boolean> booleanValues = Synonym.lookupSynonyms(Boolean.class, words);
+		if(booleanValues.size()==1) {
+			queryValue.setBooleanValue(booleanValues.iterator().next());
+		}
+		
+		for (String word : words) {
+			if(StringUtils.isNumeric(word)) {
+				queryValue.setIntegerValue(Integer.parseInt(word));
+				break;
+			}
+		}
+		
+		return queryValue;
+	}
+	
 	private List<TypeAndDevice> lookupDevices(Set<Place> places, Set<Type> types) {
 
 		List<TypeAndDevice> list = new LinkedList<>();

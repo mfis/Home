@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import homecontroller.domain.model.Place;
+import homecontroller.domain.model.ShutterPosition;
 import homecontroller.domain.model.Type;
 
 public class SynonymeRepository {
@@ -41,7 +42,18 @@ public class SynonymeRepository {
 		SYNONYMES.add(new Synonym<Type>(
 				"Thermometer|Temperatur|warm|kalt|Wärme|Kälte|Grad|Wetter|sonnig|Sonne|Luftfeuchtigkeit",
 				Type.CONCLUSION_OUTSIDE_TEMPERATURE));
+		
+		SYNONYMES.add(new Synonym<ShutterPosition>("öffne|hoch|oben", ShutterPosition.OPEN));
+		SYNONYMES.add(new Synonym<ShutterPosition>("halb|halbe|Hälfte", ShutterPosition.HALF));
+		SYNONYMES.add(new Synonym<ShutterPosition>("Sonnenschutz|Sonne|Schatten|Beschattung", ShutterPosition.SUNSHADE));
+		SYNONYMES.add(new Synonym<ShutterPosition>("schließe|schliesse|runter|herunter|unten", ShutterPosition.CLOSE));
 
+		SYNONYMES.add(new Synonym<Boolean>("ein|an|öffne", Boolean.TRUE));
+		SYNONYMES.add(new Synonym<Boolean>("aus|schließe|schliesse", Boolean.FALSE));
+		
+		SYNONYMES.add(new Synonym<Integer>("ein|eins", 1));
+		SYNONYMES.add(new Synonym<Integer>("zwei", 2));
+		
 		CONTROL_SYNONYMES.add("Setze");
 		CONTROL_SYNONYMES.add("setzen");
 		CONTROL_SYNONYMES.add("Stelle");
