@@ -43,7 +43,7 @@ public class TextQueryService {
 		Set<Type> types = null;
 		List<TypeAndDevice> devices = null;
 		boolean controlQuery = false;
-		QueryValue value;
+		QueryValue value = null;
 
 		controlQuery = lookupControlQuery(words);
 		if (controlQuery) {
@@ -65,14 +65,14 @@ public class TextQueryService {
 			return "Entschuldige, für den angegbenen Ort konnte ich kein passendes Gerät finden.";
 		}
 
-		return invokeQueries(lookupModelObjects(house, devices));
+		return invokeQueries(lookupModelObjects(house, devices), controlQuery, value);
 	}
 
-	private String invokeQueries(List<Object> modelObjects) {
+	private String invokeQueries(List<AbstractDeviceModel> modelObjects, boolean controlQuery, QueryValue value) {
 
 		StringBuilder sb = new StringBuilder(300);
-		for (Object modelObject : modelObjects) {
-			sb.append(invokeQuery(modelObject));
+		for (AbstractDeviceModel modelObject : modelObjects) {
+			sb.append(invokeQuery(modelObject, controlQuery, value));
 		}
 
 		String response = sb.toString();
@@ -83,16 +83,26 @@ public class TextQueryService {
 		}
 	}
 
-	private String invokeQuery(Object modelObject) {
+	private String invokeQuery(AbstractDeviceModel modelObject, boolean controlQuery, QueryValue value) {
+
+		if (controlQuery && !modelObject.getDevice().isControllable()) {
+			return "Entschuldige, dieses Gerät ist nicht steuerbar.";
+		}
+
+		if (controlQuery && value != null && modelObject.getDevice().isControllable()) {
+			if (!value.matchesDevice(modelObject.getDevice())) {
+				return "Entschuldige, ich habe nicht verstanden, auf welchen Wert ich das Gerät einstellen soll.";
+			}
+		}
 
 		if (modelObject instanceof Climate) {
 			return invokeQueryClimate((Climate) modelObject);
 		}
 		if (modelObject instanceof Heating) {
-			return invokeQueryHeating((Heating) modelObject);
+			return invokeQueryHeating((Heating) modelObject, controlQuery, value);
 		}
 		if (modelObject instanceof Switch) {
-			return invokeQuerySwitch((Switch) modelObject);
+			return invokeQuerySwitch((Switch) modelObject, controlQuery, value);
 		}
 
 		return StringUtils.EMPTY;
@@ -129,9 +139,21 @@ public class TextQueryService {
 		return builder.getText();
 	}
 
-	private String invokeQueryHeating(Heating heating) {
+	private String invokeQueryHeating(Heating heating, boolean controlQuery, QueryValue value) {
 
-		SentenceBuilder builder = SentenceBuilder.newInstance() //
+		SentenceBuilder builder = SentenceBuilder.newInstance();
+
+		if (controlQuery) {
+			if (value.getBooleanValue() != null) {
+				// TODO: BOOST
+			} else if (value.getIntegerValue() != null) {
+				// TODO: HEATING
+			}
+			builder.add("Erledigt");
+			builder.newSentence();
+		}
+
+		builder //
 				.add(PlacePrepositions.getPreposition(heating.getDevice().getPlace())) //
 				.add(heating.getDevice().getPlace().getPlaceName()) //
 				.add("ist das Thermostat");
@@ -152,9 +174,21 @@ public class TextQueryService {
 		return builder.getText();
 	}
 
-	private String invokeQuerySwitch(Switch powerswitch) {
+	private String invokeQuerySwitch(Switch powerswitch, boolean controlQuery, QueryValue value) {
 
-		SentenceBuilder builder = SentenceBuilder.newInstance() //
+		SentenceBuilder builder = SentenceBuilder.newInstance();
+
+		if (controlQuery) {
+			if (value.getBooleanValue() != null) {
+				// TODO: AUTOMATION STATE
+			} else if (value.getAutomationState() != null) {
+				// TODO: SWITCH
+			}
+			builder.add("Erledigt");
+			builder.newSentence();
+		}
+
+		builder //
 				.add(PlacePrepositions.getPreposition(powerswitch.getDevice().getPlace())) //
 				.add(powerswitch.getDevice().getPlace().getPlaceName()) //
 				.add("ist der") //
@@ -172,12 +206,12 @@ public class TextQueryService {
 		return builder.getText();
 	}
 
-	private List<Object> lookupModelObjects(HouseModel house, List<TypeAndDevice> list) {
+	private List<AbstractDeviceModel> lookupModelObjects(HouseModel house, List<TypeAndDevice> list) {
 
-		List<Object> modelObjects = new LinkedList<>();
+		List<AbstractDeviceModel> modelObjects = new LinkedList<>();
 
 		for (TypeAndDevice entry : list) {
-			Object object = lookupModelObject(house, entry);
+			AbstractDeviceModel object = lookupModelObject(house, entry);
 			if (object != null) {
 				modelObjects.add(object);
 			}
@@ -186,7 +220,7 @@ public class TextQueryService {
 		return modelObjects;
 	}
 
-	private Object lookupModelObject(HouseModel house, TypeAndDevice entry) {
+	private AbstractDeviceModel lookupModelObject(HouseModel house, TypeAndDevice entry) {
 
 		for (Method method : house.getClass().getMethods()) {
 			if (isGetter(method)) {
@@ -196,7 +230,7 @@ public class TextQueryService {
 					Type modelSubType = ((AbstractDeviceModel) model).getSubType();
 					if (modelDevice == entry.device && ((modelSubType == null && modelDevice.getType() == entry.type)
 							|| modelSubType == entry.type)) {
-						return model;
+						return (AbstractDeviceModel) model;
 					}
 				}
 			}

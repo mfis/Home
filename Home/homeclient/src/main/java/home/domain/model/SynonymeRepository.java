@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import homecontroller.domain.model.AutomationState;
 import homecontroller.domain.model.Place;
 import homecontroller.domain.model.ShutterPosition;
 import homecontroller.domain.model.Type;
@@ -43,6 +44,9 @@ public class SynonymeRepository {
 				"Thermometer|Temperatur|warm|kalt|Wärme|Kälte|Grad|Wetter|sonnig|Sonne|Luftfeuchtigkeit",
 				Type.CONCLUSION_OUTSIDE_TEMPERATURE));
 		
+		SYNONYMES.add(new Synonym<AutomationState>("automatisch|automatik|automation", AutomationState.AUTOMATIC));
+		SYNONYMES.add(new Synonym<AutomationState>("manuell|manuelle", AutomationState.MANUAL));
+		
 		SYNONYMES.add(new Synonym<ShutterPosition>("öffne|hoch|oben", ShutterPosition.OPEN));
 		SYNONYMES.add(new Synonym<ShutterPosition>("halb|halbe|Hälfte", ShutterPosition.HALF));
 		SYNONYMES.add(new Synonym<ShutterPosition>("Sonnenschutz|Sonne|Schatten|Beschattung", ShutterPosition.SUNSHADE));
@@ -61,6 +65,16 @@ public class SynonymeRepository {
 		SYNONYMES.add(new Synonym<Integer>("acht", 8));
 		SYNONYMES.add(new Synonym<Integer>("neun", 9));
 		SYNONYMES.add(new Synonym<Integer>("zehn", 10));
+		SYNONYMES.add(new Synonym<Integer>("elf", 11));
+		SYNONYMES.add(new Synonym<Integer>("zwölf", 12));
+		SYNONYMES.add(new Synonym<Integer>("dreizehn", 13));
+		SYNONYMES.add(new Synonym<Integer>("vierzehn", 14));
+		SYNONYMES.add(new Synonym<Integer>("fünfzehn", 15));
+		SYNONYMES.add(new Synonym<Integer>("sechzehn", 16));
+		SYNONYMES.add(new Synonym<Integer>("siebzehn", 17));
+		SYNONYMES.add(new Synonym<Integer>("achtzehn", 18));
+		SYNONYMES.add(new Synonym<Integer>("neunzehn", 19));
+		SYNONYMES.add(new Synonym<Integer>("zwanzig", 20));
 		
 		CONTROL_SYNONYMES.add("Setze");
 		CONTROL_SYNONYMES.add("setzen");
