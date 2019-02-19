@@ -39,8 +39,9 @@ import homecontroller.domain.model.Window;
 @Component
 public class HouseViewService {
 
-	private static final String TOGGLE_DEV_ID_VAR = "/toggle?devIdVar=";
-	private static final String AUTOMATIC = "Automatic";
+	private static final String TOGGLE_STATE = "/togglestate?deviceName=";
+	private static final String TOGGLE_AUTOMATION = "/toggleautomation?deviceName=";
+	
 	private static final BigDecimal HIGH_TEMP = new BigDecimal("25");
 	private static final BigDecimal LOW_TEMP = new BigDecimal("19");
 	private static final BigDecimal FROST_TEMP = new BigDecimal("3");
@@ -332,19 +333,19 @@ public class HouseViewService {
 			if (switchModel.getAutomation()) {
 				view.setState(view.getState() + ", automatisch");
 				view.setLinkManual(
-						TOGGLE_DEV_ID_VAR + switchModel.getDevice().programNamePrefix() + AUTOMATIC);
+						TOGGLE_AUTOMATION + switchModel.getDevice().name() + "&booleanValue=false");
 			} else {
 				view.setState(view.getState() + ", manuell");
-				view.setLinkAuto(TOGGLE_DEV_ID_VAR + switchModel.getDevice().programNamePrefix() + AUTOMATIC);
+				view.setLinkAuto(TOGGLE_AUTOMATION + switchModel.getDevice().name() + "&booleanValue=true");
 			}
 			view.setAutoInfoText(StringUtils.trimToEmpty(switchModel.getAutomationInfoText()));
 		}
 		view.setLabel(switchModel.isState() ? "ausschalten" : "einschalten");
 		view.setIcon(switchModel.isState() ? "fas fa-toggle-on" : "fas fa-toggle-off");
-		view.setLink(TOGGLE_DEV_ID_VAR + switchModel.getDevice().accessKeyXmlApi(Datapoint.STATE));
+		view.setLink(TOGGLE_STATE + switchModel.getDevice().name() + "&booleanValue=" + !switchModel.isState());
 		model.addAttribute(viewKey, view);
 	}
-
+ 
 	private void formatWindow(Model model, String viewKey, Window windowModel) {
 
 		ShutterView view = new ShutterView();
@@ -356,10 +357,10 @@ public class HouseViewService {
 			if (windowModel.getShutterAutomation()) {
 				view.setState(view.getState() + ", automatisch");
 				view.setLinkManual(
-						TOGGLE_DEV_ID_VAR + windowModel.getDevice().programNamePrefix() + AUTOMATIC);
+						TOGGLE_AUTOMATION + windowModel.getDevice().name() + "&booleanValue=false");
 			} else {
 				view.setState(view.getState() + ", manuell");
-				view.setLinkAuto(TOGGLE_DEV_ID_VAR + windowModel.getDevice().programNamePrefix() + AUTOMATIC);
+				view.setLinkAuto(TOGGLE_AUTOMATION + windowModel.getDevice().name() + "&booleanValue=true");
 			}
 			view.setAutoInfoText(windowModel.getShutterAutomationInfoText());
 		}

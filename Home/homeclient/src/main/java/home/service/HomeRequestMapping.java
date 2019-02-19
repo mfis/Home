@@ -51,23 +51,23 @@ public class HomeRequestMapping {
 	@Autowired
 	private RestTemplate restTemplate;
 
-	@RequestMapping("/textquery")
-	public String textquery(Model model, @RequestParam("text") String text, @RequestParam("user") String user,
-			@RequestParam("pass") String pass) {
-		// call(env.getProperty(CONTROLLER_URL) + "toggle", ActionModel.class,
-		// new URIParameter().add("devIdVar", devIdVar).build());
-		HouseModel house = call(env.getProperty(CONTROLLER_URL) + "actualstate", HouseModel.class,
-				new URIParameter().build());
-		model.addAttribute("responsetext", textQueryService.execute(house, text));
-		return "textquery";
-	}
-
-	@RequestMapping("/toggle")
-	public String toggle(@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
-			@RequestParam("devIdVar") String devIdVar, @RequestParam(name = "y", required = false) String y) {
+	@RequestMapping("/togglestate")
+	public String togglestate(@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
+			@RequestParam("deviceName") String deviceName, @RequestParam("booleanValue") String booleanValue,
+			@RequestParam(name = "y", required = false) String y) {
 		saveYPos(userCookie, y);
-		call(env.getProperty(CONTROLLER_URL) + "toggle", ActionModel.class,
-				new URIParameter().add("devIdVar", devIdVar).build());
+		call(env.getProperty(CONTROLLER_URL) + "togglestate", ActionModel.class,
+				new URIParameter().add("deviceName", deviceName).add("booleanValue", booleanValue).build());
+		return REDIRECT + Pages.PATH_HOME;
+	}
+	
+	@RequestMapping("/toggleautomation")
+	public String toggleautomation(@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
+			@RequestParam("deviceName") String deviceName, @RequestParam("booleanValue") String booleanValue,
+			@RequestParam(name = "y", required = false) String y) {
+		saveYPos(userCookie, y);
+		call(env.getProperty(CONTROLLER_URL) + "toggleautomation", ActionModel.class,
+				new URIParameter().add("deviceName", deviceName).add("booleanValue", booleanValue).build());
 		return REDIRECT + Pages.PATH_HOME;
 	}
 
@@ -92,12 +92,11 @@ public class HomeRequestMapping {
 
 	@RequestMapping("/shutterSetPosition")
 	public String shutterSetPosition(@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
-			@RequestParam("devIdVar") String devIdVar,
-			@RequestParam("positionPercentage") String positionPercentage,
+			@RequestParam("devIdVar") String devIdVar, @RequestParam("positionPercentage") String positionPercentage,
 			@RequestParam(name = "y", required = false) String y) {
 		saveYPos(userCookie, y);
-		call(env.getProperty(CONTROLLER_URL) + "shutterSetPosition", ActionModel.class, new URIParameter()
-				.add("devIdVar", devIdVar).add("positionPercentage", positionPercentage).build());
+		call(env.getProperty(CONTROLLER_URL) + "shutterSetPosition", ActionModel.class,
+				new URIParameter().add("devIdVar", devIdVar).add("positionPercentage", positionPercentage).build());
 		return REDIRECT + Pages.PATH_HOME;
 	}
 
@@ -115,6 +114,16 @@ public class HomeRequestMapping {
 				new URIParameter().add("user", ExternalPropertiesDAO.getInstance().read(userCookie))
 						.add("device", pushoverDevice).build());
 		return REDIRECT + Pages.PATH_SETTINGS;
+	}
+	
+
+	@RequestMapping("/textquery")
+	public String textquery(Model model, @RequestParam("text") String text, @RequestParam("user") String user,
+			@RequestParam("pass") String pass) {
+		HouseModel house = call(env.getProperty(CONTROLLER_URL) + "actualstate", HouseModel.class,
+				new URIParameter().build());
+		model.addAttribute("responsetext", textQueryService.execute(house, text));
+		return "textquery";
 	}
 
 	@RequestMapping(Pages.PATH_HOME)
@@ -157,7 +166,7 @@ public class HomeRequestMapping {
 	}
 
 	private void saveYPos(String userCookie, String y) {
-		if (y != null) {
+		if (y != null && userCookie !=null) {
 			String user = ExternalPropertiesDAO.getInstance().read(userCookie);
 			ViewAttributesDAO.getInstance().push(user, ViewAttributesDAO.Y_POS_HOME, y);
 		}
@@ -195,8 +204,7 @@ public class HomeRequestMapping {
 
 	HttpHeaders createHeaders() {
 
-		String plainClientCredentials = env.getProperty("controller.user") + ":"
-				+ env.getProperty("controller.pass");
+		String plainClientCredentials = env.getProperty("controller.user") + ":" + env.getProperty("controller.pass");
 		String base64ClientCredentials = new String(Base64.encodeBase64(plainClientCredentials.getBytes()));
 
 		HttpHeaders headers = new HttpHeaders();

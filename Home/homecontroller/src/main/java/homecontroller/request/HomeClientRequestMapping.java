@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import homecontroller.dao.ModelDAO;
 import homecontroller.domain.model.ActionModel;
+import homecontroller.domain.model.Device;
 import homecontroller.domain.model.HistoryModel;
 import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.SettingsModel;
@@ -22,9 +23,15 @@ public class HomeClientRequestMapping {
 	@Autowired
 	private SettingsService settingsService;
 
-	@PostMapping("/controller/toggle")
-	public ActionModel toggle(@RequestParam("devIdVar") String devIdVar) {
-		houseService.toggle(devIdVar);
+	@PostMapping("/controller/togglestate")
+	public ActionModel togglestate(@RequestParam("deviceName") String deviceName, @RequestParam("booleanValue") String booleanValue) {
+		houseService.togglestate(Device.valueOf(deviceName), Boolean.valueOf(booleanValue));
+		return new ActionModel("OK");
+	}
+	
+	@PostMapping("/controller/toggleautomation")
+	public ActionModel toggleautomation(@RequestParam("deviceName") String deviceName, @RequestParam("booleanValue") String booleanValue) {
+		houseService.toggleautomation(Device.valueOf(deviceName), Boolean.valueOf(booleanValue));
 		return new ActionModel("OK");
 	}
 

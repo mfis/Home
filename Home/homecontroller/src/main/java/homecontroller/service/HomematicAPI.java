@@ -77,19 +77,27 @@ public class HomematicAPI {
 		}
 	}
 
-	public void changeValue(String key, String value) {
+	private void changeValue(String key, String value) {
 		String iseID = currentStateIDs.get(key);
 		String url = host + "/addons/xmlapi/statechange.cgi?ise_id=" + iseID + "&new_value=" + value;
 		documentFromUrl(url);
 	}
 
-	public void toggleBooleanState(String key) {
+	public void changeBooleanState(String key, boolean value) {
 
 		changeValue("refreshadress", env.getProperty("refresh.adress"));
 
 		String iseID = currentStateIDs.get(key);
 		String url = host + "/addons/xmlapi/statechange.cgi?ise_id=" + iseID + "&new_value="
-				+ Boolean.toString(!getAsBoolean(key));
+				+ Boolean.toString(value);
+		documentFromUrl(url);
+	}
+	
+	public void changeString(String key, String value) {
+
+		String iseID = currentStateIDs.get(key);
+		String url = host + "/addons/xmlapi/statechange.cgi?ise_id=" + iseID + "&new_value="
+				+ value;
 		documentFromUrl(url);
 	}
 

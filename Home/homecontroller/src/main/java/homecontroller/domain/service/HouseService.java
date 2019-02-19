@@ -56,6 +56,8 @@ public class HouseService {
 
 	private static final Object REFRESH_MONITOR = new Object();
 	private static final long REFRESH_TIMEOUT = 5L * 1000L; // 5 sec
+	
+	private static final String AUTOMATIC = "Automatic";
 
 	@Autowired
 	private HomematicAPI api;
@@ -316,17 +318,22 @@ public class HouseService {
 		}
 	}
 
-	public void toggle(String devIdVar) {
-		api.toggleBooleanState(devIdVar);
+	public void togglestate(Device device, boolean value) {
+		api.changeBooleanState(device.accessKeyXmlApi(Datapoint.STATE), value);
 		refreshHouseModel(false);
 	}
 
+	public void toggleautomation(Device device, boolean value) {
+		api.changeBooleanState(device.programNamePrefix() + AUTOMATIC, value);
+		refreshHouseModel(false);
+	}
+	
 	public synchronized void heatingBoost(String prefix) throws InterruptedException {
 		api.runProgram(prefix + "Boost");
 		synchronized (REFRESH_MONITOR) {
 			// Just trying to wait for notification from CCU.
 			// It's no big problem if this is the wrong notification.
-			// We're only showing once the old value.
+			// We're only howing once the old value.
 			REFRESH_MONITOR.wait(REFRESH_TIMEOUT); // NOSONAR
 		}
 	}
@@ -335,7 +342,7 @@ public class HouseService {
 	// variable
 	public synchronized void heatingManual(String prefix, String temperature) throws InterruptedException {
 		temperature = StringUtils.replace(temperature, ",", "."); // decimalpoint
-		api.changeValue(prefix + "Temperature", temperature);
+		api.changeString(prefix + "Temperature", temperature);
 		api.runProgram(prefix + "Manual");
 		synchronized (REFRESH_MONITOR) {
 			// Just trying to wait for notification from CCU.
@@ -349,7 +356,7 @@ public class HouseService {
 
 		if (oldModel == null || oldModel.getConclusionClimateFacadeMin().getTemperature().getValue()
 				.compareTo(newModel.getConclusionClimateFacadeMin().getTemperature().getValue()) != 0) {
-			api.changeValue(newModel.getConclusionClimateFacadeMin().getDevice().getType().getTypeName(),
+			api.changeString(newModel.getConclusionClimateFacadeMin().getDevice().getType().getTypeName(),
 					newModel.getConclusionClimateFacadeMin().getTemperature().toString());
 		}
 	}
