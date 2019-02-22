@@ -1,5 +1,7 @@
 package homecontroller.request;
 
+import java.math.BigDecimal;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -36,15 +38,15 @@ public class HomeClientRequestMapping {
 	}
 
 	@PostMapping("/controller/heatingboost")
-	public ActionModel heatingBoost(@RequestParam("prefix") String prefix) throws InterruptedException {
-		houseService.heatingBoost(prefix);
+	public ActionModel heatingBoost(@RequestParam("deviceName") String deviceName) throws InterruptedException {
+		houseService.heatingBoost(Device.valueOf(deviceName));
 		return new ActionModel("OK");
 	}
 
 	@PostMapping("/controller/heatingmanual")
-	public ActionModel heatingManual(@RequestParam("prefix") String prefix,
+	public ActionModel heatingManual(@RequestParam("deviceName") String deviceName,
 			@RequestParam("temperature") String temperature) throws InterruptedException {
-		houseService.heatingManual(prefix, temperature);
+		houseService.heatingManual(Device.valueOf(deviceName), new BigDecimal(temperature));
 		return new ActionModel("OK");
 	}
 

@@ -1,12 +1,12 @@
 package homecontroller.domain.service;
 
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -55,7 +55,7 @@ public class HouseService {
 	private static final long HINT_TIMEOUT_MINUTES_AFTER_BOOST = 90L;
 
 	private static final Object REFRESH_MONITOR = new Object();
-	private static final long REFRESH_TIMEOUT = 5L * 1000L; // 5 sec
+	private static final long REFRESH_TIMEOUT = 10L * 1000L; // 10 sec
 	
 	private static final String AUTOMATIC = "Automatic";
 
@@ -328,8 +328,8 @@ public class HouseService {
 		refreshHouseModel(false);
 	}
 	
-	public synchronized void heatingBoost(String prefix) throws InterruptedException {
-		api.runProgram(prefix + "Boost");
+	public synchronized void heatingBoost(Device device) throws InterruptedException {
+		api.runProgram(device.programNamePrefix() + "Boost");
 		synchronized (REFRESH_MONITOR) {
 			// Just trying to wait for notification from CCU.
 			// It's no big problem if this is the wrong notification.
@@ -340,10 +340,9 @@ public class HouseService {
 
 	// needs to be synchronized because of using ccu-systemwide temperature
 	// variable
-	public synchronized void heatingManual(String prefix, String temperature) throws InterruptedException {
-		temperature = StringUtils.replace(temperature, ",", "."); // decimalpoint
-		api.changeString(prefix + "Temperature", temperature);
-		api.runProgram(prefix + "Manual");
+	public synchronized void heatingManual(Device device, BigDecimal temperature) throws InterruptedException {
+		api.changeString(device.programNamePrefix() + "Temperature", new DecimalFormat("0.0").format(temperature));
+		api.runProgram(device.programNamePrefix() + "Manual");
 		synchronized (REFRESH_MONITOR) {
 			// Just trying to wait for notification from CCU.
 			// It's no big problem if this is the wrong notification.

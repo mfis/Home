@@ -22,7 +22,6 @@ import home.domain.model.PowerView;
 import home.domain.model.ShutterView;
 import home.domain.model.SwitchView;
 import homecontroller.domain.model.Climate;
-import homecontroller.domain.model.Datapoint;
 import homecontroller.domain.model.Heating;
 import homecontroller.domain.model.Hint;
 import homecontroller.domain.model.HistoryModel;
@@ -234,9 +233,9 @@ public class HouseViewService {
 			if (heating.isBoostActive()) {
 				view.setLinkBoost(String.valueOf(heating.getBoostMinutesLeft()));
 			} else {
-				view.setLinkBoost("/heatingboost?prefix=" + heating.getProgramNamePrefix());
+				view.setLinkBoost("/heatingboost?deviceName=" + heating.getDevice().name());
 			}
-			view.setLinkManual("/heatingmanual?prefix=" + heating.getProgramNamePrefix());
+			view.setLinkManual("/heatingmanual?deviceName=" + heating.getDevice().name());
 			view.setTargetTemp(format(heating.getTargetTemperature(), false));
 			view.setHeatericon("fab fa-hotjar");
 		}
@@ -383,7 +382,7 @@ public class HouseViewService {
 		if (shutterPosition == windowModel.getShutterPosition()) {
 			return "#";
 		} else {
-			return "/shutterSetPosition?devIdVar=" + windowModel.getDevice().accessKeyXmlApi(Datapoint.STATE)
+			return "/shutterSetPosition?deviceName=" + windowModel.getDevice().name()
 					+ "&shutterSetPosition=" + shutterPosition.getControlPosition();
 		}
 	}
