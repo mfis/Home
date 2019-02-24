@@ -65,7 +65,7 @@ public class TextQueryService {
 			return "Entschuldige, ich habe nicht verstanden, welches Gerät Du meinst.";
 		}
 
-		devices = lookupDevices(places, types);
+		devices = lookupDevices(places, types, controlQuery);
 		if (devices.isEmpty()) {
 			return "Entschuldige, für den angegbenen Ort konnte ich kein passendes Gerät finden.";
 		}
@@ -330,20 +330,20 @@ public class TextQueryService {
 		return queryValue;
 	}
 
-	private List<TypeAndDevice> lookupDevices(Set<Place> places, Set<Type> types) {
+	private List<TypeAndDevice> lookupDevices(Set<Place> places, Set<Type> types, boolean controlQuery) {
 
 		List<TypeAndDevice> list = new LinkedList<>();
 
 		for (Place place : places) {
 			for (Type type : types) {
-				lookupDevice(list, place, type);
+				lookupDevice(list, place, type, controlQuery);
 			}
 		}
 
 		return list;
 	}
 
-	private void lookupDevice(List<TypeAndDevice> list, Place place, Type type) {
+	private void lookupDevice(List<TypeAndDevice> list, Place place, Type type, boolean controlQuery) {
 
 		// search for device with place and type
 		// then search with optional sub-types
@@ -351,10 +351,14 @@ public class TextQueryService {
 			for (Place devicePlaces : device.getPlace().allPlaces()) {
 				for (Type deviceTypes : device.getType().allTypes()) {
 					if (devicePlaces == place && deviceTypes == type && device.isTextQueryEnabled()) {
-						TypeAndDevice typeAndDevice = new TypeAndDevice();
-						typeAndDevice.type = type;
-						typeAndDevice.device = device;
-						list.add(typeAndDevice);
+						if(controlQuery && !type.isControllable()) {
+							// control command not applicable for this type of device
+						}else {
+							TypeAndDevice typeAndDevice = new TypeAndDevice();
+							typeAndDevice.type = type;
+							typeAndDevice.device = device;
+							list.add(typeAndDevice);
+						}
 					}
 				}
 			}

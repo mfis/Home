@@ -2,6 +2,8 @@ package home.service;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.LogFactory;
@@ -57,7 +59,7 @@ public class ControllerAPI {
 	
 	public void heatingmanual(Device device, BigDecimal temperature) {
 		call(env.getProperty(CONTROLLER_URL) + "heatingmanual", ActionModel.class,
-				new URIParameter().add("deviceName", device.name()).add("temperature", new DecimalFormat("0.0").format(temperature)).build());
+				new URIParameter().add("deviceName", device.name()).add("temperature", new DecimalFormat("0.0", new DecimalFormatSymbols(Locale.US)).format(temperature)).build());
 	}
 	
 	public void shuttersetposition(Device device, int positionPercentage) {
