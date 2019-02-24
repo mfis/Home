@@ -156,6 +156,7 @@ public class TextQueryService {
 			}
 			builder.add("Erledigt");
 			builder.newSentence();
+			heating = refreshModel(heating);
 		}
 
 		builder //
@@ -191,6 +192,7 @@ public class TextQueryService {
 			}
 			builder.add("Erledigt");
 			builder.newSentence();
+			powerswitch = refreshModel(powerswitch);
 		}
 
 		builder //
@@ -209,6 +211,16 @@ public class TextQueryService {
 		}
 
 		return builder.getText();
+	}
+
+	@SuppressWarnings("unchecked")
+	private <T extends AbstractDeviceModel> T refreshModel(T deviceModel) {
+		
+		HouseModel refreshedModel = controllerAPI.actualstate();
+		TypeAndDevice typeAndDevice = new TypeAndDevice();
+		typeAndDevice.type = deviceModel.getDevice().getType();
+		typeAndDevice.device = deviceModel.getDevice();
+		return (T) lookupModelObject(refreshedModel, typeAndDevice);
 	}
 
 	private List<AbstractDeviceModel> lookupModelObjects(HouseModel house, List<TypeAndDevice> list) {
