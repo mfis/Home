@@ -13,9 +13,6 @@ public class Heating extends AbstractDeviceModel implements Serializable {
 
 	private BigDecimal targetTemperature;
 
-	// Needs programs: "...Manual", "...Boost" and variable "...Temperature"
-	private String programNamePrefix;
-
 	public Heating() {
 		super();
 	}
@@ -42,14 +39,6 @@ public class Heating extends AbstractDeviceModel implements Serializable {
 
 	public void setTargetTemperature(BigDecimal targetTemperature) {
 		this.targetTemperature = targetTemperature;
-	}
-
-	public String getProgramNamePrefix() {
-		return programNamePrefix;
-	}
-
-	public void setProgramNamePrefix(String programNamePrefix) {
-		this.programNamePrefix = programNamePrefix;
 	}
 
 }

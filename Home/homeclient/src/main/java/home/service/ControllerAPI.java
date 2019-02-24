@@ -1,5 +1,8 @@
 package home.service;
 
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +18,7 @@ import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import homecontroller.domain.model.ActionModel;
+import homecontroller.domain.model.AutomationState;
 import homecontroller.domain.model.Device;
 import homecontroller.domain.model.HistoryModel;
 import homecontroller.domain.model.HouseModel;
@@ -36,14 +40,14 @@ public class ControllerAPI {
 
 	public static final String DEVICE_NAME = "deviceName";
 	
-	public void togglestate(Device device, String booleanValue) {
+	public void togglestate(Device device, Boolean booleanValue) {
 		call(env.getProperty(CONTROLLER_URL) + "togglestate", ActionModel.class,
-				new URIParameter().add("deviceName", device.name()).add("booleanValue", booleanValue).build());
+				new URIParameter().add("deviceName", device.name()).add("booleanValue", booleanValue.toString()).build());
 	}
 	
-	public void toggleautomation(Device device, String booleanValue) {
+	public void toggleautomation(Device device, AutomationState automationStateValue) {
 		call(env.getProperty(CONTROLLER_URL) + "toggleautomation", ActionModel.class,
-				new URIParameter().add("deviceName", device.name()).add("booleanValue", booleanValue).build());
+				new URIParameter().add("deviceName", device.name()).add("automationStateValue", automationStateValue.name()).build());
 	}
 	
 	public void heatingboost(Device device) {
@@ -51,9 +55,9 @@ public class ControllerAPI {
 				new URIParameter().add("deviceName", device.name()).build());
 	}
 	
-	public void heatingmanual(Device device, String temperature) {
+	public void heatingmanual(Device device, BigDecimal temperature) {
 		call(env.getProperty(CONTROLLER_URL) + "heatingmanual", ActionModel.class,
-				new URIParameter().add("deviceName", device.name()).add("temperature", temperature).build());
+				new URIParameter().add("deviceName", device.name()).add("temperature", new DecimalFormat("0.0").format(temperature)).build());
 	}
 	
 	public void shuttersetposition(Device device, int positionPercentage) {

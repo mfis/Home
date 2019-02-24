@@ -2,6 +2,7 @@ package home.service;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,6 +21,7 @@ import home.domain.model.Synonym;
 import home.domain.model.SynonymeRepository;
 import home.domain.service.HouseViewService;
 import homecontroller.domain.model.AbstractDeviceModel;
+import homecontroller.domain.model.AutomationState;
 import homecontroller.domain.model.Climate;
 import homecontroller.domain.model.Device;
 import homecontroller.domain.model.Heating;
@@ -35,6 +37,9 @@ public class TextQueryService {
 
 	@Autowired
 	private HouseViewService houseViewService;
+	
+	@Autowired
+	private ControllerAPI controllerAPI;
 
 	public String execute(HouseModel house, String input) {
 
@@ -145,9 +150,9 @@ public class TextQueryService {
 
 		if (controlQuery) {
 			if (value.getBooleanValue() != null) {
-				// TODO: BOOST
+				controllerAPI.heatingboost(heating.getDevice());
 			} else if (value.getIntegerValue() != null) {
-				// TODO: HEATING
+				controllerAPI.heatingmanual(heating.getDevice(), new BigDecimal(value.getIntegerValue()));
 			}
 			builder.add("Erledigt");
 			builder.newSentence();
@@ -180,9 +185,9 @@ public class TextQueryService {
 
 		if (controlQuery) {
 			if (value.getBooleanValue() != null) {
-				// TODO: AUTOMATION STATE
+				controllerAPI.togglestate(powerswitch.getDevice(), value.getBooleanValue());
 			} else if (value.getAutomationState() != null) {
-				// TODO: SWITCH
+				controllerAPI.toggleautomation(powerswitch.getDevice(), value.getAutomationState());
 			}
 			builder.add("Erledigt");
 			builder.newSentence();
@@ -289,6 +294,11 @@ public class TextQueryService {
 		Set<Boolean> booleanValues = Synonym.lookupSynonyms(Boolean.class, words);
 		if (booleanValues.size() == 1) {
 			queryValue.setBooleanValue(booleanValues.iterator().next());
+		}
+		
+		Set<AutomationState> automationStateValueValues = Synonym.lookupSynonyms(AutomationState.class, words);
+		if (automationStateValueValues.size() == 1) {
+			queryValue.setAutomationState(automationStateValueValues.iterator().next());
 		}
 
 		for (String word : words) {

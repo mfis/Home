@@ -21,6 +21,7 @@ import home.domain.model.PowerHistoryEntry;
 import home.domain.model.PowerView;
 import home.domain.model.ShutterView;
 import home.domain.model.SwitchView;
+import homecontroller.domain.model.AutomationState;
 import homecontroller.domain.model.Climate;
 import homecontroller.domain.model.Heating;
 import homecontroller.domain.model.Hint;
@@ -332,10 +333,10 @@ public class HouseViewService {
 			if (switchModel.getAutomation()) {
 				view.setState(view.getState() + ", automatisch");
 				view.setLinkManual(
-						TOGGLE_AUTOMATION + switchModel.getDevice().name() + "&booleanValue=false");
+						TOGGLE_AUTOMATION + switchModel.getDevice().name() + "&automationStateValue=" + AutomationState.MANUAL.name());
 			} else {
 				view.setState(view.getState() + ", manuell");
-				view.setLinkAuto(TOGGLE_AUTOMATION + switchModel.getDevice().name() + "&booleanValue=true");
+				view.setLinkAuto(TOGGLE_AUTOMATION + switchModel.getDevice().name() + "&automationStateValue=" + AutomationState.AUTOMATIC.name());
 			}
 			view.setAutoInfoText(StringUtils.trimToEmpty(switchModel.getAutomationInfoText()));
 		}

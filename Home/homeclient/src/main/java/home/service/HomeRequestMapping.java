@@ -1,5 +1,7 @@
 package home.service;
 
+import java.math.BigDecimal;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import home.domain.model.Pages;
 import home.domain.service.HouseViewService;
+import homecontroller.domain.model.AutomationState;
 import homecontroller.domain.model.Device;
 import homecontroller.domain.model.HistoryModel;
 import homecontroller.domain.model.HouseModel;
@@ -39,16 +42,16 @@ public class HomeRequestMapping {
 			@RequestParam(ControllerAPI.DEVICE_NAME) String deviceName, @RequestParam(ControllerAPI.BOOLEAN_VALUE) String booleanValue,
 			@RequestParam(name = Y_POS, required = false) String y) {
 		saveYPos(userCookie, y);
-		controllerAPI.togglestate(Device.valueOf(deviceName), booleanValue);
+		controllerAPI.togglestate(Device.valueOf(deviceName), Boolean.valueOf(booleanValue));
 		return REDIRECT + Pages.PATH_HOME;
 	}
 	
 	@RequestMapping("/toggleautomation")
 	public String toggleautomation(@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
-			@RequestParam(ControllerAPI.DEVICE_NAME) String deviceName, @RequestParam(ControllerAPI.BOOLEAN_VALUE) String booleanValue,
+			@RequestParam(ControllerAPI.DEVICE_NAME) String deviceName, @RequestParam("automationStateValue") String automationStateValue,
 			@RequestParam(name = Y_POS, required = false) String y) {
 		saveYPos(userCookie, y);
-		controllerAPI.toggleautomation(Device.valueOf(deviceName), booleanValue);
+		controllerAPI.toggleautomation(Device.valueOf(deviceName), AutomationState.valueOf(automationStateValue));
 		return REDIRECT + Pages.PATH_HOME;
 	}
 
@@ -65,7 +68,7 @@ public class HomeRequestMapping {
 			@RequestParam(ControllerAPI.DEVICE_NAME) String deviceName, @RequestParam("temperature") String temperature,
 			@RequestParam(name = Y_POS, required = false) String y) {
 		saveYPos(userCookie, y);
-		controllerAPI.heatingmanual(Device.valueOf(deviceName), temperature);
+		controllerAPI.heatingmanual(Device.valueOf(deviceName), new BigDecimal(temperature));
 		return REDIRECT + Pages.PATH_HOME;
 	}
 

@@ -13,6 +13,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import homecontroller.dao.ModelDAO;
+import homecontroller.domain.model.AutomationState;
 import homecontroller.domain.model.Climate;
 import homecontroller.domain.model.Datapoint;
 import homecontroller.domain.model.Device;
@@ -323,8 +324,8 @@ public class HouseService {
 		refreshHouseModel(false);
 	}
 
-	public void toggleautomation(Device device, boolean value) {
-		api.changeBooleanState(device.programNamePrefix() + AUTOMATIC, value);
+	public void toggleautomation(Device device, AutomationState value) {
+		api.changeBooleanState(device.programNamePrefix() + AUTOMATIC, value.isBooleanValue());
 		refreshHouseModel(false);
 	}
 	
@@ -385,7 +386,7 @@ public class HouseService {
 		}
 		return roomClimate;
 	}
-
+ 
 	private Heating readHeating(Device heating) {
 		Heating heatingModel = new Heating();
 		heatingModel.setBoostActive(api.getAsBigDecimal(heating.accessKeyXmlApi(Datapoint.CONTROL_MODE))
@@ -394,7 +395,6 @@ public class HouseService {
 				api.getAsBigDecimal(heating.accessKeyXmlApi(Datapoint.BOOST_STATE)).intValue());
 		heatingModel.setTargetTemperature(
 				api.getAsBigDecimal(heating.accessKeyXmlApi(Datapoint.SET_TEMPERATURE)));
-		heatingModel.setProgramNamePrefix(heating.programNamePrefix());
 		heatingModel.setDevice(heating);
 
 		return heatingModel;

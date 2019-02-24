@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import homecontroller.dao.ModelDAO;
 import homecontroller.domain.model.ActionModel;
+import homecontroller.domain.model.AutomationState;
 import homecontroller.domain.model.Device;
 import homecontroller.domain.model.HistoryModel;
 import homecontroller.domain.model.HouseModel;
@@ -32,8 +33,8 @@ public class HomeClientRequestMapping {
 	}
 	
 	@PostMapping("/controller/toggleautomation")
-	public ActionModel toggleautomation(@RequestParam("deviceName") String deviceName, @RequestParam("booleanValue") String booleanValue) {
-		houseService.toggleautomation(Device.valueOf(deviceName), Boolean.valueOf(booleanValue));
+	public ActionModel toggleautomation(@RequestParam("deviceName") String deviceName, @RequestParam("automationStateValue") String automationStateValue) {
+		houseService.toggleautomation(Device.valueOf(deviceName), AutomationState.valueOf(automationStateValue));
 		return new ActionModel("OK");
 	}
 

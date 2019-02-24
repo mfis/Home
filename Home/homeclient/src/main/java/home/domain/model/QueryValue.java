@@ -25,7 +25,7 @@ public class QueryValue {
 		}
 		
 		try {
-			for (Field field : this.getClass().getFields()) {
+			for (Field field : this.getClass().getDeclaredFields()) {
 				if (field.get(this) != null) {
 					for (Class<?> valueType : device.getValueTypes()) {
 						if (valueType.isAssignableFrom(field.getType())) {
