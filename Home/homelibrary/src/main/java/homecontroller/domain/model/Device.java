@@ -4,18 +4,20 @@ import org.springframework.util.StringUtils;
 
 public enum Device {
 
-	THERMOSTAT_BAD(Protocol.HM, "OEQ0854602", 4, "Thermostat", "Bad"), //
-	THERMOMETER_KINDERZIMMER(Protocol.HMIP, "000E97099314A3", 1, Const.THERMOMETER, "Kinderzimmer"), //
-	THERMOMETER_WOHNZIMMER(Protocol.HMIP, "000E97099312D5", 1, Const.THERMOMETER, "Wohnzimmer"), //
-	THERMOMETER_SCHLAFZIMMER(Protocol.HMIP, "000E97099314C4", 1, Const.THERMOMETER, Const.SCHLAFZIMMER), //
-	ROLLLADE_SCHLAFZIMMER_LINKS(Protocol.HM, "D_U_M_M_Y", 1, "Rolllade links", Const.SCHLAFZIMMER), //
-	DIFFERENZTEMPERATUR_TERRASSE_AUSSEN(Protocol.HM, "OEQ0801741", 2, Const.THERMOMETER, Const.TERRASSE), //
-	DIFFERENZTEMPERATUR_TERRASSE_DIFF(Protocol.HM, "OEQ0801741", 3, Const.SONNENSENSOR, Const.TERRASSE), //
-	DIFFERENZTEMPERATUR_EINFAHRT_AUSSEN(Protocol.HM, "OEQ0801807", 2, Const.THERMOMETER, Const.EINFAHRT), //
-	DIFFERENZTEMPERATUR_EINFAHRT_DIFF(Protocol.HM, "OEQ0801807", 3, Const.SONNENSENSOR, Const.EINFAHRT), //
-	SCHALTER_KUECHE_LICHT(Protocol.HM, "OEQ0712456", 1, "Schalter Fensterlicht", "Küche"), //
-	STROMZAEHLER(Protocol.HM, "NEQ0861520", 1, "Stromverbrauch", "Haus"), //
-	AUSSENTEMPERATUR(Protocol.SYSVAR, "2867", null, "ConclusionOutsideTemperature", "Aussen"), //
+	// @formatter:off
+	THERMOSTAT_BAD(Protocol.HM, "OEQ0854602", 4, Type.THERMOSTAT, Place.BATHROOM, true, Boolean.class, Integer.class), //
+	THERMOMETER_KINDERZIMMER(Protocol.HMIP, "000E97099314A3", 1, Type.THERMOMETER, Place.KIDSROOM, true), //
+	THERMOMETER_WOHNZIMMER(Protocol.HMIP, "000E97099312D5", 1, Type.THERMOMETER, Place.LIVINGROOM, true), //
+	THERMOMETER_SCHLAFZIMMER(Protocol.HMIP, "000E97099314C4", 1, Type.THERMOMETER, Place.BEDROOM, true), //
+	ROLLLADE_SCHLAFZIMMER_LINKS(Protocol.HM, "D_U_M_M_Y", 1, Type.SHUTTER_LEFT, Place.BEDROOM, false, Integer.class, ShutterPosition.class), //
+	DIFF_TEMPERATUR_TERRASSE_AUSSEN(Protocol.HM, "OEQ0801741", 2, Type.THERMOMETER, Place.TERRACE, false), //
+	DIFF_TEMPERATUR_TERRASSE_DIFF(Protocol.HM, "OEQ0801741", 3, Type.SUN_SENSOR, Place.TERRACE, false), //
+	DIFF_TEMPERATUR_EINFAHRT_AUSSEN(Protocol.HM, "OEQ0801807", 2, Type.THERMOMETER, Place.ENTRANCE, false), //
+	DIFF_TEMPERATUR_EINFAHRT_DIFF(Protocol.HM, "OEQ0801807", 3, Type.SUN_SENSOR, Place.ENTRANCE, false), //
+	SCHALTER_KUECHE_LICHT(Protocol.HM, "OEQ0712456", 1, Type.SWITCH_WINDOWLIGHT, Place.KITCHEN, true, Boolean.class, AutomationState.class), //
+	STROMZAEHLER(Protocol.HM, "NEQ0861520", 1, Type.ELECTRIC_POWER, Place.HOUSE, true), //
+	AUSSENTEMPERATUR(Protocol.SYSVAR, "2867", null, Type.CONCLUSION_OUTSIDE_TEMPERATURE, Place.OUTSIDE, true), //
+	// @formatter:on
 	;
 
 	private Protocol protocol;
@@ -24,29 +26,31 @@ public enum Device {
 
 	private Integer channel;
 
-	private String type;
+	private Type type;
 
-	private String placeName;
+	private Place place;
 
-	private Device(Protocol protocol, String id, Integer channel, String type, String placeName) {
+	private boolean textQueryEnabled;
+
+	private Class<?>[] valueTypes;
+
+	private Device(Protocol protocol, String id, Integer channel, Type type, Place place, boolean textQueryEnabled,
+			Class<?>... valueTypes) {
 		this.protocol = protocol;
 		this.id = id;
 		this.channel = channel;
 		this.type = type;
-		this.placeName = placeName;
+		this.place = place;
+		this.textQueryEnabled = textQueryEnabled;
+		this.valueTypes = valueTypes;
 	}
 
-	private class Const {
-		public static final String THERMOMETER = "Thermometer";
-		public static final String SONNENSENSOR = "Sonnensensor";
-		public static final String SCHLAFZIMMER = "Schlafzimmer";
-		public static final String EINFAHRT = "Einfahrt";
-		public static final String TERRASSE = "Terrasse";
+	public boolean isControllable() {
+		return valueTypes != null && valueTypes.length > 0;
 	}
 
 	public String accessKeyXmlApi(Datapoint datapoint) {
-		return protocol.toXmlApiString() + "." + id + ":" + Integer.toString(channel) + "."
-				+ datapoint.name();
+		return protocol.toXmlApiString() + "." + id + ":" + Integer.toString(channel) + "." + datapoint.name();
 	}
 
 	public String accessMainDeviceKeyXmlApi(Datapoint datapoint) {
@@ -101,15 +105,23 @@ public enum Device {
 	}
 
 	public String getDescription() {
-		return type + " " + placeName;
+		return type.getTypeName() + " " + place.getPlaceName();
 	}
 
-	public String getType() {
+	public Type getType() {
 		return type;
 	}
 
-	public String getPlaceName() {
-		return placeName;
+	public Place getPlace() {
+		return place;
+	}
+
+	public boolean isTextQueryEnabled() {
+		return textQueryEnabled;
+	}
+
+	public Class<?>[] getValueTypes() {
+		return valueTypes;
 	}
 
 }

@@ -1,5 +1,7 @@
 package homecontroller.request;
 
+import java.math.BigDecimal;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -7,6 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import homecontroller.dao.ModelDAO;
 import homecontroller.domain.model.ActionModel;
+import homecontroller.domain.model.AutomationState;
+import homecontroller.domain.model.Device;
 import homecontroller.domain.model.HistoryModel;
 import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.SettingsModel;
@@ -22,22 +26,28 @@ public class HomeClientRequestMapping {
 	@Autowired
 	private SettingsService settingsService;
 
-	@PostMapping("/controller/toggle")
-	public ActionModel toggle(@RequestParam("devIdVar") String devIdVar) {
-		houseService.toggle(devIdVar);
+	@PostMapping("/controller/togglestate")
+	public ActionModel togglestate(@RequestParam("deviceName") String deviceName, @RequestParam("booleanValue") String booleanValue) {
+		houseService.togglestate(Device.valueOf(deviceName), Boolean.valueOf(booleanValue));
+		return new ActionModel("OK");
+	}
+	
+	@PostMapping("/controller/toggleautomation")
+	public ActionModel toggleautomation(@RequestParam("deviceName") String deviceName, @RequestParam("automationStateValue") String automationStateValue) {
+		houseService.toggleautomation(Device.valueOf(deviceName), AutomationState.valueOf(automationStateValue));
 		return new ActionModel("OK");
 	}
 
 	@PostMapping("/controller/heatingboost")
-	public ActionModel heatingBoost(@RequestParam("prefix") String prefix) throws InterruptedException {
-		houseService.heatingBoost(prefix);
+	public ActionModel heatingBoost(@RequestParam("deviceName") String deviceName) throws InterruptedException {
+		houseService.heatingBoost(Device.valueOf(deviceName));
 		return new ActionModel("OK");
 	}
 
 	@PostMapping("/controller/heatingmanual")
-	public ActionModel heatingManual(@RequestParam("prefix") String prefix,
+	public ActionModel heatingManual(@RequestParam("deviceName") String deviceName,
 			@RequestParam("temperature") String temperature) throws InterruptedException {
-		houseService.heatingManual(prefix, temperature);
+		houseService.heatingManual(Device.valueOf(deviceName), new BigDecimal(temperature));
 		return new ActionModel("OK");
 	}
 

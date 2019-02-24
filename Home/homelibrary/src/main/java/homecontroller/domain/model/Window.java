@@ -2,15 +2,13 @@ package homecontroller.domain.model;
 
 import java.io.Serializable;
 
-public class Window implements Serializable {
+public class Window extends AbstractDeviceModel implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
 	private ShutterPosition shutterPosition;
 
 	private Integer shutterPositionPercentage;
-
-	private Device shutterDevice;
 
 	private Boolean shutterAutomation;
 
@@ -30,14 +28,6 @@ public class Window implements Serializable {
 
 	public void setShutterPositionPercentage(Integer shutterPositionPercentage) {
 		this.shutterPositionPercentage = shutterPositionPercentage;
-	}
-
-	public Device getShutterDevice() {
-		return shutterDevice;
-	}
-
-	public void setShutterDevice(Device shutterDevice) {
-		this.shutterDevice = shutterDevice;
 	}
 
 	public Boolean getShutterAutomation() {

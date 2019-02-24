@@ -10,6 +10,8 @@ public class OutdoorClimate extends Climate implements Serializable {
 
 	private Intensity sunHeatingInContrastToShadeIntensity;
 
+	private OutdoorClimate maxSideSunHeating;
+
 	public Intensity getSunBeamIntensity() {
 		return sunBeamIntensity;
 	}
@@ -24,6 +26,14 @@ public class OutdoorClimate extends Climate implements Serializable {
 
 	public void setSunHeatingInContrastToShadeIntensity(Intensity sunHeatinginContrastToShadeIntensity) {
 		this.sunHeatingInContrastToShadeIntensity = sunHeatinginContrastToShadeIntensity;
+	}
+
+	public OutdoorClimate getMaxSideSunHeating() {
+		return maxSideSunHeating;
+	}
+
+	public void setMaxSideSunHeating(OutdoorClimate maxSideSunHeating) {
+		this.maxSideSunHeating = maxSideSunHeating;
 	}
 
 }

@@ -1,32 +1,34 @@
 package homecontroller.domain.service;
 
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import homecontroller.dao.ModelDAO;
+import homecontroller.domain.model.AutomationState;
 import homecontroller.domain.model.Climate;
 import homecontroller.domain.model.Datapoint;
 import homecontroller.domain.model.Device;
-import homecontroller.domain.model.HeatingModel;
+import homecontroller.domain.model.Heating;
 import homecontroller.domain.model.Hint;
 import homecontroller.domain.model.HomematicConstants;
 import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.Intensity;
 import homecontroller.domain.model.OutdoorClimate;
-import homecontroller.domain.model.PowerMeterModel;
+import homecontroller.domain.model.PowerMeter;
 import homecontroller.domain.model.RoomClimate;
 import homecontroller.domain.model.ShutterPosition;
-import homecontroller.domain.model.SwitchModel;
+import homecontroller.domain.model.Switch;
 import homecontroller.domain.model.Tendency;
+import homecontroller.domain.model.Type;
 import homecontroller.domain.model.ValueWithTendency;
 import homecontroller.domain.model.Window;
 import homecontroller.service.HomematicAPI;
@@ -54,7 +56,9 @@ public class HouseService {
 	private static final long HINT_TIMEOUT_MINUTES_AFTER_BOOST = 90L;
 
 	private static final Object REFRESH_MONITOR = new Object();
-	private static final long REFRESH_TIMEOUT = 5L * 1000L; // 5 sec
+	private static final long REFRESH_TIMEOUT = 10L * 1000L; // 10 sec
+	
+	private static final String AUTOMATIC = "Automatic";
 
 	@Autowired
 	private HomematicAPI api;
@@ -106,17 +110,18 @@ public class HouseService {
 
 		HouseModel newModel = new HouseModel();
 
-		newModel.setClimateBathRoom(readRoomClimate(Device.THERMOSTAT_BAD, Device.THERMOSTAT_BAD));
+		newModel.setClimateBathRoom(readRoomClimate(Device.THERMOSTAT_BAD));
+		newModel.setHeatingBathRoom(readHeating(Device.THERMOSTAT_BAD));
 		newModel.setClimateKidsRoom(readRoomClimate(Device.THERMOMETER_KINDERZIMMER));
 		newModel.setClimateLivingRoom(readRoomClimate(Device.THERMOMETER_WOHNZIMMER));
 		newModel.setClimateBedRoom(readRoomClimate(Device.THERMOMETER_SCHLAFZIMMER));
 
 		newModel.setLeftWindowBedRoom(readWindow(Device.ROLLLADE_SCHLAFZIMMER_LINKS));
 
-		newModel.setClimateTerrace(readOutdoorClimate(Device.DIFFERENZTEMPERATUR_TERRASSE_AUSSEN,
-				Device.DIFFERENZTEMPERATUR_TERRASSE_DIFF));
-		newModel.setClimateEntrance(readOutdoorClimate(Device.DIFFERENZTEMPERATUR_EINFAHRT_AUSSEN,
-				Device.DIFFERENZTEMPERATUR_EINFAHRT_DIFF));
+		newModel.setClimateTerrace(readOutdoorClimate(Device.DIFF_TEMPERATUR_TERRASSE_AUSSEN,
+				Device.DIFF_TEMPERATUR_TERRASSE_DIFF));
+		newModel.setClimateEntrance(readOutdoorClimate(Device.DIFF_TEMPERATUR_EINFAHRT_AUSSEN,
+				Device.DIFF_TEMPERATUR_EINFAHRT_DIFF));
 
 		newModel.setKitchenWindowLightSwitch(readSwitchState(Device.SCHALTER_KUECHE_LICHT));
 
@@ -144,6 +149,10 @@ public class HouseService {
 				.subtract(newModel.getConclusionClimateFacadeMin().getTemperature().getValue()).abs();
 		newModel.getConclusionClimateFacadeMax()
 				.setSunHeatingInContrastToShadeIntensity(lookupIntensity(sunShadeDiff));
+
+		newModel.getConclusionClimateFacadeMin().setDevice(Device.AUSSENTEMPERATUR);
+		newModel.getConclusionClimateFacadeMin()
+				.setMaxSideSunHeating(newModel.getConclusionClimateFacadeMax());
 
 		calculateTendencies(oldModel, newModel);
 	}
@@ -230,14 +239,15 @@ public class HouseService {
 
 	public void calculateHints(HouseModel newModel) {
 
-		lookupHint(newModel.getClimateKidsRoom(), newModel.getClimateEntrance());
-		lookupHint(newModel.getClimateBathRoom(), newModel.getClimateEntrance());
-		lookupHint(newModel.getClimateBedRoom(), newModel.getClimateTerrace());
-		lookupHint(newModel.getClimateLivingRoom(), newModel.getClimateTerrace());
+		lookupHint(newModel.getClimateKidsRoom(), null, newModel.getClimateEntrance());
+		lookupHint(newModel.getClimateBathRoom(), newModel.getHeatingBathRoom(),
+				newModel.getClimateEntrance());
+		lookupHint(newModel.getClimateBedRoom(), null, newModel.getClimateTerrace());
+		lookupHint(newModel.getClimateLivingRoom(), null, newModel.getClimateTerrace());
 	}
 
-	private void lookupHint(RoomClimate room, OutdoorClimate outdoor) {
-		lookupTemperatureHint(room, outdoor);
+	private void lookupHint(RoomClimate room, Heating heating, OutdoorClimate outdoor) {
+		lookupTemperatureHint(room, heating, outdoor);
 		lookupHumidityHint(room);
 	}
 
@@ -254,9 +264,9 @@ public class HouseService {
 		}
 	}
 
-	private void lookupTemperatureHint(RoomClimate room, OutdoorClimate outdoor) {
+	private void lookupTemperatureHint(RoomClimate room, Heating heating, OutdoorClimate outdoor) {
 
-		BigDecimal targetTemperature = room.getHeating() != null ? room.getHeating().getTargetTemperature()
+		BigDecimal targetTemperature = heating != null ? heating.getTargetTemperature()
 				: TARGET_TEMPERATURE_INSIDE;
 		BigDecimal temperatureLimit = targetTemperature.add(TARGET_TEMPERATURE_TOLERANCE_OFFSET);
 
@@ -269,7 +279,7 @@ public class HouseService {
 		} else if (room.getTemperature().getValue().compareTo(temperatureLimit) > 0
 				&& outdoor.getTemperature().getValue().compareTo(room.getTemperature().getValue()) < 0
 				&& outdoor.getSunBeamIntensity().ordinal() <= Intensity.LOW.ordinal()) {
-			if (isHeatingIsCauseForHighRoomTemperature(room, temperatureLimit)) {
+			if (isHeatingIsCauseForHighRoomTemperature(heating, temperatureLimit)) {
 				// no hint
 			} else {
 				room.getHints().add(Hint.OPEN_WINDOW);
@@ -280,10 +290,10 @@ public class HouseService {
 		}
 	}
 
-	private boolean isHeatingIsCauseForHighRoomTemperature(RoomClimate room, BigDecimal temperatureLimit) {
-		return room.getHeating() != null && (room.getHeating().isBoostActive()
-				|| room.getHeating().getTargetTemperature().compareTo(temperatureLimit) > 0
-				|| historyDAO.minutesSinceLastHeatingBoost(room) < HINT_TIMEOUT_MINUTES_AFTER_BOOST);
+	private boolean isHeatingIsCauseForHighRoomTemperature(Heating heating, BigDecimal temperatureLimit) {
+		return heating != null && (heating.isBoostActive()
+				|| heating.getTargetTemperature().compareTo(temperatureLimit) > 0
+				|| historyDAO.minutesSinceLastHeatingBoost(heating) < HINT_TIMEOUT_MINUTES_AFTER_BOOST);
 	}
 
 	private boolean isTooColdOutsideSoNoNeedToCoolingDownRoom(BigDecimal roomTemperature) {
@@ -309,27 +319,31 @@ public class HouseService {
 		}
 	}
 
-	public void toggle(String devIdVar) {
-		api.toggleBooleanState(devIdVar);
+	public void togglestate(Device device, boolean value) {
+		api.changeBooleanState(device.accessKeyXmlApi(Datapoint.STATE), value);
 		refreshHouseModel(false);
 	}
 
-	public synchronized void heatingBoost(String prefix) throws InterruptedException {
-		api.runProgram(prefix + "Boost");
+	public void toggleautomation(Device device, AutomationState value) {
+		api.changeBooleanState(device.programNamePrefix() + AUTOMATIC, value.isBooleanValue());
+		refreshHouseModel(false);
+	}
+	
+	public synchronized void heatingBoost(Device device) throws InterruptedException {
+		api.runProgram(device.programNamePrefix() + "Boost");
 		synchronized (REFRESH_MONITOR) {
 			// Just trying to wait for notification from CCU.
 			// It's no big problem if this is the wrong notification.
-			// We're only showing once the old value.
+			// We're only howing once the old value.
 			REFRESH_MONITOR.wait(REFRESH_TIMEOUT); // NOSONAR
 		}
 	}
 
 	// needs to be synchronized because of using ccu-systemwide temperature
 	// variable
-	public synchronized void heatingManual(String prefix, String temperature) throws InterruptedException {
-		temperature = StringUtils.replace(temperature, ",", "."); // decimalpoint
-		api.changeValue(prefix + "Temperature", temperature);
-		api.runProgram(prefix + "Manual");
+	public synchronized void heatingManual(Device device, BigDecimal temperature) throws InterruptedException {
+		api.changeString(device.programNamePrefix() + "Temperature", new DecimalFormat("0.0").format(temperature));
+		api.runProgram(device.programNamePrefix() + "Manual");
 		synchronized (REFRESH_MONITOR) {
 			// Just trying to wait for notification from CCU.
 			// It's no big problem if this is the wrong notification.
@@ -342,7 +356,7 @@ public class HouseService {
 
 		if (oldModel == null || oldModel.getConclusionClimateFacadeMin().getTemperature().getValue()
 				.compareTo(newModel.getConclusionClimateFacadeMin().getTemperature().getValue()) != 0) {
-			api.changeValue(Device.AUSSENTEMPERATUR.getType(),
+			api.changeString(newModel.getConclusionClimateFacadeMin().getDevice().getType().getTypeName(),
 					newModel.getConclusionClimateFacadeMin().getTemperature().toString());
 		}
 	}
@@ -353,8 +367,8 @@ public class HouseService {
 				api.getAsBigDecimal(outside.accessKeyXmlApi(Datapoint.TEMPERATURE))));
 		outdoorClimate.setSunBeamIntensity(
 				lookupIntensity(api.getAsBigDecimal(diff.accessKeyXmlApi(Datapoint.TEMPERATURE))));
-		outdoorClimate.setPlaceName(outside.getPlaceName());
-		outdoorClimate.setDeviceThermometer(outside);
+		outdoorClimate.setDevice(outside);
+
 		return outdoorClimate;
 	}
 
@@ -366,31 +380,29 @@ public class HouseService {
 		if (humidity != null) {
 			roomClimate.setHumidity(new ValueWithTendency<BigDecimal>(humidity));
 		}
-		roomClimate.setPlaceName(thermometer.getPlaceName());
-		roomClimate.setDeviceThermometer(thermometer);
+		roomClimate.setDevice(thermometer);
+		if (thermometer.getType() != Type.THERMOMETER) {
+			roomClimate.setSubType(Type.THERMOMETER);
+		}
 		return roomClimate;
 	}
-
-	private RoomClimate readRoomClimate(Device thermometer, Device heating) {
-		RoomClimate roomClimate = readRoomClimate(thermometer);
-		HeatingModel heatingModel = new HeatingModel();
+ 
+	private Heating readHeating(Device heating) {
+		Heating heatingModel = new Heating();
 		heatingModel.setBoostActive(api.getAsBigDecimal(heating.accessKeyXmlApi(Datapoint.CONTROL_MODE))
 				.compareTo(HomematicConstants.HEATING_CONTROL_MODE_BOOST) == 0);
 		heatingModel.setBoostMinutesLeft(
 				api.getAsBigDecimal(heating.accessKeyXmlApi(Datapoint.BOOST_STATE)).intValue());
 		heatingModel.setTargetTemperature(
 				api.getAsBigDecimal(heating.accessKeyXmlApi(Datapoint.SET_TEMPERATURE)));
-		heatingModel.setProgramNamePrefix(heating.programNamePrefix());
-		roomClimate.setHeating(heatingModel);
-		roomClimate.setPlaceName(thermometer.getPlaceName());
-		roomClimate.setDeviceHeating(heating);
+		heatingModel.setDevice(heating);
 
-		return roomClimate;
+		return heatingModel;
 	}
 
 	private Window readWindow(Device shutter) { // TODO: D_U_M_M_Y
 		Window window = new Window();
-		window.setShutterDevice(shutter);
+		window.setDevice(shutter);
 		window.setShutterPositionPercentage(30);
 		window.setShutterPosition(ShutterPosition.fromPosition(window.getShutterPositionPercentage()));
 		window.setShutterAutomation(true);
@@ -398,8 +410,8 @@ public class HouseService {
 		return window;
 	}
 
-	private SwitchModel readSwitchState(Device device) {
-		SwitchModel switchModel = new SwitchModel();
+	private Switch readSwitchState(Device device) {
+		Switch switchModel = new Switch();
 		switchModel.setState(api.getAsBoolean(device.accessKeyXmlApi(Datapoint.STATE)));
 		switchModel.setDevice(device);
 		switchModel.setAutomation(api.getAsBoolean(device.programNamePrefix() + "Automatic"));
@@ -407,9 +419,9 @@ public class HouseService {
 		return switchModel;
 	}
 
-	private PowerMeterModel readPowerConsumption(Device device) {
+	private PowerMeter readPowerConsumption(Device device) {
 
-		PowerMeterModel model = new PowerMeterModel();
+		PowerMeter model = new PowerMeter();
 		model.setDevice(device);
 		model.setActualConsumption(new ValueWithTendency<BigDecimal>(
 				api.getAsBigDecimal(device.accessKeyXmlApi(Datapoint.POWER))));

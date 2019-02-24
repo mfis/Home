@@ -21,24 +21,27 @@ import home.domain.model.PowerHistoryEntry;
 import home.domain.model.PowerView;
 import home.domain.model.ShutterView;
 import home.domain.model.SwitchView;
+import homecontroller.domain.model.AutomationState;
 import homecontroller.domain.model.Climate;
-import homecontroller.domain.model.Datapoint;
+import homecontroller.domain.model.Heating;
 import homecontroller.domain.model.Hint;
 import homecontroller.domain.model.HistoryModel;
 import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.Intensity;
+import homecontroller.domain.model.OutdoorClimate;
 import homecontroller.domain.model.PowerConsumptionMonth;
-import homecontroller.domain.model.PowerMeterModel;
+import homecontroller.domain.model.PowerMeter;
 import homecontroller.domain.model.RoomClimate;
 import homecontroller.domain.model.ShutterPosition;
-import homecontroller.domain.model.SwitchModel;
+import homecontroller.domain.model.Switch;
 import homecontroller.domain.model.Window;
 
 @Component
 public class HouseViewService {
 
-	private static final String TOGGLE_DEV_ID_VAR = "/toggle?devIdVar=";
-	private static final String AUTOMATIC = "Automatic";
+	private static final String TOGGLE_STATE = "/togglestate?deviceName=";
+	private static final String TOGGLE_AUTOMATION = "/toggleautomation?deviceName=";
+	
 	private static final BigDecimal HIGH_TEMP = new BigDecimal("25");
 	private static final BigDecimal LOW_TEMP = new BigDecimal("19");
 	private static final BigDecimal FROST_TEMP = new BigDecimal("3");
@@ -57,10 +60,10 @@ public class HouseViewService {
 
 	public void fillViewModel(Model model, HouseModel house) {
 
-		formatClimate(model, "tempBathroom", house.getClimateBathRoom());
-		formatClimate(model, "tempKids", house.getClimateKidsRoom());
-		formatClimate(model, "tempLivingroom", house.getClimateLivingRoom());
-		formatClimate(model, "tempBedroom", house.getClimateBedRoom());
+		formatClimate(model, "tempBathroom", house.getClimateBathRoom(), house.getHeatingBathRoom());
+		formatClimate(model, "tempKids", house.getClimateKidsRoom(), null);
+		formatClimate(model, "tempLivingroom", house.getClimateLivingRoom(), null);
+		formatClimate(model, "tempBedroom", house.getClimateBedRoom(), null);
 
 		formatWindow(model, "leftWindowBedroom", house.getLeftWindowBedRoom());
 
@@ -165,12 +168,12 @@ public class HouseViewService {
 		}
 	}
 
-	private void formatClimate(Model model, String viewKey, Climate climate) {
-		ClimateView view = formatClimate(climate, viewKey);
+	private void formatClimate(Model model, String viewKey, Climate climate, Heating heating) {
+		ClimateView view = formatClimate(climate, heating, viewKey);
 		model.addAttribute(viewKey, view);
 	}
 
-	private ClimateView formatClimate(Climate climate, String viewKey) {
+	private ClimateView formatClimate(Climate climate, Heating heating, String viewKey) {
 
 		ClimateView view = new ClimateView();
 		view.setId(viewKey);
@@ -200,7 +203,7 @@ public class HouseViewService {
 			formatClimateTendency(climate, view);
 
 			// Heating
-			formatClimateHeating(climate, view);
+			formatClimateHeating(heating, view);
 
 		} else {
 			view.setStateTemperature("?");
@@ -225,17 +228,16 @@ public class HouseViewService {
 		}
 	}
 
-	private void formatClimateHeating(Climate climate, ClimateView view) {
+	private void formatClimateHeating(Heating heating, ClimateView view) {
 
-		if (climate instanceof RoomClimate && ((RoomClimate) climate).getHeating() != null) {
-			RoomClimate room = (RoomClimate) climate;
-			if (room.getHeating().isBoostActive()) {
-				view.setLinkBoost(String.valueOf(room.getHeating().getBoostMinutesLeft()));
+		if (heating != null) {
+			if (heating.isBoostActive()) {
+				view.setLinkBoost(String.valueOf(heating.getBoostMinutesLeft()));
 			} else {
-				view.setLinkBoost("/heatingboost?prefix=" + room.getHeating().getProgramNamePrefix());
+				view.setLinkBoost("/heatingboost?deviceName=" + heating.getDevice().name());
 			}
-			view.setLinkManual("/heatingmanual?prefix=" + room.getHeating().getProgramNamePrefix());
-			view.setTargetTemp(format(room.getHeating().getTargetTemperature(), false));
+			view.setLinkManual("/heatingmanual?deviceName=" + heating.getDevice().name());
+			view.setTargetTemp(format(heating.getTargetTemperature(), false));
 			view.setHeatericon("fab fa-hotjar");
 		}
 	}
@@ -257,20 +259,15 @@ public class HouseViewService {
 	private void formatFacadeTemperatures(Model model, String viewKeyMin, String viewKeyMax,
 			HouseModel house) {
 
-		ClimateView viewMin = formatClimate(house.getConclusionClimateFacadeMin(), viewKeyMin);
+		ClimateView viewMin = formatClimate(house.getConclusionClimateFacadeMin(), null, viewKeyMin);
 		ClimateView viewMax = new ClimateView();
 		viewMax.setId(viewKeyMax);
 
-		viewMin.setPostfix(house.getConclusionClimateFacadeMin().getPlaceName());
+		viewMin.setPostfix(house.getConclusionClimateFacadeMin().getDevice().getPlace().getPlaceName());
 
-		if (house.getConclusionClimateFacadeMax().getSunBeamIntensity().ordinal() >= house
-				.getConclusionClimateFacadeMax().getSunHeatingInContrastToShadeIntensity().ordinal()) {
-			viewMax.setStateTemperature(house.getConclusionClimateFacadeMax().getSunBeamIntensity().getSun());
-		} else {
-			viewMax.setStateTemperature(house.getConclusionClimateFacadeMax()
-					.getSunHeatingInContrastToShadeIntensity().getHeating());
-		}
-		viewMax.setName("Fassade " + house.getConclusionClimateFacadeMax().getPlaceName());
+		viewMax.setStateTemperature(lookupSunHeating(house.getConclusionClimateFacadeMax()));
+		viewMax.setName(
+				"Fassade " + house.getConclusionClimateFacadeMax().getDevice().getPlace().getPlaceName());
 
 		switch (Intensity.max(house.getConclusionClimateFacadeMax().getSunBeamIntensity(),
 				house.getConclusionClimateFacadeMax().getSunHeatingInContrastToShadeIntensity())) {
@@ -296,11 +293,25 @@ public class HouseViewService {
 		model.addAttribute(viewKeyMax, viewMax);
 	}
 
-	private void formatPower(Model model, PowerMeterModel powerMeter) {
+	public String lookupSunHeating(OutdoorClimate outdoorMaxClimate) {
+
+		if (outdoorMaxClimate == null) {
+			return StringUtils.EMPTY;
+		}
+
+		if (outdoorMaxClimate.getSunBeamIntensity().ordinal() >= outdoorMaxClimate
+				.getSunHeatingInContrastToShadeIntensity().ordinal()) {
+			return outdoorMaxClimate.getSunBeamIntensity().getSun();
+		} else {
+			return outdoorMaxClimate.getSunHeatingInContrastToShadeIntensity().getHeating();
+		}
+	}
+
+	private void formatPower(Model model, PowerMeter powerMeter) {
 
 		PowerView power = new PowerView();
 		power.setState(powerMeter.getActualConsumption().getValue().intValue() + " Watt");
-		power.setName(powerMeter.getDevice().getType());
+		power.setName(powerMeter.getDevice().getType().getTypeName());
 		power.setIcon("fas fa-bolt");
 		if (powerMeter.getActualConsumption().getTendency() != null) {
 			power.setTendencyIcon(powerMeter.getActualConsumption().getTendency().getIconCssClass());
@@ -312,45 +323,44 @@ public class HouseViewService {
 		model.addAttribute("lowBattery", lowBatteryDevices);
 	}
 
-	private void formatSwitch(Model model, String viewKey, SwitchModel switchModel) {
+	private void formatSwitch(Model model, String viewKey, Switch switchModel) {
 
 		SwitchView view = new SwitchView();
 		view.setId(viewKey);
-		view.setName(switchModel.getDevice().getType());
+		view.setName(switchModel.getDevice().getType().getTypeName());
 		view.setState(switchModel.isState() ? "Eingeschaltet" : "Ausgeschaltet");
 		if (switchModel.getAutomation() != null) {
 			if (switchModel.getAutomation()) {
 				view.setState(view.getState() + ", automatisch");
 				view.setLinkManual(
-						TOGGLE_DEV_ID_VAR + switchModel.getDevice().programNamePrefix() + AUTOMATIC);
+						TOGGLE_AUTOMATION + switchModel.getDevice().name() + "&automationStateValue=" + AutomationState.MANUAL.name());
 			} else {
 				view.setState(view.getState() + ", manuell");
-				view.setLinkAuto(TOGGLE_DEV_ID_VAR + switchModel.getDevice().programNamePrefix() + AUTOMATIC);
+				view.setLinkAuto(TOGGLE_AUTOMATION + switchModel.getDevice().name() + "&automationStateValue=" + AutomationState.AUTOMATIC.name());
 			}
 			view.setAutoInfoText(StringUtils.trimToEmpty(switchModel.getAutomationInfoText()));
 		}
 		view.setLabel(switchModel.isState() ? "ausschalten" : "einschalten");
 		view.setIcon(switchModel.isState() ? "fas fa-toggle-on" : "fas fa-toggle-off");
-		view.setLink(TOGGLE_DEV_ID_VAR + switchModel.getDevice().accessKeyXmlApi(Datapoint.STATE));
+		view.setLink(TOGGLE_STATE + switchModel.getDevice().name() + "&booleanValue=" + !switchModel.isState());
 		model.addAttribute(viewKey, view);
 	}
-
+ 
 	private void formatWindow(Model model, String viewKey, Window windowModel) {
 
 		ShutterView view = new ShutterView();
 		view.setId(viewKey);
-		view.setName(windowModel.getShutterDevice().getType());
+		view.setName(windowModel.getDevice().getType().getTypeName());
 		view.setState(windowModel.getShutterPosition().getText(windowModel.getShutterPositionPercentage()));
 
 		if (windowModel.getShutterAutomation() != null) {
 			if (windowModel.getShutterAutomation()) {
 				view.setState(view.getState() + ", automatisch");
 				view.setLinkManual(
-						TOGGLE_DEV_ID_VAR + windowModel.getShutterDevice().programNamePrefix() + AUTOMATIC);
+						TOGGLE_AUTOMATION + windowModel.getDevice().name() + "&booleanValue=false");
 			} else {
 				view.setState(view.getState() + ", manuell");
-				view.setLinkAuto(
-						TOGGLE_DEV_ID_VAR + windowModel.getShutterDevice().programNamePrefix() + AUTOMATIC);
+				view.setLinkAuto(TOGGLE_AUTOMATION + windowModel.getDevice().name() + "&booleanValue=true");
 			}
 			view.setAutoInfoText(windowModel.getShutterAutomationInfoText());
 		}
@@ -373,9 +383,8 @@ public class HouseViewService {
 		if (shutterPosition == windowModel.getShutterPosition()) {
 			return "#";
 		} else {
-			return "/shutterSetPosition?devIdVar="
-					+ windowModel.getShutterDevice().accessKeyXmlApi(Datapoint.STATE) + "&shutterSetPosition="
-					+ shutterPosition.getControlPosition();
+			return "/shutterSetPosition?deviceName=" + windowModel.getDevice().name()
+					+ "&shutterSetPosition=" + shutterPosition.getControlPosition();
 		}
 	}
 

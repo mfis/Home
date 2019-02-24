@@ -19,8 +19,8 @@ import homecontroller.database.mapper.TimestampValuePair;
 import homecontroller.database.mapper.TimestampValueRowMapper;
 import homecontroller.domain.model.Datapoint;
 import homecontroller.domain.model.Device;
+import homecontroller.domain.model.Heating;
 import homecontroller.domain.model.HomematicConstants;
-import homecontroller.domain.model.RoomClimate;
 
 @Component
 public class HistoryDAO {
@@ -31,10 +31,10 @@ public class HistoryDAO {
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
 
-	public long minutesSinceLastHeatingBoost(RoomClimate room) {
+	public long minutesSinceLastHeatingBoost(Heating heating) {
 
 		Timestamp timestamp = jdbcTemplate.queryForObject("select max(ts) as time FROM "
-				+ room.getDeviceHeating().accessKeyHistorian(Datapoint.CONTROL_MODE) + " where value = ?;",
+				+ heating.getDevice().accessKeyHistorian(Datapoint.CONTROL_MODE) + " where value = ?;",
 				new Object[] { HomematicConstants.HEATING_CONTROL_MODE_BOOST.intValue() },
 				new TimestampRowMapper("time"));
 

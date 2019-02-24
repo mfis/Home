@@ -127,7 +127,7 @@
 		<script type="text/javascript">
 			function toggleSwitch[[${model.id}]](){
 				showSpinner();
-				window.location.href = "[[${model.link}]]&y=" + window.scrollY;
+				window.location.href = "[(${model.link})]&y=" + window.scrollY;
 			}		
 		</script>
 		
@@ -142,11 +142,11 @@
   			<script type="text/javascript">
 				function toggleToAuto[[${model.id}]](){
 					showSpinner();
-					window.location.href = "[[${model.linkManual}]]&y=" + window.scrollY;
+					window.location.href = "[(${model.linkManual})]&y=" + window.scrollY;
 				}
 				function toggleToManual[[${model.id}]](){
 					showSpinner();
-					window.location.href = "[[${model.linkAuto}]]&y=" + window.scrollY;
+					window.location.href = "[(${model.linkAuto})]&y=" + window.scrollY;
 				}					
 			</script>
 				<button type="button" class="btn btn-link" data-toggle="modal" th:data-target="'#modalAuto' + ${model.id}">
