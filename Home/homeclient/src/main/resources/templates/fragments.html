@@ -134,8 +134,8 @@
 		<th:block th:if="${!#strings.startsWith(model.linkAuto, '#') or !#strings.startsWith(model.linkManual, '#')}">
 			<span>&nbsp;</span>
 			<div class="btn-group" role="group" aria-label="heating">
-	  			<button th:if="${#strings.startsWith(model.linkAuto, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><i th:class="'far fa-cogs'"></i></span><span>&nbsp;</span></button>
-	  			<button th:if="${#strings.startsWith(model.linkAuto, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToManual' + ${model.id} + '()'}"><span>&nbsp;</span><span><i th:class="'far fa-cogs'"></i></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(model.linkAuto, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><i th:class="'fas fa-cogs'"></i></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(model.linkAuto, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToManual' + ${model.id} + '()'}"><span>&nbsp;</span><span><i th:class="'fas fa-cogs'"></i></span><span>&nbsp;</span></button>
 	  			<button th:if="${#strings.startsWith(model.linkManual, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><i th:class="'fas fa-hand-paper'"></i></span><span>&nbsp;</span></button>
 	  			<button th:if="${#strings.startsWith(model.linkManual, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToAuto' + ${model.id} + '()'}"><span>&nbsp;</span><span><i th:class="'fas fa-hand-paper'"></i></span><span>&nbsp;</span></button>
 			</div>
@@ -209,8 +209,8 @@
 		<th:block th:if="${!#strings.startsWith(model.linkAuto, '#') or !#strings.startsWith(model.linkManual, '#')}">
 			<span>&nbsp;</span>
 			<div class="btn-group" role="group" aria-label="shutterMode">
-	  			<button th:if="${#strings.startsWith(model.linkAuto, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><i th:class="'far fa-cogs'"></i></span><span>&nbsp;</span></button>
-	  			<button th:if="${#strings.startsWith(model.linkAuto, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleShutterToManual' + ${model.id} + '()'}"><span>&nbsp;</span><span><i th:class="'far fa-cogs'"></i></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(model.linkAuto, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><i th:class="'fas fa-cogs'"></i></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(model.linkAuto, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleShutterToManual' + ${model.id} + '()'}"><span>&nbsp;</span><span><i th:class="'fas fa-cogs'"></i></span><span>&nbsp;</span></button>
 	  			<button th:if="${#strings.startsWith(model.linkManual, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><i th:class="'fas fa-hand-paper'"></i></span><span>&nbsp;</span></button>
 	  			<button th:if="${#strings.startsWith(model.linkManual, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleShutterToAuto' + ${model.id} + '()'}"><span>&nbsp;</span><span><i th:class="'fas fa-hand-paper'"></i></span><span>&nbsp;</span></button>
 			</div>
@@ -252,20 +252,25 @@
 		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name})"></div>
 		<h4>
 			<span th:text="${model.state}"></span>
-			<span th:if="${!#strings.isEmpty(model.tendencyIcon)}"><i th:class="${model.tendencyIcon}"></i></span>
+			<th:block th:replace="fragments :: tendency (icon=${model.tendencyIcon})"></th:block>
 		</h4>
 	</div>	
+	
+	<!-- Tendency icon -->
+	<th:block th:fragment="tendency (icon)">
+	     <span th:if="${!#strings.isEmpty(icon)}"><i style="font-size: 70%;" th:class="${icon}"></i></span>
+	</th:block>
 
 	<!-- Temperature fas fa-thermometer-half -->
 	<div th:fragment="temperature (model)" th:class="'alert alert-' + ${model.colorClass}">
 		<div th:replace="fragments :: elementname (icon=${model.icon}, name='Temperatur ' + ${model.postfix})"></div>
 		<h4>
 			<span th:if="${!#strings.isEmpty(model.stateTemperature)}" th:text="${model.stateTemperature}"></span>
-			<span th:if="${!#strings.isEmpty(model.tendencyIconTemperature)}"><i th:class="${model.tendencyIconTemperature}"></i></span>
+			<th:block th:replace="fragments :: tendency (icon=${model.tendencyIconTemperature})"></th:block>
 			<span th:if="${!#strings.isEmpty(model.statePostfixIconTemperature)}"><i th:class="${model.statePostfixIconTemperature}"></i></span>
 			<span th:if="${!#strings.isEmpty(model.stateHumidity)}" th:utext="'&nbsp;&ndash;&nbsp;'"></span>
 			<span th:if="${!#strings.isEmpty(model.stateHumidity)}" th:text="${model.stateHumidity}"></span>
-			<span th:if="${!#strings.isEmpty(model.tendencyIconHumidity)}"><i th:class="${model.tendencyIconHumidity}"></i></span>
+			<th:block th:replace="fragments :: tendency (icon=${model.tendencyIconHumidity})"></th:block>
 			<span th:if="${!#strings.isEmpty(model.statePostfixIconHumidity)}"><i th:class="${model.statePostfixIconHumidity}"></i></span>			
 		</h4>
 			
@@ -334,37 +339,30 @@
 	
 	<!-- Strom Listen Eintrag -->
 	
-	month=${entry.key}, energy=${entry.value}, calculated=${entry.calculated}, colorClass=${entry.colorClass}, collapse=${entry.collapse}
-	
-	<th:block th:fragment="powerEntry (entry)">
+	<th:block th:fragment="historyEntry (entry)">
 	  <div th:class="'list-group-item' + ${entry.colorClass} + ' flex-column align-items-start' + ${entry.collapse}">
 	    <div class="d-flex w-100 justify-content-between">
-	      <a class="mb-1" th:text="${entry.key}">List group item heading</a>
-	      <h4 th:text="${entry.value}">x kW/h</h4>
+	      <a class="mb-1" th:text="${entry.lineOneLabel}">List group item heading</a>
+	      <h4>
+	      	  <span th:text="${entry.lineOneValue}">x kW/h</span>
+	      	  <span th:if="${!#strings.isEmpty(entry.lineOneValueIcon)}"><i style="font-size: 80%;" th:class="${entry.lineOneValueIcon}"></i></span>
+	      </h4>
 	    </div>
-	    <div th:if="${!#strings.isEmpty(entry.calculated)}" class="d-flex w-100 justify-content-between">
-	      <a class="mb-1">Hochgerechnet</a>
-	      <h4 th:text="${entry.calculated}">3 days ago</h4>
+	    <div th:if="${!#strings.isEmpty(entry.lineTwoValue)}" class="d-flex w-100 justify-content-between">
+	      <a class="mb-1" th:text="${entry.lineTwoLabel}">Hochgerechnet</a>
+	      <h4>
+	      	  <span th:text="${entry.lineTwoValue}">3 days ago</span>
+	      	  <span th:if="${!#strings.isEmpty(entry.lineTwoValueIcon)}"><i style="font-size: 80%;" th:class="${entry.lineTwoValueIcon}"></i></span>
+	      </h4>
 	    </div>
-	    <th:block th:if="${#strings.isEmpty(entry.calculated)}">
-		    <div th:if="${!#strings.isEmpty(entry.previousYearCompare)}" class="d-flex w-100 justify-content-end">
-			  <div>
-			  	<span 	
-					th:class="'badge ' + ${entry.previousYearCompareClass}" th:text="${entry.previousYearCompare}">
-				</span>
-			  </div>	      	
-		    </div>	
-	    </th:block>
-	    <th:block th:if="${!#strings.isEmpty(entry.calculated)}">
-		    <div th:if="${!#strings.isEmpty(entry.previousYearCompare)}" class="d-flex w-100 justify-content-between">
-		    <a class="mb-1">Vergleich Vorjahr</a>
-			  <div>
-			  	<span 	
-					th:class="'badge ' + ${entry.previousYearCompareClass}" th:text="${entry.previousYearCompare}">
-				</span>
-			  </div>	      	
-		    </div>	    
-	    </th:block>	    
+	    <div th:if="${!#strings.isEmpty(entry.badgeValue)}" class="d-flex w-100 justify-content-between">
+	    <a class="mb-1" th:text="${entry.badgeLabel}">Vergleich Vorjahr</a>
+		  <div>
+		  	<span 	
+				th:class="'badge ' + ${entry.badgeClass}" th:text="${entry.badgeValue}">
+			</span>
+		  </div>	      	
+	    </div>	    
 	  </div>
 	</th:block>
 

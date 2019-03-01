@@ -14,16 +14,36 @@ public class HistoryModel implements Serializable {
 
 	private List<PowerConsumptionMonth> electricPowerConsumption;
 
-	private boolean electricPowerConsumptionInitialized = false;
+	private boolean initialized = false;
 
 	private BigDecimal highestOutsideTemperatureInLast24Hours;
+	
+	private LinkedList<TemperatureHistory> outsideTemperature;
 
 	// ----------
+
+
+	public boolean isInitialized() {
+		return initialized;
+	}
+
+	public void setInitialized(boolean initialized) {
+		this.initialized = initialized;
+	}
+	
+	public LinkedList<TemperatureHistory> getOutsideTemperature() {
+		return outsideTemperature;
+	}
+
+	public void setOutsideTemperature(LinkedList<TemperatureHistory> outsideTemperature) {
+		this.outsideTemperature = outsideTemperature;
+	}
 
 	public HistoryModel() {
 		super();
 		dateTime = new Date().getTime();
 		electricPowerConsumption = new LinkedList<>();
+		outsideTemperature = new LinkedList<>();
 	}
 
 	public long getDateTime() {
@@ -36,14 +56,6 @@ public class HistoryModel implements Serializable {
 
 	public void setElectricPowerConsumption(List<PowerConsumptionMonth> electricPowerConsumption) {
 		this.electricPowerConsumption = electricPowerConsumption;
-	}
-
-	public boolean isElectricPowerConsumptionInitialized() {
-		return electricPowerConsumptionInitialized;
-	}
-
-	public void setElectricPowerConsumptionInitialized(boolean electricPowerConsumptionInitialized) {
-		this.electricPowerConsumptionInitialized = electricPowerConsumptionInitialized;
 	}
 
 	public BigDecimal getHighestOutsideTemperatureInLast24Hours() {

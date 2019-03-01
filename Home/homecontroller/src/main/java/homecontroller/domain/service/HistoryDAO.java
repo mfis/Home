@@ -41,15 +41,48 @@ public class HistoryDAO {
 		Duration timeElapsed = Duration.between(Instant.ofEpochMilli(timestamp.getTime()), Instant.now());
 		return timeElapsed.toMinutes();
 	}
+	
+	public BigDecimal readExtremValueBetween(Device device, Datapoint datapoint, ExtremValueType extremValueType, LocalDateTime fromDateTime, LocalDateTime untilDateTime) {
 
-	public BigDecimal readMaxValue(Device device, Datapoint datapoint, LocalDateTime optionalFromDateTime) {
-
-		String startTs = formatTimestamp(optionalFromDateTime);
+		String WHERE = fromDateTime!=null || untilDateTime!=null?" where ":"";
+		String AND = fromDateTime!=null && untilDateTime!=null?" and ":"";
+		
+		String query = "select " + (extremValueType==ExtremValueType.MIN?"min":"max") + "(value) as value FROM " + device.accessKeyHistorian(datapoint)
+		+ WHERE + (fromDateTime!=null?("ts >= '" + formatTimestamp(fromDateTime) + "'"):"") + 
+		AND + (untilDateTime!=null?("ts < '" + formatTimestamp(untilDateTime) + "'"):"") + ";";
+		
 		return jdbcTemplate
 				.queryForObject(
-						"select max(value) as value FROM " + device.accessKeyHistorian(datapoint)
-								+ " where ts > '" + startTs + "';",
+						query,
 						new Object[] {}, new BigDecimalRowMapper("value"));
+	}
+	
+	public BigDecimal readExtremValueInTimeRange(Device device, Datapoint datapoint, ExtremValueType extremValueType, TimeRange timerange ,LocalDateTime fromDateTime, LocalDateTime untilDateTime) {
+
+		String query = "select " + (extremValueType==ExtremValueType.MIN?"min":"max") + "(value) as value FROM " + device.accessKeyHistorian(datapoint)
+		+ " where ts >= '" + formatTimestamp(fromDateTime) + "' and ts < '" + formatTimestamp(untilDateTime) + "'" + 
+		" and hour(ts) " + timerange.hoursQueryString + ";";
+		
+		return jdbcTemplate
+				.queryForObject(
+						query,
+						new Object[] {}, new BigDecimalRowMapper("value"));
+	}
+	
+	public BigDecimal readFirstValueBefore(Device device, Datapoint datapoint, LocalDateTime localDateTime, int maxHoursReverse) {
+
+		String query = "select value FROM " + device.accessKeyHistorian(datapoint)
+		+ " where ts <= '" + formatTimestamp(localDateTime) + "' and ts > '" + formatTimestamp(localDateTime.minusHours(maxHoursReverse)) + "' order by ts desc fetch first row only;";
+		
+		List<BigDecimal> result = jdbcTemplate
+		.query(
+				query,
+				new Object[] {}, new BigDecimalRowMapper("value"));
+		if(result==null || result.size()==0) {
+			return null;
+		}else {
+		return result.get(0);
+		}
 	}
 
 	public List<TimestampValuePair> readValues(Device device, Datapoint datapoint,
@@ -70,6 +103,18 @@ public class HistoryDAO {
 			startTs = SQL_TIMESTAMP_FORMATTER.format(optionalFromDateTime);
 		}
 		return startTs;
+	}
+	
+	public enum ExtremValueType{
+		MIN, MAX;
+	}
+	
+	public enum TimeRange{
+		DAY("not in (0,1,2,3,4,5)"), NIGHT("in (0,1,2,3,4,5)");
+		private final String hoursQueryString;
+		private TimeRange(String hoursQueryString) {
+			this.hoursQueryString = hoursQueryString;
+		}
 	}
 
 }

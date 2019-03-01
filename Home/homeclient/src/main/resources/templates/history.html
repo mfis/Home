@@ -12,12 +12,23 @@
 
 		<!-- Stromverbrauch -->
 		<div th:replace="fragments :: title (name='Stromverbrauch')"></div>
-
 		<button class="btn btn-outline-secondary" type="button" data-toggle="collapse" data-target=".electricity" aria-expanded="false">Alle anzeigen</button>
 		<div style="height: 10px;"></div>
 		<div class="list-group">
 			<th:block th:each="entry : ${power}">
-				<div th:replace="fragments :: powerEntry (entry=${entry})"></div>
+				<div th:replace="fragments :: historyEntry (entry=${entry})"></div>
+			</th:block>
+		</div>
+
+		<div style="height: 10px;"></div>
+
+		<!-- Aussentemperatur -->
+		<div th:replace="fragments :: title (name='Außentemperatur')"></div>
+		<button class="btn btn-outline-secondary" type="button" data-toggle="collapse" data-target=".temperatureOutside" aria-expanded="false">Alle anzeigen</button>
+		<div style="height: 10px;"></div>
+		<div class="list-group">
+			<th:block th:each="entry : ${temperatureOutside}">
+				<div th:replace="fragments :: historyEntry (entry=${entry})"></div>
 			</th:block>
 		</div>
 

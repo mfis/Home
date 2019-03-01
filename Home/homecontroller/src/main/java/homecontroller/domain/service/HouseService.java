@@ -357,7 +357,7 @@ public class HouseService {
 		if (oldModel == null || oldModel.getConclusionClimateFacadeMin().getTemperature().getValue()
 				.compareTo(newModel.getConclusionClimateFacadeMin().getTemperature().getValue()) != 0) {
 			api.changeString(newModel.getConclusionClimateFacadeMin().getDevice().getType().getTypeName(),
-					newModel.getConclusionClimateFacadeMin().getTemperature().toString());
+					newModel.getConclusionClimateFacadeMin().getTemperature().getValue().toString());
 		}
 	}
 
