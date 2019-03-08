@@ -131,8 +131,8 @@ public class HouseViewService {
 		int index = 0;
 		for (TemperatureHistory th : history.getOutsideTemperature()) {
 				HistoryEntry entry = new HistoryEntry();
-				entry.setLineOneValueIcon("far fa-moon");
-				entry.setLineTwoValueIcon("far fa-sun");
+				entry.setLineOneValueIcon("fas fa-moon");
+				entry.setLineTwoValueIcon("fas fa-sun");
 				LocalDate date =
 					    Instant.ofEpochMilli(th.getDate()).atZone(ZoneId.systemDefault()).toLocalDate();
 				if(th.isSingleDay()) {
