@@ -57,7 +57,7 @@ public class HouseService {
 
 	private static final Object REFRESH_MONITOR = new Object();
 	private static final long REFRESH_TIMEOUT = 10L * 1000L; // 10 sec
-	
+
 	private static final String AUTOMATIC = "Automatic";
 
 	@Autowired
@@ -328,7 +328,7 @@ public class HouseService {
 		api.changeBooleanState(device.programNamePrefix() + AUTOMATIC, value.isBooleanValue());
 		refreshHouseModel(false);
 	}
-	
+
 	public synchronized void heatingBoost(Device device) throws InterruptedException {
 		api.runProgram(device.programNamePrefix() + "Boost");
 		synchronized (REFRESH_MONITOR) {
@@ -341,8 +341,10 @@ public class HouseService {
 
 	// needs to be synchronized because of using ccu-systemwide temperature
 	// variable
-	public synchronized void heatingManual(Device device, BigDecimal temperature) throws InterruptedException {
-		api.changeString(device.programNamePrefix() + "Temperature", new DecimalFormat("0.0").format(temperature));
+	public synchronized void heatingManual(Device device, BigDecimal temperature)
+			throws InterruptedException {
+		api.changeString(device.programNamePrefix() + "Temperature",
+				new DecimalFormat("0.0").format(temperature));
 		api.runProgram(device.programNamePrefix() + "Manual");
 		synchronized (REFRESH_MONITOR) {
 			// Just trying to wait for notification from CCU.
@@ -356,6 +358,11 @@ public class HouseService {
 
 		if (oldModel == null || oldModel.getConclusionClimateFacadeMin().getTemperature().getValue()
 				.compareTo(newModel.getConclusionClimateFacadeMin().getTemperature().getValue()) != 0) {
+			if (newModel.getConclusionClimateFacadeMin().getTemperature().getValue()
+					.compareTo(BigDecimal.ZERO) == 0) {
+				// TODO: provisionally workaround for zero-degree bug for
+				// thermometers in the first few minutes after ccu start
+			}
 			api.changeString(newModel.getConclusionClimateFacadeMin().getDevice().getType().getTypeName(),
 					newModel.getConclusionClimateFacadeMin().getTemperature().getValue().toString());
 		}
@@ -386,7 +393,7 @@ public class HouseService {
 		}
 		return roomClimate;
 	}
- 
+
 	private Heating readHeating(Device heating) {
 		Heating heatingModel = new Heating();
 		heatingModel.setBoostActive(api.getAsBigDecimal(heating.accessKeyXmlApi(Datapoint.CONTROL_MODE))
