@@ -105,7 +105,7 @@ public class PushService {
 			// Future object is canceled here and the loss of the push
 			// notification is no big problem
 			future.cancel(true);
-			LOG.error("Could not send push message (#3).", e);
+			LOG.error("Could not send push message (#3):" + e.getMessage());
 		}
 
 		executor.shutdownNow();
@@ -141,7 +141,7 @@ public class PushService {
 				}
 
 			} catch (PushoverException pe) {
-				LOG.error("Could not send push message (#2).", pe);
+				LOG.error("Could not send push message (#2):" + pe.getMessage());
 			}
 
 			return null;
