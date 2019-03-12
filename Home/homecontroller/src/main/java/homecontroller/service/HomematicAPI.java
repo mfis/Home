@@ -4,6 +4,9 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,6 +14,7 @@ import javax.annotation.PostConstruct;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
@@ -37,6 +41,11 @@ public class HomematicAPI {
 
 	private static final String VALUE = "value";
 
+	private static final int INIT_STATE_MINUTES = 90;
+
+	private static final DateTimeFormatter UPTIME_FORMATTER = DateTimeFormatter
+			.ofPattern("yyyy-MM-dd HH:mm:ss");
+
 	@Autowired
 	private Environment env;
 
@@ -47,6 +56,7 @@ public class HomematicAPI {
 
 	private Map<String, String> currentValues;
 	private Map<String, String> currentStateIDs;
+	private boolean ccuInitState;
 
 	@PostConstruct
 	public void init() {
@@ -55,7 +65,7 @@ public class HomematicAPI {
 
 	public String getAsString(String key) {
 		if (currentValues.containsKey(key)) {
-			return currentValues.get(key);
+			return checkInit(currentValues.get(key));
 		} else {
 			return null;
 		}
@@ -63,7 +73,7 @@ public class HomematicAPI {
 
 	public boolean getAsBoolean(String key) {
 		if (currentValues.containsKey(key)) {
-			return Boolean.valueOf(currentValues.get(key));
+			return checkInit(Boolean.valueOf(currentValues.get(key)));
 		} else {
 			return false;
 		}
@@ -71,43 +81,54 @@ public class HomematicAPI {
 
 	public BigDecimal getAsBigDecimal(String key) {
 		if (currentValues.containsKey(key)) {
-			return new BigDecimal(currentValues.get(key));
+			return checkInit(new BigDecimal(currentValues.get(key)));
 		} else {
 			return null;
 		}
 	}
 
-	private void changeValue(String key, String value) {
-		String iseID = currentStateIDs.get(key);
-		String url = host + "/addons/xmlapi/statechange.cgi?ise_id=" + iseID + "&new_value=" + value;
-		documentFromUrl(url);
-	}
-
 	public void changeBooleanState(String key, boolean value) {
 
-		changeValue("refreshadress", env.getProperty("refresh.adress"));
+		changeString("refreshadress", env.getProperty("refresh.adress"));
 
 		String iseID = currentStateIDs.get(key);
 		String url = host + "/addons/xmlapi/statechange.cgi?ise_id=" + iseID + "&new_value="
 				+ Boolean.toString(value);
 		documentFromUrl(url);
 	}
-	
-	public void changeString(String key, String value) {
-
-		String iseID = currentStateIDs.get(key);
-		String url = host + "/addons/xmlapi/statechange.cgi?ise_id=" + iseID + "&new_value="
-				+ value;
-		documentFromUrl(url);
-	}
 
 	public synchronized void runProgram(String name) {
 
-		changeValue("refreshadress", env.getProperty("refresh.adress"));
+		changeString("refreshadress", env.getProperty("refresh.adress"));
 
 		String id = currentStateIDs.get(name);
 		String url = host + "/addons/xmlapi/runprogram.cgi?program_id=" + id;
 		documentFromUrl(url);
+	}
+
+	public void changeString(String key, String value) {
+
+		String iseID = currentStateIDs.get(key);
+		String url = host + "/addons/xmlapi/statechange.cgi?ise_id=" + iseID + "&new_value=" + value;
+		documentFromUrl(url);
+	}
+
+	private <T> T checkInit(T value) {
+
+		if (!ccuInitState) {
+			return value;
+		}
+
+		if (value.getClass().isAssignableFrom(String.class) && StringUtils.isBlank((String) value)) {
+			return null;
+		}
+
+		if (value.getClass().isAssignableFrom(BigDecimal.class)
+				&& BigDecimal.ZERO.compareTo((BigDecimal) value) == 0) {
+			return null;
+		}
+
+		return value;
 	}
 
 	public void refresh() {
@@ -148,6 +169,21 @@ public class HomematicAPI {
 			currentStateIDs.put(eElement.getAttribute(NAME), eElement.getAttribute(ID));
 		}
 
+		lookupInitState();
+	}
+
+	private void lookupInitState() {
+
+		boolean reboot = getAsBoolean("CCU_im_Reboot");
+		if (reboot) {
+			ccuInitState = true;
+			return;
+		}
+
+		String uptime = getAsString("CCU_Uptime");
+		long minutesUptime = Duration
+				.between(LocalDateTime.parse(uptime, UPTIME_FORMATTER), LocalDateTime.now()).toMinutes();
+		ccuInitState = minutesUptime <= INIT_STATE_MINUTES;
 	}
 
 	HttpHeaders createHeaders() {

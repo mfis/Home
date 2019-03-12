@@ -219,6 +219,11 @@ public class HouseService {
 	private void calculateTendency(HouseModel newModel, ValueWithTendency<BigDecimal> reference,
 			ValueWithTendency<BigDecimal> actual, BigDecimal diffValue) {
 
+		if (actual.getValue() == null) {
+			actual.setTendency(Tendency.NONE);
+			return;
+		}
+
 		BigDecimal diff = actual.getValue().subtract(reference.getReferenceValue());
 
 		if (diff.compareTo(BigDecimal.ZERO) > 0 && diff.compareTo(diffValue) > 0) {
@@ -270,7 +275,7 @@ public class HouseService {
 				: TARGET_TEMPERATURE_INSIDE;
 		BigDecimal temperatureLimit = targetTemperature.add(TARGET_TEMPERATURE_TOLERANCE_OFFSET);
 
-		if (room.getTemperature() == null) {
+		if (room.getTemperature() == null || room.getTemperature().getValue() == null) {
 			// nothing to do
 		} else if (room.getTemperature().getValue().compareTo(temperatureLimit) < 0) {
 			// TODO: using sun heating in the winter for warming up rooms
@@ -356,13 +361,9 @@ public class HouseService {
 
 	private void updateHomematicSystemVariables(HouseModel oldModel, HouseModel newModel) {
 
-		if (oldModel == null || oldModel.getConclusionClimateFacadeMin().getTemperature().getValue()
-				.compareTo(newModel.getConclusionClimateFacadeMin().getTemperature().getValue()) != 0) {
-			if (newModel.getConclusionClimateFacadeMin().getTemperature().getValue()
-					.compareTo(BigDecimal.ZERO) == 0) {
-				// TODO: provisionally workaround for zero-degree bug for
-				// thermometers in the first few minutes after ccu start
-			}
+		if (newModel.getConclusionClimateFacadeMin().getTemperature().getValue() != null && (oldModel == null
+				|| oldModel.getConclusionClimateFacadeMin().getTemperature().getValue().compareTo(
+						newModel.getConclusionClimateFacadeMin().getTemperature().getValue()) != 0)) {
 			api.changeString(newModel.getConclusionClimateFacadeMin().getDevice().getType().getTypeName(),
 					newModel.getConclusionClimateFacadeMin().getTemperature().getValue().toString());
 		}
@@ -398,8 +399,8 @@ public class HouseService {
 		Heating heatingModel = new Heating();
 		heatingModel.setBoostActive(api.getAsBigDecimal(heating.accessKeyXmlApi(Datapoint.CONTROL_MODE))
 				.compareTo(HomematicConstants.HEATING_CONTROL_MODE_BOOST) == 0);
-		heatingModel.setBoostMinutesLeft(
-				api.getAsBigDecimal(heating.accessKeyXmlApi(Datapoint.BOOST_STATE)).intValue());
+		BigDecimal boostLeft = api.getAsBigDecimal(heating.accessKeyXmlApi(Datapoint.BOOST_STATE));
+		heatingModel.setBoostMinutesLeft(boostLeft == null ? 0 : boostLeft.intValue());
 		heatingModel.setTargetTemperature(
 				api.getAsBigDecimal(heating.accessKeyXmlApi(Datapoint.SET_TEMPERATURE)));
 		heatingModel.setDevice(heating);

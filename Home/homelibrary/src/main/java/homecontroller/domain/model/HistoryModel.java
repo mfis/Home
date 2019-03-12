@@ -17,11 +17,10 @@ public class HistoryModel implements Serializable {
 	private boolean initialized = false;
 
 	private BigDecimal highestOutsideTemperatureInLast24Hours;
-	
+
 	private LinkedList<TemperatureHistory> outsideTemperature;
 
 	// ----------
-
 
 	public boolean isInitialized() {
 		return initialized;
@@ -30,12 +29,12 @@ public class HistoryModel implements Serializable {
 	public void setInitialized(boolean initialized) {
 		this.initialized = initialized;
 	}
-	
-	public LinkedList<TemperatureHistory> getOutsideTemperature() {
+
+	public LinkedList<TemperatureHistory> getOutsideTemperature() { // NOSONAR
 		return outsideTemperature;
 	}
 
-	public void setOutsideTemperature(LinkedList<TemperatureHistory> outsideTemperature) {
+	public void setOutsideTemperature(LinkedList<TemperatureHistory> outsideTemperature) { // NOSONAR
 		this.outsideTemperature = outsideTemperature;
 	}
 

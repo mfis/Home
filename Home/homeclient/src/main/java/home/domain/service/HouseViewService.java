@@ -45,7 +45,7 @@ public class HouseViewService {
 
 	private static final String TOGGLE_STATE = "/togglestate?deviceName=";
 	private static final String TOGGLE_AUTOMATION = "/toggleautomation?deviceName=";
-	
+
 	private static final BigDecimal HIGH_TEMP = new BigDecimal("25");
 	private static final BigDecimal LOW_TEMP = new BigDecimal("19");
 	private static final BigDecimal FROST_TEMP = new BigDecimal("3");
@@ -58,8 +58,9 @@ public class HouseViewService {
 	private static final long KWH_FACTOR = 1000L;
 
 	private static final DateTimeFormatter MONTH_YEAR_FORMATTER = DateTimeFormatter.ofPattern("MMM yyyy");
-	
-	private static final DateTimeFormatter DAY_MONTH_YEAR_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+
+	private static final DateTimeFormatter DAY_MONTH_YEAR_FORMATTER = DateTimeFormatter
+			.ofPattern("dd.MM.yyyy");
 
 	@Autowired
 	private Environment env;
@@ -87,7 +88,7 @@ public class HouseViewService {
 	}
 
 	private void fillPowerHistoryViewModel(Model model, HistoryModel history) {
-		
+
 		List<HistoryEntry> list = new LinkedList<>();
 		DecimalFormat decimalFormat = new DecimalFormat("0");
 		int index = 0;
@@ -106,13 +107,13 @@ public class HouseViewService {
 						entry.setLineTwoLabel("Hochgerechnet");
 						entry.setBadgeLabel("Vergleich Vorjahr");
 						calculated = calculateProjectedConsumption(entry, pcm.measurePointMaxDateTime(), pcm);
-					}else {
+					} else {
 						calculateDifference = false;
 					}
 					entry.setColorClass(" list-group-item-secondary");
 					entry.setLineOneLabel(entry.getLineOneLabel() + " bisher");
 				}
-				if(calculateDifference) {
+				if (calculateDifference) {
 					calculatePreviousYearDifference(entry, pcm, history.getElectricPowerConsumption(),
 							pcm.getPowerConsumption(), calculated);
 				}
@@ -124,53 +125,52 @@ public class HouseViewService {
 		Collections.reverse(list);
 		model.addAttribute("power", list);
 	}
-	
+
 	private void fillOutsideTemperatureHistoryViewModel(Model model, HistoryModel history) {
-		
+
 		List<HistoryEntry> list = new LinkedList<>();
 		int index = 0;
 		for (TemperatureHistory th : history.getOutsideTemperature()) {
-				HistoryEntry entry = new HistoryEntry();
-				entry.setLineOneValueIcon("fas fa-moon");
-				entry.setLineTwoValueIcon("fas fa-sun");
-				LocalDate date =
-					    Instant.ofEpochMilli(th.getDate()).atZone(ZoneId.systemDefault()).toLocalDate();
-				if(th.isSingleDay()) {
-					if(date.compareTo(LocalDate.now())==0) {
-						entry.setLineOneLabel("Heute");
-					}else if(date.compareTo(LocalDate.now().minusDays(1))==0) {
-						entry.setLineOneLabel("Gestern");
-					}else {
-						entry.setLineOneLabel(DAY_MONTH_YEAR_FORMATTER.format(date));
-					}
-					entry.setColorClass(" list-group-item-secondary");
-				}else {
-					entry.setLineOneLabel(MONTH_YEAR_FORMATTER.format(date));
+			HistoryEntry entry = new HistoryEntry();
+			entry.setLineOneValueIcon("fas fa-moon");
+			entry.setLineTwoValueIcon("fas fa-sun");
+			LocalDate date = Instant.ofEpochMilli(th.getDate()).atZone(ZoneId.systemDefault()).toLocalDate();
+			if (th.isSingleDay()) {
+				if (date.compareTo(LocalDate.now()) == 0) {
+					entry.setLineOneLabel("Heute");
+				} else if (date.compareTo(LocalDate.now().minusDays(1)) == 0) {
+					entry.setLineOneLabel("Gestern");
+				} else {
+					entry.setLineOneLabel(DAY_MONTH_YEAR_FORMATTER.format(date));
 				}
-				entry.setLineOneValue(formatTemperatures(th.getNightMin(), th.getNightMax()));
-				entry.setLineTwoValue(formatTemperatures(th.getDayMin(), th.getDayMax()));
-				if (index >2) {
-					entry.setCollapse(" collapse multi-collapse temperatureOutside");
-				}
-				list.add(entry);
+				entry.setColorClass(" list-group-item-secondary");
+			} else {
+				entry.setLineOneLabel(MONTH_YEAR_FORMATTER.format(date));
+			}
+			entry.setLineOneValue(formatTemperatures(th.getNightMin(), th.getNightMax()));
+			entry.setLineTwoValue(formatTemperatures(th.getDayMin(), th.getDayMax()));
+			if (index > 2) {
+				entry.setCollapse(" collapse multi-collapse temperatureOutside");
+			}
+			list.add(entry);
 			index++;
 		}
 
 		model.addAttribute("temperatureOutside", list);
 	}
-	
+
 	private String formatTemperatures(BigDecimal min, BigDecimal max) {
-		
-		if(min==null && max==null) {
+
+		if (min == null && max == null) {
 			return "n/a";
 		}
-		
+
 		DecimalFormat decimalFormat = new DecimalFormat("0");
-		if(min.compareTo(max)==0) {
+		if (min.compareTo(max) == 0) {
 			return decimalFormat.format(min) + "\u00b0" + "C";
 		}
-		
-		return decimalFormat.format(min)+ "\u00b0" + "C bis " + decimalFormat.format(max) + "\u00b0" + "C";
+
+		return decimalFormat.format(min) + "\u00b0" + "C bis " + decimalFormat.format(max) + "\u00b0" + "C";
 	}
 
 	private void calculatePreviousYearDifference(HistoryEntry entry, PowerConsumptionMonth pcm,
@@ -244,10 +244,8 @@ public class HouseViewService {
 		ClimateView view = new ClimateView();
 		view.setId(viewKey);
 
-		if (climate.getTemperature() != null
-				&& climate.getTemperature().getValue().compareTo(BigDecimal.ZERO) == 0
-				&& climate.getHumidity() != null
-				&& climate.getHumidity().getValue().compareTo(BigDecimal.ZERO) == 0) {
+		if ((climate.getTemperature() == null || climate.getTemperature().getValue() == null)
+				&& (climate.getHumidity() == null || climate.getHumidity().getValue() == null)) {
 			view.setStateTemperature("unbekannt");
 			return view;
 		}
@@ -398,20 +396,22 @@ public class HouseViewService {
 		if (switchModel.getAutomation() != null) {
 			if (switchModel.getAutomation()) {
 				view.setState(view.getState() + ", automatisch");
-				view.setLinkManual(
-						TOGGLE_AUTOMATION + switchModel.getDevice().name() + "&automationStateValue=" + AutomationState.MANUAL.name());
+				view.setLinkManual(TOGGLE_AUTOMATION + switchModel.getDevice().name()
+						+ "&automationStateValue=" + AutomationState.MANUAL.name());
 			} else {
 				view.setState(view.getState() + ", manuell");
-				view.setLinkAuto(TOGGLE_AUTOMATION + switchModel.getDevice().name() + "&automationStateValue=" + AutomationState.AUTOMATIC.name());
+				view.setLinkAuto(TOGGLE_AUTOMATION + switchModel.getDevice().name() + "&automationStateValue="
+						+ AutomationState.AUTOMATIC.name());
 			}
 			view.setAutoInfoText(StringUtils.trimToEmpty(switchModel.getAutomationInfoText()));
 		}
 		view.setLabel(switchModel.isState() ? "ausschalten" : "einschalten");
 		view.setIcon(switchModel.isState() ? "fas fa-toggle-on" : "fas fa-toggle-off");
-		view.setLink(TOGGLE_STATE + switchModel.getDevice().name() + "&booleanValue=" + !switchModel.isState());
+		view.setLink(
+				TOGGLE_STATE + switchModel.getDevice().name() + "&booleanValue=" + !switchModel.isState());
 		model.addAttribute(viewKey, view);
 	}
- 
+
 	private void formatWindow(Model model, String viewKey, Window windowModel) {
 
 		ShutterView view = new ShutterView();
@@ -449,8 +449,8 @@ public class HouseViewService {
 		if (shutterPosition == windowModel.getShutterPosition()) {
 			return "#";
 		} else {
-			return "/shutterSetPosition?deviceName=" + windowModel.getDevice().name()
-					+ "&shutterSetPosition=" + shutterPosition.getControlPosition();
+			return "/shutterSetPosition?deviceName=" + windowModel.getDevice().name() + "&shutterSetPosition="
+					+ shutterPosition.getControlPosition();
 		}
 	}
 
