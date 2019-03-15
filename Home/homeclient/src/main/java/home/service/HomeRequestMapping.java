@@ -24,7 +24,7 @@ public class HomeRequestMapping {
 	private static final String Y_POS = "y";
 
 	private static final String REDIRECT = "redirect:";
-	
+
 	@Autowired
 	private HouseViewService houseView;
 
@@ -39,25 +39,29 @@ public class HomeRequestMapping {
 
 	@RequestMapping("/togglestate")
 	public String togglestate(@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
-			@RequestParam(ControllerAPI.DEVICE_NAME) String deviceName, @RequestParam(ControllerAPI.BOOLEAN_VALUE) String booleanValue,
+			@RequestParam(ControllerAPI.DEVICE_NAME) String deviceName,
+			@RequestParam(ControllerAPI.BOOLEAN_VALUE) String booleanValue,
 			@RequestParam(name = Y_POS, required = false) String y) {
 		saveYPos(userCookie, y);
 		controllerAPI.togglestate(Device.valueOf(deviceName), Boolean.valueOf(booleanValue));
 		return REDIRECT + Pages.PATH_HOME;
 	}
-	
+
 	@RequestMapping("/toggleautomation")
 	public String toggleautomation(@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
-			@RequestParam(ControllerAPI.DEVICE_NAME) String deviceName, @RequestParam("automationStateValue") String automationStateValue,
+			@RequestParam(ControllerAPI.DEVICE_NAME) String deviceName,
+			@RequestParam("automationStateValue") String automationStateValue,
 			@RequestParam(name = Y_POS, required = false) String y) {
 		saveYPos(userCookie, y);
-		controllerAPI.toggleautomation(Device.valueOf(deviceName), AutomationState.valueOf(automationStateValue));
+		controllerAPI.toggleautomation(Device.valueOf(deviceName),
+				AutomationState.valueOf(automationStateValue));
 		return REDIRECT + Pages.PATH_HOME;
 	}
 
 	@RequestMapping("/heatingboost")
 	public String heatingBoost(@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
-			@RequestParam(ControllerAPI.DEVICE_NAME) String deviceName, @RequestParam(name = Y_POS, required = false) String y) {
+			@RequestParam(ControllerAPI.DEVICE_NAME) String deviceName,
+			@RequestParam(name = Y_POS, required = false) String y) {
 		saveYPos(userCookie, y);
 		controllerAPI.heatingboost(Device.valueOf(deviceName));
 		return REDIRECT + Pages.PATH_HOME;
@@ -65,7 +69,8 @@ public class HomeRequestMapping {
 
 	@RequestMapping("/heatingmanual")
 	public String heatingManual(@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
-			@RequestParam(ControllerAPI.DEVICE_NAME) String deviceName, @RequestParam("temperature") String temperature,
+			@RequestParam(ControllerAPI.DEVICE_NAME) String deviceName,
+			@RequestParam("temperature") String temperature,
 			@RequestParam(name = Y_POS, required = false) String y) {
 		saveYPos(userCookie, y);
 		controllerAPI.heatingmanual(Device.valueOf(deviceName), new BigDecimal(temperature));
@@ -74,7 +79,8 @@ public class HomeRequestMapping {
 
 	@RequestMapping("/shutterSetPosition")
 	public String shutterSetPosition(@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
-			@RequestParam(ControllerAPI.DEVICE_NAME) String deviceName, @RequestParam("positionPercentage") String positionPercentage,
+			@RequestParam(ControllerAPI.DEVICE_NAME) String deviceName,
+			@RequestParam("positionPercentage") String positionPercentage,
 			@RequestParam(name = Y_POS, required = false) String y) {
 		saveYPos(userCookie, y);
 		controllerAPI.shuttersetposition(Device.valueOf(deviceName), Integer.parseInt(positionPercentage));
@@ -139,7 +145,7 @@ public class HomeRequestMapping {
 	}
 
 	private void saveYPos(String userCookie, String y) {
-		if (y != null && userCookie !=null) {
+		if (y != null && userCookie != null) {
 			String user = ExternalPropertiesDAO.getInstance().read(userCookie);
 			ViewAttributesDAO.getInstance().push(user, ViewAttributesDAO.Y_POS_HOME, y);
 		}

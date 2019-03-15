@@ -37,7 +37,7 @@ public class TextQueryService {
 
 	@Autowired
 	private HouseViewService houseViewService;
-	
+
 	@Autowired
 	private ControllerAPI controllerAPI;
 
@@ -51,9 +51,7 @@ public class TextQueryService {
 		QueryValue value = null;
 
 		controlQuery = lookupControlQuery(words);
-		if (controlQuery) {
-			value = lookupValue(words);
-		}
+		value = lookupValue(words);
 
 		places = Synonym.lookupSynonyms(Place.class, words);
 		if (places.isEmpty()) {
@@ -73,7 +71,8 @@ public class TextQueryService {
 		return invokeQueries(lookupModelObjects(house, devices), controlQuery, value);
 	}
 
-	private String invokeQueries(List<AbstractDeviceModel> modelObjects, boolean controlQuery, QueryValue value) {
+	private String invokeQueries(List<AbstractDeviceModel> modelObjects, boolean controlQuery,
+			QueryValue value) {
 
 		StringBuilder sb = new StringBuilder(300);
 		for (AbstractDeviceModel modelObject : modelObjects) {
@@ -94,10 +93,9 @@ public class TextQueryService {
 			return "Entschuldige, dieses Gerät ist nicht steuerbar.";
 		}
 
-		if (controlQuery && value != null && modelObject.getDevice().isControllable()) {
-			if (!value.matchesDevice(modelObject.getDevice())) {
-				return "Entschuldige, ich habe nicht verstanden, auf welchen Wert ich das Gerät einstellen soll.";
-			}
+		if (controlQuery && modelObject.getDevice().isControllable()
+				&& !value.matchesDevice(modelObject.getDevice())) {
+			return "Entschuldige, ich habe nicht verstanden, auf welchen Wert ich das Gerät einstellen soll.";
 		}
 
 		if (modelObject instanceof Climate) {
@@ -159,6 +157,11 @@ public class TextQueryService {
 			heating = refreshModel(heating);
 		}
 
+		if (heating == null) {
+			builder.add("Der neue Wert konnte leider nicht bestätigt werden");
+			return builder.getText();
+		}
+
 		builder //
 				.add(PlacePrepositions.getPreposition(heating.getDevice().getPlace())) //
 				.add(heating.getDevice().getPlace().getPlaceName()) //
@@ -195,6 +198,11 @@ public class TextQueryService {
 			powerswitch = refreshModel(powerswitch);
 		}
 
+		if (powerswitch == null) {
+			builder.add("Der neue Wert konnte leider nicht bestätigt werden");
+			return builder.getText();
+		}
+
 		builder //
 				.add(PlacePrepositions.getPreposition(powerswitch.getDevice().getPlace())) //
 				.add(powerswitch.getDevice().getPlace().getPlaceName()) //
@@ -215,7 +223,7 @@ public class TextQueryService {
 
 	@SuppressWarnings("unchecked")
 	private <T extends AbstractDeviceModel> T refreshModel(T deviceModel) {
-		
+
 		HouseModel refreshedModel = controllerAPI.actualstate();
 		TypeAndDevice typeAndDevice = new TypeAndDevice();
 		typeAndDevice.type = deviceModel.getDevice().getType();
@@ -245,8 +253,9 @@ public class TextQueryService {
 				if (model instanceof AbstractDeviceModel) {
 					Device modelDevice = ((AbstractDeviceModel) model).getDevice();
 					Type modelSubType = ((AbstractDeviceModel) model).getSubType();
-					if (modelDevice == entry.device && ((modelSubType == null && modelDevice.getType() == entry.type)
-							|| modelSubType == entry.type)) {
+					if (modelDevice == entry.device
+							&& ((modelSubType == null && modelDevice.getType() == entry.type)
+									|| modelSubType == entry.type)) {
 						return (AbstractDeviceModel) model;
 					}
 				}
@@ -307,8 +316,9 @@ public class TextQueryService {
 		if (booleanValues.size() == 1) {
 			queryValue.setBooleanValue(booleanValues.iterator().next());
 		}
-		
-		Set<AutomationState> automationStateValueValues = Synonym.lookupSynonyms(AutomationState.class, words);
+
+		Set<AutomationState> automationStateValueValues = Synonym.lookupSynonyms(AutomationState.class,
+				words);
 		if (automationStateValueValues.size() == 1) {
 			queryValue.setAutomationState(automationStateValueValues.iterator().next());
 		}
@@ -351,9 +361,10 @@ public class TextQueryService {
 			for (Place devicePlaces : device.getPlace().allPlaces()) {
 				for (Type deviceTypes : device.getType().allTypes()) {
 					if (devicePlaces == place && deviceTypes == type && device.isTextQueryEnabled()) {
-						if(controlQuery && !type.isControllable()) {
-							// control command not applicable for this type of device
-						}else {
+						if (controlQuery && !type.isControllable()) {
+							// control command not applicable for this type of
+							// device
+						} else {
 							TypeAndDevice typeAndDevice = new TypeAndDevice();
 							typeAndDevice.type = type;
 							typeAndDevice.device = device;

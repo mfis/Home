@@ -1,7 +1,6 @@
 package homecontroller.domain.service;
 
 import java.math.BigDecimal;
-import java.text.DecimalFormat;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -348,8 +347,7 @@ public class HouseService {
 	// variable
 	public synchronized void heatingManual(Device device, BigDecimal temperature)
 			throws InterruptedException {
-		api.changeString(device.programNamePrefix() + "Temperature",
-				new DecimalFormat("0.0").format(temperature));
+		api.changeString(device.programNamePrefix() + "Temperature", temperature.toString());
 		api.runProgram(device.programNamePrefix() + "Manual");
 		synchronized (REFRESH_MONITOR) {
 			// Just trying to wait for notification from CCU.
@@ -422,8 +420,9 @@ public class HouseService {
 		Switch switchModel = new Switch();
 		switchModel.setState(api.getAsBoolean(device.accessKeyXmlApi(Datapoint.STATE)));
 		switchModel.setDevice(device);
-		switchModel.setAutomation(api.getAsBoolean(device.programNamePrefix() + "Automatic"));
-		switchModel.setAutomationInfoText(api.getAsString(device.programNamePrefix() + "AutomaticInfoText"));
+		switchModel.setAutomation(api.getAsBoolean(device.programNamePrefix() + AUTOMATIC));
+		switchModel
+				.setAutomationInfoText(api.getAsString(device.programNamePrefix() + AUTOMATIC + "InfoText"));
 		return switchModel;
 	}
 

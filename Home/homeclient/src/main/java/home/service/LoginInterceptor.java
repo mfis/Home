@@ -90,10 +90,6 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 
 	private boolean exlusion(HttpServletRequest request) {
 
-		if (StringUtils.containsIgnoreCase(request.getRequestURL(), "/textquery")) {
-			return true; // FIXME
-		}
-
 		if (StringUtils.containsIgnoreCase(request.getRequestURL(), "/webjars/")) {
 			return true;
 		}
@@ -190,6 +186,7 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 		}
 
 		Cookie cookie = new Cookie(COOKIE_NAME, "");
+		cookie.setHttpOnly(true);
 		cookie.setMaxAge(0);
 		response.addCookie(cookie);
 	}
@@ -197,6 +194,7 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 	private static void cookieWrite(HttpServletResponse response, String value) {
 
 		Cookie cookie = new Cookie(COOKIE_NAME, value);
+		cookie.setHttpOnly(true);
 		cookie.setMaxAge(60 * 60 * 24 * 180);
 		response.addCookie(cookie);
 	}

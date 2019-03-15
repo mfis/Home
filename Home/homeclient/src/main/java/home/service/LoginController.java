@@ -39,7 +39,7 @@ public class LoginController {
 		return LOGIN;
 	}
 
-	@RequestMapping("/logoff")
+	@RequestMapping(path = "/logoff")
 	public String logoff(Model model) {
 		model.addAttribute(LAW_LINK, lawLink);
 		model.addAttribute(LOGIN_MESSAGE, "Sie wurden erfolgreich abgemeldet.");

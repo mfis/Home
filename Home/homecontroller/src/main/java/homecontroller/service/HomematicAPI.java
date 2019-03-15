@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -206,6 +207,7 @@ public class HomematicAPI {
 
 		try {
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+			dbFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, Boolean.TRUE);
 			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 			InputStream inputStream = new ByteArrayInputStream(response.getBytes(StandardCharsets.UTF_8));
 			Document doc = dBuilder.parse(inputStream);

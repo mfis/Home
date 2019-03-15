@@ -32,70 +32,71 @@ public class ControllerAPI {
 
 	@Autowired
 	private Environment env;
-	
+
 	@Autowired
 	private RestTemplate restTemplate;
-	
+
 	private static final String CONTROLLER_URL = "controller.url";
-	
+
 	public static final String BOOLEAN_VALUE = "booleanValue";
 
 	public static final String DEVICE_NAME = "deviceName";
-	
+
 	public void togglestate(Device device, Boolean booleanValue) {
-		call(env.getProperty(CONTROLLER_URL) + "togglestate", ActionModel.class,
-				new URIParameter().add("deviceName", device.name()).add("booleanValue", booleanValue.toString()).build());
+		call(env.getProperty(CONTROLLER_URL) + "togglestate", ActionModel.class, new URIParameter()
+				.add(DEVICE_NAME, device.name()).add(BOOLEAN_VALUE, booleanValue.toString()).build());
 	}
-	
+
 	public void toggleautomation(Device device, AutomationState automationStateValue) {
 		call(env.getProperty(CONTROLLER_URL) + "toggleautomation", ActionModel.class,
-				new URIParameter().add("deviceName", device.name()).add("automationStateValue", automationStateValue.name()).build());
+				new URIParameter().add(DEVICE_NAME, device.name())
+						.add("automationStateValue", automationStateValue.name()).build());
 	}
-	
+
 	public void heatingboost(Device device) {
 		call(env.getProperty(CONTROLLER_URL) + "heatingboost", ActionModel.class,
-				new URIParameter().add("deviceName", device.name()).build());
+				new URIParameter().add(DEVICE_NAME, device.name()).build());
 	}
-	
+
 	public void heatingmanual(Device device, BigDecimal temperature) {
 		call(env.getProperty(CONTROLLER_URL) + "heatingmanual", ActionModel.class,
-				new URIParameter().add("deviceName", device.name()).add("temperature", new DecimalFormat("0.0", new DecimalFormatSymbols(Locale.US)).format(temperature)).build());
+				new URIParameter().add(DEVICE_NAME, device.name()).add("temperature",
+						new DecimalFormat("0.0", new DecimalFormatSymbols(Locale.US)).format(temperature))
+						.build());
 	}
-	
+
 	public void shuttersetposition(Device device, int positionPercentage) {
 		call(env.getProperty(CONTROLLER_URL) + "shutterSetPosition", ActionModel.class,
-				new URIParameter().add("deviceName", device.name()).add("positionPercentage", String.valueOf(positionPercentage)).build());
+				new URIParameter().add(DEVICE_NAME, device.name())
+						.add("positionPercentage", String.valueOf(positionPercentage)).build());
 	}
-	
+
 	public void settingspushtoggle(String userCookie) {
 		call(env.getProperty(CONTROLLER_URL) + "settingspushtoggle", ActionModel.class,
 				new URIParameter().add("user", ExternalPropertiesDAO.getInstance().read(userCookie)).build());
 	}
-	
+
 	public void settingspushover(String userCookie, String pushoverDevice) {
 		call(env.getProperty(CONTROLLER_URL) + "settingpushoverdevice", ActionModel.class,
 				new URIParameter().add("user", ExternalPropertiesDAO.getInstance().read(userCookie))
 						.add("device", pushoverDevice).build());
 	}
-	
+
 	public HouseModel actualstate() {
-		HouseModel house = call(env.getProperty(CONTROLLER_URL) + "actualstate", HouseModel.class,
+		return call(env.getProperty(CONTROLLER_URL) + "actualstate", HouseModel.class,
 				new URIParameter().build());
-		return house;
 	}
-	
+
 	public HistoryModel history() {
-		HistoryModel history = call(env.getProperty(CONTROLLER_URL) + "history", HistoryModel.class,
+		return call(env.getProperty(CONTROLLER_URL) + "history", HistoryModel.class,
 				new URIParameter().build());
-		return history;
 	}
-	
+
 	public SettingsModel settings(String userCookie) {
-		SettingsModel settings = call(env.getProperty(CONTROLLER_URL) + "settings", SettingsModel.class,
+		return call(env.getProperty(CONTROLLER_URL) + "settings", SettingsModel.class,
 				new URIParameter().add("user", ExternalPropertiesDAO.getInstance().read(userCookie)).build());
-		return settings;
 	}
-	
+
 	private <T> T call(String url, Class<T> clazz, MultiValueMap<String, String> parameters) {
 
 		try {
@@ -112,7 +113,8 @@ public class ControllerAPI {
 
 	HttpHeaders createHeaders() {
 
-		String plainClientCredentials = env.getProperty("controller.user") + ":" + env.getProperty("controller.pass");
+		String plainClientCredentials = env.getProperty("controller.user") + ":"
+				+ env.getProperty("controller.pass");
 		String base64ClientCredentials = new String(Base64.encodeBase64(plainClientCredentials.getBytes()));
 
 		HttpHeaders headers = new HttpHeaders();

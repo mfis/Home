@@ -43,6 +43,7 @@ import homecontroller.domain.model.Window;
 @Component
 public class HouseViewService {
 
+	private static final String DEGREE = "\u00b0";
 	private static final String TOGGLE_STATE = "/togglestate?deviceName=";
 	private static final String TOGGLE_AUTOMATION = "/toggleautomation?deviceName=";
 
@@ -161,16 +162,16 @@ public class HouseViewService {
 
 	private String formatTemperatures(BigDecimal min, BigDecimal max) {
 
-		if (min == null && max == null) {
+		if (min == null || max == null) {
 			return "n/a";
 		}
 
 		DecimalFormat decimalFormat = new DecimalFormat("0");
 		if (min.compareTo(max) == 0) {
-			return decimalFormat.format(min) + "\u00b0" + "C";
+			return decimalFormat.format(min) + DEGREE + "C";
 		}
 
-		return decimalFormat.format(min) + "\u00b0" + "C bis " + decimalFormat.format(max) + "\u00b0" + "C";
+		return decimalFormat.format(min) + DEGREE + "C bis " + decimalFormat.format(max) + DEGREE + "C";
 	}
 
 	private void calculatePreviousYearDifference(HistoryEntry entry, PowerConsumptionMonth pcm,
@@ -252,7 +253,7 @@ public class HouseViewService {
 
 		if (climate.getTemperature() != null) {
 			// Temperature and humidity
-			view.setStateTemperature(format(climate.getTemperature().getValue(), false) + "\u00b0" + "C");
+			view.setStateTemperature(format(climate.getTemperature().getValue(), false) + DEGREE + "C");
 			if (climate.getHumidity() != null) {
 				view.setStateHumidity(format(climate.getHumidity().getValue(), true) + "%rH");
 			}
