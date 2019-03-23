@@ -8,17 +8,21 @@ public class TemperatureHistory implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private long date;
-	
+
 	private boolean singleDay;
 
 	private BigDecimal nightMin;
-	
+
 	private BigDecimal nightMax;
-	
+
 	private BigDecimal dayMin;
-	
+
 	private BigDecimal dayMax;
-	
+
+	public boolean empty() {
+		return nightMin == null && nightMax == null && dayMin == null && dayMax == null;
+	}
+
 	public long getDate() {
 		return date;
 	}
@@ -26,7 +30,7 @@ public class TemperatureHistory implements Serializable {
 	public void setDate(long date) {
 		this.date = date;
 	}
-	
+
 	public boolean isSingleDay() {
 		return singleDay;
 	}
