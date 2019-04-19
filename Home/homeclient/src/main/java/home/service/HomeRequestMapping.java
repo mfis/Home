@@ -1,9 +1,16 @@
 package home.service;
 
+import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Files;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -106,6 +113,17 @@ public class HomeRequestMapping {
 		HouseModel house = controllerAPI.actualstate();
 		model.addAttribute("responsetext", textQueryService.execute(house, text));
 		return "textquery";
+	}
+
+	@RequestMapping(value = "/live", produces = "image/jpeg")
+	public ResponseEntity<byte[]> find() throws IOException { // TODO
+		byte[] bytes = Files.readAllBytes(new File("/Users/mfi/Downloads/2.jpg").toPath());
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(new MediaType("image", "jpeg"));
+		headers.setContentDispositionFormData("attachment", "live.jpg");
+		headers.setContentLength(bytes.length);
+		return new ResponseEntity<byte[]>(bytes, headers, HttpStatus.OK);
 	}
 
 	@RequestMapping(Pages.PATH_HOME)

@@ -15,4 +15,10 @@ public class SpringConfiguration {
 		return restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(10))
 				.setReadTimeout(Duration.ofSeconds(10)).build();
 	}
+
+	@Bean
+	public RestTemplate restTemplateLowTimeout(RestTemplateBuilder restTemplateBuilder) {
+		return restTemplateBuilder.setConnectTimeout(Duration.ofMillis(300))
+				.setReadTimeout(Duration.ofMillis(300)).build();
+	}
 }

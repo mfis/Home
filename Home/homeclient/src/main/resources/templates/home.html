@@ -35,14 +35,18 @@
 		<div th:replace="fragments :: temperature (model=${tempBedroom})"></div>
 		<!-- <div th:replace="fragments :: window (model=${leftWindowBedroom})"></div> -->
 
-		<!-- Draussen -->
-		<div th:replace="fragments :: title (name='Draußen')"></div>
-		<div th:replace="fragments :: temperature (model=${tempMinHouse})"></div>
-		<div th:replace="fragments :: sunStatus (model=${tempMaxHouse})"></div>
+		<!-- Haustür -->
+		<div th:replace="fragments :: title (name='Haustür')"></div>
+		<div th:replace="fragments :: frontDoor (model=${frontDoor})"></div>
 
 		<!-- Energie -->
 		<div th:replace="fragments :: title (name='Energie')"></div>
 		<div th:replace="fragments :: actualPowerConsumption (model=${StromverbrauchHaus})"></div>
+
+		<!-- Draussen -->
+		<div th:replace="fragments :: title (name='Draußen')"></div>
+		<div th:replace="fragments :: temperature (model=${tempMinHouse})"></div>
+		<div th:replace="fragments :: sunStatus (model=${tempMaxHouse})"></div>
 	</div>
 
 	<div th:replace="fragments :: scriptresources (yPos=${yPos})"></div>

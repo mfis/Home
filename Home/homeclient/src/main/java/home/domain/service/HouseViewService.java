@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.ui.Model;
 
 import home.domain.model.ClimateView;
+import home.domain.model.FrontDoorView;
 import home.domain.model.HistoryEntry;
 import home.domain.model.PowerView;
 import home.domain.model.ShutterView;
@@ -78,6 +79,8 @@ public class HouseViewService {
 		formatFacadeTemperatures(model, "tempMinHouse", "tempMaxHouse", house);
 
 		formatSwitch(model, "switchKitchen", house.getKitchenWindowLightSwitch());
+
+		formatFrontDoor(model, null);
 		formatPower(model, house.getElectricalPowerConsumption());
 
 		formatLowBattery(model, house.getLowBatteryDevices());
@@ -125,6 +128,17 @@ public class HouseViewService {
 
 		Collections.reverse(list);
 		model.addAttribute("power", list);
+	}
+
+	private void formatFrontDoor(Model model, Object object) {
+
+		FrontDoorView frontDoorView = new FrontDoorView();
+
+		frontDoorView.setLastDoorbells("Gestern, 12:30 Uhr");
+		// frontDoorView.setCameraStatus("Eingeschaltet");
+		frontDoorView.setLinkLive("/live");
+
+		model.addAttribute("frontDoor", frontDoorView);
 	}
 
 	private void fillOutsideTemperatureHistoryViewModel(Model model, HistoryModel history) {

@@ -245,6 +245,51 @@
 				</div>
 		</th:block>
 	</div>	
+
+	<!-- Frontdoor -->
+	<th:block th:fragment="frontDoor (model)">
+		<div th:class="'alert alert-secondary'">
+			<div th:replace="fragments :: elementname (icon='fas fa-bell', name='Türklingel')"></div>
+			<h4>
+				<span th:text="${model.lastDoorbells}"></span>
+			</h4>
+		</div>
+		<div th:class="'alert alert-secondary'">
+			<div th:replace="fragments :: elementname (icon='fas fa-camera', name='Kamera')"></div>
+			<div style="padding-top:6px;">
+				<button id="cameraLiveButton" type="button" class="btn btn-secondary btn-sm" onclick="prepareCameraLiveButton(true)"><span><i th:class="'fas fa-eye'"></i></span><span>&nbsp;Aktuell</span></button>
+				<a>&nbsp;</a>
+				<button type="button" class="btn btn-secondary btn-sm"><span><i th:class="'fas fa-eye'"></i></span><span>&nbsp;Türklingel</span></button>
+			</div>
+		</div>	
+		<!-- Modal 'live' -->
+		<div class="modal fade" th:id="'modalCameraLive'" tabindex="-1" role="dialog" th:aria-labelledby="'#modalCameraLive'" aria-hidden="true">
+		  <div class="modal-dialog modal-dialog-centered" role="document">
+		    <div class="modal-content">
+		      <div class="modal-header">
+		        <h5 class="modal-title" id="exampleModalLongTitle" th:text="'lala'"></h5>
+		        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+		          <span aria-hidden="true">&times;</span>
+		        </button>
+		      </div>
+		      <div class="modal-body">
+				<img src="" id="cameraImageLive" style="width:100%;" >			  
+			  </div>
+		      <div class="modal-footer">
+		        <button type="button" class="btn btn-default btn-sm" onclick="prepareCameraLiveButton(false)">Aktualisieren</button>
+		      </div>			  
+		    </div>
+		  </div>
+		</div>	
+		<script type="text/javascript">
+			function prepareCameraLiveButton(show){
+				$('#cameraImageLive').attr('src', '[[${model.linkLive}]]');
+				if(show===true){
+					$('#modalCameraLive').modal('show'); 
+				}
+			}
+		</script>				
+	</th:block>
 	
 	<!-- Actual Power Consumption -->
 	<div th:fragment="actualPowerConsumption (model)"
