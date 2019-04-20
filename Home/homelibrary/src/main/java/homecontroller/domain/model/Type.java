@@ -13,6 +13,7 @@ public enum Type {
 	SHUTTER_LEFT("Rolllade links", true), //
 	SHUTTER_RIGHT("Rolllade rechts", true), //
 	SWITCH_WINDOWLIGHT("Schalter Fensterlicht", true), //
+	SWITCH_FRONTDOOR_CAMERA("Schalter Eingangstür Kamera", true), //
 	ELECTRIC_POWER("Stromverbrauch", false), //
 	// with sub-types
 	THERMOSTAT("Thermostat", true, Type.THERMOMETER), //
@@ -21,7 +22,7 @@ public enum Type {
 	;
 
 	private final String typeName;
-	
+
 	private final boolean controllable;
 
 	private final List<Type> subTypes = new ArrayList<>();

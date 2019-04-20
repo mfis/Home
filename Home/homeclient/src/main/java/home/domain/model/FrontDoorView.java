@@ -4,9 +4,11 @@ public class FrontDoorView {
 
 	private String lastDoorbells = "";
 
-	private String cameraStatus = "";
-
+	private String idLive = "";
 	private String linkLive = "";
+
+	private String idBell = "";
+	private String linkBell = "";
 
 	public String getLastDoorbells() {
 		return lastDoorbells;
@@ -16,20 +18,36 @@ public class FrontDoorView {
 		this.lastDoorbells = lastDoorbells;
 	}
 
-	public String getCameraStatus() {
-		return cameraStatus;
-	}
-
-	public void setCameraStatus(String cameraStatus) {
-		this.cameraStatus = cameraStatus;
-	}
-
 	public String getLinkLive() {
 		return linkLive;
 	}
 
 	public void setLinkLive(String linkLive) {
 		this.linkLive = linkLive;
+	}
+
+	public String getIdLive() {
+		return idLive;
+	}
+
+	public void setIdLive(String idLive) {
+		this.idLive = idLive;
+	}
+
+	public String getIdBell() {
+		return idBell;
+	}
+
+	public void setIdBell(String idBell) {
+		this.idBell = idBell;
+	}
+
+	public String getLinkBell() {
+		return linkBell;
+	}
+
+	public void setLinkBell(String linkBell) {
+		this.linkBell = linkBell;
 	}
 
 }

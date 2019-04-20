@@ -26,7 +26,9 @@ import home.domain.model.PowerView;
 import home.domain.model.ShutterView;
 import home.domain.model.SwitchView;
 import homecontroller.domain.model.AutomationState;
+import homecontroller.domain.model.CameraMode;
 import homecontroller.domain.model.Climate;
+import homecontroller.domain.model.Device;
 import homecontroller.domain.model.Heating;
 import homecontroller.domain.model.Hint;
 import homecontroller.domain.model.HistoryModel;
@@ -80,7 +82,7 @@ public class HouseViewService {
 
 		formatSwitch(model, "switchKitchen", house.getKitchenWindowLightSwitch());
 
-		formatFrontDoor(model, null);
+		formatFrontDoor(model, Device.HAUSTUER_KAMERA); // TODO
 		formatPower(model, house.getElectricalPowerConsumption());
 
 		formatLowBattery(model, house.getLowBatteryDevices());
@@ -130,13 +132,17 @@ public class HouseViewService {
 		model.addAttribute("power", list);
 	}
 
-	private void formatFrontDoor(Model model, Object object) {
+	private void formatFrontDoor(Model model, Device device) {
 
 		FrontDoorView frontDoorView = new FrontDoorView();
 
 		frontDoorView.setLastDoorbells("Gestern, 12:30 Uhr");
-		// frontDoorView.setCameraStatus("Eingeschaltet");
-		frontDoorView.setLinkLive("/live");
+		frontDoorView.setIdLive("frontdoorcameralive");
+		frontDoorView.setIdBell("frontdoorcamerabell");
+		frontDoorView
+				.setLinkLive("/cameraPicture?deviceName=" + device.name() + "&cameraMode=" + CameraMode.LIVE);
+		frontDoorView.setLinkBell(
+				"/cameraPicture?deviceName=" + device.name() + "&cameraMode=" + CameraMode.EVENT);
 
 		model.addAttribute("frontDoor", frontDoorView);
 	}

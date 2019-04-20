@@ -1,8 +1,16 @@
 package homecontroller.request;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Files;
 
+import javax.servlet.http.HttpServletResponse;
+
+import org.h2.util.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,19 +35,23 @@ public class HomeClientRequestMapping {
 	private SettingsService settingsService;
 
 	@PostMapping("/controller/togglestate")
-	public ActionModel togglestate(@RequestParam("deviceName") String deviceName, @RequestParam("booleanValue") String booleanValue) {
+	public ActionModel togglestate(@RequestParam("deviceName") String deviceName,
+			@RequestParam("booleanValue") String booleanValue) {
 		houseService.togglestate(Device.valueOf(deviceName), Boolean.valueOf(booleanValue));
 		return new ActionModel("OK");
 	}
-	
+
 	@PostMapping("/controller/toggleautomation")
-	public ActionModel toggleautomation(@RequestParam("deviceName") String deviceName, @RequestParam("automationStateValue") String automationStateValue) {
-		houseService.toggleautomation(Device.valueOf(deviceName), AutomationState.valueOf(automationStateValue));
+	public ActionModel toggleautomation(@RequestParam("deviceName") String deviceName,
+			@RequestParam("automationStateValue") String automationStateValue) {
+		houseService.toggleautomation(Device.valueOf(deviceName),
+				AutomationState.valueOf(automationStateValue));
 		return new ActionModel("OK");
 	}
 
 	@PostMapping("/controller/heatingboost")
-	public ActionModel heatingBoost(@RequestParam("deviceName") String deviceName) throws InterruptedException {
+	public ActionModel heatingBoost(@RequestParam("deviceName") String deviceName)
+			throws InterruptedException {
 		houseService.heatingBoost(Device.valueOf(deviceName));
 		return new ActionModel("OK");
 	}
@@ -54,6 +66,15 @@ public class HomeClientRequestMapping {
 	@PostMapping("/controller/actualstate")
 	public HouseModel actualstate() {
 		return ModelDAO.getInstance().readHouseModel();
+	}
+
+	@PostMapping("/controller/cameraPicture")
+	public void cameraPicture(HttpServletResponse response, @RequestParam("deviceName") String deviceName,
+			@RequestParam("cameraMode") String cameraMode) throws IOException {
+		System.out.println("CAMERAPICTURE: " + deviceName + " " + cameraMode);
+		byte[] bytes = Files.readAllBytes(new File("/Users/mfi/Downloads/2.jpg").toPath());
+		response.setContentType(MediaType.IMAGE_JPEG_VALUE);
+		IOUtils.copy(new ByteArrayInputStream(bytes), response.getOutputStream());
 	}
 
 	@PostMapping("/controller/history")

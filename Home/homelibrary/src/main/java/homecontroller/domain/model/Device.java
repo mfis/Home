@@ -5,18 +5,22 @@ import org.springframework.util.StringUtils;
 public enum Device {
 
 	// @formatter:off
-	THERMOSTAT_BAD(Protocol.HM, "OEQ0854602", 4, Type.THERMOSTAT, Place.BATHROOM, true, Boolean.class, Integer.class), //
+	THERMOSTAT_BAD(Protocol.HM, "OEQ0854602", 4, Type.THERMOSTAT, Place.BATHROOM, true, Boolean.class,
+			Integer.class), //
 	THERMOMETER_KINDERZIMMER(Protocol.HMIP, "000E97099314A3", 1, Type.THERMOMETER, Place.KIDSROOM, true), //
 	THERMOMETER_WOHNZIMMER(Protocol.HMIP, "000E97099312D5", 1, Type.THERMOMETER, Place.LIVINGROOM, true), //
 	THERMOMETER_SCHLAFZIMMER(Protocol.HMIP, "000E97099314C4", 1, Type.THERMOMETER, Place.BEDROOM, true), //
-	ROLLLADE_SCHLAFZIMMER_LINKS(Protocol.HM, "D_U_M_M_Y", 1, Type.SHUTTER_LEFT, Place.BEDROOM, false, Integer.class, ShutterPosition.class), //
+	ROLLLADE_SCHLAFZIMMER_LINKS(Protocol.HM, "D_U_M_M_Y", 1, Type.SHUTTER_LEFT, Place.BEDROOM, false,
+			Integer.class, ShutterPosition.class), //
 	DIFF_TEMPERATUR_TERRASSE_AUSSEN(Protocol.HM, "OEQ0801741", 2, Type.THERMOMETER, Place.TERRACE, false), //
 	DIFF_TEMPERATUR_TERRASSE_DIFF(Protocol.HM, "OEQ0801741", 3, Type.SUN_SENSOR, Place.TERRACE, false), //
 	DIFF_TEMPERATUR_EINFAHRT_AUSSEN(Protocol.HM, "OEQ0801807", 2, Type.THERMOMETER, Place.ENTRANCE, false), //
 	DIFF_TEMPERATUR_EINFAHRT_DIFF(Protocol.HM, "OEQ0801807", 3, Type.SUN_SENSOR, Place.ENTRANCE, false), //
-	SCHALTER_KUECHE_LICHT(Protocol.HM, "OEQ0712456", 1, Type.SWITCH_WINDOWLIGHT, Place.KITCHEN, true, Boolean.class, AutomationState.class), //
+	SCHALTER_KUECHE_LICHT(Protocol.HM, "OEQ0712456", 1, Type.SWITCH_WINDOWLIGHT, Place.KITCHEN, true,
+			Boolean.class, AutomationState.class), //
 	STROMZAEHLER(Protocol.HM, "NEQ0861520", 1, Type.ELECTRIC_POWER, Place.HOUSE, true), //
 	AUSSENTEMPERATUR(Protocol.SYSVAR, "2867", null, Type.CONCLUSION_OUTSIDE_TEMPERATURE, Place.OUTSIDE, true), //
+	HAUSTUER_KAMERA(Protocol.HM, "??????????", 1, Type.SWITCH_FRONTDOOR_CAMERA, Place.FRONTDOOR, false), //
 	// @formatter:on
 	;
 
@@ -34,8 +38,8 @@ public enum Device {
 
 	private Class<?>[] valueTypes;
 
-	private Device(Protocol protocol, String id, Integer channel, Type type, Place place, boolean textQueryEnabled,
-			Class<?>... valueTypes) {
+	private Device(Protocol protocol, String id, Integer channel, Type type, Place place,
+			boolean textQueryEnabled, Class<?>... valueTypes) {
 		this.protocol = protocol;
 		this.id = id;
 		this.channel = channel;
@@ -50,7 +54,8 @@ public enum Device {
 	}
 
 	public String accessKeyXmlApi(Datapoint datapoint) {
-		return protocol.toXmlApiString() + "." + id + ":" + Integer.toString(channel) + "." + datapoint.name();
+		return protocol.toXmlApiString() + "." + id + ":" + Integer.toString(channel) + "."
+				+ datapoint.name();
 	}
 
 	public String accessMainDeviceKeyXmlApi(Datapoint datapoint) {

@@ -257,39 +257,48 @@
 		<div th:class="'alert alert-secondary'">
 			<div th:replace="fragments :: elementname (icon='fas fa-camera', name='Kamera')"></div>
 			<div style="padding-top:6px;">
-				<button id="cameraLiveButton" type="button" class="btn btn-secondary btn-sm" onclick="prepareCameraLiveButton(true)"><span><i th:class="'fas fa-eye'"></i></span><span>&nbsp;Aktuell</span></button>
+				<button th:id="${model.idLive} + 'Button'" type="button" class="btn btn-secondary btn-sm"><span><i th:class="'fas fa-eye'"></i></span><span>&nbsp;Aktuell</span></button>
 				<a>&nbsp;</a>
-				<button type="button" class="btn btn-secondary btn-sm"><span><i th:class="'fas fa-eye'"></i></span><span>&nbsp;Türklingel</span></button>
+				<button th:id="${model.idBell} + 'Button'" type="button" class="btn btn-secondary btn-sm"><span><i th:class="'fas fa-eye'"></i></span><span>&nbsp;Türklingel</span></button>
 			</div>
 		</div>	
-		<!-- Modal 'live' -->
-		<div class="modal fade" th:id="'modalCameraLive'" tabindex="-1" role="dialog" th:aria-labelledby="'#modalCameraLive'" aria-hidden="true">
+		<th:block th:replace="fragments :: modelCamera (id=${model.idLive}, link=${model.linkLive}, name='Aktuell', refresh='true')"></th:block>
+		<th:block th:replace="fragments :: modelCamera (id=${model.idBell}, link=${model.linkBell}, name='Zeitpunkt Türklingel', refresh='false')"></th:block>
+	</th:block>
+	
+	<!-- Modal Camera -->
+	<th:block th:fragment="modelCamera (id, link, name, refresh, name, refresh)">
+		<div class="modal fade" th:id="'modalCamera' + ${id}" tabindex="-1" role="dialog" th:aria-labelledby="'#modalCamera' + ${id}" aria-hidden="true">
 		  <div class="modal-dialog modal-dialog-centered" role="document">
 		    <div class="modal-content">
 		      <div class="modal-header">
-		        <h5 class="modal-title" id="exampleModalLongTitle" th:text="'lala'"></h5>
+		        <h5 class="modal-title" th:id="'modalCameraId' + ${id}" th:text="'lala'"></h5>
 		        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
 		          <span aria-hidden="true">&times;</span>
 		        </button>
 		      </div>
 		      <div class="modal-body">
-				<img src="" id="cameraImageLive" style="width:100%;" >			  
+				<img src="" th:id="${id} + 'Button'" style="width:100%;" >			  
 			  </div>
-		      <div class="modal-footer">
-		        <button type="button" class="btn btn-default btn-sm" onclick="prepareCameraLiveButton(false)">Aktualisieren</button>
+		      <div th:if="${#strings.equals(refresh,'true')}" class="modal-footer">
+		        <button th:id="${id} + 'Refresh'" type="button" class="btn btn-default btn-sm">Aktualisieren</button>
 		      </div>			  
 		    </div>
 		  </div>
 		</div>	
 		<script type="text/javascript">
-			function prepareCameraLiveButton(show){
-				$('#cameraImageLive').attr('src', '[[${model.linkLive}]]');
-				if(show===true){
-					$('#modalCameraLive').modal('show'); 
+			function prepare[[${id}]]Button(show){
+				$("#cameraImage[[${id}]]").attr("src", "[(${link})]");
+				if(show==='true'){
+					$("#modalCamera[[${id}]]").modal("show"); 
 				}
 			}
+			document.getElementById("[[${id}]]Button").onclick = function () {prepare[[${id}]]Button('true');};
+			if([[${refresh}]]===true){
+				document.getElementById("[[${id}]]Refresh").onclick = function () {prepare[[${id}]]Button('false');};
+			}
 		</script>				
-	</th:block>
+	</th:block>	
 	
 	<!-- Actual Power Consumption -->
 	<div th:fragment="actualPowerConsumption (model)"

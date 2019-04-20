@@ -1,9 +1,6 @@
 package home.service;
 
-import java.io.File;
-import java.io.IOException;
 import java.math.BigDecimal;
-import java.nio.file.Files;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import home.domain.model.Pages;
 import home.domain.service.HouseViewService;
 import homecontroller.domain.model.AutomationState;
+import homecontroller.domain.model.CameraMode;
 import homecontroller.domain.model.Device;
 import homecontroller.domain.model.HistoryModel;
 import homecontroller.domain.model.HouseModel;
@@ -115,13 +113,16 @@ public class HomeRequestMapping {
 		return "textquery";
 	}
 
-	@RequestMapping(value = "/live", produces = "image/jpeg")
-	public ResponseEntity<byte[]> find() throws IOException { // TODO
-		byte[] bytes = Files.readAllBytes(new File("/Users/mfi/Downloads/2.jpg").toPath());
+	@RequestMapping(value = "/cameraPicture", produces = "image/jpeg")
+	public ResponseEntity<byte[]> cameraPicture(@RequestParam(ControllerAPI.DEVICE_NAME) String deviceName,
+			@RequestParam(ControllerAPI.CAMERA_MODE) String cameraMode) {
+
+		byte[] bytes = controllerAPI.cameraPicture(Device.valueOf(deviceName),
+				CameraMode.valueOf(cameraMode));
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(new MediaType("image", "jpeg"));
-		headers.setContentDispositionFormData("attachment", "live.jpg");
+		headers.setContentDispositionFormData("attachment", deviceName + "_" + cameraMode + ".jpg");
 		headers.setContentLength(bytes.length);
 		return new ResponseEntity<byte[]>(bytes, headers, HttpStatus.OK);
 	}
