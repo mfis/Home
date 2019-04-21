@@ -1,10 +1,8 @@
 package homecontroller.request;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.nio.file.Files;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -15,14 +13,16 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import homecontroller.dao.ModelDAO;
+import homecontroller.dao.ModelObjectDAO;
 import homecontroller.domain.model.ActionModel;
 import homecontroller.domain.model.AutomationState;
+import homecontroller.domain.model.CameraMode;
 import homecontroller.domain.model.Device;
 import homecontroller.domain.model.HistoryModel;
 import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.SettingsModel;
 import homecontroller.domain.service.HouseService;
+import homecontroller.service.CameraService;
 import homecontroller.service.SettingsService;
 
 @RestController
@@ -30,6 +30,9 @@ public class HomeClientRequestMapping {
 
 	@Autowired
 	private HouseService houseService;
+
+	@Autowired
+	private CameraService cameraService;
 
 	@Autowired
 	private SettingsService settingsService;
@@ -65,20 +68,21 @@ public class HomeClientRequestMapping {
 
 	@PostMapping("/controller/actualstate")
 	public HouseModel actualstate() {
-		return ModelDAO.getInstance().readHouseModel();
+		return ModelObjectDAO.getInstance().readHouseModel();
 	}
 
 	@PostMapping("/controller/cameraPicture")
 	public void cameraPicture(HttpServletResponse response, @RequestParam("deviceName") String deviceName,
 			@RequestParam("cameraMode") String cameraMode) throws IOException {
-		byte[] bytes = Files.readAllBytes(new File("/Users/mfi/Downloads/2.jpg").toPath());
+		byte[] bytes = cameraService.cameraPicture(Device.valueOf(deviceName),
+				CameraMode.valueOf(cameraMode));
 		response.setContentType(MediaType.IMAGE_JPEG_VALUE);
 		IOUtils.copy(new ByteArrayInputStream(bytes), response.getOutputStream());
 	}
 
 	@PostMapping("/controller/history")
 	public HistoryModel history() {
-		return ModelDAO.getInstance().readHistoryModel();
+		return ModelObjectDAO.getInstance().readHistoryModel();
 	}
 
 	@PostMapping("/controller/settings")

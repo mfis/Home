@@ -16,21 +16,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import homecontroller.dao.ModelDAO;
+import homecontroller.dao.HistoryDatabaseDAO;
+import homecontroller.dao.ModelObjectDAO;
+import homecontroller.dao.HistoryDatabaseDAO.ExtremValueType;
+import homecontroller.dao.HistoryDatabaseDAO.TimeRange;
 import homecontroller.database.mapper.TimestampValuePair;
 import homecontroller.domain.model.Datapoint;
 import homecontroller.domain.model.Device;
 import homecontroller.domain.model.HistoryModel;
 import homecontroller.domain.model.PowerConsumptionMonth;
 import homecontroller.domain.model.TemperatureHistory;
-import homecontroller.domain.service.HistoryDAO.ExtremValueType;
-import homecontroller.domain.service.HistoryDAO.TimeRange;
 
 @Component
 public class HistoryService {
 
 	@Autowired
-	private HistoryDAO historyDAO;
+	private HistoryDatabaseDAO historyDAO;
 
 	private static final int HOURS_IN_DAY = 24;
 
@@ -50,7 +51,7 @@ public class HistoryService {
 	@Scheduled(cron = "5 0 0 * * *")
 	private void refreshHistoryModelComplete() {
 
-		HistoryModel oldModel = ModelDAO.getInstance().readHistoryModel();
+		HistoryModel oldModel = ModelObjectDAO.getInstance().readHistoryModel();
 		if (oldModel != null) {
 			oldModel.setInitialized(false);
 		}
@@ -61,13 +62,13 @@ public class HistoryService {
 		calculateOutsideTemperatureHistory(newModel);
 
 		newModel.setInitialized(true);
-		ModelDAO.getInstance().write(newModel);
+		ModelObjectDAO.getInstance().write(newModel);
 	}
 
 	@Scheduled(fixedDelay = (1000 * 60 * 3))
 	private void refreshHistoryModel() {
 
-		HistoryModel model = ModelDAO.getInstance().readHistoryModel();
+		HistoryModel model = ModelObjectDAO.getInstance().readHistoryModel();
 		if (model == null) {
 			return;
 		}

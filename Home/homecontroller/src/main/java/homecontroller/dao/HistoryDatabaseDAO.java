@@ -1,4 +1,4 @@
-package homecontroller.domain.service;
+package homecontroller.dao;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -23,7 +23,7 @@ import homecontroller.domain.model.Heating;
 import homecontroller.domain.model.HomematicConstants;
 
 @Component
-public class HistoryDAO {
+public class HistoryDatabaseDAO {
 
 	private static final String VALUE = "value";
 

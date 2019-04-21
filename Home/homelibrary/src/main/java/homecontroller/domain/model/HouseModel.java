@@ -34,6 +34,8 @@ public class HouseModel implements Serializable {
 
 	private PowerMeter electricalPowerConsumption;
 
+	private FrontDoor frontDoor;
+
 	private List<String> lowBatteryDevices;
 
 	// ----------
@@ -186,6 +188,14 @@ public class HouseModel implements Serializable {
 
 	public void setHeatingBathRoom(Heating heatingBathRoom) {
 		this.heatingBathRoom = heatingBathRoom;
+	}
+
+	public FrontDoor getFrontDoor() {
+		return frontDoor;
+	}
+
+	public void setFrontDoor(FrontDoor frontDoor) {
+		this.frontDoor = frontDoor;
 	}
 
 }

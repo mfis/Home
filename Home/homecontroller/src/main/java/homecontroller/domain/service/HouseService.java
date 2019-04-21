@@ -11,7 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import homecontroller.dao.ModelDAO;
+import homecontroller.dao.HistoryDatabaseDAO;
+import homecontroller.dao.ModelObjectDAO;
 import homecontroller.domain.model.AutomationState;
 import homecontroller.domain.model.Climate;
 import homecontroller.domain.model.Datapoint;
@@ -66,7 +67,7 @@ public class HouseService {
 	private PushService pushService;
 
 	@Autowired
-	private HistoryDAO historyDAO;
+	private HistoryDatabaseDAO historyDAO;
 
 	@PostConstruct
 	public void init() {
@@ -85,11 +86,11 @@ public class HouseService {
 
 	public void refreshHouseModel(boolean notify) {
 
-		HouseModel oldModel = ModelDAO.getInstance().readHouseModel();
+		HouseModel oldModel = ModelObjectDAO.getInstance().readHouseModel();
 
 		HouseModel newModel = refreshModel();
 		calculateConclusion(oldModel, newModel);
-		ModelDAO.getInstance().write(newModel);
+		ModelObjectDAO.getInstance().write(newModel);
 
 		if (notify) {
 			synchronized (REFRESH_MONITOR) {
@@ -302,12 +303,12 @@ public class HouseService {
 
 	private boolean isTooColdOutsideSoNoNeedToCoolingDownRoom(BigDecimal roomTemperature) {
 
-		if (ModelDAO.getInstance().readHistoryModel().getHighestOutsideTemperatureInLast24Hours() == null) {
+		if (ModelObjectDAO.getInstance().readHistoryModel().getHighestOutsideTemperatureInLast24Hours() == null) {
 			return true;
 		}
 
 		BigDecimal roomMinusOutside = roomTemperature.subtract(
-				ModelDAO.getInstance().readHistoryModel().getHighestOutsideTemperatureInLast24Hours());
+				ModelObjectDAO.getInstance().readHistoryModel().getHighestOutsideTemperatureInLast24Hours());
 		return roomMinusOutside.compareTo(TEMPERATURE_DIFFERENCE_INSIDE_OUTSIDE_NO_ROOM_COOLDOWN_NEEDED) > 0;
 	}
 
