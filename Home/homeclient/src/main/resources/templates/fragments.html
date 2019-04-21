@@ -262,23 +262,23 @@
 				<button th:id="${model.idBell} + 'Button'" type="button" class="btn btn-secondary btn-sm"><span><i th:class="'fas fa-eye'"></i></span><span>&nbsp;Türklingel</span></button>
 			</div>
 		</div>	
-		<th:block th:replace="fragments :: modelCamera (id=${model.idLive}, link=${model.linkLive}, name='Aktuell', refresh='true')"></th:block>
-		<th:block th:replace="fragments :: modelCamera (id=${model.idBell}, link=${model.linkBell}, name='Zeitpunkt Türklingel', refresh='false')"></th:block>
+		<th:block th:replace="fragments :: modalCamera (id=${model.idLive}, link=${model.linkLive}, name='Aktuell', refresh='true')"></th:block>
+		<th:block th:replace="fragments :: modalCamera (id=${model.idBell}, link=${model.linkBell}, name='Türklingel', refresh='false')"></th:block>
 	</th:block>
 	
 	<!-- Modal Camera -->
-	<th:block th:fragment="modelCamera (id, link, name, refresh, name, refresh)">
+	<th:block th:fragment="modalCamera (id, link, name, refresh, name, refresh)">
 		<div class="modal fade" th:id="'modalCamera' + ${id}" tabindex="-1" role="dialog" th:aria-labelledby="'#modalCamera' + ${id}" aria-hidden="true">
 		  <div class="modal-dialog modal-dialog-centered" role="document">
 		    <div class="modal-content">
 		      <div class="modal-header">
-		        <h5 class="modal-title" th:id="'modalCameraId' + ${id}" th:text="'lala'"></h5>
+		        <h5 class="modal-title" th:id="'modalCameraId' + ${id}" th:text="${name}"></h5>
 		        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
 		          <span aria-hidden="true">&times;</span>
 		        </button>
 		      </div>
 		      <div class="modal-body">
-				<img src="" th:id="${id} + 'Button'" style="width:100%;" >			  
+				<img src="" th:id="'cameraImage' + ${id}" style="width:100%;" >			  
 			  </div>
 		      <div th:if="${#strings.equals(refresh,'true')}" class="modal-footer">
 		        <button th:id="${id} + 'Refresh'" type="button" class="btn btn-default btn-sm">Aktualisieren</button>

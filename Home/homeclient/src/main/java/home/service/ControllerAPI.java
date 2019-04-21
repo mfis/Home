@@ -138,7 +138,7 @@ public class ControllerAPI {
 			HttpHeaders headers = createHeaders();
 			headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
 			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(parameters, headers);
-			ResponseEntity<byte[]> response = restTemplate.exchange(url, HttpMethod.GET, request,
+			ResponseEntity<byte[]> response = restTemplate.exchange(url, HttpMethod.POST, request,
 					byte[].class, "1");
 			return response.getBody();
 		} catch (Exception e) {

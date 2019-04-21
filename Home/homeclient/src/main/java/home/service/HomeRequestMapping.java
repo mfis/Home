@@ -116,7 +116,6 @@ public class HomeRequestMapping {
 	@RequestMapping(value = "/cameraPicture", produces = "image/jpeg")
 	public ResponseEntity<byte[]> cameraPicture(@RequestParam(ControllerAPI.DEVICE_NAME) String deviceName,
 			@RequestParam(ControllerAPI.CAMERA_MODE) String cameraMode) {
-
 		byte[] bytes = controllerAPI.cameraPicture(Device.valueOf(deviceName),
 				CameraMode.valueOf(cameraMode));
 
