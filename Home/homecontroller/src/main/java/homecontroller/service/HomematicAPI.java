@@ -42,6 +42,8 @@ public class HomematicAPI {
 
 	private static final String VALUE = "value";
 
+	private static final String TIMESTAMP = "timestamp";
+
 	private static final int INIT_STATE_MINUTES = 90;
 
 	private static final DateTimeFormatter UPTIME_FORMATTER = DateTimeFormatter
@@ -57,6 +59,7 @@ public class HomematicAPI {
 
 	private Map<String, String> currentValues;
 	private Map<String, String> currentStateIDs;
+	private Map<String, Long> currentTimestamps;
 	private boolean ccuInitState;
 
 	@PostConstruct
@@ -83,6 +86,14 @@ public class HomematicAPI {
 	public BigDecimal getAsBigDecimal(String key) {
 		if (currentValues.containsKey(key)) {
 			return checkInit(new BigDecimal(currentValues.get(key)));
+		} else {
+			return null;
+		}
+	}
+
+	public Long getTimestamp(String key) {
+		if (currentTimestamps.containsKey(key)) {
+			return currentTimestamps.get(key);
 		} else {
 			return null;
 		}
@@ -136,6 +147,7 @@ public class HomematicAPI {
 
 		currentValues = new HashMap<>();
 		currentStateIDs = new HashMap<>();
+		currentTimestamps = new HashMap<>();
 
 		Document doc = documentFromUrl(host + "/addons/xmlapi/statelist.cgi");
 		NodeList datapoints = doc.getElementsByTagName("datapoint");
@@ -144,6 +156,10 @@ public class HomematicAPI {
 			Element eElement = (Element) c;
 			if (eElement.getAttribute(VALUE) != null && eElement.getAttribute(VALUE).length() > 0) {
 				currentValues.put(eElement.getAttribute(NAME), eElement.getAttribute(VALUE));
+			}
+			if (eElement.getAttribute(TIMESTAMP) != null && eElement.getAttribute(TIMESTAMP).length() > 1) {
+				currentTimestamps.put(eElement.getAttribute(NAME),
+						Long.parseLong(eElement.getAttribute(TIMESTAMP)) * 1000L);
 			}
 			if (eElement.getAttribute(TYPE) != null
 					&& eElement.getAttribute(TYPE).equalsIgnoreCase("STATE")) {

@@ -141,7 +141,11 @@ public class HouseViewService {
 
 		FrontDoorView frontDoorView = new FrontDoorView();
 
-		frontDoorView.setLastDoorbells(formatPastTimestamp(frontDoor.getTimestampLastDoorbell()));
+		if (frontDoor.getTimestampLastDoorbell() != null) {
+			frontDoorView.setLastDoorbells(formatPastTimestamp(frontDoor.getTimestampLastDoorbell()));
+		} else {
+			frontDoorView.setLastDoorbells("unbekannt");
+		}
 		frontDoorView.setIdLive("frontdoorcameralive");
 		frontDoorView.setIdBell("frontdoorcamerabell");
 		frontDoorView

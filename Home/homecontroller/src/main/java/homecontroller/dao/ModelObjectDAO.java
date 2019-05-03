@@ -21,6 +21,7 @@ public class ModelObjectDAO {
 
 	private ModelObjectDAO() {
 		super();
+		cameraModel = new CameraModel();
 	}
 
 	public static synchronized ModelObjectDAO getInstance() {

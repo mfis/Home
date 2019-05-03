@@ -10,17 +10,17 @@ public class FrontDoor implements Serializable {
 		super();
 	}
 
-	private long timestampLastDoorbell;
+	private Long timestampLastDoorbell;
 
 	private Device deviceDoorBell;
 
 	private Device deviceCamera;
 
-	public long getTimestampLastDoorbell() {
+	public Long getTimestampLastDoorbell() {
 		return timestampLastDoorbell;
 	}
 
-	public void setTimestampLastDoorbell(long timestampLastDoorbell) {
+	public void setTimestampLastDoorbell(Long timestampLastDoorbell) {
 		this.timestampLastDoorbell = timestampLastDoorbell;
 	}
 

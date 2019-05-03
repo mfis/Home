@@ -456,7 +456,7 @@ public class HouseService {
 		frontDoor.setDeviceCamera(Device.HAUSTUER_KAMERA);
 		frontDoor.setDeviceDoorBell(Device.HAUSTUER_KLINGEL);
 		frontDoor.setTimestampLastDoorbell(
-				api.getAsBigDecimal(haustuerKlingel.accessKeyXmlApi(Datapoint.PRESS_SHORT)).longValue());
+				api.getTimestamp(haustuerKlingel.accessKeyXmlApi(Datapoint.PRESS_SHORT)));
 		return frontDoor;
 	}
 
