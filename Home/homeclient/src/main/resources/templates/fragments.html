@@ -27,10 +27,10 @@
 	
 	<link rel='stylesheet' href='/webjars/bootstrap/css/bootstrap.min.css'/>
 	<link rel="stylesheet" href="/webjars/font-awesome/css/all.min.css" crossorigin="anonymous"/>
+	<script type="text/javascript" src="/webjars/jquery/jquery.min.js"></script>
 </head>
 
 <th:block th:fragment="scriptresources (yPos)">
-	<script type="text/javascript" src="/webjars/jquery/jquery.min.js"></script>
 	<script type="text/javascript" src="/webjars/bootstrap/js/bootstrap.min.js"></script>
 	<script type="text/javascript" src="/webjars/github-com-BoxFactura-pulltorefresh-js/pulltorefresh.min.js"></script>
 	
@@ -287,12 +287,29 @@
 		  </div>
 		</div>	
 		<script type="text/javascript">
+			var timer[[${id}]];
 			function prepare[[${id}]]Button(show){
-				$("#cameraImage[[${id}]]").attr("src", "[(${link})]");
+				// $("#cameraImage[[${id}]]").attr("src", "[(${link})]");
 				if(show==='true'){
 					$("#modalCamera[[${id}]]").modal("show"); 
 				}
+				var beacon = new Image(); 
+				beacon.onload = function() {
+				    console.log('Image found'); 
+				    $("#cameraImage[[${id}]]").attr("src", "[(${link})]");
+				    window.clearInterval(timer[[${id}]]);
+				};
+				beacon.onerror = function(){    
+				   console.log('Image not found');
+				}
+				timer[[${id}]] = window.setInterval(function(){
+				    console.log('sending the request again');
+				    beacon.src = "[(${link})]";
+				},500);
 			}
+			$("#modalCamera[[${id}]]").on('hide.bs.modal', function(){
+				window.clearInterval(timer[[${id}]]);
+			});
 			document.getElementById("[[${id}]]Button").onclick = function () {prepare[[${id}]]Button('true');};
 			if([[${refresh}]]===true){
 				document.getElementById("[[${id}]]Refresh").onclick = function () {prepare[[${id}]]Button('false');};

@@ -43,7 +43,7 @@ public class ControllerAPI {
 	private RestTemplate restTemplate;
 
 	@Autowired
-	ByteArrayHttpMessageConverter byteArrayHttpMessageConverter;
+	private ByteArrayHttpMessageConverter byteArrayHttpMessageConverter;
 
 	private static final String CONTROLLER_URL = "controller.url";
 
