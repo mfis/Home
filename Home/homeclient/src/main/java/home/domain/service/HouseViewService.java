@@ -9,9 +9,11 @@ import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +31,7 @@ import homecontroller.domain.model.AutomationState;
 import homecontroller.domain.model.CameraMode;
 import homecontroller.domain.model.Climate;
 import homecontroller.domain.model.Device;
+import homecontroller.domain.model.FrontDoor;
 import homecontroller.domain.model.Heating;
 import homecontroller.domain.model.Hint;
 import homecontroller.domain.model.HistoryModel;
@@ -62,9 +65,11 @@ public class HouseViewService {
 	private static final long KWH_FACTOR = 1000L;
 
 	private static final DateTimeFormatter MONTH_YEAR_FORMATTER = DateTimeFormatter.ofPattern("MMM yyyy");
-
 	private static final DateTimeFormatter DAY_MONTH_YEAR_FORMATTER = DateTimeFormatter
 			.ofPattern("dd.MM.yyyy");
+	private static final DateTimeFormatter WEEKDAY_FORMATTER = DateTimeFormatter.ofPattern("EEEE",
+			Locale.GERMAN);
+	private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
 	@Autowired
 	private Environment env;
@@ -82,7 +87,7 @@ public class HouseViewService {
 
 		formatSwitch(model, "switchKitchen", house.getKitchenWindowLightSwitch());
 
-		formatFrontDoor(model, Device.HAUSTUER_KAMERA); // TODO
+		formatFrontDoor(model, house.getFrontDoor(), Device.HAUSTUER_KAMERA);
 		formatPower(model, house.getElectricalPowerConsumption());
 
 		formatLowBattery(model, house.getLowBatteryDevices());
@@ -132,11 +137,11 @@ public class HouseViewService {
 		model.addAttribute("power", list);
 	}
 
-	private void formatFrontDoor(Model model, Device device) {
+	private void formatFrontDoor(Model model, FrontDoor frontDoor, Device device) {
 
 		FrontDoorView frontDoorView = new FrontDoorView();
 
-		frontDoorView.setLastDoorbells("Gestern, 12:30 Uhr");
+		frontDoorView.setLastDoorbells(formatPastTimestamp(frontDoor.getTimestampLastDoorbell()));
 		frontDoorView.setIdLive("frontdoorcameralive");
 		frontDoorView.setIdBell("frontdoorcamerabell");
 		frontDoorView
@@ -145,6 +150,31 @@ public class HouseViewService {
 				"/cameraPicture?deviceName=" + device.name() + "&cameraMode=" + CameraMode.EVENT);
 
 		model.addAttribute("frontDoor", frontDoorView);
+	}
+
+	private static String formatPastTimestamp(long date) {
+
+		LocalDateTime localDate1 = Instant.ofEpochMilli(date).atZone(ZoneId.systemDefault())
+				.toLocalDateTime();
+		LocalDateTime localDate2 = LocalDateTime.now();
+
+		long between = ChronoUnit.DAYS.between(localDate1.truncatedTo(ChronoUnit.DAYS),
+				localDate2.truncatedTo(ChronoUnit.DAYS));
+
+		String dayString;
+		if (between == 0) {
+			dayString = "Heute";
+		} else if (between == 1) {
+			dayString = "Gestern";
+		} else if (between == 2) {
+			dayString = "Vorgestern";
+		} else if (between > -1 && between < 7) {
+			dayString = WEEKDAY_FORMATTER.format(localDate1);
+		} else {
+			dayString = DAY_MONTH_YEAR_FORMATTER.format(localDate1);
+		}
+		dayString += ", " + TIME_FORMATTER.format(localDate1) + " Uhr";
+		return dayString;
 	}
 
 	private void fillOutsideTemperatureHistoryViewModel(Model model, HistoryModel history) {

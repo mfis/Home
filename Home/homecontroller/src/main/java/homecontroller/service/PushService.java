@@ -1,14 +1,13 @@
 package homecontroller.service;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.CompletableFuture;
+
+import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -33,25 +32,33 @@ public class PushService {
 	@Autowired
 	private SettingsService settingsService;
 
+	private PushoverClient pushClient;
+
+	private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
+
 	private static final Log LOG = LogFactory.getLog(PushService.class);
 
-	public void send(HouseModel oldModel, HouseModel newModel) {
+	@PostConstruct
+	public void postConstruct() {
+		pushClient = new PushoverRestClient();
+	}
 
-		String messages = formatMessages(oldModel, newModel);
-		if (StringUtils.isBlank(messages)) {
-			return;
-		}
+	public synchronized void send(HouseModel oldModel, HouseModel newModel) {
 
-		List<SettingsModel> userForPushMessage = settingsService.lookupUserForPushMessage();
+		List<PushoverMessage> pushMessages = new LinkedList<>();
 
-		for (SettingsModel settingsModel : userForPushMessage) {
-			sendMessages(messages, settingsModel);
+		pushMessages.addAll(hintMessage(oldModel, newModel));
+		pushMessages.addAll(doorbellMessage(oldModel, newModel));
+
+		for (PushoverMessage pushMessage : pushMessages) {
+			sendMessages(pushMessage);
 		}
 
 	}
 
-	public String formatMessages(HouseModel oldModel, HouseModel newModel) {
+	public List<PushoverMessage> hintMessage(HouseModel oldModel, HouseModel newModel) {
 
+		List<PushoverMessage> pushMessages = new LinkedList<>();
 		List<String> oldHints = hintList(oldModel);
 		List<String> newHints = hintList(newModel);
 
@@ -76,7 +83,44 @@ public class PushService {
 			}
 		}
 
-		return messages.toString().trim();
+		String msgString = messages.toString().trim();
+		if (StringUtils.isNotBlank(msgString)) {
+			List<SettingsModel> settingsModels = settingsService.lookupUserForPushMessage();
+			for (SettingsModel settingsModel : settingsModels) {
+				pushMessages.add(PushoverMessage.builderWithApiToken(settingsModel.getPushoverApiToken()) //
+						.setUserId(settingsModel.getPushoverUserId()) //
+						.setDevice(settingsModel.getPushoverDevice()) //
+						.setMessage(msgString) //
+						.setPriority(MessagePriority.NORMAL) //
+						.setTitle("Zuhause - Empfehlungen") //
+						.build());
+			}
+		}
+		return pushMessages;
+	}
+
+	private List<PushoverMessage> doorbellMessage(HouseModel oldModel, HouseModel newModel) {
+
+		List<PushoverMessage> pushMessages = new LinkedList<>();
+
+		if (oldModel == null || oldModel.getFrontDoor() == null || oldModel.getFrontDoor()
+				.getTimestampLastDoorbell() == newModel.getFrontDoor().getTimestampLastDoorbell()) {
+			return pushMessages;
+		}
+		List<SettingsModel> settingsModels = settingsService.lookupUserForPushMessage();
+		for (SettingsModel settingsModel : settingsModels) {
+			String time = TIME_FORMATTER
+					.format(Instant.ofEpochMilli(newModel.getFrontDoor().getTimestampLastDoorbell())
+							.atZone(ZoneId.systemDefault()).toLocalDate());
+			pushMessages.add(PushoverMessage.builderWithApiToken(settingsModel.getPushoverApiToken()) //
+					.setUserId(settingsModel.getPushoverUserId()) //
+					.setDevice(settingsModel.getPushoverDevice()) //
+					.setMessage("Türklingelbetätigung um " + time + " Uhr") //
+					.setPriority(MessagePriority.HIGH) //
+					.setTitle("Zuhause - Türklingel") //
+					.build());
+		}
+		return pushMessages;
 	}
 
 	private List<String> hintList(HouseModel model) {
@@ -94,47 +138,12 @@ public class PushService {
 		return hintStrings;
 	}
 
-	private void sendMessages(String messages, SettingsModel settingsModel) {
+	private void sendMessages(PushoverMessage message) {
 
-		ExecutorService executor = Executors.newSingleThreadExecutor();
-		Future<Void> future = executor.submit(new PushoverTask(messages, settingsModel));
-
-		try {
-			future.get(15, TimeUnit.SECONDS);
-		} catch (TimeoutException | ExecutionException | InterruptedException e) { // NOSONAR
-			// Future object is canceled here and the loss of the push
-			// notification is no big problem
-			future.cancel(true);
-			LOG.error("Could not send push message (#3):" + e.getMessage());
-		}
-
-		executor.shutdownNow();
-	}
-
-	private class PushoverTask implements Callable<Void> {
-
-		private String messages;
-		private SettingsModel settingsModel;
-
-		public PushoverTask(String messages, SettingsModel settingsModel) {
-			this.messages = messages;
-			this.settingsModel = settingsModel;
-		}
-
-		@Override
-		public Void call() throws Exception {
-
-			PushoverClient client = new PushoverRestClient();
+		CompletableFuture.runAsync(() -> {
 
 			try {
-				Status result = client
-						.pushMessage(PushoverMessage.builderWithApiToken(settingsModel.getPushoverApiToken()) //
-								.setUserId(settingsModel.getPushoverUserId()) //
-								.setDevice(settingsModel.getPushoverDevice()) //
-								.setMessage(messages) //
-								.setPriority(MessagePriority.NORMAL) //
-								.setTitle("Zuhause - Empfehlungen") //
-								.build()); //
+				Status result = pushClient.pushMessage(message); //
 
 				if (result.getStatus() != 1) {
 					LOG.error("Could not send push message (#1):" + result.toString());
@@ -143,9 +152,7 @@ public class PushService {
 			} catch (PushoverException pe) {
 				LOG.error("Could not send push message (#2):" + pe.getMessage());
 			}
-
-			return null;
-		}
+		});
 	}
 
 }

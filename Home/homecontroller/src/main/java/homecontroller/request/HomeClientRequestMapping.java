@@ -74,7 +74,7 @@ public class HomeClientRequestMapping {
 	@PostMapping("/controller/cameraPicture")
 	public void cameraPicture(HttpServletResponse response, @RequestParam("deviceName") String deviceName,
 			@RequestParam("cameraMode") String cameraMode) throws IOException {
-		byte[] bytes = cameraService.cameraPicture(Device.valueOf(deviceName),
+		byte[] bytes = cameraService.readCameraPicture(Device.valueOf(deviceName),
 				CameraMode.valueOf(cameraMode));
 		response.setContentType(MediaType.IMAGE_JPEG_VALUE);
 		IOUtils.copy(new ByteArrayInputStream(bytes), response.getOutputStream());

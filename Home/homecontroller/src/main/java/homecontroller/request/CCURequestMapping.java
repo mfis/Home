@@ -1,5 +1,7 @@
 package homecontroller.request;
 
+import java.util.concurrent.CompletableFuture;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -16,8 +18,7 @@ public class CCURequestMapping {
 
 	@GetMapping("/controller/refresh")
 	public ActionModel refresh(@RequestParam("notify") String notifyString) {
-		boolean notify = Boolean.parseBoolean(notifyString);
-		houseService.refreshHouseModel(notify);
+		CompletableFuture.runAsync(() -> houseService.refreshHouseModel(Boolean.parseBoolean(notifyString)));
 		return new ActionModel("OK");
 	}
 

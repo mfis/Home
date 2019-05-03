@@ -20,6 +20,7 @@ public enum Device {
 			Boolean.class, AutomationState.class), //
 	STROMZAEHLER(Protocol.HM, "NEQ0861520", 1, Type.ELECTRIC_POWER, Place.HOUSE, true), //
 	AUSSENTEMPERATUR(Protocol.SYSVAR, "2867", null, Type.CONCLUSION_OUTSIDE_TEMPERATURE, Place.OUTSIDE, true), //
+	HAUSTUER_KLINGEL(Protocol.HM, "PEQ0652576", 1, Type.DOORBELL, Place.FRONTDOOR, false), //
 	HAUSTUER_KAMERA(Protocol.HM, "??????????", 1, Type.SWITCH_FRONTDOOR_CAMERA, Place.FRONTDOOR, false), //
 	// @formatter:on
 	;

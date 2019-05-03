@@ -14,6 +14,7 @@ public enum Datapoint {
 	LOW_BAT(ValueFormat.DEC), //
 	ENERGY_COUNTER(ValueFormat.DEC), //
 	VALUE(ValueFormat.DEC), //
+	PRESS_SHORT(ValueFormat.DEC), //
 	;
 
 	private ValueFormat valueFormat;

@@ -17,6 +17,7 @@ import homecontroller.domain.model.AutomationState;
 import homecontroller.domain.model.Climate;
 import homecontroller.domain.model.Datapoint;
 import homecontroller.domain.model.Device;
+import homecontroller.domain.model.FrontDoor;
 import homecontroller.domain.model.Heating;
 import homecontroller.domain.model.Hint;
 import homecontroller.domain.model.HomematicConstants;
@@ -31,6 +32,7 @@ import homecontroller.domain.model.Tendency;
 import homecontroller.domain.model.Type;
 import homecontroller.domain.model.ValueWithTendency;
 import homecontroller.domain.model.Window;
+import homecontroller.service.CameraService;
 import homecontroller.service.HomematicAPI;
 import homecontroller.service.PushService;
 
@@ -64,6 +66,9 @@ public class HouseService {
 	private HomematicAPI api;
 
 	@Autowired
+	private CameraService cameraService;
+
+	@Autowired
 	private PushService pushService;
 
 	@Autowired
@@ -84,7 +89,7 @@ public class HouseService {
 		refreshHouseModel(false);
 	}
 
-	public void refreshHouseModel(boolean notify) {
+	public synchronized void refreshHouseModel(boolean notify) {
 
 		HouseModel oldModel = ModelObjectDAO.getInstance().readHouseModel();
 
@@ -99,6 +104,7 @@ public class HouseService {
 		}
 
 		updateHomematicSystemVariables(oldModel, newModel);
+		updateCameraPictures(oldModel, newModel);
 
 		calculateHints(newModel);
 		pushService.send(oldModel, newModel);
@@ -124,6 +130,8 @@ public class HouseService {
 				Device.DIFF_TEMPERATUR_EINFAHRT_DIFF));
 
 		newModel.setKitchenWindowLightSwitch(readSwitchState(Device.SCHALTER_KUECHE_LICHT));
+
+		newModel.setFrontDoor(readFrontDoor(Device.HAUSTUER_KLINGEL, Device.HAUSTUER_KAMERA));
 
 		newModel.setElectricalPowerConsumption(readPowerConsumption(Device.STROMZAEHLER));
 
@@ -303,7 +311,8 @@ public class HouseService {
 
 	private boolean isTooColdOutsideSoNoNeedToCoolingDownRoom(BigDecimal roomTemperature) {
 
-		if (ModelObjectDAO.getInstance().readHistoryModel().getHighestOutsideTemperatureInLast24Hours() == null) {
+		if (ModelObjectDAO.getInstance().readHistoryModel()
+				.getHighestOutsideTemperatureInLast24Hours() == null) {
 			return true;
 		}
 
@@ -368,6 +377,20 @@ public class HouseService {
 		}
 	}
 
+	private void updateCameraPictures(HouseModel oldModel, HouseModel newModel) {
+
+		// FrontDoor
+		long doorbellOld = oldModel != null && oldModel.getFrontDoor() != null
+				? oldModel.getFrontDoor().getTimestampLastDoorbell()
+				: 0;
+		long doorbellNew = newModel != null && newModel.getFrontDoor() != null
+				? newModel.getFrontDoor().getTimestampLastDoorbell()
+				: 0;
+		if (doorbellOld != doorbellNew && doorbellNew > 0) {
+			cameraService.takeEventPicture(newModel.getFrontDoor().getDeviceCamera());
+		}
+	}
+
 	private OutdoorClimate readOutdoorClimate(Device outside, Device diff) {
 		OutdoorClimate outdoorClimate = new OutdoorClimate();
 		outdoorClimate.setTemperature(new ValueWithTendency<BigDecimal>(
@@ -425,6 +448,16 @@ public class HouseService {
 		switchModel
 				.setAutomationInfoText(api.getAsString(device.programNamePrefix() + AUTOMATIC + "InfoText"));
 		return switchModel;
+	}
+
+	private FrontDoor readFrontDoor(Device haustuerKlingel, Device haustuerKamera) {
+
+		FrontDoor frontDoor = new FrontDoor();
+		frontDoor.setDeviceCamera(Device.HAUSTUER_KAMERA);
+		frontDoor.setDeviceDoorBell(Device.HAUSTUER_KLINGEL);
+		frontDoor.setTimestampLastDoorbell(
+				api.getAsBigDecimal(haustuerKlingel.accessKeyXmlApi(Datapoint.PRESS_SHORT)).longValue());
+		return frontDoor;
 	}
 
 	private PowerMeter readPowerConsumption(Device device) {
