@@ -1,4 +1,4 @@
-package homecontroller.dao;
+package homelibrary.dao;
 
 import java.util.Date;
 
@@ -39,17 +39,8 @@ public class ModelObjectDAO {
 		historyModel = newModel;
 	}
 
-	public void write(Device device, CameraMode cameraMode, CameraPicture cameraPicture) {
-		switch (cameraMode) {
-		case LIVE:
-			cameraModel.getLivePictures().put(device, cameraPicture);
-			break;
-		case EVENT:
-			cameraModel.getEventPictures().put(device, cameraPicture);
-			break;
-		default:
-			throw new IllegalArgumentException("Unknown CameraMode: " + cameraMode);
-		}
+	public void write(CameraModel newModel) {
+		cameraModel = newModel;
 	}
 
 	public HouseModel readHouseModel() {
@@ -71,12 +62,7 @@ public class ModelObjectDAO {
 	public CameraPicture readCameraPicture(Device device, CameraMode cameraMode, long eventTimestamp) {
 		switch (cameraMode) {
 		case LIVE:
-			if (!cameraModel.getLivePictures().containsKey(device) || new Date().getTime()
-					- cameraModel.getLivePictures().get(device).getTimestamp() > 1000 * 5) {
-				return null;
-			} else {
-				return cameraModel.getLivePictures().get(device);
-			}
+			return cameraModel.getLivePictures().get(device);
 		case EVENT:
 			if (!cameraModel.getLivePictures().containsKey(device)) {
 				return null;

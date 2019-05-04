@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import homecontroller.dao.ModelObjectDAO;
 import homecontroller.domain.model.ActionModel;
 import homecontroller.domain.model.AutomationState;
 import homecontroller.domain.model.CameraMode;
@@ -24,6 +23,7 @@ import homecontroller.domain.model.SettingsModel;
 import homecontroller.domain.service.HouseService;
 import homecontroller.service.CameraService;
 import homecontroller.service.SettingsService;
+import homelibrary.dao.ModelObjectDAO;
 
 @RestController
 public class HomeClientRequestMapping {

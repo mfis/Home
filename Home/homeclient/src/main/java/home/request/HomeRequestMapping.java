@@ -1,4 +1,4 @@
-package home.service;
+package home.request;
 
 import java.math.BigDecimal;
 
@@ -16,6 +16,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import home.domain.model.Pages;
 import home.domain.service.HouseViewService;
+import home.service.ControllerAPI;
+import home.service.ExternalPropertiesDAO;
+import home.service.LoginInterceptor;
+import home.service.SettingsViewService;
+import home.service.TextQueryService;
+import home.service.ViewAttributesDAO;
 import homecontroller.domain.model.AutomationState;
 import homecontroller.domain.model.CameraMode;
 import homecontroller.domain.model.Device;
@@ -115,9 +121,10 @@ public class HomeRequestMapping {
 
 	@RequestMapping(value = "/cameraPicture", produces = "image/jpeg")
 	public ResponseEntity<byte[]> cameraPicture(@RequestParam(ControllerAPI.DEVICE_NAME) String deviceName,
-			@RequestParam(ControllerAPI.CAMERA_MODE) String cameraMode) {
-		byte[] bytes = controllerAPI.cameraPicture(Device.valueOf(deviceName),
-				CameraMode.valueOf(cameraMode));
+			@RequestParam(ControllerAPI.CAMERA_MODE) String cameraMode,
+			@RequestParam("ts") String timestamp) {
+		byte[] bytes = controllerAPI.cameraPicture(Device.valueOf(deviceName), CameraMode.valueOf(cameraMode),
+				Long.parseLong(timestamp));
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(new MediaType("image", "jpeg"));

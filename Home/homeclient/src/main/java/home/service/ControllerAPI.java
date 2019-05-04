@@ -3,7 +3,6 @@ package home.service;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.util.Arrays;
 import java.util.Locale;
 
 import javax.annotation.PostConstruct;
@@ -14,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
@@ -24,14 +22,17 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import home.request.HomeRequestMapping;
 import homecontroller.domain.model.ActionModel;
 import homecontroller.domain.model.AutomationState;
 import homecontroller.domain.model.CameraMode;
+import homecontroller.domain.model.CameraPicture;
 import homecontroller.domain.model.Device;
 import homecontroller.domain.model.HistoryModel;
 import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.SettingsModel;
 import homecontroller.util.URIParameter;
+import homelibrary.dao.ModelObjectDAO;
 
 @Component
 public class ControllerAPI {
@@ -87,9 +88,17 @@ public class ControllerAPI {
 						.add("positionPercentage", String.valueOf(positionPercentage)).build());
 	}
 
-	public byte[] cameraPicture(Device device, CameraMode mode) {
-		return callForBinary(env.getProperty(CONTROLLER_URL) + "cameraPicture",
-				new URIParameter().add(DEVICE_NAME, device.name()).add(CAMERA_MODE, mode.name()).build());
+	public byte[] cameraPicture(Device device, CameraMode mode, long timestamp) {
+		CameraPicture cameraPicture = ModelObjectDAO.getInstance().readCameraPicture(device, mode, timestamp);
+		if (cameraPicture != null) {
+			return cameraPicture.getBytes();
+		} else {
+			return new byte[0];
+		}
+		// return callForBinary(env.getProperty(CONTROLLER_URL) +
+		// "cameraPicture",
+		// new URIParameter().add(DEVICE_NAME, device.name()).add(CAMERA_MODE,
+		// mode.name()).build());
 	}
 
 	public void settingspushtoggle(String userCookie) {
@@ -132,20 +141,24 @@ public class ControllerAPI {
 		}
 	}
 
-	private byte[] callForBinary(String url, MultiValueMap<String, String> parameters) {
-
-		try {
-			HttpHeaders headers = createHeaders();
-			headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
-			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(parameters, headers);
-			ResponseEntity<byte[]> response = restTemplate.exchange(url, HttpMethod.POST, request,
-					byte[].class, "1");
-			return response.getBody();
-		} catch (Exception e) {
-			LogFactory.getLog(HomeRequestMapping.class).error("Could not call controller!", e);
-			return new byte[0];
-		}
-	}
+	// private byte[] callForBinary(String url, MultiValueMap<String, String>
+	// parameters) {
+	//
+	// try {
+	// HttpHeaders headers = createHeaders();
+	// headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
+	// HttpEntity<MultiValueMap<String, String>> request = new
+	// HttpEntity<>(parameters, headers);
+	// ResponseEntity<byte[]> response = restTemplate.exchange(url,
+	// HttpMethod.POST, request,
+	// byte[].class, "1");
+	// return response.getBody();
+	// } catch (Exception e) {
+	// LogFactory.getLog(HomeRequestMapping.class).error("Could not call
+	// controller!", e);
+	// return new byte[0];
+	// }
+	// }
 
 	HttpHeaders createHeaders() {
 

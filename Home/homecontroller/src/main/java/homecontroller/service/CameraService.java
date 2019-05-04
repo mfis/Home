@@ -17,11 +17,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Base64Utils;
 import org.springframework.web.client.RestTemplate;
 
-import homecontroller.dao.ModelObjectDAO;
 import homecontroller.domain.model.CameraMode;
 import homecontroller.domain.model.CameraPicture;
 import homecontroller.domain.model.Device;
 import homecontroller.domain.model.HouseModel;
+import homelibrary.dao.ModelObjectDAO;
 
 @Component
 public class CameraService {
@@ -40,7 +40,8 @@ public class CameraService {
 		CameraPicture cameraPicture = new CameraPicture();
 		cameraPicture.setTimestamp(new Date().getTime());
 		cameraPicture.setBytes(takePictureFromCamera(device));
-		ModelObjectDAO.getInstance().write(device, CameraMode.EVENT, cameraPicture);
+		// ModelObjectDAO.getInstance().write(device, CameraMode.EVENT,
+		// cameraPicture);
 	}
 
 	public byte[] readCameraPicture(Device device, CameraMode cameraMode) {
@@ -62,7 +63,8 @@ public class CameraService {
 			CameraPicture newCameraPicture = new CameraPicture();
 			newCameraPicture.setTimestamp(new Date().getTime());
 			newCameraPicture.setBytes(takePictureFromCamera(device));
-			ModelObjectDAO.getInstance().write(device, CameraMode.LIVE, cameraPicture);
+			// ModelObjectDAO.getInstance().write(device, CameraMode.LIVE,
+			// cameraPicture);
 			return newCameraPicture.getBytes();
 		}
 

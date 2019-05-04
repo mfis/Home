@@ -148,15 +148,15 @@ public class HouseViewService {
 		}
 		frontDoorView.setIdLive("frontdoorcameralive");
 		frontDoorView.setIdBell("frontdoorcamerabell");
-		frontDoorView
-				.setLinkLive("/cameraPicture?deviceName=" + device.name() + "&cameraMode=" + CameraMode.LIVE);
-		frontDoorView.setLinkBell(
-				"/cameraPicture?deviceName=" + device.name() + "&cameraMode=" + CameraMode.EVENT);
+		frontDoorView.setLinkLive(
+				"/cameraPicture?deviceName=" + device.name() + "&cameraMode=" + CameraMode.LIVE + "&ts=0");
+		frontDoorView.setLinkBell("/cameraPicture?deviceName=" + device.name() + "&cameraMode="
+				+ CameraMode.EVENT + "&ts=" + frontDoor.getTimestampLastDoorbell());
 
 		model.addAttribute("frontDoor", frontDoorView);
 	}
 
-	private static String formatPastTimestamp(long date) {
+	private String formatPastTimestamp(long date) {
 
 		LocalDateTime localDate1 = Instant.ofEpochMilli(date).atZone(ZoneId.systemDefault())
 				.toLocalDateTime();

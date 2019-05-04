@@ -45,6 +45,11 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 			return true;
 		}
 
+		if (StringUtils.containsIgnoreCase(request.getRequestURL(), "upload")) { // FIXME:
+			// AUTHENTICATION via header fields
+			return true;
+		}
+
 		if (StringUtils.containsIgnoreCase(request.getRequestURL(), "/logoff")) {
 			logger.info("manual logout");
 			cookieDelete(request, response);

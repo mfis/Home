@@ -12,7 +12,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import homecontroller.dao.HistoryDatabaseDAO;
-import homecontroller.dao.ModelObjectDAO;
 import homecontroller.domain.model.AutomationState;
 import homecontroller.domain.model.Climate;
 import homecontroller.domain.model.Datapoint;
@@ -35,6 +34,7 @@ import homecontroller.domain.model.Window;
 import homecontroller.service.CameraService;
 import homecontroller.service.HomematicAPI;
 import homecontroller.service.PushService;
+import homelibrary.dao.ModelObjectDAO;
 
 @Component
 public class HouseService {
