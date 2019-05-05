@@ -95,10 +95,6 @@ public class ControllerAPI {
 		} else {
 			return new byte[0];
 		}
-		// return callForBinary(env.getProperty(CONTROLLER_URL) +
-		// "cameraPicture",
-		// new URIParameter().add(DEVICE_NAME, device.name()).add(CAMERA_MODE,
-		// mode.name()).build());
 	}
 
 	public void settingspushtoggle(String userCookie) {
@@ -140,25 +136,6 @@ public class ControllerAPI {
 			return null;
 		}
 	}
-
-	// private byte[] callForBinary(String url, MultiValueMap<String, String>
-	// parameters) {
-	//
-	// try {
-	// HttpHeaders headers = createHeaders();
-	// headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
-	// HttpEntity<MultiValueMap<String, String>> request = new
-	// HttpEntity<>(parameters, headers);
-	// ResponseEntity<byte[]> response = restTemplate.exchange(url,
-	// HttpMethod.POST, request,
-	// byte[].class, "1");
-	// return response.getBody();
-	// } catch (Exception e) {
-	// LogFactory.getLog(HomeRequestMapping.class).error("Could not call
-	// controller!", e);
-	// return new byte[0];
-	// }
-	// }
 
 	HttpHeaders createHeaders() {
 

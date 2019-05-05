@@ -107,6 +107,7 @@ public class HouseService {
 		updateCameraPictures(oldModel, newModel);
 
 		calculateHints(newModel);
+
 		pushService.send(oldModel, newModel);
 	}
 

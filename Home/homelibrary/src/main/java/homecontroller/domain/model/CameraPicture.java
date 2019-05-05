@@ -1,6 +1,8 @@
 package homecontroller.domain.model;
 
-public class CameraPicture {
+import java.io.Serializable;
+
+public class CameraPicture implements Serializable {
 
 	private byte[] bytes;
 
