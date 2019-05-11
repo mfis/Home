@@ -130,7 +130,11 @@ public class HomeRequestMapping {
 		headers.setContentType(new MediaType("image", "jpeg"));
 		headers.setContentDispositionFormData("attachment", deviceName + "_" + cameraMode + ".jpg");
 		headers.setContentLength(bytes.length);
-		return new ResponseEntity<byte[]>(bytes, headers, HttpStatus.OK);
+		if (bytes.length == 0) {
+			return new ResponseEntity<byte[]>(bytes, headers, HttpStatus.NOT_FOUND);
+		} else {
+			return new ResponseEntity<byte[]>(bytes, headers, HttpStatus.OK);
+		}
 	}
 
 	@RequestMapping(Pages.PATH_HOME)

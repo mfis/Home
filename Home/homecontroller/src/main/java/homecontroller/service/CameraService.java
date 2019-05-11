@@ -1,114 +1,150 @@
 package homecontroller.service;
 
-import java.util.Arrays;
+import java.net.SocketTimeoutException;
 import java.util.Date;
+import java.util.concurrent.CompletableFuture;
 
-import javax.annotation.PostConstruct;
-
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.http.conn.ConnectTimeoutException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Base64Utils;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import homecontroller.domain.model.CameraMode;
+import homecontroller.domain.model.CameraModel;
 import homecontroller.domain.model.CameraPicture;
 import homecontroller.domain.model.Device;
-import homecontroller.domain.model.HouseModel;
+import homecontroller.domain.model.FrontDoor;
+import homecontroller.domain.service.UploadService;
 import homelibrary.dao.ModelObjectDAO;
 
 @Component
 public class CameraService {
 
 	@Autowired
-	private RestTemplate restTemplate;
+	@Qualifier("restTemplateLowTimeout")
+	private RestTemplate restTemplateLowTimeout;
 
-	private static final String REPLACEMENT_IMAGE = "/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEACgoKCgrKC0yMi0/RDxEP11VTk5VXYxkbGRsZIzVhZuFhZuF1bzkua255Lz//+vr//////////////////////8BKCgoKCsoLTIyLT9EPEQ/XVVOTlVdjGRsZGxkjNWFm4WFm4XVvOS5rbnkvP//6+v////////////////////////CABEIADIAMgMBIgACEQEDEQH/xAAYAAEBAQEBAAAAAAAAAAAAAAAAAwIEBf/aAAgBAQAAAAD07CF0LoXEFwguI2QuhcQ1rYcH/8QAFgEBAQEAAAAAAAAAAAAAAAAAAQAC/9oACAECEAAAABGzqEpsf//EABgBAQADAQAAAAAAAAAAAAAAAAIAAQME/9oACAEDEAAAANAxW+NMuoJ2/wD/xAApEAACAQIEBQMFAAAAAAAAAAABAgMAEQQTIEEQEiExMhRRUiMzYXKC/9oACAEBAAE/APqYc/KOlZWFwdDM2JflXwFZEPwXhIjwOHTx3FI6utxRIAuad5JyUQWX3pECKANDo0Dc6ePtRdsSwC9EHelVVFgNMrtM+UnbejGcMQ6dV3pHV1uNDyNK+XH23NRxrGthwdXw7F06puKVlcXHBmaR8tP6NIgRbDQ8bQvmR3/Ir1aVhPtn9jqAFh0Ff//EABoRAAICAwAAAAAAAAAAAAAAAAExABARIDD/2gAIAQIBAT8AVPjkQLT/xAAkEQABAwMBCQAAAAAAAAAAAAABAAIhEBEyMQMSEyBBUVJhcv/aAAgBAwEBPwCH+nUw+lvO7mg0F8+iN7zTCTqibqHwclw3+JW0zdyf/9k=";
+	@Autowired
+	@Qualifier("restTemplateBinaryResponse")
+	private RestTemplate restTemplateBinaryResponse;
 
-	@PostConstruct
-	private void a() {
-		restTemplate.getMessageConverters().add(new ByteArrayHttpMessageConverter());
+	@Autowired
+	private HomematicAPI homematicAPI;
+
+	@Autowired
+	private UploadService uploadService;
+
+	private static final Log LOG = LogFactory.getLog(PushService.class);
+
+	public void takeEventPicture(FrontDoor frontdoor) {
+		CameraPicture cameraPicture = new CameraPicture();
+		cameraPicture.setTimestamp(frontdoor.getTimestampLastDoorbell());
+		cameraPicture.setDevice(frontdoor.getDeviceCamera());
+		cameraPicture.setCameraMode(CameraMode.EVENT);
+		takePicture(cameraPicture);
 	}
 
-	public void takeEventPicture(Device device) {
+	public void takeLivePicture(Device device) {
 		CameraPicture cameraPicture = new CameraPicture();
 		cameraPicture.setTimestamp(new Date().getTime());
-		cameraPicture.setBytes(takePictureFromCamera(device));
-		// ModelObjectDAO.getInstance().write(device, CameraMode.EVENT,
-		// cameraPicture);
+		cameraPicture.setDevice(device);
+		cameraPicture.setCameraMode(CameraMode.LIVE);
+		takePicture(cameraPicture);
 	}
 
-	public byte[] readCameraPicture(Device device, CameraMode cameraMode) {
+	private void takePicture(CameraPicture cameraPicture) {
 
-		long eventTimestamp = lookupEventTimestamp(device);
-
-		CameraPicture cameraPicture = ModelObjectDAO.getInstance().readCameraPicture(device, cameraMode,
-				eventTimestamp);
-		if (cameraPicture == null) {
-			// FIXME: wait(15000);
-			// FIXME: dao.readCameraPicture...
-		}
-
-		// FIXME: if replacement dann sofort neu lesen...
-
-		if (cameraPicture != null) {
-			return cameraPicture.getBytes();
-		} else if (cameraMode == CameraMode.LIVE) {
-			CameraPicture newCameraPicture = new CameraPicture();
-			newCameraPicture.setTimestamp(new Date().getTime());
-			newCameraPicture.setBytes(takePictureFromCamera(device));
-			// ModelObjectDAO.getInstance().write(device, CameraMode.LIVE,
-			// cameraPicture);
-			return newCameraPicture.getBytes();
-		}
-
-		return new byte[0]; // FIXME
+		CompletableFuture.runAsync(() -> {
+			synchronized (this) {
+				long l1 = System.currentTimeMillis();
+				turnOnCamera(cameraPicture.getDevice());
+				byte[] picture = cameraReadPicture(Device.HAUSTUER_KAMERA);
+				writePicture(cameraPicture, picture);
+				if (LOG.isInfoEnabled()) {
+					LOG.info("TIME = " + (System.currentTimeMillis() - l1) + " ms");
+				}
+			}
+		});
 	}
 
-	private long lookupEventTimestamp(Device device) {
-		switch (device) { // NOSONAR
-		case HAUSTUER_KAMERA:
-			HouseModel houseModel = ModelObjectDAO.getInstance().readHouseModel();
-			return houseModel == null || houseModel.getFrontDoor() == null ? 0
-					: houseModel.getFrontDoor().getTimestampLastDoorbell();
-		default:
-			throw new IllegalArgumentException("Unknown Device:" + device);
+	private void writePicture(CameraPicture cameraPicture, byte[] picture) {
+
+		if (picture.length == 0) {
+			LOG.error("empty camera image!");
+			return;
 		}
+
+		cameraPicture.setBytes(picture);
+		CameraModel cameraModel = ModelObjectDAO.getInstance().readCameraModel();
+		if (cameraPicture.getCameraMode() == CameraMode.LIVE) {
+			cameraModel.setLivePicture(cameraPicture);
+		} else if (cameraPicture.getCameraMode() == CameraMode.EVENT) {
+			cameraModel.getEventPictures().add(cameraPicture); // FIXME:
+																// DELETE
+																// OLDEST
+		}
+		uploadService.upload(cameraModel);
 	}
 
-	private synchronized byte[] takePictureFromCamera(Device device) {
+	private void turnOnCamera(Device deviceSwitch) {
+
+		LOG.info("RUN PROGRAM: " + deviceSwitch.programNamePrefix() + "Einschalten");
+		homematicAPI.runProgram(deviceSwitch.programNamePrefix() + "Einschalten");
+		boolean pingCameraOk = false;
+		long startPolling = System.currentTimeMillis();
+		do {
+			try {
+				Thread.sleep(500L);
+				LOG.info("PING");
+				ResponseEntity<String> response = restTemplateLowTimeout
+						.getForEntity("http://192.168.2.203/ping", String.class);
+				if (response.getStatusCode() == HttpStatus.OK) {
+					pingCameraOk = true;
+				} else if (System.currentTimeMillis() - startPolling > (1000L * 20L)) {
+					throw new IllegalStateException("camera not started");
+				}
+			} catch (Exception e) {
+				if (isExceptionExpectedTimeout(e)) {
+					LOG.info("PING NOT ANSWERED");
+				} else {
+					LOG.error("Error ping camera: ", e);
+				}
+			}
+		} while (!pingCameraOk);
+	}
+
+	private boolean isExceptionExpectedTimeout(Exception e) {
+		return e.getClass().isAssignableFrom(ResourceAccessException.class) && e.getCause() != null
+				&& e.getCause().getClass().isAssignableFrom(ConnectTimeoutException.class)
+				&& e.getCause().getCause() != null
+				&& e.getCause().getCause().getClass().isAssignableFrom(SocketTimeoutException.class);
+	}
+
+	private byte[] cameraReadPicture(Device device) {
 
 		try {
-			return dao(device);
-		} catch (Exception e) {
-			return Base64Utils.decodeFromString(REPLACEMENT_IMAGE);
-		} finally {
-			// FIXME: monitor.notifyAll();
+			ResponseEntity<byte[]> response = restTemplateBinaryResponse
+					.getForEntity("http://192.168.2.203/capture", byte[].class); // FIXME:
+																					// externalize
+																					// url
+
+			if (response.getStatusCode() == HttpStatus.OK) {
+				return response.getBody();
+			} else {
+				throw new IllegalStateException(
+						"could not capture picture from camera: " + response.getStatusCode());
+			}
+		} catch (RestClientException rce) {
+			LOG.error("Error read camera picture: ", rce);
+			return new byte[0];
 		}
-	}
-
-	private byte[] dao(Device device) {
-
-		HttpHeaders headers = new HttpHeaders();
-		headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
-
-		HttpEntity<String> entity = new HttpEntity<String>(headers);
-
-		ResponseEntity<byte[]> response = restTemplate.exchange(
-				"http://homematic-ccu2/ise/img/homematic_logo_small.png", HttpMethod.GET, entity,
-				byte[].class, "1");
-
-		if (response.getStatusCode() == HttpStatus.OK) {
-			// Files.write(Paths.get("/Users/mfi/Downloads/hmlogo.png"),
-			// response.getBody());
-		}
-		return null;
 	}
 
 }

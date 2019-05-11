@@ -21,7 +21,6 @@ public class ModelObjectDAO {
 
 	private ModelObjectDAO() {
 		super();
-		cameraModel = new CameraModel();
 	}
 
 	public static synchronized ModelObjectDAO getInstance() {
@@ -59,22 +58,27 @@ public class ModelObjectDAO {
 		}
 	}
 
+	public CameraModel readCameraModel() {
+		return cameraModel;
+	}
+
 	public CameraPicture readCameraPicture(Device device, CameraMode cameraMode, long eventTimestamp) {
+		if (cameraModel == null) {
+			return null;
+		}
 		switch (cameraMode) {
 		case LIVE:
-			return cameraModel.getLivePictures().get(device);
+			return cameraModel.getLivePicture();
 		case EVENT:
-			if (!cameraModel.getLivePictures().containsKey(device)) {
-				return null;
-			} else {
-				long timestampDiff = Math
-						.abs(cameraModel.getLivePictures().get(device).getTimestamp() - eventTimestamp);
-				if (timestampDiff > 1000 * 60) {
-					return null;
-				} else {
-					return cameraModel.getEventPictures().get(device);
+			for (CameraPicture cameraPicture : cameraModel.getEventPictures()) {
+				if (cameraPicture.getDevice() == device) {
+					long timestampDiff = Math.abs(cameraPicture.getTimestamp() - eventTimestamp);
+					if (timestampDiff < 1000 * 30) {
+						return cameraPicture;
+					}
 				}
 			}
+			return null;
 		default:
 			throw new IllegalArgumentException("Unknown CameraMode: " + cameraMode);
 		}

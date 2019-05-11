@@ -1,21 +1,14 @@
 package homecontroller.request;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.math.BigDecimal;
 
-import javax.servlet.http.HttpServletResponse;
-
-import org.h2.util.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import homecontroller.domain.model.ActionModel;
 import homecontroller.domain.model.AutomationState;
-import homecontroller.domain.model.CameraMode;
 import homecontroller.domain.model.Device;
 import homecontroller.domain.model.HistoryModel;
 import homecontroller.domain.model.HouseModel;
@@ -71,13 +64,10 @@ public class HomeClientRequestMapping {
 		return ModelObjectDAO.getInstance().readHouseModel();
 	}
 
-	@PostMapping("/controller/cameraPicture")
-	public void cameraPicture(HttpServletResponse response, @RequestParam("deviceName") String deviceName,
-			@RequestParam("cameraMode") String cameraMode) throws IOException {
-		byte[] bytes = cameraService.readCameraPicture(Device.valueOf(deviceName),
-				CameraMode.valueOf(cameraMode));
-		response.setContentType(MediaType.IMAGE_JPEG_VALUE);
-		IOUtils.copy(new ByteArrayInputStream(bytes), response.getOutputStream());
+	@PostMapping("/controller/cameraLivePicture")
+	public ActionModel cameraPicture(@RequestParam("deviceName") String deviceName) {
+		cameraService.takeLivePicture(Device.valueOf(deviceName));
+		return new ActionModel("OK");
 	}
 
 	@PostMapping("/controller/history")

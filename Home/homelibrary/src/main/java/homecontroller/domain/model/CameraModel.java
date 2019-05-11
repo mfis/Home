@@ -1,33 +1,31 @@
 package homecontroller.domain.model;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.LinkedList;
+import java.util.List;
 
 public class CameraModel implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private Map<Device, CameraPicture> livePictures = new HashMap<>();
+	private CameraPicture livePicture;
 
-	private Map<Device, CameraPicture> eventPictures = new HashMap<>();
+	private List<CameraPicture> eventPictures = new LinkedList<>();
 
-	public Map<Device, CameraPicture> getLivePictures() {
-		return livePictures;
+	public CameraPicture getLivePicture() {
+		return livePicture;
 	}
 
-	public void setLivePictures(Map<Device, CameraPicture> livePictures) {
-		this.livePictures = livePictures;
+	public void setLivePicture(CameraPicture livePicture) {
+		this.livePicture = livePicture;
 	}
 
-	public Map<Device, CameraPicture> getEventPictures() {
+	public List<CameraPicture> getEventPictures() {
 		return eventPictures;
 	}
 
-	public void setEventPictures(Map<Device, CameraPicture> eventPictures) {
+	public void setEventPictures(List<CameraPicture> eventPictures) {
 		this.eventPictures = eventPictures;
 	}
-
-	// ----------
 
 }

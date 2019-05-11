@@ -387,8 +387,8 @@ public class HouseService {
 		long doorbellNew = newModel != null && newModel.getFrontDoor() != null
 				? newModel.getFrontDoor().getTimestampLastDoorbell()
 				: 0;
-		if (doorbellOld != doorbellNew && doorbellNew > 0) {
-			cameraService.takeEventPicture(newModel.getFrontDoor().getDeviceCamera());
+		if (doorbellOld != doorbellNew && doorbellNew > 0 && oldModel != null) {
+			cameraService.takeEventPicture(newModel.getFrontDoor());
 		}
 	}
 
