@@ -291,27 +291,27 @@
 			function prepare[[${id}]]Button(show, request){
 				if(show==='true'){
 					$("#modalCamera[[${id}]]").modal("show"); 
-				}
-				if(request==='true'){
-					var httpRequest = new XMLHttpRequest();
-					httpRequest.open("GET", "[(${linkRequest})]");
-					httpRequest.send();
-				}else{
 					var beacon = new Image(); 
 					beacon.onload = function() {
 					    console.log('Image found'); 
 					    $("#cameraImage[[${id}]]").attr("src", "[(${link})]");
-					    window.clearInterval(timer[[${id}]]);
 					};
 					beacon.onerror = function(){    
 					   console.log('Image not found');
 					}
+					console.log('start timer');
+					timer[[${id}]] = window.setInterval(function(){
+					    console.log('sending the request again');
+					    beacon.src = "[(${link})]";
+					},600);
+				}
+				if(request==='true'){
+					console.log('New request');
+					var httpRequest = new XMLHttpRequest();
+					httpRequest.open("GET", "[(${linkRequest})]");
+					httpRequest.send();
 				}				
-				timer[[${id}]] = window.setInterval(function(){
-				    console.log('sending the request again');
-				    beacon.src = "[(${link})]";
-				},500);
-			}
+			}		
 			$("#modalCamera[[${id}]]").on('hide.bs.modal', function(){
 				window.clearInterval(timer[[${id}]]);
 			});

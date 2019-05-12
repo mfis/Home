@@ -105,7 +105,6 @@ public class CameraService {
 		long startPolling = System.currentTimeMillis();
 		do {
 			try {
-				Thread.sleep(500L);
 				LOG.info("PING");
 				ResponseEntity<String> response = restTemplateLowTimeout
 						.getForEntity("http://192.168.2.203/ping", String.class);
@@ -113,6 +112,8 @@ public class CameraService {
 					pingCameraOk = true;
 				} else if (System.currentTimeMillis() - startPolling > (1000L * 20L)) {
 					throw new IllegalStateException("camera not started");
+				} else {
+					Thread.sleep(500L);
 				}
 			} catch (Exception e) {
 				if (isExceptionExpectedTimeout(e)) {
