@@ -88,13 +88,22 @@ public class ControllerAPI {
 						.add("positionPercentage", String.valueOf(positionPercentage)).build());
 	}
 
-	public byte[] cameraPicture(Device device, CameraMode mode, long timestamp) {
-		CameraPicture cameraPicture = ModelObjectDAO.getInstance().readCameraPicture(device, mode, timestamp);
-		if (cameraPicture != null) {
-			return cameraPicture.getBytes();
+	public byte[] cameraPicture(Device device, CameraMode mode, long timestamp, boolean request) {
+		if (request) {
+			cameraLivePictureRefresh(device);
 		} else {
-			return new byte[0];
+			CameraPicture cameraPicture = ModelObjectDAO.getInstance().readCameraPicture(device, mode,
+					timestamp);
+			if (cameraPicture != null) {
+				return cameraPicture.getBytes();
+			}
 		}
+		return new byte[0];
+	}
+
+	public void cameraLivePictureRefresh(Device device) {
+		callForObject(env.getProperty(CONTROLLER_URL) + "cameraLivePicture", ActionModel.class,
+				new URIParameter().add(DEVICE_NAME, device.name()).build());
 	}
 
 	public void settingspushtoggle(String userCookie) {

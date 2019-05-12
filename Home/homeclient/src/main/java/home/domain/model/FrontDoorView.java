@@ -6,6 +6,7 @@ public class FrontDoorView {
 
 	private String idLive = "";
 	private String linkLive = "";
+	private String linkLiveRequest = "";
 
 	private String idBell = "";
 	private String linkBell = "";
@@ -48,6 +49,14 @@ public class FrontDoorView {
 
 	public void setLinkBell(String linkBell) {
 		this.linkBell = linkBell;
+	}
+
+	public String getLinkLiveRequest() {
+		return linkLiveRequest;
+	}
+
+	public void setLinkLiveRequest(String linkLiveRequest) {
+		this.linkLiveRequest = linkLiveRequest;
 	}
 
 }

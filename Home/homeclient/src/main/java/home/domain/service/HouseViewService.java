@@ -150,6 +150,8 @@ public class HouseViewService {
 		frontDoorView.setIdBell("frontdoorcamerabell");
 		frontDoorView.setLinkLive(
 				"/cameraPicture?deviceName=" + device.name() + "&cameraMode=" + CameraMode.LIVE + "&ts=0");
+		frontDoorView.setLinkLiveRequest("/cameraPicture?deviceName=" + device.name() + "&cameraMode="
+				+ CameraMode.LIVE + "&ts=0&request=true");
 		frontDoorView.setLinkBell("/cameraPicture?deviceName=" + device.name() + "&cameraMode="
 				+ CameraMode.EVENT + "&ts=" + frontDoor.getTimestampLastDoorbell());
 

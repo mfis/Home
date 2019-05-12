@@ -121,10 +121,11 @@ public class HomeRequestMapping {
 
 	@RequestMapping(value = "/cameraPicture", produces = "image/jpeg")
 	public ResponseEntity<byte[]> cameraPicture(@RequestParam(ControllerAPI.DEVICE_NAME) String deviceName,
-			@RequestParam(ControllerAPI.CAMERA_MODE) String cameraMode,
-			@RequestParam("ts") String timestamp) {
+			@RequestParam(ControllerAPI.CAMERA_MODE) String cameraMode, @RequestParam("ts") String timestamp,
+			@RequestParam(name = "request", required = false) String requestString) {
+		boolean request = StringUtils.equalsIgnoreCase(requestString, Boolean.TRUE.toString());
 		byte[] bytes = controllerAPI.cameraPicture(Device.valueOf(deviceName), CameraMode.valueOf(cameraMode),
-				Long.parseLong(timestamp));
+				Long.parseLong(timestamp), request);
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(new MediaType("image", "jpeg"));

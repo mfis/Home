@@ -262,12 +262,12 @@
 				<button th:id="${model.idBell} + 'Button'" type="button" class="btn btn-secondary btn-sm"><span><i th:class="'fas fa-eye'"></i></span><span>&nbsp;Türklingel</span></button>
 			</div>
 		</div>	
-		<th:block th:replace="fragments :: modalCamera (id=${model.idLive}, link=${model.linkLive}, name='Aktuell', refresh='true')"></th:block>
-		<th:block th:replace="fragments :: modalCamera (id=${model.idBell}, link=${model.linkBell}, name='Türklingel', refresh='false')"></th:block>
+		<th:block th:replace="fragments :: modalCamera (id=${model.idLive}, link=${model.linkLive}, linkRequest=${model.linkLiveRequest}, name='Aktuell', refresh='true')"></th:block>
+		<th:block th:replace="fragments :: modalCamera (id=${model.idBell}, link=${model.linkBell}, linkRequest=${model.linkBell}, name='Türklingel', refresh='false')"></th:block>
 	</th:block>
 	
 	<!-- Modal Camera -->
-	<th:block th:fragment="modalCamera (id, link, name, refresh, name, refresh)">
+	<th:block th:fragment="modalCamera (id, link, linkRequest, name, refresh, name, refresh)">
 		<div class="modal fade" th:id="'modalCamera' + ${id}" tabindex="-1" role="dialog" th:aria-labelledby="'#modalCamera' + ${id}" aria-hidden="true">
 		  <div class="modal-dialog modal-dialog-centered" role="document">
 		    <div class="modal-content">
@@ -288,20 +288,25 @@
 		</div>	
 		<script type="text/javascript">
 			var timer[[${id}]];
-			function prepare[[${id}]]Button(show){
-				// $("#cameraImage[[${id}]]").attr("src", "[(${link})]");
+			function prepare[[${id}]]Button(show, request){
 				if(show==='true'){
 					$("#modalCamera[[${id}]]").modal("show"); 
 				}
-				var beacon = new Image(); 
-				beacon.onload = function() {
-				    console.log('Image found'); 
-				    $("#cameraImage[[${id}]]").attr("src", "[(${link})]");
-				    window.clearInterval(timer[[${id}]]);
-				};
-				beacon.onerror = function(){    
-				   console.log('Image not found');
-				}
+				if(request==='true'){
+					var httpRequest = new XMLHttpRequest();
+					httpRequest.open("GET", "[(${linkRequest})]");
+					httpRequest.send();
+				}else{
+					var beacon = new Image(); 
+					beacon.onload = function() {
+					    console.log('Image found'); 
+					    $("#cameraImage[[${id}]]").attr("src", "[(${link})]");
+					    window.clearInterval(timer[[${id}]]);
+					};
+					beacon.onerror = function(){    
+					   console.log('Image not found');
+					}
+				}				
 				timer[[${id}]] = window.setInterval(function(){
 				    console.log('sending the request again');
 				    beacon.src = "[(${link})]";
@@ -310,9 +315,9 @@
 			$("#modalCamera[[${id}]]").on('hide.bs.modal', function(){
 				window.clearInterval(timer[[${id}]]);
 			});
-			document.getElementById("[[${id}]]Button").onclick = function () {prepare[[${id}]]Button('true');};
+			document.getElementById("[[${id}]]Button").onclick = function () {prepare[[${id}]]Button('true', 'true');};
 			if([[${refresh}]]===true){
-				document.getElementById("[[${id}]]Refresh").onclick = function () {prepare[[${id}]]Button('false');};
+				document.getElementById("[[${id}]]Refresh").onclick = function () {prepare[[${id}]]Button('false', 'true');};
 			}
 		</script>				
 	</th:block>	
