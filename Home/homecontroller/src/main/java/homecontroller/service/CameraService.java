@@ -64,9 +64,13 @@ public class CameraService {
 		CompletableFuture.runAsync(() -> {
 			synchronized (this) {
 				long l1 = System.currentTimeMillis();
-				turnOnCamera(cameraPicture.getDevice());
-				byte[] picture = cameraReadPicture(Device.HAUSTUER_KAMERA);
-				writePicture(cameraPicture, picture);
+				try {
+					turnOnCamera(cameraPicture.getDevice());
+					byte[] picture = cameraReadPicture(Device.HAUSTUER_KAMERA);
+					writePicture(cameraPicture, picture);
+				} catch (Exception e) {
+					LOG.error("Exception taking picture:", e);
+				}
 				if (LOG.isInfoEnabled()) {
 					LOG.info("TIME = " + (System.currentTimeMillis() - l1) + " ms");
 				}

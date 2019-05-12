@@ -10,7 +10,7 @@ public class CameraModel implements Serializable {
 
 	private CameraPicture livePicture;
 
-	private List<CameraPicture> eventPictures = new LinkedList<>();
+	private List<CameraPicture> eventPictures;
 
 	public CameraPicture getLivePicture() {
 		return livePicture;
@@ -21,6 +21,9 @@ public class CameraModel implements Serializable {
 	}
 
 	public List<CameraPicture> getEventPictures() {
+		if (eventPictures == null) {
+			eventPictures = new LinkedList<>();
+		}
 		return eventPictures;
 	}
 

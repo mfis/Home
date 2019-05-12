@@ -59,6 +59,9 @@ public class ModelObjectDAO {
 	}
 
 	public CameraModel readCameraModel() {
+		if (cameraModel == null) {
+			cameraModel = new CameraModel();
+		}
 		return cameraModel;
 	}
 
