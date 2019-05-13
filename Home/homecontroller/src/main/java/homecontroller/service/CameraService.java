@@ -51,12 +51,13 @@ public class CameraService {
 		takePicture(cameraPicture);
 	}
 
-	public void takeLivePicture(Device device) {
+	public String takeLivePicture(Device device) {
 		CameraPicture cameraPicture = new CameraPicture();
 		cameraPicture.setTimestamp(new Date().getTime());
 		cameraPicture.setDevice(device);
 		cameraPicture.setCameraMode(CameraMode.LIVE);
 		takePicture(cameraPicture);
+		return String.valueOf(cameraPicture.getTimestamp());
 	}
 
 	private void takePicture(CameraPicture cameraPicture) {

@@ -66,8 +66,8 @@ public class HomeClientRequestMapping {
 
 	@PostMapping("/controller/cameraLivePicture")
 	public ActionModel cameraPicture(@RequestParam("deviceName") String deviceName) {
-		cameraService.takeLivePicture(Device.valueOf(deviceName));
-		return new ActionModel("OK");
+		String requestTimestamp = cameraService.takeLivePicture(Device.valueOf(deviceName));
+		return new ActionModel(requestTimestamp);
 	}
 
 	@PostMapping("/controller/history")

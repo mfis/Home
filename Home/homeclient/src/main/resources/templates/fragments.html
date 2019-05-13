@@ -263,11 +263,11 @@
 			</div>
 		</div>	
 		<th:block th:replace="fragments :: modalCamera (id=${model.idLive}, link=${model.linkLive}, linkRequest=${model.linkLiveRequest}, name='Aktuell', refresh='true')"></th:block>
-		<th:block th:replace="fragments :: modalCamera (id=${model.idBell}, link=${model.linkBell}, linkRequest=${model.linkBell}, name='Türklingel', refresh='false')"></th:block>
+		<th:block th:replace="fragments :: modalCamera (id=${model.idBell}, link=${model.linkBell}, linkRequest='', name='Türklingel', refresh='false')"></th:block>
 	</th:block>
 	
 	<!-- Modal Camera -->
-	<th:block th:fragment="modalCamera (id, link, linkRequest, name, refresh, name, refresh)">
+	<th:block th:fragment="modalCamera (id, link, linkRequest, name, refresh)">
 		<div class="modal fade" th:id="'modalCamera' + ${id}" tabindex="-1" role="dialog" th:aria-labelledby="'#modalCamera' + ${id}" aria-hidden="true">
 		  <div class="modal-dialog modal-dialog-centered" role="document">
 		    <div class="modal-content">
@@ -287,35 +287,51 @@
 		  </div>
 		</div>	
 		<script type="text/javascript">
-			var timer[[${id}]];
+			var link = '[[${link}]]';
+			var timer = null;
+			var beacon = new Image(); 
+			beacon.onload = function() {
+			    console.log('Image found'); 
+			    $("#cameraImage[[${id}]]").attr("src", "[(${link})]");
+			};
+			beacon.onerror = function(){    
+			   console.log('Image not found');
+			   poll[[${id}]]();
+			}
 			function prepare[[${id}]]Button(show, request){
+				// show modal
 				if(show==='true'){
 					$("#modalCamera[[${id}]]").modal("show"); 
-					var beacon = new Image(); 
-					beacon.onload = function() {
-					    console.log('Image found'); 
-					    $("#cameraImage[[${id}]]").attr("src", "[(${link})]");
-					};
-					beacon.onerror = function(){    
-					   console.log('Image not found');
-					}
-					console.log('start timer');
-					timer[[${id}]] = window.setInterval(function(){
-					    console.log('sending the request again');
-					    beacon.src = "[(${link})]";
-					},600);
 				}
+				// rewuest new live picture
 				if(request==='true'){
 					console.log('New request');
 					var httpRequest = new XMLHttpRequest();
 					httpRequest.open("GET", "[(${linkRequest})]");
 					httpRequest.send();
-				}				
-			}		
+					httpRequest.onreadystatechange=(e)=>{
+						console.log('Response=' + httpRequest.responseText);
+						link = link + httpRequest.responseText;
+						poll[[${id}]]();
+					}
+				}else{
+					poll[[${id}]]();
+				}	
+			}
+			function poll[[${id}]](){
+				timer = setTimeout(function(){ 
+					console.log('poll...');
+					beacon.src = link;
+				}, 500);
+			}
+			
 			$("#modalCamera[[${id}]]").on('hide.bs.modal', function(){
-				window.clearInterval(timer[[${id}]]);
+				if(timer!=null){
+					clearTimeout(timer);
+					timer = null;
+				}
 			});
-			document.getElementById("[[${id}]]Button").onclick = function () {prepare[[${id}]]Button('true', 'true');};
+			document.getElementById("[[${id}]]Button").onclick = function () {prepare[[${id}]]Button('true', '[[${refresh}]]');};
 			if([[${refresh}]]===true){
 				document.getElementById("[[${id}]]Refresh").onclick = function () {prepare[[${id}]]Button('false', 'true');};
 			}

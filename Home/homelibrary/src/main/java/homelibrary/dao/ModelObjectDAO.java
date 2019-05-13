@@ -71,7 +71,10 @@ public class ModelObjectDAO {
 		}
 		switch (cameraMode) {
 		case LIVE:
-			return cameraModel.getLivePicture();
+			if (cameraModel.getLivePicture().getTimestamp() >= eventTimestamp) {
+				return cameraModel.getLivePicture();
+			}
+			return null;
 		case EVENT:
 			for (CameraPicture cameraPicture : cameraModel.getEventPictures()) {
 				if (cameraPicture.getDevice() == device) {
