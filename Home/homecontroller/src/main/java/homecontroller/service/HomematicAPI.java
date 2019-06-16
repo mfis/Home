@@ -220,6 +220,10 @@ public class HomematicAPI {
 				String.class);
 
 		String response = responseEntity.getBody();
+		if (!responseEntity.getStatusCode().is2xxSuccessful()) {
+			throw new IllegalStateException(
+					"Recieved RC=" + responseEntity.getStatusCode().value() + " from API call:" + url);
+		}
 
 		try {
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();

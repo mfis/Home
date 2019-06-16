@@ -1,5 +1,6 @@
 package homecontroller.service;
 
+import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.util.Date;
 import java.util.concurrent.CompletableFuture;
@@ -7,6 +8,7 @@ import java.util.concurrent.CompletableFuture;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.conn.HttpHostConnectException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
@@ -43,6 +45,8 @@ public class CameraService {
 
 	private static final Log LOG = LogFactory.getLog(PushService.class);
 
+	private static final Object MONITOR = new Object();
+
 	public void takeEventPicture(FrontDoor frontdoor) {
 		CameraPicture cameraPicture = new CameraPicture();
 		cameraPicture.setTimestamp(frontdoor.getTimestampLastDoorbell());
@@ -63,7 +67,7 @@ public class CameraService {
 	private void takePicture(CameraPicture cameraPicture) {
 
 		CompletableFuture.runAsync(() -> {
-			synchronized (this) {
+			synchronized (MONITOR) {
 				long l1 = System.currentTimeMillis();
 				try {
 					turnOnCamera(cameraPicture.getDevice());
@@ -105,25 +109,39 @@ public class CameraService {
 		boolean pingCameraOk = false;
 		long startPolling = System.currentTimeMillis();
 		do {
+			if (System.currentTimeMillis() - startPolling > (1000L * 20L)) {
+				throw new IllegalStateException("camera not started");
+			}
 			try {
 				LOG.info("PING");
 				ResponseEntity<String> response = restTemplateLowTimeout
 						.getForEntity("http://192.168.2.203/ping", String.class);
 				if (response.getStatusCode() == HttpStatus.OK) {
 					pingCameraOk = true;
-				} else if (System.currentTimeMillis() - startPolling > (1000L * 20L)) {
-					throw new IllegalStateException("camera not started");
 				} else {
-					Thread.sleep(500L);
+					sleep(500); // RC=404 etc
 				}
 			} catch (Exception e) {
 				if (isExceptionExpectedTimeout(e)) {
-					LOG.info("PING NOT ANSWERED");
+					LOG.info("PING - Timeout");
+					sleep(500);
+				} else if (isExceptionExpectedHostDown(e)) {
+					LOG.info("PING - Host is down");
+					sleep(1000);
 				} else {
 					LOG.error("Error ping camera: ", e);
+					sleep(500);
 				}
 			}
 		} while (!pingCameraOk);
+	}
+
+	private void sleep(long ms) {
+		try {
+			Thread.sleep(ms);
+		} catch (InterruptedException e) { // NOSONAR
+			// noop
+		}
 	}
 
 	private boolean isExceptionExpectedTimeout(Exception e) {
@@ -131,6 +149,13 @@ public class CameraService {
 				&& e.getCause().getClass().isAssignableFrom(ConnectTimeoutException.class)
 				&& e.getCause().getCause() != null
 				&& e.getCause().getCause().getClass().isAssignableFrom(SocketTimeoutException.class);
+	}
+
+	private boolean isExceptionExpectedHostDown(Exception e) {
+		return e.getClass().isAssignableFrom(ResourceAccessException.class) && e.getCause() != null
+				&& e.getCause().getClass().isAssignableFrom(HttpHostConnectException.class)
+				&& e.getCause().getCause() != null
+				&& e.getCause().getCause().getClass().isAssignableFrom(ConnectException.class);
 	}
 
 	private byte[] cameraReadPicture(Device device) {
