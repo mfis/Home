@@ -26,6 +26,8 @@
 	<link rel='stylesheet' href='style.css'/>
 	
 	<link rel='stylesheet' href='/webjars/bootstrap/css/bootstrap.min.css'/>
+	<!-- theme: <link rel='stylesheet' href='/webjars/bootswatch-flatly/bootstrap.min.css'/>  -->
+	
 	<link rel="stylesheet" href="/webjars/font-awesome/css/all.min.css" crossorigin="anonymous"/>
 	<script type="text/javascript" src="/webjars/jquery/jquery.min.js"></script>
 </head>
@@ -40,6 +42,13 @@
 			window.scrollTo(0, y);
 		}
 	</script>
+	
+	<script>
+		document.getElementById('idbody').onfocus = function(){
+			showSpinner();
+			window.location.reload();
+		};
+	</script>	
 	
 </th:block>
 
@@ -96,7 +105,7 @@
 				</script>		
 			</th:block>
 		</nav>
-		<div style="height: 70px;"></div>
+		<div style="height: 65px;"></div>
 	</div>
 
 	<!-- Titel -->
@@ -287,15 +296,22 @@
 		  </div>
 		</div>	
 		<script type="text/javascript">
-			var link = '[[${link}]]';
-			var timer = null;
-			var beacon = new Image(); 
-			beacon.onload = function() {
+			var link[[${id}]] = '[(${link})]';
+			var ts[[${id}]] = '';
+			var timer[[${id}]] = null;
+			var timerButton[[${id}]] = null;
+			var beacon[[${id}]] = new Image(); 
+			beacon[[${id}]].onload = function() {
 			    console.log('Image found'); 
-			    $("#cameraImage[[${id}]]").attr("src", "[(${link})]");
+			    clearTimeout(timer[[${id}]]);
+			    timer[[${id}]] = null;
+			    $("#cameraImage[[${id}]]").attr("src", link[[${id}]] + ts[[${id}]]);
 			};
-			beacon.onerror = function(){    
+			beacon[[${id}]].onerror = function(){    
 			   console.log('Image not found');
+			   clearTimeout(timer[[${id}]]);
+			   timer[[${id}]] = null;
+			   timerButton[[${id}]] = null;
 			   poll[[${id}]]();
 			}
 			function prepare[[${id}]]Button(show, request){
@@ -303,37 +319,53 @@
 				if(show==='true'){
 					$("#modalCamera[[${id}]]").modal("show"); 
 				}
-				// rewuest new live picture
+				// request new live picture
 				if(request==='true'){
-					console.log('New request');
-					var httpRequest = new XMLHttpRequest();
-					httpRequest.open("GET", "[(${linkRequest})]");
-					httpRequest.send();
-					httpRequest.onreadystatechange=(e)=>{
-						console.log('Response=' + httpRequest.responseText);
-						link = link + httpRequest.responseText;
-						poll[[${id}]]();
+					if(timerButton[[${id}]]===null){
+						console.log('New request');
+						var httpRequest = new XMLHttpRequest();
+						httpRequest.open("GET", "[(${linkRequest})]");
+						httpRequest.send();
+						httpRequest.onreadystatechange=(e)=>{
+							console.log('Response=' + httpRequest.responseText);
+							ts[[${id}]] = httpRequest.responseText;
+							poll[[${id}]]();
+						}
 					}
 				}else{
 					poll[[${id}]]();
 				}	
 			}
 			function poll[[${id}]](){
-				timer = setTimeout(function(){ 
+				if(timer[[${id}]]!==null || timerButton[[${id}]] === null){
+					return;
+				}
+				timer[[${id}]] = setTimeout(function(){ 
 					console.log('poll...');
-					beacon.src = link;
+					beacon[[${id}]].src = link[[${id}]] + ts[[${id}]];
 				}, 500);
 			}
 			
 			$("#modalCamera[[${id}]]").on('hide.bs.modal', function(){
-				if(timer!=null){
-					clearTimeout(timer);
-					timer = null;
+				if(timer[[${id}]]!=null){
+					clearTimeout(timer[[${id}]]);
+					timer[[${id}]] = setTimeout(function(){ 
+						console.log('finish timer');
+					}, 0);
+					clearTimeout(timerButton[[${id}]]);
+					timerButton[[${id}]] = null;
 				}
 			});
 			document.getElementById("[[${id}]]Button").onclick = function () {prepare[[${id}]]Button('true', '[[${refresh}]]');};
 			if([[${refresh}]]===true){
-				document.getElementById("[[${id}]]Refresh").onclick = function () {prepare[[${id}]]Button('false', 'true');};
+				document.getElementById("[[${id}]]Refresh").onclick = function () {
+					document.getElementById("[[${id}]]Refresh").disabled = true;
+					timerButton[[${id}]] = setTimeout(function(){ 
+						document.getElementById("[[${id}]]Refresh").disabled = false;
+						timerButton[[${id}]] = null;
+					}, 15000);
+					prepare[[${id}]]Button('false', 'true');
+				};
 			}
 		</script>				
 	</th:block>	
@@ -428,6 +460,11 @@
 			</div>
 		</th:block>	
 	</th:block>
+	
+	<!-- Timestamp -->
+	<th:block th:fragment="siteRequestTimestamp (ts)">
+		<div class="container text-right"><a class="text-secondary" th:text="${ts}"></a></div>
+	</th:block>	
 	
 	<!-- Strom Listen Eintrag -->
 	

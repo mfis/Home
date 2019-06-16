@@ -1,6 +1,8 @@
 package home.request;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +37,9 @@ public class HomeRequestMapping {
 	private static final String Y_POS = "y";
 
 	private static final String REDIRECT = "redirect:";
+
+	private static final DateTimeFormatter TS_FORMATTER = DateTimeFormatter
+			.ofPattern("E, dd. MMM yyyy, HH:mm");
 
 	@Autowired
 	private HouseViewService houseView;
@@ -132,9 +137,9 @@ public class HomeRequestMapping {
 		headers.setContentDispositionFormData("attachment", deviceName + "_" + cameraMode + ".jpg");
 		headers.setContentLength(bytes.length);
 		if (bytes.length == 0) {
-			return new ResponseEntity<byte[]>(bytes, headers, HttpStatus.NOT_FOUND);
+			return new ResponseEntity<byte[]>(bytes, headers, HttpStatus.NO_CONTENT);
 		} else {
-			return new ResponseEntity<byte[]>(bytes, headers, HttpStatus.OK);
+			return new ResponseEntity<byte[]>(bytes, headers, HttpStatus.NOT_FOUND);
 		}
 	}
 
@@ -203,6 +208,7 @@ public class HomeRequestMapping {
 	private void fillMenu(String pathHome, Model model) {
 		model.addAttribute("MENU_SELECTED", Pages.getEntry(pathHome));
 		model.addAttribute("MENU_SELECTABLE", Pages.getOtherEntries(pathHome));
+		model.addAttribute("SITE_REQUEST_TS", "Stand: " + TS_FORMATTER.format(LocalDateTime.now()));
 	}
 
 }

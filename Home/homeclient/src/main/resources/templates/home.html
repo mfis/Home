@@ -3,12 +3,15 @@
 
 <head th:replace="fragments :: head (name=${MENU_SELECTED.name})"></head>
 
-<body>
+<body style="background:#fffafa;" id="idbody">
 
 	<div
 		th:replace="fragments :: navigation (selected=${MENU_SELECTED}, selectable=${MENU_SELECTABLE})"></div>
 
 	<div class="container">
+
+		<!-- Stand Timestamp -->
+		<div th:replace="fragments :: siteRequestTimestamp (ts=${SITE_REQUEST_TS})"></div>
 
 		<!-- Batterie-Warnungen -->
 		<div th:replace="fragments :: deviceBatterieWarning (model=${lowBattery})"></div>
