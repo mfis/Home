@@ -312,8 +312,8 @@ public class HouseService {
 
 	private boolean isTooColdOutsideSoNoNeedToCoolingDownRoom(BigDecimal roomTemperature) {
 
-		if (ModelObjectDAO.getInstance().readHistoryModel()
-				.getHighestOutsideTemperatureInLast24Hours() == null) {
+		if (ModelObjectDAO.getInstance().readHistoryModel() == null || ModelObjectDAO.getInstance()
+				.readHistoryModel().getHighestOutsideTemperatureInLast24Hours() == null) {
 			return true;
 		}
 

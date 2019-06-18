@@ -430,6 +430,8 @@ public class HouseViewService {
 	private void formatPower(Model model, PowerMeter powerMeter) {
 
 		PowerView power = new PowerView();
+		power.setId(powerMeter.getDevice().programNamePrefix());
+		power.setDescription(powerMeter.getDevice().getDescription());
 		power.setState(powerMeter.getActualConsumption().getValue().intValue() + " Watt");
 		power.setName(powerMeter.getDevice().getType().getTypeName());
 		power.setIcon("fas fa-bolt");

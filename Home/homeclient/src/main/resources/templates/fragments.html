@@ -44,10 +44,13 @@
 	</script>
 	
 	<script>
-		document.getElementById('idbody').onfocus = function(){
-			showSpinner();
-			window.location.reload();
-		};
+		var element = document.getElementById('idbody');
+		if (element != null && element.value !== '') {
+			document.getElementById('idbody').onfocus = function(){
+				showSpinner();
+				window.location.reload();
+			};
+		}
 	</script>	
 	
 </th:block>
@@ -373,6 +376,40 @@
 	<!-- Actual Power Consumption -->
 	<div th:fragment="actualPowerConsumption (model)"
 		th:class="'alert alert-secondary'">
+		
+		<div style="float:right; position:relative;">
+			<span><i th:onclick="@{'openHistory' + ${model.id} + '()'}" style="padding:5px;" class="fas fa-history rounded text-dark bg-light border border-dark"></i></span>
+		</div>
+		
+		<div class="modal fade" th:id="'modalHistory' + ${model.id}" tabindex="-1" role="dialog" th:aria-labelledby="'#modalCamera' + ${model.id}" aria-hidden="true">
+		  <div class="modal-dialog modal-dialog-centered" role="document">
+		    <div class="modal-content">
+		      <div class="modal-header">
+		        <h5 class="modal-title" th:id="'modalHistoryId' + ${model.id}" th:text="${model.name}"></h5>
+		        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+		          <span aria-hidden="true">&times;</span>
+		        </button>
+		      </div>
+		      <div th:id="'modalHistoryBody' + ${model.id}" class="modal-body" style="max-height: calc(100vh - 200px); overflow-y: auto;"></div>
+		    </div>
+		  </div>
+		</div>		
+		
+		<script type="text/javascript">
+			function openHistory[[${model.id}]](){
+				$("#modalHistory[[${model.id}]]").modal();
+				// document.getElementById("modalHistory[[${model.id}]]").modal();
+				var httpRequest = new XMLHttpRequest();
+				//httpRequest.open("GET", "[(${linkRequest})]");
+				httpRequest.open("GET", "/history");
+				httpRequest.send();
+				httpRequest.onreadystatechange=(e)=>{
+					document.getElementById("modalHistoryBody[[${model.id}]]").innerHTML = httpRequest.responseText;
+				}
+			}
+		</script>
+		
+		
 		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name})"></div>
 		<h4>
 			<span th:text="${model.state}"></span>

@@ -7,6 +7,7 @@ public class PowerView {
 	private String icon = "";
 	private String tendencyIcon = "";
 	private String id = "";
+	private String description = "";
 
 	public String getIcon() {
 		return icon;
@@ -46,6 +47,14 @@ public class PowerView {
 
 	public void setTendencyIcon(String tendencyIcon) {
 		this.tendencyIcon = tendencyIcon;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
 	}
 
 }
