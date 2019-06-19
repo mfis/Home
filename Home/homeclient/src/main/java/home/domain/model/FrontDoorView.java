@@ -1,6 +1,6 @@
 package home.domain.model;
 
-public class FrontDoorView {
+public class FrontDoorView extends View {
 
 	private String lastDoorbells = "";
 

@@ -1,17 +1,8 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
 
-<head th:replace="fragments :: head (name=${MENU_SELECTED.name})"></head>
-
-<body>
-
-	<div
-		th:replace="fragments :: navigation (selected=${MENU_SELECTED}, selectable=${MENU_SELECTABLE})"></div>
-
-	<div class="container">
-
-		<!-- Stromverbrauch -->
-		<div th:replace="fragments :: title (name='Stromverbrauch')"></div>
+	<!-- Stromverbrauch -->
+	<th:block th:if="${#strings.startsWith(key, 'StromverbrauchHaus')}">
 		<button class="btn btn-outline-secondary" type="button" data-toggle="collapse" data-target=".electricity" aria-expanded="false">Alle anzeigen</button>
 		<div style="height: 10px;"></div>
 		<div class="list-group">
@@ -19,11 +10,12 @@
 				<div th:replace="fragments :: historyEntry (entry=${entry})"></div>
 			</th:block>
 		</div>
+	</th:block>
 
-		<div style="height: 10px;"></div>
+	<div style="height: 10px;"></div>
 
-		<!-- Aussentemperatur -->
-		<div th:replace="fragments :: title (name='Außentemperatur')"></div>
+	<!-- Aussentemperatur -->
+	<th:block th:if="${#strings.startsWith(key, '???????????')}">
 		<button class="btn btn-outline-secondary" type="button" data-toggle="collapse" data-target=".temperatureOutside" aria-expanded="false">Alle anzeigen</button>
 		<div style="height: 10px;"></div>
 		<div class="list-group">
@@ -31,11 +23,6 @@
 				<div th:replace="fragments :: historyEntry (entry=${entry})"></div>
 			</th:block>
 		</div>
-
-	</div>
-
-	<div th:replace="fragments :: scriptresources (yPos='')"></div>
-	<div th:replace="fragments :: pulltorefresh"></div>
-
-</body>
+	</th:block>
+	
 </html>

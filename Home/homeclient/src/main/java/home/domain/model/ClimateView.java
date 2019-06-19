@@ -3,10 +3,8 @@ package home.domain.model;
 import java.util.LinkedList;
 import java.util.List;
 
-public class ClimateView {
+public class ClimateView extends View {
 
-	private String id = "";
-	private String name = "";
 	private String postfix = "";
 	private String stateTemperature = "";
 	private String statePostfixIconTemperature = "";
@@ -18,25 +16,8 @@ public class ClimateView {
 	private String linkBoost = "";
 	private String linkManual = "";
 	private String targetTemp = "";
-	private String icon = "";
 	private String heatericon = "";
 	private List<String> hints = new LinkedList<>();
-
-	public String getId() {
-		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
 
 	public String getColorClass() {
 		return colorClass;
@@ -68,14 +49,6 @@ public class ClimateView {
 
 	public void setTargetTemp(String targetTemp) {
 		this.targetTemp = targetTemp;
-	}
-
-	public String getIcon() {
-		return icon;
-	}
-
-	public void setIcon(String icon) {
-		this.icon = icon;
 	}
 
 	public String getHeatericon() {

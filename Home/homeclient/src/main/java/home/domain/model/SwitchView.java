@@ -1,16 +1,13 @@
 package home.domain.model;
 
-public class SwitchView {
+public class SwitchView extends View {
 
-	private String name = "";
 	private String state = "";
 	private String label = "";
 	private String link = "#";
 	private String linkAuto = "#";
 	private String linkManual = "#";
 	private String autoInfoText = "";
-	private String icon = "";
-	private String id = "";
 
 	public String getLabel() {
 		return label;
@@ -50,30 +47,6 @@ public class SwitchView {
 
 	public void setAutoInfoText(String autoInfoText) {
 		this.autoInfoText = autoInfoText;
-	}
-
-	public String getIcon() {
-		return icon;
-	}
-
-	public void setIcon(String icon) {
-		this.icon = icon;
-	}
-
-	public String getId() {
-		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
 	}
 
 	public String getState() {

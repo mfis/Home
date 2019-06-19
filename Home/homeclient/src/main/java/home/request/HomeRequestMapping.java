@@ -162,11 +162,12 @@ public class HomeRequestMapping {
 	}
 
 	@RequestMapping(Pages.PATH_HISTORY)
-	public String history(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie) {
+	public String history(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
+			@RequestParam(name = "key", required = false) String key) {
 		fillMenu(Pages.PATH_HISTORY, model);
 		fillUserAttributes(model, userCookie, null);
 		HistoryModel history = controllerAPI.history();
-		houseView.fillHistoryViewModel(model, history);
+		houseView.fillHistoryViewModel(model, history, key);
 		return Pages.getEntry(Pages.PATH_HISTORY).getTemplate();
 	}
 

@@ -93,9 +93,10 @@ public class HouseViewService {
 		formatLowBattery(model, house.getLowBatteryDevices());
 	}
 
-	public void fillHistoryViewModel(Model model, HistoryModel history) {
+	public void fillHistoryViewModel(Model model, HistoryModel history, String key) {
 		fillPowerHistoryViewModel(model, history);
 		fillOutsideTemperatureHistoryViewModel(model, history);
+		model.addAttribute("key", key);
 	}
 
 	private void fillPowerHistoryViewModel(Model model, HistoryModel history) {
@@ -432,6 +433,7 @@ public class HouseViewService {
 		PowerView power = new PowerView();
 		power.setId(powerMeter.getDevice().programNamePrefix());
 		power.setDescription(powerMeter.getDevice().getDescription());
+		power.setHistoryKey(powerMeter.getDevice().programNamePrefix());
 		power.setState(powerMeter.getActualConsumption().getValue().intValue() + " Watt");
 		power.setName(powerMeter.getDevice().getType().getTypeName());
 		power.setIcon("fas fa-bolt");
