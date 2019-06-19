@@ -388,7 +388,7 @@
 	<div th:fragment="historyLink (key, name)">
 		<th:block th:if="${!#strings.isEmpty(key)}">
 			<div style="float:right; position:relative;">
-				<span><i th:onclick="@{'openHistory' + ${key} + '()'}" style="padding:5px;" class="fas fa-history rounded text-dark bg-light border border-dark"></i></span>
+				<span><i th:onclick="@{'openHistory' + ${key} + '()'}" style="padding:5px; cursor: pointer;" class="fas fa-history rounded text-dark bg-light border border-dark"></i></span>
 			</div>
 			<div class="modal fade" th:id="'modalHistory' + ${key}" tabindex="-1" role="dialog" th:aria-labelledby="'#modalCamera' + ${key}" aria-hidden="true">
 			  <div class="modal-dialog modal-dialog-centered" role="document">

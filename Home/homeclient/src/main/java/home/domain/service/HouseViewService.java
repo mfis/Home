@@ -385,6 +385,7 @@ public class HouseViewService {
 		viewMax.setId(viewKeyMax);
 
 		viewMin.setPostfix(house.getConclusionClimateFacadeMin().getDevice().getPlace().getPlaceName());
+		viewMin.setHistoryKey(house.getConclusionClimateFacadeMin().getDevice().programNamePrefix());
 
 		viewMax.setStateTemperature(lookupSunHeating(house.getConclusionClimateFacadeMax()));
 		viewMax.setName(
