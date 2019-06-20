@@ -300,6 +300,7 @@ public class HouseViewService {
 
 		ClimateView view = new ClimateView();
 		view.setId(viewKey);
+		view.setPlace(climate.getDevice().getPlace().getPlaceName());
 
 		if ((climate.getTemperature() == null || climate.getTemperature().getValue() == null)
 				&& (climate.getHumidity() == null || climate.getHumidity().getValue() == null)) {
@@ -433,6 +434,7 @@ public class HouseViewService {
 
 		PowerView power = new PowerView();
 		power.setId(powerMeter.getDevice().programNamePrefix());
+		power.setPlace(powerMeter.getDevice().getPlace().getPlaceName());
 		power.setDescription(powerMeter.getDevice().getDescription());
 		power.setHistoryKey(powerMeter.getDevice().programNamePrefix());
 		power.setState(powerMeter.getActualConsumption().getValue().intValue() + " Watt");

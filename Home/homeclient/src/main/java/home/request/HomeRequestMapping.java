@@ -53,6 +53,15 @@ public class HomeRequestMapping {
 	@Autowired
 	private ControllerAPI controllerAPI;
 
+	@RequestMapping("/history")
+	public String history(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
+			@RequestParam(name = "key", required = false) String key) {
+		fillUserAttributes(model, userCookie, null);
+		HistoryModel history = controllerAPI.history();
+		houseView.fillHistoryViewModel(model, history, key);
+		return "history";
+	}
+
 	@RequestMapping("/togglestate")
 	public String togglestate(@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
 			@RequestParam(ControllerAPI.DEVICE_NAME) String deviceName,
@@ -159,16 +168,6 @@ public class HomeRequestMapping {
 		HouseModel house = controllerAPI.actualstate();
 		houseView.fillViewModel(model, house);
 		return Pages.getEntry(Pages.PATH_HOME).getTemplate();
-	}
-
-	@RequestMapping(Pages.PATH_HISTORY)
-	public String history(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
-			@RequestParam(name = "key", required = false) String key) {
-		fillMenu(Pages.PATH_HISTORY, model);
-		fillUserAttributes(model, userCookie, null);
-		HistoryModel history = controllerAPI.history();
-		houseView.fillHistoryViewModel(model, history, key);
-		return Pages.getEntry(Pages.PATH_HISTORY).getTemplate();
 	}
 
 	@RequestMapping(Pages.PATH_LINKS)

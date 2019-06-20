@@ -5,6 +5,7 @@ public abstract class View {
 	private String id = "";
 	private String icon = "";
 	private String name = "";
+	private String place = "";
 	private String historyKey = "";
 
 	public String getIcon() {
@@ -37,6 +38,14 @@ public abstract class View {
 
 	public void setHistoryKey(String historyKey) {
 		this.historyKey = historyKey;
+	}
+
+	public String getPlace() {
+		return place;
+	}
+
+	public void setPlace(String place) {
+		this.place = place;
 	}
 
 }

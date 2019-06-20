@@ -120,8 +120,8 @@
 	</div>
 	
 	<!-- Name -->
-	<div th:fragment="elementname (icon, name, historyKey)">
-		<th:block th:replace="fragments :: historyLink (key=${historyKey}, name=${name})"></th:block>
+	<div th:fragment="elementname (icon, name, place, historyKey)">
+		<th:block th:replace="fragments :: historyLink (key=${historyKey}, name=${name}, place=${place})"></th:block>
 		<div>
 			<a>
 				<span th:if="${!#strings.isEmpty(icon)}"><i th:class="${icon}"></i></span>
@@ -132,7 +132,7 @@
 
 	<!-- Switch -->
 	<div th:fragment="switch (model)" th:class="'alert alert-secondary'">
-		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, historyKey=${model.historyKey})"></div>
+		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, place=${model.place}, historyKey=${model.historyKey})"></div>
 		<h4 th:text="${model.state}"></h4>
 		
 		<button type="button" th:onclick="@{'toggleSwitch' + ${model.id} + '()'}"
@@ -186,7 +186,7 @@
 	
 	<!-- Window -->
 	<div th:fragment="window (model)" th:class="'alert alert-secondary'">
-		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, historyKey=${model.historyKey})"></div>
+		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, place=${model.place}, historyKey=${model.historyKey})"></div>
 		<h4 th:text="${model.state}"></h4>
 		
 		<div class="btn-group" role="group" aria-label="shutterControl">
@@ -262,13 +262,13 @@
 	<!-- Frontdoor -->
 	<th:block th:fragment="frontDoor (model)">
 		<div th:class="'alert alert-secondary'">
-			<div th:replace="fragments :: elementname (icon='fas fa-bell', name='Türklingel', historyKey=${model.historyKey})"></div>
+			<div th:replace="fragments :: elementname (icon='fas fa-bell', name='Türklingel', place='', historyKey=${model.historyKey})"></div>
 			<h4>
 				<span th:text="${model.lastDoorbells}"></span>
 			</h4>
 		</div>
 		<div th:class="'alert alert-secondary'">
-			<div th:replace="fragments :: elementname (icon='fas fa-camera', name='Kamera', historyKey=${model.historyKey})"></div>
+			<div th:replace="fragments :: elementname (icon='fas fa-camera', name='Kamera', place='', historyKey=${model.historyKey})"></div>
 			<div style="padding-top:6px;">
 				<button th:id="${model.idLive} + 'Button'" type="button" class="btn btn-secondary btn-sm"><span><i th:class="'fas fa-eye'"></i></span><span>&nbsp;Aktuell</span></button>
 				<a>&nbsp;</a>
@@ -377,7 +377,7 @@
 	<!-- Actual Power Consumption -->
 	<div th:fragment="actualPowerConsumption (model)" th:class="'alert alert-secondary'">
 
-		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, historyKey=${model.historyKey})"></div>
+		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, place=${model.place}, historyKey=${model.historyKey})"></div>
 		<h4>
 			<span th:text="${model.state}"></span>
 			<th:block th:replace="fragments :: tendency (icon=${model.tendencyIcon})"></th:block>
@@ -385,7 +385,7 @@
 	</div>	
 	
 	<!-- History link -->
-	<div th:fragment="historyLink (key, name)">
+	<div th:fragment="historyLink (key, name, place)">
 		<th:block th:if="${!#strings.isEmpty(key)}">
 			<div style="float:right; position:relative;">
 				<span><i th:onclick="@{'openHistory' + ${key} + '()'}" style="padding:5px; cursor: pointer;" class="fas fa-history rounded text-dark bg-light border border-dark"></i></span>
@@ -394,7 +394,7 @@
 			  <div class="modal-dialog modal-dialog-centered" role="document">
 			    <div class="modal-content">
 			      <div class="modal-header">
-			        <h5 class="modal-title" th:id="'modalHistoryId' + ${key}" th:text="${name}"></h5>
+			        <h5 class="modal-title text-dark" th:id="'modalHistoryId' + ${key}" th:text="${name} + ' ' + ${place}"></h5>
 			        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
 			          <span aria-hidden="true">&times;</span>
 			        </button>
@@ -424,7 +424,7 @@
 
 	<!-- Temperature -->
 	<div th:fragment="temperature (model)" th:class="'alert alert-' + ${model.colorClass}">
-		<div th:replace="fragments :: elementname (icon=${model.icon}, name='Temperatur ' + ${model.postfix}, historyKey=${model.historyKey})"></div>
+		<div th:replace="fragments :: elementname (icon=${model.icon}, name='Temperatur', place=${model.place}, historyKey=${model.historyKey})"></div>
 		<h4>
 			<span th:if="${!#strings.isEmpty(model.stateTemperature)}" th:text="${model.stateTemperature}"></span>
 			<th:block th:replace="fragments :: tendency (icon=${model.tendencyIconTemperature})"></th:block>
@@ -442,7 +442,7 @@
 	
 	<!-- Thermostat -->
 	<div th:fragment="thermostat (model)" th:class="'alert alert-secondary'">
-		<div th:replace="fragments :: elementname (icon=${model.heatericon}, name='Heizkörpersteuerung', historyKey=${model.historyKey})"></div>
+		<div th:replace="fragments :: elementname (icon=${model.heatericon}, name='Heizkörpersteuerung', place=${model.place}, historyKey=${model.historyKey})"></div>
 		<h4 th:if="${#strings.startsWith(model.linkBoost,'/')}"><span th:text="'Manuell auf ' + ${model.targetTemp} + '°C'"></span></h4>
 		<h4 th:unless="${#strings.startsWith(model.linkBoost,'/')}"><span th:text="'Aufheizen - noch ' + ${model.linkBoost} + ' Min.'"></span></h4>
 			
@@ -482,7 +482,7 @@
 
 	<!-- Sonne -->
 	<div th:fragment="sunStatus (model)" th:if="${!#strings.isEmpty(model.stateTemperature)}" th:class="'alert alert-' + ${model.colorClass}">
-		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, historyKey=${model.historyKey})"></div>
+		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, place=${model.place}, historyKey=${model.historyKey})"></div>
 		<h4 th:text="${model.stateTemperature}"></h4>
 	</div>
 
