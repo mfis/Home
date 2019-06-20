@@ -3,6 +3,7 @@ package homecontroller.domain.model;
 public enum Hint {
 
 	OPEN_WINDOW("Fenster öffnen"), //
+	TURN_ON_AIRCONDITION("Lüftungsanlage einschalten"), //
 	CLOSE_ROLLER_SHUTTER("Rolllade schließen"), //
 	INCREASE_HUMIDITY("Luftfeuchtigkeit erhöhen"), //
 	DECREASE_HUMIDITY("Luftfeuchtigkeit verringern"), //

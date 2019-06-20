@@ -7,25 +7,28 @@ import java.util.List;
 
 public enum Place {
 
-	LIVINGROOM("Wohnzimmer"), //
-	KITCHEN("Küche"), //
-	KIDSROOM("Kinderzimmer"), //
-	BATHROOM("Bad"), //
-	BEDROOM("Schlafzimmer"), //
-	HOUSE("Haus"), //
-	ENTRANCE("Einfahrt"), //
-	TERRACE("Terrasse"), //
-	FRONTDOOR("Haustür"), //
+	LIVINGROOM("Wohnzimmer", false), //
+	KITCHEN("Küche", false), //
+	KIDSROOM("Kinderzimmer", true), //
+	BATHROOM("Bad", true), //
+	BEDROOM("Schlafzimmer", true), //
+	HOUSE("Haus", false), //
+	ENTRANCE("Einfahrt", false), //
+	TERRACE("Terrasse", false), //
+	FRONTDOOR("Haustür", false), //
 	// with sub-places
-	OUTSIDE("Draußen", Place.ENTRANCE, Place.TERRACE), //
+	OUTSIDE("Draußen", false, Place.ENTRANCE, Place.TERRACE), //
 	;
 
 	private String placeName;
 
+	private boolean airCondition;
+
 	private final List<Place> subPlaces = new ArrayList<>();
 
-	private Place(String placeName, Place... subPlaces) {
+	private Place(String placeName, boolean airCondition, Place... subPlaces) {
 		this.placeName = placeName;
+		this.airCondition = airCondition;
 		if (subPlaces != null) {
 			this.subPlaces.addAll(Arrays.asList(subPlaces));
 		}
@@ -37,6 +40,10 @@ public enum Place {
 
 	public List<Place> getSubPlaces() {
 		return subPlaces;
+	}
+
+	public boolean isAirCondition() {
+		return airCondition;
 	}
 
 	public List<Place> allPlaces() {

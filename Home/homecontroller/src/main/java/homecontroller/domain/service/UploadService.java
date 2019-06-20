@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -18,9 +19,13 @@ public class UploadService {
 	@Autowired
 	private RestTemplate restTemplate;
 
+	@Autowired
+	private Environment env;
+
 	public void upload(Object object) {
-		uploadBinary("http://localhost:8099/upload" + object.getClass().getSimpleName(), object.getClass(),
-				object);
+		// String host = env.getProperty("client.hostName");
+		// uploadBinary(host + "/upload" + object.getClass().getSimpleName(),
+		// object.getClass(), object);
 	}
 
 	private <T> T uploadBinary(String url, T t, Object instance) {

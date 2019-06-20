@@ -296,7 +296,11 @@ public class HouseService {
 			if (isHeatingIsCauseForHighRoomTemperature(heating, temperatureLimit)) {
 				// no hint
 			} else {
-				room.getHints().add(Hint.OPEN_WINDOW);
+				if (room.getDevice().getPlace().isAirCondition()) {
+					room.getHints().add(Hint.TURN_ON_AIRCONDITION);
+				} else {
+					room.getHints().add(Hint.OPEN_WINDOW);
+				}
 			}
 		} else if (room.getTemperature().getValue().compareTo(temperatureLimit) > 0
 				&& outdoor.getSunBeamIntensity().ordinal() > Intensity.LOW.ordinal()) {
