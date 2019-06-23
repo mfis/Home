@@ -44,14 +44,69 @@
 	</script>
 	
 	<script>
-		var element = document.getElementById('idbody');
-		if (element != null && element.value !== '') {
-			document.getElementById('idbody').onfocus = function(){
+		function refreshContent(){
+			if(navigator.onLine){
 				showSpinner();
-				window.location.reload();
-			};
+				var httpRequest = new XMLHttpRequest();
+				httpRequest.open('GET', window.location);
+				httpRequest.send();
+				httpRequest.onreadystatechange=(e)=>{
+					if (httpRequest.readyState == 4) {
+						if(httpRequest.status == 200){
+							var doc = new DOMParser().parseFromString(httpRequest.responseText, "text/html");
+							document.getElementById('idbody').innerHTML = doc.getElementById('idbody').innerHTML;
+							lastRefresh = (new Date).getTime();
+							console.log('refreshed! ' + lastRefresh);
+							hideOffline();
+							hideSpinner();
+						}else{
+							showOffline();
+						}
+					}
+				}	
+			}else{
+				showOffline();
+			}
+		}
+		function setAutoRefresh(){
+			unsetAutoRefresh();
+			autoRefresh = setTimeout(doAutoRefresh, 1000 * 10);
+		}
+		function unsetAutoRefresh(){
+			if(autoRefresh !== null){
+				clearTimeout(autoRefresh);
+				autoRefresh = null;
+			}
+		}	
+		function doAutoRefresh(){
+			if(document.hasFocus() && ((new Date).getTime() - lastRefresh > (1000))){
+				refreshContent();
+			}
+			if(document.hasFocus()){
+				setAutoRefresh();
+			}
 		}
 	</script>	
+	
+	<script>
+		var element = document.getElementById('idbody');
+		
+		var autoRefresh = null;
+		var lastRefresh = (new Date).getTime();
+		setAutoRefresh();
+		
+		if (element !== null && element.value !== '') {
+			// onfocus
+			document.getElementById('idbody').onfocus = function(){
+				doAutoRefresh();
+				setAutoRefresh();			
+			};
+			// onblur
+			document.getElementById('idbody').onblur = function(){
+				unsetAutoRefresh();			
+			};			
+		}
+	</script>
 	
 </th:block>
 
@@ -64,7 +119,7 @@
 		  distThreshold: '120',
 		  distMax: '140',
 		  distReload: '110',
-		  onRefresh: function(){ window.location.reload(); }
+		  onRefresh: function(){ doAutoRefresh(); }
 		});
 </script>
 
@@ -78,12 +133,22 @@
 				<span><i th:class="${selected.icon}"></i></span>
 				<span th:text="${selected.name}"></span>
 				<span id="navbarspinner" style="display: none"><i class="fa fa-spinner fa-spin"></i></span>
+				<span id="navbaroffline" style="display: none"><i class="fas fa-exclamation-triangle"></i></span>
 			</a>
 			
 			<script type="text/javascript">
 				function showSpinner(){
 					document.getElementById('navbarspinner').style.display = 'inline';
-				}		
+				}	
+				function hideSpinner(){
+					document.getElementById('navbarspinner').style.display = 'none';
+				}
+				function showOffline(){
+					document.getElementById('navbaroffline').style.display = 'inline';
+				}	
+				function hideOffline(){
+					document.getElementById('navbaroffline').style.display = 'none';
+				}								
 			</script>		
 			
 			<button class="navbar-toggler" type="button" data-toggle="collapse"
@@ -333,9 +398,11 @@
 						httpRequest.open("GET", "[(${linkRequest})]");
 						httpRequest.send();
 						httpRequest.onreadystatechange=(e)=>{
-							console.log('Response=' + httpRequest.responseText);
-							ts[[${id}]] = httpRequest.responseText;
-							poll[[${id}]]();
+							if (httpRequest.readyState == 4 && httpRequest.status == 200) {
+								console.log('Response=' + httpRequest.responseText);
+								ts[[${id}]] = httpRequest.responseText;
+								poll[[${id}]]();
+							}
 						}
 					}
 				}else{
@@ -412,7 +479,9 @@
 					httpRequest.open("GET", "/history?key=[[${key}]]");
 					httpRequest.send();
 					httpRequest.onreadystatechange=(e)=>{
-						document.getElementById("modalHistoryBody[[${key}]]").innerHTML = httpRequest.responseText;
+						if (httpRequest.readyState == 4 && httpRequest.status == 200) {
+							document.getElementById("modalHistoryBody[[${key}]]").innerHTML = httpRequest.responseText;
+						}
 					}
 				}
 			</script>

@@ -1,39 +1,39 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
 
-<head th:replace="fragments :: head (name=${MENU_SELECTED.name})"></head>
+	<head th:replace="fragments :: head (name=${MENU_SELECTED.name})"></head>
 
-<body>
-
-	<div
-		th:replace="fragments :: navigation (selected=${MENU_SELECTED}, selectable=${MENU_SELECTABLE})"></div>
-
-	<div class="container">
-
-		<div class="card" >
-		  <div class="card-body">
-		    <h5 class="card-title">Homematic CCU2</h5>
-		    <p class="card-text">Homematic Admin-Oberfläche</p>
-		    <a th:href="${link_local_ccu2}" class="card-link">Lokal</a>
-		    <a th:href="${link_internet_ccu2}" class="card-link">Internet</a>
-		  </div>
+	<body>
+	
+		<div
+			th:replace="fragments :: navigation (selected=${MENU_SELECTED}, selectable=${MENU_SELECTABLE})"></div>
+	
+		<div class="container">
+	
+			<div class="card" >
+			  <div class="card-body">
+			    <h5 class="card-title">Homematic CCU2</h5>
+			    <p class="card-text">Homematic Admin-Oberfläche</p>
+			    <a th:href="${link_local_ccu2}" class="card-link">Lokal</a>
+			    <a th:href="${link_internet_ccu2}" class="card-link">Internet</a>
+			  </div>
+			</div>
+			
+			<div style="height: 20px;"></div>
+			
+			<div class="card" >
+			  <div class="card-body">
+			    <h5 class="card-title">Historian</h5>
+			    <p class="card-text">Homematic Historiendatenbank</p>
+			    <a th:href="${link_local_historian}" class="card-link">Lokal</a>
+			    <a th:href="${link_internet_historian}" class="card-link">Internet</a>
+			  </div>
+			</div>		
 		</div>
-		
-		<div style="height: 20px;"></div>
-		
-		<div class="card" >
-		  <div class="card-body">
-		    <h5 class="card-title">Historian</h5>
-		    <p class="card-text">Homematic Historiendatenbank</p>
-		    <a th:href="${link_local_historian}" class="card-link">Lokal</a>
-		    <a th:href="${link_internet_historian}" class="card-link">Internet</a>
-		  </div>
-		</div>		
-
-	</div>
+	
+	</body>
 
 	<div th:replace="fragments :: scriptresources (yPos='')"></div>
 	<div th:replace="fragments :: pulltorefresh"></div>
-
-</body>
+	
 </html>

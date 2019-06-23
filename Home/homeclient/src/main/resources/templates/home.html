@@ -1,59 +1,60 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
 
-<head th:replace="fragments :: head (name=${MENU_SELECTED.name})"></head>
-
-<body style="background:#fffafa;" id="idbody">
-
-	<div
-		th:replace="fragments :: navigation (selected=${MENU_SELECTED}, selectable=${MENU_SELECTABLE})"></div>
-
-	<div class="container">
-
-		<!-- Stand Timestamp -->
-		<div th:replace="fragments :: siteRequestTimestamp (ts=${SITE_REQUEST_TS})"></div>
-
-		<!-- Batterie-Warnungen -->
-		<div th:replace="fragments :: deviceBatterieWarning (model=${lowBattery})"></div>
-
-		<!-- Wohnzimmer -->
-		<div th:replace="fragments :: title (name='Wohnzimmer')"></div>
-		<div th:replace="fragments :: temperature (model=${tempLivingroom})"></div>
-
-		<!-- Küche -->
-		<div th:replace="fragments :: title (name='Küche')"></div>
-		<div th:replace="fragments :: switch (model=${switchKitchen})"></div>
-
-		<!-- Badezimmer -->
-		<div th:replace="fragments :: title (name='Badezimmer')"></div>
-		<div th:replace="fragments :: temperature (model=${tempBathroom})"></div>
-		<div th:replace="fragments :: thermostat (model=${tempBathroom})"></div>
-
-		<!-- Kinderzimmer -->
-		<div th:replace="fragments :: title (name='Kinderzimmer')"></div>
-		<div th:replace="fragments :: temperature (model=${tempKids})"></div>
-
-		<!-- Schlafzimmer -->
-		<div th:replace="fragments :: title (name='Schlafzimmer')"></div>
-		<div th:replace="fragments :: temperature (model=${tempBedroom})"></div>
-		<!-- <div th:replace="fragments :: window (model=${leftWindowBedroom})"></div> -->
-
-		<!-- Haustür -->
-		<div th:replace="fragments :: title (name='Haustür')"></div>
-		<div th:replace="fragments :: frontDoor (model=${frontDoor})"></div>
-
-		<!-- Energie -->
-		<div th:replace="fragments :: title (name='Energie')"></div>
-		<div th:replace="fragments :: actualPowerConsumption (model=${StromverbrauchHaus})"></div>
-
-		<!-- Draussen -->
-		<div th:replace="fragments :: title (name='Draußen')"></div>
-		<div th:replace="fragments :: temperature (model=${tempMinHouse})"></div>
-		<div th:replace="fragments :: sunStatus (model=${tempMaxHouse})"></div>
-	</div>
-
+	<head th:replace="fragments :: head (name=${MENU_SELECTED.name})"></head>
+	
+	<body style="background:#fffafa;" id="idbody">
+	
+		<div
+			th:replace="fragments :: navigation (selected=${MENU_SELECTED}, selectable=${MENU_SELECTABLE})"></div>
+	
+		<div class="container">
+	
+			<!-- Stand Timestamp -->
+			<div th:replace="fragments :: siteRequestTimestamp (ts=${SITE_REQUEST_TS})"></div>
+	
+			<!-- Batterie-Warnungen -->
+			<div th:replace="fragments :: deviceBatterieWarning (model=${lowBattery})"></div>
+	
+			<!-- Wohnzimmer -->
+			<div th:replace="fragments :: title (name='Wohnzimmer')"></div>
+			<div th:replace="fragments :: temperature (model=${tempLivingroom})"></div>
+	
+			<!-- Küche -->
+			<div th:replace="fragments :: title (name='Küche')"></div>
+			<div th:replace="fragments :: switch (model=${switchKitchen})"></div>
+	
+			<!-- Badezimmer -->
+			<div th:replace="fragments :: title (name='Badezimmer')"></div>
+			<div th:replace="fragments :: temperature (model=${tempBathroom})"></div>
+			<div th:replace="fragments :: thermostat (model=${tempBathroom})"></div>
+	
+			<!-- Kinderzimmer -->
+			<div th:replace="fragments :: title (name='Kinderzimmer')"></div>
+			<div th:replace="fragments :: temperature (model=${tempKids})"></div>
+	
+			<!-- Schlafzimmer -->
+			<div th:replace="fragments :: title (name='Schlafzimmer')"></div>
+			<div th:replace="fragments :: temperature (model=${tempBedroom})"></div>
+			<!-- <div th:replace="fragments :: window (model=${leftWindowBedroom})"></div> -->
+	
+			<!-- Haustür -->
+			<div th:replace="fragments :: title (name='Haustür')"></div>
+			<div th:replace="fragments :: frontDoor (model=${frontDoor})"></div>
+	
+			<!-- Energie -->
+			<div th:replace="fragments :: title (name='Energie')"></div>
+			<div th:replace="fragments :: actualPowerConsumption (model=${StromverbrauchHaus})"></div>
+	
+			<!-- Draussen -->
+			<div th:replace="fragments :: title (name='Draußen')"></div>
+			<div th:replace="fragments :: temperature (model=${tempMinHouse})"></div>
+			<div th:replace="fragments :: sunStatus (model=${tempMaxHouse})"></div>
+		</div>
+	
+	</body>
+	
 	<div th:replace="fragments :: scriptresources (yPos=${yPos})"></div>
 	<div th:replace="fragments :: pulltorefresh"></div>
-
-</body>
+	
 </html>
