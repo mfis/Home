@@ -26,7 +26,6 @@
 	<link rel='stylesheet' href='style.css'/>
 	
 	<link rel='stylesheet' href='/webjars/bootstrap/css/bootstrap.min.css'/>
-	<!-- theme: <link rel='stylesheet' href='/webjars/bootswatch-flatly/bootstrap.min.css'/>  -->
 	
 	<link rel="stylesheet" href="/webjars/font-awesome/css/all.min.css" crossorigin="anonymous"/>
 	<script type="text/javascript" src="/webjars/jquery/jquery.min.js"></script>
@@ -175,6 +174,13 @@
 		</nav>
 		<div style="height: 65px;"></div>
 	</div>
+	
+	<!-- Footer -->
+	<div th:fragment="footer (text)">
+		<nav class="navbar navbar-nav navbar-center fixed-bottom navbar-dark bg-dark">
+			<a class="text-muted font-weight-light" style="font-size: 85%;" th:text="${text}">FOOTER</a>
+		</nav>
+	</div>	
 
 	<!-- Titel -->
 	<div th:fragment="title (name)"
@@ -569,13 +575,7 @@
 		</th:block>	
 	</th:block>
 	
-	<!-- Timestamp -->
-	<th:block th:fragment="siteRequestTimestamp (ts)">
-		<div class="container text-right"><a class="text-secondary" th:text="${ts}"></a></div>
-	</th:block>	
-	
 	<!-- Strom Listen Eintrag -->
-	
 	<th:block th:fragment="historyEntry (entry)">
 	  <div th:class="'list-group-item' + ${entry.colorClass} + ' flex-column align-items-start' + ${entry.collapse}">
 	    <div class="d-flex w-100 justify-content-between">

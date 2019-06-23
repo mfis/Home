@@ -10,9 +10,6 @@
 	
 		<div class="container">
 	
-			<!-- Stand Timestamp -->
-			<div th:replace="fragments :: siteRequestTimestamp (ts=${SITE_REQUEST_TS})"></div>
-	
 			<!-- Batterie-Warnungen -->
 			<div th:replace="fragments :: deviceBatterieWarning (model=${lowBattery})"></div>
 	
@@ -50,7 +47,12 @@
 			<div th:replace="fragments :: title (name='Draußen')"></div>
 			<div th:replace="fragments :: temperature (model=${tempMinHouse})"></div>
 			<div th:replace="fragments :: sunStatus (model=${tempMaxHouse})"></div>
+			
+			<div style="height: 40px;"></div>
 		</div>
+		
+		<div
+			th:replace="fragments :: footer (text=${SITE_REQUEST_TS})"></div>
 	
 	</body>
 	
