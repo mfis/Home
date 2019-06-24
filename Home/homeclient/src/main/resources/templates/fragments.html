@@ -55,9 +55,7 @@
 							var doc = new DOMParser().parseFromString(httpRequest.responseText, "text/html");
 							document.getElementById('idbody').innerHTML = doc.getElementById('idbody').innerHTML;
 							lastRefresh = (new Date).getTime();
-							console.log('refreshed! ' + lastRefresh);
-							hideOffline();
-							hideSpinner();
+							showCheck();
 						}else{
 							showOffline();
 						}
@@ -131,24 +129,7 @@
 			<a class="navbar-brand" href="#">
 				<span><i th:class="${selected.icon}"></i></span>
 				<span th:text="${selected.name}"></span>
-				<span id="navbarspinner" style="display: none"><i class="fa fa-spinner fa-spin"></i></span>
-				<span id="navbaroffline" style="display: none"><i class="fas fa-exclamation-triangle"></i></span>
 			</a>
-			
-			<script type="text/javascript">
-				function showSpinner(){
-					document.getElementById('navbarspinner').style.display = 'inline';
-				}	
-				function hideSpinner(){
-					document.getElementById('navbarspinner').style.display = 'none';
-				}
-				function showOffline(){
-					document.getElementById('navbaroffline').style.display = 'inline';
-				}	
-				function hideOffline(){
-					document.getElementById('navbaroffline').style.display = 'none';
-				}								
-			</script>		
 			
 			<button class="navbar-toggler" type="button" data-toggle="collapse"
 				data-target="#navbarSupportedContent"
@@ -178,8 +159,32 @@
 	<!-- Footer -->
 	<div th:fragment="footer (text)">
 		<nav class="navbar navbar-nav navbar-center fixed-bottom navbar-dark bg-dark">
-			<a class="text-muted font-weight-light" style="font-size: 85%;" th:text="${text}">FOOTER</a>
+			<a class="text-muted font-weight-light" style="font-size: 85%;">
+				<span th:text="${text}"></span>
+				<span>&nbsp;</span>
+				<span style="display:none;" id="navbarcheck"><i class="far fa-check-circle"></i></span>
+				<span style="display:none;" id="navbarspinner"><i class="fa fa-spinner fa-spin text-light"></i></span>
+				<span style="display:none;" id="navbaroffline"><i class="fas fa-exclamation-triangle text-danger"></i></span>
+			</a>
 		</nav>
+		<script type="text/javascript">
+			function showCheck(){
+				document.getElementById('navbarcheck').style.display = 'inline';
+				document.getElementById('navbarspinner').style.display = 'none';
+				document.getElementById('navbaroffline').style.display = 'none';
+			}	
+			function showSpinner(){
+				document.getElementById('navbarcheck').style.display = 'none';
+				document.getElementById('navbarspinner').style.display = 'inline';
+				document.getElementById('navbaroffline').style.display = 'none';
+			}
+			function showOffline(){
+				document.getElementById('navbarcheck').style.display = 'none';
+				document.getElementById('navbarspinner').style.display = 'none';
+				document.getElementById('navbaroffline').style.display = 'inline';
+			}
+			showCheck();
+		</script>		
 	</div>	
 
 	<!-- Titel -->
