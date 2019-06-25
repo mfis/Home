@@ -76,7 +76,8 @@
 			}
 		}	
 		function doAutoRefresh(){
-			if(document.hasFocus() && ((new Date).getTime() - lastRefresh > (1000))){
+			
+			if(document.hasFocus() && $('.modal.fade.show').length === 0 && ((new Date).getTime() - lastRefresh > (1000))){
 				refreshContent();
 			}
 			if(document.hasFocus()){
