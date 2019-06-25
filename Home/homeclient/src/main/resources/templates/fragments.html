@@ -125,7 +125,7 @@
 
 	<!-- Navigation -->
 	<div th:fragment="navigation (selected, selectable)">
-		<nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark">
+		<nav class="navbar fixed-top navbar-expand-lg navbar-light py-1" style="background-color: #F5F5F5; border-bottom: 4px solid #C0C0C0;">
 			
 			<a class="navbar-brand" href="#">
 				<span><i th:class="${selected.icon}"></i></span>
@@ -136,7 +136,7 @@
 				data-target="#navbarSupportedContent"
 				aria-controls="navbarSupportedContent" aria-expanded="false"
 				aria-label="Toggle navigation">
-				<span class="navbar-toggler-icon"></span>
+				<span class="navbar-toggler-icon-"><i class="fas fa-bars"></i></span>
 			</button>
 			<div class="collapse navbar-collapse" id="navbarSupportedContent">
 				<ul class="navbar-nav mr-auto">
@@ -154,17 +154,17 @@
 				</script>		
 			</th:block>
 		</nav>
-		<div style="height: 65px;"></div>
+		<div style="height: 68px;"></div>
 	</div>
 	
 	<!-- Footer -->
 	<div th:fragment="footer (text)">
-		<nav class="navbar navbar-nav navbar-center fixed-bottom navbar-dark bg-dark">
+		<nav class="navbar navbar-nav navbar-center fixed-bottom navbar-light" style="background-color: #F5F5F5; border-top: 4px solid #C0C0C0;">
 			<a class="text-muted font-weight-light" style="font-size: 85%;">
 				<span th:text="${text}"></span>
-				<span>&nbsp;</span>
+				<span>&thinsp;</span>
 				<span style="display:none;" id="navbarcheck"><i class="far fa-check-circle"></i></span>
-				<span style="display:none;" id="navbarspinner"><i class="fa fa-spinner fa-spin text-light"></i></span>
+				<span style="display:none;" id="navbarspinner"><i class="fa fa-spinner fa-spin text-dark"></i></span>
 				<span style="display:none;" id="navbaroffline"><i class="fas fa-exclamation-triangle text-danger"></i></span>
 			</a>
 		</nav>
