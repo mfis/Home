@@ -145,7 +145,7 @@ public class HouseService {
 
 	public void calculateConclusion(HouseModel oldModel, HouseModel newModel) {
 
-		if ("".length() == 0 || newModel.getClimateTerrace().getTemperature().getValue() == null
+		if (newModel.getClimateTerrace().getTemperature().getValue() == null
 				|| newModel.getClimateEntrance().getTemperature().getValue() == null) {
 			newModel.setConclusionClimateFacadeMin(null);
 			newModel.setConclusionClimateFacadeMax(null);
