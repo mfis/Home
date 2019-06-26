@@ -299,14 +299,17 @@ public class HouseViewService {
 	private ClimateView formatClimate(Climate climate, Heating heating, String viewKey) {
 
 		ClimateView view = new ClimateView();
-		view.setId(viewKey);
-		view.setPlace(climate.getDevice().getPlace().getPlaceName());
 
-		if ((climate.getTemperature() == null || climate.getTemperature().getValue() == null)
-				&& (climate.getHumidity() == null || climate.getHumidity().getValue() == null)) {
+		if ((climate == null || climate.getTemperature() == null
+				|| climate.getTemperature().getValue() == null)
+				&& (climate == null || climate.getHumidity() == null
+						|| climate.getHumidity().getValue() == null)) {
 			view.setStateTemperature("unbekannt");
 			return view;
 		}
+
+		view.setId(viewKey);
+		view.setPlace(climate.getDevice().getPlace().getPlaceName());
 
 		if (climate.getTemperature() != null) {
 			// Temperature and humidity
@@ -385,31 +388,36 @@ public class HouseViewService {
 		ClimateView viewMax = new ClimateView();
 		viewMax.setId(viewKeyMax);
 
-		viewMin.setPostfix(house.getConclusionClimateFacadeMin().getDevice().getPlace().getPlaceName());
-		viewMin.setHistoryKey(house.getConclusionClimateFacadeMin().getDevice().programNamePrefix());
+		if (house.getConclusionClimateFacadeMin() != null) {
+			viewMin.setPostfix(house.getConclusionClimateFacadeMin().getDevice().getPlace().getPlaceName());
+			viewMin.setHistoryKey(house.getConclusionClimateFacadeMin().getDevice().programNamePrefix());
+		}
 
-		viewMax.setStateTemperature(lookupSunHeating(house.getConclusionClimateFacadeMax()));
-		viewMax.setName(
-				"Fassade " + house.getConclusionClimateFacadeMax().getDevice().getPlace().getPlaceName());
+		if (house.getConclusionClimateFacadeMax() != null) {
+			viewMax.setStateTemperature(lookupSunHeating(house.getConclusionClimateFacadeMax()));
+			viewMax.setName(
+					"Fassade " + house.getConclusionClimateFacadeMax().getDevice().getPlace().getPlaceName());
 
-		switch (Intensity.max(house.getConclusionClimateFacadeMax().getSunBeamIntensity(),
-				house.getConclusionClimateFacadeMax().getSunHeatingInContrastToShadeIntensity())) {
-		case NO:
-			viewMin.setPostfix(""); // No sun, no heating -> no special house
-									// side name
-			viewMax.setColorClass("secondary");
-			break;
-		case LOW:
-			viewMax.setColorClass("dark");
-			viewMax.setIcon("far fa-sun");
-			break;
-		case MEDIUM:
-			viewMax.setColorClass("warning");
-			viewMax.setIcon("far fa-sun");
-			break;
-		case HIGH:
-			viewMax.setColorClass("danger");
-			viewMax.setIcon("fas fa-sun");
+			switch (Intensity.max(house.getConclusionClimateFacadeMax().getSunBeamIntensity(),
+					house.getConclusionClimateFacadeMax().getSunHeatingInContrastToShadeIntensity())) {
+			case NO:
+				viewMin.setPostfix(""); // No sun, no heating -> no special
+										// house
+										// side name
+				viewMax.setColorClass("secondary");
+				break;
+			case LOW:
+				viewMax.setColorClass("dark");
+				viewMax.setIcon("far fa-sun");
+				break;
+			case MEDIUM:
+				viewMax.setColorClass("warning");
+				viewMax.setIcon("far fa-sun");
+				break;
+			case HIGH:
+				viewMax.setColorClass("danger");
+				viewMax.setIcon("fas fa-sun");
+			}
 		}
 
 		model.addAttribute(viewKeyMin, viewMin);

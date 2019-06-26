@@ -145,6 +145,13 @@ public class HouseService {
 
 	public void calculateConclusion(HouseModel oldModel, HouseModel newModel) {
 
+		if ("".length() == 0 || newModel.getClimateTerrace().getTemperature().getValue() == null
+				|| newModel.getClimateEntrance().getTemperature().getValue() == null) {
+			newModel.setConclusionClimateFacadeMin(null);
+			newModel.setConclusionClimateFacadeMax(null);
+			return;
+		}
+
 		if (newModel.getClimateTerrace().getTemperature().getValue()
 				.compareTo(newModel.getClimateEntrance().getTemperature().getValue()) < 0) {
 			newModel.setConclusionClimateFacadeMin(newModel.getClimateTerrace());
@@ -374,9 +381,11 @@ public class HouseService {
 
 	private void updateHomematicSystemVariables(HouseModel oldModel, HouseModel newModel) {
 
-		if (newModel.getConclusionClimateFacadeMin().getTemperature().getValue() != null && (oldModel == null
-				|| oldModel.getConclusionClimateFacadeMin().getTemperature().getValue().compareTo(
-						newModel.getConclusionClimateFacadeMin().getTemperature().getValue()) != 0)) {
+		if (newModel.getConclusionClimateFacadeMin() != null
+				&& newModel.getConclusionClimateFacadeMin().getTemperature().getValue() != null
+				&& (oldModel == null
+						|| oldModel.getConclusionClimateFacadeMin().getTemperature().getValue().compareTo(
+								newModel.getConclusionClimateFacadeMin().getTemperature().getValue()) != 0)) {
 			api.changeString(newModel.getConclusionClimateFacadeMin().getDevice().getType().getTypeName(),
 					newModel.getConclusionClimateFacadeMin().getTemperature().getValue().toString());
 		}
