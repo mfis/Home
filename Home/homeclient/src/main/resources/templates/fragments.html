@@ -585,15 +585,15 @@
 	<th:block th:fragment="historyEntry (entry)">
 	  <div th:class="'list-group-item' + ${entry.colorClass} + ' flex-column align-items-start' + ${entry.collapse}">
 	    <div class="d-flex w-100 justify-content-between">
-	      <a class="mb-1" th:text="${entry.lineOneLabel}">List group item heading</a>
-	      <h4>
+	      <a class="mb-1 text-dark" th:text="${entry.lineOneLabel}">List group item heading</a>
+	      <h4 class="text-dark">
 	      	  <span th:text="${entry.lineOneValue}">x kW/h</span>
 	      	  <span th:if="${!#strings.isEmpty(entry.lineOneValueIcon)}"><i style="font-size: 80%;" th:class="${entry.lineOneValueIcon}"></i></span>
 	      </h4>
 	    </div>
 	    <div th:if="${!#strings.isEmpty(entry.lineTwoValue)}" class="d-flex w-100 justify-content-between">
 	      <a class="mb-1" th:text="${entry.lineTwoLabel}">Hochgerechnet</a>
-	      <h4>
+	      <h4 class="text-dark">
 	      	  <span th:text="${entry.lineTwoValue}">3 days ago</span>
 	      	  <span th:if="${!#strings.isEmpty(entry.lineTwoValueIcon)}"><i style="font-size: 80%;" th:class="${entry.lineTwoValueIcon}"></i></span>
 	      </h4>
