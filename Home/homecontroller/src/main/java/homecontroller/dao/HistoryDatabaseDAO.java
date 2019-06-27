@@ -78,8 +78,7 @@ public class HistoryDatabaseDAO {
 				+ formatTimestamp(localDateTime.minusHours(maxHoursReverse))
 				+ "' order by ts desc fetch first row only;";
 
-		List<BigDecimal> result = jdbcTemplate.query(query, new Object[] {},
-				new BigDecimalRowMapper(VALUE));
+		List<BigDecimal> result = jdbcTemplate.query(query, new Object[] {}, new BigDecimalRowMapper(VALUE));
 		if (result.isEmpty()) {
 			return null;
 		} else {
@@ -112,7 +111,7 @@ public class HistoryDatabaseDAO {
 	}
 
 	public enum TimeRange {
-		DAY("not in (0,1,2,3,4,5)"), NIGHT("in (0,1,2,3,4,5)");
+		DAY("in (11,12,13,14,15,16,17,18,19)"), NIGHT("in (1,2,3,4,5,6,7,8)");
 		private final String hoursQueryString;
 
 		private TimeRange(String hoursQueryString) {

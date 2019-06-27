@@ -158,6 +158,14 @@ public class HistoryService {
 			dayMax = nightMax;
 		}
 
+		if (nightMax != null && dayMin != null && nightMax.compareTo(dayMin) > 0) {
+			// night 8-25, day 13-34
+			// switch values
+			BigDecimal temp = nightMax;
+			nightMax = dayMin;
+			dayMin = temp;
+		}
+
 		TemperatureHistory temperatureHistory = new TemperatureHistory();
 		if (nightMin != null || nightMax != null || dayMin != null || dayMax != null) {
 			temperatureHistory
