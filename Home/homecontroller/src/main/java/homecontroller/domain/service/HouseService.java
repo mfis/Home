@@ -132,7 +132,7 @@ public class HouseService {
 
 		newModel.setKitchenWindowLightSwitch(readSwitchState(Device.SCHALTER_KUECHE_LICHT));
 
-		newModel.setFrontDoor(readFrontDoor(Device.HAUSTUER_KLINGEL, Device.HAUSTUER_KAMERA));
+		newModel.setFrontDoor(readFrontDoor());
 
 		newModel.setElectricalPowerConsumption(readPowerConsumption(Device.STROMZAEHLER));
 
@@ -389,20 +389,32 @@ public class HouseService {
 			api.changeString(newModel.getConclusionClimateFacadeMin().getDevice().getType().getTypeName(),
 					newModel.getConclusionClimateFacadeMin().getTemperature().getValue().toString());
 		}
+
+		if (doorbellTimestampChanged(oldModel, newModel)) {
+			api.changeString(newModel.getFrontDoor().getDeviceDoorBellHistory().getType().getTypeName(),
+					Long.toString(newModel.getFrontDoor().getTimestampLastDoorbell()));
+		}
 	}
 
 	private void updateCameraPictures(HouseModel oldModel, HouseModel newModel) {
 
 		// FrontDoor
-		long doorbellOld = oldModel != null && oldModel.getFrontDoor() != null
-				? oldModel.getFrontDoor().getTimestampLastDoorbell()
-				: 0;
-		long doorbellNew = newModel != null && newModel.getFrontDoor() != null
-				? newModel.getFrontDoor().getTimestampLastDoorbell()
-				: 0;
-		if (doorbellOld != doorbellNew && doorbellNew > 0 && oldModel != null) {
+		if (doorbellTimestampChanged(oldModel, newModel)) {
 			cameraService.takeEventPicture(newModel.getFrontDoor());
 		}
+	}
+
+	private boolean doorbellTimestampChanged(HouseModel oldModel, HouseModel newModel) {
+
+		long doorbellOld = oldModel != null && oldModel.getFrontDoor() != null
+				&& oldModel.getFrontDoor().getTimestampLastDoorbell() != null
+						? oldModel.getFrontDoor().getTimestampLastDoorbell()
+						: 0;
+		long doorbellNew = newModel != null && newModel.getFrontDoor() != null
+				&& newModel.getFrontDoor().getTimestampLastDoorbell() != null
+						? newModel.getFrontDoor().getTimestampLastDoorbell()
+						: 0;
+		return doorbellOld != doorbellNew && doorbellNew > 0 && oldModel != null;
 	}
 
 	private OutdoorClimate readOutdoorClimate(Device outside, Device diff) {
@@ -464,13 +476,20 @@ public class HouseService {
 		return switchModel;
 	}
 
-	private FrontDoor readFrontDoor(Device haustuerKlingel, Device haustuerKamera) {
+	private FrontDoor readFrontDoor() {
 
 		FrontDoor frontDoor = new FrontDoor();
 		frontDoor.setDeviceCamera(Device.HAUSTUER_KAMERA);
 		frontDoor.setDeviceDoorBell(Device.HAUSTUER_KLINGEL);
-		frontDoor.setTimestampLastDoorbell(
-				api.getTimestamp(haustuerKlingel.accessKeyXmlApi(Datapoint.PRESS_SHORT)));
+		frontDoor.setDeviceDoorBellHistory(Device.HAUSTUER_KLINGEL_HISTORIE);
+
+		Long tsDoorbell = api.getTimestamp(Device.HAUSTUER_KLINGEL.accessKeyXmlApi(Datapoint.PRESS_SHORT));
+		if (tsDoorbell == null || tsDoorbell == 0) {
+			tsDoorbell = Long
+					.parseLong(api.getAsString(Device.HAUSTUER_KLINGEL_HISTORIE.getType().getTypeName()));
+		}
+		frontDoor.setTimestampLastDoorbell(tsDoorbell);
+
 		return frontDoor;
 	}
 

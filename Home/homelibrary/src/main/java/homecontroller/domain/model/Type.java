@@ -20,6 +20,7 @@ public enum Type {
 	THERMOSTAT("Thermostat", true, Type.THERMOMETER), //
 	// pseudo-types
 	CONCLUSION_OUTSIDE_TEMPERATURE("ConclusionOutsideTemperature", false, Type.THERMOMETER), //
+	DOORBELL_TIMESTAMP_HISTORY("doorbellTimestampHistory", false), //
 	;
 
 	private final String typeName;

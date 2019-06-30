@@ -52,7 +52,8 @@ public class CameraService {
 		cameraPicture.setTimestamp(frontdoor.getTimestampLastDoorbell());
 		cameraPicture.setDevice(frontdoor.getDeviceCamera());
 		cameraPicture.setCameraMode(CameraMode.EVENT);
-		takePicture(cameraPicture);
+		// FIXME !!!!!!! takePicture(cameraPicture);
+		LOG.warn("TODO: CAMERA NOT SUPPORTED !!!"); // FIXME !!!
 	}
 
 	public String takeLivePicture(Device device) {

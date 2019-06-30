@@ -14,6 +14,8 @@ public class FrontDoor implements Serializable {
 
 	private Device deviceDoorBell;
 
+	private Device deviceDoorBellHistory;
+
 	private Device deviceCamera;
 
 	public Long getTimestampLastDoorbell() {
@@ -38,6 +40,14 @@ public class FrontDoor implements Serializable {
 
 	public void setDeviceCamera(Device deviceCamera) {
 		this.deviceCamera = deviceCamera;
+	}
+
+	public Device getDeviceDoorBellHistory() {
+		return deviceDoorBellHistory;
+	}
+
+	public void setDeviceDoorBellHistory(Device deviceDoorBellHistory) {
+		this.deviceDoorBellHistory = deviceDoorBellHistory;
 	}
 
 }
