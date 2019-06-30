@@ -59,7 +59,7 @@ public class HistoryService {
 		HistoryModel newModel = new HistoryModel();
 
 		calculateElectricPowerConsumption(newModel, null);
-		calculateOutsideTemperatureHistory(newModel);
+		calculateTemperatureHistory(newModel, Device.AUSSENTEMPERATUR, Datapoint.VALUE);
 
 		newModel.setInitialized(true);
 		ModelObjectDAO.getInstance().write(newModel);
@@ -86,27 +86,30 @@ public class HistoryService {
 				.get(model.getElectricPowerConsumption().size() - 1).measurePointMaxDateTime());
 
 		if (model.getOutsideTemperature().isEmpty()) {
-			model.getOutsideTemperature().add(readDayOutsideTemperatureHistory(LocalDateTime.now()));
+			model.getOutsideTemperature().add(
+					readDayTemperatureHistory(LocalDateTime.now(), Device.AUSSENTEMPERATUR, Datapoint.VALUE));
 		} else {
-			model.getOutsideTemperature().set(0, readDayOutsideTemperatureHistory(LocalDateTime.now()));
+			model.getOutsideTemperature().set(0,
+					readDayTemperatureHistory(LocalDateTime.now(), Device.AUSSENTEMPERATUR, Datapoint.VALUE));
 		}
 	}
 
-	private void calculateOutsideTemperatureHistory(HistoryModel historyModel) {
+	private void calculateTemperatureHistory(HistoryModel historyModel, Device device, Datapoint datapoint) {
 
 		historyModel.getOutsideTemperature().clear();
 		LocalDateTime base = LocalDateTime.now();
 
-		TemperatureHistory today = readDayOutsideTemperatureHistory(base);
+		TemperatureHistory today = readDayTemperatureHistory(base, device, datapoint);
 
 		historyModel.getOutsideTemperature().add(today);
-		TemperatureHistory yesterday = readDayOutsideTemperatureHistory(base.minusHours(HOURS_IN_DAY));
+		TemperatureHistory yesterday = readDayTemperatureHistory(base.minusHours(HOURS_IN_DAY), device,
+				datapoint);
 		historyModel.getOutsideTemperature().add(yesterday);
 
 		TemperatureHistory monthHistory;
 		YearMonth yearMonth = YearMonth.now();
 		do {
-			monthHistory = readMonthOutsideTemperatureHistory(yearMonth);
+			monthHistory = readMonthTemperatureHistory(yearMonth, device, datapoint);
 			if (!monthHistory.empty()) {
 				historyModel.getOutsideTemperature().add(monthHistory);
 				yearMonth = yearMonth.minusMonths(1);
@@ -114,46 +117,48 @@ public class HistoryService {
 		} while (!monthHistory.empty());
 	}
 
-	private TemperatureHistory readDayOutsideTemperatureHistory(LocalDateTime localDateTime) {
+	private TemperatureHistory readDayTemperatureHistory(LocalDateTime localDateTime, Device device,
+			Datapoint datapoint) {
 
 		LocalDateTime nightStart = toFixedHour(localDateTime, 0);
 		LocalDateTime dayEnd = toFixedHour(localDateTime, HOURS_IN_DAY);
-		return readOutsideTemperatureHistory(localDateTime.toLocalDate(), true, nightStart, dayEnd);
+		return readTemperatureHistory(localDateTime.toLocalDate(), true, nightStart, dayEnd, device,
+				datapoint);
 	}
 
-	private TemperatureHistory readMonthOutsideTemperatureHistory(YearMonth yearMonth) {
+	private TemperatureHistory readMonthTemperatureHistory(YearMonth yearMonth, Device device,
+			Datapoint datapoint) {
 
 		LocalDateTime monthStart = LocalDateTime.of(yearMonth.atDay(1),
 				toFixedHour(LocalDateTime.now(), 0).toLocalTime());
 		LocalDateTime monthEnd = toFixedHour(LocalDateTime.of(yearMonth.atEndOfMonth(), LocalTime.now()),
 				HOURS_IN_DAY);
-		return readOutsideTemperatureHistory(yearMonth.atDay(1), false, monthStart, monthEnd);
+		return readTemperatureHistory(yearMonth.atDay(1), false, monthStart, monthEnd, device, datapoint);
 	}
 
-	private TemperatureHistory readOutsideTemperatureHistory(LocalDate base, boolean singleDay,
-			LocalDateTime monthStart, LocalDateTime monthEnd) {
+	private TemperatureHistory readTemperatureHistory(LocalDate base, boolean singleDay,
+			LocalDateTime monthStart, LocalDateTime monthEnd, Device device, Datapoint datapoint) {
 
-		BigDecimal nightMin = historyDAO.readExtremValueInTimeRange(Device.AUSSENTEMPERATUR, Datapoint.VALUE,
-				ExtremValueType.MIN, TimeRange.NIGHT, monthStart, monthEnd);
+		BigDecimal nightMin = historyDAO.readExtremValueInTimeRange(device, datapoint, ExtremValueType.MIN,
+				TimeRange.NIGHT, monthStart, monthEnd);
 		if (nightMin == null) {
-			nightMin = historyDAO.readFirstValueBefore(Device.AUSSENTEMPERATUR, Datapoint.VALUE, monthStart,
-					48);
+			nightMin = historyDAO.readFirstValueBefore(device, datapoint, monthStart, 48);
 		}
 
-		BigDecimal nightMax = historyDAO.readExtremValueInTimeRange(Device.AUSSENTEMPERATUR, Datapoint.VALUE,
-				ExtremValueType.MAX, TimeRange.NIGHT, monthStart, monthEnd);
+		BigDecimal nightMax = historyDAO.readExtremValueInTimeRange(device, datapoint, ExtremValueType.MAX,
+				TimeRange.NIGHT, monthStart, monthEnd);
 		if (nightMax == null) {
 			nightMax = nightMin;
 		}
 
-		BigDecimal dayMin = historyDAO.readExtremValueInTimeRange(Device.AUSSENTEMPERATUR, Datapoint.VALUE,
-				ExtremValueType.MIN, TimeRange.DAY, monthStart, monthEnd);
+		BigDecimal dayMin = historyDAO.readExtremValueInTimeRange(device, datapoint, ExtremValueType.MIN,
+				TimeRange.DAY, monthStart, monthEnd);
 		if (dayMin == null) {
 			dayMin = nightMin;
 		}
 
-		BigDecimal dayMax = historyDAO.readExtremValueInTimeRange(Device.AUSSENTEMPERATUR, Datapoint.VALUE,
-				ExtremValueType.MAX, TimeRange.DAY, monthStart, monthEnd);
+		BigDecimal dayMax = historyDAO.readExtremValueInTimeRange(device, datapoint, ExtremValueType.MAX,
+				TimeRange.DAY, monthStart, monthEnd);
 		if (dayMax == null) {
 			dayMax = nightMax;
 		}
