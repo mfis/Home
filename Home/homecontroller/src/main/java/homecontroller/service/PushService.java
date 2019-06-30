@@ -19,6 +19,7 @@ import homecontroller.domain.model.Hint;
 import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.RoomClimate;
 import homecontroller.domain.model.SettingsModel;
+import homecontroller.domain.service.HouseService;
 import net.pushover.client.MessagePriority;
 import net.pushover.client.PushoverClient;
 import net.pushover.client.PushoverException;
@@ -103,8 +104,7 @@ public class PushService {
 
 		List<PushoverMessage> pushMessages = new LinkedList<>();
 
-		if (oldModel == null || oldModel.getFrontDoor() == null || oldModel.getFrontDoor()
-				.getTimestampLastDoorbell() == newModel.getFrontDoor().getTimestampLastDoorbell()) {
+		if (!HouseService.doorbellTimestampChanged(oldModel, newModel)) {
 			return pushMessages;
 		}
 		List<SettingsModel> settingsModels = settingsService.lookupUserForPushMessage();

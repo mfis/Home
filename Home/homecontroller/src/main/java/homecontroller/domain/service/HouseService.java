@@ -404,7 +404,7 @@ public class HouseService {
 		}
 	}
 
-	private boolean doorbellTimestampChanged(HouseModel oldModel, HouseModel newModel) {
+	public static boolean doorbellTimestampChanged(HouseModel oldModel, HouseModel newModel) {
 
 		long doorbellOld = oldModel != null && oldModel.getFrontDoor() != null
 				&& oldModel.getFrontDoor().getTimestampLastDoorbell() != null
