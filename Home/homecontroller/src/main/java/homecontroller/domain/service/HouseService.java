@@ -334,6 +334,9 @@ public class HouseService {
 	}
 
 	private Intensity lookupIntensity(BigDecimal value) {
+		if (value == null) {
+			return null;
+		}
 		if (value.compareTo(SUN_INTENSITY_NO) < 0) {
 			return Intensity.NO;
 		} else if (value.compareTo(SUN_INTENSITY_LOW) < 0) {

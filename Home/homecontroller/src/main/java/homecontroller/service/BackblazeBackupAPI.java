@@ -3,11 +3,13 @@ package homecontroller.service;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.file.Path;
+import java.util.LinkedHashSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Stream;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -20,7 +22,6 @@ import com.backblaze.b2.client.B2StorageClient;
 import com.backblaze.b2.client.contentSources.B2ContentSource;
 import com.backblaze.b2.client.contentSources.B2ContentTypes;
 import com.backblaze.b2.client.contentSources.B2FileContentSource;
-import com.backblaze.b2.client.exceptions.B2Exception;
 import com.backblaze.b2.client.structures.B2FileVersion;
 import com.backblaze.b2.client.structures.B2UploadFileRequest;
 import com.backblaze.b2.client.webApiHttpClient.B2StorageHttpClientBuilder;
@@ -38,24 +39,49 @@ public class BackblazeBackupAPI {
 
 	private static final Log LOG = LogFactory.getLog(BackblazeBackupAPI.class);
 
-	public synchronized void backup(Path pathToBackup) {
+	public synchronized void backup(Stream<Path> pathes) {
 
-		File fileToBackup = pathToBackup.toFile();
-		B2StorageClient client = null;
+		// Getting credentials
+		String applicationkeyid = env.getProperty("backup.backblaze.applicationkeyid");
+		String applicationkey = env.getProperty("backup.backblaze.applicationkey");
+		String bucketid = env.getProperty("backup.backblaze.bucketid");
+
+		HttpClientFactory httpClientFactory = HttpClientFactoryImpl.builder().build();
+		B2StorageClient client = B2StorageHttpClientBuilder
+				.builder(applicationkeyid, applicationkey, "HomeController")
+				.setHttpClientFactory(httpClientFactory).build();
+
+		// Comparing files
+		B2ListFilesIterable b2ListFilesIterable;
+		LinkedHashSet<String> fileNames = new LinkedHashSet<>();
+		try {
+			String environmentIdentifier = environmentIdentifier();
+			b2ListFilesIterable = client.fileNames(bucketid);
+			for (B2FileVersion x : b2ListFilesIterable) {
+				fileNames.add(x.getFileName());
+			}
+			Stream<Path> pathesNotBackedUp = pathes.filter(
+					path -> !fileNames.contains(environmentIdentifier + "/" + path.toFile().getName())); // NOSONAR
+
+			// Backup
+			pathesNotBackedUp
+					.forEach(path -> backupSingleFile(path, client, bucketid, environmentIdentifier));
+		} catch (Exception e) {
+			LOG.error("Backup error:", e);
+		} finally {
+			if (client != null) {
+				client.close();
+			}
+		}
+
+	}
+
+	private void backupSingleFile(Path path, B2StorageClient client, String bucketid,
+			String environmentIdentifier) {
+
+		File fileToBackup = path.toFile();
 
 		try {
-			String environmentIdentifier = StringUtils.defaultString(InetAddress.getLocalHost().getHostName(),
-					"host") + "." + StringUtils.defaultString(System.getProperty("user.name"), "user");
-
-			// Getting credentials
-			String applicationkeyid = env.getProperty("backup.backblaze.applicationkeyid");
-			String applicationkey = env.getProperty("backup.backblaze.applicationkey");
-			String bucketid = env.getProperty("backup.backblaze.bucketid");
-
-			HttpClientFactory httpClientFactory = HttpClientFactoryImpl.builder().build();
-			client = B2StorageHttpClientBuilder.builder(applicationkeyid, applicationkey, "HomeController")
-					.setHttpClientFactory(httpClientFactory).build();
-
 			B2ContentSource source = B2FileContentSource.build(fileToBackup);
 			B2UploadFileRequest request = B2UploadFileRequest.builder(bucketid,
 					environmentIdentifier + "/" + fileToBackup.getName(), B2ContentTypes.B2_AUTO, source)
@@ -77,20 +103,20 @@ public class BackblazeBackupAPI {
 						throw new IOException("Upload is unfinished:" + fileToBackup.getName());
 					}
 				}
-				FileUtils.deleteQuietly(fileToBackup);
 			}
-		} catch (B2Exception | IOException ex) {
-			LOG.error("Backup error:" + fileToBackup.getName(), ex);
-		} finally {
-			if (client != null) {
-				client.close();
-			}
+		} catch (Exception ex) {
+			LOG.error("Backup error single file:" + fileToBackup.getName(), ex);
 		}
+	}
+
+	private String environmentIdentifier() throws UnknownHostException {
+		return StringUtils.defaultString(InetAddress.getLocalHost().getHostName(), "host") + "."
+				+ StringUtils.defaultString(System.getProperty("user.name"), "user");
 	}
 
 	private ExecutorService getExecutor() {
 		if (executor == null) {
-			executor = Executors.newFixedThreadPool(2,
+			executor = Executors.newFixedThreadPool(5,
 					B2ExecutorUtils.createThreadFactory("HomeBackblazeBackup" + "-%d"));
 		}
 		return executor;
