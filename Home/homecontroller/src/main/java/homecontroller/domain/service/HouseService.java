@@ -74,6 +74,9 @@ public class HouseService {
 	@Autowired
 	private HistoryDatabaseDAO historyDAO;
 
+	@Autowired
+	private UploadService uploadService;
+
 	@PostConstruct
 	public void init() {
 
@@ -103,12 +106,13 @@ public class HouseService {
 			}
 		}
 
-		updateHomematicSystemVariables(oldModel, newModel);
-		updateCameraPictures(oldModel, newModel);
-
 		calculateHints(newModel);
 
 		pushService.send(oldModel, newModel);
+		uploadService.upload(newModel);
+
+		updateCameraPictures(oldModel, newModel);
+		updateHomematicSystemVariables(oldModel, newModel);
 	}
 
 	private HouseModel refreshModel() {
@@ -260,11 +264,15 @@ public class HouseService {
 
 	public void calculateHints(HouseModel newModel) {
 
-		lookupHint(newModel.getClimateKidsRoom(), null, newModel.getClimateEntrance());
-		lookupHint(newModel.getClimateBathRoom(), newModel.getHeatingBathRoom(),
-				newModel.getClimateEntrance());
-		lookupHint(newModel.getClimateBedRoom(), null, newModel.getClimateTerrace());
-		lookupHint(newModel.getClimateLivingRoom(), null, newModel.getClimateTerrace());
+		try {
+			lookupHint(newModel.getClimateKidsRoom(), null, newModel.getClimateEntrance());
+			lookupHint(newModel.getClimateBathRoom(), newModel.getHeatingBathRoom(),
+					newModel.getClimateEntrance());
+			lookupHint(newModel.getClimateBedRoom(), null, newModel.getClimateTerrace());
+			lookupHint(newModel.getClimateLivingRoom(), null, newModel.getClimateTerrace());
+		} catch (RuntimeException re) {
+			LogFactory.getLog(HouseService.class).error("Could not calculate hints:", re);
+		}
 	}
 
 	private void lookupHint(RoomClimate room, Heating heating, OutdoorClimate outdoor) {

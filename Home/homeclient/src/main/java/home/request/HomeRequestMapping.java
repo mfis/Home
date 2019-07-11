@@ -27,9 +27,8 @@ import home.service.ViewAttributesDAO;
 import homecontroller.domain.model.AutomationState;
 import homecontroller.domain.model.CameraMode;
 import homecontroller.domain.model.Device;
-import homecontroller.domain.model.HistoryModel;
-import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.SettingsModel;
+import homelibrary.dao.ModelObjectDAO;
 
 @Controller
 public class HomeRequestMapping {
@@ -57,8 +56,7 @@ public class HomeRequestMapping {
 	public String history(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
 			@RequestParam(name = "key", required = false) String key) {
 		fillUserAttributes(model, userCookie, null);
-		HistoryModel history = controllerAPI.history();
-		houseView.fillHistoryViewModel(model, history, key);
+		houseView.fillHistoryViewModel(model, ModelObjectDAO.getInstance().readHistoryModel(), key);
 		return "history";
 	}
 
@@ -128,8 +126,8 @@ public class HomeRequestMapping {
 	@RequestMapping("/textquery")
 	public String textquery(Model model, @RequestParam("text") String text, @RequestParam("user") String user,
 			@RequestParam("pass") String pass) {
-		HouseModel house = controllerAPI.actualstate();
-		model.addAttribute("responsetext", textQueryService.execute(house, text));
+		model.addAttribute("responsetext",
+				textQueryService.execute(ModelObjectDAO.getInstance().readHouseModel(), text));
 		return "textquery";
 	}
 
@@ -165,8 +163,7 @@ public class HomeRequestMapping {
 			@CookieValue(name = LoginInterceptor.COOKIE_NAME, required = false) String userCookie) {
 		fillMenu(Pages.PATH_HOME, model);
 		fillUserAttributes(model, userCookie, ViewAttributesDAO.Y_POS_HOME);
-		HouseModel house = controllerAPI.actualstate();
-		houseView.fillViewModel(model, house);
+		houseView.fillViewModel(model, ModelObjectDAO.getInstance().readHouseModel());
 		return Pages.getEntry(Pages.PATH_HOME).getTemplate();
 	}
 

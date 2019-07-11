@@ -10,13 +10,10 @@ import org.springframework.web.bind.annotation.RestController;
 import homecontroller.domain.model.ActionModel;
 import homecontroller.domain.model.AutomationState;
 import homecontroller.domain.model.Device;
-import homecontroller.domain.model.HistoryModel;
-import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.SettingsModel;
 import homecontroller.domain.service.HouseService;
 import homecontroller.service.CameraService;
 import homecontroller.service.SettingsService;
-import homelibrary.dao.ModelObjectDAO;
 
 @RestController
 public class HomeClientRequestMapping {
@@ -59,20 +56,10 @@ public class HomeClientRequestMapping {
 		return new ActionModel("OK");
 	}
 
-	@PostMapping("/controller/actualstate")
-	public HouseModel actualstate() {
-		return ModelObjectDAO.getInstance().readHouseModel();
-	}
-
 	@PostMapping("/controller/cameraLivePicture")
 	public ActionModel cameraPicture(@RequestParam("deviceName") String deviceName) {
 		String requestTimestamp = cameraService.takeLivePicture(Device.valueOf(deviceName));
 		return new ActionModel(requestTimestamp);
-	}
-
-	@PostMapping("/controller/history")
-	public HistoryModel history() {
-		return ModelObjectDAO.getInstance().readHistoryModel();
 	}
 
 	@PostMapping("/controller/settings")

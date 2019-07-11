@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -23,9 +24,8 @@ public class UploadService {
 	private Environment env;
 
 	public void upload(Object object) {
-		// String host = env.getProperty("client.hostName");
-		// uploadBinary(host + "/upload" + object.getClass().getSimpleName(),
-		// object.getClass(), object);
+		String host = env.getProperty("client.hostName");
+		uploadBinary(host + "/upload" + object.getClass().getSimpleName(), object.getClass(), object);
 	}
 
 	private <T> T uploadBinary(String url, T t, Object instance) {
@@ -35,16 +35,19 @@ public class UploadService {
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		headers.set("Cache-Control", "no-cache");
 
-		@SuppressWarnings("unchecked")
-		HttpEntity<T> request = new HttpEntity<>((T) instance, headers);
-		ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
-		int sc = response.getStatusCodeValue();
-
 		try {
+			@SuppressWarnings("unchecked")
+			HttpEntity<T> request = new HttpEntity<>((T) instance, headers);
+			ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+			HttpStatus statusCode = response.getStatusCode();
+			if (!statusCode.is2xxSuccessful()) {
+				LogFactory.getLog(UploadService.class)
+						.error("Could not successful upload data. RC=" + statusCode.value());
+			}
+
 		} catch (RestClientException e) {
 			LogFactory.getLog(UploadService.class).error("Could not upload data.", e);
 		}
-		LogFactory.getLog(UploadService.class).info("Uploaded data - " + sc);
 		return t;
 	}
 

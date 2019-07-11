@@ -65,4 +65,8 @@ public class HistoryModel implements Serializable {
 		this.highestOutsideTemperatureInLast24Hours = highestOutsideTemperatureInLast24Hours;
 	}
 
+	public void setDateTime(long dateTime) {
+		this.dateTime = dateTime;
+	}
+
 }

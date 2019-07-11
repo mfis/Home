@@ -31,6 +31,7 @@ import homecontroller.domain.model.Place;
 import homecontroller.domain.model.ShutterPosition;
 import homecontroller.domain.model.Switch;
 import homecontroller.domain.model.Type;
+import homelibrary.dao.ModelObjectDAO;
 
 @Component
 public class TextQueryService {
@@ -224,7 +225,7 @@ public class TextQueryService {
 	@SuppressWarnings("unchecked")
 	private <T extends AbstractDeviceModel> T refreshModel(T deviceModel) {
 
-		HouseModel refreshedModel = controllerAPI.actualstate();
+		HouseModel refreshedModel = ModelObjectDAO.getInstance().readHouseModel();
 		TypeAndDevice typeAndDevice = new TypeAndDevice();
 		typeAndDevice.type = deviceModel.getDevice().getType();
 		typeAndDevice.device = deviceModel.getDevice();

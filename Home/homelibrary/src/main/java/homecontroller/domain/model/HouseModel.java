@@ -198,4 +198,8 @@ public class HouseModel implements Serializable {
 		this.frontDoor = frontDoor;
 	}
 
+	public void setDateTime(long dateTime) {
+		this.dateTime = dateTime;
+	}
+
 }

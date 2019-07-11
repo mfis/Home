@@ -32,10 +32,12 @@ public class ModelObjectDAO {
 
 	public void write(HouseModel newModel) {
 		houseModel = newModel;
+		houseModel.setDateTime(new Date().getTime());
 	}
 
 	public void write(HistoryModel newModel) {
 		historyModel = newModel;
+		historyModel.setDateTime(new Date().getTime());
 	}
 
 	public void write(CameraModel newModel) {
@@ -51,7 +53,7 @@ public class ModelObjectDAO {
 	}
 
 	public HistoryModel readHistoryModel() {
-		if (historyModel == null || new Date().getTime() - historyModel.getDateTime() > 1000 * 60 * 60 * 25) {
+		if (historyModel == null || new Date().getTime() - historyModel.getDateTime() > 1000 * 60 * 15) {
 			return null; // Too old. Should never happen
 		} else {
 			return historyModel;

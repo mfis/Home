@@ -46,15 +46,18 @@ public class PushService {
 
 	public synchronized void send(HouseModel oldModel, HouseModel newModel) {
 
-		List<PushoverMessage> pushMessages = new LinkedList<>();
+		try {
+			List<PushoverMessage> pushMessages = new LinkedList<>();
 
-		pushMessages.addAll(hintMessage(oldModel, newModel));
-		pushMessages.addAll(doorbellMessage(oldModel, newModel));
+			pushMessages.addAll(hintMessage(oldModel, newModel));
+			pushMessages.addAll(doorbellMessage(oldModel, newModel));
 
-		for (PushoverMessage pushMessage : pushMessages) {
-			sendMessages(pushMessage);
+			for (PushoverMessage pushMessage : pushMessages) {
+				sendMessages(pushMessage);
+			}
+		} catch (Exception e) {
+			LogFactory.getLog(PushService.class).error("Could not send push notifications:", e);
 		}
-
 	}
 
 	public List<PushoverMessage> hintMessage(HouseModel oldModel, HouseModel newModel) {

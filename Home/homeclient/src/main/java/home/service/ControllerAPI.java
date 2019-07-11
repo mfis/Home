@@ -28,8 +28,6 @@ import homecontroller.domain.model.AutomationState;
 import homecontroller.domain.model.CameraMode;
 import homecontroller.domain.model.CameraPicture;
 import homecontroller.domain.model.Device;
-import homecontroller.domain.model.HistoryModel;
-import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.SettingsModel;
 import homecontroller.util.URIParameter;
 import homelibrary.dao.ModelObjectDAO;
@@ -111,16 +109,6 @@ public class ControllerAPI {
 		callForObject(env.getProperty(CONTROLLER_URL) + "settingpushoverdevice", ActionModel.class,
 				new URIParameter().add("user", ExternalPropertiesDAO.getInstance().read(userCookie))
 						.add("device", pushoverDevice).build());
-	}
-
-	public HouseModel actualstate() {
-		return callForObject(env.getProperty(CONTROLLER_URL) + "actualstate", HouseModel.class,
-				new URIParameter().build());
-	}
-
-	public HistoryModel history() {
-		return callForObject(env.getProperty(CONTROLLER_URL) + "history", HistoryModel.class,
-				new URIParameter().build());
 	}
 
 	public SettingsModel settings(String userCookie) {

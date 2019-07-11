@@ -33,6 +33,9 @@ public class HistoryService {
 	@Autowired
 	private HistoryDatabaseDAO historyDAO;
 
+	@Autowired
+	private UploadService uploadService;
+
 	private static final int HOURS_IN_DAY = 24;
 
 	private static final long HIGHEST_OUTSIDE_TEMPERATURE_PERIOD_HOURS = HOURS_IN_DAY;
@@ -63,9 +66,10 @@ public class HistoryService {
 
 		newModel.setInitialized(true);
 		ModelObjectDAO.getInstance().write(newModel);
+		uploadService.upload(newModel);
 	}
 
-	@Scheduled(fixedDelay = (1000 * 60 * 3))
+	@Scheduled(fixedDelay = (1000 * 60 * 5))
 	private void refreshHistoryModel() {
 
 		HistoryModel model = ModelObjectDAO.getInstance().readHistoryModel();
@@ -92,6 +96,8 @@ public class HistoryService {
 			model.getOutsideTemperature().set(0,
 					readDayTemperatureHistory(LocalDateTime.now(), Device.AUSSENTEMPERATUR, Datapoint.VALUE));
 		}
+
+		uploadService.upload(model);
 	}
 
 	private void calculateTemperatureHistory(HistoryModel historyModel, Device device, Datapoint datapoint) {
