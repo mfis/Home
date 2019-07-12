@@ -11,8 +11,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+
+import homecontroller.util.HomeAppConstants;
 
 @Component
 public class UploadService {
@@ -34,6 +35,8 @@ public class UploadService {
 		headers.setAccept(Arrays.asList(MediaType.ALL));
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		headers.set("Cache-Control", "no-cache");
+		headers.set(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN,
+				env.getProperty(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN));
 
 		try {
 			@SuppressWarnings("unchecked")
@@ -45,8 +48,8 @@ public class UploadService {
 						.error("Could not successful upload data. RC=" + statusCode.value());
 			}
 
-		} catch (RestClientException e) {
-			LogFactory.getLog(UploadService.class).error("Could not upload data.", e);
+		} catch (Exception e) {
+			LogFactory.getLog(UploadService.class).warn("Could not upload data.", e);
 		}
 		return t;
 	}

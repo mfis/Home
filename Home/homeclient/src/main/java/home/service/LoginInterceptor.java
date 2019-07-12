@@ -14,6 +14,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -22,6 +23,8 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+
+import homecontroller.util.HomeAppConstants;
 
 public class LoginInterceptor extends HandlerInterceptorAdapter {
 
@@ -32,6 +35,9 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 
 	@Autowired
 	private RestTemplate restTemplate;
+
+	@Autowired
+	private Environment env;
 
 	public static final String COOKIE_NAME = "HomeLoginCookie";
 
@@ -45,9 +51,10 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 			return true;
 		}
 
-		if (StringUtils.containsIgnoreCase(request.getRequestURL(), "upload")) { // FIXME:
-			// AUTHENTICATION via header fields
-			return true;
+		if (StringUtils.containsIgnoreCase(request.getRequestURL(), "upload")) {
+			String token = env.getProperty(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN);
+			String tokenSent = request.getHeader(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN);
+			return StringUtils.isNotBlank(tokenSent) && StringUtils.equals(token, tokenSent);
 		}
 
 		if (StringUtils.containsIgnoreCase(request.getRequestURL(), "/logoff")) {
