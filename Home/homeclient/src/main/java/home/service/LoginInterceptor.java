@@ -51,7 +51,8 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 			return true;
 		}
 
-		if (StringUtils.containsIgnoreCase(request.getRequestURL(), "upload")) {
+		if (StringUtils.containsIgnoreCase(request.getRequestURL(), "upload")
+				|| StringUtils.containsIgnoreCase(request.getRequestURL(), "controllerLongPolling")) {
 			String token = env.getProperty(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN);
 			String tokenSent = request.getHeader(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN);
 			return StringUtils.isNotBlank(tokenSent) && StringUtils.equals(token, tokenSent);
