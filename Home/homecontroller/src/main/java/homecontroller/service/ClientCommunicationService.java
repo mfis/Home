@@ -3,6 +3,8 @@ package homecontroller.service;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +51,16 @@ public class ClientCommunicationService {
 
 	private static final Log LOG = LogFactory.getLog(ClientCommunicationService.class);
 
+	@PostConstruct
+	public void init() {
+		try {
+			refreshAll();
+		} catch (Exception e) {
+			LogFactory.getLog(ClientCommunicationService.class)
+					.error("Could not initialize ClientCommunicationService completly.", e);
+		}
+	}
+
 	@Scheduled(fixedDelay = 0)
 	private void longPolling() {
 		Message message = pollForMessage();
@@ -64,10 +76,7 @@ public class ClientCommunicationService {
 		try {
 			switch (message.getMessageType()) {
 			case REFRESH_ALL_MODELS:
-				uploadService.upload(ModelObjectDAO.getInstance().readHouseModel());
-				uploadService.upload(ModelObjectDAO.getInstance().readHistoryModel());
-				uploadService.upload(ModelObjectDAO.getInstance().readCameraModel());
-				settingsService.refreshSettingsModelsComplete();
+				refreshAll();
 				break;
 			case TOGGLEAUTOMATION:
 				houseService.toggleautomation(message.getDevice(),
@@ -88,6 +97,13 @@ public class ClientCommunicationService {
 			message.setSuccessfullExecuted(false);
 		}
 		uploadService.upload(message);
+	}
+
+	private void refreshAll() {
+		uploadService.upload(ModelObjectDAO.getInstance().readHouseModel());
+		uploadService.upload(ModelObjectDAO.getInstance().readHistoryModel());
+		uploadService.upload(ModelObjectDAO.getInstance().readCameraModel());
+		settingsService.refreshSettingsModelsComplete();
 	}
 
 	private Message pollForMessage() {
