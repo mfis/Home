@@ -56,8 +56,10 @@ import homecontroller.domain.model.Window;
 public class HouseViewService {
 
 	private static final String DEGREE = "\u00b0";
-	private static final String TOGGLE_STATE = "/message?type=" + MessageType.TOGGLESTATE + "&deviceName=";
-	private static final String TOGGLE_AUTOMATION = "/message?type=" + MessageType.TOGGLEAUTOMATION
+	private static final String MESSAGEPATH = "/message?"; // NOSONAR
+	private static final String TOGGLE_STATE = MESSAGEPATH + "type=" + MessageType.TOGGLESTATE
+			+ "&deviceName=";
+	private static final String TOGGLE_AUTOMATION = MESSAGEPATH + "type=" + MessageType.TOGGLEAUTOMATION
 			+ "&deviceName=";
 
 	private static final BigDecimal HIGH_TEMP = new BigDecimal("25");
@@ -486,19 +488,18 @@ public class HouseViewService {
 		if (switchModel.getAutomation() != null) {
 			if (switchModel.getAutomation()) {
 				view.setState(view.getState() + ", automatisch");
-				view.setLinkManual(TOGGLE_AUTOMATION + switchModel.getDevice().name()
-						+ "&automationStateValue=" + AutomationState.MANUAL.name());
+				view.setLinkManual(TOGGLE_AUTOMATION + switchModel.getDevice().name() + "&value="
+						+ AutomationState.MANUAL.name());
 			} else {
 				view.setState(view.getState() + ", manuell");
-				view.setLinkAuto(TOGGLE_AUTOMATION + switchModel.getDevice().name() + "&automationStateValue="
+				view.setLinkAuto(TOGGLE_AUTOMATION + switchModel.getDevice().name() + "&value="
 						+ AutomationState.AUTOMATIC.name());
 			}
 			view.setAutoInfoText(StringUtils.trimToEmpty(switchModel.getAutomationInfoText()));
 		}
 		view.setLabel(switchModel.isState() ? "ausschalten" : "einschalten");
 		view.setIcon(switchModel.isState() ? "fas fa-toggle-on" : "fas fa-toggle-off");
-		view.setLink(
-				TOGGLE_STATE + switchModel.getDevice().name() + "&booleanValue=" + !switchModel.isState());
+		view.setLink(TOGGLE_STATE + switchModel.getDevice().name() + "&value=" + !switchModel.isState());
 		model.addAttribute(viewKey, view);
 	}
 
@@ -512,11 +513,10 @@ public class HouseViewService {
 		if (windowModel.getShutterAutomation() != null) {
 			if (windowModel.getShutterAutomation()) {
 				view.setState(view.getState() + ", automatisch");
-				view.setLinkManual(
-						TOGGLE_AUTOMATION + windowModel.getDevice().name() + "&booleanValue=false");
+				view.setLinkManual(TOGGLE_AUTOMATION + windowModel.getDevice().name() + "&value=false");
 			} else {
 				view.setState(view.getState() + ", manuell");
-				view.setLinkAuto(TOGGLE_AUTOMATION + windowModel.getDevice().name() + "&booleanValue=true");
+				view.setLinkAuto(TOGGLE_AUTOMATION + windowModel.getDevice().name() + "&value=true");
 			}
 			view.setAutoInfoText(windowModel.getShutterAutomationInfoText());
 		}
@@ -539,8 +539,8 @@ public class HouseViewService {
 		if (shutterPosition == windowModel.getShutterPosition()) {
 			return "#";
 		} else {
-			return "/shutterSetPosition?deviceName=" + windowModel.getDevice().name() + "&shutterSetPosition="
-					+ shutterPosition.getControlPosition();
+			return MESSAGEPATH + "type=" + MessageType.SHUTTERPOSITION + "&deviceName="
+					+ windowModel.getDevice().name() + "&value=" + shutterPosition.getControlPosition();
 		}
 	}
 
