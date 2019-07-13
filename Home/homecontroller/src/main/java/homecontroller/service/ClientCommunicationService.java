@@ -23,6 +23,7 @@ import homecontroller.domain.model.AutomationState;
 import homecontroller.domain.service.HouseService;
 import homecontroller.domain.service.UploadService;
 import homecontroller.util.HomeAppConstants;
+import homelibrary.dao.ModelObjectDAO;
 
 @Component
 public class ClientCommunicationService {
@@ -35,6 +36,9 @@ public class ClientCommunicationService {
 
 	@Autowired
 	private CameraService cameraService;
+
+	@Autowired
+	private SettingsService settingsService;
 
 	@Autowired
 	private UploadService uploadService;
@@ -59,12 +63,20 @@ public class ClientCommunicationService {
 
 		try {
 			switch (message.getMessageType()) {
+			case REFRESH_ALL_MODELS:
+				uploadService.upload(ModelObjectDAO.getInstance().readHouseModel());
+				uploadService.upload(ModelObjectDAO.getInstance().readHistoryModel());
+				uploadService.upload(ModelObjectDAO.getInstance().readCameraModel());
+				settingsService.refreshSettingsModelsComplete();
+				break;
 			case TOGGLEAUTOMATION:
 				houseService.toggleautomation(message.getDevice(),
 						AutomationState.valueOf(message.getValue()));
+				uploadService.upload(ModelObjectDAO.getInstance().readHouseModel());
 				break;
 			case TOGGLESTATE:
 				houseService.togglestate(message.getDevice(), Boolean.valueOf(message.getValue()));
+				uploadService.upload(ModelObjectDAO.getInstance().readHouseModel());
 				break;
 			default:
 				throw new IllegalStateException("Unknown MessageType:" + message.getMessageType().name());

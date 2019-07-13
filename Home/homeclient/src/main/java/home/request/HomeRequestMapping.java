@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -74,11 +73,7 @@ public class HomeRequestMapping {
 			// TODO: Error Popup
 		}
 
-		if (messageType.getTargetSite().equals(Pages.PATH_HOME)) {
-			return homePage(model, userCookie);
-		} else {
-			throw new NotImplementedException("unknown target!");
-		}
+		return REDIRECT + messageType.getTargetSite();
 	}
 
 	@RequestMapping("/history")

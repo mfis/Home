@@ -15,7 +15,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -27,6 +30,8 @@ import home.domain.model.HistoryEntry;
 import home.domain.model.PowerView;
 import home.domain.model.ShutterView;
 import home.domain.model.SwitchView;
+import home.model.Message;
+import home.model.MessageQueue;
 import home.model.MessageType;
 import homecontroller.domain.model.AutomationState;
 import homecontroller.domain.model.CameraMode;
@@ -75,6 +80,18 @@ public class HouseViewService {
 
 	@Autowired
 	private Environment env;
+
+	@PostConstruct
+	public void init() {
+		try {
+			Message message = new Message();
+			message.setMessageType(MessageType.REFRESH_ALL_MODELS);
+			MessageQueue.getInstance().request(message);
+		} catch (Exception e) {
+			LogFactory.getLog(HouseViewService.class)
+					.error("Could not initialize HouseViewService completly.", e);
+		}
+	}
 
 	public void fillViewModel(Model model, HouseModel house) {
 
