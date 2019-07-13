@@ -1,6 +1,8 @@
 package homelibrary.dao;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import homecontroller.domain.model.CameraMode;
 import homecontroller.domain.model.CameraModel;
@@ -8,6 +10,7 @@ import homecontroller.domain.model.CameraPicture;
 import homecontroller.domain.model.Device;
 import homecontroller.domain.model.HistoryModel;
 import homecontroller.domain.model.HouseModel;
+import homecontroller.domain.model.SettingsModel;
 
 public class ModelObjectDAO {
 
@@ -18,6 +21,8 @@ public class ModelObjectDAO {
 	private HistoryModel historyModel;
 
 	private CameraModel cameraModel;
+
+	private Map<String, SettingsModel> settingsModels = new HashMap<>();
 
 	private ModelObjectDAO() {
 		super();
@@ -42,6 +47,10 @@ public class ModelObjectDAO {
 
 	public void write(CameraModel newModel) {
 		cameraModel = newModel;
+	}
+
+	public void write(SettingsModel newModel) {
+		settingsModels.put(newModel.getUser(), newModel);
 	}
 
 	public HouseModel readHouseModel() {
@@ -90,5 +99,12 @@ public class ModelObjectDAO {
 		default:
 			throw new IllegalArgumentException("Unknown CameraMode: " + cameraMode);
 		}
+	}
+
+	public SettingsModel readSettingsModels(String user) {
+		if (settingsModels == null) {
+			settingsModels = new HashMap<>();
+		}
+		return settingsModels.get(user);
 	}
 }

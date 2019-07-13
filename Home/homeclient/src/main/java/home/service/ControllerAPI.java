@@ -24,11 +24,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import home.request.HomeRequestMapping;
 import homecontroller.domain.model.ActionModel;
-import homecontroller.domain.model.AutomationState;
 import homecontroller.domain.model.CameraMode;
 import homecontroller.domain.model.CameraPicture;
 import homecontroller.domain.model.Device;
-import homecontroller.domain.model.SettingsModel;
 import homecontroller.util.URIParameter;
 import homelibrary.dao.ModelObjectDAO;
 
@@ -46,8 +44,6 @@ public class ControllerAPI {
 
 	private static final String CONTROLLER_URL = "controller.url";
 
-	public static final String BOOLEAN_VALUE = "booleanValue";
-
 	public static final String DEVICE_NAME = "deviceName";
 
 	public static final String CAMERA_MODE = "cameraMode";
@@ -55,17 +51,6 @@ public class ControllerAPI {
 	@PostConstruct
 	public void postConstruct() {
 		restTemplate.getMessageConverters().add(byteArrayHttpMessageConverter);
-	}
-
-	public void togglestate(Device device, Boolean booleanValue) {
-		callForObject(env.getProperty(CONTROLLER_URL) + "togglestate", ActionModel.class, new URIParameter()
-				.add(DEVICE_NAME, device.name()).add(BOOLEAN_VALUE, booleanValue.toString()).build());
-	}
-
-	public void toggleautomation(Device device, AutomationState automationStateValue) {
-		callForObject(env.getProperty(CONTROLLER_URL) + "toggleautomation", ActionModel.class,
-				new URIParameter().add(DEVICE_NAME, device.name())
-						.add("automationStateValue", automationStateValue.name()).build());
 	}
 
 	public void heatingboost(Device device) {
@@ -109,11 +94,6 @@ public class ControllerAPI {
 		callForObject(env.getProperty(CONTROLLER_URL) + "settingpushoverdevice", ActionModel.class,
 				new URIParameter().add("user", ExternalPropertiesDAO.getInstance().read(userCookie))
 						.add("device", pushoverDevice).build());
-	}
-
-	public SettingsModel settings(String userCookie) {
-		return callForObject(env.getProperty(CONTROLLER_URL) + "settings", SettingsModel.class,
-				new URIParameter().add("user", ExternalPropertiesDAO.getInstance().read(userCookie)).build());
 	}
 
 	private <T> T callForObject(String url, Class<T> clazz, MultiValueMap<String, String> parameters) {

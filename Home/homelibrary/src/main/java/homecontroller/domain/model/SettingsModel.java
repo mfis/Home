@@ -10,6 +10,8 @@ public class SettingsModel implements Serializable {
 		super();
 	}
 
+	private String user;
+
 	private boolean pushActive;
 
 	private String pushoverApiToken;
@@ -48,6 +50,14 @@ public class SettingsModel implements Serializable {
 
 	public void setPushActive(boolean pushActive) {
 		this.pushActive = pushActive;
+	}
+
+	public String getUser() {
+		return user;
+	}
+
+	public void setUser(String user) {
+		this.user = user;
 	}
 
 }

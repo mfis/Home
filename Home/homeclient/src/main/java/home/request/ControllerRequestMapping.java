@@ -13,6 +13,7 @@ import homecontroller.domain.model.ActionModel;
 import homecontroller.domain.model.CameraModel;
 import homecontroller.domain.model.HistoryModel;
 import homecontroller.domain.model.HouseModel;
+import homecontroller.domain.model.SettingsModel;
 import homelibrary.dao.ModelObjectDAO;
 
 @RestController
@@ -33,6 +34,12 @@ public class ControllerRequestMapping {
 	@RequestMapping(value = "/uploadHistoryModel")
 	public ActionModel uploadHistoryModel(@RequestBody HistoryModel historyModel) {
 		ModelObjectDAO.getInstance().write(historyModel);
+		return new ActionModel("OK");
+	}
+
+	@RequestMapping(value = "/uploadSettingsModel")
+	public ActionModel uploadSettingsModel(@RequestBody SettingsModel settingsModel) {
+		ModelObjectDAO.getInstance().write(settingsModel);
 		return new ActionModel("OK");
 	}
 

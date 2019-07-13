@@ -10,10 +10,8 @@ import org.springframework.web.bind.annotation.RestController;
 import homecontroller.domain.model.ActionModel;
 import homecontroller.domain.model.AutomationState;
 import homecontroller.domain.model.Device;
-import homecontroller.domain.model.SettingsModel;
 import homecontroller.domain.service.HouseService;
 import homecontroller.service.CameraService;
-import homecontroller.service.SettingsService;
 
 @RestController
 public class HomeClientRequestMapping {
@@ -23,9 +21,6 @@ public class HomeClientRequestMapping {
 
 	@Autowired
 	private CameraService cameraService;
-
-	@Autowired
-	private SettingsService settingsService;
 
 	@PostMapping("/controller/togglestate")
 	public ActionModel togglestate(@RequestParam("deviceName") String deviceName,
@@ -62,21 +57,4 @@ public class HomeClientRequestMapping {
 		return new ActionModel(requestTimestamp);
 	}
 
-	@PostMapping("/controller/settings")
-	public SettingsModel settings(@RequestParam("user") String user) {
-		return settingsService.read(user);
-	}
-
-	@PostMapping("/controller/settingspushtoggle")
-	public ActionModel settingspushtoggle(@RequestParam("user") String user) {
-		settingsService.togglePush(user);
-		return new ActionModel("OK");
-	}
-
-	@PostMapping("/controller/settingpushoverdevice")
-	public ActionModel settingspushover(@RequestParam("user") String user,
-			@RequestParam("device") String device) {
-		settingsService.setupPushDevice(user, device);
-		return new ActionModel("OK");
-	}
 }

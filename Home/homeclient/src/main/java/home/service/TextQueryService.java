@@ -20,6 +20,9 @@ import home.domain.model.QueryValue;
 import home.domain.model.Synonym;
 import home.domain.model.SynonymeRepository;
 import home.domain.service.HouseViewService;
+import home.model.Message;
+import home.model.MessageQueue;
+import home.model.MessageType;
 import homecontroller.domain.model.AbstractDeviceModel;
 import homecontroller.domain.model.AutomationState;
 import homecontroller.domain.model.Climate;
@@ -189,19 +192,25 @@ public class TextQueryService {
 		SentenceBuilder builder = SentenceBuilder.newInstance();
 
 		if (controlQuery) {
+			Message message = new Message();
+			message.setDevice(powerswitch.getDevice());
 			if (value.getBooleanValue() != null) {
-				controllerAPI.togglestate(powerswitch.getDevice(), value.getBooleanValue());
+				message.setMessageType(MessageType.TOGGLESTATE);
+				message.setValue(value.getBooleanValue().toString());
 			} else if (value.getAutomationState() != null) {
-				controllerAPI.toggleautomation(powerswitch.getDevice(), value.getAutomationState());
+				message.setMessageType(MessageType.TOGGLEAUTOMATION);
+				message.setValue(String.valueOf(value.getAutomationState().isBooleanValue()));
 			}
+			boolean success = MessageQueue.getInstance().request(message);
+			powerswitch = refreshModel(powerswitch);
+
+			if (!success) {
+				builder.add("Der neue Wert konnte leider nicht bestätigt werden");
+				return builder.getText();
+			}
+
 			builder.add("Erledigt");
 			builder.newSentence();
-			powerswitch = refreshModel(powerswitch);
-		}
-
-		if (powerswitch == null) {
-			builder.add("Der neue Wert konnte leider nicht bestätigt werden");
-			return builder.getText();
 		}
 
 		builder //

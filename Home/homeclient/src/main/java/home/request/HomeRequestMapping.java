@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -16,15 +17,17 @@ import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import home.domain.model.Pages;
 import home.domain.service.HouseViewService;
+import home.model.Message;
+import home.model.MessageQueue;
+import home.model.MessageType;
+import home.model.Pages;
 import home.service.ControllerAPI;
 import home.service.ExternalPropertiesDAO;
 import home.service.LoginInterceptor;
 import home.service.SettingsViewService;
 import home.service.TextQueryService;
 import home.service.ViewAttributesDAO;
-import homecontroller.domain.model.AutomationState;
 import homecontroller.domain.model.CameraMode;
 import homecontroller.domain.model.Device;
 import homecontroller.domain.model.SettingsModel;
@@ -52,33 +55,38 @@ public class HomeRequestMapping {
 	@Autowired
 	private ControllerAPI controllerAPI;
 
+	@RequestMapping("/message")
+	public String message(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
+			@RequestParam(name = "type") String type, @RequestParam("deviceName") String deviceName,
+			@RequestParam("value") String value) {
+
+		MessageType messageType = MessageType.valueOf(type);
+		Device device = Device.valueOf(deviceName);
+
+		Message message = new Message();
+		message.setMessageType(messageType);
+		message.setDevice(device);
+		message.setValue(value);
+
+		boolean success = MessageQueue.getInstance().request(message);
+		if (!success) {
+			System.out.println("MESSAGE EXECUTION NOT SUCCESSFUL !!!");
+			// TODO: Error Popup
+		}
+
+		if (messageType.getTargetSite().equals(Pages.PATH_HOME)) {
+			return homePage(model, userCookie);
+		} else {
+			throw new NotImplementedException("unknown target!");
+		}
+	}
+
 	@RequestMapping("/history")
 	public String history(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
 			@RequestParam(name = "key", required = false) String key) {
 		fillUserAttributes(model, userCookie, null);
 		houseView.fillHistoryViewModel(model, ModelObjectDAO.getInstance().readHistoryModel(), key);
 		return "history";
-	}
-
-	@RequestMapping("/togglestate")
-	public String togglestate(@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
-			@RequestParam(ControllerAPI.DEVICE_NAME) String deviceName,
-			@RequestParam(ControllerAPI.BOOLEAN_VALUE) String booleanValue,
-			@RequestParam(name = Y_POS, required = false) String y) {
-		saveYPos(userCookie, y);
-		controllerAPI.togglestate(Device.valueOf(deviceName), Boolean.valueOf(booleanValue));
-		return REDIRECT + Pages.PATH_HOME;
-	}
-
-	@RequestMapping("/toggleautomation")
-	public String toggleautomation(@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
-			@RequestParam(ControllerAPI.DEVICE_NAME) String deviceName,
-			@RequestParam("automationStateValue") String automationStateValue,
-			@RequestParam(name = Y_POS, required = false) String y) {
-		saveYPos(userCookie, y);
-		controllerAPI.toggleautomation(Device.valueOf(deviceName),
-				AutomationState.valueOf(automationStateValue));
-		return REDIRECT + Pages.PATH_HOME;
 	}
 
 	@RequestMapping("/heatingboost")
@@ -179,7 +187,8 @@ public class HomeRequestMapping {
 	public String settings(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie) {
 		fillMenu(Pages.PATH_SETTINGS, model);
 		fillUserAttributes(model, userCookie, null);
-		SettingsModel settings = controllerAPI.settings(userCookie);
+		String user = ExternalPropertiesDAO.getInstance().read(userCookie);
+		SettingsModel settings = ModelObjectDAO.getInstance().readSettingsModels(user);
 		settingsView.fillSettings(model, settings);
 		return Pages.getEntry(Pages.PATH_SETTINGS).getTemplate();
 	}

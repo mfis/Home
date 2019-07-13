@@ -27,6 +27,7 @@ import home.domain.model.HistoryEntry;
 import home.domain.model.PowerView;
 import home.domain.model.ShutterView;
 import home.domain.model.SwitchView;
+import home.model.MessageType;
 import homecontroller.domain.model.AutomationState;
 import homecontroller.domain.model.CameraMode;
 import homecontroller.domain.model.Climate;
@@ -50,8 +51,9 @@ import homecontroller.domain.model.Window;
 public class HouseViewService {
 
 	private static final String DEGREE = "\u00b0";
-	private static final String TOGGLE_STATE = "/togglestate?deviceName=";
-	private static final String TOGGLE_AUTOMATION = "/toggleautomation?deviceName=";
+	private static final String TOGGLE_STATE = "/message?type=" + MessageType.TOGGLESTATE + "&deviceName=";
+	private static final String TOGGLE_AUTOMATION = "/message?type=" + MessageType.TOGGLEAUTOMATION
+			+ "&deviceName=";
 
 	private static final BigDecimal HIGH_TEMP = new BigDecimal("25");
 	private static final BigDecimal LOW_TEMP = new BigDecimal("19");

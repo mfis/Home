@@ -36,7 +36,7 @@ public class MessageQueue {
 		return instance;
 	}
 
-	public Message request(Message message) {
+	public boolean request(Message message) {
 
 		System.out.println("MESSAGE QUEUE SIZE = " + requests.size());
 		requests.add(message);
@@ -47,13 +47,13 @@ public class MessageQueue {
 			try {
 				TimeUnit.MILLISECONDS.sleep(50);
 			} catch (InterruptedException e) { // NOSONAR
-				// noop
+				start = 0L;
 			}
 			now = System.currentTimeMillis();
 		} while (!responses.containsKey(message.getUid())
 				&& (now - start < RESPONSE_TIMEOUT_SECONDS * 1000L));
 
-		return responses.remove(message.getUid());
+		return responses.remove(message.getUid()) != null;
 	}
 
 	public Message pollMessage() {
