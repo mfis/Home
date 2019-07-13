@@ -2,6 +2,7 @@ package homecontroller.service;
 
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
 
@@ -17,6 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import home.model.Message;
@@ -61,7 +63,7 @@ public class ClientCommunicationService {
 		}
 	}
 
-	@Scheduled(fixedDelay = 0)
+	@Scheduled(fixedDelay = 1)
 	private void longPolling() {
 		Message message = pollForMessage();
 		if (message != null) {
@@ -129,6 +131,13 @@ public class ClientCommunicationService {
 			}
 			return response.getBody();
 
+		} catch (ResourceAccessException rae) {
+			LOG.warn("Could not access client to poll for message.");
+			try {
+				TimeUnit.SECONDS.sleep(1);
+			} catch (InterruptedException e) { // NOSONAR
+			}
+			return null;
 		} catch (Exception e) {
 			LOG.warn("Could not poll for message.", e);
 			return null;
