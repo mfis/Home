@@ -51,6 +51,8 @@ public class ClientCommunicationService {
 	@Qualifier("restTemplateLongPolling")
 	private RestTemplate restTemplateLongPolling;
 
+	private long resourceNotAvailableCounter;
+
 	private static final Log LOG = LogFactory.getLog(ClientCommunicationService.class);
 
 	@PostConstruct
@@ -125,6 +127,8 @@ public class ClientCommunicationService {
 			ResponseEntity<Message> response = restTemplateLongPolling.postForEntity(url, request,
 					Message.class);
 			HttpStatus statusCode = response.getStatusCode();
+
+			connectionEstablishedLogging();
 			if (!statusCode.is2xxSuccessful()) {
 				LOG.error("Could not successful poll for message. RC=" + statusCode.value());
 				return null;
@@ -132,15 +136,37 @@ public class ClientCommunicationService {
 			return response.getBody();
 
 		} catch (ResourceAccessException rae) {
-			LOG.warn("Could not access client to poll for message.");
-			try {
-				TimeUnit.SECONDS.sleep(1);
-			} catch (InterruptedException e) { // NOSONAR
-			}
+			connectionNotEstablishedLogging();
+			waitAMoment();
 			return null;
 		} catch (Exception e) {
 			LOG.warn("Could not poll for message.", e);
 			return null;
+		}
+	}
+
+	private void waitAMoment() {
+		try {
+			TimeUnit.SECONDS.sleep(1);
+		} catch (InterruptedException e) { // NOSONAR
+		}
+	}
+
+	private void connectionNotEstablishedLogging() {
+		resourceNotAvailableCounter++;
+		String suppressLogEntries = resourceNotAvailableCounter == 5
+				? " NO FURTHER LOG ENTRIES WILL BE WRITTEN."
+				: "";
+		if (resourceNotAvailableCounter < 6) {
+			LOG.warn("Could not connect to client to poll for message (#" + resourceNotAvailableCounter + ")."
+					+ suppressLogEntries);
+		}
+	}
+
+	private void connectionEstablishedLogging() {
+		if (resourceNotAvailableCounter > 0) {
+			LOG.warn("Connecting to client successful after " + resourceNotAvailableCounter + " times.");
+			resourceNotAvailableCounter = 0;
 		}
 	}
 
