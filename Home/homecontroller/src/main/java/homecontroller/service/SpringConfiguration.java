@@ -11,6 +11,8 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import homecontroller.util.HomeAppConstants;
+
 @Configuration
 public class SpringConfiguration implements WebMvcConfigurer {
 
@@ -37,6 +39,13 @@ public class SpringConfiguration implements WebMvcConfigurer {
 	public RestTemplate restTemplateLowTimeout(RestTemplateBuilder restTemplateBuilder) {
 		return restTemplateBuilder.setConnectTimeout(Duration.ofMillis(300))
 				.setReadTimeout(Duration.ofMillis(300)).build();
+	}
+
+	@Bean(name = "restTemplateLongPolling")
+	public RestTemplate restTemplateLongPolling(RestTemplateBuilder restTemplateBuilder) {
+		return restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(5)).setReadTimeout(Duration
+				.ofSeconds(HomeAppConstants.CONTROLLER_CLIENT_LONGPOLLING_REQUEST_TIMEOUT_SECONDS * 2))
+				.build();
 	}
 
 }

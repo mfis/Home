@@ -116,7 +116,7 @@ public class CameraService {
 			try {
 				LOG.info("PING");
 				ResponseEntity<String> response = restTemplateLowTimeout
-						.getForEntity("http://192.168.2.203/ping", String.class);
+						.getForEntity("http://192.168.2.203/ping", String.class); // TODO: externalize configuration
 				if (response.getStatusCode() == HttpStatus.OK) {
 					pingCameraOk = true;
 				} else {

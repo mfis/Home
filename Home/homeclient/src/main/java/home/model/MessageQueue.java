@@ -5,11 +5,9 @@ import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import homecontroller.util.HomeAppConstants;
+
 public class MessageQueue {
-
-	private static final int REQUEST_TIMEOUT_SECONDS = 60;
-
-	private static final int RESPONSE_TIMEOUT_SECONDS = 20;
 
 	private static MessageQueue instance;
 
@@ -50,15 +48,17 @@ public class MessageQueue {
 				start = 0L;
 			}
 			now = System.currentTimeMillis();
-		} while (!responses.containsKey(message.getUid())
-				&& (now - start < RESPONSE_TIMEOUT_SECONDS * 1000L));
+		} while (!responses.containsKey(message.getUid()) && (now
+				- start < HomeAppConstants.CONTROLLER_CLIENT_LONGPOLLING_RESPONSE_TIMEOUT_SECONDS * 1000L));
 
-		return responses.remove(message.getUid()) != null;
+		Message removed = responses.remove(message.getUid());
+		return removed != null && removed.isSuccessfullExecuted();
 	}
 
 	public Message pollMessage() {
 		try {
-			return requests.poll(REQUEST_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+			return requests.poll(HomeAppConstants.CONTROLLER_CLIENT_LONGPOLLING_REQUEST_TIMEOUT_SECONDS,
+					TimeUnit.SECONDS);
 		} catch (InterruptedException e) { // NOSONAR
 			return null;
 		}

@@ -17,6 +17,8 @@ public class Message implements Serializable {
 
 	private String value;
 
+	boolean successfullExecuted;
+
 	public Message() {
 		uid = System.currentTimeMillis() + "#" + UUID.randomUUID().toString();
 	}
@@ -51,6 +53,14 @@ public class Message implements Serializable {
 
 	public void setValue(String value) {
 		this.value = value;
+	}
+
+	public boolean isSuccessfullExecuted() {
+		return successfullExecuted;
+	}
+
+	public void setSuccessfullExecuted(boolean successfullExecuted) {
+		this.successfullExecuted = successfullExecuted;
 	}
 
 }

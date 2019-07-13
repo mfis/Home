@@ -43,8 +43,8 @@ public class ControllerRequestMapping {
 		return new ActionModel("OK");
 	}
 
-	@RequestMapping(value = "/controllerLongPollingForAwaitRequest")
-	public DeferredResult<Message> controllerLongPollingForAwaitRequest() {
+	@RequestMapping(value = "/controllerLongPollingForAwaitMessageRequest")
+	public DeferredResult<Message> controllerLongPollingForAwaitMessageRequest() {
 		DeferredResult<Message> deferredResult = new DeferredResult<>(Long.MAX_VALUE, null);
 		CompletableFuture.runAsync(() -> {
 			deferredResult.setResult(MessageQueue.getInstance().pollMessage());
@@ -52,7 +52,7 @@ public class ControllerRequestMapping {
 		return deferredResult;
 	}
 
-	@RequestMapping(value = "/controllerLongPollingForAsyncResponse")
+	@RequestMapping(value = "/uploadMessage")
 	public ActionModel controllerLongPollingForAsyncResponse(@RequestBody Message response) {
 		MessageQueue.getInstance().addResponse(response);
 		return new ActionModel("OK");

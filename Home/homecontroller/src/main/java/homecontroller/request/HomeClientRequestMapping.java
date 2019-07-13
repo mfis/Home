@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import homecontroller.domain.model.ActionModel;
-import homecontroller.domain.model.AutomationState;
 import homecontroller.domain.model.Device;
 import homecontroller.domain.service.HouseService;
 import homecontroller.service.CameraService;
@@ -21,21 +20,6 @@ public class HomeClientRequestMapping {
 
 	@Autowired
 	private CameraService cameraService;
-
-	@PostMapping("/controller/togglestate")
-	public ActionModel togglestate(@RequestParam("deviceName") String deviceName,
-			@RequestParam("booleanValue") String booleanValue) {
-		houseService.togglestate(Device.valueOf(deviceName), Boolean.valueOf(booleanValue));
-		return new ActionModel("OK");
-	}
-
-	@PostMapping("/controller/toggleautomation")
-	public ActionModel toggleautomation(@RequestParam("deviceName") String deviceName,
-			@RequestParam("automationStateValue") String automationStateValue) {
-		houseService.toggleautomation(Device.valueOf(deviceName),
-				AutomationState.valueOf(automationStateValue));
-		return new ActionModel("OK");
-	}
 
 	@PostMapping("/controller/heatingboost")
 	public ActionModel heatingBoost(@RequestParam("deviceName") String deviceName)
