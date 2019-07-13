@@ -29,6 +29,7 @@ import home.service.TextQueryService;
 import home.service.ViewAttributesDAO;
 import homecontroller.domain.model.CameraMode;
 import homecontroller.domain.model.Device;
+import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.SettingsModel;
 import homelibrary.dao.ModelObjectDAO;
 
@@ -67,7 +68,7 @@ public class HomeRequestMapping {
 		message.setDevice(device);
 		message.setValue(value);
 
-		boolean success = MessageQueue.getInstance().request(message);
+		boolean success = MessageQueue.getInstance().request(message, true);
 		if (!success) {
 			System.out.println("MESSAGE EXECUTION NOT SUCCESSFUL !!!");
 			// TODO: Error Popup
@@ -166,8 +167,13 @@ public class HomeRequestMapping {
 			@CookieValue(name = LoginInterceptor.COOKIE_NAME, required = false) String userCookie) {
 		fillMenu(Pages.PATH_HOME, model);
 		fillUserAttributes(model, userCookie, ViewAttributesDAO.Y_POS_HOME);
-		houseView.fillViewModel(model, ModelObjectDAO.getInstance().readHouseModel());
-		return Pages.getEntry(Pages.PATH_HOME).getTemplate();
+		HouseModel houseModel = ModelObjectDAO.getInstance().readHouseModel();
+		if (houseModel == null) {
+			return "error";
+		} else {
+			houseView.fillViewModel(model, ModelObjectDAO.getInstance().readHouseModel());
+			return Pages.getEntry(Pages.PATH_HOME).getTemplate();
+		}
 	}
 
 	@RequestMapping(Pages.PATH_LINKS)

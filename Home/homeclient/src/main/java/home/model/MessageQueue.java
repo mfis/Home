@@ -19,7 +19,7 @@ public class MessageQueue {
 
 		@Override
 		protected boolean removeEldestEntry(Map.Entry<String, Message> eldest) {
-			return size() > 1000;
+			return size() > 50;
 		}
 	};
 
@@ -34,10 +34,16 @@ public class MessageQueue {
 		return instance;
 	}
 
-	public boolean request(Message message) {
+	public boolean request(Message message, boolean waitForResponse) {
 
-		System.out.println("MESSAGE QUEUE SIZE = " + requests.size());
+		System.out.println(
+				"MESSAGE QUEUE SIZE = " + requests.size() + "  RESPONSE QUEUE SIZE = " + responses.size());
 		requests.add(message);
+
+		if (!waitForResponse) {
+			return false;
+		}
+
 		long start = System.currentTimeMillis();
 		long now;
 

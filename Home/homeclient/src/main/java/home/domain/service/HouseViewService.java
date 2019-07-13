@@ -86,7 +86,7 @@ public class HouseViewService {
 		try {
 			Message message = new Message();
 			message.setMessageType(MessageType.REFRESH_ALL_MODELS);
-			MessageQueue.getInstance().request(message);
+			MessageQueue.getInstance().request(message, false);
 		} catch (Exception e) {
 			LogFactory.getLog(HouseViewService.class)
 					.error("Could not initialize HouseViewService completly.", e);

@@ -201,7 +201,7 @@ public class TextQueryService {
 				message.setMessageType(MessageType.TOGGLEAUTOMATION);
 				message.setValue(String.valueOf(value.getAutomationState().isBooleanValue()));
 			}
-			boolean success = MessageQueue.getInstance().request(message);
+			boolean success = MessageQueue.getInstance().request(message, true);
 			powerswitch = refreshModel(powerswitch);
 
 			if (!success) {
