@@ -1,6 +1,5 @@
 package home.request;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -83,25 +82,6 @@ public class HomeRequestMapping {
 		fillUserAttributes(model, userCookie, null);
 		houseView.fillHistoryViewModel(model, ModelObjectDAO.getInstance().readHistoryModel(), key);
 		return "history";
-	}
-
-	@RequestMapping("/heatingboost")
-	public String heatingBoost(@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
-			@RequestParam(ControllerAPI.DEVICE_NAME) String deviceName,
-			@RequestParam(name = Y_POS, required = false) String y) {
-		saveYPos(userCookie, y);
-		controllerAPI.heatingboost(Device.valueOf(deviceName));
-		return REDIRECT + Pages.PATH_HOME;
-	}
-
-	@RequestMapping("/heatingmanual")
-	public String heatingManual(@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
-			@RequestParam(ControllerAPI.DEVICE_NAME) String deviceName,
-			@RequestParam("temperature") String temperature,
-			@RequestParam(name = Y_POS, required = false) String y) {
-		saveYPos(userCookie, y);
-		controllerAPI.heatingmanual(Device.valueOf(deviceName), new BigDecimal(temperature));
-		return REDIRECT + Pages.PATH_HOME;
 	}
 
 	@RequestMapping("/shutterSetPosition")

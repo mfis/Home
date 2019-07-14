@@ -6,6 +6,8 @@ public enum MessageType {
 	TOGGLESTATE(Pages.PATH_HOME), //
 	TOGGLEAUTOMATION(Pages.PATH_HOME), //
 	SHUTTERPOSITION(Pages.PATH_HOME), //
+	HEATINGBOOST(Pages.PATH_HOME), //
+	HEATINGMANUAL(Pages.PATH_HOME), //
 	;//
 
 	private final String targetSite;

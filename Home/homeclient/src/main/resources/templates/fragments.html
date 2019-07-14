@@ -554,11 +554,11 @@
 			}
 			function setHeating[[${model.id}]](){
 				showSpinner();
-				window.location.href = "[[${model.linkManual}]]&temperature=" + newTargetTemp[[${model.id}]] + "&y=" + window.scrollY;
+				window.location.href = "[(${model.linkManual})]&value=" + newTargetTemp[[${model.id}]] + "&y=" + window.scrollY;
 			}
 			function setBoost[[${model.id}]](){
 				showSpinner();
-				window.location.href = "[[${model.linkBoost}]]&y=" + window.scrollY;
+				window.location.href = "[(${model.linkBoost})]&y=" + window.scrollY;
 			}			
 		</script>
 	</div>	

@@ -380,9 +380,11 @@ public class HouseViewService {
 			if (heating.isBoostActive()) {
 				view.setLinkBoost(String.valueOf(heating.getBoostMinutesLeft()));
 			} else {
-				view.setLinkBoost("/heatingboost?deviceName=" + heating.getDevice().name());
+				view.setLinkBoost(MESSAGEPATH + "type=" + MessageType.HEATINGBOOST + "&deviceName="
+						+ heating.getDevice().name() + "&value=null");
 			}
-			view.setLinkManual("/heatingmanual?deviceName=" + heating.getDevice().name());
+			view.setLinkManual(MESSAGEPATH + "type=" + MessageType.HEATINGMANUAL + "&deviceName="
+					+ heating.getDevice().name()); // value set in ui fragment
 			view.setTargetTemp(format(heating.getTargetTemperature(), false));
 			view.setHeatericon("fab fa-hotjar");
 		}

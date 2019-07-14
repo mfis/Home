@@ -31,6 +31,7 @@ import homecontroller.domain.model.Tendency;
 import homecontroller.domain.model.Type;
 import homecontroller.domain.model.ValueWithTendency;
 import homecontroller.domain.model.Window;
+import homecontroller.request.CCURequestMapping;
 import homecontroller.service.CameraService;
 import homecontroller.service.HomematicAPI;
 import homecontroller.service.PushService;
@@ -102,6 +103,7 @@ public class HouseService {
 
 		if (notify) {
 			synchronized (REFRESH_MONITOR) {
+				LogFactory.getLog(CCURequestMapping.class).warn("NOTIFY"); // FIXME:
 				REFRESH_MONITOR.notifyAll();
 			}
 		}
@@ -386,7 +388,9 @@ public class HouseService {
 			// Just trying to wait for notification from CCU.
 			// It's no big problem if this is the wrong notification.
 			// We're only showing once the old value.
+			LogFactory.getLog(HouseService.class).warn("WAITING"); // FIXME:
 			REFRESH_MONITOR.wait(REFRESH_TIMEOUT); // NOSONAR
+			LogFactory.getLog(HouseService.class).warn("NOTIFIED"); // FIXME:
 		}
 	}
 

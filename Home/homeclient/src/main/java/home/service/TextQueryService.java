@@ -2,7 +2,6 @@ package home.service;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,9 +40,6 @@ public class TextQueryService {
 
 	@Autowired
 	private HouseViewService houseViewService;
-
-	@Autowired
-	private ControllerAPI controllerAPI;
 
 	public String execute(HouseModel house, String input) {
 
@@ -151,11 +147,21 @@ public class TextQueryService {
 		SentenceBuilder builder = SentenceBuilder.newInstance();
 
 		if (controlQuery) {
+			Message message = new Message();
+			message.setDevice(heating.getDevice());
 			if (value.getBooleanValue() != null) {
-				controllerAPI.heatingboost(heating.getDevice());
+				message.setMessageType(MessageType.HEATINGBOOST);
 			} else if (value.getIntegerValue() != null) {
-				controllerAPI.heatingmanual(heating.getDevice(), new BigDecimal(value.getIntegerValue()));
+				message.setMessageType(MessageType.HEATINGMANUAL);
+				message.setValue(value.getIntegerValue().toString());
 			}
+			boolean success = MessageQueue.getInstance().request(message, true);
+
+			if (!success) {
+				builder.add("Der neue Wert konnte leider nicht bestätigt werden");
+				return builder.getText();
+			}
+
 			builder.add("Erledigt");
 			builder.newSentence();
 			heating = refreshModel(heating);

@@ -1,10 +1,5 @@
 package home.service;
 
-import java.math.BigDecimal;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.util.Locale;
-
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.codec.binary.Base64;
@@ -31,7 +26,7 @@ import homecontroller.util.URIParameter;
 import homelibrary.dao.ModelObjectDAO;
 
 @Component
-public class ControllerAPI {
+public class ControllerAPI { // FIXME: DELETE
 
 	@Autowired
 	private Environment env;
@@ -51,18 +46,6 @@ public class ControllerAPI {
 	@PostConstruct
 	public void postConstruct() {
 		restTemplate.getMessageConverters().add(byteArrayHttpMessageConverter);
-	}
-
-	public void heatingboost(Device device) {
-		callForObject(env.getProperty(CONTROLLER_URL) + "heatingboost", ActionModel.class,
-				new URIParameter().add(DEVICE_NAME, device.name()).build());
-	}
-
-	public void heatingmanual(Device device, BigDecimal temperature) {
-		callForObject(env.getProperty(CONTROLLER_URL) + "heatingmanual", ActionModel.class,
-				new URIParameter().add(DEVICE_NAME, device.name()).add("temperature",
-						new DecimalFormat("0.0", new DecimalFormatSymbols(Locale.US)).format(temperature))
-						.build());
 	}
 
 	public void shuttersetposition(Device device, int positionPercentage) {

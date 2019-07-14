@@ -1,5 +1,6 @@
 package homecontroller.service;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -89,7 +90,15 @@ public class ClientCommunicationService {
 				break;
 			case TOGGLESTATE:
 				houseService.togglestate(message.getDevice(), Boolean.valueOf(message.getValue()));
-				uploadService.upload(ModelObjectDAO.getInstance().readHouseModel());
+				// uploadService.upload(ModelObjectDAO.getInstance().readHouseModel());
+				break;
+			case HEATINGBOOST:
+				houseService.heatingBoost(message.getDevice());
+				// uploadService.upload(ModelObjectDAO.getInstance().readHouseModel());
+				break;
+			case HEATINGMANUAL:
+				houseService.heatingManual(message.getDevice(), new BigDecimal(message.getValue()));
+				// uploadService.upload(ModelObjectDAO.getInstance().readHouseModel());
 				break;
 			default:
 				throw new IllegalStateException("Unknown MessageType:" + message.getMessageType().name());
