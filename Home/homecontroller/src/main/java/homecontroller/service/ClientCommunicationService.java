@@ -22,6 +22,8 @@ import org.springframework.web.client.RestTemplate;
 import home.model.Message;
 import homecontroller.domain.model.ActionModel;
 import homecontroller.domain.model.AutomationState;
+import homecontroller.domain.model.SettingsModel;
+import homecontroller.domain.service.HistoryService;
 import homecontroller.domain.service.HouseService;
 import homecontroller.domain.service.UploadService;
 import homecontroller.util.HomeAppConstants;
@@ -35,6 +37,9 @@ public class ClientCommunicationService {
 
 	@Autowired
 	private HouseService houseService;
+
+	@Autowired
+	private HistoryService historyService;
 
 	// @Autowired
 	// private CameraService cameraService;
@@ -85,6 +90,30 @@ public class ClientCommunicationService {
 				houseService.heatingManual(message.getDevice(), new BigDecimal(message.getValue()));
 				houseService.refreshHouseModel();
 				break;
+			case SHUTTERPOSITION:
+				houseService.shutterPosition(message.getDevice(), Integer.parseInt(message.getValue()));
+				houseService.refreshHouseModel();
+				break;
+			case SETTINGS_CLIENTNAME:
+				SettingsModel settingsModelClientName = settingsService.read(message.getUser());
+				settingsModelClientName.setClientName(message.getValue());
+				settingsService.updateSettingsModel(settingsModelClientName);
+				break;
+			case SETTINGS_PUSH_HINTS:
+				SettingsModel settingsModelHints = settingsService.read(message.getUser());
+				settingsModelHints.setPushHints(Boolean.parseBoolean(message.getValue()));
+				settingsService.updateSettingsModel(settingsModelHints);
+				break;
+			case SETTINGS_PUSH_HINTS_HYSTERESIS:
+				SettingsModel settingsModelHintHysteresis = settingsService.read(message.getUser());
+				settingsModelHintHysteresis.setHintsHysteresis(Boolean.parseBoolean(message.getValue()));
+				settingsService.updateSettingsModel(settingsModelHintHysteresis);
+				break;
+			case SETTINGS_PUSH_DOORBELL:
+				SettingsModel settingsModelDoorbell = settingsService.read(message.getUser());
+				settingsModelDoorbell.setPushDoorbell(Boolean.parseBoolean(message.getValue()));
+				settingsService.updateSettingsModel(settingsModelDoorbell);
+				break;
 			default:
 				throw new IllegalStateException("Unknown MessageType:" + message.getMessageType().name());
 			}
@@ -98,9 +127,21 @@ public class ClientCommunicationService {
 	}
 
 	private void refreshAll() {
-		uploadService.upload(ModelObjectDAO.getInstance().readHouseModel());
-		uploadService.upload(ModelObjectDAO.getInstance().readHistoryModel());
+
+		if (ModelObjectDAO.getInstance().readHouseModel() == null) {
+			houseService.refreshHouseModel();
+		} else {
+			uploadService.upload(ModelObjectDAO.getInstance().readHouseModel());
+		}
+
+		if (ModelObjectDAO.getInstance().readHistoryModel() == null) {
+			historyService.refreshHistoryModelComplete();
+		} else {
+			uploadService.upload(ModelObjectDAO.getInstance().readHistoryModel());
+		}
+
 		uploadService.upload(ModelObjectDAO.getInstance().readCameraModel());
+
 		settingsService.refreshSettingsModelsComplete();
 	}
 

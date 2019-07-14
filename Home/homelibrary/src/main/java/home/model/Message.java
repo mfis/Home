@@ -17,6 +17,8 @@ public class Message implements Serializable {
 
 	private String value;
 
+	private String user;
+
 	boolean successfullExecuted;
 
 	public Message() {
@@ -61,6 +63,14 @@ public class Message implements Serializable {
 
 	public void setSuccessfullExecuted(boolean successfullExecuted) {
 		this.successfullExecuted = successfullExecuted;
+	}
+
+	public String getUser() {
+		return user;
+	}
+
+	public void setUser(String user) {
+		this.user = user;
 	}
 
 }

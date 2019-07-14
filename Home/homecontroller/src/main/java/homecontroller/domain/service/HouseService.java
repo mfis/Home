@@ -468,6 +468,10 @@ public class HouseService {
 		return window;
 	}
 
+	public void shutterPosition(Device device, int parseInt) {
+		// TODO: D U M M Y
+	}
+
 	private Switch readSwitchState(Device device) {
 		Switch switchModel = new Switch();
 		switchModel.setState(api.getAsBoolean(device.accessKeyXmlApi(Datapoint.STATE)));
@@ -518,4 +522,5 @@ public class HouseService {
 			model.getLowBatteryDevices().add(device.getDescription());
 		}
 	}
+
 }

@@ -68,17 +68,6 @@ public class ControllerAPI { // FIXME: DELETE
 		return actionModel != null ? actionModel.getStatus() : "";
 	}
 
-	public void settingspushtoggle(String userCookie) {
-		callForObject(env.getProperty(CONTROLLER_URL) + "settingspushtoggle", ActionModel.class,
-				new URIParameter().add("user", ExternalPropertiesDAO.getInstance().read(userCookie)).build());
-	}
-
-	public void settingspushover(String userCookie, String pushoverDevice) {
-		callForObject(env.getProperty(CONTROLLER_URL) + "settingpushoverdevice", ActionModel.class,
-				new URIParameter().add("user", ExternalPropertiesDAO.getInstance().read(userCookie))
-						.add("device", pushoverDevice).build());
-	}
-
 	private <T> T callForObject(String url, Class<T> clazz, MultiValueMap<String, String> parameters) {
 
 		try {

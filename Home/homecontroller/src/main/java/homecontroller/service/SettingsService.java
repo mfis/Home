@@ -26,7 +26,9 @@ public class SettingsService {
 	private UploadService uploadService;
 
 	private static final String PUSH_DEVICE = ".push.device";
-	private static final String PUSH_ACTIVE = ".push.active";
+	private static final String PUSH_HINTS = ".push.hints";
+	private static final String PUSH_HINTS_HYSTERESIS = ".push.hintshysteresis";
+	private static final String PUSH_HINTS_DOORBELL = ".push.doorbell";
 
 	private static final String PUSH_USERID = "pushover.userid";
 	private static final String PUSH_TOKEN = "pushover.token";
@@ -44,9 +46,9 @@ public class SettingsService {
 
 	public void refreshSettingsModelsComplete() {
 
-		List<String> names = ExternalPropertiesDAO.getInstance().lookupNamesContainingString(PUSH_ACTIVE);
+		List<String> names = ExternalPropertiesDAO.getInstance().lookupNamesContainingString(PUSH_DEVICE);
 		for (String name : names) {
-			String user = StringUtils.substringBefore(name, PUSH_ACTIVE);
+			String user = StringUtils.substringBefore(name, PUSH_DEVICE);
 			SettingsModel settingsModel = read(user);
 			uploadService.upload(settingsModel);
 		}
@@ -54,15 +56,18 @@ public class SettingsService {
 
 	public void updateSettingsModel(SettingsModel settingsModel) {
 
-		ExternalPropertiesDAO.getInstance().write(settingsModel.getUser() + PUSH_ACTIVE,
-				Boolean.toString(settingsModel.isPushActive()));
 		ExternalPropertiesDAO.getInstance().write(settingsModel.getUser() + PUSH_DEVICE,
-				StringUtils.trimToEmpty(settingsModel.getPushoverDevice()));
-
+				StringUtils.trimToEmpty(settingsModel.getClientName()));
+		ExternalPropertiesDAO.getInstance().write(settingsModel.getUser() + PUSH_HINTS,
+				Boolean.toString(settingsModel.isPushHints()));
+		ExternalPropertiesDAO.getInstance().write(settingsModel.getUser() + PUSH_HINTS_HYSTERESIS,
+				Boolean.toString(settingsModel.isHintsHysteresis()));
+		ExternalPropertiesDAO.getInstance().write(settingsModel.getUser() + PUSH_HINTS_DOORBELL,
+				Boolean.toString(settingsModel.isPushDoorbell()));
 		uploadService.upload(settingsModel);
 	}
 
-	private SettingsModel read(String user) {
+	public SettingsModel read(String user) {
 
 		SettingsModel model = new SettingsModel();
 
@@ -72,38 +77,34 @@ public class SettingsService {
 		String userid = StringUtils.trimToEmpty(env.getProperty(PUSH_USERID));
 		model.setPushoverUserId(userid);
 
-		String state = StringUtils.trimToEmpty(ExternalPropertiesDAO.getInstance().read(user + PUSH_ACTIVE));
-		model.setPushActive(Boolean.parseBoolean(state));
+		model.setUser(user);
 
 		String device = StringUtils.trimToEmpty(ExternalPropertiesDAO.getInstance().read(user + PUSH_DEVICE));
-		model.setPushoverDevice(device);
+		model.setClientName(device);
+
+		String hints = StringUtils.trimToEmpty(ExternalPropertiesDAO.getInstance().read(user + PUSH_HINTS));
+		model.setPushHints(Boolean.parseBoolean(hints));
+
+		String hysteresis = StringUtils
+				.trimToEmpty(ExternalPropertiesDAO.getInstance().read(user + PUSH_HINTS));
+		model.setPushHints(Boolean.parseBoolean(hysteresis));
+
+		String doorbell = StringUtils
+				.trimToEmpty(ExternalPropertiesDAO.getInstance().read(user + PUSH_HINTS));
+		model.setPushHints(Boolean.parseBoolean(doorbell));
 
 		return model;
 	}
-
-	// public void togglePush(String user) {
-	//
-	// boolean state = Boolean.parseBoolean(
-	// StringUtils.trimToEmpty(ExternalPropertiesDAO.getInstance().read(user +
-	// PUSH_ACTIVE)));
-	// ExternalPropertiesDAO.getInstance().write(user + PUSH_ACTIVE,
-	// Boolean.toString(!state));
-	// }
-	//
-	// public void setupPushDevice(String user, String device) {
-	// ExternalPropertiesDAO.getInstance().write(user + PUSH_DEVICE,
-	// StringUtils.trimToEmpty(device));
-	// }
 
 	public List<SettingsModel> lookupUserForPushMessage() {
 
 		List<SettingsModel> userModelsWithActivePush = new LinkedList<>();
 
-		List<String> names = ExternalPropertiesDAO.getInstance().lookupNamesContainingString(PUSH_ACTIVE);
+		List<String> names = ExternalPropertiesDAO.getInstance().lookupNamesContainingString(PUSH_DEVICE);
 		for (String name : names) {
-			String user = StringUtils.substringBefore(name, PUSH_ACTIVE);
+			String user = StringUtils.substringBefore(name, PUSH_DEVICE);
 			SettingsModel model = read(user);
-			if (model.isPushActive()) {
+			if (model.isPushHints()) {
 				userModelsWithActivePush.add(model);
 			}
 		}

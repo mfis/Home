@@ -56,16 +56,18 @@ public class HomeRequestMapping {
 
 	@RequestMapping("/message")
 	public String message(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
-			@RequestParam(name = "type") String type, @RequestParam("deviceName") String deviceName,
+			@RequestParam(name = "type") String type,
+			@RequestParam(name = "deviceName", required = false) String deviceName,
 			@RequestParam("value") String value) {
 
 		MessageType messageType = MessageType.valueOf(type);
-		Device device = Device.valueOf(deviceName);
+		Device device = StringUtils.isBlank(deviceName) ? null : Device.valueOf(deviceName);
 
 		Message message = new Message();
 		message.setMessageType(messageType);
 		message.setDevice(device);
 		message.setValue(value);
+		message.setUser(ExternalPropertiesDAO.getInstance().read(userCookie));
 
 		boolean success = MessageQueue.getInstance().request(message, true);
 		if (!success) {
@@ -82,29 +84,6 @@ public class HomeRequestMapping {
 		fillUserAttributes(model, userCookie, null);
 		houseView.fillHistoryViewModel(model, ModelObjectDAO.getInstance().readHistoryModel(), key);
 		return "history";
-	}
-
-	@RequestMapping("/shutterSetPosition")
-	public String shutterSetPosition(@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
-			@RequestParam(ControllerAPI.DEVICE_NAME) String deviceName,
-			@RequestParam("positionPercentage") String positionPercentage,
-			@RequestParam(name = Y_POS, required = false) String y) {
-		saveYPos(userCookie, y);
-		controllerAPI.shuttersetposition(Device.valueOf(deviceName), Integer.parseInt(positionPercentage));
-		return REDIRECT + Pages.PATH_HOME;
-	}
-
-	@RequestMapping("/settingspushtoggle")
-	public String settingspushtoggle(@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie) {
-		controllerAPI.settingspushtoggle(userCookie);
-		return REDIRECT + Pages.PATH_SETTINGS;
-	}
-
-	@RequestMapping("/settingpushoverdevice")
-	public String settingspushover(@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
-			@RequestParam("pushoverDevice") String pushoverDevice) {
-		controllerAPI.settingspushover(userCookie, pushoverDevice);
-		return REDIRECT + Pages.PATH_SETTINGS;
 	}
 
 	@RequestMapping("/textquery")
@@ -159,7 +138,7 @@ public class HomeRequestMapping {
 	@RequestMapping(Pages.PATH_LINKS)
 	public String links(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie) {
 		fillMenu(Pages.PATH_LINKS, model);
-		fillUserAttributes(model, userCookie, null);
+		fillUserAttributes(model, userCookie, ViewAttributesDAO.Y_POS_HOME);
 		houseView.fillLinks(model);
 		return Pages.getEntry(Pages.PATH_LINKS).getTemplate();
 	}
@@ -167,7 +146,7 @@ public class HomeRequestMapping {
 	@RequestMapping(Pages.PATH_SETTINGS)
 	public String settings(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie) {
 		fillMenu(Pages.PATH_SETTINGS, model);
-		fillUserAttributes(model, userCookie, null);
+		fillUserAttributes(model, userCookie, ViewAttributesDAO.Y_POS_HOME);
 		String user = ExternalPropertiesDAO.getInstance().read(userCookie);
 		SettingsModel settings = ModelObjectDAO.getInstance().readSettingsModels(user);
 		settingsView.fillSettings(model, settings);

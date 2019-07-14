@@ -56,8 +56,9 @@ import homecontroller.domain.model.Window;
 @Component
 public class HouseViewService {
 
+	public static final String MESSAGEPATH = "/message?"; // NOSONAR
+
 	private static final String DEGREE = "\u00b0";
-	private static final String MESSAGEPATH = "/message?"; // NOSONAR
 	private static final String TOGGLE_STATE = MESSAGEPATH + "type=" + MessageType.TOGGLESTATE
 			+ "&deviceName=";
 	private static final String TOGGLE_AUTOMATION = MESSAGEPATH + "type=" + MessageType.TOGGLEAUTOMATION

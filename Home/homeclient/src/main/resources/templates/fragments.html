@@ -33,7 +33,6 @@
 
 <th:block th:fragment="scriptresources (yPos)">
 	<script type="text/javascript" src="/webjars/bootstrap/js/bootstrap.min.js"></script>
-	<script type="text/javascript" src="/webjars/github-com-BoxFactura-pulltorefresh-js/pulltorefresh.min.js"></script>
 	
 	<script th:if="${!#strings.isEmpty(yPos)}">
 		var y = parseInt("[[${yPos}]]");
@@ -91,9 +90,11 @@
 		
 		var autoRefresh = null;
 		var lastRefresh = (new Date).getTime();
-		setAutoRefresh();
 		
 		if (element !== null && element.value !== '') {
+			
+			setAutoRefresh();
+
 			// onfocus
 			document.getElementById('idbody').onfocus = function(){
 				doAutoRefresh();
@@ -107,19 +108,6 @@
 	</script>
 	
 </th:block>
-
-<script th:fragment="pulltorefresh">
-	var ptr = PullToRefresh.init({
-		  mainElement: 'body',
-		  instructionsPullToRefresh: 'Ziehen zum aktualisieren',
-		  instructionsReleaseToRefresh: 'Loslassen zum aktualisieren',
-		  instructionsRefreshing: 'aktualisieren...',
-		  distThreshold: '120',
-		  distMax: '140',
-		  distReload: '110',
-		  onRefresh: function(){ doAutoRefresh(); }
-		});
-</script>
 
 <body>
 

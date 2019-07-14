@@ -12,13 +12,17 @@ public class SettingsModel implements Serializable {
 
 	private String user;
 
-	private boolean pushActive;
+	private boolean pushHints;
+
+	private boolean hintsHysteresis;
+
+	private boolean pushDoorbell;
 
 	private String pushoverApiToken;
 
 	private String pushoverUserId;
 
-	private String pushoverDevice;
+	private String clientName;
 
 	public String getPushoverApiToken() {
 		return pushoverApiToken;
@@ -36,28 +40,44 @@ public class SettingsModel implements Serializable {
 		this.pushoverUserId = pushoverUserId;
 	}
 
-	public String getPushoverDevice() {
-		return pushoverDevice;
-	}
-
-	public void setPushoverDevice(String pushoverDevice) {
-		this.pushoverDevice = pushoverDevice;
-	}
-
-	public boolean isPushActive() {
-		return pushActive;
-	}
-
-	public void setPushActive(boolean pushActive) {
-		this.pushActive = pushActive;
-	}
-
 	public String getUser() {
 		return user;
 	}
 
 	public void setUser(String user) {
 		this.user = user;
+	}
+
+	public String getClientName() {
+		return clientName;
+	}
+
+	public void setClientName(String clientName) {
+		this.clientName = clientName;
+	}
+
+	public boolean isPushHints() {
+		return pushHints;
+	}
+
+	public void setPushHints(boolean pushHints) {
+		this.pushHints = pushHints;
+	}
+
+	public boolean isHintsHysteresis() {
+		return hintsHysteresis;
+	}
+
+	public void setHintsHysteresis(boolean hintsHysteresis) {
+		this.hintsHysteresis = hintsHysteresis;
+	}
+
+	public boolean isPushDoorbell() {
+		return pushDoorbell;
+	}
+
+	public void setPushDoorbell(boolean pushDoorbell) {
+		this.pushDoorbell = pushDoorbell;
 	}
 
 }

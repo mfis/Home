@@ -93,7 +93,7 @@ public class PushService {
 			for (SettingsModel settingsModel : settingsModels) {
 				pushMessages.add(PushoverMessage.builderWithApiToken(settingsModel.getPushoverApiToken()) //
 						.setUserId(settingsModel.getPushoverUserId()) //
-						.setDevice(settingsModel.getPushoverDevice()) //
+						.setDevice(settingsModel.getClientName()) //
 						.setMessage(msgString) //
 						.setPriority(MessagePriority.NORMAL) //
 						.setTitle("Zuhause - Empfehlungen") //
@@ -117,7 +117,7 @@ public class PushService {
 							.atZone(ZoneId.systemDefault()).toLocalDate());
 			pushMessages.add(PushoverMessage.builderWithApiToken(settingsModel.getPushoverApiToken()) //
 					.setUserId(settingsModel.getPushoverUserId()) //
-					.setDevice(settingsModel.getPushoverDevice()) //
+					.setDevice(settingsModel.getClientName()) //
 					.setMessage("Türklingelbetätigung um " + time + " Uhr") //
 					.setPriority(MessagePriority.HIGH) //
 					.setTitle("Zuhause - Türklingel") //

@@ -54,7 +54,7 @@ public class HistoryService {
 	}
 
 	@Scheduled(cron = "5 0 0 * * *")
-	private void refreshHistoryModelComplete() {
+	public void refreshHistoryModelComplete() {
 
 		HistoryModel oldModel = ModelObjectDAO.getInstance().readHistoryModel();
 		if (oldModel != null) {

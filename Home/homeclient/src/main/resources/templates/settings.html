@@ -1,41 +1,62 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
 
-	<head th:replace="fragments :: head (name=${MENU_SELECTED.name})"></head>
-	
-	<body>
-	
-		<div
-			th:replace="fragments :: navigation (selected=${MENU_SELECTED}, selectable=${MENU_SELECTABLE})"></div>
-	
-		<div class="container">
-	
-			<h3>Anwender: <span class="badge badge-secondary" th:text="${USER_NAME}"></span></h3>
-	
-			<div style="height: 10px;"></div>
-	
-			<!-- Push -->
-			<div th:replace="fragments :: title (name='Push-Nachrichten')"></div>
-			<div th:replace="fragments :: switch (model=${switchPush})"></div>
-	
-			<!-- Pushover -->
-			<div th:replace="fragments :: title (name='Pushover Account')"></div>
-			<div class="alert alert-secondary" role="alert">
-				<form th:action="${switchPushover_link}" method="post">
-					<div class="form-group">
-						<div style="height: 7px;"></div>	
-						<label for="pushoverDevice">Empfänger Gerät</label> <input
-							type="text" class="form-control" id="pushoverDevice" name="pushoverDevice"
-							placeholder="" th:value="${textPushoverDevice}">										 
-					</div>
-					<button type="submit" class="btn btn-secondary" th:text="'Speichern'"></button>
-				</form>		
-			</div>
-		</div>
-	
-	</body>
+<head th:replace="fragments :: head (name=${MENU_SELECTED.name})"></head>
 
-	<div th:replace="fragments :: scriptresources (yPos=${yPos})"></div>
-	<div th:replace="fragments :: pulltorefresh"></div>
-	
+<body>
+
+	<div
+		th:replace="fragments :: navigation (selected=${MENU_SELECTED}, selectable=${MENU_SELECTABLE})"></div>
+
+	<div class="container">
+
+		<h3>
+			Anwender: <span class="badge badge-success" th:text="${USER_NAME}"></span>
+		</h3>
+
+		<div style="height: 10px;"></div>
+
+		<!-- Geräte-Name -->
+		<div th:replace="fragments :: title (name='Pushover Account')"></div>
+		<div class="alert alert-secondary" role="alert">
+			<div class="form-group">
+				<label for="clientName">Geräte-Name</label> <input type="text"
+					class="form-control" id="clientName" th:value="${clientName}"
+					aria-describedby="clientName" placeholder="Geräte-Name">
+			</div>
+			<button type="button" th:onclick="@{'sendClientName()'}"
+				class="btn btn-secondary btn-sm" th:text="'Übernehmen'"></button>
+			<script type="text/javascript">
+				function sendClientName() {
+					showSpinner();
+					window.location.href = "[(${linkClientName})]"
+							+ document.getElementById('clientName').value
+							+ "&y=" + window.scrollY;
+				}
+			</script>
+			
+		</div>
+
+		<!-- Hints -->
+		<div th:replace="fragments :: title (name='Push Empfehlungen')"></div>
+		<div th:replace="fragments :: switch (model=${pushHints})"></div>
+
+		<!-- Hysteresis -->
+		<div th:replace="fragments :: title (name='Push Empfehlungs-Hysterese')"></div>
+		<div th:replace="fragments :: switch (model=${pushHintsHysteresis})"></div>
+
+		<!-- Doorbell -->
+		<div th:replace="fragments :: title (name='Push Türklingel')"></div>
+		<div th:replace="fragments :: switch (model=${pushDoorbell})"></div>
+
+		<div style="height: 40px;"></div>
+	</div>
+
+	<div th:replace="fragments :: footer (text='')"></div>
+
+</body>
+
+<div th:replace="fragments :: scriptresources (yPos=${yPos})"></div>
+<div th:replace="fragments :: pulltorefresh"></div>
+
 </html>
