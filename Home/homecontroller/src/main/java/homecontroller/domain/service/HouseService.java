@@ -3,6 +3,7 @@ package homecontroller.domain.service;
 import java.math.BigDecimal;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.CompletableFuture;
 
 import javax.annotation.PostConstruct;
 
@@ -31,7 +32,6 @@ import homecontroller.domain.model.Tendency;
 import homecontroller.domain.model.Type;
 import homecontroller.domain.model.ValueWithTendency;
 import homecontroller.domain.model.Window;
-import homecontroller.request.CCURequestMapping;
 import homecontroller.service.CameraService;
 import homecontroller.service.HomematicAPI;
 import homecontroller.service.PushService;
@@ -80,20 +80,27 @@ public class HouseService {
 
 	@PostConstruct
 	public void init() {
-
-		try {
-			refreshHouseModel(false);
-		} catch (Exception e) {
-			LogFactory.getLog(HouseService.class).error("Could not initialize HouseService completly.", e);
-		}
+		CompletableFuture.runAsync(() -> {
+			try {
+				refreshHouseModel();
+			} catch (Exception e) {
+				LogFactory.getLog(HouseService.class).error("Could not initialize HouseService completly.",
+						e);
+			}
+		});
 	}
 
 	@Scheduled(fixedDelay = (1000 * 60))
 	private void scheduledRefreshHouseModel() {
-		refreshHouseModel(false);
+		refreshHouseModel();
 	}
 
-	public synchronized void refreshHouseModel(boolean notify) {
+	public synchronized void notifyAboutCcuProgramCompletion() {
+		LogFactory.getLog(HouseService.class).warn("notifyAboutCcuProgramCompletion"); // FIXME:
+		REFRESH_MONITOR.notifyAll();
+	}
+
+	public synchronized void refreshHouseModel() {
 
 		HouseModel oldModel = ModelObjectDAO.getInstance().readHouseModel();
 
@@ -101,19 +108,12 @@ public class HouseService {
 		calculateConclusion(oldModel, newModel);
 		ModelObjectDAO.getInstance().write(newModel);
 
-		if (notify) {
-			synchronized (REFRESH_MONITOR) {
-				LogFactory.getLog(CCURequestMapping.class).warn("NOTIFY"); // FIXME:
-				REFRESH_MONITOR.notifyAll();
-			}
-		}
-
 		calculateHints(newModel);
 
-		pushService.send(oldModel, newModel);
+		pushService.send(oldModel, newModel); // async
 		uploadService.upload(newModel);
 
-		updateCameraPictures(oldModel, newModel);
+		updateCameraPictures(oldModel, newModel); // async
 		updateHomematicSystemVariables(oldModel, newModel);
 	}
 
@@ -360,12 +360,10 @@ public class HouseService {
 
 	public void togglestate(Device device, boolean value) {
 		api.changeBooleanState(device.accessKeyXmlApi(Datapoint.STATE), value);
-		refreshHouseModel(false);
 	}
 
 	public void toggleautomation(Device device, AutomationState value) {
 		api.changeBooleanState(device.programNamePrefix() + AUTOMATIC, value.isBooleanValue());
-		refreshHouseModel(false);
 	}
 
 	public synchronized void heatingBoost(Device device) throws InterruptedException {
@@ -388,9 +386,9 @@ public class HouseService {
 			// Just trying to wait for notification from CCU.
 			// It's no big problem if this is the wrong notification.
 			// We're only showing once the old value.
-			LogFactory.getLog(HouseService.class).warn("WAITING"); // FIXME:
+			LogFactory.getLog(HouseService.class).warn("heatingManual WAITING"); // FIXME:
 			REFRESH_MONITOR.wait(REFRESH_TIMEOUT); // NOSONAR
-			LogFactory.getLog(HouseService.class).warn("NOTIFIED"); // FIXME:
+			LogFactory.getLog(HouseService.class).warn("heatingManual NOTIFIED"); // FIXME:
 		}
 	}
 

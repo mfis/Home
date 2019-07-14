@@ -2,10 +2,7 @@ package homecontroller.service;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-
-import javax.annotation.PostConstruct;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -39,8 +36,8 @@ public class ClientCommunicationService {
 	@Autowired
 	private HouseService houseService;
 
-	@Autowired
-	private CameraService cameraService;
+	// @Autowired
+	// private CameraService cameraService;
 
 	@Autowired
 	private SettingsService settingsService;
@@ -56,23 +53,11 @@ public class ClientCommunicationService {
 
 	private static final Log LOG = LogFactory.getLog(ClientCommunicationService.class);
 
-	@PostConstruct
-	public void init() {
-		try {
-			refreshAll();
-		} catch (Exception e) {
-			LogFactory.getLog(ClientCommunicationService.class)
-					.error("Could not initialize ClientCommunicationService completly.", e);
-		}
-	}
-
 	@Scheduled(fixedDelay = 1)
 	private void longPolling() {
 		Message message = pollForMessage();
 		if (message != null) {
-			CompletableFuture.runAsync(() -> {
-				handle(message);
-			});
+			handle(message);
 		}
 	}
 
@@ -86,19 +71,19 @@ public class ClientCommunicationService {
 			case TOGGLEAUTOMATION:
 				houseService.toggleautomation(message.getDevice(),
 						AutomationState.valueOf(message.getValue()));
-				uploadService.upload(ModelObjectDAO.getInstance().readHouseModel());
+				houseService.refreshHouseModel();
 				break;
 			case TOGGLESTATE:
 				houseService.togglestate(message.getDevice(), Boolean.valueOf(message.getValue()));
-				// uploadService.upload(ModelObjectDAO.getInstance().readHouseModel());
+				houseService.refreshHouseModel();
 				break;
 			case HEATINGBOOST:
 				houseService.heatingBoost(message.getDevice());
-				// uploadService.upload(ModelObjectDAO.getInstance().readHouseModel());
+				houseService.refreshHouseModel();
 				break;
 			case HEATINGMANUAL:
 				houseService.heatingManual(message.getDevice(), new BigDecimal(message.getValue()));
-				// uploadService.upload(ModelObjectDAO.getInstance().readHouseModel());
+				houseService.refreshHouseModel();
 				break;
 			default:
 				throw new IllegalStateException("Unknown MessageType:" + message.getMessageType().name());

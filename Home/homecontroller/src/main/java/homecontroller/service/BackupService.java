@@ -28,7 +28,7 @@ public class BackupService {
 	private static final Log LOG = LogFactory.getLog(BackupService.class);
 
 	@PostConstruct
-	public void postConstruct() {
+	public void init() {
 		CompletableFuture.runAsync(() -> {
 			backup();
 		});

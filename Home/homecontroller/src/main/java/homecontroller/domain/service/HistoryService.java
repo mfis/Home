@@ -8,6 +8,7 @@ import java.time.YearMonth;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import javax.annotation.PostConstruct;
 
@@ -42,13 +43,14 @@ public class HistoryService {
 
 	@PostConstruct
 	public void init() {
-
-		try {
-			refreshHistoryModelComplete();
-		} catch (Exception e) {
-			LogFactory.getLog(HistoryService.class).error("Could not initialize HistoryService completly.",
-					e);
-		}
+		CompletableFuture.runAsync(() -> {
+			try {
+				refreshHistoryModelComplete();
+			} catch (Exception e) {
+				LogFactory.getLog(HistoryService.class)
+						.error("Could not initialize HistoryService completly.", e);
+			}
+		});
 	}
 
 	@Scheduled(cron = "5 0 0 * * *")

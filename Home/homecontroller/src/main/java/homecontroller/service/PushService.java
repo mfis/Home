@@ -40,7 +40,7 @@ public class PushService {
 	private static final Log LOG = LogFactory.getLog(PushService.class);
 
 	@PostConstruct
-	public void postConstruct() {
+	public void init() {
 		pushClient = new PushoverRestClient();
 	}
 
@@ -144,7 +144,6 @@ public class PushService {
 	private void sendMessages(PushoverMessage message) {
 
 		CompletableFuture.runAsync(() -> {
-
 			try {
 				Status result = pushClient.pushMessage(message); //
 

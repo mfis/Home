@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
 
 import javax.annotation.PostConstruct;
 
@@ -85,14 +86,16 @@ public class HouseViewService {
 
 	@PostConstruct
 	public void init() {
-		try {
-			Message message = new Message();
-			message.setMessageType(MessageType.REFRESH_ALL_MODELS);
-			MessageQueue.getInstance().request(message, false);
-		} catch (Exception e) {
-			LogFactory.getLog(HouseViewService.class)
-					.error("Could not initialize HouseViewService completly.", e);
-		}
+		CompletableFuture.runAsync(() -> {
+			try {
+				Message message = new Message();
+				message.setMessageType(MessageType.REFRESH_ALL_MODELS);
+				MessageQueue.getInstance().request(message, false);
+			} catch (Exception e) {
+				LogFactory.getLog(HouseViewService.class)
+						.error("Could not initialize HouseViewService completly.", e);
+			}
+		});
 	}
 
 	public void fillViewModel(Model model, HouseModel house) {
