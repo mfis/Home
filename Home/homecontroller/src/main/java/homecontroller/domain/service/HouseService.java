@@ -98,7 +98,6 @@ public class HouseService {
 	}
 
 	public void notifyAboutCcuProgramCompletion() {
-		LogFactory.getLog(HouseService.class).warn("notifyAboutCcuProgramCompletion"); // FIXME:
 		notifyQueue.add(true);
 	}
 
@@ -379,9 +378,7 @@ public class HouseService {
 			throws InterruptedException {
 		api.changeString(device.programNamePrefix() + "Temperature", temperature.toString());
 		api.runProgram(device.programNamePrefix() + "Manual");
-		LogFactory.getLog(HouseService.class).warn("heatingManual WAITING"); // FIXME:
 		notifyQueue.poll(REFRESH_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-		LogFactory.getLog(HouseService.class).warn("heatingManual NOTIFIED"); // FIXME:
 	}
 
 	private void updateHomematicSystemVariables(HouseModel oldModel, HouseModel newModel) {

@@ -1,6 +1,5 @@
 package homecontroller.request;
 
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -17,7 +16,6 @@ public class CCURequestMapping {
 
 	@GetMapping("/controller/refresh")
 	public ActionModel refresh(@RequestParam("notify") String notifyString) {
-		LogFactory.getLog(CCURequestMapping.class).warn("/controller/refresh " + notifyString); // FIXME:
 		houseService.notifyAboutCcuProgramCompletion();
 		return new ActionModel("OK");
 	}
