@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
 
@@ -58,8 +60,8 @@ public class HouseService {
 
 	private static final long HINT_TIMEOUT_MINUTES_AFTER_BOOST = 90L;
 
-	private static final Object REFRESH_MONITOR = new Object();
-	private static final long REFRESH_TIMEOUT = 10L * 1000L; // 10 sec
+	private LinkedBlockingQueue<Boolean> notifyQueue = new LinkedBlockingQueue<>(1000);
+	private static final int REFRESH_TIMEOUT_SECONDS = 10;
 
 	private static final String AUTOMATIC = "Automatic";
 
@@ -95,9 +97,9 @@ public class HouseService {
 		refreshHouseModel();
 	}
 
-	public synchronized void notifyAboutCcuProgramCompletion() {
+	public void notifyAboutCcuProgramCompletion() {
 		LogFactory.getLog(HouseService.class).warn("notifyAboutCcuProgramCompletion"); // FIXME:
-		REFRESH_MONITOR.notifyAll();
+		notifyQueue.add(true);
 	}
 
 	public synchronized void refreshHouseModel() {
@@ -368,12 +370,7 @@ public class HouseService {
 
 	public synchronized void heatingBoost(Device device) throws InterruptedException {
 		api.runProgram(device.programNamePrefix() + "Boost");
-		synchronized (REFRESH_MONITOR) {
-			// Just trying to wait for notification from CCU.
-			// It's no big problem if this is the wrong notification.
-			// We're only howing once the old value.
-			REFRESH_MONITOR.wait(REFRESH_TIMEOUT); // NOSONAR
-		}
+		notifyQueue.poll(REFRESH_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 	}
 
 	// needs to be synchronized because of using ccu-systemwide temperature
@@ -382,14 +379,9 @@ public class HouseService {
 			throws InterruptedException {
 		api.changeString(device.programNamePrefix() + "Temperature", temperature.toString());
 		api.runProgram(device.programNamePrefix() + "Manual");
-		synchronized (REFRESH_MONITOR) {
-			// Just trying to wait for notification from CCU.
-			// It's no big problem if this is the wrong notification.
-			// We're only showing once the old value.
-			LogFactory.getLog(HouseService.class).warn("heatingManual WAITING"); // FIXME:
-			REFRESH_MONITOR.wait(REFRESH_TIMEOUT); // NOSONAR
-			LogFactory.getLog(HouseService.class).warn("heatingManual NOTIFIED"); // FIXME:
-		}
+		LogFactory.getLog(HouseService.class).warn("heatingManual WAITING"); // FIXME:
+		notifyQueue.poll(REFRESH_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+		LogFactory.getLog(HouseService.class).warn("heatingManual NOTIFIED"); // FIXME:
 	}
 
 	private void updateHomematicSystemVariables(HouseModel oldModel, HouseModel newModel) {
