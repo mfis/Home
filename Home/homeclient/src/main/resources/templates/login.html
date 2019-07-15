@@ -1,47 +1,48 @@
 <html xmlns:th="http://www.thymeleaf.org">
 
-<head th:replace="fragments :: head (name='Zuhause - Login')"></head>
-
-<body>
-
-	<div th:if="${!#strings.isEmpty(loginMessage)}" th:class="'alert alert-danger'">
-		<a th:text="${loginMessage}">title</a>
-	</div>
+	<head th:replace="basics :: head (name='Zuhause')"></head>
 	
-	<br/>
-
-	<div th:replace="fragments :: title (name='Home - Anmeldung')"></div>
-
-	<form name="f" th:action="'/'" method="post">
+	<body style="background:#fffafa;" id="idbody">
 	
-		<div th:class="'alert alert-secondary'">
-			<fieldset>
-				<label for="username">Benutzername</label> 
-				<br/>
-				<input type="text" id="username" name="login_username" /> 
-				<br/>
-				<label for="password">Passwort</label>
-				<br/>
-				<input type="password" id="password" name="login_password" />
-				<br/>
-				<br/>
-				
-				<a><b>Cookie-Information:</b><br/>Diese Internetseite verwendet so genannte Cookies. <br/>Um mehr zu erfahren, klicken Sie bitte hier:</a>
-				<p/>
-				<a th:href="${lawLink}" target="_blank">Impressum und Datenschutzerkl&auml;rung</a><br/><br/>
-				<input type="checkbox" id="cookiecheck" name="login_cookieok" value="true"></input>
-				<label for="cookiecheck">Ich bin einverstanden</label>
-				<br/>
-								
-				<div class="form-actions">
-					<button type="submit" class="bbtn btn-secondary btn-smtn">anmelden</button>
-				</div>
-				
-			</fieldset>
+		<div th:if="${!#strings.isEmpty(loginMessage)}" th:class="'alert alert-danger'">
+			<a th:text="${loginMessage}">title</a>
 		</div>
-	</form>
+		
+		<br/>
+	
+		<div th:replace="fragments :: title (name='Home - Anmeldung')"></div>
+	
+		<form name="f" th:action="'/'" method="post">
+		
+			<div th:class="'alert alert-secondary'">
+				<fieldset>
+					<label for="username">Benutzername</label> 
+					<br/>
+					<input type="text" id="username" name="login_username" /> 
+					<br/>
+					<label for="password">Passwort</label>
+					<br/>
+					<input type="password" id="password" name="login_password" />
+					<br/>
+					<br/>
+					
+					<a><b>Cookie-Information:</b><br/>Diese Internetseite verwendet so genannte Cookies. <br/>Um mehr zu erfahren, klicken Sie bitte hier:</a>
+					<p/>
+					<a th:href="${lawLink}" target="_blank">Impressum und Datenschutzerkl&auml;rung</a><br/><br/>
+					<input type="checkbox" id="cookiecheck" name="login_cookieok" value="true"></input>
+					<label for="cookiecheck">Ich bin einverstanden</label>
+					<br/>
+									
+					<div class="form-actions">
+						<button type="submit" class="bbtn btn-secondary btn-smtn">anmelden</button>
+					</div>
+					
+				</fieldset>
+			</div>
+		</form>
+	
+	</body>
+	
+	<div th:replace="basics :: scriptresources"></div>
 
-	<div th:replace="fragments :: scriptresources (yPos='')"></div>
-
-</body>
 </html>

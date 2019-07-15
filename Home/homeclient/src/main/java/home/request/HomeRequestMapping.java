@@ -35,8 +35,6 @@ import homelibrary.dao.ModelObjectDAO;
 @Controller
 public class HomeRequestMapping {
 
-	private static final String Y_POS = "y";
-
 	private static final String REDIRECT = "redirect:";
 
 	private static final DateTimeFormatter TS_FORMATTER = DateTimeFormatter
@@ -81,7 +79,7 @@ public class HomeRequestMapping {
 	@RequestMapping("/history")
 	public String history(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
 			@RequestParam(name = "key", required = false) String key) {
-		fillUserAttributes(model, userCookie, null);
+		fillUserAttributes(model, userCookie);
 		houseView.fillHistoryViewModel(model, ModelObjectDAO.getInstance().readHistoryModel(), key);
 		return "history";
 	}
@@ -125,7 +123,7 @@ public class HomeRequestMapping {
 	public String homePage(Model model,
 			@CookieValue(name = LoginInterceptor.COOKIE_NAME, required = false) String userCookie) {
 		fillMenu(Pages.PATH_HOME, model);
-		fillUserAttributes(model, userCookie, ViewAttributesDAO.Y_POS_HOME);
+		fillUserAttributes(model, userCookie);
 		HouseModel houseModel = ModelObjectDAO.getInstance().readHouseModel();
 		if (houseModel == null) {
 			return "error";
@@ -138,7 +136,7 @@ public class HomeRequestMapping {
 	@RequestMapping(Pages.PATH_LINKS)
 	public String links(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie) {
 		fillMenu(Pages.PATH_LINKS, model);
-		fillUserAttributes(model, userCookie, ViewAttributesDAO.Y_POS_HOME);
+		fillUserAttributes(model, userCookie);
 		houseView.fillLinks(model);
 		return Pages.getEntry(Pages.PATH_LINKS).getTemplate();
 	}
@@ -146,28 +144,17 @@ public class HomeRequestMapping {
 	@RequestMapping(Pages.PATH_SETTINGS)
 	public String settings(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie) {
 		fillMenu(Pages.PATH_SETTINGS, model);
-		fillUserAttributes(model, userCookie, ViewAttributesDAO.Y_POS_HOME);
+		fillUserAttributes(model, userCookie);
 		String user = ExternalPropertiesDAO.getInstance().read(userCookie);
 		SettingsModel settings = ModelObjectDAO.getInstance().readSettingsModels(user);
 		settingsView.fillSettings(model, settings);
 		return Pages.getEntry(Pages.PATH_SETTINGS).getTemplate();
 	}
 
-	private void saveYPos(String userCookie, String y) {
-		if (y != null && userCookie != null) {
-			String user = ExternalPropertiesDAO.getInstance().read(userCookie);
-			ViewAttributesDAO.getInstance().push(user, ViewAttributesDAO.Y_POS_HOME, y);
-		}
-	}
-
-	private void fillUserAttributes(Model model, String userCookie, String yPosAttribute) {
+	private void fillUserAttributes(Model model, String userCookie) {
 		String user = ExternalPropertiesDAO.getInstance().read(userCookie);
 		if (user != null) {
 			model.addAttribute(ViewAttributesDAO.USER_NAME, user);
-			if (yPosAttribute != null) {
-				String y = ViewAttributesDAO.getInstance().pull(user, yPosAttribute);
-				model.addAttribute("yPos", StringUtils.trimToEmpty(y));
-			}
 		}
 	}
 

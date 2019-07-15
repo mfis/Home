@@ -1,26 +1,28 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
 
-<head th:replace="fragments :: head (name='Home - Fehler')"></head>
-
-<body>
-
-	<div class="container">
-		<div style="height: 20px;"></div>
-		<div th:class="'alert alert-danger'">
-			<h4>Es ist ein Fehler aufgetreten.</h4>
+	<head th:replace="basics :: head (name='Home - Fehler')"></head>
+	
+	<body>
+	
+		<div class="container">
+			<div style="height: 20px;"></div>
+			<div th:class="'alert alert-danger'">
+				<h4>Es ist ein Fehler aufgetreten.</h4>
+			</div>
+			<button type="button" th:onclick="@{'back()'}"  class="btn btn-secondary" th:text="'zurück'"></button>
 		</div>
-		<button type="button" th:onclick="@{'back()'}"  class="btn btn-secondary" th:text="'zurück'"></button>
-	</div>
+	
+		<script type="text/javascript">
+			function back(){
+				window.location.href = "/";
+			}			
+		</script>
+		
+		<div th:replace="basics :: footer (text='')"></div>
+	
+	</body>
+	
+	<div th:replace="basics :: scriptresources"></div>
 
-	<div th:replace="fragments :: scriptresources (yPos='')"></div>
-	<div th:replace="fragments :: pulltorefresh"></div>
-
-	<script type="text/javascript">
-		function back(){
-			window.location.href = "/";
-		}			
-	</script>
-
-</body>
 </html>

@@ -1,0 +1,185 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:fragment="head (name)">
+	<title th:text="${name}">Titel</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta name="viewport" content="width = device-width, height = device-height, initial-scale=1, minimum-scale = 1.0, maximum-scale = 1.0, viewport-fit=cover"></meta>
+	<meta http-equiv="expires" content="0"></meta>
+	<meta name="mobile-web-app-capable" content="yes"></meta>
+	<meta name="apple-mobile-web-app-capable" content="yes"></meta>
+	<meta name="apple-mobile-web-app-status-bar-style" content="black"></meta>
+	
+	<link rel="apple-touch-icon" sizes="72x72" href="apple-touch-icon-72x72.png"></link>
+	<link rel="apple-touch-icon" sizes="76x76" href="apple-touch-icon-76x76.png"></link>
+	<link rel="apple-touch-icon" sizes="114x114" href="apple-touch-icon-114x114.png" ></link>
+	<link rel="apple-touch-icon" sizes="120x120" href="apple-touch-icon-120x120.png"></link>
+	<link rel="apple-touch-icon" sizes="144x144" href="apple-touch-icon-144x144.png"></link>
+	<link rel="apple-touch-icon" sizes="152x152" href="apple-touch-icon-152x152.png"></link>
+	<link rel="apple-touch-icon" sizes="167x167" href="apple-touch-icon-167x167.png"></link>
+	<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon-180x180.png"></link>
+	<link rel="icon" href="favicon.ico" type="image/x-icon"></link>
+	<link rel="icon" sizes="152x152" href="apple-touch-icon-152x152.png">
+	<link rel="icon" sizes="180x180" href="apple-touch-icon-180x180.png">
+	<link rel="shortcut icon" href="favicon.ico"></link>
+	
+	<link rel='stylesheet' href='style.css'/>
+	
+	<link rel='stylesheet' href='/webjars/bootstrap/css/bootstrap.min.css'/>
+	
+	<link rel="stylesheet" href="/webjars/font-awesome/css/all.min.css" crossorigin="anonymous"/>
+	<script type="text/javascript" src="/webjars/jquery/jquery.min.js"></script>
+</head>
+
+<th:block th:fragment="scriptresources">
+
+	<script type="text/javascript" src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+
+	<script>
+	
+		function refreshContent(){
+			if(navigator.onLine){
+				showSpinner();
+				var httpRequest = new XMLHttpRequest();
+				httpRequest.open('GET', window.location);
+				httpRequest.send();
+				httpRequest.onreadystatechange=(e)=>{
+					if (httpRequest.readyState == 4) {
+						if(httpRequest.status == 200){
+							var doc = new DOMParser().parseFromString(httpRequest.responseText, "text/html");
+							document.getElementById('idbody').innerHTML = doc.getElementById('idbody').innerHTML;
+							lastRefresh = (new Date).getTime();
+							showCheck();
+						}else{
+							showOffline();
+						}
+					}
+				}	
+			}else{
+				showOffline();
+			}
+		}
+		
+		function showCheck(){
+			if (document.getElementById('footer') !== null ) {
+				document.getElementById('navbarcheck').style.display = 'inline';
+				document.getElementById('navbarspinner').style.display = 'none';
+				document.getElementById('navbaroffline').style.display = 'none';
+			}
+		}	
+		function showSpinner(){
+			if (document.getElementById('footer') !== null ) {
+				document.getElementById('navbarcheck').style.display = 'none';
+				document.getElementById('navbarspinner').style.display = 'inline';
+				document.getElementById('navbaroffline').style.display = 'none';
+			}			
+		}
+		function showOffline(){
+			if (document.getElementById('footer') !== null ) {
+				document.getElementById('navbarcheck').style.display = 'none';
+				document.getElementById('navbarspinner').style.display = 'none';
+				document.getElementById('navbaroffline').style.display = 'inline';
+			}			
+		}		
+		
+	</script>
+
+</th:block>
+
+<th:block th:fragment="autorefresh">
+	
+	<script>
+		function setAutoRefresh(){
+			unsetAutoRefresh();
+			autoRefresh = setTimeout(doAutoRefresh, 1000 * 10);
+		}
+		function unsetAutoRefresh(){
+			if(autoRefresh !== null){
+				clearTimeout(autoRefresh);
+				autoRefresh = null;
+			}
+		}	
+		function doAutoRefresh(){
+			
+			if(document.hasFocus() && $('.modal.fade.show').length === 0 && ((new Date).getTime() - lastRefresh > (1000))){
+				refreshContent();
+			}
+			if(document.hasFocus()){
+				setAutoRefresh();
+			}
+		}
+	</script>	
+	
+	<script>
+		var element = document.getElementById('idbody');
+		
+		var autoRefresh = null;
+		var lastRefresh = (new Date).getTime();
+		setAutoRefresh();
+		
+		if (element !== null && element.value !== '') {
+			// onfocus
+			document.getElementById('idbody').onfocus = function(){
+				doAutoRefresh();
+				setAutoRefresh();			
+			};
+			// onblur
+			document.getElementById('idbody').onblur = function(){
+				unsetAutoRefresh();			
+			};			
+		}
+	</script>
+	
+</th:block>
+
+<body>
+
+	<!-- Navigation -->
+	<div th:fragment="navigation (selected, selectable)">
+		<nav class="navbar fixed-top navbar-expand-lg navbar-light py-1" style="background-color: #F5F5F5; border-bottom: 4px solid #C0C0C0;">
+			
+			<a class="navbar-brand" href="#">
+				<span><i th:class="${selected.icon}"></i></span>
+				<span th:text="${selected.name}"></span>
+			</a>
+			
+			<button class="navbar-toggler" type="button" data-toggle="collapse"
+				data-target="#navbarSupportedContent"
+				aria-controls="navbarSupportedContent" aria-expanded="false"
+				aria-label="Toggle navigation">
+				<span class="navbar-toggler-icon-"><i class="fas fa-bars"></i></span>
+			</button>
+			<div class="collapse navbar-collapse" id="navbarSupportedContent">
+				<ul class="navbar-nav mr-auto">
+					<th:block th:each="entry : ${selectable}">
+					<li class="nav-item" style="cursor:pointer"><a class="nav-link" th:onclick="@{'menu_' + ${entry.name} + '()'}"
+						th:text="${entry.name}">name</a></li>
+					</th:block>
+				</ul>
+			</div>
+			<th:block th:each="entry : ${selectable}">
+				<script type="text/javascript">
+					function menu_[[${entry.name}]](){
+						window.location.href = "[[${entry.path}]]";
+					}		
+				</script>		
+			</th:block>
+		</nav>
+		<div style="height: 68px;"></div>
+	</div>
+	
+	<!-- Footer -->
+	<div th:fragment="footer (text)">
+		<nav id="footer" class="navbar navbar-nav navbar-center fixed-bottom navbar-light" style="background-color: #F5F5F5; border-top: 4px solid #C0C0C0;">
+			<a class="text-muted font-weight-light" style="font-size: 85%;">
+				<span th:text="${text}"></span>
+				<span>&thinsp;</span>
+				<span style="display:none;" id="navbarcheck"><i class="far fa-check-circle"></i></span>
+				<span style="display:none;" id="navbarspinner"><i class="fa fa-spinner fa-spin text-dark"></i></span>
+				<span style="display:none;" id="navbaroffline"><i class="fas fa-exclamation-triangle text-danger"></i></span>
+			</a>
+		</nav>
+	</div>	
+
+</body>
+</html>

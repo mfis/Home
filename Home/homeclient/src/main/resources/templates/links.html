@@ -1,12 +1,12 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
 
-	<head th:replace="fragments :: head (name=${MENU_SELECTED.name})"></head>
+	<head th:replace="basics :: head (name=${MENU_SELECTED.name})"></head>
 
-	<body>
+	<body style="background:#fffafa;" id="idbody">
 	
 		<div
-			th:replace="fragments :: navigation (selected=${MENU_SELECTED}, selectable=${MENU_SELECTABLE})"></div>
+			th:replace="basics :: navigation (selected=${MENU_SELECTED}, selectable=${MENU_SELECTABLE})"></div>
 	
 		<div class="container">
 	
@@ -33,7 +33,6 @@
 	
 	</body>
 
-	<div th:replace="fragments :: scriptresources (yPos='')"></div>
-	<div th:replace="fragments :: pulltorefresh"></div>
+	<div th:replace="basics :: scriptresources"></div>
 	
 </html>
