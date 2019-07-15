@@ -86,12 +86,12 @@ public class SettingsService {
 		model.setPushHints(Boolean.parseBoolean(hints));
 
 		String hysteresis = StringUtils
-				.trimToEmpty(ExternalPropertiesDAO.getInstance().read(user + PUSH_HINTS));
-		model.setPushHints(Boolean.parseBoolean(hysteresis));
+				.trimToEmpty(ExternalPropertiesDAO.getInstance().read(user + PUSH_HINTS_HYSTERESIS));
+		model.setHintsHysteresis(Boolean.parseBoolean(hysteresis));
 
 		String doorbell = StringUtils
-				.trimToEmpty(ExternalPropertiesDAO.getInstance().read(user + PUSH_HINTS));
-		model.setPushHints(Boolean.parseBoolean(doorbell));
+				.trimToEmpty(ExternalPropertiesDAO.getInstance().read(user + PUSH_HINTS_DOORBELL));
+		model.setPushDoorbell(Boolean.parseBoolean(doorbell));
 
 		return model;
 	}

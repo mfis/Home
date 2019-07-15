@@ -27,10 +27,10 @@
 		
 		<button type="button" th:onclick="@{'toggleSwitch' + ${model.id} + '()'}"
 			class="btn btn-secondary btn-sm" th:text="${model.label}"></button>
-		<input type="hidden" id="val_model_link" th:value="${model.link}">	
+		<input type="hidden" th:id="'val_model_link_' + ${model.id}" th:value="${model.link}">	
 		<script type="text/javascript">
 			function toggleSwitch[[${model.id}]](){
-				submitContent(document.getElementById('val_model_link').value);
+				submitContent(document.getElementById('val_model_link_[[${model.id}]]').value);
 			}		
 		</script>
 		

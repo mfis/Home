@@ -19,7 +19,7 @@ public class SettingsViewService {
 
 		SwitchView switchPushHints = new SwitchView();
 		switchPushHints.setId("pushHints");
-		switchPushHints.setName("Versand");
+		switchPushHints.setName("Push Empfehlungen");
 		switchPushHints.setState(settingsModel.isPushHints() ? "Eingeschaltet" : "Ausgeschaltet");
 		switchPushHints.setLabel(settingsModel.isPushHints() ? "ausschalten" : "einschalten");
 		switchPushHints.setIcon("far fa-envelope");
@@ -29,7 +29,7 @@ public class SettingsViewService {
 
 		SwitchView switchPushHintsHysteresis = new SwitchView();
 		switchPushHintsHysteresis.setId("pushHintsHysteresis");
-		switchPushHintsHysteresis.setName("Versand");
+		switchPushHintsHysteresis.setName("Empfehlungen Hysterese");
 		switchPushHintsHysteresis
 				.setState(settingsModel.isHintsHysteresis() ? "Eingeschaltet" : "Ausgeschaltet");
 		switchPushHintsHysteresis.setLabel(settingsModel.isHintsHysteresis() ? "ausschalten" : "einschalten");
@@ -41,7 +41,7 @@ public class SettingsViewService {
 
 		SwitchView switchPushDoorbell = new SwitchView();
 		switchPushDoorbell.setId("pushDoorbell");
-		switchPushDoorbell.setName("Versand");
+		switchPushDoorbell.setName("Haustür Klingel");
 		switchPushDoorbell.setState(settingsModel.isPushDoorbell() ? "Eingeschaltet" : "Ausgeschaltet");
 		switchPushDoorbell.setLabel(settingsModel.isPushDoorbell() ? "ausschalten" : "einschalten");
 		switchPushDoorbell.setIcon("far fa-envelope");

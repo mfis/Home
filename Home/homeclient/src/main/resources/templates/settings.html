@@ -17,7 +17,7 @@
 			<div style="height: 10px;"></div>
 	
 			<!-- Geräte-Name -->
-			<div th:replace="fragments :: title (name='Pushover Account')"></div>
+			<div th:replace="fragments :: title (name='Push-Nachrichten')"></div>
 			<div class="alert alert-secondary" role="alert">
 				<div class="form-group">
 					<label for="clientName">Geräte-Name</label> <input type="text"
@@ -38,15 +38,10 @@
 			</div>
 	
 			<!-- Hints -->
-			<div th:replace="fragments :: title (name='Push Empfehlungen')"></div>
 			<div th:replace="fragments :: switch (model=${pushHints})"></div>
-	
 			<!-- Hysteresis -->
-			<div th:replace="fragments :: title (name='Push Empfehlungs-Hysterese')"></div>
 			<div th:replace="fragments :: switch (model=${pushHintsHysteresis})"></div>
-	
 			<!-- Doorbell -->
-			<div th:replace="fragments :: title (name='Push Türklingel')"></div>
 			<div th:replace="fragments :: switch (model=${pushDoorbell})"></div>
 	
 			<div style="height: 40px;"></div>
