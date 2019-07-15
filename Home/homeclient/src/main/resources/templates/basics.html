@@ -37,11 +37,11 @@
 
 	<script>
 	
-		function refreshContent(){
+		function submitContent(target){
 			if(navigator.onLine){
 				showSpinner();
 				var httpRequest = new XMLHttpRequest();
-				httpRequest.open('GET', window.location);
+				httpRequest.open('GET', target);
 				httpRequest.send();
 				httpRequest.onreadystatechange=(e)=>{
 					if (httpRequest.readyState == 4) {
@@ -58,6 +58,10 @@
 			}else{
 				showOffline();
 			}
+		}
+	
+		function refreshContent(){
+			submitContent(window.location.href);
 		}
 		
 		function showCheck(){
