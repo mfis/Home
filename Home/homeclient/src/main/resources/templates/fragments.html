@@ -27,10 +27,10 @@
 		
 		<button type="button" th:onclick="@{'toggleSwitch' + ${model.id} + '()'}"
 			class="btn btn-secondary btn-sm" th:text="${model.label}"></button>
-		<input type="hidden" th:id="'val_model_link_' + ${model.id} + '_' + ${model.link}" th:value="${model.link}">	
+		<input type="hidden" th:id="'val_model_link_' + ${model.id}" th:value="${model.link}">	
 		<script type="text/javascript">
 			function toggleSwitch[[${model.id}]](){
-				submitContent(document.getElementById('val_model_link_[[${model.id}]]_[[${model.link}]]').value);
+				submitContent(document.getElementById('val_model_link_[[${model.id}]]').value);
 			}		
 		</script>
 		
@@ -42,14 +42,14 @@
 	  			<button th:if="${#strings.startsWith(model.linkManual, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><i th:class="'fas fa-hand-paper'"></i></span><span>&nbsp;</span></button>
 	  			<button th:if="${#strings.startsWith(model.linkManual, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToAuto' + ${model.id} + '()'}"><span>&nbsp;</span><span><i th:class="'fas fa-hand-paper'"></i></span><span>&nbsp;</span></button>
 			</div>
-			<input type="hidden" th:id="'val_model_link_' + ${model.id} + '_' + ${model.linkManual}" th:value="${model.linkManual}">
-			<input type="hidden" th:id="'val_model_link_' + ${model.id} + '_' + ${model.linkAuto" th:value="${model.linkAuto}">
+			<input type="hidden" th:id="'val_model_linkManual_' + ${model.id}" th:value="${model.linkManual}">
+			<input type="hidden" th:id="'val_model_linkAuto_' + ${model.id}" th:value="${model.linkAuto}">
   			<script type="text/javascript">
 				function toggleToAuto[[${model.id}]](){
-					submitContent(document.getElementById('val_model_link_[[${model.id}]]_[[${model.linkManual}]]').value);
+					submitContent(document.getElementById('val_model_linkManual_[[${model.id}]]').value);
 				}
 				function toggleToManual[[${model.id}]](){
-					submitContent(document.getElementById('val_model_link_[[${model.id}]]_[[${model.linkAuto}]]').value);
+					submitContent(document.getElementById('val_model_linkAuto_[[${model.id}]]').value);
 				}	
 			</script>
 				<button type="button" class="btn btn-link" data-toggle="modal" th:data-target="'#modalAuto' + ${model.id}">
@@ -90,22 +90,22 @@
   			<button th:if="${#strings.startsWith(model.linkClose, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'closeShutter' + ${model.id} + '()'}"><span>&nbsp;</span><span><i th:class="${model.iconClose}"></i></span><span>&nbsp;</span></button>
 		</div>		
 		
-		<input type="hidden" th:id="'val_model_link_' + ${model.id} + '_' + ${model.linkOpen}" th:value="${model.linkOpen}">
-		<input type="hidden" th:id="'val_model_link_' + ${model.id} + '_' + ${model.linkClose}" th:value="${model.linkClose}">
-		<input type="hidden" th:id="'val_model_link_' + ${model.id} + '_' + ${model.linkHalf}" th:value="${model.linkHalf}">
-		<input type="hidden" th:id="'val_model_link_' + ${model.id} + '_' + ${model.linkSunshade}" th:value="${model.linkSunshade}">
+		<input type="hidden" th:id="'val_model_linkOpen_' + ${model.id}" th:value="${model.linkOpen}">
+		<input type="hidden" th:id="'val_model_linkClose_' + ${model.id}" th:value="${model.linkClose}">
+		<input type="hidden" th:id="'val_model_linkHalf_' + ${model.id}" th:value="${model.linkHalf}">
+		<input type="hidden" th:id="'val_model_linkSunshade_' + ${model.id}" th:value="${model.linkSunshade}">
 		<script type="text/javascript">
 			function openShutter[[${model.id}]](){
-				submitContent(document.getElementById('val_model_link_[[${model.id}]]_[[${model.linkOpen}]]').value);
+				submitContent(document.getElementById('val_model_linkOpen_[[${model.id}]]').value);
 			}
 			function closeShutter[[${model.id}]](){
-				submitContent(document.getElementById('val_model_link_[[${model.id}]]_[[${model.linkClose}]]').value);
+				submitContent(document.getElementById('val_model_linkClose_[[${model.id}]]').value);
 			}
 			function halfShutter[[${model.id}]](){
-				submitContent(document.getElementById('val_model_link_[[${model.id}]]_[[${model.linkHalf}]]').value);
+				submitContent(document.getElementById('val_model_linkHalf_[[${model.id}]]').value);
 			}			
 			function sunshadeShutter[[${model.id}]](){
-				submitContent(document.getElementById('val_model_link_[[${model.id}]]_[[${model.linkSunshade}]]').value);
+				submitContent(document.getElementById('val_model_linkSunshade_[[${model.id}]]').value);
 			}			
 		</script>
 		
@@ -117,14 +117,14 @@
 	  			<button th:if="${#strings.startsWith(model.linkManual, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><i th:class="'fas fa-hand-paper'"></i></span><span>&nbsp;</span></button>
 	  			<button th:if="${#strings.startsWith(model.linkManual, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleShutterToAuto' + ${model.id} + '()'}"><span>&nbsp;</span><span><i th:class="'fas fa-hand-paper'"></i></span><span>&nbsp;</span></button>
 			</div>
-			<input type="hidden" th:id="'val_model_link_' + ${model.id} + '_' + ${model.linkManual}" th:value="${model.linkManual}">
-			<input type="hidden" th:id="'val_model_link_' + ${model.id} + '_' + ${model.linkAuto}" th:value="${model.linkAuto}">
+			<input type="hidden" th:id="'val_model_linkManual_' + ${model.id}" th:value="${model.linkManual}">
+			<input type="hidden" th:id="'val_model_linkAuto_' + ${model.id}" th:value="${model.linkAuto}">
   			<script type="text/javascript">
 				function toggleShutterToAuto[[${model.id}]](){
-					submitContent(document.getElementById('val_model_link_[[${model.id}]]_[[${model.linkManual}]]').value);
+					submitContent(document.getElementById('val_model_linkManual_[[${model.id}]]').value);
 				}
 				function toggleShutterToManual[[${model.id}]](){
-					submitContent(document.getElementById('val_model_link_[[${model.id}]]_[[${model.linkAuto}]]').value);
+					submitContent(document.getElementById('val_model_linkAuto_[[${model.id}]]').value);
 				}					
 			</script>
 				<button type="button" class="btn btn-link" data-toggle="modal" th:data-target="'#modalAuto' + ${model.id}">
@@ -353,12 +353,12 @@
 			type="button" th:onclick="@{'setBoost' + ${model.id} + '()'}" class="btn btn-secondary btn-sm">Schnell aufheizen</button>
 		<button th:unless="${#strings.startsWith(model.linkBoost,'/')}" type="button"
 			class="btn btn-secondary btn-sm" th:onclick="@{'setHeating' + ${model.id} + '()'}" th:text="'abbrechen'">Boost ist eingeschaltet</button>
-		<input type="hidden" th:id="'val_model_link_' + ${model.id} + '_' + ${model.targetTemp}" th:value="${model.targetTemp}">
-		<input type="hidden" th:id="'val_model_link_' + ${model.id} + '_' + ${model.linkManual}" th:value="${model.linkManual}">
-		<input type="hidden" th:id="'val_model_link_' + ${model.id} + '_' + ${model.linkBoost}" th:value="${model.linkBoost}">
+		<input type="hidden" th:id="'val_model_targetTemp_' + ${model.id}" th:value="${model.targetTemp}">
+		<input type="hidden" th:id="'val_model_linkManual_' + ${model.id}" th:value="${model.linkManual}">
+		<input type="hidden" th:id="'val_model_linkBoost_' + ${model.id}" th:value="${model.linkBoost}">
 		<script type="text/javascript">
 			var timeout[[${model.id}]] = null;
-			var newTargetTemp[[${model.id}]] = parseFloat(document.getElementById('val_model_link_[[${model.id}]]_[[${model.targetTemp}]]').value.replace(/,/, '.'));
+			var newTargetTemp[[${model.id}]] = parseFloat(document.getElementById('val_model_targetTemp_[[${model.id}]]').value.replace(/,/, '.'));
 			function adjustHeating[[${model.id}]](diff){
 				if(timeout[[${model.id}]]){
 					clearTimeout(timeout[[${model.id}]]);
@@ -369,10 +369,10 @@
 				timeout[[${model.id}]] = setTimeout(setHeating[[${model.id}]], 1000 * 1.5);
 			}
 			function setHeating[[${model.id}]](){
-				submitContent(document.getElementById('val_model_link_[[${model.id}]]_[[${model.linkManual}]]').value + "&value=" + newTargetTemp[[${model.id}]]);
+				submitContent(document.getElementById('val_model_linkManual_[[${model.id}]]').value + "&value=" + newTargetTemp[[${model.id}]]);
 			}
 			function setBoost[[${model.id}]](){
-				submitContent(document.getElementById('val_model_link_[[${model.id}]]_[[${model.linkBoost}]]').value);
+				submitContent(document.getElementById('val_model_linkBoost_[[${model.id}]]').value);
 			}			
 		</script>
 	</div>	
