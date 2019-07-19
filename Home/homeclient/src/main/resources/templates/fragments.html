@@ -4,7 +4,7 @@
 	<!-- Titel -->
 	<div th:fragment="title (name)"
 		th:assert="${!#strings.isEmpty(name)}">
-		<h4>
+		<h4 style="font-size: 1.3rem;">
 			<span th:text="${name}">Name</span>
 		</h4>
 	</div>
@@ -21,7 +21,7 @@
 	</div>	
 
 	<!-- Switch -->
-	<div th:fragment="switch (model)" th:class="'alert alert-secondary'">
+	<div th:fragment="switch (model)" th:class="'alert alert-secondary callout callout-secondary'">
 		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, place=${model.place}, historyKey=${model.historyKey})"></div>
 		<h4 th:text="${model.state}"></h4>
 		
@@ -75,7 +75,7 @@
 	</div>
 	
 	<!-- Window -->
-	<div th:fragment="window (model)" th:class="'alert alert-secondary'">
+	<div th:fragment="window (model)" th:class="'alert alert-secondary callout callout-secondary'">
 		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, place=${model.place}, historyKey=${model.historyKey})"></div>
 		<h4 th:text="${model.state}"></h4>
 		
@@ -151,14 +151,14 @@
 
 	<!-- Frontdoor -->
 	<th:block th:fragment="frontDoor (model)">
-		<div th:class="'alert alert-secondary'">
+		<div th:class="'alert alert-secondary callout callout-secondary'">
 			<div th:replace="fragments :: elementname (icon='fas fa-bell', name='Türklingel', place='', historyKey=${model.historyKey})"></div>
 			<h4>
 				<span th:text="${model.lastDoorbells}"></span>
 			</h4>
 		</div>
 		<!-- 
-		<div th:class="'alert alert-secondary'">
+		<div th:class="'alert alert-secondary callout callout-secondary'">
 			<div th:replace="fragments :: elementname (icon='fas fa-camera', name='Kamera', place='', historyKey=${model.historyKey})"></div>
 			<div style="padding-top:6px;">
 				<button th:id="${model.idLive} + 'Button'" type="button" class="btn btn-secondary btn-sm"><span><i th:class="'fas fa-eye'"></i></span><span>&nbsp;Aktuell</span></button>
@@ -269,7 +269,7 @@
 	</th:block>	
 	
 	<!-- Actual Power Consumption -->
-	<div th:fragment="actualPowerConsumption (model)" th:class="'alert alert-secondary'">
+	<div th:fragment="actualPowerConsumption (model)" th:class="'alert alert-secondary callout callout-secondary'">
 
 		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, place=${model.place}, historyKey=${model.historyKey})"></div>
 		<h4>
@@ -282,7 +282,7 @@
 	<div th:fragment="historyLink (key, name, place)">
 		<th:block th:if="${!#strings.isEmpty(key)}">
 			<div style="float:right; position:relative;">
-				<span><i th:onclick="@{'openHistory' + ${key} + '()'}" style="padding:5px; cursor: pointer;" class="fas fa-history rounded text-dark bg-light border border-dark"></i></span>
+				<span><i th:onclick="@{'openHistory' + ${key} + '()'}" style="padding:5px; margin:5px; cursor: pointer;" class="fas fa-history rounded text-dark bg-light border border-dark"></i></span>
 			</div>
 			<div class="modal fade" th:id="'modalHistory' + ${key}" tabindex="-1" role="dialog" th:aria-labelledby="'#modalCamera' + ${key}" aria-hidden="true">
 			  <div class="modal-dialog modal-dialog-centered" role="document">
@@ -315,11 +315,11 @@
 	
 	<!-- Tendency icon -->
 	<th:block th:fragment="tendency (icon)">
-	     <span th:if="${!#strings.isEmpty(icon)}"><i style="font-size: 70%;" th:class="${icon}"></i></span>
+	     <span th:if="${!#strings.isEmpty(icon)}"><i style="font-size: 80%;" th:class="${icon}"></i></span>
 	</th:block>
 
 	<!-- Temperature -->
-	<div th:fragment="temperature (model)" th:class="'alert alert-' + ${model.colorClass}">
+	<div th:fragment="temperature (model)" th:class="'alert alert-' + ${model.colorClass} + ' callout callout-' + ${model.colorClass}">
 		<div th:replace="fragments :: elementname (icon=${model.icon}, name='Temperatur', place=${model.place}, historyKey=${model.historyKey})"></div>
 		<h4>
 			<span th:if="${!#strings.isEmpty(model.stateTemperature)}" th:text="${model.stateTemperature}"></span>
@@ -332,12 +332,12 @@
 		</h4>
 			
 		<th:block th:each="hint : ${model.hints}">
-			<span class="badge badge-light" th:text="'Empfehlung: ' + ${hint}">hint</span>
+			<span th:class="'hint badge badge-' + ${model.colorClass}" style="" th:text="'Empfehlung: ' + ${hint}">hint</span>
 		</th:block>	
 	</div>
 	
 	<!-- Thermostat -->
-	<div th:fragment="thermostat (model)" th:class="'alert alert-secondary'">
+	<div th:fragment="thermostat (model)" th:class="'alert alert-secondary callout callout-secondary'">
 		<div th:replace="fragments :: elementname (icon=${model.heatericon}, name='Heizkörpersteuerung', place=${model.place}, historyKey=${model.historyKey})"></div>
 		<h4 th:if="${#strings.startsWith(model.linkBoost,'/')}"><span th:text="'Manuell auf ' + ${model.targetTemp} + '°C'"></span></h4>
 		<h4 th:unless="${#strings.startsWith(model.linkBoost,'/')}"><span th:text="'Aufheizen - noch ' + ${model.linkBoost} + ' Min.'"></span></h4>

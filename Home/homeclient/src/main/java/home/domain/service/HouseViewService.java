@@ -65,7 +65,7 @@ public class HouseViewService {
 			+ "&deviceName=";
 
 	private static final BigDecimal HIGH_TEMP = new BigDecimal("25");
-	private static final BigDecimal LOW_TEMP = new BigDecimal("19");
+	private static final BigDecimal LOW_TEMP = new BigDecimal("18");
 	private static final BigDecimal FROST_TEMP = new BigDecimal("3");
 
 	private static final int COMPARE_PERCENTAGE_GREEN_UNTIL = -1;

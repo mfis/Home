@@ -52,7 +52,7 @@ public class HouseService {
 	private static final BigDecimal POWER_TENDENCY_DIFF = new BigDecimal("99.99");
 
 	private static final BigDecimal TARGET_HUMIDITY_MIN_INSIDE = new BigDecimal("40");
-	private static final BigDecimal TARGET_HUMIDITY_MAX_INSIDE = new BigDecimal("65");
+	private static final BigDecimal TARGET_HUMIDITY_MAX_INSIDE = new BigDecimal("70");
 
 	private static final BigDecimal SUN_INTENSITY_NO = new BigDecimal("3");
 	private static final BigDecimal SUN_INTENSITY_LOW = new BigDecimal("8");
@@ -78,12 +78,18 @@ public class HouseService {
 	private HistoryDatabaseDAO historyDAO;
 
 	@Autowired
+	private HistoryService historyService;
+
+	@Autowired
 	private UploadService uploadService;
 
 	@PostConstruct
 	public void init() {
 		CompletableFuture.runAsync(() -> {
 			try {
+				if (ModelObjectDAO.getInstance().readHistoryModel() == null) {
+					historyService.refreshHistoryModelComplete();
+				}
 				refreshHouseModel();
 			} catch (Exception e) {
 				LogFactory.getLog(HouseService.class).error("Could not initialize HouseService completly.",
@@ -336,6 +342,7 @@ public class HouseService {
 
 		if (ModelObjectDAO.getInstance().readHistoryModel() == null || ModelObjectDAO.getInstance()
 				.readHistoryModel().getHighestOutsideTemperatureInLast24Hours() == null) {
+			LogFactory.getLog(HouseService.class).warn("HighestOutsideTemperatureInLast24Hours == null");
 			return true;
 		}
 

@@ -54,7 +54,7 @@ public class HistoryService {
 	}
 
 	@Scheduled(cron = "5 0 0 * * *")
-	public void refreshHistoryModelComplete() {
+	public synchronized void refreshHistoryModelComplete() {
 
 		HistoryModel oldModel = ModelObjectDAO.getInstance().readHistoryModel();
 		if (oldModel != null) {
@@ -68,11 +68,12 @@ public class HistoryService {
 
 		newModel.setInitialized(true);
 		ModelObjectDAO.getInstance().write(newModel);
-		uploadService.upload(newModel);
+
+		refreshHistoryModel();
 	}
 
 	@Scheduled(fixedDelay = (1000 * 60 * 5))
-	private void refreshHistoryModel() {
+	private synchronized void refreshHistoryModel() {
 
 		HistoryModel model = ModelObjectDAO.getInstance().readHistoryModel();
 		if (model == null) {
@@ -99,6 +100,7 @@ public class HistoryService {
 					readDayTemperatureHistory(LocalDateTime.now(), Device.AUSSENTEMPERATUR, Datapoint.VALUE));
 		}
 
+		model.updateDateTime();
 		uploadService.upload(model);
 	}
 

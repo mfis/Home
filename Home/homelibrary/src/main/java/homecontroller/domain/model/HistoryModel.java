@@ -22,6 +22,10 @@ public class HistoryModel implements Serializable {
 
 	// ----------
 
+	public void updateDateTime() {
+		dateTime = new Date().getTime();
+	}
+
 	public boolean isInitialized() {
 		return initialized;
 	}
@@ -40,7 +44,7 @@ public class HistoryModel implements Serializable {
 
 	public HistoryModel() {
 		super();
-		dateTime = new Date().getTime();
+		updateDateTime();
 		electricPowerConsumption = new LinkedList<>();
 		outsideTemperature = new LinkedList<>();
 	}
