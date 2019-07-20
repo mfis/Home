@@ -1,47 +1,11 @@
-.fa-rotate-45 {
-    -webkit-transform: rotate(45deg);
-    -moz-transform: rotate(45deg);
-    -ms-transform: rotate(45deg);
-    -o-transform: rotate(45deg);
-    transform: rotate(45deg);
-}
-.hint {
-	opacity: 0.8 !important;
-}
-.hintshade {
-	opacity: 0.45 !important;
-}
-.callout {
-	border-left-width: 5px !important;
-	margin-left: 15px !important;	
-	padding-top: 8px !important;
-	padding-right: 8px !important;
-}
-.callout h4 {
-	font-size: 1.3rem !important;
-	margin-bottom: 3px !important;
-}
-.callout-secondary {
-	border-left-color: rgb(119,119,119) !important;
-	background: rgba(119,119,119,0.1) !important;  
-}
-.callout-primary {
-	border-left-color: rgb(66,139,202) !important;
-	background: rgba(66,139,202,0.1) !important;
-}
-.callout-success {
-	border-left-color: rgb(92,184,92) !important;
-	background: rgba(92,184,92,0.1) !important;
-}
-.callout-danger {
-	border-left-color: rgb(217,83,79) !important;
-	background: rgba(217,83,79,0.1) !important;	
-}
-.callout-warning {
-	border-left-color: rgb(240,173,78) !important;
-	background: rgba(240,173,78,0.1) !important;	
-}
-.callout-info {
-	border-left-color: rgb(91,192,222) !important;
-	background: rgba(91,192,222,0.1) !important;	
-}
+.fa-rotate-45{-webkit-transform:rotate(45deg);-moz-transform:rotate(45deg);-ms-transform:rotate(45deg);-o-transform:rotate(45deg);transform:rotate(45deg)}
+.hint{opacity:0.8 !important}
+.hintshade{opacity:0.45 !important}
+.callout{border-left-width:5px !important;margin-left:15px !important;padding-top:8px !important;padding-right:8px !important}
+.callout h4{font-size:1.3rem !important;margin-bottom:3px !important}
+.callout-secondary{border-left-color:rgb(119,119,119) !important;background:rgba(119,119,119,0.1) !important}
+.callout-primary{border-left-color:rgb(66,139,202) !important;background:rgba(66,139,202,0.1) !important}
+.callout-success{border-left-color:rgb(92,184,92) !important;background:rgba(92,184,92,0.1) !important}
+.callout-danger{border-left-color:rgb(217,83,79) !important;background:rgba(217,83,79,0.1) !important}
+.callout-warning{border-left-color:rgb(240,173,78) !important;background:rgba(240,173,78,0.1) !important}
+.callout-info{border-left-color:rgb(91,192,222) !important;background:rgba(91,192,222,0.1) !important}
