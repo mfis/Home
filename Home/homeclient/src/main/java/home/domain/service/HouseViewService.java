@@ -434,7 +434,7 @@ public class HouseViewService {
 				viewMax.setColorClass("secondary");
 				break;
 			case LOW:
-				viewMax.setColorClass("dark");
+				viewMax.setColorClass("success");
 				viewMax.setIcon("far fa-sun");
 				break;
 			case MEDIUM:

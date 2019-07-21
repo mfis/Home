@@ -4,7 +4,7 @@
 	<!-- Titel -->
 	<div th:fragment="title (name)"
 		th:assert="${!#strings.isEmpty(name)}">
-		<h4 style="font-size: 1.3rem;">
+		<h4 style="font-size: 1.3rem; margin-top: 15px;">
 			<span th:text="${name}">Name</span>
 		</h4>
 	</div>
@@ -378,7 +378,7 @@
 	</div>	
 
 	<!-- Sonne -->
-	<div th:fragment="sunStatus (model)" th:if="${!#strings.isEmpty(model.stateTemperature)}" th:class="'alert alert-' + ${model.colorClass}">
+	<div th:fragment="sunStatus (model)" th:if="${!#strings.isEmpty(model.stateTemperature)}" th:class="'alert alert-' + ${model.colorClass} + ' callout callout-' + ${model.colorClass}">
 		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, place=${model.place}, historyKey=${model.historyKey})"></div>
 		<h4 th:text="${model.stateTemperature}"></h4>
 	</div>
