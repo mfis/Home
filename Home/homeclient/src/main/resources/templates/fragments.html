@@ -332,7 +332,11 @@
 		</h4>
 			
 		<th:block th:each="hint : ${model.hints}">
-			<span th:class="'hint badge badge-' + ${model.colorClass}" style="" th:text="'Empfehlung: ' + ${hint}">hint</span>
+			<a th:class="'font-weight-light'" style="font-size: 85%;">
+				<span th:if="${#strings.startsWith(hint,'ggf')}"><i class="far fa-hand-point-right"></i></span>
+				<span th:unless="${#strings.startsWith(hint,'ggf')}"><i class="fas fa-hand-point-right"></i></span>
+				<span th:text="${hint}">hint</span>
+			</a>
 		</th:block>	
 	</div>
 	

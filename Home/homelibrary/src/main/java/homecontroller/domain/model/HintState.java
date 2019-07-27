@@ -3,9 +3,9 @@ package homecontroller.domain.model;
 public enum HintState {
 
 	OFF(""), //
-	OFF_HYSTERESIS("Ggf."), //
+	OFF_HYSTERESIS("ggf."), //
 	ACTIVE_HYSTERESIS("Empfehlung:"), //
-	ACTIVE(""), //
+	ACTIVE("Empfehlung:"), //
 	;
 
 	// up: O -> OH -> A
@@ -48,7 +48,7 @@ public enum HintState {
 		case ACTIVE_HYSTERESIS:
 			return diffMillies >= HYST_TIME_DOWN ? OFF : HintState.ACTIVE_HYSTERESIS;
 		case OFF_HYSTERESIS:
-			return diffMillies >= HYST_TIME_DOWN ? OFF : HintState.OFF_HYSTERESIS; // ??
+			return diffMillies >= HYST_TIME_DOWN ? OFF : HintState.OFF_HYSTERESIS;
 		case OFF:
 			return OFF;
 		default:
