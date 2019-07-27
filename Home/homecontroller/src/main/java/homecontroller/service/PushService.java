@@ -15,7 +15,6 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import homecontroller.domain.model.Hint;
 import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.RoomClimate;
 import homecontroller.domain.model.SettingsModel;
@@ -63,34 +62,37 @@ public class PushService {
 	public List<PushoverMessage> hintMessage(HouseModel oldModel, HouseModel newModel) {
 
 		List<PushoverMessage> pushMessages = new LinkedList<>();
-		List<String> oldHints = hintList(oldModel);
-		List<String> newHints = hintList(newModel);
+		List<SettingsModel> settingsModels = settingsService.lookupUserForPushMessage();
 
-		StringBuilder messages = new StringBuilder(300);
+		for (SettingsModel settingsModel : settingsModels) {
 
-		for (String newHint : newHints) {
-			if (!oldHints.contains(newHint)) {
-				messages.append("\n");
-				messages.append("- " + newHint);
-			}
-		}
+			List<String> oldHints = hintList(oldModel, settingsModel);
+			List<String> newHints = hintList(newModel, settingsModel);
 
-		int cancelcounter = 0;
-		for (String oldHint : oldHints) {
-			if (!newHints.contains(oldHint)) {
-				messages.append("\n");
-				if (cancelcounter == 0) {
-					messages.append("Aufgehoben:");
+			StringBuilder messages = new StringBuilder(300);
+
+			for (String newHint : newHints) {
+				if (!oldHints.contains(newHint)) {
+					messages.append("\n");
+					messages.append("- " + newHint);
 				}
-				messages.append("\n- " + oldHint);
-				cancelcounter++;
 			}
-		}
 
-		String msgString = messages.toString().trim();
-		if (StringUtils.isNotBlank(msgString)) {
-			List<SettingsModel> settingsModels = settingsService.lookupUserForPushMessage();
-			for (SettingsModel settingsModel : settingsModels) {
+			int cancelcounter = 0;
+			for (String oldHint : oldHints) {
+				if (!newHints.contains(oldHint)) {
+					messages.append("\n");
+					if (cancelcounter == 0) {
+						messages.append("Aufgehoben:");
+					}
+					messages.append("\n- " + oldHint);
+					cancelcounter++;
+				}
+			}
+
+			String msgString = messages.toString().trim();
+			if (StringUtils.isNotBlank(msgString)) {
+
 				pushMessages.add(PushoverMessage.builderWithApiToken(settingsModel.getPushoverApiToken()) //
 						.setUserId(settingsModel.getPushoverUserId()) //
 						.setDevice(settingsModel.getClientName()) //
@@ -98,6 +100,7 @@ public class PushService {
 						.setPriority(MessagePriority.NORMAL) //
 						.setTitle("Zuhause - Empfehlungen") //
 						.build());
+
 			}
 		}
 		return pushMessages;
@@ -126,16 +129,14 @@ public class PushService {
 		return pushMessages;
 	}
 
-	private List<String> hintList(HouseModel model) {
+	private List<String> hintList(HouseModel model, SettingsModel settingsModel) {
 
 		HouseModel m = model != null ? model : new HouseModel();
 
 		List<String> hintStrings = new LinkedList<>();
 		for (RoomClimate room : m.lookupFields(RoomClimate.class).values()) {
-			for (Hint hint : room.getHints()) {
-				if (hint != null) {
-					hintStrings.add(hint.formatWithRoomName(room));
-				}
+			for (String text : room.getHints().formatAsText(settingsModel.isHintsHysteresis(), true, room)) {
+				hintStrings.add(text);
 			}
 		}
 		return hintStrings;

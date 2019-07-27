@@ -115,7 +115,7 @@ public class HouseService {
 		calculateConclusion(oldModel, newModel);
 		ModelObjectDAO.getInstance().write(newModel);
 
-		calculateHints(newModel);
+		calculateHints(oldModel, newModel);
 
 		pushService.send(oldModel, newModel); // async
 		uploadService.upload(newModel);
@@ -271,38 +271,47 @@ public class HouseService {
 		}
 	}
 
-	public void calculateHints(HouseModel newModel) {
+	public void calculateHints(HouseModel oldModel, HouseModel newModel) {
 
 		try {
-			lookupHint(newModel.getClimateKidsRoom(), null, newModel.getClimateEntrance());
-			lookupHint(newModel.getClimateBathRoom(), newModel.getHeatingBathRoom(),
-					newModel.getClimateEntrance());
-			lookupHint(newModel.getClimateBedRoom(), null, newModel.getClimateTerrace());
-			lookupHint(newModel.getClimateLivingRoom(), null, newModel.getClimateTerrace());
+			lookupHint(oldModel != null ? oldModel.getClimateKidsRoom() : null, newModel.getClimateKidsRoom(),
+					null, newModel.getClimateEntrance(), newModel.getDateTime());
+			lookupHint(oldModel != null ? oldModel.getClimateBathRoom() : null, newModel.getClimateBathRoom(),
+					newModel.getHeatingBathRoom(), newModel.getClimateEntrance(), newModel.getDateTime());
+			lookupHint(oldModel != null ? oldModel.getClimateBedRoom() : null, newModel.getClimateBedRoom(),
+					null, newModel.getClimateTerrace(), newModel.getDateTime());
+			lookupHint(oldModel != null ? oldModel.getClimateLivingRoom() : null,
+					newModel.getClimateLivingRoom(), null, newModel.getClimateTerrace(),
+					newModel.getDateTime());
 		} catch (RuntimeException re) {
 			LogFactory.getLog(HouseService.class).error("Could not calculate hints:", re);
 		}
 	}
 
-	private void lookupHint(RoomClimate room, Heating heating, OutdoorClimate outdoor) {
-		lookupTemperatureHint(room, heating, outdoor);
-		lookupHumidityHint(room);
+	private void lookupHint(RoomClimate old, RoomClimate room, Heating heating, OutdoorClimate outdoor,
+			long dateTime) {
+		if (old != null && old.getHints() != null) {
+			room.getHints().overtakeOldHints(old.getHints(), dateTime);
+		}
+		lookupTemperatureHint(room, heating, outdoor, dateTime);
+		lookupHumidityHint(room, dateTime);
 	}
 
-	private void lookupHumidityHint(RoomClimate room) {
+	private void lookupHumidityHint(RoomClimate room, long dateTime) {
 
 		if (room.getHumidity() == null) {
 			return;
 		}
 
 		if (room.getHumidity().getValue().compareTo(TARGET_HUMIDITY_MAX_INSIDE) > 0) {
-			room.getHints().add(Hint.DECREASE_HUMIDITY);
+			room.getHints().giveHint(Hint.DECREASE_HUMIDITY, dateTime);
 		} else if (room.getHumidity().getValue().compareTo(TARGET_HUMIDITY_MIN_INSIDE) < 0) {
-			room.getHints().add(Hint.INCREASE_HUMIDITY);
+			room.getHints().giveHint(Hint.INCREASE_HUMIDITY, dateTime);
 		}
 	}
 
-	private void lookupTemperatureHint(RoomClimate room, Heating heating, OutdoorClimate outdoor) {
+	private void lookupTemperatureHint(RoomClimate room, Heating heating, OutdoorClimate outdoor,
+			long dateTime) {
 
 		BigDecimal targetTemperature = heating != null ? heating.getTargetTemperature()
 				: TARGET_TEMPERATURE_INSIDE;
@@ -321,14 +330,14 @@ public class HouseService {
 				// no hint
 			} else {
 				if (room.getDevice().getPlace().isAirCondition()) {
-					room.getHints().add(Hint.TURN_ON_AIRCONDITION);
+					room.getHints().giveHint(Hint.TURN_ON_AIRCONDITION, dateTime);
 				} else {
-					room.getHints().add(Hint.OPEN_WINDOW);
+					room.getHints().giveHint(Hint.OPEN_WINDOW, dateTime);
 				}
 			}
 		} else if (room.getTemperature().getValue().compareTo(temperatureLimit) > 0
 				&& outdoor.getSunBeamIntensity().ordinal() > Intensity.LOW.ordinal()) {
-			room.getHints().add(Hint.CLOSE_ROLLER_SHUTTER);
+			room.getHints().giveHint(Hint.CLOSE_ROLLER_SHUTTER, dateTime);
 		}
 	}
 

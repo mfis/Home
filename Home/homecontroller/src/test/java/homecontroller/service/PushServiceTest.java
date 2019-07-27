@@ -31,8 +31,11 @@ public class PushServiceTest {
 	public void testFormatMessagesAllNew() {
 
 		mockSettings();
+		long dateTimeOld = System.currentTimeMillis() - (1000 * 60 * 60);
+		long dateTimeNew = System.currentTimeMillis();
 
 		HouseModel oldModel = new HouseModel();
+		oldModel.setDateTime(dateTimeOld);
 		oldModel.setClimateBathRoom(new RoomClimate());
 		oldModel.getClimateBathRoom().setDevice(Device.THERMOSTAT_BAD);
 		oldModel.setClimateLivingRoom(new RoomClimate());
@@ -42,10 +45,16 @@ public class PushServiceTest {
 		newModel.setClimateBathRoom(new RoomClimate());
 		newModel.getClimateBathRoom().setDevice(Device.THERMOSTAT_BAD);
 		newModel.setClimateLivingRoom(new RoomClimate());
+
+		newModel.getClimateBathRoom().getHints().overtakeOldHints(oldModel.getClimateBathRoom().getHints(),
+				dateTimeNew);
+		newModel.getClimateLivingRoom().getHints()
+				.overtakeOldHints(oldModel.getClimateLivingRoom().getHints(), dateTimeNew);
+
 		newModel.getClimateLivingRoom().setDevice(Device.THERMOMETER_WOHNZIMMER);
-		newModel.getClimateBathRoom().getHints().add(Hint.OPEN_WINDOW); // same
-		newModel.getClimateLivingRoom().getHints().add(Hint.INCREASE_HUMIDITY); // same
-		newModel.getClimateLivingRoom().getHints().add(Hint.CLOSE_ROLLER_SHUTTER); // new
+		newModel.getClimateBathRoom().getHints().giveHint(Hint.OPEN_WINDOW, dateTimeNew); // same
+		newModel.getClimateLivingRoom().getHints().giveHint(Hint.INCREASE_HUMIDITY, dateTimeNew); // same
+		newModel.getClimateLivingRoom().getHints().giveHint(Hint.CLOSE_ROLLER_SHUTTER, dateTimeNew); // new
 		// getClimateBathRoom().getHints().add(Hint.DECREASE_HUMIDITY); removed
 
 		String actual = pushService.hintMessage(oldModel, newModel).get(0).getMessage();
@@ -58,24 +67,35 @@ public class PushServiceTest {
 	public void testFormatMessagesChanged() {
 
 		mockSettings();
+		long dateTimeOld = System.currentTimeMillis() - (1000 * 60 * 60);
+		long dateTimeNew = System.currentTimeMillis();
 
 		HouseModel oldModel = new HouseModel();
+		oldModel.setDateTime(dateTimeOld);
 		oldModel.setClimateBathRoom(new RoomClimate());
 		oldModel.getClimateBathRoom().setDevice(Device.THERMOSTAT_BAD);
 		oldModel.setClimateLivingRoom(new RoomClimate());
 		oldModel.getClimateLivingRoom().setDevice(Device.THERMOMETER_WOHNZIMMER);
-		oldModel.getClimateBathRoom().getHints().add(Hint.OPEN_WINDOW);
-		oldModel.getClimateBathRoom().getHints().add(Hint.DECREASE_HUMIDITY);
-		oldModel.getClimateLivingRoom().getHints().add(Hint.INCREASE_HUMIDITY);
+
+		oldModel.getClimateBathRoom().getHints().giveHint(Hint.OPEN_WINDOW, dateTimeOld);
+		oldModel.getClimateBathRoom().getHints().giveHint(Hint.DECREASE_HUMIDITY, dateTimeOld);
+		oldModel.getClimateLivingRoom().getHints().giveHint(Hint.INCREASE_HUMIDITY, dateTimeOld);
 
 		HouseModel newModel = new HouseModel();
+		newModel.setDateTime(dateTimeNew);
 		newModel.setClimateBathRoom(new RoomClimate());
 		newModel.getClimateBathRoom().setDevice(Device.THERMOSTAT_BAD);
 		newModel.setClimateLivingRoom(new RoomClimate());
 		newModel.getClimateLivingRoom().setDevice(Device.THERMOMETER_WOHNZIMMER);
-		newModel.getClimateBathRoom().getHints().add(Hint.OPEN_WINDOW); // same
-		newModel.getClimateLivingRoom().getHints().add(Hint.INCREASE_HUMIDITY); // same
-		newModel.getClimateLivingRoom().getHints().add(Hint.CLOSE_ROLLER_SHUTTER); // new
+
+		newModel.getClimateBathRoom().getHints().overtakeOldHints(oldModel.getClimateBathRoom().getHints(),
+				dateTimeNew);
+		newModel.getClimateLivingRoom().getHints()
+				.overtakeOldHints(oldModel.getClimateLivingRoom().getHints(), dateTimeNew);
+
+		newModel.getClimateBathRoom().getHints().giveHint(Hint.OPEN_WINDOW, dateTimeNew); // same
+		newModel.getClimateLivingRoom().getHints().giveHint(Hint.INCREASE_HUMIDITY, dateTimeNew); // same
+		newModel.getClimateLivingRoom().getHints().giveHint(Hint.CLOSE_ROLLER_SHUTTER, dateTimeNew); // new
 
 		String actual = pushService.hintMessage(oldModel, newModel).get(0).getMessage();
 		String expected = "- Wohnzimmer: Rolllade schließen\nAufgehoben:\n- Bad: Luftfeuchtigkeit verringern";

@@ -40,7 +40,6 @@ import homecontroller.domain.model.Climate;
 import homecontroller.domain.model.Device;
 import homecontroller.domain.model.FrontDoor;
 import homecontroller.domain.model.Heating;
-import homecontroller.domain.model.Hint;
 import homecontroller.domain.model.HistoryModel;
 import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.Intensity;
@@ -360,8 +359,8 @@ public class HouseViewService {
 		}
 
 		if (climate instanceof RoomClimate) {
-			for (Hint hint : ((RoomClimate) climate).getHints()) {
-				view.getHints().add(hint.getText());
+			for (String hintText : ((RoomClimate) climate).getHints().formatAsText(false, false, null)) {
+				view.getHints().add(hintText);
 			}
 		}
 
