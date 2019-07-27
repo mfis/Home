@@ -8,6 +8,11 @@ public enum HintState {
 	ACTIVE(""), //
 	;
 
+	// up: O -> OH -> A
+	// dn: A -> AH -> O
+	// on all: OH,A
+	// on hys: AH,A
+
 	private final String textualPrefix;
 
 	private HintState(String textualPrefix) {
@@ -43,6 +48,7 @@ public enum HintState {
 		case ACTIVE_HYSTERESIS:
 			return diffMillies >= HYST_TIME_DOWN ? OFF : HintState.ACTIVE_HYSTERESIS;
 		case OFF_HYSTERESIS:
+			return diffMillies >= HYST_TIME_DOWN ? OFF : HintState.OFF_HYSTERESIS; // ??
 		case OFF:
 			return OFF;
 		default:

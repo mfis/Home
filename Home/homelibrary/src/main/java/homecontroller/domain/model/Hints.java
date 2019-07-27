@@ -46,7 +46,11 @@ public class Hints implements Serializable {
 		for (Hint hint : getHintMap().keySet()) {
 			if (getHintMap().get(hint) == HintState.OFF) {
 				// skip always OFF state
-			} else if (onlySolid && (getHintMap().get(hint) == HintState.OFF_HYSTERESIS)) {
+			} else if (onlySolid && (getHintMap().get(hint) != HintState.ACTIVE_HYSTERESIS
+					&& getHintMap().get(hint) != HintState.ACTIVE)) {
+				// skip
+			} else if (!onlySolid && (getHintMap().get(hint) != HintState.OFF_HYSTERESIS
+					&& getHintMap().get(hint) != HintState.ACTIVE)) {
 				// skip
 			} else {
 				if (withRoomName) {
