@@ -37,8 +37,7 @@ public class HomeRequestMapping {
 
 	private static final String REDIRECT = "redirect:";
 
-	private static final DateTimeFormatter TS_FORMATTER = DateTimeFormatter
-			.ofPattern("E, dd. MMM yyyy, HH:mm");
+	private static final DateTimeFormatter TS_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
 	@Autowired
 	private HouseViewService houseView;
@@ -161,7 +160,7 @@ public class HomeRequestMapping {
 	private void fillMenu(String pathHome, Model model) {
 		model.addAttribute("MENU_SELECTED", Pages.getEntry(pathHome));
 		model.addAttribute("MENU_SELECTABLE", Pages.getOtherEntries(pathHome));
-		model.addAttribute("SITE_REQUEST_TS", "Stand: " + TS_FORMATTER.format(LocalDateTime.now()));
+		model.addAttribute("SITE_REQUEST_TS", TS_FORMATTER.format(LocalDateTime.now()));
 	}
 
 }

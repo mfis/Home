@@ -34,7 +34,7 @@ public class PushService {
 
 	private PushoverClient pushClient;
 
-	private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
+	private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
 	private static final Log LOG = LogFactory.getLog(PushService.class);
 
@@ -113,27 +113,34 @@ public class PushService {
 		if (!HouseService.doorbellTimestampChanged(oldModel, newModel)) {
 			return pushMessages;
 		}
+
 		List<SettingsModel> settingsModels = settingsService.lookupUserForPushMessage();
 		for (SettingsModel settingsModel : settingsModels) {
-			String time = TIME_FORMATTER
-					.format(Instant.ofEpochMilli(newModel.getFrontDoor().getTimestampLastDoorbell())
-							.atZone(ZoneId.systemDefault()).toLocalDate());
-			pushMessages.add(PushoverMessage.builderWithApiToken(settingsModel.getPushoverApiToken()) //
-					.setUserId(settingsModel.getPushoverUserId()) //
-					.setDevice(settingsModel.getClientName()) //
-					.setMessage("Türklingelbetätigung um " + time + " Uhr") //
-					.setPriority(MessagePriority.HIGH) //
-					.setTitle("Zuhause - Türklingel") //
-					.build());
+			if (settingsModel.isPushDoorbell()) {
+				String time = TIME_FORMATTER
+						.format(Instant.ofEpochMilli(newModel.getFrontDoor().getTimestampLastDoorbell())
+								.atZone(ZoneId.systemDefault()).toLocalDateTime());
+				pushMessages.add(PushoverMessage.builderWithApiToken(settingsModel.getPushoverApiToken()) //
+						.setUserId(settingsModel.getPushoverUserId()) //
+						.setDevice(settingsModel.getClientName()) //
+						.setMessage("Türklingelbetätigung um " + time + " Uhr") //
+						.setPriority(MessagePriority.HIGH) //
+						.setTitle("Zuhause - Türklingel") //
+						.build());
+			}
 		}
 		return pushMessages;
 	}
 
 	private List<String> hintList(HouseModel model, SettingsModel settingsModel) {
 
+		List<String> hintStrings = new LinkedList<>();
+		if (!settingsModel.isPushHints()) {
+			return hintStrings;
+		}
+
 		HouseModel m = model != null ? model : new HouseModel();
 
-		List<String> hintStrings = new LinkedList<>();
 		for (RoomClimate room : m.lookupFields(RoomClimate.class).values()) {
 			for (String text : room.getHints().formatAsText(settingsModel.isHintsHysteresis(), true, room)) {
 				hintStrings.add(text);

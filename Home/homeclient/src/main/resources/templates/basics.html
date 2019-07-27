@@ -65,21 +65,21 @@
 		}
 		
 		function showCheck(){
-			if (document.getElementById('footer') !== null ) {
+			if (document.getElementById('statusline') !== null ) {
 				document.getElementById('navbarcheck').style.display = 'inline';
 				document.getElementById('navbarspinner').style.display = 'none';
 				document.getElementById('navbaroffline').style.display = 'none';
 			}
 		}	
 		function showSpinner(){
-			if (document.getElementById('footer') !== null ) {
+			if (document.getElementById('statusline') !== null ) {
 				document.getElementById('navbarcheck').style.display = 'none';
 				document.getElementById('navbarspinner').style.display = 'inline';
 				document.getElementById('navbaroffline').style.display = 'none';
 			}			
 		}
 		function showOffline(){
-			if (document.getElementById('footer') !== null ) {
+			if (document.getElementById('statusline') !== null ) {
 				document.getElementById('navbarcheck').style.display = 'none';
 				document.getElementById('navbarspinner').style.display = 'none';
 				document.getElementById('navbaroffline').style.display = 'inline';
@@ -139,14 +139,19 @@
 <body>
 
 	<!-- Navigation -->
-	<div th:fragment="navigation (selected, selectable)">
+	<div th:fragment="navigation (selected, selectable, status)">
 		<nav class="navbar fixed-top navbar-expand-lg navbar-light py-1" style="background-color: #F5F5F5; border-bottom: 4px solid #C0C0C0;">
 			
 			<a class="navbar-brand" href="#">
 				<span><i th:class="${selected.icon}"></i></span>
 				<span th:text="${selected.name}"></span>
 			</a>
-			
+			<a id="statusline" class="text-muted font-weight-light ml-auto" style="font-size: 85%; margin-right:15px">
+				<span th:text="${status}"></span>
+				<span style="display:inline;" id="navbarcheck"><i class="far fa-check-circle"></i></span>
+				<span style="display:none;" id="navbarspinner"><i class="fa fa-spinner fa-spin text-dark"></i></span>
+				<span style="display:none;" id="navbaroffline"><i class="fas fa-exclamation-triangle text-danger"></i></span>
+			</a>
 			<button class="navbar-toggler" type="button" data-toggle="collapse"
 				data-target="#navbarSupportedContent"
 				aria-controls="navbarSupportedContent" aria-expanded="false"
@@ -154,10 +159,10 @@
 				<span class="navbar-toggler-icon-"><i class="fas fa-bars"></i></span>
 			</button>
 			<div class="collapse navbar-collapse" id="navbarSupportedContent">
-				<ul class="navbar-nav mr-auto">
+				<ul class="navbar-nav ml-auto">
 					<th:block th:each="entry : ${selectable}">
-					<li class="nav-item" style="cursor:pointer"><a class="nav-link" th:onclick="@{'menu_' + ${entry.name} + '()'}"
-						th:text="${entry.name}">name</a></li>
+						<li class="nav-item" style="cursor:pointer"><a class="nav-link" th:onclick="@{'menu_' + ${entry.name} + '()'}"
+							th:text="${entry.name}">name</a></li>
 					</th:block>
 				</ul>
 			</div>
@@ -172,18 +177,5 @@
 		<div style="height: 50px;"></div>
 	</div>
 	
-	<!-- Footer -->
-	<div th:fragment="footer (text)">
-		<nav id="footer" class="navbar navbar-nav navbar-center fixed-bottom navbar-light" style="background-color: #F5F5F5; border-top: 4px solid #C0C0C0;">
-			<a class="text-muted font-weight-light" style="font-size: 85%;">
-				<span th:text="${text}"></span>
-				<span>&thinsp;</span>
-				<span style="display:none;" id="navbarcheck"><i class="far fa-check-circle"></i></span>
-				<span style="display:none;" id="navbarspinner"><i class="fa fa-spinner fa-spin text-dark"></i></span>
-				<span style="display:none;" id="navbaroffline"><i class="fas fa-exclamation-triangle text-danger"></i></span>
-			</a>
-		</nav>
-	</div>	
-
 </body>
 </html>
