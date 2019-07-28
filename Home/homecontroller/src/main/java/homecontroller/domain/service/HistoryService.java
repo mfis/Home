@@ -64,7 +64,12 @@ public class HistoryService {
 		HistoryModel newModel = new HistoryModel();
 
 		calculateElectricPowerConsumption(newModel, null);
-		calculateTemperatureHistory(newModel, Device.AUSSENTEMPERATUR, Datapoint.VALUE);
+		calculateTemperatureHistory(newModel.getOutsideTemperature(), Device.AUSSENTEMPERATUR,
+				Datapoint.VALUE);
+		calculateTemperatureHistory(newModel.getKidsRoomTemperature(), Device.THERMOMETER_KINDERZIMMER,
+				Datapoint.ACTUAL_TEMPERATURE);
+		calculateTemperatureHistory(newModel.getBedRoomTemperature(), Device.THERMOMETER_SCHLAFZIMMER,
+				Datapoint.ACTUAL_TEMPERATURE);
 
 		newModel.setInitialized(true);
 		ModelObjectDAO.getInstance().write(newModel);
@@ -92,36 +97,45 @@ public class HistoryService {
 		calculateElectricPowerConsumption(model, model.getElectricPowerConsumption()
 				.get(model.getElectricPowerConsumption().size() - 1).measurePointMaxDateTime());
 
-		if (model.getOutsideTemperature().isEmpty()) {
-			model.getOutsideTemperature().add(
-					readDayTemperatureHistory(LocalDateTime.now(), Device.AUSSENTEMPERATUR, Datapoint.VALUE));
-		} else {
-			model.getOutsideTemperature().set(0,
-					readDayTemperatureHistory(LocalDateTime.now(), Device.AUSSENTEMPERATUR, Datapoint.VALUE));
-		}
+		updateTemperatureHistory(model.getOutsideTemperature(), Device.AUSSENTEMPERATUR, Datapoint.VALUE);
+		updateTemperatureHistory(model.getKidsRoomTemperature(), Device.THERMOMETER_KINDERZIMMER,
+				Datapoint.ACTUAL_TEMPERATURE);
+		updateTemperatureHistory(model.getBedRoomTemperature(), Device.THERMOMETER_SCHLAFZIMMER,
+				Datapoint.ACTUAL_TEMPERATURE);
 
 		model.updateDateTime();
 		uploadService.upload(model);
 	}
 
-	private void calculateTemperatureHistory(HistoryModel historyModel, Device device, Datapoint datapoint) {
+	private void updateTemperatureHistory(List<TemperatureHistory> history, Device device,
+			Datapoint datapoint) {
 
-		historyModel.getOutsideTemperature().clear();
+		if (history.isEmpty()) {
+			history.add(readDayTemperatureHistory(LocalDateTime.now(), device, datapoint));
+		} else {
+			history.set(0, readDayTemperatureHistory(LocalDateTime.now(), device, datapoint));
+		}
+	}
+
+	private void calculateTemperatureHistory(List<TemperatureHistory> history, Device device,
+			Datapoint datapoint) {
+
+		history.clear();
 		LocalDateTime base = LocalDateTime.now();
 
 		TemperatureHistory today = readDayTemperatureHistory(base, device, datapoint);
 
-		historyModel.getOutsideTemperature().add(today);
+		history.add(today);
 		TemperatureHistory yesterday = readDayTemperatureHistory(base.minusHours(HOURS_IN_DAY), device,
 				datapoint);
-		historyModel.getOutsideTemperature().add(yesterday);
+		history.add(yesterday);
 
 		TemperatureHistory monthHistory;
 		YearMonth yearMonth = YearMonth.now();
 		do {
 			monthHistory = readMonthTemperatureHistory(yearMonth, device, datapoint);
 			if (!monthHistory.empty()) {
-				historyModel.getOutsideTemperature().add(monthHistory);
+				history.add(monthHistory);
 				yearMonth = yearMonth.minusMonths(1);
 			}
 		} while (!monthHistory.empty());
