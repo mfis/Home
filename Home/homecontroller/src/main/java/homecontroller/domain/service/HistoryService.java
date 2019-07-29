@@ -193,6 +193,16 @@ public class HistoryService {
 			BigDecimal temp = nightMax;
 			nightMax = dayMin;
 			dayMin = temp;
+			if (nightMax.compareTo(nightMin) < 0) {
+				temp = nightMax;
+				nightMax = nightMin;
+				nightMin = temp;
+			}
+			if (dayMax.compareTo(dayMin) < 0) {
+				temp = dayMax;
+				dayMax = dayMin;
+				dayMin = temp;
+			}
 		}
 
 		TemperatureHistory temperatureHistory = new TemperatureHistory();
