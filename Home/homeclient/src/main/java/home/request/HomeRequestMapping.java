@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -77,9 +78,12 @@ public class HomeRequestMapping {
 
 	@RequestMapping("/history")
 	public String history(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
-			@RequestParam(name = "key", required = false) String key) {
+			@RequestParam(name = "key") String key) {
+		LogFactory.getLog(this.getClass()).info("/history - " + key);
 		fillUserAttributes(model, userCookie);
-		houseView.fillHistoryViewModel(model, ModelObjectDAO.getInstance().readHistoryModel(), key);
+		houseView.fillHistoryViewModel(model, ModelObjectDAO.getInstance().readHistoryModel(),
+				ModelObjectDAO.getInstance().readHouseModel(), key);
+		LogFactory.getLog(this.getClass()).info("model:" + model.asMap().toString());
 		return "history";
 	}
 

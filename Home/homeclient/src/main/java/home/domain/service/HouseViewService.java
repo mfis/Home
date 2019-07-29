@@ -100,10 +100,10 @@ public class HouseViewService {
 
 	public void fillViewModel(Model model, HouseModel house) {
 
-		formatClimate(model, "tempBathroom", house.getClimateBathRoom(), house.getHeatingBathRoom());
-		formatClimate(model, "tempKids", house.getClimateKidsRoom(), null);
-		formatClimate(model, "tempLivingroom", house.getClimateLivingRoom(), null);
-		formatClimate(model, "tempBedroom", house.getClimateBedRoom(), null);
+		formatClimate(model, "tempBathroom", house.getClimateBathRoom(), house.getHeatingBathRoom(), false);
+		formatClimate(model, "tempKids", house.getClimateKidsRoom(), null, true);
+		formatClimate(model, "tempLivingroom", house.getClimateLivingRoom(), null, false);
+		formatClimate(model, "tempBedroom", house.getClimateBedRoom(), null, true);
 
 		formatWindow(model, "leftWindowBedroom", house.getLeftWindowBedRoom());
 
@@ -117,10 +117,16 @@ public class HouseViewService {
 		formatLowBattery(model, house.getLowBatteryDevices());
 	}
 
-	public void fillHistoryViewModel(Model model, HistoryModel history, String key) {
-		fillPowerHistoryViewModel(model, history);
-		fillOutsideTemperatureHistoryViewModel(model, history);
-		model.addAttribute("key", key);
+	public void fillHistoryViewModel(Model model, HistoryModel history, HouseModel house, String key) {
+		if (key.equals(house.getElectricalPowerConsumption().getDevice().programNamePrefix())) {
+			fillPowerHistoryViewModel(model, history);
+		} else if (key.equals(house.getConclusionClimateFacadeMin().getDevice().programNamePrefix())) {
+			fillTemperatureHistoryViewModel(model, history.getOutsideTemperature());
+		} else if (key.equals(house.getClimateBedRoom().getDevice().programNamePrefix())) {
+			fillTemperatureHistoryViewModel(model, history.getBedRoomTemperature());
+		} else if (key.equals(house.getClimateKidsRoom().getDevice().programNamePrefix())) {
+			fillTemperatureHistoryViewModel(model, history.getKidsRoomTemperature());
+		}
 	}
 
 	private void fillPowerHistoryViewModel(Model model, HistoryModel history) {
@@ -135,7 +141,7 @@ public class HouseViewService {
 				entry.setLineOneLabel(MONTH_YEAR_FORMATTER.format(pcm.measurePointMaxDateTime()));
 				entry.setLineOneValue(decimalFormat.format(pcm.getPowerConsumption() / KWH_FACTOR) + " kW/h");
 				if (index < history.getElectricPowerConsumption().size() - 3) {
-					entry.setCollapse(" collapse multi-collapse electricity");
+					entry.setCollapse(" collapse multi-collapse historyTarget");
 				}
 				boolean calculateDifference = true;
 				if (index == history.getElectricPowerConsumption().size() - 1) {
@@ -159,7 +165,7 @@ public class HouseViewService {
 		}
 
 		Collections.reverse(list);
-		model.addAttribute("power", list);
+		model.addAttribute("historyEntries", list);
 	}
 
 	private void formatFrontDoor(Model model, FrontDoor frontDoor, Device device) {
@@ -207,11 +213,11 @@ public class HouseViewService {
 		return dayString;
 	}
 
-	private void fillOutsideTemperatureHistoryViewModel(Model model, HistoryModel history) {
+	private void fillTemperatureHistoryViewModel(Model model, List<TemperatureHistory> historyList) {
 
 		List<HistoryEntry> list = new LinkedList<>();
 		int index = 0;
-		for (TemperatureHistory th : history.getOutsideTemperature()) {
+		for (TemperatureHistory th : historyList) {
 			HistoryEntry entry = new HistoryEntry();
 			entry.setLineOneValueIcon("fas fa-moon");
 			entry.setLineTwoValueIcon("fas fa-sun");
@@ -231,13 +237,12 @@ public class HouseViewService {
 			entry.setLineOneValue(formatTemperatures(th.getNightMin(), th.getNightMax()));
 			entry.setLineTwoValue(formatTemperatures(th.getDayMin(), th.getDayMax()));
 			if (index > 2) {
-				entry.setCollapse(" collapse multi-collapse temperatureOutside");
+				entry.setCollapse(" collapse multi-collapse historyTarget");
 			}
 			list.add(entry);
 			index++;
 		}
-
-		model.addAttribute("temperatureOutside", list);
+		model.addAttribute("historyEntries", list);
 	}
 
 	private String formatTemperatures(BigDecimal min, BigDecimal max) {
@@ -315,12 +320,13 @@ public class HouseViewService {
 		}
 	}
 
-	private void formatClimate(Model model, String viewKey, Climate climate, Heating heating) {
-		ClimateView view = formatClimate(climate, heating, viewKey);
+	private void formatClimate(Model model, String viewKey, Climate climate, Heating heating,
+			boolean history) {
+		ClimateView view = formatClimate(climate, heating, viewKey, history);
 		model.addAttribute(viewKey, view);
 	}
 
-	private ClimateView formatClimate(Climate climate, Heating heating, String viewKey) {
+	private ClimateView formatClimate(Climate climate, Heating heating, String viewKey, boolean history) {
 
 		ClimateView view = new ClimateView();
 
@@ -334,6 +340,9 @@ public class HouseViewService {
 
 		view.setId(viewKey);
 		view.setPlace(climate.getDevice().getPlace().getPlaceName());
+		if (history) {
+			view.setHistoryKey(climate.getDevice().programNamePrefix());
+		}
 
 		if (climate.getTemperature() != null) {
 			// Temperature and humidity
@@ -410,7 +419,7 @@ public class HouseViewService {
 	private void formatFacadeTemperatures(Model model, String viewKeyMin, String viewKeyMax,
 			HouseModel house) {
 
-		ClimateView viewMin = formatClimate(house.getConclusionClimateFacadeMin(), null, viewKeyMin);
+		ClimateView viewMin = formatClimate(house.getConclusionClimateFacadeMin(), null, viewKeyMin, false);
 		ClimateView viewMax = new ClimateView();
 		viewMax.setId(viewKeyMax);
 

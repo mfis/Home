@@ -1,28 +1,37 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
 
-	<!-- Stromverbrauch -->
-	<th:block th:if="${#strings.startsWith(key, 'StromverbrauchHaus')}">
-		<button class="btn btn-outline-secondary" type="button" data-toggle="collapse" data-target=".electricity" aria-expanded="false">Alle anzeigen</button>
-		<div style="height: 10px;"></div>
-		<div class="list-group">
-			<th:block th:each="entry : ${power}">
-				<div th:replace="fragments :: historyEntry (entry=${entry})"></div>
-			</th:block>
-		</div>
-	</th:block>
-
+	<!-- Historien Liste -->
+	<button class="btn btn-outline-secondary" type="button" data-toggle="collapse" data-target=".historyTarget" aria-expanded="false">Alle anzeigen</button>
 	<div style="height: 10px;"></div>
-
-	<!-- Aussentemperatur -->
-	<th:block th:if="${#strings.startsWith(key, 'ConclusionOutsideTemperatureDraussen')}">
-		<button class="btn btn-outline-secondary" type="button" data-toggle="collapse" data-target=".temperatureOutside" aria-expanded="false">Alle anzeigen</button>
-		<div style="height: 10px;"></div>
-		<div class="list-group">
-			<th:block th:each="entry : ${temperatureOutside}">
-				<div th:replace="fragments :: historyEntry (entry=${entry})"></div>
-			</th:block>
-		</div>
-	</th:block>
+	<div class="list-group">
+		<th:block th:each="row : ${historyEntries}">
+			  <div th:class="'list-group-item' + ${row.colorClass} + ' flex-column align-items-start' + ${row.collapse}">
+			    <div class="d-flex w-100 justify-content-between">
+			      <a class="mb-1 text-dark" th:text="${row.lineOneLabel}">List group item heading</a>
+			      <h4 class="text-dark">
+			      	  <span th:text="${row.lineOneValue}">x kW/h</span>
+			      	  <span th:if="${!#strings.isEmpty(row.lineOneValueIcon)}"><i style="font-size: 80%;" th:class="${row.lineOneValueIcon}"></i></span>
+			      </h4>
+			    </div>
+			    <div th:if="${!#strings.isEmpty(row.lineTwoValue)}" class="d-flex w-100 justify-content-between">
+			      <a class="mb-1" th:text="${row.lineTwoLabel}">Hochgerechnet</a>
+			      <h4 class="text-dark">
+			      	  <span th:text="${row.lineTwoValue}">3 days ago</span>
+			      	  <span th:if="${!#strings.isEmpty(row.lineTwoValueIcon)}"><i style="font-size: 80%;" th:class="${row.lineTwoValueIcon}"></i></span>
+			      </h4>
+			    </div> 
+			    <div th:if="${!#strings.isEmpty(row.badgeValue)}" class="d-flex w-100 justify-content-between">
+			    <a class="mb-1" th:text="${row.badgeLabel}">Vergleich Vorjahr</a>
+				  <div>
+				  	<span 	
+						th:class="'badge ' + ${row.badgeClass}" th:text="${row.badgeValue}">
+					</span>
+				  </div>	      	
+			    </div>	    
+			  </div>
+		</th:block>
+	</div>
+	<div style="height: 10px;"></div>
 	
 </html>
