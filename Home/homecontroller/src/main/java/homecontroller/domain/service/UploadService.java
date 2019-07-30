@@ -2,6 +2,7 @@ package homecontroller.domain.service;
 
 import java.util.Arrays;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -37,6 +38,11 @@ public class UploadService {
 		headers.set("Cache-Control", "no-cache");
 		headers.set(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN,
 				env.getProperty(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN));
+
+		String plainClientCredentials = env.getProperty("client.auth.user") + ":"
+				+ env.getProperty("client.auth.pass");
+		String base64ClientCredentials = new String(Base64.encodeBase64(plainClientCredentials.getBytes()));
+		headers.set("Authorization", "Basic " + base64ClientCredentials);
 
 		try {
 			@SuppressWarnings("unchecked")
