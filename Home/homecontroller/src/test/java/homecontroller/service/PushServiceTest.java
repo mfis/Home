@@ -104,7 +104,9 @@ public class PushServiceTest {
 
 	private void mockSettings() {
 		List<SettingsModel> settings = new LinkedList<SettingsModel>();
-		settings.add(new SettingsModel());
+		SettingsModel settingsModel = new SettingsModel();
+		settingsModel.setPushHints(true);
+		settings.add(settingsModel);
 		when(settingsService.lookupUserForPushMessage()).thenReturn(settings);
 	}
 
