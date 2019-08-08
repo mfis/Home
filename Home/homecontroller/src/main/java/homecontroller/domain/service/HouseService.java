@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -65,6 +66,8 @@ public class HouseService {
 
 	private static final String AUTOMATIC = "Automatic";
 
+	private static final Log LOG = LogFactory.getLog(HouseService.class);
+
 	@Autowired
 	private HomematicAPI api;
 
@@ -92,8 +95,7 @@ public class HouseService {
 				}
 				refreshHouseModel();
 			} catch (Exception e) {
-				LogFactory.getLog(HouseService.class).error("Could not initialize HouseService completly.",
-						e);
+				LOG.error("Could not initialize HouseService completly.", e);
 			}
 		});
 	}
@@ -104,6 +106,7 @@ public class HouseService {
 	}
 
 	public void notifyAboutCcuProgramCompletion() {
+		LOG.info("ADD notify-message to queue");
 		notifyQueue.add(true);
 	}
 
@@ -385,7 +388,9 @@ public class HouseService {
 
 	public synchronized void heatingBoost(Device device) throws InterruptedException {
 		api.runProgram(device.programNamePrefix() + "Boost");
+		LOG.info("WAITING(1) for notify-message 'heatingBoost' from queue");
 		notifyQueue.poll(REFRESH_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+		LOG.info("GOT(2) notify-message 'heatingBoost' from queue");
 	}
 
 	// needs to be synchronized because of using ccu-systemwide temperature
@@ -394,7 +399,9 @@ public class HouseService {
 			throws InterruptedException {
 		api.changeString(device.programNamePrefix() + "Temperature", temperature.toString());
 		api.runProgram(device.programNamePrefix() + "Manual");
+		LOG.info("WAITING(1) for notify-message 'heatingManual' from queue");
 		notifyQueue.poll(REFRESH_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+		LOG.info("GOT(2) notify-message 'heatingManual' from queue");
 	}
 
 	private void updateHomematicSystemVariables(HouseModel oldModel, HouseModel newModel) {
