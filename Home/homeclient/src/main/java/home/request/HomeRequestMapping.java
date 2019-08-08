@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -56,7 +57,8 @@ public class HomeRequestMapping {
 	public String message(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
 			@RequestParam(name = "type") String type,
 			@RequestParam(name = "deviceName", required = false) String deviceName,
-			@RequestParam("value") String value) {
+			@RequestParam("value") String value,
+			@RequestParam(name = "securityPin", required = false) String securityPin) {
 
 		MessageType messageType = MessageType.valueOf(type);
 		Device device = StringUtils.isBlank(deviceName) ? null : Device.valueOf(deviceName);
