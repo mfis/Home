@@ -16,7 +16,11 @@ public class CCURequestMapping {
 
 	@GetMapping("/controller/refresh")
 	public ActionModel refresh(@RequestParam("notify") String notifyString) {
-		houseService.notifyAboutCcuProgramCompletion();
+		if (Boolean.parseBoolean(notifyString)) {
+			houseService.notifyAboutCcuProgramCompletion();
+		} else {
+			houseService.refreshHouseModel();
+		}
 		return new ActionModel("OK");
 	}
 
