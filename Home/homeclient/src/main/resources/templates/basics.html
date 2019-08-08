@@ -41,7 +41,7 @@
 			if(navigator.onLine){
 				showSpinner();
 				var httpRequest = new XMLHttpRequest();
-				httpRequest.open('GET', target);
+				httpRequest.open('POST', target);
 				httpRequest.send();
 				httpRequest.onreadystatechange=(e)=>{
 					if (httpRequest.readyState == 4) {
