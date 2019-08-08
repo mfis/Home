@@ -120,13 +120,18 @@ public class PushService {
 				String time = TIME_FORMATTER
 						.format(Instant.ofEpochMilli(newModel.getFrontDoor().getTimestampLastDoorbell())
 								.atZone(ZoneId.systemDefault()).toLocalDateTime());
-				pushMessages.add(PushoverMessage.builderWithApiToken(settingsModel.getPushoverApiToken()) //
-						.setUserId(settingsModel.getPushoverUserId()) //
-						.setDevice(settingsModel.getClientName()) //
-						.setMessage("Türklingelbetätigung um " + time + " Uhr") //
-						.setPriority(MessagePriority.HIGH) //
-						.setTitle("Zuhause - Türklingel") //
-						.build());
+				String message = "Türklingelbetätigung um " + time + " Uhr";
+				if (StringUtils.equals(settingsModel.getClientName(), "ONLY_LOGGING")) {
+					LOG.info("MESSAGE: " + message);
+				} else {
+					pushMessages.add(PushoverMessage.builderWithApiToken(settingsModel.getPushoverApiToken()) //
+							.setUserId(settingsModel.getPushoverUserId()) //
+							.setDevice(settingsModel.getClientName()) //
+							.setMessage(message) //
+							.setPriority(MessagePriority.HIGH) //
+							.setTitle("Zuhause - Türklingel") //
+							.build());
+				}
 			}
 		}
 		return pushMessages;
