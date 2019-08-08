@@ -104,7 +104,7 @@ public class SettingsService {
 		for (String name : names) {
 			String user = StringUtils.substringBefore(name, PUSH_DEVICE);
 			SettingsModel model = read(user);
-			if (model.isPushHints()) {
+			if (model.isPushHints() || model.isPushDoorbell()) {
 				userModelsWithActivePush.add(model);
 			}
 		}
