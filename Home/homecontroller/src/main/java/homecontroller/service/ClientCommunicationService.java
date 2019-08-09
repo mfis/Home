@@ -17,7 +17,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import home.model.Message;
@@ -176,8 +178,8 @@ public class ClientCommunicationService {
 			}
 			return response.getBody();
 
-		} catch (ResourceAccessException rae) {
-			connectionNotEstablishedLogging();
+		} catch (ResourceAccessException | HttpServerErrorException e) {
+			connectionNotEstablishedLogging(e);
 			waitAMoment();
 			return null;
 		} catch (Exception e) {
@@ -193,14 +195,14 @@ public class ClientCommunicationService {
 		}
 	}
 
-	private void connectionNotEstablishedLogging() {
+	private void connectionNotEstablishedLogging(RestClientException e) {
 		resourceNotAvailableCounter++;
 		String suppressLogEntries = resourceNotAvailableCounter == 5
 				? " NO FURTHER LOG ENTRIES WILL BE WRITTEN."
 				: "";
 		if (resourceNotAvailableCounter < 6) {
-			LOG.warn("Could not connect to client to poll for message (#" + resourceNotAvailableCounter + ")."
-					+ suppressLogEntries);
+			LOG.warn("Could not connect to client to poll for message (#" + resourceNotAvailableCounter
+					+ "). " + e.getMessage() + suppressLogEntries);
 		}
 	}
 
