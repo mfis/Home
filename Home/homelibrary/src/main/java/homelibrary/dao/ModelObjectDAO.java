@@ -82,16 +82,19 @@ public class ModelObjectDAO {
 		}
 		switch (cameraMode) {
 		case LIVE:
-			if (cameraModel.getLivePicture().getTimestamp() >= eventTimestamp) {
+			if (cameraModel.getLivePicture() != null
+					&& cameraModel.getLivePicture().getTimestamp() >= eventTimestamp) {
 				return cameraModel.getLivePicture();
 			}
 			return null;
 		case EVENT:
-			for (CameraPicture cameraPicture : cameraModel.getEventPictures()) {
-				if (cameraPicture.getDevice() == device) {
-					long timestampDiff = Math.abs(cameraPicture.getTimestamp() - eventTimestamp);
-					if (timestampDiff < 1000 * 30) {
-						return cameraPicture;
+			if (cameraModel.getEventPictures() != null) {
+				for (CameraPicture cameraPicture : cameraModel.getEventPictures()) {
+					if (cameraPicture.getDevice() == device) {
+						long timestampDiff = Math.abs(cameraPicture.getTimestamp() - eventTimestamp);
+						if (timestampDiff < 1000 * 30) {
+							return cameraPicture;
+						}
 					}
 				}
 			}

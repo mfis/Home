@@ -109,8 +109,8 @@ public class CameraService {
 			return;
 		}
 
-		LOG.info("RUN PROGRAM: " + deviceSwitch.programNamePrefix() + "Einschalten");
-		homematicAPI.runProgram(deviceSwitch.programNamePrefix() + "Einschalten");
+		LOG.info("RUN PROGRAM: " + deviceSwitch.programNamePrefix() + "DirektEinschalten");
+		homematicAPI.runProgram(deviceSwitch.programNamePrefix() + "DirektEinschalten");
 		boolean pingCameraOk = false;
 		long startPolling = System.currentTimeMillis();
 		do {
@@ -134,18 +134,18 @@ public class CameraService {
 			if (response.getStatusCode() == HttpStatus.OK) {
 				pingCameraOk = true;
 			} else {
-				sleep(500, sleepIfNotReachable); // RC=404 etc
+				sleep(1000, sleepIfNotReachable); // RC=404 etc
 			}
 		} catch (Exception e) {
 			if (isExceptionExpectedTimeout(e)) {
 				LOG.info("PING - Timeout");
-				sleep(500, sleepIfNotReachable);
+				sleep(1000, sleepIfNotReachable);
 			} else if (isExceptionExpectedHostDown(e)) {
 				LOG.info("PING - Host is down");
 				sleep(1000, sleepIfNotReachable);
 			} else {
 				LOG.error("Error ping camera: ", e);
-				sleep(500, sleepIfNotReachable);
+				sleep(1000, sleepIfNotReachable);
 			}
 		}
 		return pingCameraOk;
