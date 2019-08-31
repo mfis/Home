@@ -37,8 +37,8 @@ public class SpringConfiguration implements WebMvcConfigurer {
 
 	@Bean(name = "restTemplateLowTimeout")
 	public RestTemplate restTemplateLowTimeout(RestTemplateBuilder restTemplateBuilder) {
-		return restTemplateBuilder.setConnectTimeout(Duration.ofMillis(300))
-				.setReadTimeout(Duration.ofMillis(300)).build();
+		return restTemplateBuilder.setConnectTimeout(Duration.ofMillis(500))
+				.setReadTimeout(Duration.ofMillis(500)).build();
 	}
 
 	@Bean(name = "restTemplateLongPolling")

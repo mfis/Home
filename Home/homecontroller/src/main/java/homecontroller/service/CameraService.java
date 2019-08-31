@@ -52,8 +52,7 @@ public class CameraService {
 		cameraPicture.setTimestamp(frontdoor.getTimestampLastDoorbell());
 		cameraPicture.setDevice(frontdoor.getDeviceCamera());
 		cameraPicture.setCameraMode(CameraMode.EVENT);
-		// FIXME !!!!!!! takePicture(cameraPicture);
-		LOG.warn("TODO: CAMERA NOT SUPPORTED !!!"); // FIXME !!!
+		takePicture(cameraPicture);
 	}
 
 	public String takeLivePicture(Device device) {
@@ -105,6 +104,11 @@ public class CameraService {
 
 	private void turnOnCamera(Device deviceSwitch) {
 
+		if (pingCamera(false)) {
+			LOG.info("Camera already on");
+			return;
+		}
+
 		LOG.info("RUN PROGRAM: " + deviceSwitch.programNamePrefix() + "Einschalten");
 		homematicAPI.runProgram(deviceSwitch.programNamePrefix() + "Einschalten");
 		boolean pingCameraOk = false;
@@ -113,35 +117,45 @@ public class CameraService {
 			if (System.currentTimeMillis() - startPolling > (1000L * 20L)) {
 				throw new IllegalStateException("camera not started");
 			}
-			try {
-				LOG.info("PING");
-				ResponseEntity<String> response = restTemplateLowTimeout
-						.getForEntity("http://192.168.2.203/ping", String.class); // TODO:
-																					// externalize
-																					// configuration
-				if (response.getStatusCode() == HttpStatus.OK) {
-					pingCameraOk = true;
-				} else {
-					sleep(500); // RC=404 etc
-				}
-			} catch (Exception e) {
-				if (isExceptionExpectedTimeout(e)) {
-					LOG.info("PING - Timeout");
-					sleep(500);
-				} else if (isExceptionExpectedHostDown(e)) {
-					LOG.info("PING - Host is down");
-					sleep(1000);
-				} else {
-					LOG.error("Error ping camera: ", e);
-					sleep(500);
-				}
-			}
+			pingCameraOk = pingCamera(true);
 		} while (!pingCameraOk);
 	}
 
-	private void sleep(long ms) {
+	private boolean pingCamera(boolean sleepIfNotReachable) {
+
+		boolean pingCameraOk = false;
+
 		try {
-			Thread.sleep(ms);
+			LOG.info("PING");
+			ResponseEntity<String> response = restTemplateLowTimeout.getForEntity("http://192.168.2.203/ping",
+					String.class); // TODO:
+									// externalize
+									// configuration
+			if (response.getStatusCode() == HttpStatus.OK) {
+				pingCameraOk = true;
+			} else {
+				sleep(500, sleepIfNotReachable); // RC=404 etc
+			}
+		} catch (Exception e) {
+			if (isExceptionExpectedTimeout(e)) {
+				LOG.info("PING - Timeout");
+				sleep(500, sleepIfNotReachable);
+			} else if (isExceptionExpectedHostDown(e)) {
+				LOG.info("PING - Host is down");
+				sleep(1000, sleepIfNotReachable);
+			} else {
+				LOG.error("Error ping camera: ", e);
+				sleep(500, sleepIfNotReachable);
+			}
+		}
+		return pingCameraOk;
+	}
+
+	private void sleep(long ms, boolean doSleep) {
+		try {
+			if (doSleep) {
+				Thread.sleep(ms);
+			}
 		} catch (InterruptedException e) { // NOSONAR
 			// noop
 		}
