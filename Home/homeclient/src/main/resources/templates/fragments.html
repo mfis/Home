@@ -191,31 +191,35 @@
 		</div>	
 		<script type="text/javascript">
 			var link[[${id}]] = '[(${link})]';
-			var ts[[${id}]] = '';
+			var ts[[${id}]] = '0';
 			var timer[[${id}]] = null;
-			var timerButton[[${id}]] = null;
 			var beacon[[${id}]] = new Image(); 
-			beacon[[${id}]].onload = function() {
-			    console.log('Image found'); 
+			beacon[[${id}]].onload = function() {	
+			    console.log('Image found ' + ts[[${id}]]); 
 			    clearTimeout(timer[[${id}]]);
 			    timer[[${id}]] = null;
-			    $("#cameraImage[[${id}]]").attr("src", link[[${id}]] + ts[[${id}]]);
+			    $('#cameraImage[[${id}]]').attr('src', link[[${id}]] + ts[[${id}]]);
+			    if(ts[[${id}]] > 0){
+				    var timestring = new Date(new Number(ts[[${id}]])).toLocaleTimeString('de-DE');
+				    console.log('title#' + timestring + ' / ' + ts[[${id}]]); 
+				    // $("#modalCameraId[[${id}]]").innerHTML = ('Aktuell (' + timestring + ')');
+				    document.getElementById('modalCameraId[[${id}]]').innerHTML = 'Aktuell (' + timestring + ')';
+			    }
 			};
-			beacon[[${id}]].onerror = function(){    
+			beacon[[${id}]].onerror = function(){
 			   console.log('Image not found');
 			   clearTimeout(timer[[${id}]]);
 			   timer[[${id}]] = null;
-			   timerButton[[${id}]] = null;
 			   poll[[${id}]]();
 			}
 			function prepare[[${id}]]Button(show, request){
+				console.log('Prepare Button');
 				// show modal
 				if(show==='true'){
 					$("#modalCamera[[${id}]]").modal("show"); 
 				}
 				// request new live picture
 				if(request==='true'){
-					if(timerButton[[${id}]]===null){
 						console.log('New request');
 						var httpRequest = new XMLHttpRequest();
 						httpRequest.open("GET", "[(${linkRequest})]");
@@ -224,42 +228,42 @@
 							if (httpRequest.readyState == 4 && httpRequest.status == 200) {
 								console.log('Response=' + httpRequest.responseText);
 								ts[[${id}]] = httpRequest.responseText;
+								// beacon[[${id}]] = new Image(); 
 								poll[[${id}]]();
 							}
 						}
-					}
 				}else{
 					poll[[${id}]]();
 				}	
 			}
 			function poll[[${id}]](){
-				if(timer[[${id}]]!==null || timerButton[[${id}]] === null){
+				if(timer[[${id}]]!==null){
+					console.log('no timer - return');
 					return;
 				}
 				timer[[${id}]] = setTimeout(function(){ 
-					console.log('poll...');
+					console.log('poll...' + ts[[${id}]] + '//' + beacon[[${id}]]);
 					beacon[[${id}]].src = link[[${id}]] + ts[[${id}]];
 				}, 500);
 			}
 			
 			$("#modalCamera[[${id}]]").on('hide.bs.modal', function(){
+				// beacon[[${id}]] = null;
+				ts[[${id}]] = '0';
+				$("#cameraImage[[${id}]]").attr("src", "");
 				if(timer[[${id}]]!=null){
 					clearTimeout(timer[[${id}]]);
 					timer[[${id}]] = setTimeout(function(){ 
 						console.log('finish timer');
 					}, 0);
-					clearTimeout(timerButton[[${id}]]);
-					timerButton[[${id}]] = null;
 				}
 			});
-			document.getElementById("[[${id}]]Button").onclick = function () {prepare[[${id}]]Button('true', '[[${refresh}]]');};
+			document.getElementById("[[${id}]]Button").onclick = function () {
+				console.log('poll... [[${id}]]');
+				prepare[[${id}]]Button('true', '[[${refresh}]]');
+			};
 			if([[${refresh}]]===true){
 				document.getElementById("[[${id}]]Refresh").onclick = function () {
-					document.getElementById("[[${id}]]Refresh").disabled = true;
-					timerButton[[${id}]] = setTimeout(function(){ 
-						document.getElementById("[[${id}]]Refresh").disabled = false;
-						timerButton[[${id}]] = null;
-					}, 15000);
 					prepare[[${id}]]Button('false', 'true');
 				};
 			}

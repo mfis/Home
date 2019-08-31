@@ -2,6 +2,8 @@ package home.request;
 
 import java.util.concurrent.CompletableFuture;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,8 +21,11 @@ import homelibrary.dao.ModelObjectDAO;
 @RestController
 public class ControllerRequestMapping {
 
+	private static final Log log = LogFactory.getLog(ControllerRequestMapping.class);
+
 	@RequestMapping(value = "/uploadCameraModel")
 	public ActionModel uploadCameraModel(@RequestBody CameraModel cameraModel) {
+		log.info("recieved new camera image upload");
 		ModelObjectDAO.getInstance().write(cameraModel);
 		return new ActionModel("OK");
 	}

@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -13,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -40,6 +40,8 @@ public class HomeRequestMapping {
 	private static final String REDIRECT = "redirect:";
 
 	private static final DateTimeFormatter TS_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
+
+	private static final Log log = LogFactory.getLog(HomeRequestMapping.class);
 
 	@Autowired
 	private HouseViewService houseView;
@@ -101,7 +103,7 @@ public class HomeRequestMapping {
 	public ResponseEntity<byte[]> cameraPicture(@RequestParam(ControllerAPI.DEVICE_NAME) String deviceName,
 			@RequestParam(ControllerAPI.CAMERA_MODE) String cameraMode,
 			@RequestParam("ts") String timestamp) {
-
+		log.info("poll for camera image - " + timestamp);
 		byte[] bytes = controllerAPI.cameraPicture(Device.valueOf(deviceName), CameraMode.valueOf(cameraMode),
 				Long.parseLong(timestamp));
 
@@ -119,7 +121,7 @@ public class HomeRequestMapping {
 	@RequestMapping(value = "/cameraPictureRequest")
 	public ResponseEntity<String> cameraPictureRequest(
 			@RequestParam(ControllerAPI.DEVICE_NAME) String deviceName) {
-
+		log.info("requesting new camera image");
 		String requestTimestamp = controllerAPI.cameraPictureRequest(Device.valueOf(deviceName));
 		return new ResponseEntity<>(requestTimestamp, HttpStatus.OK);
 	}
