@@ -92,6 +92,7 @@ public class ModelObjectDAO {
 				for (CameraPicture cameraPicture : cameraModel.getEventPictures()) {
 					if (cameraPicture.getDevice() == device) {
 						long timestampDiff = Math.abs(cameraPicture.getTimestamp() - eventTimestamp);
+						System.out.println("diff==" + timestampDiff);
 						if (timestampDiff < 1000 * 30) {
 							return cameraPicture;
 						}

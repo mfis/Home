@@ -121,7 +121,7 @@ public class HomeRequestMapping {
 	@RequestMapping(value = "/cameraPictureRequest")
 	public ResponseEntity<String> cameraPictureRequest(
 			@RequestParam(ControllerAPI.DEVICE_NAME) String deviceName) {
-		log.info("requesting new camera image");
+		log.info("requesting new camera image " + deviceName);
 		String requestTimestamp = controllerAPI.cameraPictureRequest(Device.valueOf(deviceName));
 		return new ResponseEntity<>(requestTimestamp, HttpStatus.OK);
 	}

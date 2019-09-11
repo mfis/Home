@@ -95,6 +95,7 @@ public class CameraService {
 		if (cameraPicture.getCameraMode() == CameraMode.LIVE) {
 			cameraModel.setLivePicture(cameraPicture);
 		} else if (cameraPicture.getCameraMode() == CameraMode.EVENT) {
+			LOG.info("writing event picture: " + cameraPicture.getTimestamp());
 			cameraModel.getEventPictures().add(cameraPicture); // FIXME:
 																// DELETE
 																// OLDEST
