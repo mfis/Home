@@ -35,6 +35,10 @@
 			<div th:replace="fragments :: temperature (model=${tempBedroom})"></div>
 			<!-- <div th:replace="fragments :: window (model=${leftWindowBedroom})"></div> -->
 	
+			<!-- Waschküche -->
+			<div th:replace="fragments :: title (name='Waschküche')"></div>
+			<div th:replace="fragments :: temperature (model=${tempLaundry})"></div>
+	
 			<!-- Haustür -->
 			<div th:replace="fragments :: title (name='Haustür')"></div>
 			<div th:replace="fragments :: frontDoor (model=${frontDoor})"></div>

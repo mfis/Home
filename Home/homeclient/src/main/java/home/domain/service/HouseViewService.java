@@ -104,6 +104,7 @@ public class HouseViewService {
 		formatClimate(model, "tempKids", house.getClimateKidsRoom(), null, true);
 		formatClimate(model, "tempLivingroom", house.getClimateLivingRoom(), null, false);
 		formatClimate(model, "tempBedroom", house.getClimateBedRoom(), null, true);
+		formatClimate(model, "tempLaundry", house.getClimateLaundry(), null, true);
 
 		formatWindow(model, "leftWindowBedroom", house.getLeftWindowBedRoom());
 

@@ -157,17 +157,18 @@
 				<span th:text="${model.lastDoorbells}"></span>
 			</h4>
 		</div>
-		<div th:class="'alert alert-secondary callout callout-secondary'">
+		<!-- <div th:class="'alert alert-secondary callout callout-secondary'">
 			<div th:replace="fragments :: elementname (icon='fas fa-camera', name='Kamera', place='', historyKey=${model.historyKey})"></div>
 			<div style="padding-top:6px;">
-				<button th:id="${model.idLive} + 'Button'" type="button" class="btn btn-secondary btn-sm"><span><i th:class="'fas fa-eye'"></i></span><span>&nbsp;Aktuell</span></button>
+				<button th:id="${model.idLive} + 'Button'" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'buttonOnclick' + ${model.idLive} + '()'}"><span><i th:class="'fas fa-eye'"></i></span><span>&nbsp;Aktuell</span></button>
 				<a>&nbsp;</a>
-				<button th:id="${model.idBell} + 'Button'" type="button" class="btn btn-secondary btn-sm"><span><i th:class="'fas fa-eye'"></i></span><span>&nbsp;Türklingel</span></button>
+				<button th:id="${model.idBell} + 'Button'" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'buttonOnclick' + ${model.idBell} + '()'}"><span><i th:class="'fas fa-eye'"></i></span><span>&nbsp;Türklingel</span></button>
 			</div>
 		</div>	
 		<th:block th:replace="fragments :: modalCamera (id=${model.idLive}, link=${model.linkLive}, linkRequest=${model.linkLiveRequest}, name='Aktuell', refresh='true')"></th:block>
 		<th:block th:replace="fragments :: modalCamera (id=${model.idBell}, link=${model.linkBell}, linkRequest='', name='Türklingel', refresh='false')"></th:block>
-	</th:block>
+		 -->
+	</th:block>						
 	
 	<!-- Modal Camera -->
 	<th:block th:fragment="modalCamera (id, link, linkRequest, name, refresh)">
@@ -176,15 +177,15 @@
 		    <div class="modal-content">
 		      <div class="modal-header">
 		        <h5 class="modal-title" th:id="'modalCameraId' + ${id}" th:text="${name}"></h5>
-		        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+		        <button type="button" class="close" th:onclick="@{'closeOnclick' + ${id} + '()'}" data-dismiss="modal" aria-label="Close">
 		          <span aria-hidden="true">&times;</span>
 		        </button>
 		      </div>
 		      <div class="modal-body">
-				<img src="" th:id="'cameraImage' + ${id}" style="width:100%;" >			  
+				<img src="loading.jpg" th:id="'cameraImage' + ${id}" style="width:100%;" >			  
 			  </div>
 		      <div th:if="${#strings.equals(refresh,'true')}" class="modal-footer">
-		        <button th:id="${id} + 'Refresh'" type="button" class="btn btn-default btn-sm">Aktualisieren</button>
+		        <button th:id="${id} + 'Refresh'" type="button" th:onclick="@{'refreshOnclick' + ${id} + '()'}" class="btn btn-default btn-sm">Aktualisieren</button>
 		      </div>			  
 		    </div>
 		  </div>
@@ -237,17 +238,18 @@
 				}	
 			}
 			function poll[[${id}]](){
-				if(timer[[${id}]]!==null){
-					console.log('no timer - return');
-					return;
-				}
+				//if(timer[[${id}]]!==null){
+				//	console.log('no timer - return');
+				//	return;
+				// }
 				timer[[${id}]] = setTimeout(function(){ 
 					console.log('poll...' + ts[[${id}]] + '//' + beacon[[${id}]]);
 					beacon[[${id}]].src = link[[${id}]] + ts[[${id}]];
 				}, 500);
 			}
 			
-			$("#modalCamera[[${id}]]").on('hide.bs.modal', function(){
+			// $("#modalCamera[[${id}]]").on('hide.bs.modal', function(){
+			function closeOnclick[[${id}]](){
 				// beacon[[${id}]] = null;
 				ts[[${id}]] = '0';
 				$("#cameraImage[[${id}]]").attr("src", "");
@@ -257,16 +259,22 @@
 						console.log('finish timer');
 					}, 0);
 				}
-			});
-			document.getElementById("[[${id}]]Button").onclick = function () {
-				console.log('poll... [[${id}]]');
-				prepare[[${id}]]Button('true', '[[${refresh}]]');
-			};
-			if([[${refresh}]]===true){
-				document.getElementById("[[${id}]]Refresh").onclick = function () {
+			} // );
+			// document.getElementById("[[${id}]]Button").onclick = function () {
+			function buttonOnclick[[${id}]](){
+				console.log('buttonOnclick... [[${id}]]');
+				$("#cameraImage[[${id}]]").attr("src", "loading.jpg");
+				if($('.modal.fade.show').length === 0){
+					prepare[[${id}]]Button('true', '[[${refresh}]]');
+				}
+			}// ;
+			// if([[${refresh}]]===true){
+				//document.getElementById("[[${id}]]Refresh").onclick = function () {
+				function refreshOnclick[[${id}]](){
+					$("#cameraImage[[${id}]]").attr("src", "loading.jpg");
 					prepare[[${id}]]Button('false', 'true');
-				};
-			}
+				} // ;
+			// }
 		</script>				
 	</th:block>	
 	

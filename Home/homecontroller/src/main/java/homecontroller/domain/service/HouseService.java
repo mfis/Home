@@ -138,6 +138,7 @@ public class HouseService {
 		newModel.setClimateKidsRoom(readRoomClimate(Device.THERMOMETER_KINDERZIMMER));
 		newModel.setClimateLivingRoom(readRoomClimate(Device.THERMOMETER_WOHNZIMMER));
 		newModel.setClimateBedRoom(readRoomClimate(Device.THERMOMETER_SCHLAFZIMMER));
+		newModel.setClimateLaundry(readRoomClimate(Device.THERMOMETER_WASCHKUECHE));
 
 		newModel.setLeftWindowBedRoom(readWindow(Device.ROLLLADE_SCHLAFZIMMER_LINKS));
 
@@ -286,6 +287,8 @@ public class HouseService {
 			lookupHint(oldModel != null ? oldModel.getClimateLivingRoom() : null,
 					newModel.getClimateLivingRoom(), null, newModel.getClimateTerrace(),
 					newModel.getDateTime());
+			lookupHint(oldModel != null ? oldModel.getClimateLaundry() : null, newModel.getClimateLaundry(),
+					null, null, newModel.getDateTime());
 		} catch (RuntimeException re) {
 			LogFactory.getLog(HouseService.class).error("Could not calculate hints:", re);
 		}
@@ -296,7 +299,9 @@ public class HouseService {
 		if (old != null && old.getHints() != null) {
 			room.getHints().overtakeOldHints(old.getHints(), dateTime);
 		}
-		lookupTemperatureHint(room, heating, outdoor, dateTime);
+		if (outdoor != null) {
+			lookupTemperatureHint(room, heating, outdoor, dateTime);
+		}
 		lookupHumidityHint(room, dateTime);
 	}
 

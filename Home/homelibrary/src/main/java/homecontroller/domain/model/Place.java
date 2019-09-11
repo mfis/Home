@@ -12,6 +12,7 @@ public enum Place {
 	KIDSROOM("Kinderzimmer", true), //
 	BATHROOM("Bad", true), //
 	BEDROOM("Schlafzimmer", true), //
+	LAUNDRY("Waschküche", true), //
 	HOUSE("Haus", false), //
 	ENTRANCE("Einfahrt", false), //
 	TERRACE("Terrasse", false), //

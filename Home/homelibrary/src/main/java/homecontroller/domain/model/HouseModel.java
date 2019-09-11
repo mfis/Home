@@ -26,6 +26,8 @@ public class HouseModel implements Serializable {
 
 	private RoomClimate climateLivingRoom;
 
+	private RoomClimate climateLaundry;
+
 	private OutdoorClimate climateTerrace;
 
 	private OutdoorClimate climateEntrance;
@@ -200,6 +202,14 @@ public class HouseModel implements Serializable {
 
 	public void setDateTime(long dateTime) {
 		this.dateTime = dateTime;
+	}
+
+	public RoomClimate getClimateLaundry() {
+		return climateLaundry;
+	}
+
+	public void setClimateLaundry(RoomClimate climateLaundry) {
+		this.climateLaundry = climateLaundry;
 	}
 
 }
