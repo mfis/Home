@@ -157,7 +157,7 @@
 				<span th:text="${model.lastDoorbells}"></span>
 			</h4>
 		</div>
-		<!-- <div th:class="'alert alert-secondary callout callout-secondary'">
+		<div th:class="'alert alert-secondary callout callout-secondary'">
 			<div th:replace="fragments :: elementname (icon='fas fa-camera', name='Kamera', place='', historyKey=${model.historyKey})"></div>
 			<div style="padding-top:6px;">
 				<button th:id="${model.idLive} + 'Button'" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'buttonOnclick' + ${model.idLive} + '()'}"><span><i th:class="'fas fa-eye'"></i></span><span>&nbsp;Aktuell</span></button>
@@ -167,7 +167,6 @@
 		</div>	
 		<th:block th:replace="fragments :: modalCamera (id=${model.idLive}, link=${model.linkLive}, linkRequest=${model.linkLiveRequest}, name='Aktuell', refresh='true')"></th:block>
 		<th:block th:replace="fragments :: modalCamera (id=${model.idBell}, link=${model.linkBell}, linkRequest='', name='Türklingel', refresh='false')"></th:block>
-		 -->
 	</th:block>						
 	
 	<!-- Modal Camera -->

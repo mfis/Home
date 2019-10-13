@@ -1,9 +1,20 @@
 package homecontroller.service;
 
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.CompletableFuture;
+
+import javax.imageio.ImageIO;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -11,6 +22,7 @@ import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.HttpHostConnectException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -42,6 +54,9 @@ public class CameraService {
 
 	@Autowired
 	private UploadService uploadService;
+
+	@Autowired
+	private Environment env;
 
 	private static final Log LOG = LogFactory.getLog(PushService.class);
 
@@ -104,6 +119,10 @@ public class CameraService {
 	}
 
 	private void turnOnCamera(Device deviceSwitch) {
+
+		if (cameraUseMock()) {
+			return;
+		}
 
 		if (pingCamera(false)) {
 			LOG.info("Camera already on");
@@ -178,6 +197,10 @@ public class CameraService {
 
 	private byte[] cameraReadPicture(Device device) {
 
+		if (cameraUseMock()) {
+			return createMockPicture();
+		}
+
 		try {
 			ResponseEntity<byte[]> response = restTemplateBinaryResponse
 					.getForEntity("http://192.168.2.203/capture", byte[].class); // FIXME:
@@ -194,6 +217,50 @@ public class CameraService {
 			LOG.error("Error read camera picture: ", rce);
 			return new byte[0];
 		}
+	}
+
+	private boolean cameraUseMock() {
+		return Boolean.parseBoolean(env.getProperty("camera.mock"));
+	}
+
+	private byte[] createMockPicture() {
+
+		SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
+		String text = sdf.format(new Date());
+
+		BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_3BYTE_BGR);
+		Graphics2D g2d = img.createGraphics();
+		Font font = new Font("Arial", Font.PLAIN, 24);
+		g2d.setFont(font);
+		FontMetrics fm = g2d.getFontMetrics();
+		int width = fm.stringWidth(text) + 2;
+		int height = fm.getHeight() + 2;
+		g2d.dispose();
+
+		img = new BufferedImage(width, height, BufferedImage.TYPE_3BYTE_BGR);
+		g2d = img.createGraphics();
+		g2d.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION,
+				RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+		g2d.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
+		g2d.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_DISABLE);
+		g2d.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+		g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+		g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+		g2d.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
+		g2d.setFont(font);
+		fm = g2d.getFontMetrics();
+		g2d.setColor(Color.BLUE);
+		g2d.drawString(text, 0, fm.getAscent());
+		g2d.dispose();
+
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		try {
+			ImageIO.write(img, "jpg", out);
+		} catch (IOException e) {
+			LOG.error("Could not create mock image:", e);
+		}
+		return out.toByteArray();
 	}
 
 }
