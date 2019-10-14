@@ -114,7 +114,7 @@ public class HomeRequestMapping {
 		if (bytes.length == 0) {
 			return new ResponseEntity<byte[]>(bytes, headers, HttpStatus.NO_CONTENT);
 		} else {
-			return new ResponseEntity<byte[]>(bytes, headers, HttpStatus.NOT_FOUND);
+			return new ResponseEntity<byte[]>(bytes, headers, HttpStatus.OK);
 		}
 	}
 

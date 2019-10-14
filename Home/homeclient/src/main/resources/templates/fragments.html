@@ -191,7 +191,7 @@
 		</div>	
 		<script type="text/javascript">
 			var link[[${id}]] = '[(${link})]';
-			var ts[[${id}]] = '0';
+			var ts[[${id}]] = '';
 			var timer[[${id}]] = null;
 			var beacon[[${id}]] = new Image(); 
 			beacon[[${id}]].onload = function() {	
@@ -250,7 +250,7 @@
 			// $("#modalCamera[[${id}]]").on('hide.bs.modal', function(){
 			function closeOnclick[[${id}]](){
 				// beacon[[${id}]] = null;
-				ts[[${id}]] = '0';
+				ts[[${id}]] = '';
 				$("#cameraImage[[${id}]]").attr("src", "");
 				if(timer[[${id}]]!=null){
 					clearTimeout(timer[[${id}]]);

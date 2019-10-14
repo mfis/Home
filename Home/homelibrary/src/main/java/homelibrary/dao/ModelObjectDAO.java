@@ -88,12 +88,15 @@ public class ModelObjectDAO {
 			}
 			return null;
 		case EVENT:
+			System.out.println("SEARCHING for event: " + new Date(eventTimestamp).toString());
 			if (cameraModel.getEventPictures() != null) {
 				for (CameraPicture cameraPicture : cameraModel.getEventPictures()) {
 					if (cameraPicture.getDevice() == device) {
 						long timestampDiff = Math.abs(cameraPicture.getTimestamp() - eventTimestamp);
-						System.out.println("diff==" + timestampDiff);
+						System.out.println("  Picture:" + new Date(cameraPicture.getTimestamp()).toString()
+								+ " diff=" + (timestampDiff / 1000 / 60) + "min");
 						if (timestampDiff < 1000 * 30) {
+							System.out.println("    RETURN");
 							return cameraPicture;
 						}
 					}
