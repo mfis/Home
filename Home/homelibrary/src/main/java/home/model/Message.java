@@ -21,6 +21,8 @@ public class Message implements Serializable {
 
 	boolean successfullExecuted;
 
+	private String response;
+
 	public Message() {
 		uid = System.currentTimeMillis() + "#" + UUID.randomUUID().toString();
 	}
@@ -71,6 +73,14 @@ public class Message implements Serializable {
 
 	public void setUser(String user) {
 		this.user = user;
+	}
+
+	public String getResponse() {
+		return response;
+	}
+
+	public void setResponse(String response) {
+		this.response = response;
 	}
 
 }

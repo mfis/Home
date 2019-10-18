@@ -155,7 +155,8 @@ public class TextQueryService {
 				message.setMessageType(MessageType.HEATINGMANUAL);
 				message.setValue(value.getIntegerValue().toString());
 			}
-			boolean success = MessageQueue.getInstance().request(message, true);
+			Message response = MessageQueue.getInstance().request(message, true);
+			boolean success = response != null && response.isSuccessfullExecuted();
 
 			if (!success) {
 				builder.add("Der neue Wert konnte leider nicht bestätigt werden");
@@ -207,7 +208,8 @@ public class TextQueryService {
 				message.setMessageType(MessageType.TOGGLEAUTOMATION);
 				message.setValue(String.valueOf(value.getAutomationState().isBooleanValue()));
 			}
-			boolean success = MessageQueue.getInstance().request(message, true);
+			Message response = MessageQueue.getInstance().request(message, true);
+			boolean success = response != null && response.isSuccessfullExecuted();
 			powerswitch = refreshModel(powerswitch);
 
 			if (!success) {

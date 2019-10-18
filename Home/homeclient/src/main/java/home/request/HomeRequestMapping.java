@@ -22,13 +22,13 @@ import home.model.Message;
 import home.model.MessageQueue;
 import home.model.MessageType;
 import home.model.Pages;
-import home.service.ControllerAPI;
 import home.service.ExternalPropertiesDAO;
 import home.service.LoginInterceptor;
 import home.service.SettingsViewService;
 import home.service.TextQueryService;
 import home.service.ViewAttributesDAO;
 import homecontroller.domain.model.CameraMode;
+import homecontroller.domain.model.CameraPicture;
 import homecontroller.domain.model.Device;
 import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.SettingsModel;
@@ -41,6 +41,10 @@ public class HomeRequestMapping {
 
 	private static final DateTimeFormatter TS_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
+	private static final String DEVICE_NAME = "deviceName";
+
+	private static final String CAMERA_MODE = "cameraMode";
+
 	private static final Log log = LogFactory.getLog(HomeRequestMapping.class);
 
 	@Autowired
@@ -52,32 +56,19 @@ public class HomeRequestMapping {
 	@Autowired
 	private TextQueryService textQueryService;
 
-	@Autowired
-	private ControllerAPI controllerAPI;
-
 	@RequestMapping("/message")
 	public String message(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
 			@RequestParam(name = "type") String type,
-			@RequestParam(name = "deviceName", required = false) String deviceName,
+			@RequestParam(name = DEVICE_NAME, required = false) String deviceName,
 			@RequestParam("value") String value,
 			@RequestParam(name = "securityPin", required = false) String securityPin) {
 
-		MessageType messageType = MessageType.valueOf(type);
-		Device device = StringUtils.isBlank(deviceName) ? null : Device.valueOf(deviceName);
+		Message response = request(userCookie, type, deviceName, value);
 
-		Message message = new Message();
-		message.setMessageType(messageType);
-		message.setDevice(device);
-		message.setValue(value);
-		message.setUser(ExternalPropertiesDAO.getInstance().read(userCookie));
-
-		boolean success = MessageQueue.getInstance().request(message, true);
-		if (!success) {
-			System.out.println("MESSAGE EXECUTION NOT SUCCESSFUL !!!");
-			// TODO: Error Popup
+		if (!response.isSuccessfullExecuted()) {
+			log.error("MESSAGE EXECUTION NOT SUCCESSFUL !!!");
 		}
-
-		return REDIRECT + messageType.getTargetSite();
+		return REDIRECT + response.getMessageType().getTargetSite();
 	}
 
 	@RequestMapping("/history")
@@ -100,13 +91,13 @@ public class HomeRequestMapping {
 	}
 
 	@RequestMapping(value = "/cameraPicture", produces = "image/jpeg")
-	public ResponseEntity<byte[]> cameraPicture(@RequestParam(ControllerAPI.DEVICE_NAME) String deviceName,
-			@RequestParam(ControllerAPI.CAMERA_MODE) String cameraMode, @RequestParam("ts") String timestamp,
+	public ResponseEntity<byte[]> cameraPicture(@RequestParam(DEVICE_NAME) String deviceName,
+			@RequestParam(CAMERA_MODE) String cameraMode, @RequestParam("ts") String timestamp,
 			@RequestParam(name = "onlyheader", required = false) String onlyheader) {
 
 		boolean onlyHeaderFlag = onlyheader != null && Boolean.parseBoolean(onlyheader);
 		log.info("poll for camera image - " + timestamp + (onlyHeaderFlag ? " onlyHeader" : ""));
-		byte[] bytes = controllerAPI.cameraPicture(Device.valueOf(deviceName), CameraMode.valueOf(cameraMode),
+		byte[] bytes = cameraPicture(Device.valueOf(deviceName), CameraMode.valueOf(cameraMode),
 				Long.parseLong(timestamp));
 
 		HttpHeaders headers = new HttpHeaders();
@@ -121,11 +112,16 @@ public class HomeRequestMapping {
 	}
 
 	@RequestMapping(value = "/cameraPictureRequest")
-	public ResponseEntity<String> cameraPictureRequest(
-			@RequestParam(ControllerAPI.DEVICE_NAME) String deviceName) {
+	public ResponseEntity<String> cameraPictureRequest(Model model,
+			@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
+			@RequestParam(name = "type") String type,
+			@RequestParam(name = DEVICE_NAME, required = false) String deviceName,
+			@RequestParam("value") String value) {
+
 		log.info("requesting new camera image " + deviceName);
-		String requestTimestamp = controllerAPI.cameraPictureRequest(Device.valueOf(deviceName));
-		return new ResponseEntity<>(requestTimestamp, HttpStatus.OK);
+
+		Message response = request(userCookie, type, deviceName, value);
+		return new ResponseEntity<>(response.getResponse(), HttpStatus.OK);
 	}
 
 	@RequestMapping(Pages.PATH_HOME)
@@ -158,6 +154,28 @@ public class HomeRequestMapping {
 		SettingsModel settings = ModelObjectDAO.getInstance().readSettingsModels(user);
 		settingsView.fillSettings(model, settings);
 		return Pages.getEntry(Pages.PATH_SETTINGS).getTemplate();
+	}
+
+	private Message request(String userCookie, String type, String deviceName, String value) {
+
+		MessageType messageType = MessageType.valueOf(type);
+		Device device = StringUtils.isBlank(deviceName) ? null : Device.valueOf(deviceName);
+
+		Message message = new Message();
+		message.setMessageType(messageType);
+		message.setDevice(device);
+		message.setValue(value);
+		message.setUser(ExternalPropertiesDAO.getInstance().read(userCookie));
+
+		return MessageQueue.getInstance().request(message, true);
+	}
+
+	private byte[] cameraPicture(Device device, CameraMode mode, long timestamp) {
+		CameraPicture cameraPicture = ModelObjectDAO.getInstance().readCameraPicture(device, mode, timestamp);
+		if (cameraPicture != null) {
+			return cameraPicture.getBytes();
+		}
+		return new byte[0];
 	}
 
 	private void fillUserAttributes(Model model, String userCookie) {

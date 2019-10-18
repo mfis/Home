@@ -44,8 +44,8 @@ public class ClientCommunicationService {
 	@Autowired
 	private HistoryService historyService;
 
-	// @Autowired
-	// private CameraService cameraService;
+	@Autowired
+	private CameraService cameraService;
 
 	@Autowired
 	private SettingsService settingsService;
@@ -92,6 +92,9 @@ public class ClientCommunicationService {
 			case HEATINGMANUAL:
 				houseService.heatingManual(message.getDevice(), new BigDecimal(message.getValue()));
 				houseService.refreshHouseModel();
+				break;
+			case CAMERAPICTUREREQUEST:
+				message.setResponse(cameraService.takeLivePicture(message.getDevice()));
 				break;
 			case SHUTTERPOSITION:
 				houseService.shutterPosition(message.getDevice(), Integer.parseInt(message.getValue()));

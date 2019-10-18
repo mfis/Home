@@ -34,14 +34,14 @@ public class MessageQueue {
 		return instance;
 	}
 
-	public boolean request(Message message, boolean waitForResponse) {
+	public Message request(Message message, boolean waitForResponse) {
 
 		System.out.println(
 				"MESSAGE QUEUE SIZE = " + requests.size() + "  RESPONSE QUEUE SIZE = " + responses.size());
 		requests.add(message);
 
 		if (!waitForResponse) {
-			return false;
+			return null;
 		}
 
 		long start = System.currentTimeMillis();
@@ -57,8 +57,7 @@ public class MessageQueue {
 		} while (!responses.containsKey(message.getUid()) && (now
 				- start < HomeAppConstants.CONTROLLER_CLIENT_LONGPOLLING_RESPONSE_TIMEOUT_SECONDS * 1000L));
 
-		Message removed = responses.remove(message.getUid());
-		return removed != null && removed.isSuccessfullExecuted();
+		return responses.remove(message.getUid());
 	}
 
 	public Message pollMessage() {
