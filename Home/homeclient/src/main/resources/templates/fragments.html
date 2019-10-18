@@ -150,13 +150,14 @@
 	</div>	
 
 	<!-- Frontdoor -->
-	<th:block th:fragment="frontDoor (model)">
+	<th:block th:fragment="frontDoor (model, user)">
 		<div th:class="'alert alert-secondary callout callout-secondary'">
 			<div th:replace="fragments :: elementname (icon='fas fa-bell', name='Türklingel', place='', historyKey=${model.historyKey})"></div>
 			<h4>
 				<span th:text="${model.lastDoorbells}"></span>
 			</h4>
 		</div>
+		<th:block th:if="${#strings.equals(user, 'Matthias')}">
 		<div th:class="'alert alert-secondary callout callout-secondary'">
 			<div th:replace="fragments :: elementname (icon='fas fa-camera', name='Kamera', place='', historyKey=${model.historyKey})"></div>
 			<div style="padding-top:6px;">
@@ -167,6 +168,7 @@
 		</div>	
 		<th:block th:replace="fragments :: modalCamera (id=${model.idLive}, link=${model.linkLive}, linkRequest=${model.linkLiveRequest}, name='Aktuell', refresh='true')"></th:block>
 		<th:block th:replace="fragments :: modalCamera (id=${model.idBell}, link=${model.linkBell}, linkRequest='', name='Türklingel', refresh='false')"></th:block>
+		</th:block>
 	</th:block>						
 	
 	<!-- Modal Camera -->
@@ -242,8 +244,10 @@
 				//	return;
 				// }
 				timer[[${id}]] = setTimeout(function(){ 
-					console.log('poll...' + ts[[${id}]] + '//' + beacon[[${id}]]);
-					beacon[[${id}]].src = link[[${id}]] + ts[[${id}]];
+					if($('.modal.fade.show').length !== 0){
+						console.log('poll...' + ts[[${id}]] + '//' + beacon[[${id}]]);
+						beacon[[${id}]].src = link[[${id}]] + ts[[${id}]] + "&onlyheader=true";
+					}
 				}, 500);
 			}
 			

@@ -101,9 +101,11 @@ public class HomeRequestMapping {
 
 	@RequestMapping(value = "/cameraPicture", produces = "image/jpeg")
 	public ResponseEntity<byte[]> cameraPicture(@RequestParam(ControllerAPI.DEVICE_NAME) String deviceName,
-			@RequestParam(ControllerAPI.CAMERA_MODE) String cameraMode,
-			@RequestParam("ts") String timestamp) {
-		log.info("poll for camera image - " + timestamp);
+			@RequestParam(ControllerAPI.CAMERA_MODE) String cameraMode, @RequestParam("ts") String timestamp,
+			@RequestParam(name = "onlyheader", required = false) String onlyheader) {
+
+		boolean onlyHeaderFlag = onlyheader != null && Boolean.parseBoolean(onlyheader);
+		log.info("poll for camera image - " + timestamp + (onlyHeaderFlag ? " onlyHeader" : ""));
 		byte[] bytes = controllerAPI.cameraPicture(Device.valueOf(deviceName), CameraMode.valueOf(cameraMode),
 				Long.parseLong(timestamp));
 
