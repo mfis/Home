@@ -58,9 +58,17 @@ public class CameraService {
 	@Autowired
 	private Environment env;
 
-	private static final Log LOG = LogFactory.getLog(PushService.class);
+	private static final Log LOG = LogFactory.getLog(CameraService.class);
 
 	private static final Object MONITOR = new Object();
+
+	public void cleanUp() {
+		CameraModel cameraModel = ModelObjectDAO.getInstance().readCameraModel();
+		if (cameraModel.cleanUp()) {
+			LOG.info("Cleaned up camera pictures");
+			uploadService.upload(cameraModel);
+		}
+	}
 
 	public void takeEventPicture(FrontDoor frontdoor) {
 		CameraPicture cameraPicture = new CameraPicture();

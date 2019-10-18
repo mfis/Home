@@ -125,6 +125,7 @@ public class HouseService {
 
 		updateCameraPictures(oldModel, newModel); // async
 		updateHomematicSystemVariables(oldModel, newModel);
+		cameraService.cleanUp();
 	}
 
 	private HouseModel refreshModel() {

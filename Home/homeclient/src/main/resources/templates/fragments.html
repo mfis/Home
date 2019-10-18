@@ -173,6 +173,7 @@
 	
 	<!-- Modal Camera -->
 	<th:block th:fragment="modalCamera (id, link, linkRequest, name, refresh)">
+		<input type="hidden" th:id="'modalCameraHiddenLink' + ${id}" th:value="${link}">
 		<div class="modal fade" th:id="'modalCamera' + ${id}" tabindex="-1" role="dialog" th:aria-labelledby="'#modalCamera' + ${id}" aria-hidden="true">
 		  <div class="modal-dialog modal-dialog-centered" role="document">
 		    <div class="modal-content">
@@ -183,7 +184,7 @@
 		        </button>
 		      </div>
 		      <div class="modal-body">
-				<img src="loading.jpg" th:id="'cameraImage' + ${id}" style="width:100%;" >			  
+				<img src="loading.jpg" th:id="'cameraImage' + ${id}" style="width:100%;" />			  
 			  </div>
 		      <div th:if="${#strings.equals(refresh,'true')}" class="modal-footer">
 		        <button th:id="${id} + 'Refresh'" type="button" th:onclick="@{'refreshOnclick' + ${id} + '()'}" class="btn btn-default btn-sm">Aktualisieren</button>
@@ -192,7 +193,7 @@
 		  </div>
 		</div>	
 		<script type="text/javascript">
-			var link[[${id}]] = '[(${link})]';
+			var link[[${id}]] = '';
 			var ts[[${id}]] = '';
 			var timer[[${id}]] = null;
 			var beacon[[${id}]] = new Image(); 
@@ -245,7 +246,8 @@
 				// }
 				timer[[${id}]] = setTimeout(function(){ 
 					if($('.modal.fade.show').length !== 0){
-						console.log('poll...' + ts[[${id}]] + '//' + beacon[[${id}]]);
+						link[[${id}]] = document.getElementById('modalCameraHiddenLink[[${id}]]').value;
+						console.log('poll...' + link[[${id}]] + ts[[${id}]] + '//' + beacon[[${id}]]);
 						beacon[[${id}]].src = link[[${id}]] + ts[[${id}]] + "&onlyheader=true";
 					}
 				}, 500);
