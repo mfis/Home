@@ -184,7 +184,7 @@
 		        </button>
 		      </div>
 		      <div class="modal-body">
-				<img src="loading.jpg" th:id="'cameraImage' + ${id}" style="width:100%;" />			  
+				<img th:id="'cameraImage' + ${id}" style="width:100%;" />			  
 			  </div>
 		      <div th:if="${#strings.equals(refresh,'true')}" class="modal-footer">
 		        <button th:id="${id} + 'Refresh'" type="button" th:onclick="@{'refreshOnclick' + ${id} + '()'}" class="btn btn-default btn-sm">Aktualisieren</button>
@@ -270,13 +270,14 @@
 				console.log('buttonOnclick... [[${id}]]');
 				$("#cameraImage[[${id}]]").attr("src", "loading.jpg");
 				if($('.modal.fade.show').length === 0){
+					$("#cameraImage[[${id}]]").attr("src", "loading.png");
 					prepare[[${id}]]Button('true', '[[${refresh}]]');
 				}
 			}// ;
 			// if([[${refresh}]]===true){
 				//document.getElementById("[[${id}]]Refresh").onclick = function () {
 				function refreshOnclick[[${id}]](){
-					$("#cameraImage[[${id}]]").attr("src", "loading.jpg");
+					$("#cameraImage[[${id}]]").attr("src", "loading.png");
 					prepare[[${id}]]Button('false', 'true');
 				} // ;
 			// }
