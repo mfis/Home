@@ -4,11 +4,10 @@ import java.math.BigDecimal;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,10 +60,8 @@ public class HouseService {
 
 	private static final long HINT_TIMEOUT_MINUTES_AFTER_BOOST = 90L;
 
-	private LinkedBlockingQueue<Boolean> notifyQueue = new LinkedBlockingQueue<>(1000);
-	private static final int REFRESH_TIMEOUT_SECONDS = 10;
-
 	private static final String AUTOMATIC = "Automatic";
+	private static final String BUSY = "Busy";
 
 	private static final Log LOG = LogFactory.getLog(HouseService.class);
 
@@ -103,11 +100,6 @@ public class HouseService {
 	@Scheduled(fixedDelay = (1000 * 60))
 	private void scheduledRefreshHouseModel() {
 		refreshHouseModel();
-	}
-
-	public void notifyAboutCcuProgramCompletion() {
-		LOG.info("ADD notify-message to queue");
-		notifyQueue.add(true);
 	}
 
 	public synchronized void refreshHouseModel() {
@@ -392,22 +384,20 @@ public class HouseService {
 		api.changeBooleanState(device.programNamePrefix() + AUTOMATIC, value.isBooleanValue());
 	}
 
-	public synchronized void heatingBoost(Device device) throws InterruptedException {
-		api.runProgram(device.programNamePrefix() + "Boost");
-		LOG.info("WAITING(1) for notify-message 'heatingBoost' from queue");
-		notifyQueue.poll(REFRESH_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-		LOG.info("GOT(2) notify-message 'heatingBoost' from queue");
+	public synchronized void heatingBoost(Device device) {
+		runProgram(device, "Boost");
 	}
 
 	// needs to be synchronized because of using ccu-systemwide temperature
 	// variable
-	public synchronized void heatingManual(Device device, BigDecimal temperature)
-			throws InterruptedException {
+	public synchronized void heatingManual(Device device, BigDecimal temperature) {
 		api.changeString(device.programNamePrefix() + "Temperature", temperature.toString());
-		api.runProgram(device.programNamePrefix() + "Manual");
-		LOG.info("WAITING(1) for notify-message 'heatingManual' from queue");
-		notifyQueue.poll(REFRESH_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-		LOG.info("GOT(2) notify-message 'heatingManual' from queue");
+		runProgram(device, "Manual");
+	}
+
+	private void runProgram(Device device, String programSuffix) {
+		api.changeString(device.programNamePrefix() + BUSY, String.valueOf(System.currentTimeMillis()));
+		api.runProgram(device.programNamePrefix() + programSuffix);
 	}
 
 	private void updateHomematicSystemVariables(HouseModel oldModel, HouseModel newModel) {
@@ -483,8 +473,23 @@ public class HouseService {
 		heatingModel.setTargetTemperature(
 				api.getAsBigDecimal(heating.accessKeyXmlApi(Datapoint.SET_TEMPERATURE)));
 		heatingModel.setDevice(heating);
+		heatingModel.setBusy(checkBusyState(heating));
 
 		return heatingModel;
+	}
+
+	private boolean checkBusyState(Device device) {
+
+		String busyString = api.getAsString(device.programNamePrefix() + BUSY);
+		if (StringUtils.isNotBlank(busyString) && StringUtils.isNumeric(busyString)) {
+			long busyTimestamp = Long.parseLong(busyString);
+			long diff = System.currentTimeMillis() - busyTimestamp;
+			if (diff < 1000 * 60 * 3) {
+				return true;
+			}
+			api.changeString(device.programNamePrefix() + BUSY, StringUtils.EMPTY);
+		}
+		return false;
 	}
 
 	private Window readWindow(Device shutter) { // TODO: D_U_M_M_Y

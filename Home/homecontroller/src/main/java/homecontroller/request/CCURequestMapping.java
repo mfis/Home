@@ -4,7 +4,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import homecontroller.domain.model.ActionModel;
@@ -19,13 +18,9 @@ public class CCURequestMapping {
 	private static final Log LOG = LogFactory.getLog(CCURequestMapping.class);
 
 	@GetMapping("/controller/refresh")
-	public ActionModel refresh(@RequestParam("notify") String notifyString) {
-		LOG.info("REFRESH request notify=" + notifyString);
-		if (Boolean.parseBoolean(notifyString)) {
-			houseService.notifyAboutCcuProgramCompletion();
-		} else {
-			houseService.refreshHouseModel();
-		}
+	public ActionModel refresh() {
+		LOG.info("REFRESH request");
+		houseService.refreshHouseModel();
 		return new ActionModel("OK");
 	}
 

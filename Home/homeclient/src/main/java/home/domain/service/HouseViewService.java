@@ -401,6 +401,7 @@ public class HouseViewService {
 					+ heating.getDevice().name()); // value set in ui fragment
 			view.setTargetTemp(format(heating.getTargetTemperature(), false));
 			view.setHeatericon("fab fa-hotjar");
+			view.setBusy(Boolean.toString(heating.isBusy()));
 		}
 	}
 

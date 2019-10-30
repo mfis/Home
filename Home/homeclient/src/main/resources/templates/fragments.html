@@ -361,23 +361,28 @@
 	<!-- Thermostat -->
 	<div th:fragment="thermostat (model)" th:class="'alert alert-secondary callout callout-secondary'">
 		<div th:replace="fragments :: elementname (icon=${model.heatericon}, name='Heizkörpersteuerung', place=${model.place}, historyKey=${model.historyKey})"></div>
-		<h4 th:if="${#strings.startsWith(model.linkBoost,'/')}"><span th:text="'Manuell auf ' + ${model.targetTemp} + '°C'"></span></h4>
-		<h4 th:unless="${#strings.startsWith(model.linkBoost,'/')}"><span th:text="'Aufheizen - noch ' + ${model.linkBoost} + ' Min.'"></span></h4>
 			
-		<div th:if="${#strings.startsWith(model.linkBoost,'/')}" class="btn-group" role="group" aria-label="heating">
-  			<button type="button" th:id="'idHeatMinus' + ${model.id}" class="btn btn-secondary btn-sm" th:onclick="@{'adjustHeating' + ${model.id} + '(-0.5)'}">&nbsp;-&nbsp;</button>
-  			<button type="button" th:id="'idHeatTarget' + ${model.id}" class="btn btn-outline-secondary btn-sm" disabled><span th:id="'idHeatTargetLabel' + ${model.id}" th:text="${model.targetTemp}"></span><span>°C</span></button>
-  			<button type="button" th:id="'idHeatPlus' + ${model.id}" class="btn btn-secondary btn-sm" th:onclick="@{'adjustHeating' + ${model.id} + '(+0.5)'}">&nbsp;+&nbsp;</button>
-		</div>
-		<span th:if="${#strings.startsWith(model.linkBoost,'/')}">&nbsp;</span>
-		
-		<button th:if="${#strings.startsWith(model.linkBoost,'/')}"
-			type="button" th:onclick="@{'setBoost' + ${model.id} + '()'}" class="btn btn-secondary btn-sm">Schnell aufheizen</button>
-		<button th:unless="${#strings.startsWith(model.linkBoost,'/')}" type="button"
-			class="btn btn-secondary btn-sm" th:onclick="@{'setHeating' + ${model.id} + '()'}" th:text="'abbrechen'">Boost ist eingeschaltet</button>
-		<input type="hidden" th:id="'val_model_targetTemp_' + ${model.id}" th:value="${model.targetTemp}">
-		<input type="hidden" th:id="'val_model_linkManual_' + ${model.id}" th:value="${model.linkManual}">
-		<input type="hidden" th:id="'val_model_linkBoost_' + ${model.id}" th:value="${model.linkBoost}">
+		<th:block th:unless="${#strings.equals(model.busy,'true')}">	
+			<h4 th:if="${#strings.startsWith(model.linkBoost,'/')}"><span th:text="'Manuell auf ' + ${model.targetTemp} + '°C'"></span></h4>
+			<h4 th:unless="${#strings.startsWith(model.linkBoost,'/')}"><span th:text="'Aufheizen - noch ' + ${model.linkBoost} + ' Min.'"></span></h4>
+			<div th:if="${#strings.startsWith(model.linkBoost,'/')}" class="btn-group" role="group" aria-label="heating">
+	  			<button type="button" th:id="'idHeatMinus' + ${model.id}" class="btn btn-secondary btn-sm" th:onclick="@{'adjustHeating' + ${model.id} + '(-0.5)'}">&nbsp;-&nbsp;</button>
+	  			<button type="button" th:id="'idHeatTarget' + ${model.id}" class="btn btn-outline-secondary btn-sm" disabled><span th:id="'idHeatTargetLabel' + ${model.id}" th:text="${model.targetTemp}"></span><span>°C</span></button>
+	  			<button type="button" th:id="'idHeatPlus' + ${model.id}" class="btn btn-secondary btn-sm" th:onclick="@{'adjustHeating' + ${model.id} + '(+0.5)'}">&nbsp;+&nbsp;</button>
+			</div>
+			<span th:if="${#strings.startsWith(model.linkBoost,'/')}">&nbsp;</span>
+			
+			<button th:if="${#strings.startsWith(model.linkBoost,'/')}"
+				type="button" th:onclick="@{'setBoost' + ${model.id} + '()'}" class="btn btn-secondary btn-sm">Schnell aufheizen</button>
+			<button th:unless="${#strings.startsWith(model.linkBoost,'/')}" type="button"
+				class="btn btn-secondary btn-sm" th:onclick="@{'setHeating' + ${model.id} + '()'}" th:text="'abbrechen'">Boost ist eingeschaltet</button>
+			<input type="hidden" th:id="'val_model_targetTemp_' + ${model.id}" th:value="${model.targetTemp}">
+			<input type="hidden" th:id="'val_model_linkManual_' + ${model.id}" th:value="${model.linkManual}">
+			<input type="hidden" th:id="'val_model_linkBoost_' + ${model.id}" th:value="${model.linkBoost}">
+		</th:block>
+		<th:block th:if="${#strings.equals(model.busy,'true')}">
+			<h4><span><i class="fa fa-spinner fa-spin"></i></span></h4>
+		</th:block>
 		<script type="text/javascript">
 			var timeout[[${model.id}]] = null;
 			var newTargetTemp[[${model.id}]] = parseFloat(document.getElementById('val_model_targetTemp_[[${model.id}]]').value.replace(/,/, '.'));

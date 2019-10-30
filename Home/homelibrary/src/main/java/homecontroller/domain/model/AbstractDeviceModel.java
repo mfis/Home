@@ -10,6 +10,8 @@ public abstract class AbstractDeviceModel implements Serializable {
 
 	private Type subType;
 
+	private boolean busy;
+
 	public Device getDevice() {
 		return device;
 	}
@@ -24,5 +26,13 @@ public abstract class AbstractDeviceModel implements Serializable {
 
 	public void setSubType(Type subType) {
 		this.subType = subType;
+	}
+
+	public boolean isBusy() {
+		return busy;
+	}
+
+	public void setBusy(boolean busy) {
+		this.busy = busy;
 	}
 }
