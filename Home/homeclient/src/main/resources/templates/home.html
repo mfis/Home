@@ -7,6 +7,7 @@
 	
 		<div
 			th:replace="basics :: navigation (selected=${MENU_SELECTED}, selectable=${MENU_SELECTABLE}, status=${SITE_REQUEST_TS})"></div>
+		<input type="hidden" th:id="'modelTimestamp'" th:value="${modelTimestamp}"></input>	
 	
 		<div class="container">
 	

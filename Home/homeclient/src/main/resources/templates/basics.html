@@ -39,15 +39,18 @@
 	
 		function submitContent(target){
 			if(navigator.onLine){
-				showSpinner();
 				var httpRequest = new XMLHttpRequest();
 				httpRequest.open('POST', target);
+				httpRequest.setRequestHeader('ETag', document.getElementById('modelTimestamp').value);
 				httpRequest.send();
 				httpRequest.onreadystatechange=(e)=>{
 					if (httpRequest.readyState == 4) {
 						if(httpRequest.status == 200){
 							var doc = new DOMParser().parseFromString(httpRequest.responseText, "text/html");
 							document.getElementById('idbody').innerHTML = doc.getElementById('idbody').innerHTML;
+							lastRefresh = (new Date).getTime();
+							showCheck();
+						} else if(httpRequest.status == 304){	
 							lastRefresh = (new Date).getTime();
 							showCheck();
 						}else{
@@ -67,21 +70,12 @@
 		function showCheck(){
 			if (document.getElementById('statusline') !== null ) {
 				document.getElementById('navbarcheck').style.display = 'inline';
-				document.getElementById('navbarspinner').style.display = 'none';
 				document.getElementById('navbaroffline').style.display = 'none';
 			}
 		}	
-		function showSpinner(){
-			if (document.getElementById('statusline') !== null ) {
-				document.getElementById('navbarcheck').style.display = 'none';
-				document.getElementById('navbarspinner').style.display = 'inline';
-				document.getElementById('navbaroffline').style.display = 'none';
-			}			
-		}
 		function showOffline(){
 			if (document.getElementById('statusline') !== null ) {
 				document.getElementById('navbarcheck').style.display = 'none';
-				document.getElementById('navbarspinner').style.display = 'none';
 				document.getElementById('navbaroffline').style.display = 'inline';
 			}			
 		}		
@@ -95,7 +89,7 @@
 	<script>
 		function setAutoRefresh(){
 			unsetAutoRefresh();
-			autoRefresh = setTimeout(doAutoRefresh, 1000 * 10);
+			autoRefresh = setTimeout(doAutoRefresh, 1000 * 2);
 		}
 		function unsetAutoRefresh(){
 			if(autoRefresh !== null){
@@ -149,7 +143,6 @@
 			<a id="statusline" class="text-muted font-weight-light ml-auto" style="font-size: 85%; margin-right:15px">
 				<span th:text="${status}"></span>
 				<span style="display:inline;" id="navbarcheck"><i class="far fa-check-circle"></i></span>
-				<span style="display:none;" id="navbarspinner"><i class="fa fa-spinner fa-spin text-dark"></i></span>
 				<span style="display:none;" id="navbaroffline"><i class="fas fa-exclamation-triangle text-danger"></i></span>
 			</a>
 			<button class="navbar-toggler" type="button" data-toggle="collapse"

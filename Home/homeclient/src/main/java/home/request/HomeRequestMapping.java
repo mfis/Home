@@ -3,6 +3,8 @@ package home.request;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -14,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -105,9 +108,9 @@ public class HomeRequestMapping {
 		headers.setContentDispositionFormData("attachment", deviceName + "_" + cameraMode + ".jpg");
 		headers.setContentLength(bytes.length);
 		if (bytes.length == 0) {
-			return new ResponseEntity<byte[]>(bytes, headers, HttpStatus.NO_CONTENT);
+			return new ResponseEntity<>(bytes, headers, HttpStatus.NO_CONTENT);
 		} else {
-			return new ResponseEntity<byte[]>(bytes, headers, HttpStatus.OK);
+			return new ResponseEntity<>(bytes, headers, HttpStatus.OK);
 		}
 	}
 
@@ -125,13 +128,19 @@ public class HomeRequestMapping {
 	}
 
 	@RequestMapping(Pages.PATH_HOME)
-	public String homePage(Model model,
-			@CookieValue(name = LoginInterceptor.COOKIE_NAME, required = false) String userCookie) {
+	public String homePage(Model model, HttpServletResponse response,
+			@CookieValue(name = LoginInterceptor.COOKIE_NAME, required = false) String userCookie,
+			@RequestHeader(name = "ETag", required = false) String etag) {
 		fillMenu(Pages.PATH_HOME, model);
 		fillUserAttributes(model, userCookie);
 		HouseModel houseModel = ModelObjectDAO.getInstance().readHouseModel();
 		if (houseModel == null) {
+			response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
 			return "error";
+		} else if (StringUtils.isNotBlank(etag)
+				&& StringUtils.equals(etag, Long.toString(houseModel.getDateTime()))) {
+			response.setStatus(HttpStatus.NOT_MODIFIED.value());
+			return "empty";
 		} else {
 			houseView.fillViewModel(model, ModelObjectDAO.getInstance().readHouseModel());
 			return Pages.getEntry(Pages.PATH_HOME).getTemplate();

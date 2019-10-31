@@ -100,6 +100,8 @@ public class HouseViewService {
 
 	public void fillViewModel(Model model, HouseModel house) {
 
+		model.addAttribute("modelTimestamp", Long.toString(house.getDateTime()));
+
 		formatClimate(model, "tempBathroom", house.getClimateBathRoom(), house.getHeatingBathRoom(), false);
 		formatClimate(model, "tempKids", house.getClimateKidsRoom(), null, true);
 		formatClimate(model, "tempLivingroom", house.getClimateLivingRoom(), null, false);
