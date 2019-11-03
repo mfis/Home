@@ -113,7 +113,6 @@
 	} 
 	.modal-content, .model-content .list-group-item-secondary, .lgi {
 		background-color:#121212 !important;
-		filter: brightness(150%);
 		border:1px solid rgb(238,238,238,0.8) !important;
 	}
 	.modal-content .lgi {
