@@ -21,6 +21,7 @@ public class HistoryModel implements Serializable {
 	private LinkedList<TemperatureHistory> outsideTemperature;
 	private LinkedList<TemperatureHistory> bedRoomTemperature;
 	private LinkedList<TemperatureHistory> kidsRoomTemperature;
+	private LinkedList<TemperatureHistory> laundryTemperature;
 
 	// ----------
 
@@ -51,6 +52,7 @@ public class HistoryModel implements Serializable {
 		outsideTemperature = new LinkedList<>();
 		bedRoomTemperature = new LinkedList<>();
 		kidsRoomTemperature = new LinkedList<>();
+		laundryTemperature = new LinkedList<>();
 	}
 
 	public long getDateTime() {
@@ -91,6 +93,14 @@ public class HistoryModel implements Serializable {
 
 	public void setKidsRoomTemperature(LinkedList<TemperatureHistory> kidsRoomTemperature) {// NOSONAR
 		this.kidsRoomTemperature = kidsRoomTemperature;
+	}
+
+	public LinkedList<TemperatureHistory> getLaundryTemperature() {// NOSONAR
+		return laundryTemperature;
+	}
+
+	public void setLaundryTemperature(LinkedList<TemperatureHistory> laundryTemperature) {// NOSONAR
+		this.laundryTemperature = laundryTemperature;
 	}
 
 }

@@ -70,6 +70,8 @@ public class HistoryService {
 				Datapoint.ACTUAL_TEMPERATURE);
 		calculateTemperatureHistory(newModel.getBedRoomTemperature(), Device.THERMOMETER_SCHLAFZIMMER,
 				Datapoint.ACTUAL_TEMPERATURE);
+		calculateTemperatureHistory(newModel.getLaundryTemperature(), Device.THERMOMETER_WASCHKUECHE,
+				Datapoint.ACTUAL_TEMPERATURE);
 
 		newModel.setInitialized(true);
 		ModelObjectDAO.getInstance().write(newModel);
@@ -101,6 +103,8 @@ public class HistoryService {
 		updateTemperatureHistory(model.getKidsRoomTemperature(), Device.THERMOMETER_KINDERZIMMER,
 				Datapoint.ACTUAL_TEMPERATURE);
 		updateTemperatureHistory(model.getBedRoomTemperature(), Device.THERMOMETER_SCHLAFZIMMER,
+				Datapoint.ACTUAL_TEMPERATURE);
+		updateTemperatureHistory(model.getLaundryTemperature(), Device.THERMOMETER_WASCHKUECHE,
 				Datapoint.ACTUAL_TEMPERATURE);
 
 		model.updateDateTime();

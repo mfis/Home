@@ -131,6 +131,8 @@ public class HouseViewService {
 			fillTemperatureHistoryViewModel(model, history.getBedRoomTemperature());
 		} else if (key.equals(house.getClimateKidsRoom().getDevice().programNamePrefix())) {
 			fillTemperatureHistoryViewModel(model, history.getKidsRoomTemperature());
+		} else if (key.equals(house.getClimateLaundry().getDevice().programNamePrefix())) {
+			fillTemperatureHistoryViewModel(model, history.getLaundryTemperature());
 		}
 	}
 
@@ -258,11 +260,14 @@ public class HouseViewService {
 		}
 
 		DecimalFormat decimalFormat = new DecimalFormat("0");
-		if (min.compareTo(max) == 0) {
-			return decimalFormat.format(min) + DEGREE + "C";
+		String minFrmt = decimalFormat.format(min);
+		String maxFrmt = decimalFormat.format(max);
+
+		if (StringUtils.equals(minFrmt, maxFrmt)) {
+			return minFrmt + DEGREE + "C";
 		}
 
-		return decimalFormat.format(min) + DEGREE + "C bis " + decimalFormat.format(max) + DEGREE + "C";
+		return minFrmt + DEGREE + "C bis " + maxFrmt + DEGREE + "C";
 	}
 
 	private void calculatePreviousYearDifference(HistoryEntry entry, PowerConsumptionMonth pcm,
