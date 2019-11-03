@@ -359,7 +359,7 @@
 	</div>
 	
 	<!-- Thermostat -->
-	<div th:fragment="thermostat (model)" th:class="'alert alert-secondary callout callout-secondary'">
+	<div th:fragment="thermostat (model)" th:class="'alert alert-' + ${model.colorClassHeating} + ' callout callout-' + ${model.colorClassHeating}">
 		<div th:replace="fragments :: elementname (icon=${model.heatericon}, name='Heizkörpersteuerung', place=${model.place}, historyKey=${model.historyKey})"></div>
 			
 		<th:block th:unless="${#strings.equals(model.busy,'true')}">	

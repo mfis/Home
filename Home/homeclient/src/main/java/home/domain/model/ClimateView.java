@@ -13,6 +13,7 @@ public class ClimateView extends View {
 	private String statePostfixIconHumidity = "";
 	private String tendencyIconHumidity = "";
 	private String colorClass = "secondary";
+	private String colorClassHeating = "secondary";
 	private String linkBoost = "";
 	private String linkManual = "";
 	private String targetTemp = "";
@@ -130,6 +131,14 @@ public class ClimateView extends View {
 
 	public void setBusy(String busy) {
 		this.busy = busy;
+	}
+
+	public String getColorClassHeating() {
+		return colorClassHeating;
+	}
+
+	public void setColorClassHeating(String colorClassHeating) {
+		this.colorClassHeating = colorClassHeating;
 	}
 
 }

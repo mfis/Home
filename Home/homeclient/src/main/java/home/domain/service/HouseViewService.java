@@ -55,6 +55,8 @@ import homecontroller.domain.model.Window;
 @Component
 public class HouseViewService {
 
+	private static final String COLOR_CLASS_RED = "danger";
+
 	public static final String MESSAGEPATH = "/message?"; // NOSONAR
 
 	private static final String DEGREE = "\u00b0";
@@ -395,6 +397,7 @@ public class HouseViewService {
 		if (heating != null) {
 			if (heating.isBoostActive()) {
 				view.setLinkBoost(String.valueOf(heating.getBoostMinutesLeft()));
+				view.setColorClassHeating(COLOR_CLASS_RED);
 			} else {
 				view.setLinkBoost(MESSAGEPATH + "type=" + MessageType.HEATINGBOOST + "&deviceName="
 						+ heating.getDevice().name() + "&value=null");
@@ -410,7 +413,7 @@ public class HouseViewService {
 	private void formatClimateBackground(Climate climate, ClimateView view) {
 
 		if (climate.getTemperature().getValue().compareTo(HIGH_TEMP) > 0) {
-			view.setColorClass("danger");
+			view.setColorClass(COLOR_CLASS_RED);
 			view.setIcon("fas fa-thermometer-full");
 		} else if (climate.getTemperature().getValue().compareTo(LOW_TEMP) < 0) {
 			view.setColorClass("info");
@@ -455,7 +458,7 @@ public class HouseViewService {
 				viewMax.setIcon("far fa-sun");
 				break;
 			case HIGH:
-				viewMax.setColorClass("danger");
+				viewMax.setColorClass(COLOR_CLASS_RED);
 				viewMax.setIcon("fas fa-sun");
 			}
 		}
