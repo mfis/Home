@@ -412,8 +412,11 @@
 
 	<!-- Batterie-Warnung -->
 	<th:block th:fragment="deviceBatterieWarning (model)">
+		<th:block th:if="${#lists.size(model) &gt; 0}">
+			<div th:replace="fragments :: title (name='Bitte beachten!')"></div>
+		</th:block>
 		<th:block th:each="entry : ${model}">
-			<div th:class="'alert alert-danger'">
+			<div th:class="'alert alert-danger callout-danger'">
 				<h4>
 					<span><i class="fas fa-battery-quarter"></i></span> <span
 						th:text="'Batterie fast leer: ' + ${entry}"></span>
