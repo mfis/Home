@@ -110,7 +110,8 @@ public class HouseViewService {
 		formatClimate(model, "tempBedroom", house.getClimateBedRoom(), null, true);
 		formatClimate(model, "tempLaundry", house.getClimateLaundry(), null, true);
 
-		formatWindow(model, "leftWindowBedroom", house.getLeftWindowBedRoom());
+		// formatWindow(model, "leftWindowBedroom",
+		// house.getLeftWindowBedRoom());
 
 		formatFacadeTemperatures(model, "tempMinHouse", "tempMaxHouse", house);
 

@@ -7,7 +7,7 @@ import java.util.List;
 import homecontroller.domain.model.AutomationState;
 import homecontroller.domain.model.Place;
 import homecontroller.domain.model.ShutterPosition;
-import homecontroller.domain.model.Type;
+import homelibrary.homematic.model.Type;
 
 public class SynonymeRepository {
 

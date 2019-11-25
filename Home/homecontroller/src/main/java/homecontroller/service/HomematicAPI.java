@@ -95,7 +95,6 @@ public class HomematicAPI {
 
 	private String readValue(HomematicCommand command) {
 		String key = command.buildVarName();
-		LOG.info("readValue:" + key + "=" + currentValues.get(key));
 		if (currentValues.containsKey(key)) {
 			return currentValues.get(key);
 		} else {
@@ -128,8 +127,6 @@ public class HomematicAPI {
 
 	public void refresh() {
 
-		LOG.info("REFRESH!");
-
 		List<HomematicCommand> commands = new LinkedList<>();
 		for (Device device : Device.values()) {
 			commands.add(HomematicCommand.read(device, device.lowBatDatapoint()));
@@ -139,6 +136,12 @@ public class HomematicAPI {
 					commands.add(HomematicCommand.readTS(device, datapoint));
 				}
 			}
+			if (device.getSysVars() != null) {
+				for (String suffix : device.getSysVars()) {
+					commands.add(HomematicCommand.read(device, suffix));
+				}
+			}
+			commands.add(HomematicCommand.read(device, device.lowBatDatapoint()));
 		}
 		commands.add(HomematicCommand.read("CCU_im_Reboot"));
 		commands.add(HomematicCommand.read("CCU_Uptime"));
@@ -184,12 +187,12 @@ public class HomematicAPI {
 				boolean rc = Boolean.parseBoolean(child.getTextContent());
 				rcsOk = rcsOk && rc;
 				if (!rc) {
-					LOG.warn("CommandResult not OK: " + child.getTagName());
+					LOG.error("CommandResult not OK: " + child.getTagName());
 				}
 			} else if (child.getTagName().equals(HomematicCommand.E_O_F)) {
 				eofOK = HomematicCommand.E_O_F.equals(child.getTextContent());
 				if (!eofOK) {
-					LOG.warn("Command EOF not OK!");
+					LOG.error("Command EOF not OK!");
 				}
 			}
 		}
@@ -203,10 +206,19 @@ public class HomematicAPI {
 	private String buildReGaRequestBody(HomematicCommand... commands) {
 
 		StringBuilder sb = new StringBuilder(commands.length * 120);
+		boolean containsExecuteCommand = false;
 		for (HomematicCommand command : commands) {
+			if (command.isProgramRunCommand()) {
+				containsExecuteCommand = true;
+			}
 			sb.append(command.buildCommand());
 			sb.append(" \n");
 		}
+
+		if (containsExecuteCommand) {
+			sb.insert(0, HomematicCommand.write("refreshadress", env.getProperty("refresh.adress")));
+		}
+
 		sb.append(HomematicCommand.eof().buildCommand());
 		return sb.toString();
 	}

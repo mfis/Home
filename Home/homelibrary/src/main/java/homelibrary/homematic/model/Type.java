@@ -1,4 +1,4 @@
-package homecontroller.domain.model;
+package homelibrary.homematic.model;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,6 +22,11 @@ public enum Type {
 	SYSVAR(null, false), //
 	SYSVAR_THERMOMETER("ConclusionOutsideTemperature", false, Type.THERMOMETER), //
 	;
+
+	protected static final List<String> VAR_PREFIXES_SWITCH_AUTO = Arrays.asList("Automatic",
+			"AutomaticInfoText");
+
+	protected static final List<String> VAR_PREFIXES_PROG_CONTROL = Arrays.asList("Busy");
 
 	private final String typeName;
 

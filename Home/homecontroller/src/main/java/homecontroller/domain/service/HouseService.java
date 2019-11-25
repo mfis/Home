@@ -28,7 +28,6 @@ import homecontroller.domain.model.RoomClimate;
 import homecontroller.domain.model.ShutterPosition;
 import homecontroller.domain.model.Switch;
 import homecontroller.domain.model.Tendency;
-import homecontroller.domain.model.Type;
 import homecontroller.domain.model.ValueWithTendency;
 import homecontroller.domain.model.Window;
 import homecontroller.service.CameraService;
@@ -39,6 +38,7 @@ import homelibrary.homematic.model.Datapoint;
 import homelibrary.homematic.model.Device;
 import homelibrary.homematic.model.HomematicCommand;
 import homelibrary.homematic.model.HomematicConstants;
+import homelibrary.homematic.model.Type;
 
 @Component
 public class HouseService {
@@ -409,11 +409,13 @@ public class HouseService {
 						|| oldModel.getConclusionClimateFacadeMin().getTemperature().getValue().compareTo(
 								newModel.getConclusionClimateFacadeMin().getTemperature().getValue()) != 0)) {
 			api.executeCommand(HomematicCommand.write(newModel.getConclusionClimateFacadeMin().getDevice(),
+					Datapoint.SYSVAR_DUMMY,
 					newModel.getConclusionClimateFacadeMin().getTemperature().getValue().toString()));
 		}
 
 		if (doorbellTimestampChanged(oldModel, newModel)) {
 			api.executeCommand(HomematicCommand.write(newModel.getFrontDoor().getDeviceDoorBellHistory(),
+					Datapoint.SYSVAR_DUMMY,
 					Long.toString(newModel.getFrontDoor().getTimestampLastDoorbell())));
 		}
 	}

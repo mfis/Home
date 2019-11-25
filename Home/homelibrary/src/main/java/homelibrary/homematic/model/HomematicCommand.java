@@ -69,6 +69,15 @@ public class HomematicCommand {
 		return hc;
 	}
 
+	public static HomematicCommand write(Device device, Datapoint datapoint, String stringToSet) {
+		HomematicCommand hc = new HomematicCommand();
+		hc.commandType = CommandType.SET_DEVICE_STATE;
+		hc.device = device;
+		hc.datapoint = datapoint;
+		hc.stringToSet = stringToSet;
+		return hc;
+	}
+
 	public static HomematicCommand write(Device device, String suffix, boolean stateToSet) {
 		HomematicCommand hc = new HomematicCommand();
 		hc.commandType = CommandType.SET_SYSVAR_DEVICEBASE;
@@ -87,17 +96,17 @@ public class HomematicCommand {
 		return hc;
 	}
 
-	public static HomematicCommand write(Device device, String stringToSet) {
+	public static HomematicCommand write(String name, String stringToSet) {
 		HomematicCommand hc = new HomematicCommand();
 		hc.commandType = CommandType.SET_SYSVAR;
-		hc.device = device;
+		hc.suffix = name;
 		hc.stringToSet = stringToSet;
 		return hc;
 	}
 
 	public static HomematicCommand exec(Device device, String suffix) {
 		HomematicCommand hc = new HomematicCommand();
-		hc.commandType = CommandType.SET_SYSVAR_DEVICEBASE;
+		hc.commandType = CommandType.RUN_PROGRAM;
 		hc.device = device;
 		hc.suffix = suffix;
 		return hc;
@@ -242,6 +251,10 @@ public class HomematicCommand {
 
 	private enum CommandType {
 		GET_DEVICE_VALUE, GET_DEVICE_VALUE_TS, GET_SYSVAR, GET_SYSVAR_DEVICEBASE, SET_SYSVAR, SET_SYSVAR_DEVICEBASE, SET_DEVICE_STATE, RUN_PROGRAM, EOF;
+	}
+
+	public boolean isProgramRunCommand() {
+		return commandType == CommandType.RUN_PROGRAM;
 	}
 
 	@Override

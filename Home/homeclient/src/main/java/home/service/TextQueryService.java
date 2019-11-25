@@ -31,9 +31,9 @@ import homecontroller.domain.model.OutdoorClimate;
 import homecontroller.domain.model.Place;
 import homecontroller.domain.model.ShutterPosition;
 import homecontroller.domain.model.Switch;
-import homecontroller.domain.model.Type;
 import homelibrary.dao.ModelObjectDAO;
 import homelibrary.homematic.model.Device;
+import homelibrary.homematic.model.Type;
 
 @Component
 public class TextQueryService {
