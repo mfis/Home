@@ -6,6 +6,8 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -81,8 +83,10 @@ public class HomematicAPI {
 		return checkInit(new BigDecimal(readValue(command)));
 	}
 
-	public Long getAsTimestamp(HomematicCommand command) {
-		return checkInit(Long.parseLong(readValue(command)));
+	public Long getTimestamp(HomematicCommand command) {
+		ZonedDateTime zonedDateTime = ZonedDateTime
+				.of(LocalDateTime.parse(readValue(command), UPTIME_FORMATTER), ZoneId.systemDefault());
+		return checkInit(zonedDateTime.toInstant().toEpochMilli());
 	}
 
 	public void executeCommand(HomematicCommand... commands) {
@@ -130,6 +134,9 @@ public class HomematicAPI {
 		for (Device device : Device.values()) {
 			for (Datapoint datapoint : device.getDatapoints()) {
 				commands.add(HomematicCommand.read(device, datapoint));
+				if (datapoint.isTimestamp()) {
+					commands.add(HomematicCommand.readTS(device, datapoint));
+				}
 			}
 		}
 		commands.add(HomematicCommand.read("CCU_im_Reboot"));

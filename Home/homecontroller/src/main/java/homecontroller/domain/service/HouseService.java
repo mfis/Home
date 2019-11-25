@@ -527,7 +527,7 @@ public class HouseService {
 		frontDoor.setDeviceDoorBellHistory(Device.HAUSTUER_KLINGEL_HISTORIE);
 
 		Long tsDoorbell = api
-				.getAsTimestamp(HomematicCommand.read(Device.HAUSTUER_KLINGEL, Datapoint.PRESS_SHORT));
+				.getTimestamp(HomematicCommand.readTS(Device.HAUSTUER_KLINGEL, Datapoint.PRESS_SHORT));
 		if (tsDoorbell == null || tsDoorbell == 0) {
 			tsDoorbell = Long.parseLong(api
 					.getAsString(HomematicCommand.read(Device.HAUSTUER_KLINGEL_HISTORIE, StringUtils.EMPTY)));

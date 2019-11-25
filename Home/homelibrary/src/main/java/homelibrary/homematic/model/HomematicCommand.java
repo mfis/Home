@@ -52,6 +52,14 @@ public class HomematicCommand {
 		return hc;
 	}
 
+	public static HomematicCommand readTS(Device device, Datapoint datapoint) {
+		HomematicCommand hc = new HomematicCommand();
+		hc.commandType = CommandType.GET_DEVICE_VALUE_TS;
+		hc.device = device;
+		hc.datapoint = datapoint;
+		return hc;
+	}
+
 	public static HomematicCommand write(Device device, Datapoint datapoint, boolean stateToSet) {
 		HomematicCommand hc = new HomematicCommand();
 		hc.commandType = CommandType.SET_DEVICE_STATE;
@@ -125,6 +133,9 @@ public class HomematicCommand {
 			} else {
 				return "var " + buildVarName() + " = (datapoints.Get('" + datapointAdress() + "')).Value();";
 			}
+		case GET_DEVICE_VALUE_TS:
+			return "var " + buildVarName() + " = (datapoints.Get('" + datapointAdress()
+					+ "')).LastTimestamp();";
 		case GET_SYSVAR:
 			return "var " + buildVarName() + " = dom.GetObject('" + suffix + "').State();";
 		case GET_SYSVAR_DEVICEBASE:
@@ -163,6 +174,8 @@ public class HomematicCommand {
 			} else {
 				return PREFIX_VAR + escape(datapointAdress());
 			}
+		case GET_DEVICE_VALUE_TS:
+			return PREFIX_VAR + escape(datapointAdress() + "_TS");
 		case SET_DEVICE_STATE:
 			if (device.isSysVar()) {
 				return PREFIX_RC + escape(device.getId());
@@ -228,7 +241,7 @@ public class HomematicCommand {
 	}
 
 	private enum CommandType {
-		GET_DEVICE_VALUE, GET_SYSVAR, GET_SYSVAR_DEVICEBASE, SET_SYSVAR, SET_SYSVAR_DEVICEBASE, SET_DEVICE_STATE, RUN_PROGRAM, EOF;
+		GET_DEVICE_VALUE, GET_DEVICE_VALUE_TS, GET_SYSVAR, GET_SYSVAR_DEVICEBASE, SET_SYSVAR, SET_SYSVAR_DEVICEBASE, SET_DEVICE_STATE, RUN_PROGRAM, EOF;
 	}
 
 	@Override
