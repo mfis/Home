@@ -5,8 +5,8 @@ import java.lang.reflect.Field;
 import org.apache.commons.logging.LogFactory;
 
 import homecontroller.domain.model.AutomationState;
-import homecontroller.domain.model.Device;
 import homecontroller.domain.model.ShutterPosition;
+import homelibrary.homematic.model.Device;
 
 public class QueryValue {
 

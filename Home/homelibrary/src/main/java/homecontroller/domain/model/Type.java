@@ -19,8 +19,8 @@ public enum Type {
 	// with sub-types
 	THERMOSTAT("Thermostat", true, Type.THERMOMETER), //
 	// pseudo-types
-	CONCLUSION_OUTSIDE_TEMPERATURE("ConclusionOutsideTemperature", false, Type.THERMOMETER), //
-	DOORBELL_TIMESTAMP_HISTORY("doorbellTimestampHistory", false), //
+	SYSVAR(null, false), //
+	SYSVAR_THERMOMETER("ConclusionOutsideTemperature", false, Type.THERMOMETER), //
 	;
 
 	private final String typeName;

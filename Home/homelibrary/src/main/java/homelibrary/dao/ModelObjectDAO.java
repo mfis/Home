@@ -7,10 +7,10 @@ import java.util.Map;
 import homecontroller.domain.model.CameraMode;
 import homecontroller.domain.model.CameraModel;
 import homecontroller.domain.model.CameraPicture;
-import homecontroller.domain.model.Device;
 import homecontroller.domain.model.HistoryModel;
 import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.SettingsModel;
+import homelibrary.homematic.model.Device;
 
 public class ModelObjectDAO {
 

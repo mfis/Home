@@ -17,10 +17,10 @@ import homecontroller.database.mapper.BigDecimalRowMapper;
 import homecontroller.database.mapper.TimestampRowMapper;
 import homecontroller.database.mapper.TimestampValuePair;
 import homecontroller.database.mapper.TimestampValueRowMapper;
-import homecontroller.domain.model.Datapoint;
-import homecontroller.domain.model.Device;
 import homecontroller.domain.model.Heating;
-import homecontroller.domain.model.HomematicConstants;
+import homelibrary.homematic.model.Datapoint;
+import homelibrary.homematic.model.Device;
+import homelibrary.homematic.model.HomematicConstants;
 
 @Component
 public class HistoryDatabaseDAO {

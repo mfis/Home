@@ -7,7 +7,10 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
@@ -16,11 +19,15 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -29,20 +36,12 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import homelibrary.homematic.model.Datapoint;
+import homelibrary.homematic.model.Device;
+import homelibrary.homematic.model.HomematicCommand;
+
 @Component
 public class HomematicAPI {
-
-	private static final String ID = "id";
-
-	private static final String ISE_ID = "ise_id";
-
-	private static final String NAME = "name";
-
-	private static final String TYPE = "type";
-
-	private static final String VALUE = "value";
-
-	private static final String TIMESTAMP = "timestamp";
 
 	private static final int INIT_STATE_MINUTES = 90;
 
@@ -57,77 +56,57 @@ public class HomematicAPI {
 
 	private String host;
 
-	private Map<String, String> currentValues;
-	private Map<String, String> currentStateIDs;
-	private Map<String, Long> currentTimestamps;
+	private static final String REGA_PORT_AND_URI = ":8181/tclrega.exe";
+
+	private Map<String, String> currentValues = new HashMap<>();
+
 	private boolean ccuInitState;
+
+	private static final Log LOG = LogFactory.getLog(HomematicAPI.class);
 
 	@PostConstruct
 	public void init() {
 		host = env.getProperty("homematic.hostName");
 	}
 
-	public String getAsString(String key) {
+	public String getAsString(HomematicCommand command) {
+		return checkInit(readValue(command));
+	}
+
+	public boolean getAsBoolean(HomematicCommand command) {
+		return checkInit(Boolean.valueOf(readValue(command)));
+	}
+
+	public BigDecimal getAsBigDecimal(HomematicCommand command) {
+		return checkInit(new BigDecimal(readValue(command)));
+	}
+
+	public Long getAsTimestamp(HomematicCommand command) {
+		return checkInit(Long.parseLong(readValue(command)));
+	}
+
+	public void executeCommand(HomematicCommand... commands) {
+		executeCommands(commands);
+	}
+
+	private String readValue(HomematicCommand command) {
+		String key = command.buildVarName();
+		LOG.info("readValue:" + key + "=" + currentValues.get(key));
 		if (currentValues.containsKey(key)) {
-			return checkInit(currentValues.get(key));
+			return currentValues.get(key);
 		} else {
+			LOG.error("Value unknown: " + key);
 			return null;
 		}
-	}
-
-	public boolean getAsBoolean(String key) {
-		if (currentValues.containsKey(key)) {
-			return checkInit(Boolean.valueOf(currentValues.get(key)));
-		} else {
-			return false;
-		}
-	}
-
-	public BigDecimal getAsBigDecimal(String key) {
-		if (currentValues.containsKey(key)) {
-			return checkInit(new BigDecimal(currentValues.get(key)));
-		} else {
-			return null;
-		}
-	}
-
-	public Long getTimestamp(String key) {
-		if (currentTimestamps.containsKey(key)) {
-			return currentTimestamps.get(key);
-		} else {
-			return null;
-		}
-	}
-
-	public void changeBooleanState(String key, boolean value) {
-
-		changeString("refreshadress", env.getProperty("refresh.adress"));
-
-		String iseID = currentStateIDs.get(key);
-		String url = host + "/addons/xmlapi/statechange.cgi?ise_id=" + iseID + "&new_value="
-				+ Boolean.toString(value);
-		documentFromUrl(url);
-	}
-
-	public synchronized void runProgram(String name) {
-
-		changeString("refreshadress", env.getProperty("refresh.adress"));
-
-		String id = currentStateIDs.get(name);
-		String url = host + "/addons/xmlapi/runprogram.cgi?program_id=" + id;
-		documentFromUrl(url);
-	}
-
-	public void changeString(String key, String value) {
-
-		String iseID = currentStateIDs.get(key);
-		String url = host + "/addons/xmlapi/statechange.cgi?ise_id=" + iseID + "&new_value=" + value;
-		documentFromUrl(url);
 	}
 
 	private <T> T checkInit(T value) {
 
 		if (!ccuInitState) {
+			return value;
+		}
+
+		if (value == null) {
 			return value;
 		}
 
@@ -145,91 +124,114 @@ public class HomematicAPI {
 
 	public void refresh() {
 
-		currentValues = new HashMap<>();
-		currentStateIDs = new HashMap<>();
-		currentTimestamps = new HashMap<>();
+		LOG.info("REFRESH!");
 
-		Document doc = documentFromUrl(host + "/addons/xmlapi/statelist.cgi");
-		NodeList datapoints = doc.getElementsByTagName("datapoint");
-		for (int dap = 0; dap < datapoints.getLength(); dap++) {
-			Node c = datapoints.item(dap);
-			Element eElement = (Element) c;
-			if (eElement.getAttribute(VALUE) != null && eElement.getAttribute(VALUE).length() > 0) {
-				currentValues.put(eElement.getAttribute(NAME), eElement.getAttribute(VALUE));
-			}
-			if (eElement.getAttribute(TIMESTAMP) != null && eElement.getAttribute(TIMESTAMP).length() > 1) {
-				currentTimestamps.put(eElement.getAttribute(NAME),
-						Long.parseLong(eElement.getAttribute(TIMESTAMP)) * 1000L);
-			}
-			if (eElement.getAttribute(TYPE) != null
-					&& eElement.getAttribute(TYPE).equalsIgnoreCase("STATE")) {
-				currentStateIDs.put(eElement.getAttribute(NAME), eElement.getAttribute(ISE_ID));
+		List<HomematicCommand> commands = new LinkedList<>();
+		for (Device device : Device.values()) {
+			for (Datapoint datapoint : device.getDatapoints()) {
+				commands.add(HomematicCommand.read(device, datapoint));
 			}
 		}
+		commands.add(HomematicCommand.read("CCU_im_Reboot"));
+		commands.add(HomematicCommand.read("CCU_Uptime"));
 
-		doc = documentFromUrl(host + "/addons/xmlapi/sysvarlist.cgi");
-		NodeList systemVariables = doc.getElementsByTagName("systemVariable");
-		for (int dap = 0; dap < systemVariables.getLength(); dap++) {
-			Node c = systemVariables.item(dap);
-			Element eElement = (Element) c;
-			if (eElement.getAttribute(VALUE) != null && eElement.getAttribute(VALUE).length() > 0) {
-				currentValues.put(eElement.getAttribute(NAME), eElement.getAttribute(VALUE));
-			}
-			currentStateIDs.put(eElement.getAttribute(NAME), eElement.getAttribute(ISE_ID));
-		}
-
-		doc = documentFromUrl(host + "/addons/xmlapi/programlist.cgi");
-		NodeList programs = doc.getElementsByTagName("program");
-		for (int dap = 0; dap < programs.getLength(); dap++) {
-			Node c = programs.item(dap);
-			Element eElement = (Element) c;
-			currentStateIDs.put(eElement.getAttribute(NAME), eElement.getAttribute(ID));
-		}
+		executeCommands(commands.toArray(new HomematicCommand[commands.size()]));
 
 		lookupInitState();
 	}
 
 	private void lookupInitState() {
 
-		boolean reboot = getAsBoolean("CCU_im_Reboot");
+		boolean reboot = getAsBoolean(HomematicCommand.read("CCU_im_Reboot"));
 		if (reboot) {
 			ccuInitState = true;
 			return;
 		}
 
-		String uptime = getAsString("CCU_Uptime");
+		String uptime = getAsString(HomematicCommand.read("CCU_Uptime"));
 		long minutesUptime = Duration
 				.between(LocalDateTime.parse(uptime, UPTIME_FORMATTER), LocalDateTime.now()).toMinutes();
 		ccuInitState = minutesUptime <= INIT_STATE_MINUTES;
 	}
 
-	HttpHeaders createHeaders() {
+	private boolean executeCommands(HomematicCommand... commands) {
+		String body = buildReGaRequestBody(commands);
+		return extractCommandResults(callReGaAPI(body));
+	}
+
+	private boolean extractCommandResults(Document responseDocument) {
+
+		Map<String, String> newValues = new HashMap<>();
+
+		boolean rcsOk = true;
+		boolean eofOK = false;
+
+		NodeList childs = responseDocument.getElementsByTagName("xml").item(0).getChildNodes();
+		for (int i = 0; i < childs.getLength(); i++) {
+			Node c = childs.item(i);
+			Element child = (Element) c;
+			if (child.getTagName().startsWith(HomematicCommand.PREFIX_VAR)) {
+				newValues.put(child.getTagName(), child.getTextContent());
+			} else if (child.getTagName().startsWith(HomematicCommand.PREFIX_RC)) {
+				boolean rc = Boolean.parseBoolean(child.getTextContent());
+				rcsOk = rcsOk && rc;
+				if (!rc) {
+					LOG.warn("CommandResult not OK: " + child.getTagName());
+				}
+			} else if (child.getTagName().equals(HomematicCommand.E_O_F)) {
+				eofOK = HomematicCommand.E_O_F.equals(child.getTextContent());
+				if (!eofOK) {
+					LOG.warn("Command EOF not OK!");
+				}
+			}
+		}
+
+		if (rcsOk && eofOK) {
+			currentValues = newValues;
+		}
+		return rcsOk && eofOK;
+	}
+
+	private String buildReGaRequestBody(HomematicCommand... commands) {
+
+		StringBuilder sb = new StringBuilder(commands.length * 120);
+		for (HomematicCommand command : commands) {
+			sb.append(command.buildCommand());
+			sb.append(" \n");
+		}
+		sb.append(HomematicCommand.eof().buildCommand());
+		return sb.toString();
+	}
+
+	HttpHeaders createHeaders(int contentLength) {
 
 		HttpHeaders httpHeaders = new HttpHeaders();
-		httpHeaders.set("Accept", "*/*");
 		httpHeaders.set("Cache-Control", "no-cache");
+		httpHeaders.setAccept(Arrays.asList(MediaType.ALL));
+		httpHeaders.setCacheControl(CacheControl.noCache());
+		httpHeaders.setContentLength(contentLength);
 		return httpHeaders;
 	}
 
-	private Document documentFromUrl(String url) {
+	private Document callReGaAPI(String body) {
 
-		HttpHeaders headers = createHeaders();
+		HttpHeaders headers = createHeaders(body.length());
 
-		HttpEntity<String> requestEntity = new HttpEntity<>("", headers);
-		ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.GET, requestEntity,
-				String.class);
+		HttpEntity<String> requestEntity = new HttpEntity<>(body, headers);
 
-		String response = responseEntity.getBody();
-		if (!responseEntity.getStatusCode().is2xxSuccessful()) {
-			throw new IllegalStateException(
-					"Recieved RC=" + responseEntity.getStatusCode().value() + " from API call:" + url);
+		ResponseEntity<String> responseEntity = restTemplate.postForEntity(host + REGA_PORT_AND_URI,
+				requestEntity, String.class);
+		HttpStatus statusCode = responseEntity.getStatusCode();
+		if (!statusCode.is2xxSuccessful()) {
+			LOG.error("Could not successful call ReGa API. RC=" + statusCode.value());
 		}
 
 		try {
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 			dbFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, Boolean.TRUE);
 			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-			InputStream inputStream = new ByteArrayInputStream(response.getBytes(StandardCharsets.UTF_8));
+			InputStream inputStream = new ByteArrayInputStream(
+					responseEntity.getBody().getBytes(StandardCharsets.UTF_8));
 			Document doc = dBuilder.parse(inputStream);
 			doc.getDocumentElement().normalize();
 			return doc;

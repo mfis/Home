@@ -42,7 +42,7 @@ public class SynonymeRepository {
 		SYNONYMES.add(new Synonym<Type>("Strom", Type.ELECTRIC_POWER));
 		SYNONYMES.add(new Synonym<Type>(
 				"Thermometer|Temperatur|warm|kalt|Wärme|Kälte|Grad|Wetter|sonnig|Sonne|Luftfeuchtigkeit",
-				Type.CONCLUSION_OUTSIDE_TEMPERATURE));
+				Type.SYSVAR_THERMOMETER));
 		
 		SYNONYMES.add(new Synonym<AutomationState>("automatisch|automatik|automation", AutomationState.AUTOMATIC));
 		SYNONYMES.add(new Synonym<AutomationState>("manuell|manuelle", AutomationState.MANUAL));

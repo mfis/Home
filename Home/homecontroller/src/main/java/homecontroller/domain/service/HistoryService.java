@@ -21,12 +21,12 @@ import homecontroller.dao.HistoryDatabaseDAO;
 import homecontroller.dao.HistoryDatabaseDAO.ExtremValueType;
 import homecontroller.dao.HistoryDatabaseDAO.TimeRange;
 import homecontroller.database.mapper.TimestampValuePair;
-import homecontroller.domain.model.Datapoint;
-import homecontroller.domain.model.Device;
 import homecontroller.domain.model.HistoryModel;
 import homecontroller.domain.model.PowerConsumptionMonth;
 import homecontroller.domain.model.TemperatureHistory;
 import homelibrary.dao.ModelObjectDAO;
+import homelibrary.homematic.model.Datapoint;
+import homelibrary.homematic.model.Device;
 
 @Component
 public class HistoryService {

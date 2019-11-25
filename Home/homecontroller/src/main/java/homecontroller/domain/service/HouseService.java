@@ -17,12 +17,9 @@ import org.springframework.stereotype.Component;
 import homecontroller.dao.HistoryDatabaseDAO;
 import homecontroller.domain.model.AutomationState;
 import homecontroller.domain.model.Climate;
-import homecontroller.domain.model.Datapoint;
-import homecontroller.domain.model.Device;
 import homecontroller.domain.model.FrontDoor;
 import homecontroller.domain.model.Heating;
 import homecontroller.domain.model.Hint;
-import homecontroller.domain.model.HomematicConstants;
 import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.Intensity;
 import homecontroller.domain.model.OutdoorClimate;
@@ -38,6 +35,10 @@ import homecontroller.service.CameraService;
 import homecontroller.service.HomematicAPI;
 import homecontroller.service.PushService;
 import homelibrary.dao.ModelObjectDAO;
+import homelibrary.homematic.model.Datapoint;
+import homelibrary.homematic.model.Device;
+import homelibrary.homematic.model.HomematicCommand;
+import homelibrary.homematic.model.HomematicConstants;
 
 @Component
 public class HouseService {
@@ -133,7 +134,7 @@ public class HouseService {
 		newModel.setClimateBedRoom(readRoomClimate(Device.THERMOMETER_SCHLAFZIMMER));
 		newModel.setClimateLaundry(readRoomClimate(Device.THERMOMETER_WASCHKUECHE));
 
-		newModel.setLeftWindowBedRoom(readWindow(Device.ROLLLADE_SCHLAFZIMMER_LINKS));
+		// newModel.setLeftWindowBedRoom(readWindow(Device.ROLLLADE_SCHLAFZIMMER_LINKS));
 
 		newModel.setClimateTerrace(readOutdoorClimate(Device.DIFF_TEMPERATUR_TERRASSE_AUSSEN,
 				Device.DIFF_TEMPERATUR_TERRASSE_DIFF));
@@ -377,11 +378,11 @@ public class HouseService {
 	}
 
 	public void togglestate(Device device, boolean value) {
-		api.changeBooleanState(device.accessKeyXmlApi(Datapoint.STATE), value);
+		api.executeCommand(HomematicCommand.write(device, Datapoint.STATE, value));
 	}
 
 	public void toggleautomation(Device device, AutomationState value) {
-		api.changeBooleanState(device.programNamePrefix() + AUTOMATIC, value.isBooleanValue());
+		api.executeCommand(HomematicCommand.write(device, AUTOMATIC, value.isBooleanValue()));
 	}
 
 	public synchronized void heatingBoost(Device device) {
@@ -391,13 +392,13 @@ public class HouseService {
 	// needs to be synchronized because of using ccu-systemwide temperature
 	// variable
 	public synchronized void heatingManual(Device device, BigDecimal temperature) {
-		api.changeString(device.programNamePrefix() + "Temperature", temperature.toString());
+		api.executeCommand(HomematicCommand.write(device, "Temperature", temperature.toString()));
 		runProgram(device, "Manual");
 	}
 
 	private void runProgram(Device device, String programSuffix) {
-		api.changeString(device.programNamePrefix() + BUSY, String.valueOf(System.currentTimeMillis()));
-		api.runProgram(device.programNamePrefix() + programSuffix);
+		api.executeCommand(HomematicCommand.write(device, BUSY, String.valueOf(System.currentTimeMillis())),
+				HomematicCommand.exec(device, programSuffix));
 	}
 
 	private void updateHomematicSystemVariables(HouseModel oldModel, HouseModel newModel) {
@@ -407,13 +408,13 @@ public class HouseService {
 				&& (oldModel == null
 						|| oldModel.getConclusionClimateFacadeMin().getTemperature().getValue().compareTo(
 								newModel.getConclusionClimateFacadeMin().getTemperature().getValue()) != 0)) {
-			api.changeString(newModel.getConclusionClimateFacadeMin().getDevice().getType().getTypeName(),
-					newModel.getConclusionClimateFacadeMin().getTemperature().getValue().toString());
+			api.executeCommand(HomematicCommand.write(newModel.getConclusionClimateFacadeMin().getDevice(),
+					newModel.getConclusionClimateFacadeMin().getTemperature().getValue().toString()));
 		}
 
 		if (doorbellTimestampChanged(oldModel, newModel)) {
-			api.changeString(newModel.getFrontDoor().getDeviceDoorBellHistory().getType().getTypeName(),
-					Long.toString(newModel.getFrontDoor().getTimestampLastDoorbell()));
+			api.executeCommand(HomematicCommand.write(newModel.getFrontDoor().getDeviceDoorBellHistory(),
+					Long.toString(newModel.getFrontDoor().getTimestampLastDoorbell())));
 		}
 	}
 
@@ -441,9 +442,9 @@ public class HouseService {
 	private OutdoorClimate readOutdoorClimate(Device outside, Device diff) {
 		OutdoorClimate outdoorClimate = new OutdoorClimate();
 		outdoorClimate.setTemperature(new ValueWithTendency<BigDecimal>(
-				api.getAsBigDecimal(outside.accessKeyXmlApi(Datapoint.TEMPERATURE))));
+				api.getAsBigDecimal(HomematicCommand.read(outside, Datapoint.TEMPERATURE))));
 		outdoorClimate.setSunBeamIntensity(
-				lookupIntensity(api.getAsBigDecimal(diff.accessKeyXmlApi(Datapoint.TEMPERATURE))));
+				lookupIntensity(api.getAsBigDecimal(HomematicCommand.read(diff, Datapoint.TEMPERATURE))));
 		outdoorClimate.setDevice(outside);
 
 		return outdoorClimate;
@@ -452,8 +453,9 @@ public class HouseService {
 	private RoomClimate readRoomClimate(Device thermometer) {
 		RoomClimate roomClimate = new RoomClimate();
 		roomClimate.setTemperature(new ValueWithTendency<BigDecimal>(
-				api.getAsBigDecimal(thermometer.accessKeyXmlApi(Datapoint.ACTUAL_TEMPERATURE))));
-		BigDecimal humidity = api.getAsBigDecimal(thermometer.accessKeyXmlApi(Datapoint.HUMIDITY));
+				api.getAsBigDecimal(HomematicCommand.read(thermometer, Datapoint.ACTUAL_TEMPERATURE))));
+		BigDecimal humidity = thermometer.getType() == Type.THERMOSTAT ? null
+				: api.getAsBigDecimal(HomematicCommand.read(thermometer, Datapoint.HUMIDITY));
 		if (humidity != null) {
 			roomClimate.setHumidity(new ValueWithTendency<BigDecimal>(humidity));
 		}
@@ -466,12 +468,13 @@ public class HouseService {
 
 	private Heating readHeating(Device heating) {
 		Heating heatingModel = new Heating();
-		heatingModel.setBoostActive(api.getAsBigDecimal(heating.accessKeyXmlApi(Datapoint.CONTROL_MODE))
-				.compareTo(HomematicConstants.HEATING_CONTROL_MODE_BOOST) == 0);
-		BigDecimal boostLeft = api.getAsBigDecimal(heating.accessKeyXmlApi(Datapoint.BOOST_STATE));
+		heatingModel
+				.setBoostActive(api.getAsBigDecimal(HomematicCommand.read(heating, Datapoint.CONTROL_MODE))
+						.compareTo(HomematicConstants.HEATING_CONTROL_MODE_BOOST) == 0);
+		BigDecimal boostLeft = api.getAsBigDecimal(HomematicCommand.read(heating, Datapoint.BOOST_STATE));
 		heatingModel.setBoostMinutesLeft(boostLeft == null ? 0 : boostLeft.intValue());
 		heatingModel.setTargetTemperature(
-				api.getAsBigDecimal(heating.accessKeyXmlApi(Datapoint.SET_TEMPERATURE)));
+				api.getAsBigDecimal(HomematicCommand.read(heating, Datapoint.SET_TEMPERATURE)));
 		heatingModel.setDevice(heating);
 		heatingModel.setBusy(checkBusyState(heating));
 
@@ -480,14 +483,14 @@ public class HouseService {
 
 	private boolean checkBusyState(Device device) {
 
-		String busyString = api.getAsString(device.programNamePrefix() + BUSY);
+		String busyString = api.getAsString(HomematicCommand.read(device, BUSY));
 		if (StringUtils.isNotBlank(busyString) && StringUtils.isNumeric(busyString)) {
 			long busyTimestamp = Long.parseLong(busyString);
 			long diff = System.currentTimeMillis() - busyTimestamp;
 			if (diff < 1000 * 60 * 3) {
 				return true;
 			}
-			api.changeString(device.programNamePrefix() + BUSY, StringUtils.EMPTY);
+			api.executeCommand(HomematicCommand.write(device, BUSY, StringUtils.EMPTY));
 		}
 		return false;
 	}
@@ -508,11 +511,11 @@ public class HouseService {
 
 	private Switch readSwitchState(Device device) {
 		Switch switchModel = new Switch();
-		switchModel.setState(api.getAsBoolean(device.accessKeyXmlApi(Datapoint.STATE)));
+		switchModel.setState(api.getAsBoolean(HomematicCommand.read(device, Datapoint.STATE)));
 		switchModel.setDevice(device);
-		switchModel.setAutomation(api.getAsBoolean(device.programNamePrefix() + AUTOMATIC));
-		switchModel
-				.setAutomationInfoText(api.getAsString(device.programNamePrefix() + AUTOMATIC + "InfoText"));
+		switchModel.setAutomation(api.getAsBoolean(HomematicCommand.read(device, AUTOMATIC)));
+		switchModel.setAutomationInfoText(
+				api.getAsString(HomematicCommand.read(device, AUTOMATIC + "InfoText")));
 		return switchModel;
 	}
 
@@ -523,10 +526,11 @@ public class HouseService {
 		frontDoor.setDeviceDoorBell(Device.HAUSTUER_KLINGEL);
 		frontDoor.setDeviceDoorBellHistory(Device.HAUSTUER_KLINGEL_HISTORIE);
 
-		Long tsDoorbell = api.getTimestamp(Device.HAUSTUER_KLINGEL.accessKeyXmlApi(Datapoint.PRESS_SHORT));
+		Long tsDoorbell = api
+				.getAsTimestamp(HomematicCommand.read(Device.HAUSTUER_KLINGEL, Datapoint.PRESS_SHORT));
 		if (tsDoorbell == null || tsDoorbell == 0) {
-			tsDoorbell = Long
-					.parseLong(api.getAsString(Device.HAUSTUER_KLINGEL_HISTORIE.getType().getTypeName()));
+			tsDoorbell = Long.parseLong(api
+					.getAsString(HomematicCommand.read(Device.HAUSTUER_KLINGEL_HISTORIE, StringUtils.EMPTY)));
 		}
 		frontDoor.setTimestampLastDoorbell(tsDoorbell);
 
@@ -538,7 +542,7 @@ public class HouseService {
 		PowerMeter model = new PowerMeter();
 		model.setDevice(device);
 		model.setActualConsumption(new ValueWithTendency<BigDecimal>(
-				api.getAsBigDecimal(device.accessKeyXmlApi(Datapoint.POWER))));
+				api.getAsBigDecimal(HomematicCommand.read(device, Datapoint.POWER))));
 		return model;
 	}
 
@@ -547,9 +551,9 @@ public class HouseService {
 		boolean state = false;
 
 		if (device.isHomematic()) {
-			state = api.getAsBoolean(device.accessMainDeviceKeyXmlApi(Datapoint.LOWBAT));
+			state = api.getAsBoolean(HomematicCommand.read(device, Datapoint.LOWBAT));
 		} else if (device.isHomematicIP()) {
-			state = api.getAsBoolean(device.accessMainDeviceKeyXmlApi(Datapoint.LOW_BAT));
+			state = api.getAsBoolean(HomematicCommand.read(device, Datapoint.LOW_BAT));
 		}
 
 		if (state) {

@@ -25,7 +25,6 @@ import home.model.MessageType;
 import homecontroller.domain.model.AbstractDeviceModel;
 import homecontroller.domain.model.AutomationState;
 import homecontroller.domain.model.Climate;
-import homecontroller.domain.model.Device;
 import homecontroller.domain.model.Heating;
 import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.OutdoorClimate;
@@ -34,6 +33,7 @@ import homecontroller.domain.model.ShutterPosition;
 import homecontroller.domain.model.Switch;
 import homecontroller.domain.model.Type;
 import homelibrary.dao.ModelObjectDAO;
+import homelibrary.homematic.model.Device;
 
 @Component
 public class TextQueryService {

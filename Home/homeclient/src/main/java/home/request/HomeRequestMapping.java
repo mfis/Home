@@ -32,10 +32,10 @@ import home.service.TextQueryService;
 import home.service.ViewAttributesDAO;
 import homecontroller.domain.model.CameraMode;
 import homecontroller.domain.model.CameraPicture;
-import homecontroller.domain.model.Device;
 import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.SettingsModel;
 import homelibrary.dao.ModelObjectDAO;
+import homelibrary.homematic.model.Device;
 
 @Controller
 public class HomeRequestMapping {

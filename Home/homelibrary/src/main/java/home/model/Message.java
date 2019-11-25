@@ -3,7 +3,7 @@ package home.model;
 import java.io.Serializable;
 import java.util.UUID;
 
-import homecontroller.domain.model.Device;
+import homelibrary.homematic.model.Device;
 
 public class Message implements Serializable {
 

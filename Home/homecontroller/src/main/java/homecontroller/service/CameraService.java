@@ -33,10 +33,11 @@ import org.springframework.web.client.RestTemplate;
 import homecontroller.domain.model.CameraMode;
 import homecontroller.domain.model.CameraModel;
 import homecontroller.domain.model.CameraPicture;
-import homecontroller.domain.model.Device;
 import homecontroller.domain.model.FrontDoor;
 import homecontroller.domain.service.UploadService;
 import homelibrary.dao.ModelObjectDAO;
+import homelibrary.homematic.model.Device;
+import homelibrary.homematic.model.HomematicCommand;
 
 @Component
 public class CameraService {
@@ -137,8 +138,8 @@ public class CameraService {
 			return;
 		}
 
-		LOG.info("RUN PROGRAM: " + deviceSwitch.programNamePrefix() + "DirektEinschalten");
-		homematicAPI.runProgram(deviceSwitch.programNamePrefix() + "DirektEinschalten");
+		LOG.info("Kamera einschalten...");
+		homematicAPI.executeCommand(HomematicCommand.exec(deviceSwitch, "DirektEinschalten"));
 		boolean pingCameraOk = false;
 		long startPolling = System.currentTimeMillis();
 		do {

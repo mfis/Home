@@ -37,7 +37,6 @@ import home.model.MessageType;
 import homecontroller.domain.model.AutomationState;
 import homecontroller.domain.model.CameraMode;
 import homecontroller.domain.model.Climate;
-import homecontroller.domain.model.Device;
 import homecontroller.domain.model.FrontDoor;
 import homecontroller.domain.model.Heating;
 import homecontroller.domain.model.HistoryModel;
@@ -51,6 +50,7 @@ import homecontroller.domain.model.ShutterPosition;
 import homecontroller.domain.model.Switch;
 import homecontroller.domain.model.TemperatureHistory;
 import homecontroller.domain.model.Window;
+import homelibrary.homematic.model.Device;
 
 @Component
 public class HouseViewService {

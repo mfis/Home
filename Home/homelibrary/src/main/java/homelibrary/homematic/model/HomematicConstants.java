@@ -1,4 +1,4 @@
-package homecontroller.domain.model;
+package homelibrary.homematic.model;
 
 import java.math.BigDecimal;
 
