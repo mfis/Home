@@ -548,14 +548,7 @@ public class HouseService {
 
 	private void checkLowBattery(HouseModel model, Device device) {
 
-		boolean state = false;
-
-		if (device.isHomematic()) {
-			state = api.getAsBoolean(HomematicCommand.read(device, Datapoint.LOWBAT));
-		} else if (device.isHomematicIP()) {
-			state = api.getAsBoolean(HomematicCommand.read(device, Datapoint.LOW_BAT));
-		}
-
+		boolean state = api.getAsBoolean(HomematicCommand.read(device, device.lowBatDatapoint()));
 		if (state) {
 			model.getLowBatteryDevices().add(device.getDescription());
 		}

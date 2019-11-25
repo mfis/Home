@@ -104,6 +104,16 @@ public enum Device {
 		return HomematicCommand.escape(getDescription());
 	}
 
+	public Datapoint lowBatDatapoint() {
+		if (isHomematic()) {
+			return Datapoint.LOWBAT;
+		} else if (isHomematicIP()) {
+			return Datapoint.LOW_BAT;
+		} else {
+			return null;
+		}
+	}
+
 	public boolean isHomematic() {
 		return homematicProtocol == HomematicProtocol.HM;
 	}
