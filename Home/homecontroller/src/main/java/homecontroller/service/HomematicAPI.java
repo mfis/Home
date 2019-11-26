@@ -216,7 +216,8 @@ public class HomematicAPI {
 		}
 
 		if (containsExecuteCommand) {
-			sb.insert(0, HomematicCommand.write("refreshadress", env.getProperty("refresh.adress")));
+			sb.insert(0, HomematicCommand.write("refreshadress", env.getProperty("refresh.adress"))
+					.buildCommand());
 		}
 
 		sb.append(HomematicCommand.eof().buildCommand());
