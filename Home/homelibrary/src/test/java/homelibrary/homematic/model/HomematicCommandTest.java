@@ -66,4 +66,9 @@ public class HomematicCommandTest {
 		assertThat(HomematicCommand.exec(Device.STROMZAEHLER, "SUFFIX").buildCommand(), is(
 				"var RC_StromverbrauchHausSUFFIX = dom.GetObject('StromverbrauchHausSUFFIX').ProgramExecute();"));
 	}
+
+	@Test
+	public void testBuildCommandEof() throws Exception {
+		assertThat(HomematicCommand.eof().buildCommand(), is("var EOF = 'EOF';"));
+	}
 }
