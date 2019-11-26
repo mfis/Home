@@ -4,6 +4,7 @@ import java.util.List;
 
 import homecontroller.domain.model.AutomationState;
 import homecontroller.domain.model.Place;
+import homecontroller.util.HomeUtils;
 
 public enum Device {
 
@@ -104,8 +105,8 @@ public enum Device {
 		}
 	}
 
-	public String programNamePrefix() { // TODO: solve circular dependency!
-		return HomematicCommand.escape(getDescription());
+	public String programNamePrefix() {
+		return HomeUtils.escape(getDescription());
 	}
 
 	public Datapoint lowBatDatapoint() {

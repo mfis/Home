@@ -1,6 +1,6 @@
 package homelibrary.homematic.model;
 
-import org.springframework.util.StringUtils;
+import homecontroller.util.HomeUtils;
 
 public class HomematicCommand {
 
@@ -118,22 +118,7 @@ public class HomematicCommand {
 		return hc;
 	}
 
-	// TODO: write unit tests!
 	public String buildCommand() { // TODO: Refactoring needed!
-
-		// var v1 =
-		// (datapoints.Get('BidCos-RF.OEQ0854602:4.ACTUAL_TEMPERATURE')).Value();
-		// var v1a =
-		// (datapoints.Get('BidCos-RF.OEQ0854602:4.ACTUAL_TEMPERATURE')).State();
-		// var v2 =
-		// (datapoints.Get('HmIP-RF.000E9A498BA811:1.ACTUAL_TEMPERATURE')).Value();
-		// var v3 = dom.GetObject('TestProgramm').ProgramExecute();
-		// var s1 = dom.GetObject('testvar').State('abc');
-		// var v4 = dom.GetObject('testvar').State();
-		// var s2 = dom.GetObject('testbool').State(false);
-		// var v5 = dom.GetObject('testbool').State();
-		// var v6 =
-		// (datapoints.Get('BidCos-RF.OEQ0712456:1.STATE')).State(true);
 
 		switch (commandType) {
 		case GET_DEVICE_VALUE:
@@ -179,27 +164,27 @@ public class HomematicCommand {
 		switch (commandType) {
 		case GET_DEVICE_VALUE:
 			if (device.isSysVar()) {
-				return PREFIX_VAR + escape(device.getId());
+				return PREFIX_VAR + HomeUtils.escape(device.getId());
 			} else {
-				return PREFIX_VAR + escape(datapointAdress());
+				return PREFIX_VAR + HomeUtils.escape(datapointAdress());
 			}
 		case GET_DEVICE_VALUE_TS:
-			return PREFIX_VAR + escape(datapointAdress() + "_TS");
+			return PREFIX_VAR + HomeUtils.escape(datapointAdress() + "_TS");
 		case SET_DEVICE_STATE:
 			if (device.isSysVar()) {
-				return PREFIX_RC + escape(device.getId());
+				return PREFIX_RC + HomeUtils.escape(device.getId());
 			} else {
-				return PREFIX_RC + escape(datapointAdress());
+				return PREFIX_RC + HomeUtils.escape(datapointAdress());
 			}
 		case GET_SYSVAR:
-			return PREFIX_VAR + escape(suffix);
+			return PREFIX_VAR + HomeUtils.escape(suffix);
 		case SET_SYSVAR:
-			return PREFIX_RC + escape(suffix);
+			return PREFIX_RC + HomeUtils.escape(suffix);
 		case GET_SYSVAR_DEVICEBASE:
-			return PREFIX_VAR + escape(device.programNamePrefix() + suffix);
+			return PREFIX_VAR + HomeUtils.escape(device.programNamePrefix() + suffix);
 		case SET_SYSVAR_DEVICEBASE:
 		case RUN_PROGRAM:
-			return PREFIX_RC + escape(device.programNamePrefix() + suffix);
+			return PREFIX_RC + HomeUtils.escape(device.programNamePrefix() + suffix);
 		case EOF:
 			return E_O_F;
 		default:
@@ -232,21 +217,6 @@ public class HomematicCommand {
 			return stateToSet.toString();
 		}
 		throw new IllegalArgumentException("no value to set");
-	}
-
-	protected static String escape(String string) { // TODO: Refactoring needed!
-		string = StringUtils.replace(string, " ", "");
-		string = StringUtils.replace(string, ".", "_");
-		string = StringUtils.replace(string, "-", "_");
-		string = StringUtils.replace(string, ":", "_");
-		string = StringUtils.replace(string, "ä", "ae");
-		string = StringUtils.replace(string, "ö", "oe");
-		string = StringUtils.replace(string, "ü", "ue");
-		string = StringUtils.replace(string, "Ä", "Ae");
-		string = StringUtils.replace(string, "Ö", "Oe");
-		string = StringUtils.replace(string, "Ü", "Ue");
-		string = StringUtils.replace(string, "ß", "ss");
-		return string;
 	}
 
 	private enum CommandType {
