@@ -10,6 +10,10 @@ public class HomematicCommand {
 
 	public static final String PREFIX_RC = "RC_";
 
+	private static final String SUFFIX_TS = "_TS";
+
+	private static final String EMPTY = "";
+
 	private CommandType commandType;
 
 	private Device device;
@@ -159,37 +163,41 @@ public class HomematicCommand {
 		}
 	}
 
-	public String buildVarName() { // TODO: Refactoring needed!
+	public String buildVarName() {
+
+		StringBuilder sb = new StringBuilder(60);
+		sb.append(commandType.varNamePrefix);
+		String name;
 
 		switch (commandType) {
 		case GET_DEVICE_VALUE:
-			if (device.isSysVar()) {
-				return PREFIX_VAR + HomeUtils.escape(device.getId());
-			} else {
-				return PREFIX_VAR + HomeUtils.escape(datapointAdress());
-			}
-		case GET_DEVICE_VALUE_TS:
-			return PREFIX_VAR + HomeUtils.escape(datapointAdress() + "_TS");
 		case SET_DEVICE_STATE:
+		case GET_DEVICE_VALUE_TS:
 			if (device.isSysVar()) {
-				return PREFIX_RC + HomeUtils.escape(device.getId());
+				name = device.getId();
 			} else {
-				return PREFIX_RC + HomeUtils.escape(datapointAdress());
+				name = datapointAdress();
 			}
+			break;
 		case GET_SYSVAR:
-			return PREFIX_VAR + HomeUtils.escape(suffix);
 		case SET_SYSVAR:
-			return PREFIX_RC + HomeUtils.escape(suffix);
+			name = suffix;
+			break;
 		case GET_SYSVAR_DEVICEBASE:
-			return PREFIX_VAR + HomeUtils.escape(device.programNamePrefix() + suffix);
 		case SET_SYSVAR_DEVICEBASE:
 		case RUN_PROGRAM:
-			return PREFIX_RC + HomeUtils.escape(device.programNamePrefix() + suffix);
+			name = device.programNamePrefix() + suffix;
+			break;
 		case EOF:
-			return E_O_F;
+			name = E_O_F;
+			break;
 		default:
 			throw new IllegalArgumentException("unknown CommandType");
 		}
+
+		sb.append(HomeUtils.escape(name));
+		sb.append(commandType.varNameSuffix);
+		return sb.toString();
 	}
 
 	private String datapointAdress() {
@@ -220,7 +228,26 @@ public class HomematicCommand {
 	}
 
 	private enum CommandType {
-		GET_DEVICE_VALUE, GET_DEVICE_VALUE_TS, GET_SYSVAR, GET_SYSVAR_DEVICEBASE, SET_SYSVAR, SET_SYSVAR_DEVICEBASE, SET_DEVICE_STATE, RUN_PROGRAM, EOF;
+
+		GET_DEVICE_VALUE(PREFIX_VAR, EMPTY), //
+		GET_DEVICE_VALUE_TS(PREFIX_VAR, SUFFIX_TS), //
+		GET_SYSVAR(PREFIX_VAR, EMPTY), //
+		GET_SYSVAR_DEVICEBASE(PREFIX_VAR, EMPTY), //
+		SET_SYSVAR(PREFIX_RC, EMPTY), //
+		SET_SYSVAR_DEVICEBASE(PREFIX_RC, EMPTY), //
+		SET_DEVICE_STATE(PREFIX_RC, EMPTY), //
+		RUN_PROGRAM(PREFIX_RC, EMPTY), //
+		EOF(EMPTY, EMPTY), //
+		;
+
+		private String varNamePrefix;
+
+		private String varNameSuffix;
+
+		private CommandType(String varNamePrefix, String varNameSuffix) {
+			this.varNamePrefix = varNamePrefix;
+			this.varNameSuffix = varNameSuffix;
+		}
 	}
 
 	public boolean isProgramRunCommand() {
