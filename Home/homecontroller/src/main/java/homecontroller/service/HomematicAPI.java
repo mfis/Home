@@ -129,7 +129,6 @@ public class HomematicAPI {
 
 		List<HomematicCommand> commands = new LinkedList<>();
 		for (Device device : Device.values()) {
-			commands.add(HomematicCommand.read(device, device.lowBatDatapoint()));
 			for (Datapoint datapoint : device.getDatapoints()) {
 				commands.add(HomematicCommand.read(device, datapoint));
 				if (datapoint.isTimestamp()) {
@@ -141,7 +140,10 @@ public class HomematicAPI {
 					commands.add(HomematicCommand.read(device, suffix));
 				}
 			}
-			commands.add(HomematicCommand.read(device, device.lowBatDatapoint()));
+			Datapoint lowBatDatapoint = device.lowBatDatapoint();
+			if (lowBatDatapoint != null) {
+				commands.add(HomematicCommand.read(device, device.lowBatDatapoint()));
+			}
 		}
 		commands.add(HomematicCommand.read("CCU_im_Reboot"));
 		commands.add(HomematicCommand.read("CCU_Uptime"));

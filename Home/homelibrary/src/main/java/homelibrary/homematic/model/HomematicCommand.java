@@ -12,7 +12,37 @@ public class HomematicCommand {
 
 	private static final String SUFFIX_TS = "_TS";
 
+	private static final String VAR = "var ";
+
+	private static final String EQUAL = " = ";
+
+	private static final String DOM_METHOD = "dom.GetObject";
+
+	private static final String DATAPOINT_METHOD = "datapoints.Get";
+
+	// read: last known value of the ccu.
+	// write: only devices
+	private static final String VALUE = "Value";
+
+	// read: requests for new value.
+	// write: devices and sysvar's
+	private static final String STATE = "State";
+
+	private static final String LAST_TIMESTAMP = "LastTimestamp";
+
+	private static final String PROGRAM_EXECUTE = "ProgramExecute";
+
+	private static final String POINT = ".";
+
 	private static final String EMPTY = "";
+
+	private static final String QUOTE = "'";
+
+	private static final String BRACKET_OPEN = "(";
+
+	private static final String BRACKET_CLOSE = ")";
+
+	private static final String SEMICOLON = ";";
 
 	private CommandType commandType;
 
@@ -20,7 +50,7 @@ public class HomematicCommand {
 
 	private Datapoint datapoint;
 
-	private String suffix;
+	private String suffix = EMPTY;
 
 	private Boolean stateToSet;
 
@@ -32,7 +62,11 @@ public class HomematicCommand {
 
 	public static HomematicCommand read(Device device, Datapoint datapoint) {
 		HomematicCommand hc = new HomematicCommand();
-		hc.commandType = CommandType.GET_DEVICE_VALUE;
+		if (device.isSysVar()) {
+			hc.commandType = CommandType.GET_SYSVAR_DEVICEBASE;
+		} else {
+			hc.commandType = CommandType.GET_DEVICE_VALUE;
+		}
 		hc.device = device;
 		hc.datapoint = datapoint;
 		return hc;
@@ -66,7 +100,11 @@ public class HomematicCommand {
 
 	public static HomematicCommand write(Device device, Datapoint datapoint, boolean stateToSet) {
 		HomematicCommand hc = new HomematicCommand();
-		hc.commandType = CommandType.SET_DEVICE_STATE;
+		if (device.isSysVar()) {
+			hc.commandType = CommandType.GET_SYSVAR_DEVICEBASE;
+		} else {
+			hc.commandType = CommandType.SET_DEVICE_STATE;
+		}
 		hc.device = device;
 		hc.datapoint = datapoint;
 		hc.stateToSet = stateToSet;
@@ -75,7 +113,11 @@ public class HomematicCommand {
 
 	public static HomematicCommand write(Device device, Datapoint datapoint, String stringToSet) {
 		HomematicCommand hc = new HomematicCommand();
-		hc.commandType = CommandType.SET_DEVICE_STATE;
+		if (device.isSysVar()) {
+			hc.commandType = CommandType.GET_SYSVAR_DEVICEBASE;
+		} else {
+			hc.commandType = CommandType.SET_DEVICE_STATE;
+		}
 		hc.device = device;
 		hc.datapoint = datapoint;
 		hc.stringToSet = stringToSet;
@@ -122,45 +164,66 @@ public class HomematicCommand {
 		return hc;
 	}
 
-	public String buildCommand() { // TODO: Refactoring needed!
+	public String buildCommand() {
+
+		StringBuilder sb = new StringBuilder(140);
+
+		String accessMethodParam = EMPTY;
+		String dataFunctionParam = EMPTY;
+		if (commandType.hasDataFunctionParam) {
+			dataFunctionParam = varSetExpression();
+		}
+
+		sb.append(VAR);
+		sb.append(buildVarName());
+		sb.append(EQUAL);
+		sb.append(commandType.accessMethod);
 
 		switch (commandType) {
 		case GET_DEVICE_VALUE:
-			if (device.isSysVar()) {
-				return "var " + buildVarName() + " = dom.GetObject('" + device.getId() + "').State();";
-			} else {
-				return "var " + buildVarName() + " = (datapoints.Get('" + datapointAdress() + "')).Value();";
-			}
-		case GET_DEVICE_VALUE_TS:
-			return "var " + buildVarName() + " = (datapoints.Get('" + datapointAdress()
-					+ "')).LastTimestamp();";
-		case GET_SYSVAR:
-			return "var " + buildVarName() + " = dom.GetObject('" + suffix + "').State();";
-		case GET_SYSVAR_DEVICEBASE:
-			return "var " + buildVarName() + " = dom.GetObject('" + device.programNamePrefix() + suffix
-					+ "').State();";
 		case SET_DEVICE_STATE:
 			if (device.isSysVar()) {
-				return "var " + buildVarName() + " = dom.GetObject('" + device.getId() + "').State("
-						+ varSetExpression() + ");";
+				accessMethodParam = device.getId();
 			} else {
-				return "var " + buildVarName() + " = (datapoints.Get('" + datapointAdress() + "')).State("
-						+ varSetExpression() + ");";
+				accessMethodParam = datapointAdress();
 			}
-		case SET_SYSVAR_DEVICEBASE:
-			return "var " + buildVarName() + " = dom.GetObject('" + device.programNamePrefix() + suffix
-					+ "').State(" + varSetExpression() + ");";
+			break;
+		case GET_DEVICE_VALUE_TS:
+			accessMethodParam = datapointAdress();
+			break;
+		case GET_SYSVAR:
 		case SET_SYSVAR:
-			return "var " + buildVarName() + " = dom.GetObject('" + suffix + "').State(" + varSetExpression()
-					+ ");";
+			accessMethodParam = suffix;
+			break;
+		case GET_SYSVAR_DEVICEBASE:
+		case SET_SYSVAR_DEVICEBASE:
 		case RUN_PROGRAM:
-			return "var " + buildVarName() + " = dom.GetObject('" + device.programNamePrefix() + suffix
-					+ "').ProgramExecute();";
+			accessMethodParam = device.programNamePrefix() + suffix;
+			break;
 		case EOF:
-			return "var " + buildVarName() + " = '" + E_O_F + "';";
+			break;
 		default:
 			throw new IllegalArgumentException("unknown CommandType");
 		}
+
+		if (!EMPTY.equals(accessMethodParam)) {
+			sb.append(BRACKET_OPEN);
+			sb.append(QUOTE);
+			sb.append(accessMethodParam);
+			sb.append(QUOTE);
+			sb.append(BRACKET_CLOSE);
+			sb.append(POINT);
+		}
+
+		sb.append(commandType.dataFunction);
+		sb.append(BRACKET_OPEN);
+		if (commandType.hasDataFunctionParam) {
+			sb.append(dataFunctionParam);
+		}
+		sb.append(BRACKET_CLOSE);
+		sb.append(SEMICOLON);
+
+		return sb.toString();
 	}
 
 	public String buildVarName() {
@@ -219,34 +282,47 @@ public class HomematicCommand {
 
 	private String varSetExpression() {
 		if (stringToSet != null) {
-			return "'" + stringToSet + "'";
+			return QUOTE + stringToSet + QUOTE;
 		}
 		if (stateToSet != null) {
 			return stateToSet.toString();
+		}
+		if (commandType == CommandType.EOF) {
+			return QUOTE + E_O_F + QUOTE;
 		}
 		throw new IllegalArgumentException("no value to set");
 	}
 
 	private enum CommandType {
 
-		GET_DEVICE_VALUE(PREFIX_VAR, EMPTY), //
-		GET_DEVICE_VALUE_TS(PREFIX_VAR, SUFFIX_TS), //
-		GET_SYSVAR(PREFIX_VAR, EMPTY), //
-		GET_SYSVAR_DEVICEBASE(PREFIX_VAR, EMPTY), //
-		SET_SYSVAR(PREFIX_RC, EMPTY), //
-		SET_SYSVAR_DEVICEBASE(PREFIX_RC, EMPTY), //
-		SET_DEVICE_STATE(PREFIX_RC, EMPTY), //
-		RUN_PROGRAM(PREFIX_RC, EMPTY), //
-		EOF(EMPTY, EMPTY), //
+		GET_DEVICE_VALUE(PREFIX_VAR, EMPTY, DATAPOINT_METHOD, VALUE, false), //
+		GET_DEVICE_VALUE_TS(PREFIX_VAR, SUFFIX_TS, DATAPOINT_METHOD, LAST_TIMESTAMP, false), //
+		GET_SYSVAR(PREFIX_VAR, EMPTY, DOM_METHOD, VALUE, false), //
+		GET_SYSVAR_DEVICEBASE(PREFIX_VAR, EMPTY, DOM_METHOD, VALUE, false), //
+		SET_SYSVAR(PREFIX_RC, EMPTY, DOM_METHOD, STATE, true), //
+		SET_SYSVAR_DEVICEBASE(PREFIX_RC, EMPTY, DOM_METHOD, STATE, true), //
+		SET_DEVICE_STATE(PREFIX_RC, EMPTY, DATAPOINT_METHOD, STATE, true), //
+		RUN_PROGRAM(PREFIX_RC, EMPTY, DOM_METHOD, PROGRAM_EXECUTE, false), //
+		EOF(EMPTY, EMPTY, EMPTY, EMPTY, true), //
 		;
 
 		private String varNamePrefix;
 
 		private String varNameSuffix;
 
-		private CommandType(String varNamePrefix, String varNameSuffix) {
+		private String accessMethod;
+
+		private String dataFunction;
+
+		private boolean hasDataFunctionParam;
+
+		private CommandType(String varNamePrefix, String varNameSuffix, String accessMethod,
+				String dataFunction, boolean hasDataFunctionParam) {
 			this.varNamePrefix = varNamePrefix;
 			this.varNameSuffix = varNameSuffix;
+			this.accessMethod = accessMethod;
+			this.dataFunction = dataFunction;
+			this.hasDataFunctionParam = hasDataFunctionParam;
 		}
 	}
 
