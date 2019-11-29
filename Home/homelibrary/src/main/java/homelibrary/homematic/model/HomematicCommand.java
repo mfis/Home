@@ -114,7 +114,7 @@ public class HomematicCommand {
 	public static HomematicCommand write(Device device, Datapoint datapoint, String stringToSet) {
 		HomematicCommand hc = new HomematicCommand();
 		if (device.isSysVar()) {
-			hc.commandType = CommandType.GET_SYSVAR_DEVICEBASE;
+			hc.commandType = CommandType.SET_SYSVAR_DEVICEBASE;
 		} else {
 			hc.commandType = CommandType.SET_DEVICE_STATE;
 		}
@@ -260,7 +260,7 @@ public class HomematicCommand {
 
 		sb.append(HomeUtils.escape(name));
 		sb.append(commandType.varNameSuffix);
-		return sb.toString();
+		return sb.toString().toUpperCase();
 	}
 
 	private String datapointAdress() {
