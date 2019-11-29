@@ -19,8 +19,8 @@ public enum Type {
 	// with sub-types
 	THERMOSTAT("Thermostat", true, Type.THERMOMETER), //
 	// pseudo-types
-	SYSVAR(null, false), //
-	SYSVAR_THERMOMETER("ConclusionOutsideTemperature", false, Type.THERMOMETER), //
+	SYSVAR_LAST_BELL_TIMESTAMP("LastBellTimestamp", false), //
+	SYSVAR_THERMOMETER("ConclusionTemperature", false, Type.THERMOMETER), //
 	;
 
 	protected static final List<String> VAR_PREFIXES_SWITCH_AUTO = Arrays.asList("Automatic",

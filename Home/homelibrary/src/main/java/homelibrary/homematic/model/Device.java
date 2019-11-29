@@ -41,14 +41,14 @@ public enum Device {
 	STROMZAEHLER(HomematicProtocol.HM, "NEQ0861520", 1, Type.ELECTRIC_POWER, Place.HOUSE, true,
 			Datapoint.LIST_POWERMETER_HM, null), //
 
-	AUSSENTEMPERATUR(HomematicProtocol.SYSVAR, "ConclusionOutsideTemperature", 2867, Type.SYSVAR_THERMOMETER,
+	AUSSENTEMPERATUR(HomematicProtocol.SYSVAR, "ConclusionTemperatureDraussen", 2867, Type.SYSVAR_THERMOMETER,
 			Place.OUTSIDE, true, Datapoint.LIST_SYSVAR, null), //
 
 	HAUSTUER_KLINGEL(HomematicProtocol.HM, "PEQ0652576", 1, Type.DOORBELL, Place.FRONTDOOR, false,
 			Datapoint.LIST_DOORBELL, null), //
 
-	HAUSTUER_KLINGEL_HISTORIE(HomematicProtocol.SYSVAR, "doorbellTimestampHistory", 3218, Type.SYSVAR,
-			Place.FRONTDOOR, false, Datapoint.LIST_SYSVAR, null), //
+	HAUSTUER_KLINGEL_HISTORIE(HomematicProtocol.SYSVAR, "LastBellTimestampHaustuer", 3218,
+			Type.SYSVAR_LAST_BELL_TIMESTAMP, Place.FRONTDOOR, false, Datapoint.LIST_SYSVAR, null), //
 
 	HAUSTUER_KAMERA(HomematicProtocol.HM, "PEQ0508418", 1, Type.SWITCH_FRONTDOOR_CAMERA, Place.FRONTDOOR,
 			false, Datapoint.LIST_CAMERA, null), //
