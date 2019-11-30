@@ -4,6 +4,8 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -20,6 +22,7 @@ import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -64,11 +67,20 @@ public class HomematicAPI {
 
 	private boolean ccuInitState;
 
+	private String refreshHashString = "";
+
+	private MessageDigest digest = null;
+
 	private static final Log LOG = LogFactory.getLog(HomematicAPI.class);
 
 	@PostConstruct
 	public void init() {
 		host = env.getProperty("homematic.hostName");
+		try {
+			digest = MessageDigest.getInstance("SHA-256");
+		} catch (NoSuchAlgorithmException e) {
+			LOG.error(e);
+		}
 	}
 
 	public String getAsString(HomematicCommand command) {
@@ -90,7 +102,7 @@ public class HomematicAPI {
 	}
 
 	public void executeCommand(HomematicCommand... commands) {
-		executeCommands(commands);
+		executeCommands(false, commands);
 	}
 
 	private String readValue(HomematicCommand command) {
@@ -125,7 +137,7 @@ public class HomematicAPI {
 		return value;
 	}
 
-	public void refresh() {
+	public boolean refresh() {
 
 		List<HomematicCommand> commands = new LinkedList<>();
 		for (Device device : Device.values()) {
@@ -148,9 +160,11 @@ public class HomematicAPI {
 		commands.add(HomematicCommand.read("CCU_im_Reboot"));
 		commands.add(HomematicCommand.read("CCU_Uptime"));
 
-		executeCommands(commands.toArray(new HomematicCommand[commands.size()]));
-
-		lookupInitState();
+		boolean refreshed = executeCommands(true, commands.toArray(new HomematicCommand[commands.size()]));
+		if (refreshed) {
+			lookupInitState();
+		}
+		return refreshed;
 	}
 
 	private void lookupInitState() {
@@ -167,15 +181,18 @@ public class HomematicAPI {
 		ccuInitState = minutesUptime <= INIT_STATE_MINUTES;
 	}
 
-	private boolean executeCommands(HomematicCommand... commands) {
+	private boolean executeCommands(boolean writeHash, HomematicCommand... commands) {
 		String body = buildReGaRequestBody(commands);
-		return extractCommandResults(callReGaAPI(body));
+		return extractCommandResults(callReGaAPI(body, writeHash));
 	}
 
 	private boolean extractCommandResults(Document responseDocument) {
 
-		Map<String, String> newValues = new HashMap<>();
+		if (responseDocument == null) {
+			return false;
+		}
 
+		Map<String, String> newValues = new HashMap<>();
 		boolean rcsOk = true;
 		boolean eofOK = false;
 
@@ -236,12 +253,10 @@ public class HomematicAPI {
 		return httpHeaders;
 	}
 
-	private Document callReGaAPI(String body) {
+	private Document callReGaAPI(String body, boolean writeHash) {
 
 		HttpHeaders headers = createHeaders(body.length());
-
 		HttpEntity<String> requestEntity = new HttpEntity<>(body, headers);
-
 		ResponseEntity<String> responseEntity = restTemplate.postForEntity(host + REGA_PORT_AND_URI,
 				requestEntity, String.class);
 		HttpStatus statusCode = responseEntity.getStatusCode();
@@ -253,8 +268,17 @@ public class HomematicAPI {
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 			dbFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, Boolean.TRUE);
 			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-			InputStream inputStream = new ByteArrayInputStream(
-					responseEntity.getBody().getBytes(StandardCharsets.UTF_8));
+			byte[] responseBytes = responseEntity.getBody().getBytes(StandardCharsets.UTF_8);
+			if (writeHash) {
+				String actualHashString = Hex.encodeHexString(
+						digest.digest(responseEntity.getBody().getBytes(StandardCharsets.UTF_8)));
+				if (StringUtils.equals(refreshHashString, actualHashString)) {
+					return null;
+				} else {
+					refreshHashString = actualHashString;
+				}
+			}
+			InputStream inputStream = new ByteArrayInputStream(responseBytes);
 			Document doc = dBuilder.parse(inputStream);
 			doc.getDocumentElement().normalize();
 			return doc;

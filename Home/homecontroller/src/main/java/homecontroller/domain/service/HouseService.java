@@ -98,7 +98,7 @@ public class HouseService {
 		});
 	}
 
-	@Scheduled(fixedDelay = (1000 * 60))
+	@Scheduled(fixedDelay = (1000 * 5))
 	private void scheduledRefreshHouseModel() {
 		refreshHouseModel();
 	}
@@ -106,8 +106,11 @@ public class HouseService {
 	public synchronized void refreshHouseModel() {
 
 		HouseModel oldModel = ModelObjectDAO.getInstance().readHouseModel();
-
 		HouseModel newModel = refreshModel();
+		if (newModel == null) {
+			return;
+		}
+
 		calculateConclusion(oldModel, newModel);
 		ModelObjectDAO.getInstance().write(newModel);
 
@@ -123,7 +126,9 @@ public class HouseService {
 
 	private HouseModel refreshModel() {
 
-		api.refresh();
+		if (!api.refresh()) {
+			return null;
+		}
 
 		HouseModel newModel = new HouseModel();
 
