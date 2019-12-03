@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import homecontroller.dao.HistoryDatabaseDAO;
 import homecontroller.domain.model.AutomationState;
 import homecontroller.domain.model.Climate;
 import homecontroller.domain.model.FrontDoor;
@@ -76,9 +75,6 @@ public class HouseService {
 	private PushService pushService;
 
 	@Autowired
-	private HistoryDatabaseDAO historyDAO;
-
-	@Autowired
 	private HistoryService historyService;
 
 	@Autowired
@@ -89,7 +85,7 @@ public class HouseService {
 		CompletableFuture.runAsync(() -> {
 			try {
 				if (ModelObjectDAO.getInstance().readHistoryModel() == null) {
-					historyService.refreshHistoryModelComplete();
+					// FIXME: historyService.refreshHistoryModelComplete();
 				}
 				refreshHouseModel();
 			} catch (Exception e) {
@@ -110,6 +106,8 @@ public class HouseService {
 		if (newModel == null) {
 			return;
 		}
+
+		historyService.saveNewValues();
 
 		calculateConclusion(oldModel, newModel);
 		ModelObjectDAO.getInstance().write(newModel);
@@ -350,8 +348,7 @@ public class HouseService {
 
 	private boolean isHeatingIsCauseForHighRoomTemperature(Heating heating, BigDecimal temperatureLimit) {
 		return heating != null && (heating.isBoostActive()
-				|| heating.getTargetTemperature().compareTo(temperatureLimit) > 0
-				|| historyDAO.minutesSinceLastHeatingBoost(heating) < HINT_TIMEOUT_MINUTES_AFTER_BOOST);
+				|| heating.getTargetTemperature().compareTo(temperatureLimit) > 0);
 	}
 
 	private boolean isTooColdOutsideSoNoNeedToCoolingDownRoom(BigDecimal roomTemperature) {

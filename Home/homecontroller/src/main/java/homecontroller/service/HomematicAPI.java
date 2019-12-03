@@ -63,7 +63,9 @@ public class HomematicAPI {
 
 	private static final String REGA_PORT_AND_URI = ":8181/tclrega.exe";
 
-	private Map<String, String> currentValues = new HashMap<>();
+	private LocalDateTime currentValuesTimestamp;
+
+	private Map<HomematicCommand, String> currentValues = new HashMap<>();
 
 	private boolean ccuInitState;
 
@@ -183,16 +185,17 @@ public class HomematicAPI {
 
 	private boolean executeCommands(boolean writeHash, HomematicCommand... commands) {
 		String body = buildReGaRequestBody(commands);
-		return extractCommandResults(callReGaAPI(body, writeHash));
+		return extractCommandResults(callReGaAPI(body, writeHash), commands);
 	}
 
-	private boolean extractCommandResults(Document responseDocument) {
+	private boolean extractCommandResults(Document responseDocument, HomematicCommand... commands) {
 
 		if (responseDocument == null) {
 			return false;
 		}
 
-		Map<String, String> newValues = new HashMap<>();
+		Map<String, String> newStringToValues = new HashMap<>();
+		Map<HomematicCommand, String> newCommandToValues = new HashMap<>();
 		boolean rcsOk = true;
 		boolean eofOK = false;
 
@@ -201,7 +204,7 @@ public class HomematicAPI {
 			Node c = childs.item(i);
 			Element child = (Element) c;
 			if (child.getTagName().startsWith(HomematicCommand.PREFIX_VAR)) {
-				newValues.put(child.getTagName(), child.getTextContent());
+				newStringToValues.put(child.getTagName(), child.getTextContent());
 			} else if (child.getTagName().startsWith(HomematicCommand.PREFIX_RC)) {
 				boolean rc = Boolean.parseBoolean(child.getTextContent());
 				rcsOk = rcsOk && rc;
@@ -217,7 +220,11 @@ public class HomematicAPI {
 		}
 
 		if (rcsOk && eofOK) {
-			currentValues = newValues;
+			for (HomematicCommand command : commands) {
+				newCommandToValues.put(command, newStringToValues.get(command.buildVarName()));
+			}
+			currentValues = newCommandToValues;
+			currentValuesTimestamp = LocalDateTime.now();
 		}
 		return rcsOk && eofOK;
 	}
@@ -285,6 +292,14 @@ public class HomematicAPI {
 		} catch (Exception e) {
 			throw new IllegalStateException("Error parsing document", e);
 		}
+	}
+
+	public Map<HomematicCommand, String> getCurrentValues() {
+		return currentValues;
+	}
+
+	public LocalDateTime getCurrentValuesTimestamp() {
+		return currentValuesTimestamp;
 	}
 
 }

@@ -14,7 +14,7 @@ public class TimestampValueRowMapper implements RowMapper<TimestampValuePair> {
 	public TimestampValuePair mapRow(ResultSet rs, int rowNum) throws SQLException {
 		LocalDateTime dateTime = LocalDateTime
 				.ofInstant(Instant.ofEpochMilli(rs.getTimestamp("ts").getTime()), ZoneId.systemDefault());
-		return new TimestampValuePair(dateTime, rs.getLong("value"));
+		return new TimestampValuePair(dateTime, rs.getBigDecimal("value"));
 	}
 
 }

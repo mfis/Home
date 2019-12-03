@@ -24,9 +24,11 @@ import homecontroller.database.mapper.TimestampValuePair;
 import homecontroller.domain.model.HistoryModel;
 import homecontroller.domain.model.PowerConsumptionMonth;
 import homecontroller.domain.model.TemperatureHistory;
+import homecontroller.service.HomematicAPI;
 import homelibrary.dao.ModelObjectDAO;
 import homelibrary.homematic.model.Datapoint;
 import homelibrary.homematic.model.Device;
+import homelibrary.homematic.model.History;
 
 @Component
 public class HistoryService {
@@ -36,6 +38,9 @@ public class HistoryService {
 
 	@Autowired
 	private UploadService uploadService;
+
+	@Autowired
+	private HomematicAPI api;
 
 	private static final int HOURS_IN_DAY = 24;
 
@@ -53,7 +58,21 @@ public class HistoryService {
 		});
 	}
 
-	@Scheduled(cron = "5 0 0 * * *")
+	public void saveNewValues() {
+		for (History history : History.values()) {
+			historyDAO.addEntry(history.getCommand(), new TimestampValuePair(api.getCurrentValuesTimestamp(),
+					api.getAsBigDecimal(history.getCommand())));
+		}
+	}
+
+	@Scheduled(cron = "* 0 0 * * *")
+	public void persistValues() {
+		for (History history : History.values()) {
+			historyDAO.persistEntry(history.getCommand());
+		}
+	}
+
+	@Scheduled(cron = "5 10 0 * * *")
 	public synchronized void refreshHistoryModelComplete() {
 
 		HistoryModel oldModel = ModelObjectDAO.getInstance().readHistoryModel();
@@ -79,7 +98,7 @@ public class HistoryService {
 		refreshHistoryModel();
 	}
 
-	@Scheduled(fixedDelay = (1000 * 60 * 5))
+	// FIXME: @Scheduled(fixedDelay = (1000 * 60 * 5))
 	private synchronized void refreshHistoryModel() {
 
 		HistoryModel model = ModelObjectDAO.getInstance().readHistoryModel();
@@ -247,7 +266,7 @@ public class HistoryService {
 		for (TimestampValuePair pair : timestampValues) {
 			PowerConsumptionMonth dest = null;
 			for (PowerConsumptionMonth pcm : newModel.getElectricPowerConsumption()) {
-				if (isSameMonth(pair.getTimeatamp(), pcm.measurePointMaxDateTime())) {
+				if (isSameMonth(pair.getTimestamp(), pcm.measurePointMaxDateTime())) {
 					dest = pcm;
 				}
 			}
@@ -268,17 +287,17 @@ public class HistoryService {
 	private void addMeasurePoint(PowerConsumptionMonth pcm, TimestampValuePair measurePoint) {
 
 		if (pcm.getLastSingleValue() != null) {
-			if (pcm.getLastSingleValue() < measurePoint.getValue()) {
+			if (pcm.getLastSingleValue() < measurePoint.getValue().longValue()) {
 				pcm.setPowerConsumption((pcm.getPowerConsumption() != null ? pcm.getPowerConsumption() : 0)
-						+ (measurePoint.getValue() - pcm.getLastSingleValue()));
-			} else if (pcm.getLastSingleValue().compareTo(measurePoint.getValue()) > 0) {
+						+ (measurePoint.getValue().longValue() - pcm.getLastSingleValue()));
+			} else if (pcm.getLastSingleValue().compareTo(measurePoint.getValue().longValue()) > 0) {
 				// overflow
-				pcm.setPowerConsumption(pcm.getPowerConsumption() + measurePoint.getValue());
+				pcm.setPowerConsumption(pcm.getPowerConsumption() + measurePoint.getValue().longValue());
 			}
 		}
-		pcm.setLastSingleValue(measurePoint.getValue());
+		pcm.setLastSingleValue(measurePoint.getValue().longValue());
 		pcm.setMeasurePointMax(
-				measurePoint.getTimeatamp().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
+				measurePoint.getTimestamp().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
 	}
 
 	private boolean isSameMonth(LocalDateTime date1, LocalDateTime date2) {

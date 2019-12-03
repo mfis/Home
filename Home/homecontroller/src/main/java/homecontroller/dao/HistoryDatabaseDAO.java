@@ -1,28 +1,31 @@
 package homecontroller.dao;
 
 import java.math.BigDecimal;
-import java.sql.Timestamp;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+
+import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import homecontroller.database.mapper.BigDecimalRowMapper;
-import homecontroller.database.mapper.TimestampRowMapper;
 import homecontroller.database.mapper.TimestampValuePair;
 import homecontroller.database.mapper.TimestampValueRowMapper;
-import homecontroller.domain.model.Heating;
 import homelibrary.homematic.model.Datapoint;
 import homelibrary.homematic.model.Device;
-import homelibrary.homematic.model.HomematicConstants;
+import homelibrary.homematic.model.History;
+import homelibrary.homematic.model.HomematicCommand;
 
-@Component
+@Repository
 public class HistoryDatabaseDAO {
 
 	private static final String VALUE = "value";
@@ -30,18 +33,35 @@ public class HistoryDatabaseDAO {
 	private static final DateTimeFormatter SQL_TIMESTAMP_FORMATTER = DateTimeFormatter
 			.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
+	private Map<HomematicCommand, List<TimestampValuePair>> map = new HashMap<HomematicCommand, List<TimestampValuePair>>();
+
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
 
-	public long minutesSinceLastHeatingBoost(Heating heating) {
+	@PostConstruct
+	@Transactional
+	public void setupTables() {
 
-		Timestamp timestamp = jdbcTemplate.queryForObject("select max(ts) as time FROM "
-				+ heating.getDevice().accessKeyHistorian(Datapoint.CONTROL_MODE) + " where value = ?;",
-				new Object[] { HomematicConstants.HEATING_CONTROL_MODE_BOOST.intValue() },
-				new TimestampRowMapper("time"));
+		for (History history : History.values()) {
+			jdbcTemplate.update("CREATE CACHED TABLE IF NOT EXISTS " + history.getCommand().buildVarName()
+					+ " (TS DATETIME NOT NULL, VALUE DOUBLE NOT NULL, PRIMARY KEY (TS));");
+		}
+		// jdbcTemplate.update("insert into TEST_HM_2 (TS, VALUE) values
+		// (CURRENT_TIMESTAMP, 22);");
+	}
 
-		Duration timeElapsed = Duration.between(Instant.ofEpochMilli(timestamp.getTime()), Instant.now());
-		return timeElapsed.toMinutes();
+	public void addEntry(HomematicCommand command, TimestampValuePair pair) {
+		if (!map.containsKey(command)) {
+			map.put(command, new LinkedList<TimestampValuePair>());
+		}
+		map.get(command).add(pair);
+	}
+
+	@Transactional
+	public void persistEntry(HomematicCommand command) {
+		List<TimestampValuePair> toPersist = map.get(command);
+		map.put(command, new LinkedList<TimestampValuePair>());
+
 	}
 
 	public BigDecimal readExtremValueBetween(Device device, Datapoint datapoint,
@@ -104,6 +124,37 @@ public class HistoryDatabaseDAO {
 			startTs = SQL_TIMESTAMP_FORMATTER.format(optionalFromDateTime);
 		}
 		return startTs;
+	}
+
+	protected TimestampValuePair min(List<TimestampValuePair> list) {
+		TimestampValuePair cmp = null;
+		for (TimestampValuePair pair : list) {
+			if (cmp == null || cmp.getValue().compareTo(pair.getValue()) > 0) {
+				cmp = pair;
+			}
+		}
+		return cmp;
+	}
+
+	protected TimestampValuePair max(List<TimestampValuePair> list) {
+		TimestampValuePair cmp = null;
+		for (TimestampValuePair pair : list) {
+			if (cmp == null || cmp.getValue().compareTo(pair.getValue()) < 0) {
+				cmp = pair;
+			}
+		}
+		return cmp;
+	}
+
+	protected TimestampValuePair avg(List<TimestampValuePair> list) {
+		if (list == null || list.isEmpty()) {
+			return null;
+		}
+		BigDecimal sum = BigDecimal.ZERO;
+		for (TimestampValuePair pair : list) {
+			sum = sum.add(pair.getValue());
+		}
+		return new TimestampValuePair(timestamp, sum.divide(new BigDecimal(list.size())));
 	}
 
 	public enum ExtremValueType {

@@ -141,7 +141,7 @@ public class ClientCommunicationService {
 		}
 
 		if (ModelObjectDAO.getInstance().readHistoryModel() == null) {
-			historyService.refreshHistoryModelComplete();
+			// FIXME: historyService.refreshHistoryModelComplete();
 		} else {
 			uploadService.upload(ModelObjectDAO.getInstance().readHistoryModel());
 		}
