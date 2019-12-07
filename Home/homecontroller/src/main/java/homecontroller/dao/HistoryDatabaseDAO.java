@@ -5,13 +5,13 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import homecontroller.database.mapper.BigDecimalRowMapper;
 import homecontroller.database.mapper.TimestampValuePair;
 import homecontroller.database.mapper.TimestampValueRowMapper;
+import homecontroller.model.HistoryValueType;
 import homelibrary.homematic.model.Datapoint;
 import homelibrary.homematic.model.Device;
 import homelibrary.homematic.model.History;
@@ -28,15 +29,15 @@ import homelibrary.homematic.model.HomematicCommand;
 @Repository
 public class HistoryDatabaseDAO {
 
-	private static final String VALUE = "value";
+	private static final String VALUE = "VAL";
 
 	private static final DateTimeFormatter SQL_TIMESTAMP_FORMATTER = DateTimeFormatter
 			.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
-	private Map<HomematicCommand, List<TimestampValuePair>> map = new HashMap<HomematicCommand, List<TimestampValuePair>>();
-
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
+
+	private static final Log LOG = LogFactory.getLog(HistoryDatabaseDAO.class);
 
 	@PostConstruct
 	@Transactional
@@ -44,34 +45,39 @@ public class HistoryDatabaseDAO {
 
 		for (History history : History.values()) {
 			jdbcTemplate.update("CREATE CACHED TABLE IF NOT EXISTS " + history.getCommand().buildVarName()
-					+ " (TS DATETIME NOT NULL, VALUE DOUBLE NOT NULL, PRIMARY KEY (TS));");
+					+ " (TS DATETIME NOT NULL, TYP CHAR(1) NOT NULL, VAL DOUBLE NOT NULL, PRIMARY KEY (TS));");
+			jdbcTemplate.update(
+					"CREATE UNIQUE INDEX IF NOT EXISTS " + "IDX1_" + history.getCommand().buildVarName()
+							+ " ON " + history.getCommand().buildVarName() + " (TS, TYP);");
 		}
-		// jdbcTemplate.update("insert into TEST_HM_2 (TS, VALUE) values
-		// (CURRENT_TIMESTAMP, 22);");
-	}
-
-	public void addEntry(HomematicCommand command, TimestampValuePair pair) {
-		if (!map.containsKey(command)) {
-			map.put(command, new LinkedList<TimestampValuePair>());
-		}
-		map.get(command).add(pair);
 	}
 
 	@Transactional
-	public void persistEntry(HomematicCommand command) {
-		List<TimestampValuePair> toPersist = map.get(command);
-		map.put(command, new LinkedList<TimestampValuePair>());
+	public void persistEntries(Map<HomematicCommand, List<TimestampValuePair>> toInsert) {
 
+		for (HomematicCommand command : toInsert.keySet()) {
+			String table = command.buildVarName();
+			for (TimestampValuePair pair : toInsert.get(command)) {
+				if (command != null && pair != null) {
+					String ts = formatTimestamp(pair.getTimestamp());
+					String val = pair.getValue().toString();
+					String sql = "insert into " + table + " (TS, TYP, VAL) values ('" + ts + "', '"
+							+ pair.getType().getDatabaseKey() + "', " + val + ");";
+					int update = jdbcTemplate.update(sql);
+					LOG.info("SQL RC=" + update + " - " + sql); // FIXME
+				}
+			}
+		}
 	}
 
 	public BigDecimal readExtremValueBetween(Device device, Datapoint datapoint,
-			ExtremValueType extremValueType, LocalDateTime fromDateTime, LocalDateTime untilDateTime) {
+			HistoryValueType historyValueType, LocalDateTime fromDateTime, LocalDateTime untilDateTime) {
 
 		String where = fromDateTime != null || untilDateTime != null ? " where " : "";
 		String and = fromDateTime != null && untilDateTime != null ? " and " : "";
 
-		String query = "select " + (extremValueType == ExtremValueType.MIN ? "min" : "max")
-				+ "(value) as value FROM " + device.accessKeyHistorian(datapoint) + where
+		String query = "select " + (historyValueType == HistoryValueType.MIN ? "min" : "max")
+				+ "(val) as val FROM " + device.accessKeyHistorian(datapoint) + where
 				+ (fromDateTime != null ? ("ts >= '" + formatTimestamp(fromDateTime) + "'") : "") + and
 				+ (untilDateTime != null ? ("ts < '" + formatTimestamp(untilDateTime) + "'") : "") + ";";
 
@@ -79,11 +85,11 @@ public class HistoryDatabaseDAO {
 	}
 
 	public BigDecimal readExtremValueInTimeRange(Device device, Datapoint datapoint,
-			ExtremValueType extremValueType, TimeRange timerange, LocalDateTime fromDateTime,
+			HistoryValueType historyValueType, TimeRange timerange, LocalDateTime fromDateTime,
 			LocalDateTime untilDateTime) {
 
-		String query = "select " + (extremValueType == ExtremValueType.MIN ? "min" : "max")
-				+ "(value) as value FROM " + device.accessKeyHistorian(datapoint) + " where ts >= '"
+		String query = "select " + (historyValueType == HistoryValueType.MIN ? "min" : "max")
+				+ "(val) as val FROM " + device.accessKeyHistorian(datapoint) + " where ts >= '"
 				+ formatTimestamp(fromDateTime) + "' and ts < '" + formatTimestamp(untilDateTime) + "'"
 				+ " and hour(ts) " + timerange.hoursQueryString + ";";
 
@@ -93,7 +99,7 @@ public class HistoryDatabaseDAO {
 	public BigDecimal readFirstValueBefore(Device device, Datapoint datapoint, LocalDateTime localDateTime,
 			int maxHoursReverse) {
 
-		String query = "select value FROM " + device.accessKeyHistorian(datapoint) + " where ts <= '"
+		String query = "select val FROM " + device.accessKeyHistorian(datapoint) + " where ts <= '"
 				+ formatTimestamp(localDateTime) + "' and ts > '"
 				+ formatTimestamp(localDateTime.minusHours(maxHoursReverse))
 				+ "' order by ts desc fetch first row only;";
@@ -110,7 +116,7 @@ public class HistoryDatabaseDAO {
 			LocalDateTime optionalFromDateTime) {
 
 		String startTs = formatTimestamp(optionalFromDateTime);
-		return jdbcTemplate.query("select ts, value FROM " + device.accessKeyHistorian(datapoint)
+		return jdbcTemplate.query("select ts, val FROM " + device.accessKeyHistorian(datapoint)
 				+ " where ts > '" + startTs + "' order by ts asc;", new Object[] {},
 				new TimestampValueRowMapper());
 	}
@@ -124,41 +130,6 @@ public class HistoryDatabaseDAO {
 			startTs = SQL_TIMESTAMP_FORMATTER.format(optionalFromDateTime);
 		}
 		return startTs;
-	}
-
-	protected TimestampValuePair min(List<TimestampValuePair> list) {
-		TimestampValuePair cmp = null;
-		for (TimestampValuePair pair : list) {
-			if (cmp == null || cmp.getValue().compareTo(pair.getValue()) > 0) {
-				cmp = pair;
-			}
-		}
-		return cmp;
-	}
-
-	protected TimestampValuePair max(List<TimestampValuePair> list) {
-		TimestampValuePair cmp = null;
-		for (TimestampValuePair pair : list) {
-			if (cmp == null || cmp.getValue().compareTo(pair.getValue()) < 0) {
-				cmp = pair;
-			}
-		}
-		return cmp;
-	}
-
-	protected TimestampValuePair avg(List<TimestampValuePair> list) {
-		if (list == null || list.isEmpty()) {
-			return null;
-		}
-		BigDecimal sum = BigDecimal.ZERO;
-		for (TimestampValuePair pair : list) {
-			sum = sum.add(pair.getValue());
-		}
-		return new TimestampValuePair(timestamp, sum.divide(new BigDecimal(list.size())));
-	}
-
-	public enum ExtremValueType {
-		MIN, MAX;
 	}
 
 	public enum TimeRange {

@@ -63,7 +63,8 @@ public class HomematicAPI {
 
 	private static final String REGA_PORT_AND_URI = ":8181/tclrega.exe";
 
-	private LocalDateTime currentValuesTimestamp;
+	private LocalDateTime currentValuesTimestamp; // FIXME: ALWAYS OTHER VALUE
+													// ??
 
 	private Map<HomematicCommand, String> currentValues = new HashMap<>();
 
@@ -104,15 +105,19 @@ public class HomematicAPI {
 	}
 
 	public void executeCommand(HomematicCommand... commands) {
-		executeCommands(false, commands);
+		// FIXME: executeCommands(false, commands);
 	}
 
 	private String readValue(HomematicCommand command) {
 		String key = command.buildVarName();
-		if (currentValues.containsKey(key)) {
-			return currentValues.get(key);
+		if (currentValues.containsKey(command)) {
+			return currentValues.get(command);
 		} else {
-			LOG.error("Value unknown: " + key);
+			StringBuilder sb = new StringBuilder();
+			for (HomematicCommand cmd : currentValues.keySet()) {
+				sb.append(cmd.buildVarName() + "\n");
+			}
+			LOG.error("Key/Value unknown: " + key + " / known keys: \n" + sb.toString());
 			return null;
 		}
 	}

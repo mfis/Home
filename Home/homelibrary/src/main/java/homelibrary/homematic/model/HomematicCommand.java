@@ -56,6 +56,8 @@ public class HomematicCommand {
 
 	private String stringToSet;
 
+	private String cashedVarName = null;
+
 	private HomematicCommand() {
 		super();
 	}
@@ -228,6 +230,10 @@ public class HomematicCommand {
 
 	public String buildVarName() {
 
+		if (cashedVarName != null) {
+			return cashedVarName;
+		}
+
 		StringBuilder sb = new StringBuilder(60);
 		sb.append(commandType.varNamePrefix);
 		String name;
@@ -260,7 +266,8 @@ public class HomematicCommand {
 
 		sb.append(HomeUtils.escape(name));
 		sb.append(commandType.varNameSuffix);
-		return sb.toString().toUpperCase();
+		cashedVarName = sb.toString().toUpperCase();
+		return cashedVarName;
 	}
 
 	private String datapointAdress() {
@@ -332,19 +339,14 @@ public class HomematicCommand {
 
 	@Override
 	public String toString() {
-		return "HomematicCommand [commandType=" + commandType + ", device=" + device + ", datapoint="
-				+ datapoint + ", suffix=" + suffix + ", stateToSet=" + stateToSet + ", stringToSet="
-				+ stringToSet + "]";
+		return "HomematicCommand [buildVarName()=" + this.buildVarName() + "]";
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((commandType == null) ? 0 : commandType.hashCode());
-		result = prime * result + ((datapoint == null) ? 0 : datapoint.hashCode());
-		result = prime * result + ((device == null) ? 0 : device.hashCode());
-		result = prime * result + ((suffix == null) ? 0 : suffix.hashCode());
+		result = prime * result + buildVarName().hashCode();
 		return result;
 	}
 
@@ -357,18 +359,7 @@ public class HomematicCommand {
 		if (getClass() != obj.getClass())
 			return false;
 		HomematicCommand other = (HomematicCommand) obj;
-		if (commandType != other.commandType)
-			return false;
-		if (datapoint != other.datapoint)
-			return false;
-		if (device != other.device)
-			return false;
-		if (suffix == null) {
-			if (other.suffix != null)
-				return false;
-		} else if (!suffix.equals(other.suffix))
-			return false;
-		return true;
+		return this.buildVarName().equals(other.buildVarName());
 	}
 
 }

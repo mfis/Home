@@ -1,34 +1,41 @@
 package homecontroller.domain.service;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.YearMonth;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 
+import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import homecontroller.dao.HistoryDatabaseDAO;
-import homecontroller.dao.HistoryDatabaseDAO.ExtremValueType;
 import homecontroller.dao.HistoryDatabaseDAO.TimeRange;
 import homecontroller.database.mapper.TimestampValuePair;
 import homecontroller.domain.model.HistoryModel;
 import homecontroller.domain.model.PowerConsumptionMonth;
 import homecontroller.domain.model.TemperatureHistory;
+import homecontroller.model.HistoryValueType;
 import homecontroller.service.HomematicAPI;
 import homelibrary.dao.ModelObjectDAO;
 import homelibrary.homematic.model.Datapoint;
 import homelibrary.homematic.model.Device;
 import homelibrary.homematic.model.History;
+import homelibrary.homematic.model.HomematicCommand;
 
 @Component
 public class HistoryService {
@@ -42,6 +49,10 @@ public class HistoryService {
 	@Autowired
 	private HomematicAPI api;
 
+	private Map<HomematicCommand, List<TimestampValuePair>> entryCache = new HashMap<HomematicCommand, List<TimestampValuePair>>();
+
+	private static final Log LOG = LogFactory.getLog(HistoryService.class);
+
 	private static final int HOURS_IN_DAY = 24;
 
 	private static final long HIGHEST_OUTSIDE_TEMPERATURE_PERIOD_HOURS = HOURS_IN_DAY;
@@ -50,7 +61,7 @@ public class HistoryService {
 	public void init() {
 		CompletableFuture.runAsync(() -> {
 			try {
-				refreshHistoryModelComplete();
+				// FIXME: refreshHistoryModelComplete();
 			} catch (Exception e) {
 				LogFactory.getLog(HistoryService.class)
 						.error("Could not initialize HistoryService completly.", e);
@@ -60,16 +71,40 @@ public class HistoryService {
 
 	public void saveNewValues() {
 		for (History history : History.values()) {
-			historyDAO.addEntry(history.getCommand(), new TimestampValuePair(api.getCurrentValuesTimestamp(),
-					api.getAsBigDecimal(history.getCommand())));
+			addEntry(history.getCommand(), new TimestampValuePair(api.getCurrentValuesTimestamp(),
+					api.getAsBigDecimal(history.getCommand()), homecontroller.model.HistoryValueType.SINGLE));
 		}
 	}
 
-	@Scheduled(cron = "* 0 0 * * *")
-	public void persistValues() {
+	@PreDestroy
+	@Scheduled(cron = "0 0/5 * * * *")
+	public void persistCashedValues() {
+
+		LOG.info("persistCashedValues()");
+		Map<HomematicCommand, List<TimestampValuePair>> toInsert = new HashMap<>();
 		for (History history : History.values()) {
-			historyDAO.persistEntry(history.getCommand());
+
+			List<TimestampValuePair> pairs = new LinkedList<>();
+
+			switch (history.getStrategy()) {
+			case MIN:
+				pairs.add(min(entryCache.get(history.getCommand())));
+				break;
+			case MAX:
+				pairs.add(max(entryCache.get(history.getCommand())));
+				break;
+			case MIN_MAX:
+				pairs.add(min(entryCache.get(history.getCommand())));
+				pairs.add(max(entryCache.get(history.getCommand())));
+				break;
+			case AVG:
+				pairs.add(avg(entryCache.get(history.getCommand())));
+				break;
+			}
+			toInsert.put(history.getCommand(), pairs);
 		}
+		historyDAO.persistEntries(toInsert);
+		entryCache.clear();
 	}
 
 	@Scheduled(cron = "5 10 0 * * *")
@@ -98,6 +133,13 @@ public class HistoryService {
 		refreshHistoryModel();
 	}
 
+	private void addEntry(HomematicCommand command, TimestampValuePair pair) {
+		if (!entryCache.containsKey(command)) {
+			entryCache.put(command, new LinkedList<TimestampValuePair>());
+		}
+		entryCache.get(command).add(pair);
+	}
+
 	// FIXME: @Scheduled(fixedDelay = (1000 * 60 * 5))
 	private synchronized void refreshHistoryModel() {
 
@@ -107,8 +149,8 @@ public class HistoryService {
 		}
 
 		BigDecimal maxValue = historyDAO.readExtremValueBetween(Device.AUSSENTEMPERATUR, Datapoint.VALUE,
-				ExtremValueType.MAX, LocalDateTime.now().minusHours(HIGHEST_OUTSIDE_TEMPERATURE_PERIOD_HOURS),
-				null);
+				HistoryValueType.MAX,
+				LocalDateTime.now().minusHours(HIGHEST_OUTSIDE_TEMPERATURE_PERIOD_HOURS), null);
 		model.setHighestOutsideTemperatureInLast24Hours(maxValue);
 
 		if (!model.isInitialized()) {
@@ -186,25 +228,25 @@ public class HistoryService {
 	private TemperatureHistory readTemperatureHistory(LocalDate base, boolean singleDay,
 			LocalDateTime monthStart, LocalDateTime monthEnd, Device device, Datapoint datapoint) {
 
-		BigDecimal nightMin = historyDAO.readExtremValueInTimeRange(device, datapoint, ExtremValueType.MIN,
+		BigDecimal nightMin = historyDAO.readExtremValueInTimeRange(device, datapoint, HistoryValueType.MIN,
 				TimeRange.NIGHT, monthStart, monthEnd);
 		if (nightMin == null) {
 			nightMin = historyDAO.readFirstValueBefore(device, datapoint, monthStart, 48);
 		}
 
-		BigDecimal nightMax = historyDAO.readExtremValueInTimeRange(device, datapoint, ExtremValueType.MAX,
+		BigDecimal nightMax = historyDAO.readExtremValueInTimeRange(device, datapoint, HistoryValueType.MAX,
 				TimeRange.NIGHT, monthStart, monthEnd);
 		if (nightMax == null) {
 			nightMax = nightMin;
 		}
 
-		BigDecimal dayMin = historyDAO.readExtremValueInTimeRange(device, datapoint, ExtremValueType.MIN,
+		BigDecimal dayMin = historyDAO.readExtremValueInTimeRange(device, datapoint, HistoryValueType.MIN,
 				TimeRange.DAY, monthStart, monthEnd);
 		if (dayMin == null) {
 			dayMin = nightMin;
 		}
 
-		BigDecimal dayMax = historyDAO.readExtremValueInTimeRange(device, datapoint, ExtremValueType.MAX,
+		BigDecimal dayMax = historyDAO.readExtremValueInTimeRange(device, datapoint, HistoryValueType.MAX,
 				TimeRange.DAY, monthStart, monthEnd);
 		if (dayMax == null) {
 			dayMax = nightMax;
@@ -302,5 +344,55 @@ public class HistoryService {
 
 	private boolean isSameMonth(LocalDateTime date1, LocalDateTime date2) {
 		return date1.getYear() == date2.getYear() && date1.getMonthValue() == date2.getMonthValue();
+	}
+
+	protected TimestampValuePair min(List<TimestampValuePair> list) {
+
+		if (list == null || list.isEmpty()) {
+			return null;
+		}
+
+		TimestampValuePair cmp = null;
+		for (TimestampValuePair pair : list) {
+			if (cmp == null || cmp.getValue().compareTo(pair.getValue()) > 0) {
+				cmp = pair;
+			}
+		}
+		return new TimestampValuePair(cmp.getTimestamp(), cmp.getValue(), HistoryValueType.MIN);
+	}
+
+	protected TimestampValuePair max(List<TimestampValuePair> list) {
+
+		if (list == null || list.isEmpty()) {
+			return null;
+		}
+
+		TimestampValuePair cmp = null;
+		for (TimestampValuePair pair : list) {
+			if (cmp == null || cmp.getValue().compareTo(pair.getValue()) < 0) {
+				cmp = pair;
+			}
+		}
+		return new TimestampValuePair(cmp.getTimestamp(), cmp.getValue(), HistoryValueType.MAX);
+	}
+
+	protected TimestampValuePair avg(List<TimestampValuePair> list) {
+
+		if (list == null || list.isEmpty()) {
+			return null;
+		}
+
+		BigDecimal sum = BigDecimal.ZERO;
+		for (TimestampValuePair pair : list) {
+			sum = sum.add(pair.getValue());
+		}
+		long minTime = list.get(0).getTimestamp().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+		long maxTime = list.get(list.size() - 1).getTimestamp().atZone(ZoneId.systemDefault()).toInstant()
+				.toEpochMilli();
+		long avgTime = minTime + ((maxTime - minTime) / 2);
+		LocalDateTime avgDateTime = Instant.ofEpochMilli(avgTime).atZone(ZoneId.systemDefault())
+				.toLocalDateTime();
+		return new TimestampValuePair(avgDateTime, sum.divide(new BigDecimal(list.size())),
+				HistoryValueType.AVG);
 	}
 }
