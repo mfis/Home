@@ -41,7 +41,7 @@ import homelibrary.homematic.model.HomematicCommand;
 public class HistoryService {
 
 	@Autowired
-	private HistoryDatabaseDAO historyDAO;
+	private HistoryDatabaseDAO historyDAOy;
 
 	@Autowired
 	private UploadService uploadService;
@@ -61,7 +61,7 @@ public class HistoryService {
 	public void init() {
 		CompletableFuture.runAsync(() -> {
 			try {
-				// FIXME: refreshHistoryModelComplete();
+				refreshHistoryModelComplete();
 			} catch (Exception e) {
 				LogFactory.getLog(HistoryService.class)
 						.error("Could not initialize HistoryService completly.", e);
@@ -140,7 +140,7 @@ public class HistoryService {
 		entryCache.get(command).add(pair);
 	}
 
-	// FIXME: @Scheduled(fixedDelay = (1000 * 60 * 5))
+	@Scheduled(fixedDelay = (1000 * 60 * 5))
 	private synchronized void refreshHistoryModel() {
 
 		HistoryModel model = ModelObjectDAO.getInstance().readHistoryModel();
@@ -148,8 +148,8 @@ public class HistoryService {
 			return;
 		}
 
-		BigDecimal maxValue = historyDAO.readExtremValueBetween(Device.AUSSENTEMPERATUR, Datapoint.VALUE,
-				HistoryValueType.MAX,
+		BigDecimal maxValue = historyDAO.readExtremValueBetween(
+				HomematicCommand.read(Device.AUSSENTEMPERATUR, Datapoint.VALUE), HistoryValueType.MAX,
 				LocalDateTime.now().minusHours(HIGHEST_OUTSIDE_TEMPERATURE_PERIOD_HOURS), null);
 		model.setHighestOutsideTemperatureInLast24Hours(maxValue);
 
@@ -228,26 +228,27 @@ public class HistoryService {
 	private TemperatureHistory readTemperatureHistory(LocalDate base, boolean singleDay,
 			LocalDateTime monthStart, LocalDateTime monthEnd, Device device, Datapoint datapoint) {
 
-		BigDecimal nightMin = historyDAO.readExtremValueInTimeRange(device, datapoint, HistoryValueType.MIN,
-				TimeRange.NIGHT, monthStart, monthEnd);
+		BigDecimal nightMin = historyDAO.readExtremValueInTimeRange(HomematicCommand.read(device, datapoint),
+				HistoryValueType.MIN, TimeRange.NIGHT, monthStart, monthEnd);
 		if (nightMin == null) {
-			nightMin = historyDAO.readFirstValueBefore(device, datapoint, monthStart, 48);
+			nightMin = historyDAO.readFirstValueBefore(HomematicCommand.read(device, datapoint), monthStart,
+					48);
 		}
 
-		BigDecimal nightMax = historyDAO.readExtremValueInTimeRange(device, datapoint, HistoryValueType.MAX,
-				TimeRange.NIGHT, monthStart, monthEnd);
+		BigDecimal nightMax = historyDAO.readExtremValueInTimeRange(HomematicCommand.read(device, datapoint),
+				HistoryValueType.MAX, TimeRange.NIGHT, monthStart, monthEnd);
 		if (nightMax == null) {
 			nightMax = nightMin;
 		}
 
-		BigDecimal dayMin = historyDAO.readExtremValueInTimeRange(device, datapoint, HistoryValueType.MIN,
-				TimeRange.DAY, monthStart, monthEnd);
+		BigDecimal dayMin = historyDAO.readExtremValueInTimeRange(HomematicCommand.read(device, datapoint),
+				HistoryValueType.MIN, TimeRange.DAY, monthStart, monthEnd);
 		if (dayMin == null) {
 			dayMin = nightMin;
 		}
 
-		BigDecimal dayMax = historyDAO.readExtremValueInTimeRange(device, datapoint, HistoryValueType.MAX,
-				TimeRange.DAY, monthStart, monthEnd);
+		BigDecimal dayMax = historyDAO.readExtremValueInTimeRange(HomematicCommand.read(device, datapoint),
+				HistoryValueType.MAX, TimeRange.DAY, monthStart, monthEnd);
 		if (dayMax == null) {
 			dayMax = nightMax;
 		}
@@ -302,8 +303,8 @@ public class HistoryService {
 
 	private void calculateElectricPowerConsumption(HistoryModel newModel, LocalDateTime fromDateTime) {
 
-		List<TimestampValuePair> timestampValues = historyDAO.readValues(Device.STROMZAEHLER,
-				Datapoint.ENERGY_COUNTER, fromDateTime);
+		List<TimestampValuePair> timestampValues = historyDAO.readValues(
+				HomematicCommand.read(Device.STROMZAEHLER, Datapoint.ENERGY_COUNTER), fromDateTime);
 
 		for (TimestampValuePair pair : timestampValues) {
 			PowerConsumptionMonth dest = null;
@@ -348,6 +349,7 @@ public class HistoryService {
 
 	protected TimestampValuePair min(List<TimestampValuePair> list) {
 
+		list = cleanList(list);
 		if (list == null || list.isEmpty()) {
 			return null;
 		}
@@ -363,6 +365,7 @@ public class HistoryService {
 
 	protected TimestampValuePair max(List<TimestampValuePair> list) {
 
+		list = cleanList(list);
 		if (list == null || list.isEmpty()) {
 			return null;
 		}
@@ -378,6 +381,7 @@ public class HistoryService {
 
 	protected TimestampValuePair avg(List<TimestampValuePair> list) {
 
+		list = cleanList(list);
 		if (list == null || list.isEmpty()) {
 			return null;
 		}
@@ -386,13 +390,30 @@ public class HistoryService {
 		for (TimestampValuePair pair : list) {
 			sum = sum.add(pair.getValue());
 		}
-		long minTime = list.get(0).getTimestamp().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-		long maxTime = list.get(list.size() - 1).getTimestamp().atZone(ZoneId.systemDefault()).toInstant()
-				.toEpochMilli();
-		long avgTime = minTime + ((maxTime - minTime) / 2);
-		LocalDateTime avgDateTime = Instant.ofEpochMilli(avgTime).atZone(ZoneId.systemDefault())
-				.toLocalDateTime();
+		LocalDateTime avgDateTime = null;
+		if (list.get(0).getTimestamp() != null && list.get(list.size() - 1).getTimestamp() != null) {
+			long minTime = list.get(0).getTimestamp().atZone(ZoneId.systemDefault()).toInstant()
+					.toEpochMilli();
+			long maxTime = list.get(list.size() - 1).getTimestamp().atZone(ZoneId.systemDefault()).toInstant()
+					.toEpochMilli();
+			long avgTime = minTime + ((maxTime - minTime) / 2);
+			avgDateTime = Instant.ofEpochMilli(avgTime).atZone(ZoneId.systemDefault()).toLocalDateTime();
+		}
 		return new TimestampValuePair(avgDateTime, sum.divide(new BigDecimal(list.size())),
 				HistoryValueType.AVG);
+	}
+
+	private List<TimestampValuePair> cleanList(List<TimestampValuePair> list) {
+
+		if (list == null || list.isEmpty()) {
+			return null;
+		}
+
+		for (int i = list.size() - 1; i >= 0; i--) {
+			if (list.get(i) == null) {
+				list.remove(i);
+			}
+		}
+		return list;
 	}
 }

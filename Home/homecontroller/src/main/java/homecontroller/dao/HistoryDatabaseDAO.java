@@ -21,8 +21,6 @@ import homecontroller.database.mapper.BigDecimalRowMapper;
 import homecontroller.database.mapper.TimestampValuePair;
 import homecontroller.database.mapper.TimestampValueRowMapper;
 import homecontroller.model.HistoryValueType;
-import homelibrary.homematic.model.Datapoint;
-import homelibrary.homematic.model.Device;
 import homelibrary.homematic.model.History;
 import homelibrary.homematic.model.HomematicCommand;
 
@@ -64,42 +62,45 @@ public class HistoryDatabaseDAO {
 					String sql = "insert into " + table + " (TS, TYP, VAL) values ('" + ts + "', '"
 							+ pair.getType().getDatabaseKey() + "', " + val + ");";
 					int update = jdbcTemplate.update(sql);
-					LOG.info("SQL RC=" + update + " - " + sql); // FIXME
 				}
 			}
 		}
 	}
 
-	public BigDecimal readExtremValueBetween(Device device, Datapoint datapoint,
+	public TimestampValuePair readExtremValueBetween(HomematicCommand command,
 			HistoryValueType historyValueType, LocalDateTime fromDateTime, LocalDateTime untilDateTime) {
 
 		String where = fromDateTime != null || untilDateTime != null ? " where " : "";
 		String and = fromDateTime != null && untilDateTime != null ? " and " : "";
 
 		String query = "select " + (historyValueType == HistoryValueType.MIN ? "min" : "max")
-				+ "(val) as val FROM " + device.accessKeyHistorian(datapoint) + where
+				+ "(val) as val FROM " + command.buildVarName() + where
 				+ (fromDateTime != null ? ("ts >= '" + formatTimestamp(fromDateTime) + "'") : "") + and
 				+ (untilDateTime != null ? ("ts < '" + formatTimestamp(untilDateTime) + "'") : "") + ";";
 
-		return jdbcTemplate.queryForObject(query, new Object[] {}, new BigDecimalRowMapper(VALUE));
+		return new TimestampValuePair(null,
+				jdbcTemplate.queryForObject(query, new Object[] {}, new BigDecimalRowMapper(VALUE)),
+				historyValueType);
 	}
 
-	public BigDecimal readExtremValueInTimeRange(Device device, Datapoint datapoint,
+	public TimestampValuePair readExtremValueInTimeRange(HomematicCommand command,
 			HistoryValueType historyValueType, TimeRange timerange, LocalDateTime fromDateTime,
 			LocalDateTime untilDateTime) {
 
 		String query = "select " + (historyValueType == HistoryValueType.MIN ? "min" : "max")
-				+ "(val) as val FROM " + device.accessKeyHistorian(datapoint) + " where ts >= '"
+				+ "(val) as val FROM " + command.buildVarName() + " where ts >= '"
 				+ formatTimestamp(fromDateTime) + "' and ts < '" + formatTimestamp(untilDateTime) + "'"
 				+ " and hour(ts) " + timerange.hoursQueryString + ";";
 
-		return jdbcTemplate.queryForObject(query, new Object[] {}, new BigDecimalRowMapper(VALUE));
+		return new TimestampValuePair(null,
+				jdbcTemplate.queryForObject(query, new Object[] {}, new BigDecimalRowMapper(VALUE)),
+				historyValueType);
 	}
 
-	public BigDecimal readFirstValueBefore(Device device, Datapoint datapoint, LocalDateTime localDateTime,
+	public TimestampValuePair readFirstValueBefore(HomematicCommand command, LocalDateTime localDateTime,
 			int maxHoursReverse) {
 
-		String query = "select val FROM " + device.accessKeyHistorian(datapoint) + " where ts <= '"
+		String query = "select val FROM " + command.buildVarName() + " where ts <= '"
 				+ formatTimestamp(localDateTime) + "' and ts > '"
 				+ formatTimestamp(localDateTime.minusHours(maxHoursReverse))
 				+ "' order by ts desc fetch first row only;";
@@ -108,17 +109,15 @@ public class HistoryDatabaseDAO {
 		if (result.isEmpty()) {
 			return null;
 		} else {
-			return result.get(0);
+			return new TimestampValuePair(null, result.get(0), HistoryValueType.SINGLE);
 		}
 	}
 
-	public List<TimestampValuePair> readValues(Device device, Datapoint datapoint,
-			LocalDateTime optionalFromDateTime) {
+	public List<TimestampValuePair> readValues(HomematicCommand command, LocalDateTime optionalFromDateTime) {
 
 		String startTs = formatTimestamp(optionalFromDateTime);
-		return jdbcTemplate.query("select ts, val FROM " + device.accessKeyHistorian(datapoint)
-				+ " where ts > '" + startTs + "' order by ts asc;", new Object[] {},
-				new TimestampValueRowMapper());
+		return jdbcTemplate.query("select ts, val FROM " + command.buildVarName() + " where ts > '" + startTs
+				+ "' order by ts asc;", new Object[] {}, new TimestampValueRowMapper());
 	}
 
 	private String formatTimestamp(LocalDateTime optionalFromDateTime) {

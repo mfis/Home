@@ -85,7 +85,7 @@ public class HouseService {
 		CompletableFuture.runAsync(() -> {
 			try {
 				if (ModelObjectDAO.getInstance().readHistoryModel() == null) {
-					// FIXME: historyService.refreshHistoryModelComplete();
+					historyService.refreshHistoryModelComplete();
 				}
 				refreshHouseModel();
 			} catch (Exception e) {
