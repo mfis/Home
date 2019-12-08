@@ -24,12 +24,12 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import homecontroller.dao.HistoryDatabaseDAO;
-import homecontroller.dao.HistoryDatabaseDAO.TimeRange;
 import homecontroller.database.mapper.TimestampValuePair;
 import homecontroller.domain.model.HistoryModel;
 import homecontroller.domain.model.PowerConsumptionMonth;
 import homecontroller.domain.model.TemperatureHistory;
 import homecontroller.model.HistoryValueType;
+import homecontroller.model.TimeRange;
 import homecontroller.service.HomematicAPI;
 import homelibrary.dao.ModelObjectDAO;
 import homelibrary.homematic.model.Datapoint;
@@ -41,7 +41,7 @@ import homelibrary.homematic.model.HomematicCommand;
 public class HistoryService {
 
 	@Autowired
-	private HistoryDatabaseDAO historyDAOy;
+	private HistoryDatabaseDAO historyDAO;
 
 	@Autowired
 	private UploadService uploadService;
@@ -107,6 +107,54 @@ public class HistoryService {
 		entryCache.clear();
 	}
 
+	private BigDecimal readExtremValueBetweenWithCache(HomematicCommand command,
+			HistoryValueType historyValueType, LocalDateTime fromDateTime, LocalDateTime untilDateTime,
+			TimeRange timerange) {
+
+		List<TimestampValuePair> cacheCopy = new LinkedList<>();
+		cacheCopy.addAll(entryCache.get(command));
+
+		TimestampValuePair dbPair;
+		if (timerange != null) {
+			dbPair = historyDAO.readExtremValueInTimeRange(command, historyValueType, timerange, fromDateTime,
+					untilDateTime);
+		} else {
+			dbPair = historyDAO.readExtremValueBetween(command, historyValueType, fromDateTime,
+					untilDateTime);
+		}
+
+		List<TimestampValuePair> combined = new LinkedList<>();
+		combined.add(dbPair);
+		for (TimestampValuePair pair : cacheCopy) {
+			boolean isBetween = true;
+			if (fromDateTime != null && pair.getTimestamp().isBefore(fromDateTime)) {
+				isBetween = false;
+			}
+			if (isBetween && untilDateTime != null && pair.getTimestamp().isAfter(untilDateTime)) {
+				isBetween = false;
+			}
+			if (isBetween && timerange != null
+					&& !timerange.getHoursIntList().contains(pair.getTimestamp().getHour())) {
+				isBetween = false;
+			}
+			if (isBetween) {
+				combined.add(pair);
+			}
+		}
+
+		switch (historyValueType) {
+		case MIN:
+			return min(combined).getValue();
+		case MAX:
+			return max(combined).getValue();
+		case AVG:
+			return avg(combined).getValue();
+		default:
+			throw new IllegalArgumentException(
+					"HistoryValueType not expected:" + historyValueType.toString());
+		}
+	}
+
 	@Scheduled(cron = "5 10 0 * * *")
 	public synchronized void refreshHistoryModelComplete() {
 
@@ -148,9 +196,9 @@ public class HistoryService {
 			return;
 		}
 
-		BigDecimal maxValue = historyDAO.readExtremValueBetween(
+		BigDecimal maxValue = readExtremValueBetweenWithCache(
 				HomematicCommand.read(Device.AUSSENTEMPERATUR, Datapoint.VALUE), HistoryValueType.MAX,
-				LocalDateTime.now().minusHours(HIGHEST_OUTSIDE_TEMPERATURE_PERIOD_HOURS), null);
+				LocalDateTime.now().minusHours(HIGHEST_OUTSIDE_TEMPERATURE_PERIOD_HOURS), null, null);
 		model.setHighestOutsideTemperatureInLast24Hours(maxValue);
 
 		if (!model.isInitialized()) {
@@ -228,27 +276,27 @@ public class HistoryService {
 	private TemperatureHistory readTemperatureHistory(LocalDate base, boolean singleDay,
 			LocalDateTime monthStart, LocalDateTime monthEnd, Device device, Datapoint datapoint) {
 
-		BigDecimal nightMin = historyDAO.readExtremValueInTimeRange(HomematicCommand.read(device, datapoint),
-				HistoryValueType.MIN, TimeRange.NIGHT, monthStart, monthEnd);
-		if (nightMin == null) {
+		BigDecimal nightMin = readExtremValueBetweenWithCache(HomematicCommand.read(device, datapoint),
+				HistoryValueType.MIN, monthStart, monthEnd, TimeRange.NIGHT);
+		if (nightMin == null) { // special case directly after month change
 			nightMin = historyDAO.readFirstValueBefore(HomematicCommand.read(device, datapoint), monthStart,
 					48);
 		}
 
-		BigDecimal nightMax = historyDAO.readExtremValueInTimeRange(HomematicCommand.read(device, datapoint),
-				HistoryValueType.MAX, TimeRange.NIGHT, monthStart, monthEnd);
+		BigDecimal nightMax = readExtremValueBetweenWithCache(HomematicCommand.read(device, datapoint),
+				HistoryValueType.MAX, monthStart, monthEnd, TimeRange.NIGHT);
 		if (nightMax == null) {
 			nightMax = nightMin;
 		}
 
-		BigDecimal dayMin = historyDAO.readExtremValueInTimeRange(HomematicCommand.read(device, datapoint),
-				HistoryValueType.MIN, TimeRange.DAY, monthStart, monthEnd);
+		BigDecimal dayMin = readExtremValueBetweenWithCache(HomematicCommand.read(device, datapoint),
+				HistoryValueType.MIN, monthStart, monthEnd, TimeRange.DAY);
 		if (dayMin == null) {
 			dayMin = nightMin;
 		}
 
-		BigDecimal dayMax = historyDAO.readExtremValueInTimeRange(HomematicCommand.read(device, datapoint),
-				HistoryValueType.MAX, TimeRange.DAY, monthStart, monthEnd);
+		BigDecimal dayMax = readExtremValueBetweenWithCache(HomematicCommand.read(device, datapoint),
+				HistoryValueType.MAX, monthStart, monthEnd, TimeRange.DAY);
 		if (dayMax == null) {
 			dayMax = nightMax;
 		}

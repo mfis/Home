@@ -10,8 +10,7 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -21,6 +20,7 @@ import homecontroller.database.mapper.BigDecimalRowMapper;
 import homecontroller.database.mapper.TimestampValuePair;
 import homecontroller.database.mapper.TimestampValueRowMapper;
 import homecontroller.model.HistoryValueType;
+import homecontroller.model.TimeRange;
 import homelibrary.homematic.model.History;
 import homelibrary.homematic.model.HomematicCommand;
 
@@ -34,8 +34,6 @@ public class HistoryDatabaseDAO {
 
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
-
-	private static final Log LOG = LogFactory.getLog(HistoryDatabaseDAO.class);
 
 	@PostConstruct
 	@Transactional
@@ -56,17 +54,18 @@ public class HistoryDatabaseDAO {
 		for (HomematicCommand command : toInsert.keySet()) {
 			String table = command.buildVarName();
 			for (TimestampValuePair pair : toInsert.get(command)) {
-				if (command != null && pair != null) {
+				if (pair != null) {
 					String ts = formatTimestamp(pair.getTimestamp());
 					String val = pair.getValue().toString();
 					String sql = "insert into " + table + " (TS, TYP, VAL) values ('" + ts + "', '"
 							+ pair.getType().getDatabaseKey() + "', " + val + ");";
-					int update = jdbcTemplate.update(sql);
+					jdbcTemplate.update(sql);
 				}
 			}
 		}
 	}
 
+	@Transactional(readOnly = true)
 	public TimestampValuePair readExtremValueBetween(HomematicCommand command,
 			HistoryValueType historyValueType, LocalDateTime fromDateTime, LocalDateTime untilDateTime) {
 
@@ -83,6 +82,7 @@ public class HistoryDatabaseDAO {
 				historyValueType);
 	}
 
+	@Transactional(readOnly = true)
 	public TimestampValuePair readExtremValueInTimeRange(HomematicCommand command,
 			HistoryValueType historyValueType, TimeRange timerange, LocalDateTime fromDateTime,
 			LocalDateTime untilDateTime) {
@@ -90,14 +90,15 @@ public class HistoryDatabaseDAO {
 		String query = "select " + (historyValueType == HistoryValueType.MIN ? "min" : "max")
 				+ "(val) as val FROM " + command.buildVarName() + " where ts >= '"
 				+ formatTimestamp(fromDateTime) + "' and ts < '" + formatTimestamp(untilDateTime) + "'"
-				+ " and hour(ts) " + timerange.hoursQueryString + ";";
+				+ " and hour(ts) " + timerange.getHoursSqlQueryString() + ";";
 
 		return new TimestampValuePair(null,
 				jdbcTemplate.queryForObject(query, new Object[] {}, new BigDecimalRowMapper(VALUE)),
 				historyValueType);
 	}
 
-	public TimestampValuePair readFirstValueBefore(HomematicCommand command, LocalDateTime localDateTime,
+	@Transactional(readOnly = true)
+	public TimestampValuePair readFirstValueBeforeX(HomematicCommand command, LocalDateTime localDateTime,
 			int maxHoursReverse) {
 
 		String query = "select val FROM " + command.buildVarName() + " where ts <= '"
@@ -113,11 +114,18 @@ public class HistoryDatabaseDAO {
 		}
 	}
 
-	public List<TimestampValuePair> readValues(HomematicCommand command, LocalDateTime optionalFromDateTime) {
+	@Transactional(readOnly = true)
+	public List<TimestampValuePair> readValuesX(HomematicCommand command,
+			LocalDateTime optionalFromDateTime) {
 
-		String startTs = formatTimestamp(optionalFromDateTime);
-		return jdbcTemplate.query("select ts, val FROM " + command.buildVarName() + " where ts > '" + startTs
-				+ "' order by ts asc;", new Object[] {}, new TimestampValueRowMapper());
+		String whereClause = StringUtils.EMPTY;
+		if (optionalFromDateTime != null) {
+			String startTs = formatTimestamp(optionalFromDateTime);
+			whereClause = " where ts > '" + startTs + "'";
+		}
+		return jdbcTemplate.query(
+				"select ts, val FROM " + command.buildVarName() + whereClause + " order by ts asc;",
+				new Object[] {}, new TimestampValueRowMapper());
 	}
 
 	private String formatTimestamp(LocalDateTime optionalFromDateTime) {
@@ -129,15 +137,6 @@ public class HistoryDatabaseDAO {
 			startTs = SQL_TIMESTAMP_FORMATTER.format(optionalFromDateTime);
 		}
 		return startTs;
-	}
-
-	public enum TimeRange {
-		DAY("in (11,12,13,14,15,16,17,18,19)"), NIGHT("in (0,1,2,3,4,5,6,7,8)");
-		private final String hoursQueryString;
-
-		private TimeRange(String hoursQueryString) {
-			this.hoursQueryString = hoursQueryString;
-		}
 	}
 
 }
