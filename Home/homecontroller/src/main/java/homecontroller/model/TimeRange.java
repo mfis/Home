@@ -1,5 +1,6 @@
 package homecontroller.model;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -19,6 +20,17 @@ public enum TimeRange {
 	private TimeRange(String hoursSqlQueryString, List<Integer> hoursIntList) {
 		this.hoursSqlQueryString = hoursSqlQueryString;
 		this.hoursIntList = hoursIntList;
+	}
+
+	public static TimeRange fromDateTime(LocalDateTime localDateTime) {
+		int hours = localDateTime.getHour();
+		if (DAY.getHoursIntList().contains(hours)) {
+			return DAY;
+		} else if (NIGHT.getHoursIntList().contains(hours)) {
+			return NIGHT;
+		} else {
+			throw new IllegalStateException("fromDateTime: unexpected hour: " + hours);
+		}
 	}
 
 	public String getHoursSqlQueryString() {

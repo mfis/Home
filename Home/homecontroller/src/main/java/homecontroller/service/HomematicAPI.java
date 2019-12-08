@@ -61,6 +61,8 @@ public class HomematicAPI {
 
 	private String host;
 
+	private boolean writeToHomematicEnabled;
+
 	private static final String REGA_PORT_AND_URI = ":8181/tclrega.exe";
 
 	private LocalDateTime currentValuesTimestamp; // FIXME: ALWAYS OTHER VALUE
@@ -79,6 +81,8 @@ public class HomematicAPI {
 	@PostConstruct
 	public void init() {
 		host = env.getProperty("homematic.hostName");
+		writeToHomematicEnabled = Boolean
+				.parseBoolean(env.getProperty("application.write.to.homematic").trim());
 		try {
 			digest = MessageDigest.getInstance("SHA-256");
 		} catch (NoSuchAlgorithmException e) {
@@ -105,7 +109,9 @@ public class HomematicAPI {
 	}
 
 	public void executeCommand(HomematicCommand... commands) {
-		// FIXME: executeCommands(false, commands);
+		if (writeToHomematicEnabled) {
+			executeCommands(false, commands);
+		}
 	}
 
 	private String readValue(HomematicCommand command) {

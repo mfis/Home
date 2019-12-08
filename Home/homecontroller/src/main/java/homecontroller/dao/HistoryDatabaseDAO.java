@@ -98,7 +98,7 @@ public class HistoryDatabaseDAO {
 	}
 
 	@Transactional(readOnly = true)
-	public TimestampValuePair readFirstValueBeforeX(HomematicCommand command, LocalDateTime localDateTime,
+	public TimestampValuePair readFirstValueBefore(HomematicCommand command, LocalDateTime localDateTime,
 			int maxHoursReverse) {
 
 		String query = "select val FROM " + command.buildVarName() + " where ts <= '"
@@ -115,8 +115,16 @@ public class HistoryDatabaseDAO {
 	}
 
 	@Transactional(readOnly = true)
-	public List<TimestampValuePair> readValuesX(HomematicCommand command,
-			LocalDateTime optionalFromDateTime) {
+	public TimestampValuePair readLatestValue(HomematicCommand command) {
+
+		String query = "SELECT * FROM " + command.buildVarName() + " where ts = (select max(ts) from "
+				+ command.buildVarName() + ");";
+
+		return jdbcTemplate.queryForObject(query, new Object[] {}, new TimestampValueRowMapper());
+	}
+
+	@Transactional(readOnly = true)
+	public List<TimestampValuePair> readValues(HomematicCommand command, LocalDateTime optionalFromDateTime) {
 
 		String whereClause = StringUtils.EMPTY;
 		if (optionalFromDateTime != null) {

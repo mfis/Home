@@ -31,4 +31,5 @@ public class TimestampValuePair {
 	public HistoryValueType getType() {
 		return type;
 	}
+
 }

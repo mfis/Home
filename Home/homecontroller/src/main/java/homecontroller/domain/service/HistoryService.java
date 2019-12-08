@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.YearMonth;
 import java.time.ZoneId;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -25,6 +26,7 @@ import org.springframework.stereotype.Component;
 
 import homecontroller.dao.HistoryDatabaseDAO;
 import homecontroller.database.mapper.TimestampValuePair;
+import homecontroller.database.mapper.TimestampValuePairComparator;
 import homecontroller.domain.model.HistoryModel;
 import homecontroller.domain.model.PowerConsumptionMonth;
 import homecontroller.domain.model.TemperatureHistory;
@@ -88,71 +90,23 @@ public class HistoryService {
 
 			switch (history.getStrategy()) {
 			case MIN:
-				pairs.add(min(entryCache.get(history.getCommand())));
+				diffValueCheckedAdd(history, min(entryCache.get(history.getCommand())), pairs);
 				break;
 			case MAX:
-				pairs.add(max(entryCache.get(history.getCommand())));
+				diffValueCheckedAdd(history, max(entryCache.get(history.getCommand())), pairs);
 				break;
 			case MIN_MAX:
-				pairs.add(min(entryCache.get(history.getCommand())));
-				pairs.add(max(entryCache.get(history.getCommand())));
+				diffValueCheckedAdd(history, min(entryCache.get(history.getCommand())), pairs);
+				diffValueCheckedAdd(history, max(entryCache.get(history.getCommand())), pairs);
 				break;
 			case AVG:
-				pairs.add(avg(entryCache.get(history.getCommand())));
+				diffValueCheckedAdd(history, avg(entryCache.get(history.getCommand())), pairs);
 				break;
 			}
 			toInsert.put(history.getCommand(), pairs);
 		}
 		historyDAO.persistEntries(toInsert);
 		entryCache.clear();
-	}
-
-	private BigDecimal readExtremValueBetweenWithCache(HomematicCommand command,
-			HistoryValueType historyValueType, LocalDateTime fromDateTime, LocalDateTime untilDateTime,
-			TimeRange timerange) {
-
-		List<TimestampValuePair> cacheCopy = new LinkedList<>();
-		cacheCopy.addAll(entryCache.get(command));
-
-		TimestampValuePair dbPair;
-		if (timerange != null) {
-			dbPair = historyDAO.readExtremValueInTimeRange(command, historyValueType, timerange, fromDateTime,
-					untilDateTime);
-		} else {
-			dbPair = historyDAO.readExtremValueBetween(command, historyValueType, fromDateTime,
-					untilDateTime);
-		}
-
-		List<TimestampValuePair> combined = new LinkedList<>();
-		combined.add(dbPair);
-		for (TimestampValuePair pair : cacheCopy) {
-			boolean isBetween = true;
-			if (fromDateTime != null && pair.getTimestamp().isBefore(fromDateTime)) {
-				isBetween = false;
-			}
-			if (isBetween && untilDateTime != null && pair.getTimestamp().isAfter(untilDateTime)) {
-				isBetween = false;
-			}
-			if (isBetween && timerange != null
-					&& !timerange.getHoursIntList().contains(pair.getTimestamp().getHour())) {
-				isBetween = false;
-			}
-			if (isBetween) {
-				combined.add(pair);
-			}
-		}
-
-		switch (historyValueType) {
-		case MIN:
-			return min(combined).getValue();
-		case MAX:
-			return max(combined).getValue();
-		case AVG:
-			return avg(combined).getValue();
-		default:
-			throw new IllegalArgumentException(
-					"HistoryValueType not expected:" + historyValueType.toString());
-		}
 	}
 
 	@Scheduled(cron = "5 10 0 * * *")
@@ -279,7 +233,7 @@ public class HistoryService {
 		BigDecimal nightMin = readExtremValueBetweenWithCache(HomematicCommand.read(device, datapoint),
 				HistoryValueType.MIN, monthStart, monthEnd, TimeRange.NIGHT);
 		if (nightMin == null) { // special case directly after month change
-			nightMin = historyDAO.readFirstValueBefore(HomematicCommand.read(device, datapoint), monthStart,
+			nightMin = readFirstValueBeforeWithCache(HomematicCommand.read(device, datapoint), monthStart,
 					48);
 		}
 
@@ -351,7 +305,7 @@ public class HistoryService {
 
 	private void calculateElectricPowerConsumption(HistoryModel newModel, LocalDateTime fromDateTime) {
 
-		List<TimestampValuePair> timestampValues = historyDAO.readValues(
+		List<TimestampValuePair> timestampValues = readValuesWithCache(
 				HomematicCommand.read(Device.STROMZAEHLER, Datapoint.ENERGY_COUNTER), fromDateTime);
 
 		for (TimestampValuePair pair : timestampValues) {
@@ -451,7 +405,7 @@ public class HistoryService {
 				HistoryValueType.AVG);
 	}
 
-	private List<TimestampValuePair> cleanList(List<TimestampValuePair> list) {
+	protected List<TimestampValuePair> cleanList(List<TimestampValuePair> list) {
 
 		if (list == null || list.isEmpty()) {
 			return null;
@@ -463,5 +417,117 @@ public class HistoryService {
 			}
 		}
 		return list;
+	}
+
+	protected BigDecimal readExtremValueBetweenWithCache(HomematicCommand command,
+			HistoryValueType historyValueType, LocalDateTime fromDateTime, LocalDateTime untilDateTime,
+			TimeRange timerange) {
+
+		List<TimestampValuePair> cacheCopy = new LinkedList<>();
+		cacheCopy.addAll(entryCache.get(command));
+
+		TimestampValuePair dbPair;
+		if (timerange != null) {
+			dbPair = historyDAO.readExtremValueInTimeRange(command, historyValueType, timerange, fromDateTime,
+					untilDateTime);
+		} else {
+			dbPair = historyDAO.readExtremValueBetween(command, historyValueType, fromDateTime,
+					untilDateTime);
+		}
+
+		List<TimestampValuePair> combined = new LinkedList<>();
+		combined.add(dbPair);
+		for (TimestampValuePair pair : cacheCopy) {
+			boolean isBetween = true;
+			if (fromDateTime != null && pair.getTimestamp().isBefore(fromDateTime)) {
+				isBetween = false;
+			}
+			if (isBetween && untilDateTime != null && pair.getTimestamp().isAfter(untilDateTime)) {
+				isBetween = false;
+			}
+			if (isBetween && timerange != null
+					&& !timerange.getHoursIntList().contains(pair.getTimestamp().getHour())) {
+				isBetween = false;
+			}
+			if (isBetween) {
+				combined.add(pair);
+			}
+		}
+
+		switch (historyValueType) {
+		case MIN:
+			return min(combined).getValue();
+		case MAX:
+			return max(combined).getValue();
+		case AVG:
+			return avg(combined).getValue();
+		default:
+			throw new IllegalArgumentException(
+					"HistoryValueType not expected:" + historyValueType.toString());
+		}
+	}
+
+	protected BigDecimal readFirstValueBeforeWithCache(HomematicCommand command, LocalDateTime localDateTime,
+			int maxHoursReverse) {
+
+		List<TimestampValuePair> cacheCopy = new LinkedList<>();
+		cacheCopy.addAll(entryCache.get(command));
+		Collections.reverse(cacheCopy);
+
+		TimestampValuePair dbPair = historyDAO.readFirstValueBefore(command, localDateTime, maxHoursReverse);
+
+		TimestampValuePair cachedPair = null;
+		LocalDateTime compareDateTime = localDateTime.minusHours(maxHoursReverse);
+		for (TimestampValuePair pair : cacheCopy) {
+			if (pair.getTimestamp().isBefore(compareDateTime)) {
+				cachedPair = pair;
+				break;
+			}
+		}
+
+		List<TimestampValuePair> combined = new LinkedList<>();
+		if (dbPair != null) {
+			combined.add(dbPair);
+		}
+		if (cachedPair != null) {
+			combined.add(cachedPair);
+		}
+		return max(combined).getValue();
+	}
+
+	protected List<TimestampValuePair> readValuesWithCache(HomematicCommand command,
+			LocalDateTime optionalFromDateTime) {
+
+		List<TimestampValuePair> cacheCopy = new LinkedList<>();
+		cacheCopy.addAll(entryCache.get(command));
+
+		List<TimestampValuePair> combined = historyDAO.readValues(command, optionalFromDateTime);
+
+		combined.addAll(cacheCopy);
+		Collections.sort(combined, new TimestampValuePairComparator());
+
+		return combined;
+	}
+
+	protected void diffValueCheckedAdd(History history, TimestampValuePair pair,
+			List<TimestampValuePair> dest) {
+
+		TimestampValuePair lastValue = historyDAO.readLatestValue(history.getCommand());
+
+		if (lastValue == null) {
+			dest.add(pair);
+			return;
+		}
+
+		long lastValueRounded = lastValue.getValue().setScale(0, BigDecimal.ROUND_HALF_UP).longValue();
+		long actualValueRounded = pair.getValue().setScale(0, BigDecimal.ROUND_HALF_UP).longValue();
+		if ((actualValueRounded - lastValueRounded) >= history.getValueDifferenceToSave()) {
+			dest.add(pair);
+			return;
+		}
+
+		if (TimeRange.fromDateTime(pair.getTimestamp()) != TimeRange.fromDateTime(lastValue.getTimestamp())) {
+			dest.add(pair);
+		}
 	}
 }
