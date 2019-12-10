@@ -21,6 +21,7 @@ import homecontroller.model.HistoryValueType;
 import homecontroller.model.TimeRange;
 import homelibrary.homematic.model.Datapoint;
 import homelibrary.homematic.model.Device;
+import homelibrary.homematic.model.History;
 import homelibrary.homematic.model.HomematicCommand;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -174,6 +175,31 @@ public class HistoryServiceTest {
 			List<TimestampValuePair> result = historyService.readValuesWithCache(cmd,
 					(LocalDateTime) testcase[2]);
 			assertThat(result.size()).isEqualTo(testcase[3]);
+		}
+	}
+
+	@Test
+	public void testDiffValueCheckedAdd() throws Exception {
+
+		LocalDateTime dbTs = LocalDateTime.of(2019, 12, 7, 21, 30);
+		Object[][] input = new Object[][] { //
+				{ new TimestampValuePair(dbTs, new BigDecimal(100), HistoryValueType.SINGLE), 1 }, //
+				{ new TimestampValuePair(dbTs, new BigDecimal(9999), HistoryValueType.SINGLE), 0 }, //
+				{ new TimestampValuePair(dbTs.minusHours(14), new BigDecimal(9999), HistoryValueType.SINGLE),
+						1 }, //
+		};
+
+		for (Object[] testcase : input) {
+
+			when(dao.readLatestValue(History.STROM_ZAEHLERSTAND.getCommand()))
+					.thenReturn((TimestampValuePair) testcase[0]);
+
+			TimestampValuePair newPair = new TimestampValuePair(LocalDateTime.of(2019, 12, 7, 21, 40),
+					new BigDecimal(10000), HistoryValueType.SINGLE);
+
+			List<TimestampValuePair> result = new LinkedList<>();
+			historyService.diffValueCheckedAdd(History.STROM_ZAEHLERSTAND, newPair, result);
+			assertThat(result.size()).isEqualTo(testcase[1]);
 		}
 	}
 
