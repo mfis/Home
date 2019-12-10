@@ -77,9 +77,13 @@ public class HistoryDatabaseDAO {
 				+ (fromDateTime != null ? ("ts >= '" + formatTimestamp(fromDateTime) + "'") : "") + and
 				+ (untilDateTime != null ? ("ts < '" + formatTimestamp(untilDateTime) + "'") : "") + ";";
 
-		return new TimestampValuePair(null,
-				jdbcTemplate.queryForObject(query, new Object[] {}, new BigDecimalRowMapper(VALUE)),
-				historyValueType);
+		BigDecimal result = jdbcTemplate.queryForObject(query, new Object[] {},
+				new BigDecimalRowMapper(VALUE));
+		if (result == null) {
+			return null;
+		} else {
+			return new TimestampValuePair(null, result, historyValueType);
+		}
 	}
 
 	@Transactional(readOnly = true)
@@ -92,9 +96,13 @@ public class HistoryDatabaseDAO {
 				+ formatTimestamp(fromDateTime) + "' and ts < '" + formatTimestamp(untilDateTime) + "'"
 				+ " and hour(ts) " + timerange.getHoursSqlQueryString() + ";";
 
-		return new TimestampValuePair(null,
-				jdbcTemplate.queryForObject(query, new Object[] {}, new BigDecimalRowMapper(VALUE)),
-				historyValueType);
+		BigDecimal result = jdbcTemplate.queryForObject(query, new Object[] {},
+				new BigDecimalRowMapper(VALUE));
+		if (result == null) {
+			return null;
+		} else {
+			return new TimestampValuePair(null, result, historyValueType);
+		}
 	}
 
 	@Transactional(readOnly = true)

@@ -61,6 +61,13 @@ public class HistoryService {
 
 	@PostConstruct
 	public void init() {
+
+		for (History history : History.values()) {
+			if (!entryCache.containsKey(history.getCommand())) {
+				entryCache.put(history.getCommand(), new LinkedList<TimestampValuePair>());
+			}
+		}
+
 		CompletableFuture.runAsync(() -> {
 			try {
 				refreshHistoryModelComplete();
@@ -106,7 +113,9 @@ public class HistoryService {
 			toInsert.put(history.getCommand(), pairs);
 		}
 		historyDAO.persistEntries(toInsert);
-		entryCache.clear();
+		for (History history : History.values()) {
+			entryCache.get(history.getCommand()).clear();
+		}
 	}
 
 	@Scheduled(cron = "5 10 0 * * *")
@@ -159,8 +168,11 @@ public class HistoryService {
 			return;
 		}
 
-		calculateElectricPowerConsumption(model, model.getElectricPowerConsumption()
-				.get(model.getElectricPowerConsumption().size() - 1).measurePointMaxDateTime());
+		calculateElectricPowerConsumption(model,
+				model.getElectricPowerConsumption().isEmpty() ? null
+						: model.getElectricPowerConsumption()
+								.get(model.getElectricPowerConsumption().size() - 1)
+								.measurePointMaxDateTime());
 
 		updateTemperatureHistory(model.getOutsideTemperature(), Device.AUSSENTEMPERATUR, Datapoint.VALUE);
 		updateTemperatureHistory(model.getKidsRoomTemperature(), Device.THERMOMETER_KINDERZIMMER,
@@ -436,7 +448,9 @@ public class HistoryService {
 		}
 
 		List<TimestampValuePair> combined = new LinkedList<>();
-		combined.add(dbPair);
+		if (dbPair != null) {
+			combined.add(dbPair);
+		}
 		for (TimestampValuePair pair : cacheCopy) {
 			boolean isBetween = true;
 			if (fromDateTime != null && pair.getTimestamp().isBefore(fromDateTime)) {
@@ -454,16 +468,25 @@ public class HistoryService {
 			}
 		}
 
+		TimestampValuePair result = null;
 		switch (historyValueType) {
 		case MIN:
-			return min(combined).getValue();
+			result = min(combined);
+			break;
 		case MAX:
-			return max(combined).getValue();
+			result = max(combined);
+			break;
 		case AVG:
-			return avg(combined).getValue();
+			result = avg(combined);
+			break;
 		default:
 			throw new IllegalArgumentException(
 					"HistoryValueType not expected:" + historyValueType.toString());
+		}
+		if (result == null) {
+			return null;
+		} else {
+			return result.getValue();
 		}
 	}
 
