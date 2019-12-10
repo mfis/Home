@@ -530,4 +530,8 @@ public class HistoryService {
 			dest.add(pair);
 		}
 	}
+
+	protected Map<HomematicCommand, List<TimestampValuePair>> getEntryCache() {
+		return entryCache;
+	}
 }
