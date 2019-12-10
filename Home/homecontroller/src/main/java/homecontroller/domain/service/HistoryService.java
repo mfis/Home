@@ -479,7 +479,7 @@ public class HistoryService {
 		TimestampValuePair cachedPair = null;
 		LocalDateTime compareDateTime = localDateTime.minusHours(maxHoursReverse);
 		for (TimestampValuePair pair : cacheCopy) {
-			if (pair.getTimestamp().isBefore(compareDateTime)) {
+			if (pair.getTimestamp().isBefore(localDateTime) && pair.getTimestamp().isAfter(compareDateTime)) {
 				cachedPair = pair;
 				break;
 			}
@@ -492,7 +492,11 @@ public class HistoryService {
 		if (cachedPair != null) {
 			combined.add(cachedPair);
 		}
-		return max(combined).getValue();
+		if (combined.isEmpty()) {
+			return null;
+		}
+		Collections.sort(combined, new TimestampValuePairComparator());
+		return combined.get(combined.size() - 1).getValue();
 	}
 
 	protected List<TimestampValuePair> readValuesWithCache(HomematicCommand command,
@@ -501,9 +505,15 @@ public class HistoryService {
 		List<TimestampValuePair> cacheCopy = new LinkedList<>();
 		cacheCopy.addAll(entryCache.get(command));
 
-		List<TimestampValuePair> combined = historyDAO.readValues(command, optionalFromDateTime);
+		List<TimestampValuePair> db = historyDAO.readValues(command, optionalFromDateTime);
+		List<TimestampValuePair> combined = new LinkedList<>();
+		combined.addAll(db);
 
-		combined.addAll(cacheCopy);
+		for (TimestampValuePair cachePair : cacheCopy) {
+			if (optionalFromDateTime == null || optionalFromDateTime.isBefore(cachePair.getTimestamp())) {
+				combined.add(cachePair);
+			}
+		}
 		Collections.sort(combined, new TimestampValuePairComparator());
 
 		return combined;

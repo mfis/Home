@@ -5,6 +5,7 @@ import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -84,9 +85,9 @@ public class HistoryServiceTest {
 		List<TimestampValuePair> list = new LinkedList<>();
 		list.add(new TimestampValuePair(LocalDateTime.of(2019, 12, 7, 21, 0), new BigDecimal(100),
 				HistoryValueType.SINGLE));
-		list.add(new TimestampValuePair(LocalDateTime.of(2019, 12, 7, 22, 0), new BigDecimal(200),
-				HistoryValueType.SINGLE));
 		list.add(new TimestampValuePair(LocalDateTime.of(2019, 12, 7, 21, 40), new BigDecimal(180),
+				HistoryValueType.SINGLE));
+		list.add(new TimestampValuePair(LocalDateTime.of(2019, 12, 7, 22, 0), new BigDecimal(200),
 				HistoryValueType.SINGLE));
 		return list;
 	}
@@ -117,16 +118,63 @@ public class HistoryServiceTest {
 
 			TimestampValuePair dbPair = new TimestampValuePair(LocalDateTime.of(2019, 12, 7, 8, 0),
 					(BigDecimal) testcase[0], HistoryValueType.SINGLE);
-
 			when(dao.readExtremValueBetween(cmd, (HistoryValueType) testcase[1], start, end))
 					.thenReturn(dbPair);
 
 			BigDecimal result = historyService.readExtremValueBetweenWithCache(cmd,
 					(HistoryValueType) testcase[1], start, end, (TimeRange) testcase[2]);
-
 			assertThat(result.intValue()).isEqualTo(testcase[3]);
 		}
 
+	}
+
+	@Test
+	public void testReadFirstValueBeforeWithCache() throws Exception {
+
+		Object[][] input = new Object[][] { //
+				{ LocalDateTime.of(2019, 12, 7, 19, 00), new BigDecimal(400), 180 }, //
+				{ LocalDateTime.of(2019, 12, 7, 21, 59), new BigDecimal(400), 400 }, //
+		};
+
+		for (Object[] testcase : input) {
+
+			HomematicCommand cmd = createCommand();
+			historyService.getEntryCache().clear();
+			historyService.getEntryCache().put(cmd, createList());
+
+			LocalDateTime start = LocalDateTime.of(2019, 12, 7, 22, 0);
+
+			TimestampValuePair dbPair = new TimestampValuePair((LocalDateTime) testcase[0],
+					(BigDecimal) testcase[1], HistoryValueType.SINGLE);
+			when(dao.readFirstValueBefore(cmd, start, 48)).thenReturn(dbPair);
+
+			BigDecimal result = historyService.readFirstValueBeforeWithCache(cmd, start, 48);
+			assertThat(result.intValue()).isEqualTo(testcase[2]);
+		}
+	}
+
+	@Test
+	public void testReadValuesWithCache() throws Exception {
+
+		Object[][] input = new Object[][] { //
+				{ LocalDateTime.of(2019, 12, 7, 19, 00), new BigDecimal(400), null, 4 }, //
+				{ LocalDateTime.of(2019, 12, 7, 19, 00), new BigDecimal(400),
+						LocalDateTime.of(2019, 12, 7, 21, 30), 3 }, //
+		};
+
+		for (Object[] testcase : input) {
+			HomematicCommand cmd = createCommand();
+			historyService.getEntryCache().clear();
+			historyService.getEntryCache().put(cmd, createList());
+
+			TimestampValuePair dbPair = new TimestampValuePair((LocalDateTime) testcase[0],
+					(BigDecimal) testcase[1], HistoryValueType.SINGLE);
+			when(dao.readValues(cmd, (LocalDateTime) testcase[2])).thenReturn(Arrays.asList(dbPair));
+
+			List<TimestampValuePair> result = historyService.readValuesWithCache(cmd,
+					(LocalDateTime) testcase[2]);
+			assertThat(result.size()).isEqualTo(testcase[3]);
+		}
 	}
 
 }
