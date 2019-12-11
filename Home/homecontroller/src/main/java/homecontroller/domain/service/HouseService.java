@@ -58,8 +58,6 @@ public class HouseService {
 	private static final BigDecimal SUN_INTENSITY_LOW = new BigDecimal("8");
 	private static final BigDecimal SUN_INTENSITY_MEDIUM = new BigDecimal("15");
 
-	private static final long HINT_TIMEOUT_MINUTES_AFTER_BOOST = 90L;
-
 	private static final String AUTOMATIC = "Automatic";
 	private static final String BUSY = "Busy";
 

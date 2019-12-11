@@ -51,7 +51,7 @@ public class HistoryService {
 	@Autowired
 	private HomematicAPI api;
 
-	private Map<HomematicCommand, List<TimestampValuePair>> entryCache = new HashMap<HomematicCommand, List<TimestampValuePair>>();
+	private Map<HomematicCommand, List<TimestampValuePair>> entryCache = new HashMap<>();
 
 	private static final Log LOG = LogFactory.getLog(HistoryService.class);
 
@@ -364,7 +364,7 @@ public class HistoryService {
 	protected TimestampValuePair min(List<TimestampValuePair> list) {
 
 		list = cleanList(list);
-		if (list == null || list.isEmpty()) {
+		if (list.isEmpty()) {
 			return null;
 		}
 
@@ -374,13 +374,17 @@ public class HistoryService {
 				cmp = pair;
 			}
 		}
-		return new TimestampValuePair(cmp.getTimestamp(), cmp.getValue(), HistoryValueType.MIN);
+		if (cmp == null) {
+			return null;
+		} else {
+			return new TimestampValuePair(cmp.getTimestamp(), cmp.getValue(), HistoryValueType.MIN);
+		}
 	}
 
 	protected TimestampValuePair max(List<TimestampValuePair> list) {
 
 		list = cleanList(list);
-		if (list == null || list.isEmpty()) {
+		if (list.isEmpty()) {
 			return null;
 		}
 
@@ -390,13 +394,17 @@ public class HistoryService {
 				cmp = pair;
 			}
 		}
-		return new TimestampValuePair(cmp.getTimestamp(), cmp.getValue(), HistoryValueType.MAX);
+		if (cmp == null) {
+			return null;
+		} else {
+			return new TimestampValuePair(cmp.getTimestamp(), cmp.getValue(), HistoryValueType.MAX);
+		}
 	}
 
 	protected TimestampValuePair avg(List<TimestampValuePair> list) {
 
 		list = cleanList(list);
-		if (list == null || list.isEmpty()) {
+		if (list.isEmpty()) {
 			return null;
 		}
 
@@ -420,7 +428,7 @@ public class HistoryService {
 	protected List<TimestampValuePair> cleanList(List<TimestampValuePair> list) {
 
 		if (list == null || list.isEmpty()) {
-			return null;
+			return new LinkedList<>();
 		}
 
 		for (int i = list.size() - 1; i >= 0; i--) {
@@ -452,18 +460,7 @@ public class HistoryService {
 			combined.add(dbPair);
 		}
 		for (TimestampValuePair pair : cacheCopy) {
-			boolean isBetween = true;
-			if (fromDateTime != null && pair.getTimestamp().isBefore(fromDateTime)) {
-				isBetween = false;
-			}
-			if (isBetween && untilDateTime != null && pair.getTimestamp().isAfter(untilDateTime)) {
-				isBetween = false;
-			}
-			if (isBetween && timerange != null
-					&& !timerange.getHoursIntList().contains(pair.getTimestamp().getHour())) {
-				isBetween = false;
-			}
-			if (isBetween) {
+			if (lookupIsTimeBetween(fromDateTime, untilDateTime, timerange, pair)) {
 				combined.add(pair);
 			}
 		}
@@ -488,6 +485,23 @@ public class HistoryService {
 		} else {
 			return result.getValue();
 		}
+	}
+
+	private boolean lookupIsTimeBetween(LocalDateTime fromDateTime, LocalDateTime untilDateTime,
+			TimeRange timerange, TimestampValuePair pair) {
+
+		boolean isBetween = true;
+		if (fromDateTime != null && pair.getTimestamp().isBefore(fromDateTime)) {
+			isBetween = false;
+		}
+		if (isBetween && untilDateTime != null && pair.getTimestamp().isAfter(untilDateTime)) {
+			isBetween = false;
+		}
+		if (isBetween && timerange != null
+				&& !timerange.getHoursIntList().contains(pair.getTimestamp().getHour())) {
+			isBetween = false;
+		}
+		return isBetween;
 	}
 
 	protected BigDecimal readFirstValueBeforeWithCache(HomematicCommand command, LocalDateTime localDateTime,

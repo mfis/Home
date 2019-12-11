@@ -38,7 +38,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import homelibrary.homematic.model.Datapoint;
@@ -48,16 +47,16 @@ import homelibrary.homematic.model.HomematicCommand;
 @Component
 public class HomematicAPI {
 
-	private static final int INIT_STATE_MINUTES = 90;
-
-	private static final DateTimeFormatter UPTIME_FORMATTER = DateTimeFormatter
-			.ofPattern("yyyy-MM-dd HH:mm:ss");
-
 	@Autowired
 	private Environment env;
 
 	@Autowired
 	private RestTemplate restTemplate;
+
+	private static final int INIT_STATE_MINUTES = 90;
+
+	private static final DateTimeFormatter UPTIME_FORMATTER = DateTimeFormatter
+			.ofPattern("yyyy-MM-dd HH:mm:ss");
 
 	private String host;
 
@@ -71,7 +70,7 @@ public class HomematicAPI {
 
 	private boolean ccuInitState;
 
-	private String refreshHashString = "";
+	private String refreshHashString = StringUtils.EMPTY;
 
 	private MessageDigest digest = null;
 
@@ -211,21 +210,13 @@ public class HomematicAPI {
 
 		NodeList childs = responseDocument.getElementsByTagName("xml").item(0).getChildNodes();
 		for (int i = 0; i < childs.getLength(); i++) {
-			Node c = childs.item(i);
-			Element child = (Element) c;
+			Element child = (Element) childs.item(i);
 			if (child.getTagName().startsWith(HomematicCommand.PREFIX_VAR)) {
-				newStringToValues.put(child.getTagName(), child.getTextContent());
+				extractVar(newStringToValues, child);
 			} else if (child.getTagName().startsWith(HomematicCommand.PREFIX_RC)) {
-				boolean rc = Boolean.parseBoolean(child.getTextContent());
-				rcsOk = rcsOk && rc;
-				if (!rc) {
-					LOG.error("CommandResult not OK: " + child.getTagName());
-				}
+				rcsOk = extractWriteExecRc(rcsOk, child);
 			} else if (child.getTagName().equals(HomematicCommand.E_O_F)) {
-				eofOK = HomematicCommand.E_O_F.equals(child.getTextContent());
-				if (!eofOK) {
-					LOG.error("Command EOF not OK!");
-				}
+				eofOK = extractEof(child);
 			}
 		}
 
@@ -237,6 +228,31 @@ public class HomematicAPI {
 			currentValuesTimestamp = LocalDateTime.now();
 		}
 		return rcsOk && eofOK;
+	}
+
+	private boolean extractEof(Element child) {
+
+		boolean eofOK;
+		eofOK = HomematicCommand.E_O_F.equals(child.getTextContent());
+		if (!eofOK) {
+			LOG.error("Command EOF not OK!");
+		}
+		return eofOK;
+	}
+
+	private boolean extractWriteExecRc(boolean rcsOk, Element child) {
+
+		boolean rc = Boolean.parseBoolean(child.getTextContent());
+		rcsOk = rcsOk && rc;
+		if (!rc) {
+			LOG.error("CommandResult not OK: " + child.getTagName());
+		}
+		return rcsOk;
+	}
+
+	private void extractVar(Map<String, String> newStringToValues, Element child) {
+
+		newStringToValues.put(child.getTagName(), child.getTextContent());
 	}
 
 	private String buildReGaRequestBody(HomematicCommand... commands) {

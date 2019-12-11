@@ -7,6 +7,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.annotation.PostConstruct;
 
@@ -51,9 +52,9 @@ public class HistoryDatabaseDAO {
 	@Transactional
 	public void persistEntries(Map<HomematicCommand, List<TimestampValuePair>> toInsert) {
 
-		for (HomematicCommand command : toInsert.keySet()) {
-			String table = command.buildVarName();
-			for (TimestampValuePair pair : toInsert.get(command)) {
+		for (Entry<HomematicCommand, List<TimestampValuePair>> entry : toInsert.entrySet()) {
+			String table = entry.getKey().buildVarName();
+			for (TimestampValuePair pair : entry.getValue()) {
 				if (pair != null) {
 					String ts = formatTimestamp(pair.getTimestamp());
 					String val = pair.getValue().toString();
@@ -130,7 +131,7 @@ public class HistoryDatabaseDAO {
 
 		List<TimestampValuePair> result = jdbcTemplate.query(query, new Object[] {},
 				new TimestampValueRowMapper());
-		if (result == null || result.isEmpty()) {
+		if (result.isEmpty()) {
 			return null;
 		} else {
 			return result.get(0);
