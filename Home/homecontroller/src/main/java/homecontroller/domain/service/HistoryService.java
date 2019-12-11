@@ -1,6 +1,7 @@
 package homecontroller.domain.service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -18,7 +19,6 @@ import java.util.concurrent.CompletableFuture;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -52,8 +52,6 @@ public class HistoryService {
 	private HomematicAPI api;
 
 	private Map<HomematicCommand, List<TimestampValuePair>> entryCache = new HashMap<>();
-
-	private static final Log LOG = LogFactory.getLog(HistoryService.class);
 
 	private static final int HOURS_IN_DAY = 24;
 
@@ -89,7 +87,6 @@ public class HistoryService {
 	@Scheduled(cron = "0 0/5 * * * *")
 	public void persistCashedValues() {
 
-		LOG.info("persistCashedValues()");
 		Map<HomematicCommand, List<TimestampValuePair>> toInsert = new HashMap<>();
 		for (History history : History.values()) {
 
@@ -207,7 +204,9 @@ public class HistoryService {
 		history.add(today);
 		TemperatureHistory yesterday = readDayTemperatureHistory(base.minusHours(HOURS_IN_DAY), device,
 				datapoint);
-		history.add(yesterday);
+		if (!yesterday.empty()) {
+			history.add(yesterday);
+		}
 
 		TemperatureHistory monthHistory;
 		YearMonth yearMonth = YearMonth.now();
@@ -421,8 +420,8 @@ public class HistoryService {
 			long avgTime = minTime + ((maxTime - minTime) / 2);
 			avgDateTime = Instant.ofEpochMilli(avgTime).atZone(ZoneId.systemDefault()).toLocalDateTime();
 		}
-		return new TimestampValuePair(avgDateTime, sum.divide(new BigDecimal(list.size())),
-				HistoryValueType.AVG);
+		return new TimestampValuePair(avgDateTime,
+				sum.divide(new BigDecimal(list.size()), RoundingMode.HALF_UP), HistoryValueType.AVG);
 	}
 
 	protected List<TimestampValuePair> cleanList(List<TimestampValuePair> list) {

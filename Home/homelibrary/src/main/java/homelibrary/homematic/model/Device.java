@@ -95,18 +95,15 @@ public enum Device {
 		return valueTypes != null && valueTypes.length > 0;
 	}
 
-	// public String accessKeyHistorian(Datapoint datapoint) {
-	// if (isSysVar()) {
-	// return datapoint.getHistorianPrefix() + "_" +
-	// homematicProtocol.toHistorianString() + "_"
-	// + Integer.toString(channel) + "_" + datapoint.name();
-	// } else {
-	// return datapoint.getHistorianPrefix() + "_" +
-	// homematicProtocol.toHistorianString() + "_" + id
-	// + (channel != null ? ("_" + Integer.toString(channel)) : "") + "_" +
-	// datapoint.name();
-	// }
-	// }
+	public String accessKeyHistorian(Datapoint datapoint) {
+		if (isSysVar()) {
+			return datapoint.getHistorianPrefix() + "_" + homematicProtocol.toHistorianString() + "_"
+					+ Integer.toString(channel) + "_" + datapoint.name();
+		} else {
+			return datapoint.getHistorianPrefix() + "_" + homematicProtocol.toHistorianString() + "_" + id
+					+ (channel != null ? ("_" + Integer.toString(channel)) : "") + "_" + datapoint.name();
+		}
+	}
 
 	public String programNamePrefix() {
 		return HomeUtils.escape(getDescription());
