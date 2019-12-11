@@ -65,8 +65,7 @@ public class HomematicAPI {
 
 	private static final String REGA_PORT_AND_URI = ":8181/tclrega.exe";
 
-	private LocalDateTime currentValuesTimestamp; // FIXME: ALWAYS OTHER VALUE
-													// ??
+	private LocalDateTime currentValuesTimestamp;
 
 	private Map<HomematicCommand, String> currentValues = new HashMap<>();
 
@@ -150,7 +149,7 @@ public class HomematicAPI {
 		return value;
 	}
 
-	public boolean refresh() {
+	public synchronized boolean refresh() {
 
 		List<HomematicCommand> commands = new LinkedList<>();
 		for (Device device : Device.values()) {

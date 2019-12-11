@@ -10,6 +10,15 @@ public enum HistoryValueType {
 		this.databaseKey = databaseKey;
 	}
 
+	public static HistoryValueType fromKey(String key) {
+		for (HistoryValueType type : values()) {
+			if (type.getDatabaseKey().equals(key)) {
+				return type;
+			}
+		}
+		throw new IllegalArgumentException("Unknown HistoryValueType key: " + key);
+	}
+
 	public String getDatabaseKey() {
 		return databaseKey;
 	}

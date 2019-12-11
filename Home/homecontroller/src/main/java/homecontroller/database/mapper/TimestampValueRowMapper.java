@@ -17,7 +17,7 @@ public class TimestampValueRowMapper implements RowMapper<TimestampValuePair> {
 		LocalDateTime dateTime = LocalDateTime
 				.ofInstant(Instant.ofEpochMilli(rs.getTimestamp("TS").getTime()), ZoneId.systemDefault());
 		return new TimestampValuePair(dateTime, rs.getBigDecimal("VAL"),
-				HistoryValueType.valueOf(rs.getString("TYP")));
+				HistoryValueType.fromKey(rs.getString("TYP")));
 	}
 
 }

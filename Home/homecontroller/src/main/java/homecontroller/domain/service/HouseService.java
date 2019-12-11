@@ -355,7 +355,7 @@ public class HouseService {
 
 		if (ModelObjectDAO.getInstance().readHistoryModel() == null || ModelObjectDAO.getInstance()
 				.readHistoryModel().getHighestOutsideTemperatureInLast24Hours() == null) {
-			LogFactory.getLog(HouseService.class).warn("HighestOutsideTemperatureInLast24Hours == null");
+			LogFactory.getLog(HouseService.class).info("HighestOutsideTemperatureInLast24Hours == null");
 			return true;
 		}
 

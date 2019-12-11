@@ -128,7 +128,13 @@ public class HistoryDatabaseDAO {
 		String query = "SELECT * FROM " + command.buildVarName() + " where ts = (select max(ts) from "
 				+ command.buildVarName() + ");";
 
-		return jdbcTemplate.queryForObject(query, new Object[] {}, new TimestampValueRowMapper());
+		List<TimestampValuePair> result = jdbcTemplate.query(query, new Object[] {},
+				new TimestampValueRowMapper());
+		if (result == null || result.isEmpty()) {
+			return null;
+		} else {
+			return result.get(0);
+		}
 	}
 
 	@Transactional(readOnly = true)
@@ -140,7 +146,7 @@ public class HistoryDatabaseDAO {
 			whereClause = " where ts > '" + startTs + "'";
 		}
 		return jdbcTemplate.query(
-				"select ts, val FROM " + command.buildVarName() + whereClause + " order by ts asc;",
+				"select * FROM " + command.buildVarName() + whereClause + " order by ts asc;",
 				new Object[] {}, new TimestampValueRowMapper());
 	}
 

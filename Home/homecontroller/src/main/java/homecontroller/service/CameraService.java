@@ -120,7 +120,7 @@ public class CameraService {
 			cameraModel.setLivePicture(cameraPicture);
 		} else if (cameraPicture.getCameraMode() == CameraMode.EVENT) {
 			LOG.info("writing event picture: " + cameraPicture.getTimestamp());
-			cameraModel.getEventPictures().add(cameraPicture); // FIXME:
+			cameraModel.getEventPictures().add(cameraPicture); // TODO:
 																// DELETE
 																// OLDEST
 		}
@@ -212,7 +212,7 @@ public class CameraService {
 
 		try {
 			ResponseEntity<byte[]> response = restTemplateBinaryResponse
-					.getForEntity("http://192.168.2.203/capture", byte[].class); // FIXME:
+					.getForEntity("http://192.168.2.203/capture", byte[].class); // TODO:
 																					// externalize
 																					// url
 
