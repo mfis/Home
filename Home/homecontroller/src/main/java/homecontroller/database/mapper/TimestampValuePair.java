@@ -32,4 +32,9 @@ public class TimestampValuePair {
 		return type;
 	}
 
+	@Override
+	public String toString() {
+		return "TimestampValuePair [timestamp=" + timestamp + ", value=" + value + ", type=" + type + "]";
+	}
+
 }

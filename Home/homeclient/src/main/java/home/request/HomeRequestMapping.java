@@ -77,11 +77,9 @@ public class HomeRequestMapping {
 	@RequestMapping("/history")
 	public String history(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
 			@RequestParam(name = "key") String key) {
-		LogFactory.getLog(this.getClass()).info("/history - " + key);
 		fillUserAttributes(model, userCookie);
 		houseView.fillHistoryViewModel(model, ModelObjectDAO.getInstance().readHistoryModel(),
 				ModelObjectDAO.getInstance().readHouseModel(), key);
-		LogFactory.getLog(this.getClass()).info("model:" + model.asMap().toString());
 		return "history";
 	}
 

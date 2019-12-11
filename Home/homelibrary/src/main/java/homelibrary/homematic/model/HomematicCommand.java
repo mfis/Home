@@ -342,6 +342,18 @@ public class HomematicCommand {
 		return "HomematicCommand [buildVarName()=" + this.buildVarName() + "]";
 	}
 
+	public String accessKeyMigrationDB() {
+		if (device.isSysVar()) {
+			return datapoint.getHistorianPrefix() + "_" + device.getHomematicProtocol().toHistorianString()
+					+ "_" + Integer.toString(device.getChannel()) + "_" + datapoint.name();
+		} else {
+			return datapoint.getHistorianPrefix() + "_" + device.getHomematicProtocol().toHistorianString()
+					+ "_" + device.getId()
+					+ (device.getChannel() != null ? ("_" + Integer.toString(device.getChannel())) : "") + "_"
+					+ datapoint.name();
+		}
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;

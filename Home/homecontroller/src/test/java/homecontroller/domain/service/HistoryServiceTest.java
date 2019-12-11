@@ -52,7 +52,7 @@ public class HistoryServiceTest {
 	@Test
 	public void testAvg() throws Exception {
 		TimestampValuePair result = historyService.avg(createList());
-		assertThat(result.getTimestamp()).isEqualTo(LocalDateTime.of(2019, 12, 7, 21, 20));
+		assertThat(result.getTimestamp()).isEqualTo(LocalDateTime.of(2019, 12, 7, 21, 30));
 		assertThat(result.getValue()).isEqualTo(new BigDecimal(160));
 		assertThat(result.getType()).isEqualTo(HistoryValueType.AVG);
 	}

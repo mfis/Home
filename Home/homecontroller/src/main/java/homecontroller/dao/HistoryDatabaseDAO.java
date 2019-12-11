@@ -34,16 +34,17 @@ public class HistoryDatabaseDAO {
 			.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
 	@Autowired
-	private JdbcTemplate jdbcTemplate;
+	private JdbcTemplate jdbcTemplateHistory;
 
 	@PostConstruct
 	@Transactional
 	public void setupTables() {
 
 		for (History history : History.values()) {
-			jdbcTemplate.update("CREATE CACHED TABLE IF NOT EXISTS " + history.getCommand().buildVarName()
+			jdbcTemplateHistory.update("CREATE CACHED TABLE IF NOT EXISTS "
+					+ history.getCommand().buildVarName()
 					+ " (TS DATETIME NOT NULL, TYP CHAR(1) NOT NULL, VAL DOUBLE NOT NULL, PRIMARY KEY (TS));");
-			jdbcTemplate.update(
+			jdbcTemplateHistory.update(
 					"CREATE UNIQUE INDEX IF NOT EXISTS " + "IDX1_" + history.getCommand().buildVarName()
 							+ " ON " + history.getCommand().buildVarName() + " (TS, TYP);");
 		}
@@ -60,7 +61,7 @@ public class HistoryDatabaseDAO {
 					String val = pair.getValue().toString();
 					String sql = "insert into " + table + " (TS, TYP, VAL) values ('" + ts + "', '"
 							+ pair.getType().getDatabaseKey() + "', " + val + ");";
-					jdbcTemplate.update(sql);
+					jdbcTemplateHistory.update(sql);
 				}
 			}
 		}
@@ -78,7 +79,7 @@ public class HistoryDatabaseDAO {
 				+ (fromDateTime != null ? ("ts >= '" + formatTimestamp(fromDateTime) + "'") : "") + and
 				+ (untilDateTime != null ? ("ts < '" + formatTimestamp(untilDateTime) + "'") : "") + ";";
 
-		BigDecimal result = jdbcTemplate.queryForObject(query, new Object[] {},
+		BigDecimal result = jdbcTemplateHistory.queryForObject(query, new Object[] {},
 				new BigDecimalRowMapper(VALUE));
 		if (result == null) {
 			return null;
@@ -97,7 +98,7 @@ public class HistoryDatabaseDAO {
 				+ formatTimestamp(fromDateTime) + "' and ts < '" + formatTimestamp(untilDateTime) + "'"
 				+ " and hour(ts) " + timerange.getHoursSqlQueryString() + ";";
 
-		BigDecimal result = jdbcTemplate.queryForObject(query, new Object[] {},
+		BigDecimal result = jdbcTemplateHistory.queryForObject(query, new Object[] {},
 				new BigDecimalRowMapper(VALUE));
 		if (result == null) {
 			return null;
@@ -115,7 +116,8 @@ public class HistoryDatabaseDAO {
 				+ formatTimestamp(localDateTime.minusHours(maxHoursReverse))
 				+ "' order by ts desc fetch first row only;";
 
-		List<BigDecimal> result = jdbcTemplate.query(query, new Object[] {}, new BigDecimalRowMapper(VALUE));
+		List<BigDecimal> result = jdbcTemplateHistory.query(query, new Object[] {},
+				new BigDecimalRowMapper(VALUE));
 		if (result.isEmpty()) {
 			return null;
 		} else {
@@ -129,7 +131,7 @@ public class HistoryDatabaseDAO {
 		String query = "SELECT * FROM " + command.buildVarName() + " where ts = (select max(ts) from "
 				+ command.buildVarName() + ");";
 
-		List<TimestampValuePair> result = jdbcTemplate.query(query, new Object[] {},
+		List<TimestampValuePair> result = jdbcTemplateHistory.query(query, new Object[] {},
 				new TimestampValueRowMapper());
 		if (result.isEmpty()) {
 			return null;
@@ -146,7 +148,7 @@ public class HistoryDatabaseDAO {
 			String startTs = formatTimestamp(optionalFromDateTime);
 			whereClause = " where ts > '" + startTs + "'";
 		}
-		return jdbcTemplate.query(
+		return jdbcTemplateHistory.query(
 				"select * FROM " + command.buildVarName() + whereClause + " order by ts asc;",
 				new Object[] {}, new TimestampValueRowMapper());
 	}

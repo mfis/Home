@@ -84,7 +84,7 @@ public class HistoryService {
 	}
 
 	@PreDestroy
-	@Scheduled(cron = "0 0/5 * * * *")
+	@Scheduled(cron = "0 0 * * * *")
 	public void persistCashedValues() {
 
 		Map<HomematicCommand, List<TimestampValuePair>> toInsert = new HashMap<>();
