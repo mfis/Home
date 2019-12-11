@@ -10,7 +10,7 @@ public enum History {
 			HomematicCommand.read(Device.THERMOMETER_KINDERZIMMER, Datapoint.ACTUAL_TEMPERATURE),
 			HistoryStrategy.AVG, 1), //
 	KINDERZIMMER_HUMIDITY(HomematicCommand.read(Device.THERMOMETER_KINDERZIMMER, Datapoint.HUMIDITY),
-			HistoryStrategy.AVG, 1), //
+			HistoryStrategy.AVG, 2), //
 
 	// WOHNZIMMER_TEMPERATURE(HomematicCommand.read(Device.THERMOMETER_WOHNZIMMER,
 	// Datapoint.ACTUAL_TEMPERATURE),
@@ -23,13 +23,13 @@ public enum History {
 			HomematicCommand.read(Device.THERMOMETER_SCHLAFZIMMER, Datapoint.ACTUAL_TEMPERATURE),
 			HistoryStrategy.AVG, 1), //
 	SCHLAFZIMMER_HUMIDITY(HomematicCommand.read(Device.THERMOMETER_SCHLAFZIMMER, Datapoint.HUMIDITY),
-			HistoryStrategy.AVG, 1), //
+			HistoryStrategy.AVG, 2), //
 
 	WASCHKUECHE_TEMPERATURE(
 			HomematicCommand.read(Device.THERMOMETER_WASCHKUECHE, Datapoint.ACTUAL_TEMPERATURE),
 			HistoryStrategy.AVG, 1), //
 	WASCHKUECHE_HUMIDITY(HomematicCommand.read(Device.THERMOMETER_WASCHKUECHE, Datapoint.HUMIDITY),
-			HistoryStrategy.AVG, 1), //
+			HistoryStrategy.AVG, 2), //
 
 	DRAUSSEN_TEMPERATURE(HomematicCommand.read(Device.AUSSENTEMPERATUR, Datapoint.VALUE), HistoryStrategy.AVG,
 			1), //
