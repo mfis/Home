@@ -1,6 +1,7 @@
 package homecontroller.domain.service;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -421,7 +422,8 @@ public class HistoryService {
 			avgDateTime = Instant.ofEpochMilli(avgTime).atZone(ZoneId.systemDefault()).toLocalDateTime();
 		}
 		return new TimestampValuePair(avgDateTime,
-				sum.divide(new BigDecimal(list.size()), RoundingMode.HALF_UP), HistoryValueType.AVG);
+				sum.divide(new BigDecimal(list.size()), new MathContext(3, RoundingMode.HALF_UP)),
+				HistoryValueType.AVG);
 	}
 
 	protected List<TimestampValuePair> cleanList(List<TimestampValuePair> list) {
