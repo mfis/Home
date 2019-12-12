@@ -74,6 +74,8 @@ public class HomematicAPI {
 
 	private MessageDigest digest = null;
 
+	private long resourceNotAvailableCounter;
+
 	private static final Log LOG = LogFactory.getLog(HomematicAPI.class);
 
 	@PostConstruct
@@ -192,9 +194,9 @@ public class HomematicAPI {
 		ccuInitState = minutesUptime <= INIT_STATE_MINUTES;
 	}
 
-	private boolean executeCommands(boolean writeHash, HomematicCommand... commands) {
+	private boolean executeCommands(boolean refresh, HomematicCommand... commands) {
 		String body = buildReGaRequestBody(commands);
-		return extractCommandResults(callReGaAPI(body, writeHash), commands);
+		return extractCommandResults(callReGaAPI(body, refresh), commands);
 	}
 
 	private boolean extractCommandResults(Document responseDocument, HomematicCommand... commands) {
@@ -286,12 +288,22 @@ public class HomematicAPI {
 		return httpHeaders;
 	}
 
-	private Document callReGaAPI(String body, boolean writeHash) {
+	private Document callReGaAPI(String body, boolean refresh) {
 
 		HttpHeaders headers = createHeaders(body.length());
 		HttpEntity<String> requestEntity = new HttpEntity<>(body, headers);
-		ResponseEntity<String> responseEntity = restTemplate.postForEntity(host + REGA_PORT_AND_URI,
-				requestEntity, String.class);
+		ResponseEntity<String> responseEntity = null;
+		try {
+			responseEntity = restTemplate.postForEntity(host + REGA_PORT_AND_URI, requestEntity,
+					String.class);
+			resourceNotAvailableCounter = 0;
+		} catch (Exception e) {
+			resourceNotAvailableCounter++;
+			if (resourceNotAvailableCounter > 2) {
+				throw e;
+			}
+			return null;
+		}
 		HttpStatus statusCode = responseEntity.getStatusCode();
 		if (!statusCode.is2xxSuccessful()) {
 			LOG.error("Could not successful call ReGa API. RC=" + statusCode.value());
@@ -302,7 +314,7 @@ public class HomematicAPI {
 			dbFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, Boolean.TRUE);
 			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 			byte[] responseBytes = responseEntity.getBody().getBytes(StandardCharsets.UTF_8);
-			if (writeHash) {
+			if (refresh) {
 				String actualHashString = Hex.encodeHexString(
 						digest.digest(responseEntity.getBody().getBytes(StandardCharsets.UTF_8)));
 				if (StringUtils.equals(refreshHashString, actualHashString)) {
