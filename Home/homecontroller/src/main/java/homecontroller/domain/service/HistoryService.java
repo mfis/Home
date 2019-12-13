@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
 
 import javax.annotation.PostConstruct;
@@ -110,9 +111,25 @@ public class HistoryService {
 			}
 			toInsert.put(history.getCommand(), pairs);
 		}
-		historyDAO.persistEntries(toInsert);
+		try {
+			historyDAO.persistEntries(toInsert);
+		} catch (Exception e) {
+			increaseTimestamps(toInsert);
+			historyDAO.persistEntries(toInsert);
+		}
 		for (History history : History.values()) {
 			entryCache.get(history.getCommand()).clear();
+		}
+	}
+
+	private void increaseTimestamps(Map<HomematicCommand, List<TimestampValuePair>> toInsert) {
+
+		for (Entry<HomematicCommand, List<TimestampValuePair>> entry : toInsert.entrySet()) {
+			for (TimestampValuePair pair : entry.getValue()) {
+				if (pair != null) {
+					pair.setTimestamp(pair.getTimestamp().plusSeconds(1));
+				}
+			}
 		}
 	}
 
@@ -267,23 +284,24 @@ public class HistoryService {
 			dayMax = nightMax;
 		}
 
-		if (nightMax != null && dayMin != null && nightMax.compareTo(dayMin) > 0) {
-			// night 8-25, day 13-34
-			// switch values
-			BigDecimal temp = nightMax;
-			nightMax = dayMin;
-			dayMin = temp;
-			if (nightMax.compareTo(nightMin) < 0) {
-				temp = nightMax;
-				nightMax = nightMin;
-				nightMin = temp;
-			}
-			if (dayMax.compareTo(dayMin) < 0) {
-				temp = dayMax;
-				dayMax = dayMin;
-				dayMin = temp;
-			}
-		}
+		// if (nightMax != null && dayMin != null && nightMax.compareTo(dayMin)
+		// > 0) {
+		// // night 8-25, day 13-34
+		// // switch values
+		// BigDecimal temp = nightMax;
+		// nightMax = dayMin;
+		// dayMin = temp;
+		// if (nightMax.compareTo(nightMin) < 0) {
+		// temp = nightMax;
+		// nightMax = nightMin;
+		// nightMin = temp;
+		// }
+		// if (dayMax.compareTo(dayMin) < 0) {
+		// temp = dayMax;
+		// dayMax = dayMin;
+		// dayMin = temp;
+		// }
+		// }
 
 		TemperatureHistory temperatureHistory = new TemperatureHistory();
 		if (nightMin != null || nightMax != null || dayMin != null || dayMax != null) {

@@ -260,15 +260,25 @@ public class HouseViewService {
 			return "n/a";
 		}
 
-		DecimalFormat decimalFormat = new DecimalFormat("0");
-		String minFrmt = decimalFormat.format(min);
-		String maxFrmt = decimalFormat.format(max);
+		String minFrmt = formatTemperature(min);
+		String maxFrmt = formatTemperature(max);
 
 		if (StringUtils.equals(minFrmt, maxFrmt)) {
 			return minFrmt + DEGREE + "C";
 		}
 
 		return minFrmt + DEGREE + "C bis " + maxFrmt + DEGREE + "C";
+	}
+
+	private String formatTemperature(BigDecimal value) {
+
+		DecimalFormat decimalFormat = new DecimalFormat("0");
+		String frmt = decimalFormat.format(value);
+		if ("-0".equals(frmt)) { // special case: some negative value roundet to
+									// zero has a leading '-'
+			frmt = "0";
+		}
+		return frmt;
 	}
 
 	private void calculatePreviousYearDifference(HistoryEntry entry, PowerConsumptionMonth pcm,

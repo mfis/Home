@@ -105,7 +105,7 @@ public class HistoryServiceTest {
 				{ new BigDecimal(400), HistoryValueType.MAX, null, new Integer(400) }, //
 				{ new BigDecimal(80), HistoryValueType.MIN, null, new Integer(80) }, //
 				{ new BigDecimal(80), HistoryValueType.MAX, null, new Integer(200) }, //
-				{ new BigDecimal(80), HistoryValueType.MIN, TimeRange.DAY, new Integer(100) }, //
+				{ new BigDecimal(80), HistoryValueType.MIN, TimeRange.EVENING, new Integer(100) }, //
 		};
 
 		for (Object[] testcase : input) {

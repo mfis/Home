@@ -6,11 +6,17 @@ import java.util.List;
 
 public enum TimeRange {
 
-	DAY("in (9,10,11,12,13,14,15,16,17,18,19,20,21,22,23)", //
-			Arrays.asList(9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23)), //
+	MORGING("in (6,7,8,9)", //
+			Arrays.asList(6, 7, 8, 9)), //
 
-	NIGHT("in (0,1,2,3,4,5,6,7,8)", //
-			Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8)), //
+	DAY("in (10,11,12,13,14,15,16,17,18)", //
+			Arrays.asList(10, 11, 12, 13, 14, 15, 16, 17, 18)), //
+
+	EVENING("in (19,20,21,22, 23)", //
+			Arrays.asList(19, 20, 21, 22, 23)), //
+
+	NIGHT("in (0,1,2,3,4,5)", //
+			Arrays.asList(0, 1, 2, 3, 4, 5)), //
 	;
 
 	private final String hoursSqlQueryString;
@@ -24,13 +30,12 @@ public enum TimeRange {
 
 	public static TimeRange fromDateTime(LocalDateTime localDateTime) {
 		int hours = localDateTime.getHour();
-		if (DAY.getHoursIntList().contains(hours)) {
-			return DAY;
-		} else if (NIGHT.getHoursIntList().contains(hours)) {
-			return NIGHT;
-		} else {
-			throw new IllegalStateException("fromDateTime: unexpected hour: " + hours);
+		for (TimeRange range : values()) {
+			if (range.getHoursIntList().contains(hours)) {
+				return range;
+			}
 		}
+		throw new IllegalStateException("fromDateTime: unexpected hour: " + hours);
 	}
 
 	public String getHoursSqlQueryString() {

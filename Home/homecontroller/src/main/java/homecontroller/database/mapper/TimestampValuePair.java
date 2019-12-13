@@ -37,4 +37,8 @@ public class TimestampValuePair {
 		return "TimestampValuePair [timestamp=" + timestamp + ", value=" + value + ", type=" + type + "]";
 	}
 
+	public void setTimestamp(LocalDateTime timestamp) {
+		this.timestamp = timestamp;
+	}
+
 }
