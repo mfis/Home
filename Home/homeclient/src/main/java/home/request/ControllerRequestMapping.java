@@ -1,9 +1,14 @@
 package home.request;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -12,6 +17,7 @@ import org.springframework.web.context.request.async.DeferredResult;
 import home.model.Message;
 import home.model.MessageQueue;
 import homecontroller.domain.model.ActionModel;
+import homecontroller.domain.model.BackupFile;
 import homecontroller.domain.model.CameraModel;
 import homecontroller.domain.model.HistoryModel;
 import homecontroller.domain.model.HouseModel;
@@ -21,11 +27,13 @@ import homelibrary.dao.ModelObjectDAO;
 @RestController
 public class ControllerRequestMapping {
 
+	@Autowired
+	private Environment env;
+
 	private static final Log log = LogFactory.getLog(ControllerRequestMapping.class);
 
 	@RequestMapping(value = "/uploadCameraModel")
 	public ActionModel uploadCameraModel(@RequestBody CameraModel cameraModel) {
-		log.info("recieved new camera image upload");
 		ModelObjectDAO.getInstance().write(cameraModel);
 		return new ActionModel("OK");
 	}
@@ -60,6 +68,17 @@ public class ControllerRequestMapping {
 	@RequestMapping(value = "/uploadMessage")
 	public ActionModel controllerLongPollingForAsyncResponse(@RequestBody Message response) {
 		MessageQueue.getInstance().addResponse(response);
+		return new ActionModel("OK");
+	}
+
+	@RequestMapping(value = "/uploadBackupFile")
+	public ActionModel uploadBackupFile(@RequestBody BackupFile backupFile) throws IOException {
+		String path = env.getProperty("backup.location");
+		if (!path.endsWith("/")) {
+			path = path + "/";
+		}
+		String absFilePath = path + backupFile.getFilename();
+		FileUtils.writeByteArrayToFile(new File(absFilePath), backupFile.getBytes());
 		return new ActionModel("OK");
 	}
 }

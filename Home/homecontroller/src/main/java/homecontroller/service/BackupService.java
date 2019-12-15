@@ -12,6 +12,7 @@ import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import homecontroller.dao.HistoryDatabaseDAO;
+import homecontroller.domain.model.BackupFile;
+import homecontroller.domain.service.UploadService;
 
 @Component
 public class BackupService {
@@ -32,6 +35,9 @@ public class BackupService {
 
 	@Autowired
 	private HistoryDatabaseDAO historyDatabaseDAO;
+
+	@Autowired
+	private UploadService uploadService;
 
 	private static final DateTimeFormatter BACKUP_TIMESTAMP_FORMATTER = DateTimeFormatter
 			.ofPattern("yyyy-MM-dd");
@@ -53,12 +59,28 @@ public class BackupService {
 	@Scheduled(cron = "0 50 01 * * *")
 	private void backupDatabaseUpload() {
 
-		List<Path> list = new LinkedList<>();
 		Path path = Paths.get(backupFilename(false));
-		if (path.toFile().exists()) {
-			list.add(path);
+
+		try {
+			List<Path> list = new LinkedList<>();
+			if (path.toFile().exists()) {
+				list.add(path);
+			}
+			backupAPI.backup(list.stream());
+		} catch (Exception e) {
+			LOG.error("Exception upload backup file to backblaze:", e);
 		}
-		backupAPI.backup(list.stream());
+
+		try {
+			if (path.toFile().exists()) {
+				BackupFile backupFile = new BackupFile();
+				backupFile.setFilename(path.toFile().getName());
+				backupFile.setBytes(FileUtils.readFileToByteArray(path.toFile()));
+				uploadService.upload(backupFile);
+			}
+		} catch (Exception e) {
+			LOG.error("Exception upload backup file to client:", e);
+		}
 
 		Path yesterdaysFile = Paths.get(backupFilename(true));
 		if (yesterdaysFile.toFile().exists()) {
