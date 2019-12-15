@@ -541,6 +541,7 @@ public class HouseViewService {
 		model.addAttribute(viewKey, view);
 	}
 
+	@SuppressWarnings("unused")
 	private void formatWindow(Model model, String viewKey, Window windowModel) {
 
 		ShutterView view = new ShutterView();

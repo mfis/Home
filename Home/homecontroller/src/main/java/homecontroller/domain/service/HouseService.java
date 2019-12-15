@@ -497,6 +497,7 @@ public class HouseService {
 		return false;
 	}
 
+	@SuppressWarnings("unused")
 	private Window readWindow(Device shutter) { // TODO: D_U_M_M_Y
 		Window window = new Window();
 		window.setDevice(shutter);

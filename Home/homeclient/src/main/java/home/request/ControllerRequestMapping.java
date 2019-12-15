@@ -5,8 +5,6 @@ import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,8 +27,6 @@ public class ControllerRequestMapping {
 
 	@Autowired
 	private Environment env;
-
-	private static final Log log = LogFactory.getLog(ControllerRequestMapping.class);
 
 	@RequestMapping(value = "/uploadCameraModel")
 	public ActionModel uploadCameraModel(@RequestBody CameraModel cameraModel) {
