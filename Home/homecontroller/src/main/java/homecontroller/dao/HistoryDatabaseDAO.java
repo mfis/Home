@@ -51,6 +51,13 @@ public class HistoryDatabaseDAO {
 	}
 
 	@Transactional
+	public void backupDatabase(String filename) {
+
+		String sql = "BACKUP TO '" + filename + "';";
+		jdbcTemplateHistory.update(sql);
+	}
+
+	@Transactional
 	public void persistEntries(Map<HomematicCommand, List<TimestampValuePair>> toInsert) {
 
 		for (Entry<HomematicCommand, List<TimestampValuePair>> entry : toInsert.entrySet()) {
