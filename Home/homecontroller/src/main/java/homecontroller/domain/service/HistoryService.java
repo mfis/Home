@@ -575,8 +575,7 @@ public class HistoryService {
 		return combined;
 	}
 
-	protected void diffValueCheckedAdd(History history, TimestampValuePair pair,
-			List<TimestampValuePair> dest) {
+	public void diffValueCheckedAdd(History history, TimestampValuePair pair, List<TimestampValuePair> dest) {
 
 		TimestampValuePair lastValue = historyDAO.readLatestValue(history.getCommand());
 

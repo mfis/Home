@@ -10,8 +10,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import javax.annotation.PostConstruct;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -43,12 +41,6 @@ public class BackupService {
 			.ofPattern("yyyy-MM-dd");
 
 	private static final Log LOG = LogFactory.getLog(BackupService.class);
-
-	@PostConstruct
-	private void init() {
-		backupDatabaseCreateNew();
-		backupDatabaseUpload();
-	}
 
 	@Scheduled(cron = "0 45 01 * * *")
 	private void backupDatabaseCreateNew() {
