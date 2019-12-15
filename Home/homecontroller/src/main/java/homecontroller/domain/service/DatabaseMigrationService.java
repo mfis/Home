@@ -42,10 +42,9 @@ public class DatabaseMigrationService {
 				i++;
 				Map<HomematicCommand, List<TimestampValuePair>> toInsert = new HashMap<>();
 				toInsert.put(history.getCommand(), partition);
-				// LOG.info("Persist Migration entries of " +
-				// history.getCommand().buildVarName() + " Part " + i + " of "
-				// + partitions.size());
-				// historyDatabaseDAO.persistEntries(toInsert);
+				LOG.info("Persist Migration entries of " + history.getCommand().buildVarName() + " Part " + i
+						+ " of " + partitions.size());
+				historyDatabaseDAO.persistEntries(toInsert);
 			}
 		}
 
@@ -57,7 +56,8 @@ public class DatabaseMigrationService {
 		for (TimestampValuePair sourceEntry : source) {
 			historyService.diffValueCheckedAdd(history, sourceEntry, dest);
 		}
-		LOG.info("filter history migration entries: " + source.size() + " / " + dest.size());
+		LOG.info("filter history migration entries: " + history.name() + ": " + source.size() + " / "
+				+ dest.size());
 		return dest;
 	}
 
