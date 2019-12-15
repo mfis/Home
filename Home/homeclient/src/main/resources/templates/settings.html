@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="de">
 
 	<head th:replace="basics :: head (name=${MENU_SELECTED.name})"></head>
 	
@@ -29,7 +29,7 @@
 					class="btn btn-secondary btn-sm" th:text="'Übernehmen'"></button>
 				<script type="text/javascript">
 					function sendClientName() {
-						submitContent("[(${linkClientName})]"
+						submitSetting("[(${linkClientName})]"
 								+ document.getElementById('clientName').value);
 						
 
@@ -39,11 +39,11 @@
 			</div>
 	
 			<!-- Hints -->
-			<div th:replace="fragments :: switch (model=${pushHints})"></div>
+			<div th:replace="fragments :: switchSetting (model=${pushHints})"></div>
 			<!-- Hysteresis -->
-			<div th:replace="fragments :: switch (model=${pushHintsHysteresis})"></div>
+			<div th:replace="fragments :: switchSetting (model=${pushHintsHysteresis})"></div>
 			<!-- Doorbell -->
-			<div th:replace="fragments :: switch (model=${pushDoorbell})"></div>
+			<div th:replace="fragments :: switchSetting (model=${pushDoorbell})"></div>
 	
 			<div style="height: 40px;"></div>
 		</div>

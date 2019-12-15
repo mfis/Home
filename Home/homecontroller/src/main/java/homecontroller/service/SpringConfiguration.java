@@ -87,8 +87,6 @@ public class SpringConfiguration implements WebMvcConfigurer {
 		dataSource.setUrl(env.getProperty("datamigration.url"));
 		dataSource.setUsername(env.getProperty("datamigration.username"));
 		dataSource.setPassword(env.getProperty("datamigration.password"));
-		// System.out.println("MIGRATION: " + dataSource.getUrl() +
-		// dataSource.getUsername() + "/" + dataSource.getPassword());
 		return dataSource;
 	}
 

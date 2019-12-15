@@ -1,4 +1,5 @@
-<html xmlns:th="http://www.thymeleaf.org">
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" lang="de">
 
 	<head th:replace="basics :: head (name='Zuhause')"></head>
 	
@@ -12,7 +13,7 @@
 	
 		<div th:replace="fragments :: title (name='Home - Anmeldung')"></div>
 	
-		<form name="f" th:action="'/'" method="post">
+		<form name="f" th:action="'/'" method="POST">
 		
 			<div th:class="'alert alert-secondary'">
 				<fieldset>

@@ -36,9 +36,6 @@ public class MessageQueue {
 
 	public Message request(Message message, boolean waitForResponse) {
 
-		// System.out.println(
-		// "MESSAGE QUEUE SIZE = " + requests.size() + " RESPONSE QUEUE SIZE = "
-		// + responses.size());
 		requests.add(message);
 
 		if (!waitForResponse) {

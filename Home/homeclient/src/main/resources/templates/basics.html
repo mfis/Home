@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="de">
 
 <head th:fragment="head (name)">
 	<title th:text="${name}">Titel</title>
@@ -40,7 +40,7 @@
 		function submitContent(target){
 			if(navigator.onLine){
 				var httpRequest = new XMLHttpRequest();
-				httpRequest.open('POST', target);
+				httpRequest.open('GET', target);
 				httpRequest.setRequestHeader('ETag', document.getElementById('modelTimestamp').value);
 				httpRequest.send();
 				httpRequest.onreadystatechange=(e)=>{
@@ -62,6 +62,21 @@
 				showOffline();
 			}
 		}
+		
+		
+		function submitSetting(target){
+			var httpRequest = new XMLHttpRequest();
+			httpRequest.open('GET', target);
+			httpRequest.send();
+			httpRequest.onreadystatechange=(e)=>{
+				if (httpRequest.readyState == 4) {
+					if(httpRequest.status == 200){
+						var doc = new DOMParser().parseFromString(httpRequest.responseText, "text/html");
+						document.getElementById('idbody').innerHTML = doc.getElementById('idbody').innerHTML;
+					}
+				}
+			}	
+		}		
 	
 		function refreshContent(){
 			submitContent(window.location.href);

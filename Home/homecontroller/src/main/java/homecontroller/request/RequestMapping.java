@@ -36,7 +36,6 @@ public class RequestMapping {
 
 	@GetMapping("/controller/refresh")
 	public ActionModel refresh() {
-		LOG.info("REFRESH request");
 		houseService.refreshHouseModel();
 		return new ActionModel("OK");
 	}

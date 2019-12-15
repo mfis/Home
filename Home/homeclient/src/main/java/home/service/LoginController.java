@@ -3,7 +3,7 @@ package home.service;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
 public class LoginController {
@@ -17,14 +17,14 @@ public class LoginController {
 	@Value("${lawLink}")
 	String lawLink;
 
-	@RequestMapping("/login")
+	@GetMapping("/login")
 	public String login(Model model) {
 		model.addAttribute(LAW_LINK, lawLink);
 		model.addAttribute(LOGIN_MESSAGE, "");
 		return LOGIN;
 	}
 
-	@RequestMapping("/loginCookieCheck")
+	@GetMapping("/loginCookieCheck")
 	public String loginCookieCheck(Model model) {
 		model.addAttribute(LAW_LINK, lawLink);
 		model.addAttribute(LOGIN_MESSAGE,
@@ -32,14 +32,14 @@ public class LoginController {
 		return LOGIN;
 	}
 
-	@RequestMapping("/loginFailed")
+	@GetMapping("/loginFailed")
 	public String loginFailed(Model model) {
 		model.addAttribute(LAW_LINK, lawLink);
 		model.addAttribute(LOGIN_MESSAGE, "Name und/oder Passwort nicht korrekt.");
 		return LOGIN;
 	}
 
-	@RequestMapping(path = "/logoff")
+	@GetMapping(path = "/logoff")
 	public String logoff(Model model) {
 		model.addAttribute(LAW_LINK, lawLink);
 		model.addAttribute(LOGIN_MESSAGE, "Sie wurden erfolgreich abgemeldet.");

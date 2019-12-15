@@ -100,8 +100,8 @@ public class CameraService {
 				} catch (Exception e) {
 					LOG.error("Exception taking picture:", e);
 				}
-				if (LOG.isInfoEnabled()) {
-					LOG.info("TIME = " + (System.currentTimeMillis() - l1) + " ms");
+				if (LOG.isDebugEnabled()) {
+					LOG.debug("TIME = " + (System.currentTimeMillis() - l1) + " ms");
 				}
 			}
 		});
