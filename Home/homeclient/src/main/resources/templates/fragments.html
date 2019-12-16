@@ -172,7 +172,7 @@
 				<span th:text="${model.lastDoorbells}"></span>
 			</h4>
 		</div>
-		<th:block th:if="${#strings.equals(user, 'Matthias')}">
+		<th:block th:if="${#strings.equals(user, 'x')}">
 		<div th:class="'alert alert-secondary callout callout-secondary'">
 			<div th:replace="fragments :: elementname (icon='fas fa-camera', name='Kamera', place='', historyKey=${model.historyKey})"></div>
 			<div style="padding-top:6px;">
