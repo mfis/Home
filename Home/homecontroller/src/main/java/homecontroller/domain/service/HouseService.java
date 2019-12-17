@@ -438,7 +438,10 @@ public class HouseService {
 				&& newModel.getFrontDoor().getTimestampLastDoorbell() != null
 						? newModel.getFrontDoor().getTimestampLastDoorbell()
 						: 0;
-		return doorbellOld != doorbellNew && doorbellNew > 0 && oldModel != null;
+
+		long minutesAgo = (System.currentTimeMillis() - doorbellNew) / 1000 / 60;
+
+		return doorbellOld != doorbellNew && doorbellNew > 0 && oldModel != null && minutesAgo < 10;
 	}
 
 	private OutdoorClimate readOutdoorClimate(Device outside, Device diff) {
