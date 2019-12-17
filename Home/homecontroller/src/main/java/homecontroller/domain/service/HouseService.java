@@ -247,7 +247,7 @@ public class HouseService {
 	private void calculateTendency(HouseModel newModel, ValueWithTendency<BigDecimal> reference,
 			ValueWithTendency<BigDecimal> actual, BigDecimal diffValue) {
 
-		if (actual.getValue() == null) {
+		if (actual.getValue() == null || reference == null || reference.getReferenceValue() == null) {
 			actual.setTendency(Tendency.NONE);
 			return;
 		}

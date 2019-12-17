@@ -160,10 +160,12 @@ public class HistoryService {
 	}
 
 	private void addEntry(HomematicCommand command, TimestampValuePair pair) {
-		if (!entryCache.containsKey(command)) {
-			entryCache.put(command, new LinkedList<TimestampValuePair>());
+		if (pair != null && pair.getValue() != null) {
+			if (!entryCache.containsKey(command)) {
+				entryCache.put(command, new LinkedList<TimestampValuePair>());
+			}
+			entryCache.get(command).add(pair);
 		}
-		entryCache.get(command).add(pair);
 	}
 
 	@Scheduled(fixedDelay = (1000 * 60 * 5))
@@ -369,7 +371,7 @@ public class HistoryService {
 
 		TimestampValuePair cmp = null;
 		for (TimestampValuePair pair : list) {
-			if (cmp == null || cmp.getValue().compareTo(pair.getValue()) > 0) {
+			if (pair != null && (cmp == null || cmp.getValue().compareTo(pair.getValue()) > 0)) {
 				cmp = pair;
 			}
 		}
@@ -389,7 +391,7 @@ public class HistoryService {
 
 		TimestampValuePair cmp = null;
 		for (TimestampValuePair pair : list) {
-			if (cmp == null || cmp.getValue().compareTo(pair.getValue()) < 0) {
+			if (pair != null && (cmp == null || cmp.getValue().compareTo(pair.getValue()) < 0)) {
 				cmp = pair;
 			}
 		}
