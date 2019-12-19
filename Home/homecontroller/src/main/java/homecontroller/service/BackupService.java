@@ -10,6 +10,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Stream;
 
+import javax.annotation.PreDestroy;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -26,9 +28,6 @@ import homecontroller.domain.service.UploadService;
 public class BackupService {
 
 	@Autowired
-	private Environment env;
-
-	@Autowired
 	private BackblazeBackupAPI backupAPI;
 
 	@Autowired
@@ -37,21 +36,31 @@ public class BackupService {
 	@Autowired
 	private UploadService uploadService;
 
-	private static final DateTimeFormatter BACKUP_TIMESTAMP_FORMATTER = DateTimeFormatter
+	@Autowired
+	private Environment env;
+
+	private static final DateTimeFormatter BACKUP_DAILY_TIMESTAMP_FORMATTER = DateTimeFormatter
 			.ofPattern("yyyy-MM-dd");
+
+	private static final DateTimeFormatter BACKUP_ADHOC_TIMESTAMP_FORMATTER = DateTimeFormatter
+			.ofPattern("yyyy-MM-dd__HH-mm_ss_SSS");
 
 	private static final Log LOG = LogFactory.getLog(BackupService.class);
 
+	@PreDestroy
+	private void backupDatabaseOnShutdown() {
+		historyDatabaseDAO.backupDatabase(backupFilename(BACKUP_ADHOC_TIMESTAMP_FORMATTER, false));
+	}
+
 	@Scheduled(cron = "0 45 01 * * *")
 	private void backupDatabaseCreateNew() {
-
-		historyDatabaseDAO.backupDatabase(backupFilename(false));
+		historyDatabaseDAO.backupDatabase(backupFilename(BACKUP_DAILY_TIMESTAMP_FORMATTER, false));
 	}
 
 	@Scheduled(cron = "0 50 01 * * *")
 	private void backupDatabaseUpload() {
 
-		Path path = Paths.get(backupFilename(false));
+		Path path = Paths.get(backupFilename(BACKUP_DAILY_TIMESTAMP_FORMATTER, false));
 
 		try {
 			List<Path> list = new LinkedList<>();
@@ -74,7 +83,7 @@ public class BackupService {
 			LOG.error("Exception upload backup file to client:", e);
 		}
 
-		Path yesterdaysFile = Paths.get(backupFilename(true));
+		Path yesterdaysFile = Paths.get(backupFilename(BACKUP_DAILY_TIMESTAMP_FORMATTER, true));
 		if (yesterdaysFile.toFile().exists()) {
 			try {
 				Files.delete(yesterdaysFile);
@@ -95,17 +104,14 @@ public class BackupService {
 		}
 	}
 
-	private String backupFilename(boolean yesterday) {
+	private String backupFilename(DateTimeFormatter formatter, boolean yesterday) {
 
 		LocalDateTime dateTime = LocalDateTime.now();
 		if (yesterday) {
 			dateTime = dateTime.minusHours(24);
 		}
-		String path = env.getProperty("backup.database.path");
-		String timestamp = BACKUP_TIMESTAMP_FORMATTER.format(dateTime);
-		if (!path.endsWith("/")) {
-			path = path + "/";
-		}
-		return path + "backup_" + timestamp + ".zip";
+		String path = historyDatabaseDAO.lookupPath();
+		String timestamp = formatter.format(dateTime);
+		return path + "backup_" + timestamp + ".sql";
 	}
 }

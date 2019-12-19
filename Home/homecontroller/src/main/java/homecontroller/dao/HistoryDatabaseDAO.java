@@ -1,23 +1,31 @@
 package homecontroller.dao;
 
+import java.io.File;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import homecontroller.database.mapper.BigDecimalRowMapper;
+import homecontroller.database.mapper.LongRowMapper;
 import homecontroller.database.mapper.TimestampValuePair;
 import homecontroller.database.mapper.TimestampValueRowMapper;
 import homecontroller.model.HistoryValueType;
@@ -36,9 +44,18 @@ public class HistoryDatabaseDAO {
 	@Autowired
 	private JdbcTemplate jdbcTemplateHistory;
 
+	@Autowired
+	private Environment env;
+
+	private boolean setupIsRunning = true;
+
+	private static final Log LOG = LogFactory.getLog(HistoryDatabaseDAO.class);
+
 	@PostConstruct
 	@Transactional
 	public void setupTables() {
+
+		long completeCount = 0;
 
 		for (History history : History.values()) {
 			jdbcTemplateHistory.update("CREATE CACHED TABLE IF NOT EXISTS "
@@ -47,18 +64,62 @@ public class HistoryDatabaseDAO {
 			jdbcTemplateHistory.update(
 					"CREATE UNIQUE INDEX IF NOT EXISTS " + "IDX1_" + history.getCommand().buildVarName()
 							+ " ON " + history.getCommand().buildVarName() + " (TS, TYP);");
+
+			String countQuery = "SELECT COUNT(TS) AS CNT FROM " + history.getCommand().buildVarName() + ";";
+			long result = jdbcTemplateHistory.queryForObject(countQuery, new Object[] {},
+					new LongRowMapper("CNT"));
+			completeCount += result;
 		}
+
+		if (completeCount == 0) {
+			File importFile = new File(lookupPath() + "import.sql");
+			if (importFile.exists()) {
+				LOG.info("auto-import database from: " + importFile.getAbsolutePath());
+				restoreDatabase(importFile.getAbsolutePath());
+				importFile.renameTo(new File(importFile.getAbsolutePath() + ".done")); // NOSONAR
+			}
+		}
+
+		setupIsRunning = false;
 	}
 
 	@Transactional
 	public void backupDatabase(String filename) {
 
-		String sql = "BACKUP TO '" + filename + "';";
-		jdbcTemplateHistory.update(sql);
+		String sql = "SCRIPT TO '" + filename + "';";
+		jdbcTemplateHistory.execute(sql);
+
+		try {
+			String sqlFile = FileUtils.readFileToString(new File(filename), StandardCharsets.UTF_8);
+			String[] statements = StringUtils.split(sqlFile, ';');
+			StringBuilder sb = new StringBuilder();
+			Arrays.asList(statements).stream().forEach(e -> {
+				String line = StringUtils.trimToEmpty(e);
+				if (StringUtils.isNotBlank(line) && !StringUtils.startsWithIgnoreCase(line, "CREATE ")
+						&& !StringUtils.startsWithIgnoreCase(line, "ALTER ")
+						&& !StringUtils.startsWithIgnoreCase(line, "-- ")) {
+					sb.append(line + ";\n");
+				}
+			});
+			FileUtils.write(new File(filename), sb.toString(), StandardCharsets.UTF_8);
+		} catch (Exception e) {
+			LOG.error("error processing backup file:", e);
+		}
+	}
+
+	@Transactional
+	public void restoreDatabase(String filename) {
+
+		String sql = "RUNSCRIPT FROM '" + filename + "';";
+		jdbcTemplateHistory.execute(sql);
 	}
 
 	@Transactional
 	public void persistEntries(Map<HomematicCommand, List<TimestampValuePair>> toInsert) {
+
+		if (setupIsRunning) {
+			throw new IllegalStateException("connat persist entries - setup is still running");
+		}
 
 		for (Entry<HomematicCommand, List<TimestampValuePair>> entry : toInsert.entrySet()) {
 			String table = entry.getKey().buildVarName();
@@ -158,6 +219,15 @@ public class HistoryDatabaseDAO {
 		return jdbcTemplateHistory.query(
 				"select * FROM " + command.buildVarName() + whereClause + " order by ts asc;",
 				new Object[] {}, new TimestampValueRowMapper());
+	}
+
+	public String lookupPath() {
+
+		String path = env.getProperty("backup.database.path");
+		if (!path.endsWith("/")) {
+			path = path + "/";
+		}
+		return path;
 	}
 
 	private String formatTimestamp(LocalDateTime optionalFromDateTime) {
