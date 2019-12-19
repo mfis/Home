@@ -403,11 +403,7 @@ public class HouseService {
 
 	private void updateHomematicSystemVariables(HouseModel oldModel, HouseModel newModel) {
 
-		if (newModel.getConclusionClimateFacadeMin() != null
-				&& newModel.getConclusionClimateFacadeMin().getTemperature().getValue() != null
-				&& (oldModel == null
-						|| oldModel.getConclusionClimateFacadeMin().getTemperature().getValue().compareTo(
-								newModel.getConclusionClimateFacadeMin().getTemperature().getValue()) != 0)) {
+		if (newValueForOutdoorTemperature(oldModel, newModel)) {
 			api.executeCommand(HomematicCommand.write(newModel.getConclusionClimateFacadeMin().getDevice(),
 					Datapoint.SYSVAR_DUMMY,
 					newModel.getConclusionClimateFacadeMin().getTemperature().getValue().toString()));
@@ -418,6 +414,19 @@ public class HouseService {
 					Datapoint.SYSVAR_DUMMY,
 					Long.toString(newModel.getFrontDoor().getTimestampLastDoorbell())));
 		}
+	}
+
+	private boolean newValueForOutdoorTemperature(HouseModel oldModel, HouseModel newModel) {
+
+		// TODO: determinated nullable instances for no-value case (caused
+		// NPE after reboot)
+		return newModel.getConclusionClimateFacadeMin() != null
+				&& newModel.getConclusionClimateFacadeMin().getTemperature().getValue() != null
+				&& (oldModel == null || oldModel.getConclusionClimateFacadeMin() == null
+						|| oldModel.getConclusionClimateFacadeMin().getTemperature() == null
+						|| oldModel.getConclusionClimateFacadeMin().getTemperature().getValue() == null
+						|| oldModel.getConclusionClimateFacadeMin().getTemperature().getValue().compareTo(
+								newModel.getConclusionClimateFacadeMin().getTemperature().getValue()) != 0);
 	}
 
 	private void updateCameraPictures(HouseModel oldModel, HouseModel newModel) {
