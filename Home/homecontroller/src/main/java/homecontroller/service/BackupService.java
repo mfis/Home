@@ -112,6 +112,6 @@ public class BackupService {
 		}
 		String path = historyDatabaseDAO.lookupPath();
 		String timestamp = formatter.format(dateTime);
-		return path + "backup_" + timestamp + ".sql";
+		return path + "backup_" + timestamp + ".sql.zip";
 	}
 }

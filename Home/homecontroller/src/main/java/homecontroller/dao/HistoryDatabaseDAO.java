@@ -1,20 +1,25 @@
 package homecontroller.dao;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.StringTokenizer;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -22,10 +27,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import homecontroller.database.mapper.BigDecimalRowMapper;
 import homecontroller.database.mapper.LongRowMapper;
+import homecontroller.database.mapper.StringRowMapper;
 import homecontroller.database.mapper.TimestampValuePair;
 import homecontroller.database.mapper.TimestampValueRowMapper;
 import homecontroller.model.HistoryValueType;
@@ -53,10 +60,26 @@ public class HistoryDatabaseDAO {
 
 	@PostConstruct
 	@Transactional
-	public void setupTables() {
+	public void setupTables() throws IOException {
+
+		long completeCount = createTables();
+
+		if (completeCount == 0) {
+			File importFile = new File(lookupPath() + "import.sql.zip");
+			if (importFile.exists()) {
+				LOG.info("auto-import database from: " + importFile.getAbsolutePath());
+				restoreDatabase(importFile.getAbsolutePath());
+				importFile.renameTo(new File(importFile.getAbsolutePath() + ".done")); // NOSONAR
+			}
+		}
+
+		setupIsRunning = false;
+	}
+
+	@Transactional(propagation = Propagation.REQUIRED)
+	public long createTables() {
 
 		long completeCount = 0;
-
 		for (History history : History.values()) {
 			jdbcTemplateHistory.update("CREATE CACHED TABLE IF NOT EXISTS "
 					+ history.getCommand().buildVarName()
@@ -70,48 +93,71 @@ public class HistoryDatabaseDAO {
 					new LongRowMapper("CNT"));
 			completeCount += result;
 		}
-
-		if (completeCount == 0) {
-			File importFile = new File(lookupPath() + "import.sql");
-			if (importFile.exists()) {
-				LOG.info("auto-import database from: " + importFile.getAbsolutePath());
-				restoreDatabase(importFile.getAbsolutePath());
-				importFile.renameTo(new File(importFile.getAbsolutePath() + ".done")); // NOSONAR
-			}
-		}
-
-		setupIsRunning = false;
+		LOG.info("database row count: " + completeCount);
+		return completeCount;
 	}
 
 	@Transactional
 	public void backupDatabase(String filename) {
 
-		String sql = "SCRIPT TO '" + filename + "';";
-		jdbcTemplateHistory.execute(sql);
+		List<String> scriptQueries = jdbcTemplateHistory.query("SCRIPT;", new Object[] {},
+				new StringRowMapper("SCRIPT"));
 
-		try {
-			String sqlFile = FileUtils.readFileToString(new File(filename), StandardCharsets.UTF_8);
-			String[] statements = StringUtils.split(sqlFile, ';');
-			StringBuilder sb = new StringBuilder();
-			Arrays.asList(statements).stream().forEach(e -> {
+		try (FileOutputStream fos = new FileOutputStream(filename);
+				ZipOutputStream zipOut = new ZipOutputStream(fos);) {
+
+			ZipEntry zipEntry = new ZipEntry(new File(filename).getName().replace(".zip", ""));
+			zipOut.putNextEntry(zipEntry);
+
+			scriptQueries.stream().forEach(e -> {
 				String line = StringUtils.trimToEmpty(e);
-				if (StringUtils.isNotBlank(line) && !StringUtils.startsWithIgnoreCase(line, "CREATE ")
-						&& !StringUtils.startsWithIgnoreCase(line, "ALTER ")
-						&& !StringUtils.startsWithIgnoreCase(line, "-- ")) {
-					sb.append(line + ";\n");
+				if (isNotCreateOrAlterStatement(line)) {
+					byte[] cmdBytes = line.concat("\n").getBytes(StandardCharsets.UTF_8);
+					try {
+						zipOut.write(cmdBytes, 0, cmdBytes.length);
+					} catch (IOException ioe) {
+						throw new IllegalArgumentException("error writing zio out", ioe);
+					}
 				}
 			});
-			FileUtils.write(new File(filename), sb.toString(), StandardCharsets.UTF_8);
 		} catch (Exception e) {
 			LOG.error("error processing backup file:", e);
 		}
 	}
 
-	@Transactional
-	public void restoreDatabase(String filename) {
+	private boolean isNotCreateOrAlterStatement(String line) {
+		return StringUtils.isNotBlank(line) && !StringUtils.startsWithIgnoreCase(line, "CREATE ")
+				&& !StringUtils.startsWithIgnoreCase(line, "ALTER ")
+				&& !StringUtils.startsWithIgnoreCase(line, "-- ");
+	}
 
-		String sql = "RUNSCRIPT FROM '" + filename + "';";
-		jdbcTemplateHistory.execute(sql);
+	@Transactional(propagation = Propagation.REQUIRED)
+	public void restoreDatabase(String filename) throws IOException {
+
+		StringBuilder sb = new StringBuilder();
+		try (ZipInputStream zis = new ZipInputStream(new FileInputStream(filename));) {
+			byte[] buffer = new byte[1024];
+			ZipEntry zipEntry = zis.getNextEntry();
+			while (zipEntry != null) {
+				int len;
+				while ((len = zis.read(buffer)) > 0) {
+					String s = new String(buffer, 0, len, StandardCharsets.UTF_8);
+					sb.append(s);
+				}
+				zipEntry = zis.getNextEntry();
+			}
+			zis.closeEntry();
+		}
+
+		StringTokenizer tokenizer = new StringTokenizer(sb.toString(), ";");
+		while (tokenizer.hasMoreTokens()) {
+			insertFromStatement(tokenizer.nextToken().trim() + ";");
+		}
+	}
+
+	@Transactional(propagation = Propagation.REQUIRED)
+	public void insertFromStatement(String statement) {
+		jdbcTemplateHistory.update(statement);
 	}
 
 	@Transactional
