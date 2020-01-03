@@ -153,7 +153,9 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 		}
 
 		if ((StringUtils.endsWith(request.getRequestURI(), ".png")
-				|| StringUtils.endsWith(request.getRequestURI(), ".ico"))
+				|| StringUtils.endsWith(request.getRequestURI(), ".ico")
+				|| StringUtils.endsWith(request.getRequestURI(), ".css")
+				|| StringUtils.endsWith(request.getRequestURI(), ".js"))
 				&& StringUtils.countMatches(request.getRequestURI(), "/") == 1) {
 			return true;
 		}
