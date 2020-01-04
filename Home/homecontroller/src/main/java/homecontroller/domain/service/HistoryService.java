@@ -331,6 +331,7 @@ public class HistoryService {
 			if (dest == null) {
 				dest = new PowerConsumptionMonth();
 				if (!newModel.getElectricPowerConsumption().isEmpty()) {
+					dest.setPowerConsumption(0L);
 					dest.setMeasurePointMin(newModel.getElectricPowerConsumption()
 							.get(newModel.getElectricPowerConsumption().size() - 1).getMeasurePointMax());
 					dest.setLastSingleValue(newModel.getElectricPowerConsumption()

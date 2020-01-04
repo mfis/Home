@@ -1,5 +1,6 @@
 package home.service;
 
+import java.io.IOException;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,10 +18,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
@@ -29,13 +32,9 @@ import homecontroller.util.HomeAppConstants;
 
 public class LoginInterceptor extends HandlerInterceptorAdapter {
 
-	private static final String LOGOFF = "/logoff";
-
 	private static final String LOGIN_PASSWORD = "login_password"; // NOSONAR
 
 	private static final String LOGIN_USERNAME = "login_username";
-
-	private static final String LOGIN = "/login";
 
 	@Value("${authenticationURL}")
 	private String authURL;
@@ -58,10 +57,6 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
 			throws Exception {
 
-		if (isAssetRequest(request)) {
-			return true;
-		}
-
 		if (isControllerRequest(request)) {
 			String token = env.getProperty(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN);
 			String tokenSent = request.getHeader(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN);
@@ -69,11 +64,65 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 					StringUtils.isNotBlank(tokenSent) && StringUtils.equals(token, tokenSent));
 		}
 
-		if (StringUtils.equals(request.getRequestURI(), LOGOFF)) {
+		if (isAssetRequest(request)) {
+			return true;
+		}
+
+		if (isLoginRequest(request)) {
+			return true;
+		}
+
+		if (isLogoffRequest(request)) {
 			cookieDelete(request, response);
-			response.sendRedirect(LOGIN);
+			response.sendRedirect(LoginController.LOGIN_URI);
 			return false;
 		}
+
+		Map<String, String> params = mapRequestParameters(request);
+		String cookie = cookieRead(request);
+		String userName = null;
+
+		if (params.containsKey(LOGIN_USERNAME)) {
+			if (userHasNotAcceptedCookies(params)) {
+				response.sendRedirect(LoginController.LOGIN_COOKIECHECK_URI);
+				return false;
+			} else {
+				userName = login(params);
+			}
+		} else if (cookie != null) {
+			userName = StringUtils.trimToNull(LoginCookieDAO.getInstance().read(cookie));
+		}
+
+		return handleLoginttempt(request, response, params, userName);
+	}
+
+	private boolean userHasNotAcceptedCookies(Map<String, String> params) {
+		return !StringUtils.trimToEmpty(params.get("login_cookieok")).equals("true");
+	}
+
+	private boolean handleLoginttempt(HttpServletRequest request, HttpServletResponse response,
+			Map<String, String> params, String userName) throws IOException {
+
+		if (userName == null) {
+			String loginUser = StringUtils.trimToNull(params.get(LOGIN_USERNAME));
+			String cookie = StringUtils.trimToNull(cookieRead(request));
+			if (cookie != null || loginUser != null) {
+				response.sendRedirect(LoginController.LOGIN_FAILED_URI);
+				handleClientFalseLoginCounter();
+				logger.info("attempt login not successful - user=" + loginUser + ", cookie=" + cookie
+						+ ", requested=" + request.getRequestURI());
+			} else {
+				response.sendRedirect(LoginController.LOGIN_URI);
+			}
+			return false;
+		} else {
+			controllerFalseLoginCounter = 0; // reset at manual login
+			setNewCookie(request, response, userName);
+			return true;
+		}
+	}
+
+	private Map<String, String> mapRequestParameters(HttpServletRequest request) {
 
 		Map<String, String> params = new HashMap<>();
 		Enumeration<String> parameterNames = request.getParameterNames();
@@ -81,42 +130,18 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 			String key = parameterNames.nextElement();
 			params.put(key, request.getParameter(key));
 		}
-
-		boolean loggedIn = false;
-		if (params.containsKey(LOGIN_USERNAME)) {
-			if (!StringUtils.trimToEmpty(params.get("login_cookieok")).equals("true")) {
-				response.sendRedirect("/loginCookieCheck");
-				return false;
-			} else {
-				if (!login(params, request, response)) {
-					logger.info("login failed");
-					response.sendRedirect("/loginFailed");
-					return false;
-				} else {
-					loggedIn = true;
-					controllerFalseLoginCounter = 0; // reset
-				}
-			}
-		}
-
-		String user = StringUtils.trimToNull(LoginCookieDAO.getInstance().read(cookieRead(request)));
-		if (clientFalseLogin(loggedIn, user)) {
-			logger.info("no user - redirect to login page - " + request.getRequestURI());
-			response.sendRedirect(LOGIN);
-			handleClientFalseLogin();
-			return false;
-		}
-
-		if (!loggedIn) {
-			setNewCookie(request, response, user);
-		}
-		return true;
+		return params;
 	}
 
-	private void handleClientFalseLogin() {
+	private boolean isLogoffRequest(HttpServletRequest request) {
+		return StringUtils.equals(request.getRequestURI(), LoginController.LOGOFF_URI);
+	}
+
+	private void handleClientFalseLoginCounter() {
 
 		clientFalseLoginCounter++;
 		if (clientFalseLoginCounter > 10) { // cookie brute force attack?
+			logger.info("handleClientFalseLogin - deleting all cookie information");
 			LoginCookieDAO.getInstance().deleteAll();
 			clientFalseLoginCounter = 0;
 		}
@@ -142,10 +167,6 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 						ControllerRequestMapping.CONTROLLER_LONG_POLLING_FOR_AWAIT_MESSAGE_REQUEST);
 	}
 
-	private boolean clientFalseLogin(boolean loggedIn, String user) {
-		return user == null && !loggedIn;
-	}
-
 	private boolean isAssetRequest(HttpServletRequest request) {
 
 		if (StringUtils.startsWith(request.getRequestURI(), "/webjars/")) {
@@ -155,54 +176,70 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 		if ((StringUtils.endsWith(request.getRequestURI(), ".png")
 				|| StringUtils.endsWith(request.getRequestURI(), ".ico")
 				|| StringUtils.endsWith(request.getRequestURI(), ".css")
+				|| StringUtils.endsWith(request.getRequestURI(), "robots.txt")
 				|| StringUtils.endsWith(request.getRequestURI(), ".js"))
 				&& StringUtils.countMatches(request.getRequestURI(), "/") == 1) {
-			return true;
-		}
-
-		if (StringUtils.equals(request.getRequestURI(), LOGIN)) {
 			return true;
 		}
 
 		return StringUtils.equals(request.getRequestURI(), "/error");
 	}
 
-	private boolean login(Map<String, String> params, HttpServletRequest request,
-			HttpServletResponse response) {
+	private boolean isLoginRequest(HttpServletRequest request) {
+
+		if (StringUtils.equals(request.getRequestURI(), LoginController.LOGIN_URI)) {
+			return true;
+		}
+
+		if (StringUtils.equals(request.getRequestURI(), LoginController.LOGIN_COOKIECHECK_URI)) {
+			return true;
+		}
+
+		if (StringUtils.equals(request.getRequestURI(), LoginController.LOGIN_FAILED_URI)) { // NOSONAR
+			return true;
+		}
+
+		return false;
+	}
+
+	private String login(Map<String, String> params) {
 
 		String loginUser = StringUtils.trimToEmpty(params.get(LOGIN_USERNAME));
 		String loginPass = StringUtils.trimToEmpty(params.get(LOGIN_PASSWORD));
 		if (checkAuthentication(loginUser, loginPass)) {
-			setNewCookie(request, response, loginUser);
-			return true;
+			return loginUser;
 		} else {
-			return false;
+			return null;
 		}
 	}
 
 	public boolean checkAuthentication(String user, String pass) {
 
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Accept", "*/*");
+		headers.add("Cache-Control", "no-cache");
+		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+		MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
+		map.add("user", user);
+		map.add("pass", pass);
+		map.add("application", "home");
+
+		HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
 		try {
-
-			HttpHeaders headers = new HttpHeaders();
-			headers.add("Accept", "*/*");
-			headers.add("Cache-Control", "no-cache");
-			headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-			MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
-			map.add("user", user);
-			map.add("pass", pass);
-			map.add("application", "home");
-
-			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
 			ResponseEntity<String> responseEntity = restTemplate.postForEntity(authURL, request,
 					String.class);
 			return responseEntity.getStatusCode().is2xxSuccessful();
-
+		} catch (HttpClientErrorException e) {
+			if (e.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+				return false;
+			} else {
+				logger.error("Checking authentication not successful.(#1)", e);
+			}
 		} catch (Exception e) {
-			logger.error("Checking authentication not successful.", e);
-			return false;
+			logger.error("Checking authentication not successful.(#2)", e);
 		}
+		return false;
 	}
 
 	private String cookieRead(HttpServletRequest request) {
