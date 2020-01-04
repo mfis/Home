@@ -12,11 +12,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import homecontroller.domain.model.Device;
 import homecontroller.domain.model.Hint;
 import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.RoomClimate;
 import homecontroller.domain.model.SettingsModel;
+import homelibrary.homematic.model.Device;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PushServiceTest {

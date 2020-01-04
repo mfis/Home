@@ -2,6 +2,9 @@ package homecontroller.domain.model;
 
 import java.io.Serializable;
 
+import homelibrary.homematic.model.Device;
+import homelibrary.homematic.model.Type;
+
 public abstract class AbstractDeviceModel implements Serializable {
 
 	private static final long serialVersionUID = 1L;

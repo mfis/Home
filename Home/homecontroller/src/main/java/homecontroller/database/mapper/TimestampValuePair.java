@@ -1,32 +1,44 @@
 package homecontroller.database.mapper;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+
+import homecontroller.model.HistoryValueType;
 
 public class TimestampValuePair {
 
-	private LocalDateTime timeatamp;
+	private LocalDateTime timestamp;
 
-	public TimestampValuePair(LocalDateTime timeatamp, long value) {
+	private BigDecimal value;
+
+	private HistoryValueType type;
+
+	public TimestampValuePair(LocalDateTime timestamp, BigDecimal value, HistoryValueType type) {
 		super();
-		this.timeatamp = timeatamp;
+		this.timestamp = timestamp;
 		this.value = value;
+		this.type = type;
 	}
 
-	private long value;
-
-	public LocalDateTime getTimeatamp() {
-		return timeatamp;
+	public LocalDateTime getTimestamp() {
+		return timestamp;
 	}
 
-	public void setTimeatamp(LocalDateTime timeatamp) {
-		this.timeatamp = timeatamp;
-	}
-
-	public long getValue() {
+	public BigDecimal getValue() {
 		return value;
 	}
 
-	public void setValue(long value) {
-		this.value = value;
+	public HistoryValueType getType() {
+		return type;
 	}
+
+	@Override
+	public String toString() {
+		return "TimestampValuePair [timestamp=" + timestamp + ", value=" + value + ", type=" + type + "]";
+	}
+
+	public void setTimestamp(LocalDateTime timestamp) {
+		this.timestamp = timestamp;
+	}
+
 }

@@ -25,19 +25,20 @@ import home.model.MessageType;
 import homecontroller.domain.model.AbstractDeviceModel;
 import homecontroller.domain.model.AutomationState;
 import homecontroller.domain.model.Climate;
-import homecontroller.domain.model.Device;
 import homecontroller.domain.model.Heating;
 import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.OutdoorClimate;
 import homecontroller.domain.model.Place;
 import homecontroller.domain.model.ShutterPosition;
 import homecontroller.domain.model.Switch;
-import homecontroller.domain.model.Type;
 import homelibrary.dao.ModelObjectDAO;
+import homelibrary.homematic.model.Device;
+import homelibrary.homematic.model.Type;
 
 @Component
 public class TextQueryService {
 
+	private static final String DER_NEUE_WERT_KONNTE_LEIDER_NICHT_BESTAETIGT_WERDEN = "Der neue Wert konnte leider nicht bestätigt werden";
 	@Autowired
 	private HouseViewService houseViewService;
 
@@ -159,7 +160,7 @@ public class TextQueryService {
 			boolean success = response != null && response.isSuccessfullExecuted();
 
 			if (!success) {
-				builder.add("Der neue Wert konnte leider nicht bestätigt werden");
+				builder.add(DER_NEUE_WERT_KONNTE_LEIDER_NICHT_BESTAETIGT_WERDEN);
 				return builder.getText();
 			}
 
@@ -169,7 +170,7 @@ public class TextQueryService {
 		}
 
 		if (heating == null) {
-			builder.add("Der neue Wert konnte leider nicht bestätigt werden");
+			builder.add(DER_NEUE_WERT_KONNTE_LEIDER_NICHT_BESTAETIGT_WERDEN);
 			return builder.getText();
 		}
 
@@ -213,7 +214,7 @@ public class TextQueryService {
 			powerswitch = refreshModel(powerswitch);
 
 			if (!success) {
-				builder.add("Der neue Wert konnte leider nicht bestätigt werden");
+				builder.add(DER_NEUE_WERT_KONNTE_LEIDER_NICHT_BESTAETIGT_WERDEN);
 				return builder.getText();
 			}
 
@@ -222,7 +223,7 @@ public class TextQueryService {
 		}
 
 		builder //
-				.add(PlacePrepositions.getPreposition(powerswitch.getDevice().getPlace())) //
+				.add(PlacePrepositions.getPreposition(powerswitch.getDevice().getPlace())) // NOSONAR
 				.add(powerswitch.getDevice().getPlace().getPlaceName()) //
 				.add("ist der") //
 				.add(powerswitch.getDevice().getType().getTypeName()) //
@@ -232,7 +233,7 @@ public class TextQueryService {
 		if (powerswitch.getAutomation() != null) {
 			builder //
 					.add("Die Bedienung ist zu Zeit auf") //
-					.add(powerswitch.getAutomation() ? "Automatik" : "manuell") //
+					.add(Boolean.TRUE.equals(powerswitch.getAutomation()) ? "Automatik" : "manuell") //
 					.add("eingestellt");
 		}
 
@@ -378,20 +379,25 @@ public class TextQueryService {
 		for (Device device : Device.values()) {
 			for (Place devicePlaces : device.getPlace().allPlaces()) {
 				for (Type deviceTypes : device.getType().allTypes()) {
-					if (devicePlaces == place && deviceTypes == type && device.isTextQueryEnabled()) {
-						if (controlQuery && !type.isControllable()) {
-							// control command not applicable for this type of
-							// device
-						} else {
-							TypeAndDevice typeAndDevice = new TypeAndDevice();
-							typeAndDevice.type = type;
-							typeAndDevice.device = device;
-							list.add(typeAndDevice);
-						}
+					if (isMatchingDevice(place, type, device, devicePlaces, deviceTypes)
+							&& !isNotControllable(type, controlQuery)) {
+						TypeAndDevice typeAndDevice = new TypeAndDevice();
+						typeAndDevice.type = type;
+						typeAndDevice.device = device;
+						list.add(typeAndDevice);
 					}
 				}
 			}
 		}
+	}
+
+	private boolean isNotControllable(Type type, boolean controlQuery) {
+		return controlQuery && !type.isControllable();
+	}
+
+	private boolean isMatchingDevice(Place place, Type type, Device device, Place devicePlaces,
+			Type deviceTypes) {
+		return devicePlaces == place && deviceTypes == type && device.isTextQueryEnabled();
 	}
 
 	private class TypeAndDevice {

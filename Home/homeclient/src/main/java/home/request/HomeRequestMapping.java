@@ -16,6 +16,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -25,17 +27,17 @@ import home.model.Message;
 import home.model.MessageQueue;
 import home.model.MessageType;
 import home.model.Pages;
-import home.service.ExternalPropertiesDAO;
+import home.service.LoginCookieDAO;
 import home.service.LoginInterceptor;
 import home.service.SettingsViewService;
 import home.service.TextQueryService;
 import home.service.ViewAttributesDAO;
 import homecontroller.domain.model.CameraMode;
 import homecontroller.domain.model.CameraPicture;
-import homecontroller.domain.model.Device;
 import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.SettingsModel;
 import homelibrary.dao.ModelObjectDAO;
+import homelibrary.homematic.model.Device;
 
 @Controller
 public class HomeRequestMapping {
@@ -59,7 +61,7 @@ public class HomeRequestMapping {
 	@Autowired
 	private TextQueryService textQueryService;
 
-	@RequestMapping("/message")
+	@GetMapping("/message")
 	public String message(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
 			@RequestParam(name = "type") String type,
 			@RequestParam(name = DEVICE_NAME, required = false) String deviceName,
@@ -74,18 +76,16 @@ public class HomeRequestMapping {
 		return REDIRECT + response.getMessageType().getTargetSite();
 	}
 
-	@RequestMapping("/history")
+	@GetMapping("/history")
 	public String history(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
 			@RequestParam(name = "key") String key) {
-		LogFactory.getLog(this.getClass()).info("/history - " + key);
 		fillUserAttributes(model, userCookie);
 		houseView.fillHistoryViewModel(model, ModelObjectDAO.getInstance().readHistoryModel(),
 				ModelObjectDAO.getInstance().readHouseModel(), key);
-		LogFactory.getLog(this.getClass()).info("model:" + model.asMap().toString());
 		return "history";
 	}
 
-	@RequestMapping("/textquery")
+	@PostMapping("/textquery")
 	public String textquery(Model model, @RequestParam("text") String text, @RequestParam("user") String user,
 			@RequestParam("pass") String pass) {
 		model.addAttribute("responsetext",
@@ -93,7 +93,7 @@ public class HomeRequestMapping {
 		return "textquery";
 	}
 
-	@RequestMapping(value = "/cameraPicture", produces = "image/jpeg")
+	@GetMapping(value = "/cameraPicture", produces = "image/jpeg")
 	public ResponseEntity<byte[]> cameraPicture(@RequestParam(DEVICE_NAME) String deviceName,
 			@RequestParam(CAMERA_MODE) String cameraMode, @RequestParam("ts") String timestamp,
 			@RequestParam(name = "onlyheader", required = false) String onlyheader) {
@@ -114,7 +114,7 @@ public class HomeRequestMapping {
 		}
 	}
 
-	@RequestMapping(value = "/cameraPictureRequest")
+	@GetMapping(value = "/cameraPictureRequest")
 	public ResponseEntity<String> cameraPictureRequest(Model model,
 			@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
 			@RequestParam(name = "type") String type,
@@ -127,7 +127,7 @@ public class HomeRequestMapping {
 		return new ResponseEntity<>(response.getResponse(), HttpStatus.OK);
 	}
 
-	@RequestMapping(Pages.PATH_HOME)
+	@RequestMapping(Pages.PATH_HOME) // NOSONAR
 	public String homePage(Model model, HttpServletResponse response,
 			@CookieValue(name = LoginInterceptor.COOKIE_NAME, required = false) String userCookie,
 			@RequestHeader(name = "ETag", required = false) String etag) {
@@ -147,7 +147,7 @@ public class HomeRequestMapping {
 		}
 	}
 
-	@RequestMapping(Pages.PATH_LINKS)
+	@GetMapping(Pages.PATH_LINKS)
 	public String links(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie) {
 		fillMenu(Pages.PATH_LINKS, model);
 		fillUserAttributes(model, userCookie);
@@ -155,11 +155,11 @@ public class HomeRequestMapping {
 		return Pages.getEntry(Pages.PATH_LINKS).getTemplate();
 	}
 
-	@RequestMapping(Pages.PATH_SETTINGS)
+	@GetMapping(Pages.PATH_SETTINGS)
 	public String settings(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie) {
 		fillMenu(Pages.PATH_SETTINGS, model);
 		fillUserAttributes(model, userCookie);
-		String user = ExternalPropertiesDAO.getInstance().read(userCookie);
+		String user = LoginCookieDAO.getInstance().read(userCookie);
 		SettingsModel settings = ModelObjectDAO.getInstance().readSettingsModels(user);
 		settingsView.fillSettings(model, settings);
 		return Pages.getEntry(Pages.PATH_SETTINGS).getTemplate();
@@ -174,7 +174,7 @@ public class HomeRequestMapping {
 		message.setMessageType(messageType);
 		message.setDevice(device);
 		message.setValue(value);
-		message.setUser(ExternalPropertiesDAO.getInstance().read(userCookie));
+		message.setUser(LoginCookieDAO.getInstance().read(userCookie));
 
 		return MessageQueue.getInstance().request(message, true);
 	}
@@ -188,7 +188,7 @@ public class HomeRequestMapping {
 	}
 
 	private void fillUserAttributes(Model model, String userCookie) {
-		String user = ExternalPropertiesDAO.getInstance().read(userCookie);
+		String user = LoginCookieDAO.getInstance().read(userCookie);
 		if (user != null) {
 			model.addAttribute(ViewAttributesDAO.USER_NAME, user);
 		}

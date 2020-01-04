@@ -33,10 +33,11 @@ import org.springframework.web.client.RestTemplate;
 import homecontroller.domain.model.CameraMode;
 import homecontroller.domain.model.CameraModel;
 import homecontroller.domain.model.CameraPicture;
-import homecontroller.domain.model.Device;
 import homecontroller.domain.model.FrontDoor;
 import homecontroller.domain.service.UploadService;
 import homelibrary.dao.ModelObjectDAO;
+import homelibrary.homematic.model.Device;
+import homelibrary.homematic.model.HomematicCommand;
 
 @Component
 public class CameraService {
@@ -99,8 +100,8 @@ public class CameraService {
 				} catch (Exception e) {
 					LOG.error("Exception taking picture:", e);
 				}
-				if (LOG.isInfoEnabled()) {
-					LOG.info("TIME = " + (System.currentTimeMillis() - l1) + " ms");
+				if (LOG.isDebugEnabled()) {
+					LOG.debug("TIME = " + (System.currentTimeMillis() - l1) + " ms");
 				}
 			}
 		});
@@ -119,7 +120,7 @@ public class CameraService {
 			cameraModel.setLivePicture(cameraPicture);
 		} else if (cameraPicture.getCameraMode() == CameraMode.EVENT) {
 			LOG.info("writing event picture: " + cameraPicture.getTimestamp());
-			cameraModel.getEventPictures().add(cameraPicture); // FIXME:
+			cameraModel.getEventPictures().add(cameraPicture); // TODO:
 																// DELETE
 																// OLDEST
 		}
@@ -137,8 +138,8 @@ public class CameraService {
 			return;
 		}
 
-		LOG.info("RUN PROGRAM: " + deviceSwitch.programNamePrefix() + "DirektEinschalten");
-		homematicAPI.runProgram(deviceSwitch.programNamePrefix() + "DirektEinschalten");
+		LOG.info("Kamera einschalten...");
+		homematicAPI.executeCommand(HomematicCommand.exec(deviceSwitch, "DirektEinschalten"));
 		boolean pingCameraOk = false;
 		long startPolling = System.currentTimeMillis();
 		do {
@@ -211,7 +212,7 @@ public class CameraService {
 
 		try {
 			ResponseEntity<byte[]> response = restTemplateBinaryResponse
-					.getForEntity("http://192.168.2.203/capture", byte[].class); // FIXME:
+					.getForEntity("http://192.168.2.203/capture", byte[].class); // TODO:
 																					// externalize
 																					// url
 

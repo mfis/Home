@@ -3,18 +3,32 @@ package homecontroller.service;
 import java.time.Duration;
 import java.util.List;
 
+import javax.sql.DataSource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.core.env.Environment;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import com.zaxxer.hikari.HikariDataSource;
 
 import homecontroller.util.HomeAppConstants;
 
 @Configuration
 public class SpringConfiguration implements WebMvcConfigurer {
+
+	@Autowired
+	private Environment env;
 
 	@Bean
 	public ByteArrayHttpMessageConverter byteArrayHttpMessageConverter() {
@@ -44,8 +58,41 @@ public class SpringConfiguration implements WebMvcConfigurer {
 	@Bean(name = "restTemplateLongPolling")
 	public RestTemplate restTemplateLongPolling(RestTemplateBuilder restTemplateBuilder) {
 		return restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(10)).setReadTimeout(Duration
-				.ofSeconds(HomeAppConstants.CONTROLLER_CLIENT_LONGPOLLING_REQUEST_TIMEOUT_SECONDS * 2))
+				.ofSeconds(HomeAppConstants.CONTROLLER_CLIENT_LONGPOLLING_REQUEST_TIMEOUT_SECONDS * 2L))
 				.build();
+	}
+
+	@Bean
+	@Primary
+	public DataSourceProperties dataSourceProperties() {
+		return new DataSourceProperties();
+	}
+
+	@Bean
+	@Primary
+	public DataSource dataSource() {
+		return dataSourceProperties().initializeDataSourceBuilder().type(HikariDataSource.class).build();
+	}
+
+	@Bean
+	@Primary
+	public JdbcTemplate jdbcTemplateHistory(DataSource ds) {
+		return new JdbcTemplate(ds);
+	}
+
+	@Bean(name = "datasourceMigration")
+	public DataSource datasourceMigration() {
+		DriverManagerDataSource dataSource = new DriverManagerDataSource();
+		dataSource.setDriverClassName(env.getProperty("datamigration.driverClassName"));
+		dataSource.setUrl(env.getProperty("datamigration.url"));
+		dataSource.setUsername(env.getProperty("datamigration.username"));
+		dataSource.setPassword(env.getProperty("datamigration.password"));
+		return dataSource;
+	}
+
+	@Bean(name = "jdbcTemplateMigrationDB")
+	public JdbcTemplate jdbcTemplateMigration(@Qualifier("datasourceMigration") DataSource ds) {
+		return new JdbcTemplate(ds);
 	}
 
 }

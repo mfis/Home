@@ -37,7 +37,6 @@ import home.model.MessageType;
 import homecontroller.domain.model.AutomationState;
 import homecontroller.domain.model.CameraMode;
 import homecontroller.domain.model.Climate;
-import homecontroller.domain.model.Device;
 import homecontroller.domain.model.FrontDoor;
 import homecontroller.domain.model.Heating;
 import homecontroller.domain.model.HistoryModel;
@@ -51,19 +50,26 @@ import homecontroller.domain.model.ShutterPosition;
 import homecontroller.domain.model.Switch;
 import homecontroller.domain.model.TemperatureHistory;
 import homecontroller.domain.model.Window;
+import homelibrary.homematic.model.Device;
 
 @Component
 public class HouseViewService {
+
+	private static final String AND_VALUE_IS = "&value=";
+
+	private static final String AND_DEVICE_IS = "&deviceName=";
+
+	private static final String TYPE_IS = "type=";
 
 	private static final String COLOR_CLASS_RED = "danger";
 
 	public static final String MESSAGEPATH = "/message?"; // NOSONAR
 
 	private static final String DEGREE = "\u00b0";
-	private static final String TOGGLE_STATE = MESSAGEPATH + "type=" + MessageType.TOGGLESTATE
-			+ "&deviceName=";
-	private static final String TOGGLE_AUTOMATION = MESSAGEPATH + "type=" + MessageType.TOGGLEAUTOMATION
-			+ "&deviceName=";
+	private static final String TOGGLE_STATE = MESSAGEPATH + TYPE_IS + MessageType.TOGGLESTATE
+			+ AND_DEVICE_IS;
+	private static final String TOGGLE_AUTOMATION = MESSAGEPATH + TYPE_IS + MessageType.TOGGLEAUTOMATION
+			+ AND_DEVICE_IS;
 
 	private static final BigDecimal HIGH_TEMP = new BigDecimal("25");
 	private static final BigDecimal LOW_TEMP = new BigDecimal("18");
@@ -110,7 +116,8 @@ public class HouseViewService {
 		formatClimate(model, "tempBedroom", house.getClimateBedRoom(), null, true);
 		formatClimate(model, "tempLaundry", house.getClimateLaundry(), null, true);
 
-		formatWindow(model, "leftWindowBedroom", house.getLeftWindowBedRoom());
+		// formatWindow(model, "leftWindowBedroom",
+		// house.getLeftWindowBedRoom()); // NOSONAR
 
 		formatFacadeTemperatures(model, "tempMinHouse", "tempMaxHouse", house);
 
@@ -147,9 +154,7 @@ public class HouseViewService {
 				Long calculated = null;
 				entry.setLineOneLabel(MONTH_YEAR_FORMATTER.format(pcm.measurePointMaxDateTime()));
 				entry.setLineOneValue(decimalFormat.format(pcm.getPowerConsumption() / KWH_FACTOR) + " kW/h");
-				if (index < history.getElectricPowerConsumption().size() - 3) {
-					entry.setCollapse(" collapse multi-collapse historyTarget");
-				}
+				lookupCollapsable(history, index, entry);
 				boolean calculateDifference = true;
 				if (index == history.getElectricPowerConsumption().size() - 1) {
 					if (pcm.measurePointMaxDateTime().getDayOfMonth() > 1) {
@@ -175,6 +180,12 @@ public class HouseViewService {
 		model.addAttribute("historyEntries", list);
 	}
 
+	private void lookupCollapsable(HistoryModel history, int index, HistoryEntry entry) {
+		if (index < history.getElectricPowerConsumption().size() - 3) {
+			entry.setCollapse(" collapse multi-collapse historyTarget");
+		}
+	}
+
 	private void formatFrontDoor(Model model, FrontDoor frontDoor, Device device) {
 
 		FrontDoorView frontDoorView = new FrontDoorView();
@@ -189,7 +200,7 @@ public class HouseViewService {
 		frontDoorView.setLinkLive(
 				"/cameraPicture?deviceName=" + device.name() + "&cameraMode=" + CameraMode.LIVE + "&ts=");
 		frontDoorView.setLinkLiveRequest("/cameraPictureRequest?type=" + MessageType.CAMERAPICTUREREQUEST
-				+ "&deviceName=" + device.name() + "&value=null");
+				+ AND_DEVICE_IS + device.name() + "&value=null");
 		frontDoorView.setLinkBell("/cameraPicture?deviceName=" + device.name() + "&cameraMode="
 				+ CameraMode.EVENT + "&ts=" + frontDoor.getTimestampLastDoorbell());
 
@@ -259,15 +270,25 @@ public class HouseViewService {
 			return "n/a";
 		}
 
-		DecimalFormat decimalFormat = new DecimalFormat("0");
-		String minFrmt = decimalFormat.format(min);
-		String maxFrmt = decimalFormat.format(max);
+		String minFrmt = formatTemperature(min);
+		String maxFrmt = formatTemperature(max);
 
 		if (StringUtils.equals(minFrmt, maxFrmt)) {
 			return minFrmt + DEGREE + "C";
 		}
 
 		return minFrmt + DEGREE + "C bis " + maxFrmt + DEGREE + "C";
+	}
+
+	private String formatTemperature(BigDecimal value) {
+
+		DecimalFormat decimalFormat = new DecimalFormat("0");
+		String frmt = decimalFormat.format(value);
+		if ("-0".equals(frmt)) { // special case: some negative value roundet to
+									// zero has a leading '-'
+			frmt = "0";
+		}
+		return frmt;
 	}
 
 	private void calculatePreviousYearDifference(HistoryEntry entry, PowerConsumptionMonth pcm,
@@ -404,10 +425,10 @@ public class HouseViewService {
 				view.setLinkBoost(String.valueOf(heating.getBoostMinutesLeft()));
 				view.setColorClassHeating(COLOR_CLASS_RED);
 			} else {
-				view.setLinkBoost(MESSAGEPATH + "type=" + MessageType.HEATINGBOOST + "&deviceName="
+				view.setLinkBoost(MESSAGEPATH + TYPE_IS + MessageType.HEATINGBOOST + AND_DEVICE_IS
 						+ heating.getDevice().name() + "&value=null");
 			}
-			view.setLinkManual(MESSAGEPATH + "type=" + MessageType.HEATINGMANUAL + "&deviceName="
+			view.setLinkManual(MESSAGEPATH + TYPE_IS + MessageType.HEATINGMANUAL + AND_DEVICE_IS
 					+ heating.getDevice().name()); // value set in ui fragment
 			view.setTargetTemp(format(heating.getTargetTemperature(), false));
 			view.setHeatericon("fab fa-hotjar");
@@ -513,23 +534,24 @@ public class HouseViewService {
 		view.setName(switchModel.getDevice().getType().getTypeName());
 		view.setState(switchModel.isState() ? "Eingeschaltet" : "Ausgeschaltet");
 		if (switchModel.getAutomation() != null) {
-			if (switchModel.getAutomation()) {
+			if (Boolean.TRUE.equals(switchModel.getAutomation())) {
 				view.setState(view.getState() + ", automatisch");
-				view.setLinkManual(TOGGLE_AUTOMATION + switchModel.getDevice().name() + "&value="
+				view.setLinkManual(TOGGLE_AUTOMATION + switchModel.getDevice().name() + AND_VALUE_IS
 						+ AutomationState.MANUAL.name());
 			} else {
 				view.setState(view.getState() + ", manuell");
-				view.setLinkAuto(TOGGLE_AUTOMATION + switchModel.getDevice().name() + "&value="
+				view.setLinkAuto(TOGGLE_AUTOMATION + switchModel.getDevice().name() + AND_VALUE_IS
 						+ AutomationState.AUTOMATIC.name());
 			}
 			view.setAutoInfoText(StringUtils.trimToEmpty(switchModel.getAutomationInfoText()));
 		}
 		view.setLabel(switchModel.isState() ? "ausschalten" : "einschalten");
 		view.setIcon(switchModel.isState() ? "fas fa-toggle-on" : "fas fa-toggle-off");
-		view.setLink(TOGGLE_STATE + switchModel.getDevice().name() + "&value=" + !switchModel.isState());
+		view.setLink(TOGGLE_STATE + switchModel.getDevice().name() + AND_VALUE_IS + !switchModel.isState());
 		model.addAttribute(viewKey, view);
 	}
 
+	@SuppressWarnings("unused")
 	private void formatWindow(Model model, String viewKey, Window windowModel) {
 
 		ShutterView view = new ShutterView();
@@ -538,7 +560,7 @@ public class HouseViewService {
 		view.setState(windowModel.getShutterPosition().getText(windowModel.getShutterPositionPercentage()));
 
 		if (windowModel.getShutterAutomation() != null) {
-			if (windowModel.getShutterAutomation()) {
+			if (Boolean.TRUE.equals(windowModel.getShutterAutomation())) {
 				view.setState(view.getState() + ", automatisch");
 				view.setLinkManual(TOGGLE_AUTOMATION + windowModel.getDevice().name() + "&value=false");
 			} else {
@@ -566,8 +588,8 @@ public class HouseViewService {
 		if (shutterPosition == windowModel.getShutterPosition()) {
 			return "#";
 		} else {
-			return MESSAGEPATH + "type=" + MessageType.SHUTTERPOSITION + "&deviceName="
-					+ windowModel.getDevice().name() + "&value=" + shutterPosition.getControlPosition();
+			return MESSAGEPATH + TYPE_IS + MessageType.SHUTTERPOSITION + AND_DEVICE_IS
+					+ windowModel.getDevice().name() + AND_VALUE_IS + shutterPosition.getControlPosition();
 		}
 	}
 
