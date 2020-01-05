@@ -9,6 +9,16 @@
 			<div style="height: 20px;"></div>
 			<div th:class="'alert alert-danger callout-danger'">
 				<h4>Es ist ein Fehler aufgetreten.</h4>
+				<br/>
+				<p th:text="'Timestamp: ' + ${timestamp}"></p>
+				<p th:text="'Status: ' + ${status} + ' - ' + ${error}"></p>
+				<p th:text="'Resource: ' + ${path}"></p>
+				<th:block th:if="${!#strings.isEmpty(message) and !#strings.equals(message, 'No message available')}">
+					<p th:text="'Message: ' + ${message}"></p>
+				</th:block>
+				<th:block th:if="${!#strings.isEmpty(exception)}">
+					<p th:text="'Exception: ' + ${exception}"></p>
+				</th:block>				
 			</div>
 			<button type="button" th:onclick="@{'back()'}"  class="btn btn-secondary" th:text="'zurück'"></button>
 		</div>
