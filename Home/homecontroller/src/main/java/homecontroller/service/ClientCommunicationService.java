@@ -203,9 +203,9 @@ public class ClientCommunicationService {
 		String suppressLogEntries = resourceNotAvailableCounter == 5
 				? " NO FURTHER LOG ENTRIES WILL BE WRITTEN."
 				: "";
-		if (resourceNotAvailableCounter < 6) {
+		if (resourceNotAvailableCounter < 4) {
 			LOG.warn("Could not connect to client to poll for message (#" + resourceNotAvailableCounter
-					+ "). " + e.getMessage() + suppressLogEntries);
+					+ "). " + e.getMessage().replace('\r', ' ').replace('\n', ' ') + suppressLogEntries);
 		}
 	}
 
