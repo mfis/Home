@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.Stream;
 
 import javax.annotation.PreDestroy;
 
@@ -93,16 +92,18 @@ public class BackupService {
 		}
 	}
 
-	@Scheduled(cron = "0 45 02 * * *")
-	private void backupHistorian() {
-
-		try (Stream<Path> pathes = Files.walk(Paths.get(env.getProperty("backup.base")))) {
-			Stream<Path> readablePathes = pathes.filter(path -> path.toFile().isFile());
-			backupAPI.backup(readablePathes);
-		} catch (IOException ioe) {
-			LOG.error("Exception reading historian backup files:", ioe);
-		}
-	}
+	// @Scheduled(cron = "0 45 02 * * *")
+	// private void backupHistorian() {
+	//
+	// try (Stream<Path> pathes =
+	// Files.walk(Paths.get(env.getProperty("backup.base")))) {
+	// Stream<Path> readablePathes = pathes.filter(path ->
+	// path.toFile().isFile());
+	// backupAPI.backup(readablePathes);
+	// } catch (IOException ioe) {
+	// LOG.error("Exception reading historian backup files:", ioe);
+	// }
+	// }
 
 	private String backupFilename(DateTimeFormatter formatter, boolean yesterday) {
 
