@@ -200,7 +200,7 @@ public class HouseViewService {
 				spacer.setValue(SPACER_VALUE.toString());
 				chartEntry.getValuesWithCaptions().add(spacer);
 			}
-			chartEntry.setAdditionalLabel("\u2211 " + chartValueCaption(decimalFormat, daySum));
+			chartEntry.setAdditionalLabel("\u2211 " + decimalFormat.format(daySum));
 			chartEntries.add(chartEntry);
 			index++;
 		}
@@ -368,7 +368,7 @@ public class HouseViewService {
 	private String formatTemperature(BigDecimal value) {
 
 		DecimalFormat decimalFormat = new DecimalFormat("0");
-		String frmt = chartValueCaption(decimalFormat, value);
+		String frmt = decimalFormat.format(value);
 		if ("-0".equals(frmt)) { // special case: some negative value roundet to
 									// zero has a leading '-'
 			frmt = "0";
@@ -397,7 +397,7 @@ public class HouseViewService {
 			long diff = baseValue - compareValue;
 			BigDecimal percentage = new BigDecimal(diff)
 					.divide(new BigDecimal(baseValue), 4, RoundingMode.HALF_UP).multiply(BD100);
-			entry.setBadgeValue(chartValueCaption(decimalFormat, percentage) + "%");
+			entry.setBadgeValue(decimalFormat.format(percentage) + "%");
 			if (percentage.intValue() <= COMPARE_PERCENTAGE_GREEN_UNTIL) {
 				entry.setBadgeClass("badge-success");
 			} else if (percentage.intValue() <= COMPARE_PERCENTAGE_GRAY_UNTIL) {
