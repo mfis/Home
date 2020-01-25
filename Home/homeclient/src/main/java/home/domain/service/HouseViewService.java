@@ -90,6 +90,7 @@ public class HouseViewService {
 	private static final BigDecimal KWH_FACTOR_BD = new BigDecimal(KWH_FACTOR);
 	private static final BigDecimal SPACER_VALUE = new BigDecimal("0.5");
 	private static final BigDecimal HUNDRED = new BigDecimal("100");
+	private static final BigDecimal ONE_POINT_NINE = new BigDecimal("1.9");
 
 	private static final DateTimeFormatter MONTH_YEAR_FORMATTER = DateTimeFormatter.ofPattern("MMM yyyy");
 	private static final DateTimeFormatter DAY_MONTH_YEAR_FORMATTER = DateTimeFormatter
@@ -191,7 +192,7 @@ public class HouseViewService {
 				BigDecimal kwh = entry.getValue().divide(KWH_FACTOR_BD,
 						new MathContext(3, RoundingMode.HALF_UP));
 				daySum = daySum.add(kwh);
-				vwc.setCaption(decimalFormat.format(kwh));
+				vwc.setCaption(chartValueCaption(decimalFormat, kwh));
 				vwc.setValue(chartValuePerPowerValue.multiply(kwh).toString());
 				chartEntry.getValuesWithCaptions().add(vwc);
 				ValueWithCaption spacer = new ValueWithCaption();
@@ -199,13 +200,24 @@ public class HouseViewService {
 				spacer.setValue(SPACER_VALUE.toString());
 				chartEntry.getValuesWithCaptions().add(spacer);
 			}
-			chartEntry.setAdditionalLabel("\u2211 " + decimalFormat.format(daySum));
+			chartEntry.setAdditionalLabel("\u2211 " + chartValueCaption(decimalFormat, daySum));
 			chartEntries.add(chartEntry);
 			index++;
 		}
 
 		Collections.reverse(chartEntries);
 		model.addAttribute("chartEntries", chartEntries);
+	}
+
+	private String chartValueCaption(DecimalFormat decimalFormat, BigDecimal kwh) {
+
+		if (kwh.compareTo(BigDecimal.ONE) < 0) {
+			return StringUtils.EMPTY;
+		} else if (kwh.compareTo(BigDecimal.ONE) > 0 && kwh.compareTo(ONE_POINT_NINE) < 0) {
+			return "1..";
+		} else {
+			return decimalFormat.format(kwh);
+		}
 	}
 
 	private void fillPowerHistoryMonthViewModel(Model model, HistoryModel history) {
@@ -356,7 +368,7 @@ public class HouseViewService {
 	private String formatTemperature(BigDecimal value) {
 
 		DecimalFormat decimalFormat = new DecimalFormat("0");
-		String frmt = decimalFormat.format(value);
+		String frmt = chartValueCaption(decimalFormat, value);
 		if ("-0".equals(frmt)) { // special case: some negative value roundet to
 									// zero has a leading '-'
 			frmt = "0";
@@ -385,7 +397,7 @@ public class HouseViewService {
 			long diff = baseValue - compareValue;
 			BigDecimal percentage = new BigDecimal(diff)
 					.divide(new BigDecimal(baseValue), 4, RoundingMode.HALF_UP).multiply(BD100);
-			entry.setBadgeValue(decimalFormat.format(percentage) + "%");
+			entry.setBadgeValue(chartValueCaption(decimalFormat, percentage) + "%");
 			if (percentage.intValue() <= COMPARE_PERCENTAGE_GREEN_UNTIL) {
 				entry.setBadgeClass("badge-success");
 			} else if (percentage.intValue() <= COMPARE_PERCENTAGE_GRAY_UNTIL) {
