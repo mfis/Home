@@ -16,12 +16,9 @@ public class PowerConsumptionDay implements Serializable {
 
 	private long measurePointMax;
 
-	// private Map<TimeRange, BigDecimal> lastSingleValues;
-
 	private Map<TimeRange, BigDecimal> values;
 
 	public PowerConsumptionDay() {
-		// lastSingleValues = new LinkedHashMap<>();
 		values = new LinkedHashMap<>();
 	}
 
@@ -57,14 +54,5 @@ public class PowerConsumptionDay implements Serializable {
 	public void setValues(Map<TimeRange, BigDecimal> values) {
 		this.values = values;
 	}
-
-	// public Map<TimeRange, BigDecimal> getLastSingleValues() {
-	// return lastSingleValues;
-	// }
-	//
-	// public void setLastSingleValues(Map<TimeRange, BigDecimal>
-	// lastSingleValues) {
-	// this.lastSingleValues = lastSingleValues;
-	// }
 
 }

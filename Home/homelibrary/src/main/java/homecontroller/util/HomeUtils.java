@@ -1,5 +1,7 @@
 package homecontroller.util;
 
+import java.time.LocalDateTime;
+
 import org.springframework.util.StringUtils;
 
 public class HomeUtils {
@@ -21,5 +23,13 @@ public class HomeUtils {
 		string = StringUtils.replace(string, "Ü", "Ue");
 		string = StringUtils.replace(string, "ß", "ss");
 		return string;
+	}
+
+	public static boolean isSameMonth(LocalDateTime date1, LocalDateTime date2) {
+		return date1.getYear() == date2.getYear() && date1.getMonthValue() == date2.getMonthValue();
+	}
+
+	public static boolean isSameDay(LocalDateTime date1, LocalDateTime date2) {
+		return isSameMonth(date1, date2) && date1.getDayOfMonth() == date2.getDayOfMonth();
 	}
 }

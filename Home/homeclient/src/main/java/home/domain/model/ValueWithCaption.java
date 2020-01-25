@@ -10,7 +10,7 @@ public class ValueWithCaption implements Serializable {
 
 	private String caption = "";
 
-	private String spacer = "";
+	private String cssClass = "";
 
 	public String getValue() {
 		return value;
@@ -28,12 +28,12 @@ public class ValueWithCaption implements Serializable {
 		this.caption = caption;
 	}
 
-	public String getSpacer() {
-		return spacer;
+	public String getCssClass() {
+		return cssClass;
 	}
 
-	public void setSpacer(String spacer) {
-		this.spacer = spacer;
+	public void setCssClass(String cssClass) {
+		this.cssClass = cssClass;
 	}
 
 }

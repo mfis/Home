@@ -14,12 +14,7 @@
 					</a>
 					<div th:class="'progress' + ${chart.collapse}" style="margin-bottom: 10px !important">
 						<th:block th:each="valueWithCaption : ${chart.valuesWithCaptions}">
-							<th:block th:if="${#strings.equals(valueWithCaption.spacer, 'true')}">
-								<div class="progress-bar bg-dark" role="progressbar" th:style="'width: ' + ${valueWithCaption.value} + '%;'" th:aria-valuenow="${valueWithCaption.value}" aria-valuemin="0" aria-valuemax="100"></div> 
-							</th:block>
-							<th:block th:unless="${#strings.equals(valueWithCaption.spacer, 'true')}">
-								<div class="progress-bar" role="progressbar" th:style="'width: ' + ${valueWithCaption.value} + '%;'" th:aria-valuenow="${valueWithCaption.value}" aria-valuemin="0" aria-valuemax="100" th:text="${valueWithCaption.caption}">35</div>
-							</th:block>							
+							<div th:class="'progress-bar' + ${valueWithCaption.cssClass}" role="progressbar" th:style="'width: ' + ${valueWithCaption.value} + '%;'" th:aria-valuenow="${valueWithCaption.value}" aria-valuemin="0" aria-valuemax="100" th:text="${valueWithCaption.caption}"></div> 
 						</th:block>
 					</div>
 				</th:block>

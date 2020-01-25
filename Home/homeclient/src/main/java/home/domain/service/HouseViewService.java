@@ -56,6 +56,7 @@ import homecontroller.domain.model.Switch;
 import homecontroller.domain.model.TemperatureHistory;
 import homecontroller.domain.model.TimeRange;
 import homecontroller.domain.model.Window;
+import homecontroller.util.HomeUtils;
 import homelibrary.homematic.model.Device;
 
 @Component
@@ -91,6 +92,7 @@ public class HouseViewService {
 	private static final BigDecimal SPACER_VALUE = new BigDecimal("0.5");
 	private static final BigDecimal HUNDRED = new BigDecimal("100");
 	private static final BigDecimal ONE_POINT_NINE = new BigDecimal("1.9");
+	private static final BigDecimal PLACEHOLDER_TIMERANGE_KWH = new BigDecimal("3");
 
 	private static final DateTimeFormatter MONTH_YEAR_FORMATTER = DateTimeFormatter.ofPattern("MMM yyyy");
 	private static final DateTimeFormatter DAY_MONTH_YEAR_FORMATTER = DateTimeFormatter
@@ -158,27 +160,20 @@ public class HouseViewService {
 	private void fillPowerHistoryDayViewModel(Model model, HistoryModel history) {
 
 		DecimalFormat decimalFormat = new DecimalFormat("0.#");
+		LocalDateTime today = LocalDateTime.now();
+		TimeRange actualRange = TimeRange.fromDateTime(today);
 		List<ChartEntry> chartEntries = new LinkedList<>();
 
-		BigDecimal maxSum = BigDecimal.ZERO;
-		for (PowerConsumptionDay pcd : history.getElectricPowerConsumptionDay()) {
-			BigDecimal sum = BigDecimal.ZERO;
-			for (BigDecimal bd : pcd.getValues().values()) {
-				sum = sum.add(bd);
-			}
-			if (sum.compareTo(maxSum) > 0) {
-				maxSum = sum;
-			}
-		}
-
+		BigDecimal maxSum = calculateMaxSum(history, today, actualRange);
 		if (maxSum.compareTo(BigDecimal.ZERO) == 0) {
 			return;
 		}
 
 		BigDecimal maxKwh = maxSum.divide(KWH_FACTOR_BD, new MathContext(3, RoundingMode.HALF_UP));
-
 		int index = 0;
+
 		for (PowerConsumptionDay pcd : history.getElectricPowerConsumptionDay()) {
+			boolean isToday = HomeUtils.isSameDay(pcd.measurePointMaxDateTime(), today);
 			BigDecimal percentageBase = HUNDRED
 					.subtract(SPACER_VALUE.multiply(new BigDecimal(pcd.getValues().size())));
 			BigDecimal chartValuePerPowerValue = percentageBase.divide(maxKwh,
@@ -189,24 +184,63 @@ public class HouseViewService {
 			BigDecimal daySum = BigDecimal.ZERO;
 			for (Map.Entry<TimeRange, BigDecimal> entry : pcd.getValues().entrySet()) {
 				ValueWithCaption vwc = new ValueWithCaption();
-				BigDecimal kwh = entry.getValue().divide(KWH_FACTOR_BD,
-						new MathContext(3, RoundingMode.HALF_UP));
+				BigDecimal kwh;
+				if (isToday) {
+					System.out.println("");
+				}
+				if (isToday && entry.getValue().equals(BigDecimal.ZERO)
+						&& entry.getKey().ordinal() > actualRange.ordinal()) {
+					kwh = PLACEHOLDER_TIMERANGE_KWH;
+					vwc.setCssClass(" bg-secondary");
+					vwc.setCaption("?");
+				} else {
+					kwh = entry.getValue().divide(KWH_FACTOR_BD, new MathContext(3, RoundingMode.HALF_UP));
+					if (isToday && entry.getKey().ordinal() == actualRange.ordinal()) {
+						vwc.setCssClass(" bg-primary progress-bar-striped progress-bar-animated");
+					} else {
+						vwc.setCssClass(" bg-primary");
+					}
+					vwc.setCaption(chartValueCaption(decimalFormat, kwh));
+				}
 				daySum = daySum.add(kwh);
-				vwc.setCaption(chartValueCaption(decimalFormat, kwh));
 				vwc.setValue(chartValuePerPowerValue.multiply(kwh).toString());
 				chartEntry.getValuesWithCaptions().add(vwc);
 				ValueWithCaption spacer = new ValueWithCaption();
-				spacer.setSpacer(Boolean.TRUE.toString());
+				spacer.setCssClass(" bg-dark");
 				spacer.setValue(SPACER_VALUE.toString());
 				chartEntry.getValuesWithCaptions().add(spacer);
 			}
 			chartEntry.setAdditionalLabel("\u2211 " + decimalFormat.format(daySum));
+			if (isToday) {
+				chartEntry.setAdditionalLabel(chartEntry.getAdditionalLabel() + " + ?");
+			}
 			chartEntries.add(chartEntry);
 			index++;
 		}
 
 		Collections.reverse(chartEntries);
 		model.addAttribute("chartEntries", chartEntries);
+	}
+
+	private BigDecimal calculateMaxSum(HistoryModel history, LocalDateTime today, TimeRange actualRange) {
+
+		BigDecimal maxSum = BigDecimal.ZERO;
+		for (PowerConsumptionDay pcd : history.getElectricPowerConsumptionDay()) {
+			boolean isToday = HomeUtils.isSameDay(pcd.measurePointMaxDateTime(), today);
+			BigDecimal sum = BigDecimal.ZERO;
+			for (Map.Entry<TimeRange, BigDecimal> entry : pcd.getValues().entrySet()) {
+				if (isToday && entry.getValue().equals(BigDecimal.ZERO)
+						&& entry.getKey().ordinal() > actualRange.ordinal()) {
+					sum = sum.add(PLACEHOLDER_TIMERANGE_KWH);
+				} else {
+					sum = sum.add(entry.getValue());
+				}
+			}
+			if (sum.compareTo(maxSum) > 0) {
+				maxSum = sum;
+			}
+		}
+		return maxSum;
 	}
 
 	private String chartValueCaption(DecimalFormat decimalFormat, BigDecimal kwh) {

@@ -36,6 +36,7 @@ import homecontroller.domain.model.TemperatureHistory;
 import homecontroller.domain.model.TimeRange;
 import homecontroller.model.HistoryValueType;
 import homecontroller.service.HomematicAPI;
+import homecontroller.util.HomeUtils;
 import homelibrary.dao.ModelObjectDAO;
 import homelibrary.homematic.model.Datapoint;
 import homelibrary.homematic.model.Device;
@@ -349,7 +350,7 @@ public class HistoryService {
 
 		PowerConsumptionDay dest = null;
 		for (PowerConsumptionDay pcd : newModel.getElectricPowerConsumptionDay()) {
-			if (isSameDay(pair.getTimestamp(), pcd.measurePointMaxDateTime())) {
+			if (HomeUtils.isSameDay(pair.getTimestamp(), pcd.measurePointMaxDateTime())) {
 				dest = pcd;
 				break;
 			}
@@ -369,7 +370,7 @@ public class HistoryService {
 
 		PowerConsumptionMonth dest = null;
 		for (PowerConsumptionMonth pcm : newModel.getElectricPowerConsumptionMonth()) {
-			if (isSameMonth(pair.getTimestamp(), pcm.measurePointMaxDateTime())) {
+			if (HomeUtils.isSameMonth(pair.getTimestamp(), pcm.measurePointMaxDateTime())) {
 				dest = pcm;
 				break;
 			}
@@ -415,14 +416,6 @@ public class HistoryService {
 		}
 		pcm.setMeasurePointMax(
 				measurePoint.getTimestamp().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
-	}
-
-	private boolean isSameMonth(LocalDateTime date1, LocalDateTime date2) {
-		return date1.getYear() == date2.getYear() && date1.getMonthValue() == date2.getMonthValue();
-	}
-
-	private boolean isSameDay(LocalDateTime date1, LocalDateTime date2) {
-		return isSameMonth(date1, date2) && date1.getDayOfMonth() == date2.getDayOfMonth();
 	}
 
 	protected TimestampValuePair min(List<TimestampValuePair> list) {
