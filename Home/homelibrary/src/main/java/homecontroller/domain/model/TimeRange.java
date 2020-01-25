@@ -1,4 +1,4 @@
-package homecontroller.model;
+package homecontroller.domain.model;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -6,17 +6,17 @@ import java.util.List;
 
 public enum TimeRange {
 
-	MORGING("in (6,7,8,9)", //
-			Arrays.asList(6, 7, 8, 9)), //
-
-	DAY("in (10,11,12,13,14,15,16,17,18)", //
-			Arrays.asList(10, 11, 12, 13, 14, 15, 16, 17, 18)), //
-
-	EVENING("in (19,20,21,22, 23)", //
-			Arrays.asList(19, 20, 21, 22, 23)), //
-
 	NIGHT("in (0,1,2,3,4,5)", //
 			Arrays.asList(0, 1, 2, 3, 4, 5)), //
+
+	MORGING("in (6,7,8,9,10,11)", //
+			Arrays.asList(6, 7, 8, 9, 10, 11)), //
+
+	DAY("in (12,13,14,15,16,17)", //
+			Arrays.asList(12, 13, 14, 15, 16, 17)), //
+
+	EVENING("in (18,19,20,21,22,23)", //
+			Arrays.asList(18, 19, 20, 21, 22, 23)), //
 	;
 
 	private final String hoursSqlQueryString;

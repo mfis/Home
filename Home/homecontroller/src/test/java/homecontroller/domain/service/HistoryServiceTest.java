@@ -17,8 +17,8 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import homecontroller.dao.HistoryDatabaseDAO;
 import homecontroller.database.mapper.TimestampValuePair;
+import homecontroller.domain.model.TimeRange;
 import homecontroller.model.HistoryValueType;
-import homecontroller.model.TimeRange;
 import homelibrary.homematic.model.Datapoint;
 import homelibrary.homematic.model.Device;
 import homelibrary.homematic.model.History;

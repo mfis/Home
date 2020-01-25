@@ -1,6 +1,7 @@
 package home.domain.service;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.time.Instant;
@@ -14,6 +15,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import javax.annotation.PostConstruct;
@@ -25,12 +27,14 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.Model;
 
+import home.domain.model.ChartEntry;
 import home.domain.model.ClimateView;
 import home.domain.model.FrontDoorView;
 import home.domain.model.HistoryEntry;
 import home.domain.model.PowerView;
 import home.domain.model.ShutterView;
 import home.domain.model.SwitchView;
+import home.domain.model.ValueWithCaption;
 import home.model.Message;
 import home.model.MessageQueue;
 import home.model.MessageType;
@@ -43,12 +47,14 @@ import homecontroller.domain.model.HistoryModel;
 import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.Intensity;
 import homecontroller.domain.model.OutdoorClimate;
+import homecontroller.domain.model.PowerConsumptionDay;
 import homecontroller.domain.model.PowerConsumptionMonth;
 import homecontroller.domain.model.PowerMeter;
 import homecontroller.domain.model.RoomClimate;
 import homecontroller.domain.model.ShutterPosition;
 import homecontroller.domain.model.Switch;
 import homecontroller.domain.model.TemperatureHistory;
+import homecontroller.domain.model.TimeRange;
 import homecontroller.domain.model.Window;
 import homelibrary.homematic.model.Device;
 
@@ -81,13 +87,17 @@ public class HouseViewService {
 
 	private static final BigDecimal BD100 = new BigDecimal(100);
 	private static final long KWH_FACTOR = 1000L;
+	private static final BigDecimal KWH_FACTOR_BD = new BigDecimal(KWH_FACTOR);
+	private static final BigDecimal SPACER_VALUE = new BigDecimal("0.5");
+	private static final BigDecimal HUNDRED = new BigDecimal("100");
 
 	private static final DateTimeFormatter MONTH_YEAR_FORMATTER = DateTimeFormatter.ofPattern("MMM yyyy");
 	private static final DateTimeFormatter DAY_MONTH_YEAR_FORMATTER = DateTimeFormatter
-			.ofPattern("dd.MM.yyyy");
+			.ofPattern("E, dd.MM.yyyy", Locale.GERMAN);
 	private static final DateTimeFormatter WEEKDAY_FORMATTER = DateTimeFormatter.ofPattern("EEEE",
 			Locale.GERMAN);
-	private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
+	private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm",
+			Locale.GERMAN);
 
 	@Autowired
 	private Environment env;
@@ -131,7 +141,8 @@ public class HouseViewService {
 
 	public void fillHistoryViewModel(Model model, HistoryModel history, HouseModel house, String key) {
 		if (key.equals(house.getElectricalPowerConsumption().getDevice().programNamePrefix())) {
-			fillPowerHistoryViewModel(model, history);
+			fillPowerHistoryMonthViewModel(model, history);
+			fillPowerHistoryDayViewModel(model, history);
 		} else if (key.equals(house.getConclusionClimateFacadeMin().getDevice().programNamePrefix())) {
 			fillTemperatureHistoryViewModel(model, history.getOutsideTemperature());
 		} else if (key.equals(house.getClimateBedRoom().getDevice().programNamePrefix())) {
@@ -143,20 +154,74 @@ public class HouseViewService {
 		}
 	}
 
-	private void fillPowerHistoryViewModel(Model model, HistoryModel history) {
+	private void fillPowerHistoryDayViewModel(Model model, HistoryModel history) {
+
+		DecimalFormat decimalFormat = new DecimalFormat("0.#");
+		List<ChartEntry> chartEntries = new LinkedList<>();
+
+		BigDecimal maxSum = BigDecimal.ZERO;
+		for (PowerConsumptionDay pcd : history.getElectricPowerConsumptionDay()) {
+			BigDecimal sum = BigDecimal.ZERO;
+			for (BigDecimal bd : pcd.getValues().values()) {
+				sum = sum.add(bd);
+			}
+			if (sum.compareTo(maxSum) > 0) {
+				maxSum = sum;
+			}
+		}
+
+		if (maxSum.compareTo(BigDecimal.ZERO) == 0) {
+			return;
+		}
+
+		BigDecimal maxKwh = maxSum.divide(KWH_FACTOR_BD, new MathContext(3, RoundingMode.HALF_UP));
+
+		int index = 0;
+		for (PowerConsumptionDay pcd : history.getElectricPowerConsumptionDay()) {
+			BigDecimal percentageBase = HUNDRED
+					.subtract(SPACER_VALUE.multiply(new BigDecimal(pcd.getValues().size())));
+			BigDecimal chartValuePerPowerValue = percentageBase.divide(maxKwh,
+					new MathContext(3, RoundingMode.HALF_UP));
+			ChartEntry chartEntry = new ChartEntry();
+			chartEntry.setLabel(formatPastTimestamp(pcd.getMeasurePointMax(), false));
+			lookupCollapsablePowerDay(history, index, chartEntry);
+			BigDecimal daySum = BigDecimal.ZERO;
+			for (Map.Entry<TimeRange, BigDecimal> entry : pcd.getValues().entrySet()) {
+				ValueWithCaption vwc = new ValueWithCaption();
+				BigDecimal kwh = entry.getValue().divide(KWH_FACTOR_BD,
+						new MathContext(3, RoundingMode.HALF_UP));
+				daySum = daySum.add(kwh);
+				vwc.setCaption(decimalFormat.format(kwh));
+				vwc.setValue(chartValuePerPowerValue.multiply(kwh).toString());
+				chartEntry.getValuesWithCaptions().add(vwc);
+				ValueWithCaption spacer = new ValueWithCaption();
+				spacer.setSpacer(Boolean.TRUE.toString());
+				spacer.setValue(SPACER_VALUE.toString());
+				chartEntry.getValuesWithCaptions().add(spacer);
+			}
+			chartEntry.setAdditionalLabel("\u2211 " + decimalFormat.format(daySum));
+			chartEntries.add(chartEntry);
+			index++;
+		}
+
+		Collections.reverse(chartEntries);
+		model.addAttribute("chartEntries", chartEntries);
+	}
+
+	private void fillPowerHistoryMonthViewModel(Model model, HistoryModel history) {
 
 		List<HistoryEntry> list = new LinkedList<>();
 		DecimalFormat decimalFormat = new DecimalFormat("0");
 		int index = 0;
-		for (PowerConsumptionMonth pcm : history.getElectricPowerConsumption()) {
+		for (PowerConsumptionMonth pcm : history.getElectricPowerConsumptionMonth()) {
 			if (pcm.getPowerConsumption() != null) {
 				HistoryEntry entry = new HistoryEntry();
 				Long calculated = null;
 				entry.setLineOneLabel(MONTH_YEAR_FORMATTER.format(pcm.measurePointMaxDateTime()));
 				entry.setLineOneValue(decimalFormat.format(pcm.getPowerConsumption() / KWH_FACTOR) + " kW/h");
-				lookupCollapsable(history, index, entry);
+				lookupCollapsablePowerMonth(history, index, entry);
 				boolean calculateDifference = true;
-				if (index == history.getElectricPowerConsumption().size() - 1) {
+				if (index == history.getElectricPowerConsumptionMonth().size() - 1) {
 					if (pcm.measurePointMaxDateTime().getDayOfMonth() > 1) {
 						entry.setLineTwoLabel("Hochgerechnet");
 						entry.setBadgeLabel("Vergleich Vorjahr");
@@ -168,7 +233,7 @@ public class HouseViewService {
 					entry.setLineOneLabel(entry.getLineOneLabel() + " bisher");
 				}
 				if (calculateDifference) {
-					calculatePreviousYearDifference(entry, pcm, history.getElectricPowerConsumption(),
+					calculatePreviousYearDifference(entry, pcm, history.getElectricPowerConsumptionMonth(),
 							pcm.getPowerConsumption(), calculated);
 				}
 				list.add(entry);
@@ -180,9 +245,15 @@ public class HouseViewService {
 		model.addAttribute("historyEntries", list);
 	}
 
-	private void lookupCollapsable(HistoryModel history, int index, HistoryEntry entry) {
-		if (index < history.getElectricPowerConsumption().size() - 3) {
+	private void lookupCollapsablePowerMonth(HistoryModel history, int index, HistoryEntry entry) {
+		if (index < history.getElectricPowerConsumptionMonth().size() - 3) {
 			entry.setCollapse(" collapse multi-collapse historyTarget");
+		}
+	}
+
+	private void lookupCollapsablePowerDay(HistoryModel history, int index, ChartEntry entry) {
+		if (index < history.getElectricPowerConsumptionDay().size() - 3) {
+			entry.setCollapse(" collapse multi-collapse chartTarget");
 		}
 	}
 
@@ -191,7 +262,7 @@ public class HouseViewService {
 		FrontDoorView frontDoorView = new FrontDoorView();
 
 		if (frontDoor.getTimestampLastDoorbell() != null) {
-			frontDoorView.setLastDoorbells(formatPastTimestamp(frontDoor.getTimestampLastDoorbell()));
+			frontDoorView.setLastDoorbells(formatPastTimestamp(frontDoor.getTimestampLastDoorbell(), true));
 		} else {
 			frontDoorView.setLastDoorbells("unbekannt");
 		}
@@ -207,7 +278,7 @@ public class HouseViewService {
 		model.addAttribute("frontDoor", frontDoorView);
 	}
 
-	private String formatPastTimestamp(long date) {
+	private String formatPastTimestamp(long date, boolean time) {
 
 		LocalDateTime localDate1 = Instant.ofEpochMilli(date).atZone(ZoneId.systemDefault())
 				.toLocalDateTime();
@@ -228,7 +299,9 @@ public class HouseViewService {
 		} else {
 			dayString = DAY_MONTH_YEAR_FORMATTER.format(localDate1);
 		}
-		dayString += ", " + TIME_FORMATTER.format(localDate1) + " Uhr";
+		if (time) {
+			dayString += ", " + TIME_FORMATTER.format(localDate1) + " Uhr";
+		}
 		return dayString;
 	}
 

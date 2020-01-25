@@ -30,10 +30,11 @@ import homecontroller.dao.HistoryDatabaseDAO;
 import homecontroller.database.mapper.TimestampValuePair;
 import homecontroller.database.mapper.TimestampValuePairComparator;
 import homecontroller.domain.model.HistoryModel;
+import homecontroller.domain.model.PowerConsumptionDay;
 import homecontroller.domain.model.PowerConsumptionMonth;
 import homecontroller.domain.model.TemperatureHistory;
+import homecontroller.domain.model.TimeRange;
 import homecontroller.model.HistoryValueType;
-import homecontroller.model.TimeRange;
 import homecontroller.service.HomematicAPI;
 import homelibrary.dao.ModelObjectDAO;
 import homelibrary.homematic.model.Datapoint;
@@ -186,9 +187,9 @@ public class HistoryService {
 		}
 
 		calculateElectricPowerConsumption(model,
-				model.getElectricPowerConsumption().isEmpty() ? null
-						: model.getElectricPowerConsumption()
-								.get(model.getElectricPowerConsumption().size() - 1)
+				model.getElectricPowerConsumptionMonth().isEmpty() ? null
+						: model.getElectricPowerConsumptionMonth()
+								.get(model.getElectricPowerConsumptionMonth().size() - 1)
 								.measurePointMaxDateTime());
 
 		updateTemperatureHistory(model.getOutsideTemperature(), Device.AUSSENTEMPERATUR, Datapoint.VALUE);
@@ -321,46 +322,107 @@ public class HistoryService {
 		List<TimestampValuePair> timestampValues = readValuesWithCache(
 				HomematicCommand.read(Device.STROMZAEHLER, Datapoint.ENERGY_COUNTER), fromDateTime);
 
+		if (timestampValues.isEmpty()) {
+			return;
+		}
+
+		LocalDateTime dayFrom = toFixedHour(LocalDateTime.now().minusDays(31), 0);
+		LocalDateTime dayTo = toFixedHour(LocalDateTime.now(), 0).minusSeconds(1);
+
+		BigDecimal lastSingleValue = timestampValues.get(0).getValue();
+
 		for (TimestampValuePair pair : timestampValues) {
-			PowerConsumptionMonth dest = null;
-			for (PowerConsumptionMonth pcm : newModel.getElectricPowerConsumption()) {
-				if (isSameMonth(pair.getTimestamp(), pcm.measurePointMaxDateTime())) {
-					dest = pcm;
-				}
+			if (fromDateTime == null) {
+				calculateElectricPowerConsumptionDay(newModel, pair, dayFrom, dayTo, lastSingleValue);
 			}
-			if (dest == null) {
-				dest = new PowerConsumptionMonth();
-				if (!newModel.getElectricPowerConsumption().isEmpty()) {
-					dest.setPowerConsumption(0L);
-					dest.setMeasurePointMin(newModel.getElectricPowerConsumption()
-							.get(newModel.getElectricPowerConsumption().size() - 1).getMeasurePointMax());
-					dest.setLastSingleValue(newModel.getElectricPowerConsumption()
-							.get(newModel.getElectricPowerConsumption().size() - 1).getLastSingleValue());
-				}
-				newModel.getElectricPowerConsumption().add(dest);
-			}
-			addMeasurePoint(dest, pair);
+			calculateElectricPowerConsumptionMonth(newModel, pair, lastSingleValue);
+			lastSingleValue = pair.getValue();
 		}
 	}
 
-	private void addMeasurePoint(PowerConsumptionMonth pcm, TimestampValuePair measurePoint) {
+	private void calculateElectricPowerConsumptionDay(HistoryModel newModel, TimestampValuePair pair,
+			LocalDateTime dayFrom, LocalDateTime dayTo, BigDecimal lastSingleValue) {
 
-		if (pcm.getLastSingleValue() != null) {
-			if (pcm.getLastSingleValue() < measurePoint.getValue().longValue()) {
+		if (pair.getTimestamp().isAfter(dayTo) || pair.getTimestamp().isBefore(dayFrom)) {
+			return;
+		}
+
+		PowerConsumptionDay dest = null;
+		for (PowerConsumptionDay pcd : newModel.getElectricPowerConsumptionDay()) {
+			if (isSameDay(pair.getTimestamp(), pcd.measurePointMaxDateTime())) {
+				dest = pcd;
+				break;
+			}
+		}
+		if (dest == null) {
+			dest = new PowerConsumptionDay();
+			for (TimeRange range : TimeRange.values()) {
+				dest.getValues().put(range, BigDecimal.ZERO);
+			}
+			newModel.getElectricPowerConsumptionDay().add(dest);
+		}
+		addMeasurePointDay(dest, pair, lastSingleValue);
+	}
+
+	private void calculateElectricPowerConsumptionMonth(HistoryModel newModel, TimestampValuePair pair,
+			BigDecimal lastSingleValue) {
+
+		PowerConsumptionMonth dest = null;
+		for (PowerConsumptionMonth pcm : newModel.getElectricPowerConsumptionMonth()) {
+			if (isSameMonth(pair.getTimestamp(), pcm.measurePointMaxDateTime())) {
+				dest = pcm;
+				break;
+			}
+		}
+		if (dest == null) {
+			dest = new PowerConsumptionMonth();
+			if (!newModel.getElectricPowerConsumptionMonth().isEmpty()) {
+				dest.setPowerConsumption(0L);
+				dest.setMeasurePointMin(newModel.getElectricPowerConsumptionMonth()
+						.get(newModel.getElectricPowerConsumptionMonth().size() - 1).getMeasurePointMax());
+			}
+			newModel.getElectricPowerConsumptionMonth().add(dest);
+		}
+		addMeasurePointMonth(dest, pair, lastSingleValue);
+	}
+
+	private void addMeasurePointDay(PowerConsumptionDay pcd, TimestampValuePair measurePoint,
+			BigDecimal lastSingleValue) {
+
+		TimeRange timeRange = TimeRange.fromDateTime(measurePoint.getTimestamp());
+		if (lastSingleValue.longValue() <= measurePoint.getValue().longValue()) {
+			pcd.getValues().put(timeRange,
+					pcd.getValues().get(timeRange).add(measurePoint.getValue().subtract(lastSingleValue)));
+		} else {
+			// overflow
+			pcd.getValues().put(timeRange, pcd.getValues().get(timeRange).add(measurePoint.getValue()));
+		}
+		pcd.setMeasurePointMax(
+				measurePoint.getTimestamp().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
+	}
+
+	private void addMeasurePointMonth(PowerConsumptionMonth pcm, TimestampValuePair measurePoint,
+			BigDecimal lastSingleValue) {
+
+		if (lastSingleValue != null) {
+			if (lastSingleValue.longValue() < measurePoint.getValue().longValue()) {
 				pcm.setPowerConsumption((pcm.getPowerConsumption() != null ? pcm.getPowerConsumption() : 0)
-						+ (measurePoint.getValue().longValue() - pcm.getLastSingleValue()));
-			} else if (pcm.getLastSingleValue().compareTo(measurePoint.getValue().longValue()) > 0) {
+						+ (measurePoint.getValue().longValue() - lastSingleValue.longValue()));
+			} else if (lastSingleValue.compareTo(measurePoint.getValue()) > 0) {
 				// overflow
 				pcm.setPowerConsumption(pcm.getPowerConsumption() + measurePoint.getValue().longValue());
 			}
 		}
-		pcm.setLastSingleValue(measurePoint.getValue().longValue());
 		pcm.setMeasurePointMax(
 				measurePoint.getTimestamp().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
 	}
 
 	private boolean isSameMonth(LocalDateTime date1, LocalDateTime date2) {
 		return date1.getYear() == date2.getYear() && date1.getMonthValue() == date2.getMonthValue();
+	}
+
+	private boolean isSameDay(LocalDateTime date1, LocalDateTime date2) {
+		return isSameMonth(date1, date2) && date1.getDayOfMonth() == date2.getDayOfMonth();
 	}
 
 	protected TimestampValuePair min(List<TimestampValuePair> list) {

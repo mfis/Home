@@ -17,8 +17,6 @@ public class PowerConsumptionMonth implements Serializable {
 
 	private transient LocalDateTime measurePointMaxDateTime = null;
 
-	private Long lastSingleValue;
-
 	public Long getPowerConsumption() {
 		return powerConsumption;
 	}
@@ -50,14 +48,6 @@ public class PowerConsumptionMonth implements Serializable {
 	public void setMeasurePointMax(long measurePointMax) {
 		this.measurePointMax = measurePointMax;
 		measurePointMaxDateTime = null;
-	}
-
-	public Long getLastSingleValue() {
-		return lastSingleValue;
-	}
-
-	public void setLastSingleValue(Long lastSingleValue) {
-		this.lastSingleValue = lastSingleValue;
 	}
 
 }

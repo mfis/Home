@@ -15,7 +15,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -34,9 +33,6 @@ public class BackupService {
 
 	@Autowired
 	private UploadService uploadService;
-
-	@Autowired
-	private Environment env;
 
 	private static final DateTimeFormatter BACKUP_DAILY_TIMESTAMP_FORMATTER = DateTimeFormatter
 			.ofPattern("yyyy-MM-dd");
@@ -91,19 +87,6 @@ public class BackupService {
 			}
 		}
 	}
-
-	// @Scheduled(cron = "0 45 02 * * *")
-	// private void backupHistorian() {
-	//
-	// try (Stream<Path> pathes =
-	// Files.walk(Paths.get(env.getProperty("backup.base")))) {
-	// Stream<Path> readablePathes = pathes.filter(path ->
-	// path.toFile().isFile());
-	// backupAPI.backup(readablePathes);
-	// } catch (IOException ioe) {
-	// LOG.error("Exception reading historian backup files:", ioe);
-	// }
-	// }
 
 	private String backupFilename(DateTimeFormatter formatter, boolean yesterday) {
 

@@ -35,8 +35,8 @@ import homecontroller.database.mapper.LongRowMapper;
 import homecontroller.database.mapper.StringRowMapper;
 import homecontroller.database.mapper.TimestampValuePair;
 import homecontroller.database.mapper.TimestampValueRowMapper;
+import homecontroller.domain.model.TimeRange;
 import homecontroller.model.HistoryValueType;
-import homecontroller.model.TimeRange;
 import homelibrary.homematic.model.History;
 import homelibrary.homematic.model.HomematicCommand;
 

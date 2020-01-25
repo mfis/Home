@@ -1,9 +1,40 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org" lang="de">
+	
+	<th:block th:if="${chartEntries != null}">
+		<button class="btn btn-outline-secondary" type="button" data-toggle="collapse" data-target=".chartTarget" aria-expanded="false">Alle Tage anzeigen</button>
+		<div style="height: 10px;"></div>
+		<div class="list-group">
+			<div th:class="'list-group-item lgi' + ' flex-column align-items-start'">
+				<th:block th:each="chart : ${chartEntries}">
+					<a th:class="${chart.collapse}">
+						<span class="mb-1" th:text="${chart.label}">Gestern</span>
+						<span>&nbsp;</span>
+						<span class="text-muted" style="font-size: 80%;" th:text="${chart.additionalLabel}">Summe</span>
+					</a>
+					<div th:class="'progress' + ${chart.collapse}" style="margin-bottom: 10px !important">
+						<th:block th:each="valueWithCaption : ${chart.valuesWithCaptions}">
+							<th:block th:if="${#strings.equals(valueWithCaption.spacer, 'true')}">
+								<div class="progress-bar bg-dark" role="progressbar" th:style="'width: ' + ${valueWithCaption.value} + '%;'" th:aria-valuenow="${valueWithCaption.value}" aria-valuemin="0" aria-valuemax="100"></div> 
+							</th:block>
+							<th:block th:unless="${#strings.equals(valueWithCaption.spacer, 'true')}">
+								<div class="progress-bar" role="progressbar" th:style="'width: ' + ${valueWithCaption.value} + '%;'" th:aria-valuenow="${valueWithCaption.value}" aria-valuemin="0" aria-valuemax="100" th:text="${valueWithCaption.caption}">35</div>
+							</th:block>							
+						</th:block>
+					</div>
+				</th:block>
+				<p class="text-center text-muted font-weight-light" style="margin-bottom: 0 !important; font-size: 80%;">Werte in kW/h</p>
+				<p class="text-center text-muted font-weight-light" style="margin-bottom: 0 !important; font-size: 80%;">Nacht | Vormittag | Nachmittag | Abend</p>
+			</div>
+		</div>		
+		<div style="height: 10px;"></div>
+	</th:block> 
+	
 
 	<!-- Historien Liste -->
-	<button class="btn btn-outline-secondary" type="button" data-toggle="collapse" data-target=".historyTarget" aria-expanded="false">Alle anzeigen</button>
+	<button class="btn btn-outline-secondary" type="button" data-toggle="collapse" data-target=".historyTarget" aria-expanded="false">Alle Monate anzeigen</button>
 	<div style="height: 10px;"></div>
+	
 	<div class="list-group">
 		<th:block th:each="row : ${historyEntries}">
 			  <div th:class="'list-group-item lgi' + ' flex-column align-items-start' + ${row.collapse}">

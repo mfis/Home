@@ -12,7 +12,8 @@ public class HistoryModel implements Serializable {
 
 	private long dateTime;
 
-	private List<PowerConsumptionMonth> electricPowerConsumption;
+	private List<PowerConsumptionMonth> electricPowerConsumptionMonth;
+	private List<PowerConsumptionDay> electricPowerConsumptionDay;
 
 	private boolean initialized = false;
 
@@ -48,7 +49,8 @@ public class HistoryModel implements Serializable {
 	public HistoryModel() {
 		super();
 		updateDateTime();
-		electricPowerConsumption = new LinkedList<>();
+		electricPowerConsumptionMonth = new LinkedList<>();
+		electricPowerConsumptionDay = new LinkedList<>();
 		outsideTemperature = new LinkedList<>();
 		bedRoomTemperature = new LinkedList<>();
 		kidsRoomTemperature = new LinkedList<>();
@@ -57,14 +59,6 @@ public class HistoryModel implements Serializable {
 
 	public long getDateTime() {
 		return dateTime;
-	}
-
-	public List<PowerConsumptionMonth> getElectricPowerConsumption() {
-		return electricPowerConsumption;
-	}
-
-	public void setElectricPowerConsumption(List<PowerConsumptionMonth> electricPowerConsumption) {
-		this.electricPowerConsumption = electricPowerConsumption;
 	}
 
 	public BigDecimal getHighestOutsideTemperatureInLast24Hours() {
@@ -101,6 +95,22 @@ public class HistoryModel implements Serializable {
 
 	public void setLaundryTemperature(LinkedList<TemperatureHistory> laundryTemperature) {// NOSONAR
 		this.laundryTemperature = laundryTemperature;
+	}
+
+	public List<PowerConsumptionMonth> getElectricPowerConsumptionMonth() {
+		return electricPowerConsumptionMonth;
+	}
+
+	public void setElectricPowerConsumptionMonth(List<PowerConsumptionMonth> electricPowerConsumptionMonth) {
+		this.electricPowerConsumptionMonth = electricPowerConsumptionMonth;
+	}
+
+	public List<PowerConsumptionDay> getElectricPowerConsumptionDay() {
+		return electricPowerConsumptionDay;
+	}
+
+	public void setElectricPowerConsumptionDay(List<PowerConsumptionDay> electricPowerConsumptionDay) {
+		this.electricPowerConsumptionDay = electricPowerConsumptionDay;
 	}
 
 }

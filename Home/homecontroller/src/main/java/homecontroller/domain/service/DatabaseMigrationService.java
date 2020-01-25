@@ -14,42 +14,14 @@ import homelibrary.homematic.model.History;
 @Component
 public class DatabaseMigrationService {
 
-	// @Autowired
-	// private MigrationDatabaseDAO migrationDatabaseDAO;
-
-	// @Autowired
-	// private HistoryDatabaseDAO historyDatabaseDAO;
-
 	@Autowired
 	private HistoryService historyService;
 
 	private static final Log LOG = LogFactory.getLog(DatabaseMigrationService.class);
 
-	// public void startMigration() {
-	//
-	// for (History history : History.values()) {
-	// List<TimestampValuePair> sourceList = read(history.getCommand());
-	// List<TimestampValuePair> dest = filterEntries(history, sourceList);
-	// List<List<TimestampValuePair>> partitions = ListUtils.partition(dest,
-	// 1000);
-	// int i = 0;
-	// for (List<TimestampValuePair> partition : partitions) {
-	// i++;
-	// Map<HomematicCommand, List<TimestampValuePair>> toInsert = new
-	// HashMap<>();
-	// toInsert.put(history.getCommand(), partition);
-	// LOG.info("Persist Migration entries of " +
-	// history.getCommand().buildVarName() + " Part " + i
-	// + " of " + partitions.size());
-	// historyDatabaseDAO.persistEntries(toInsert);
-	// }
-	// }
-	//
-	// }
-
 	private List<TimestampValuePair> filterEntries(History history, List<TimestampValuePair> source) {
 
-		List<TimestampValuePair> dest = new LinkedList<TimestampValuePair>();
+		List<TimestampValuePair> dest = new LinkedList<>();
 		for (TimestampValuePair sourceEntry : source) {
 			historyService.diffValueCheckedAdd(history, sourceEntry, dest);
 		}
@@ -57,9 +29,5 @@ public class DatabaseMigrationService {
 				+ dest.size());
 		return dest;
 	}
-
-	// private List<TimestampValuePair> read(HomematicCommand command) {
-	// return migrationDatabaseDAO.readValues(command);
-	// }
 
 }
