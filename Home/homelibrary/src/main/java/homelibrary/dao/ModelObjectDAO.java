@@ -24,6 +24,8 @@ public class ModelObjectDAO {
 
 	private Map<String, SettingsModel> settingsModels = new HashMap<>();
 
+	private String lastHouseModelState;
+
 	private ModelObjectDAO() {
 		super();
 	}
@@ -54,9 +56,15 @@ public class ModelObjectDAO {
 	}
 
 	public HouseModel readHouseModel() {
-		if (houseModel == null || new Date().getTime() - houseModel.getDateTime() > 1000 * 60 * 3) {
+		if (houseModel == null) {
+			lastHouseModelState = "No data-model set.";
+			return null;
+		} else if (new Date().getTime() - houseModel.getDateTime() > 1000 * 60 * 3) {
+			lastHouseModelState = "Data-model is too old: "
+					+ ((new Date().getTime() - houseModel.getDateTime()) / 1000) + " sec.";
 			return null; // Too old. Should never happen
 		} else {
+			lastHouseModelState = "OK";
 			return houseModel;
 		}
 	}
@@ -110,5 +118,13 @@ public class ModelObjectDAO {
 			settingsModels = new HashMap<>();
 		}
 		return settingsModels.get(user);
+	}
+
+	public String getLastHouseModelState() {
+		return lastHouseModelState;
+	}
+
+	public void setLastHouseModelState(String lastHouseModelState) {
+		this.lastHouseModelState = lastHouseModelState;
 	}
 }

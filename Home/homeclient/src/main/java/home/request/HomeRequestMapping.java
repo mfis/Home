@@ -135,14 +135,14 @@ public class HomeRequestMapping {
 		fillUserAttributes(model, userCookie);
 		HouseModel houseModel = ModelObjectDAO.getInstance().readHouseModel();
 		if (houseModel == null) {
-			response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-			return "error";
+			throw new IllegalStateException(
+					"State error - " + ModelObjectDAO.getInstance().getLastHouseModelState());
 		} else if (StringUtils.isNotBlank(etag)
 				&& StringUtils.equals(etag, Long.toString(houseModel.getDateTime()))) {
 			response.setStatus(HttpStatus.NOT_MODIFIED.value());
 			return "empty";
 		} else {
-			houseView.fillViewModel(model, ModelObjectDAO.getInstance().readHouseModel());
+			houseView.fillViewModel(model, houseModel);
 			return Pages.getEntry(Pages.PATH_HOME).getTemplate();
 		}
 	}
