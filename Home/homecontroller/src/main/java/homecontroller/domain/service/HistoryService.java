@@ -327,7 +327,7 @@ public class HistoryService {
 		}
 
 		LocalDateTime dayFrom = toFixedHour(LocalDateTime.now().minusDays(31), 0);
-		LocalDateTime dayTo = toFixedHour(LocalDateTime.now(), 0).minusSeconds(1);
+		LocalDateTime dayTo = LocalDateTime.now();
 
 		BigDecimal lastSingleValue = timestampValues.get(0).getValue();
 
