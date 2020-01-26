@@ -185,9 +185,6 @@ public class HouseViewService {
 			for (Map.Entry<TimeRange, BigDecimal> entry : pcd.getValues().entrySet()) {
 				ValueWithCaption vwc = new ValueWithCaption();
 				BigDecimal kwh;
-				if (isToday) {
-					System.out.println("");
-				}
 				if (isToday && entry.getValue().equals(BigDecimal.ZERO)
 						&& entry.getKey().ordinal() > actualRange.ordinal()) {
 					kwh = PLACEHOLDER_TIMERANGE_KWH;
@@ -201,8 +198,8 @@ public class HouseViewService {
 						vwc.setCssClass(" bg-primary");
 					}
 					vwc.setCaption(chartValueCaption(decimalFormat, kwh));
+					daySum = daySum.add(kwh);
 				}
-				daySum = daySum.add(kwh);
 				vwc.setValue(chartValuePerPowerValue.multiply(kwh).toString());
 				chartEntry.getValuesWithCaptions().add(vwc);
 				ValueWithCaption spacer = new ValueWithCaption();

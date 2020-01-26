@@ -333,9 +333,7 @@ public class HistoryService {
 		BigDecimal lastSingleValue = timestampValues.get(0).getValue();
 
 		for (TimestampValuePair pair : timestampValues) {
-			if (fromDateTime == null) {
-				calculateElectricPowerConsumptionDay(newModel, pair, dayFrom, dayTo, lastSingleValue);
-			}
+			calculateElectricPowerConsumptionDay(newModel, pair, dayFrom, dayTo, lastSingleValue);
 			calculateElectricPowerConsumptionMonth(newModel, pair, lastSingleValue);
 			lastSingleValue = pair.getValue();
 		}
