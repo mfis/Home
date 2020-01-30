@@ -5,6 +5,7 @@ public class PowerView extends View {
 	private String state = "";
 	private String tendencyIcon = "";
 	private String description = "";
+	private ChartEntry todayConsumption;
 
 	public String getState() {
 		return state;
@@ -28,6 +29,14 @@ public class PowerView extends View {
 
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	public ChartEntry getTodayConsumption() {
+		return todayConsumption;
+	}
+
+	public void setTodayConsumption(ChartEntry todayConsumption) {
+		this.todayConsumption = todayConsumption;
 	}
 
 }

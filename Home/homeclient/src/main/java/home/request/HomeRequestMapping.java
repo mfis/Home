@@ -142,7 +142,7 @@ public class HomeRequestMapping {
 			response.setStatus(HttpStatus.NOT_MODIFIED.value());
 			return "empty";
 		} else {
-			houseView.fillViewModel(model, houseModel);
+			houseView.fillViewModel(model, houseModel, ModelObjectDAO.getInstance().readHistoryModel());
 			return Pages.getEntry(Pages.PATH_HOME).getTemplate();
 		}
 	}

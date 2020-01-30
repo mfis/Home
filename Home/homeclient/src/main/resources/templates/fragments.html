@@ -307,6 +307,14 @@
 			<span th:text="${model.state}"></span>
 			<th:block th:replace="fragments :: tendency (icon=${model.tendencyIcon})"></th:block>
 		</h4>
+		
+		<th:block th:if="${model.todayConsumption != null}">
+			<div style="max-width:80%;">
+				<div style="max-width:400px;">
+					<div th:replace="fragments :: chartEntry (chart=${model.todayConsumption})"></div>
+				</div>
+			</div>
+		</th:block>
 	</div>	
 	
 	<!-- History link -->
@@ -438,6 +446,20 @@
 				</h4>
 			</div>
 		</th:block>	
+	</th:block>
+	
+	<!-- Chart Entry -->
+	<th:block th:fragment="chartEntry (chart)">	
+		<a th:class="${chart.collapse}">
+			<span class="mb-1" th:text="${chart.label}">Gestern</span>
+			<span>&nbsp;</span>
+			<span class="text-muted" style="font-size: 80%;" th:text="${chart.additionalLabel}">Summe</span>
+		</a>
+		<div th:class="'progress' + ${chart.collapse}" style="margin-bottom: 10px !important; margin-top: 4px !important">
+			<th:block th:each="valueWithCaption : ${chart.valuesWithCaptions}">
+				<div th:class="'progress-bar' + ${valueWithCaption.cssClass}" role="progressbar" th:style="'width: ' + ${valueWithCaption.value} + '%;'" th:aria-valuenow="${valueWithCaption.value}" aria-valuemin="0" aria-valuemax="100" th:text="${valueWithCaption.caption}"></div> 
+			</th:block>
+		</div>	
 	</th:block>
 
 </body>

@@ -7,16 +7,7 @@
 		<div class="list-group">
 			<div th:class="'list-group-item lgi' + ' flex-column align-items-start'">
 				<th:block th:each="chart : ${chartEntries}">
-					<a th:class="${chart.collapse}">
-						<span class="mb-1" th:text="${chart.label}">Gestern</span>
-						<span>&nbsp;</span>
-						<span class="text-muted" style="font-size: 80%;" th:text="${chart.additionalLabel}">Summe</span>
-					</a>
-					<div th:class="'progress' + ${chart.collapse}" style="margin-bottom: 10px !important">
-						<th:block th:each="valueWithCaption : ${chart.valuesWithCaptions}">
-							<div th:class="'progress-bar' + ${valueWithCaption.cssClass}" role="progressbar" th:style="'width: ' + ${valueWithCaption.value} + '%;'" th:aria-valuenow="${valueWithCaption.value}" aria-valuemin="0" aria-valuemax="100" th:text="${valueWithCaption.caption}"></div> 
-						</th:block>
-					</div>
+					<div th:replace="fragments :: chartEntry (chart=${chart})"></div>
 				</th:block>
 				<p class="text-center text-muted font-weight-light" style="margin-bottom: 0 !important; font-size: 80%;">Werte in kW/h</p>
 				<p class="text-center text-muted font-weight-light" style="margin-bottom: 0 !important; font-size: 80%;">Nacht | Vormittag | Nachmittag | Abend</p>
