@@ -170,8 +170,8 @@ public class HistoryService {
 		}
 	}
 
-	@Scheduled(fixedDelay = (1000 * 60 * 5))
-	private synchronized void refreshHistoryModel() {
+	@Scheduled(fixedDelay = ((1000 * 60 * 5) + 13))
+	private synchronized void refreshExtremValues() {
 
 		HistoryModel model = ModelObjectDAO.getInstance().readHistoryModel();
 		if (model == null) {
@@ -182,8 +182,13 @@ public class HistoryService {
 				HomematicCommand.read(Device.AUSSENTEMPERATUR, Datapoint.VALUE), HistoryValueType.MAX,
 				LocalDateTime.now().minusHours(HIGHEST_OUTSIDE_TEMPERATURE_PERIOD_HOURS), null, null);
 		model.setHighestOutsideTemperatureInLast24Hours(maxValue);
+	}
 
-		if (!model.isInitialized()) {
+	@Scheduled(fixedDelay = (1000 * 60))
+	private synchronized void refreshHistoryModel() {
+
+		HistoryModel model = ModelObjectDAO.getInstance().readHistoryModel();
+		if (model == null || !model.isInitialized()) {
 			return;
 		}
 
