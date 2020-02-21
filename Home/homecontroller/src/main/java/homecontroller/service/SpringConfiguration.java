@@ -1,10 +1,27 @@
 package homecontroller.service;
 
+import java.io.FileReader;
+import java.security.KeyStore;
+import java.security.Security;
+import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.List;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
 import javax.sql.DataSource;
 
+import org.apache.commons.net.util.SSLContextUtils;
+import org.apache.commons.net.util.TrustManagerUtils;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.util.io.pem.PemObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -12,6 +29,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.Environment;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -28,6 +46,10 @@ public class SpringConfiguration implements WebMvcConfigurer {
 	@Autowired
 	private Environment env;
 
+	static {
+		Security.addProvider(new BouncyCastleProvider());
+	}
+
 	@Bean
 	public ByteArrayHttpMessageConverter byteArrayHttpMessageConverter() {
 		return new ByteArrayHttpMessageConverter();
@@ -37,6 +59,37 @@ public class SpringConfiguration implements WebMvcConfigurer {
 	public RestTemplate restTemplate(RestTemplateBuilder restTemplateBuilder) {
 		return restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(10))
 				.setReadTimeout(Duration.ofSeconds(10)).build();
+	}
+
+	@Bean(name = "restTemplateCCU")
+	public RestTemplate restTemplateCCU() throws Exception {
+
+		try (PEMParser pemParser = new PEMParser(new FileReader(env.getProperty("homematic.sslcert")))) {
+
+			pemParser.readObject();
+			PemObject pemObject = pemParser.readPemObject();
+
+			X509CertificateHolder holder = new X509CertificateHolder(pemObject.getContent());
+			X509Certificate bc = new JcaX509CertificateConverter().setProvider("BC").getCertificate(holder);
+
+			KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+			keyStore.load(null, null);
+			keyStore.setCertificateEntry("ca", bc);
+
+			TrustManager trustManager = TrustManagerUtils.getDefaultTrustManager(keyStore);
+			SSLContext sslContext = SSLContextUtils.createSSLContext("TLS", null, trustManager);
+
+			SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(sslContext);
+
+			RequestConfig config = RequestConfig.custom().setConnectTimeout(5 * 1000)
+					.setConnectionRequestTimeout(10 * 1000).setSocketTimeout(10 * 1000).build();
+
+			CloseableHttpClient httpClient = HttpClients.custom().setDefaultRequestConfig(config)
+					.setSSLSocketFactory(socketFactory).build();
+			HttpComponentsClientHttpRequestFactory httpComponentsClientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory(
+					httpClient);
+			return new RestTemplate(httpComponentsClientHttpRequestFactory);
+		}
 	}
 
 	@Bean(name = "restTemplateBinaryResponse")

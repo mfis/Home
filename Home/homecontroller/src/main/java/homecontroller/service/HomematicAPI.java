@@ -27,6 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.env.Environment;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpEntity;
@@ -51,7 +52,8 @@ public class HomematicAPI {
 	private Environment env;
 
 	@Autowired
-	private RestTemplate restTemplate;
+	@Qualifier("restTemplateCCU")
+	private RestTemplate restTemplateCCU;
 
 	private static final int INIT_STATE_MINUTES = 90;
 
@@ -62,7 +64,7 @@ public class HomematicAPI {
 
 	private boolean writeToHomematicEnabled;
 
-	private static final String REGA_PORT_AND_URI = ":8181/tclrega.exe";
+	private static final String REGA_PORT_AND_URI = ":48181/tclrega.exe";
 
 	private LocalDateTime currentValuesTimestamp;
 
@@ -294,7 +296,7 @@ public class HomematicAPI {
 		HttpEntity<String> requestEntity = new HttpEntity<>(body, headers);
 		ResponseEntity<String> responseEntity = null;
 		try {
-			responseEntity = restTemplate.postForEntity(host + REGA_PORT_AND_URI, requestEntity,
+			responseEntity = restTemplateCCU.postForEntity(host + REGA_PORT_AND_URI, requestEntity,
 					String.class);
 			resourceNotAvailableCounter = 0;
 		} catch (Exception e) {
