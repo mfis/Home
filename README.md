@@ -4,7 +4,7 @@ This is a Home automation controlling web application.
 Application is based on [Spring Boot](https://spring.io/projects/spring-boot) and uses [Thymeleaf](https://www.thymeleaf.org) for GUI rendering and [Font Awesome](https://fontawesome.com) for icons (all not included).
 
 # Customizing
-Sources in /domain/ -packages are depending on individual Homematic setup and therefore needed to be changed.
+Sources in */domain/ -packages are depending on individual Homematic setup and therefore needed to be changed.
 
 # Installation
 Build Home.jar and HomeController.jar with Maven.  
@@ -12,6 +12,18 @@ Install both spring boot applications as described here: [Spring Documentation -
 
 Client (Home.jar): Commented application.properties needed to be configured in external 'homeapp.properties'.  
 Controller (HomeController.jar): Commented application.properties needed to be configured in external 'homecontroller.properties'.
+
+# Secure communication to CCU
+* CCU USL (property "homematic.hostName") has to be a https URL
+* Generate SSL certificate for the CCU
+```
+    openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout key.pem -out cert.pem -subj "/CN=<CCU_HOSTNAME>/OU=<CCU_SERIAL_NO>/C=DE/emailAddress=<MAIL_ADRESS>"
+    cat key.pem > hmccu3.pem
+    cat cert.pem >> hmccu3.pem
+```    
+* Upload combined certificate/key to the CCU via the settings page
+* Set reference to certificate in property "homematic.sslcert"
+* User authentication sould be enabled in CCU settings and referenced in properties "homematic.authuser" and "homematic.authpass"
 
 # Naming conventions inside CCU
 Some functions are needing CCU system variables and CCU programs with names corresponding to the devices.
