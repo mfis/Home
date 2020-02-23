@@ -732,12 +732,4 @@ public class HouseViewService {
 		}
 	}
 
-	public void fillLinks(Model model) {
-		model.addAttribute("link_internet_ccu2", env.getProperty("link.internet.ccu2"));
-		model.addAttribute("link_local_ccu2", env.getProperty("link.local.ccu2"));
-		model.addAttribute("link_internet_historian", env.getProperty("link.internet.historian"));
-		model.addAttribute("link_local_historian", env.getProperty("link.local.historian"));
-
-	}
-
 }

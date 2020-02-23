@@ -147,14 +147,6 @@ public class HomeRequestMapping {
 		}
 	}
 
-	@GetMapping(Pages.PATH_LINKS)
-	public String links(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie) {
-		fillMenu(Pages.PATH_LINKS, model);
-		fillUserAttributes(model, userCookie);
-		houseView.fillLinks(model);
-		return Pages.getEntry(Pages.PATH_LINKS).getTemplate();
-	}
-
 	@GetMapping(Pages.PATH_SETTINGS)
 	public String settings(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie) {
 		fillMenu(Pages.PATH_SETTINGS, model);
