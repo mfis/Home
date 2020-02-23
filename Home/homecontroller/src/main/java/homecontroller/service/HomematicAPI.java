@@ -12,7 +12,6 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -84,7 +83,9 @@ public class HomematicAPI {
 
 	private long resourceNotAvailableCounter;
 
-	private long lastAuthenticationTestTimestamp = 0;
+	private long lastCCUAuthTestTimestamp = 0;
+
+	private Boolean ccuAuthActive;
 
 	private static final Log LOG = LogFactory.getLog(HomematicAPI.class);
 
@@ -96,10 +97,6 @@ public class HomematicAPI {
 		host = env.getProperty("homematic.hostName");
 		if (!host.startsWith("https://")) {
 			throw new IllegalArgumentException("Non-SSL connections to ccu not allowed!");
-		}
-
-		if (!testAuthenticationIsActive()) {
-			throw new IllegalArgumentException("Rega API authentication is not active!");
 		}
 
 		writeToHomematicEnabled = Boolean
@@ -172,20 +169,28 @@ public class HomematicAPI {
 		return value;
 	}
 
-	private Boolean testAuthenticationIsActive() {
+	private Boolean testCcuAuthIsActive() {
 
-		String body = buildReGaRequestBody(HomematicCommand.eof());
-		try {
-			callReGaAPI(body, false, false);
-		} catch (HttpClientErrorException e) {
-			if (e.getRawStatusCode() == 401) {
-				return true;
+		long now = System.currentTimeMillis();
+		if (ccuAuthActive == null || (now - lastCCUAuthTestTimestamp) > 1000 * 60 * 60) { // 1h
+
+			String body = buildReGaRequestBody(HomematicCommand.eof());
+			try {
+				callReGaAPI(body, false, false);
+				ccuAuthActive = false;
+			} catch (HttpClientErrorException e) {
+				if (e.getRawStatusCode() == 401) {
+					ccuAuthActive = true;
+				}
+			} catch (Exception e) {
+				ccuAuthActive = null;
 			}
-			return null; // NOSONAR
-		} catch (Exception e) {
-			return null; // NOSONAR
+
+			if (ccuAuthActive != null) {
+				lastCCUAuthTestTimestamp = now;
+			}
 		}
-		return false;
+		return ccuAuthActive;
 	}
 
 	public synchronized boolean refresh() {
@@ -233,6 +238,9 @@ public class HomematicAPI {
 	}
 
 	private boolean executeCommands(boolean refresh, HomematicCommand... commands) {
+
+		testCcuAuthIsActive();
+
 		String body = buildReGaRequestBody(commands);
 		return extractCommandResults(callReGaAPI(body, refresh, true), commands);
 	}
@@ -321,11 +329,10 @@ public class HomematicAPI {
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.set(HttpHeaders.CACHE_CONTROL, "no-cache");
 		if (withAuthentication) {
-			String encoding = Base64.getEncoder()
-					.encodeToString(ccuUser.concat(":").concat(ccuPass).getBytes(StandardCharsets.UTF_8));
-			httpHeaders.set(HttpHeaders.AUTHORIZATION, "Basic " + encoding);
+			httpHeaders.setBasicAuth(ccuUser, ccuPass, StandardCharsets.UTF_8);
 		}
 		httpHeaders.setAccept(Arrays.asList(MediaType.ALL));
+		httpHeaders.setAcceptCharset(List.of(StandardCharsets.UTF_8));
 		httpHeaders.setCacheControl(CacheControl.noCache());
 		httpHeaders.setContentLength(contentLength);
 		return httpHeaders;
@@ -384,6 +391,10 @@ public class HomematicAPI {
 
 	public LocalDateTime getCurrentValuesTimestamp() {
 		return currentValuesTimestamp;
+	}
+
+	public Boolean getCcuAuthActive() {
+		return ccuAuthActive;
 	}
 
 }

@@ -140,6 +140,8 @@ public class HouseViewService {
 		formatPower(model, house.getElectricalPowerConsumption(), historyModel);
 
 		formatLowBattery(model, house.getLowBatteryDevices());
+
+		formatWarnings(model, house.getWarnings());
 	}
 
 	public void fillHistoryViewModel(Model model, HistoryModel history, HouseModel house, String key) {
@@ -658,6 +660,10 @@ public class HouseViewService {
 
 	private void formatLowBattery(Model model, List<String> lowBatteryDevices) {
 		model.addAttribute("lowBattery", lowBatteryDevices);
+	}
+
+	private void formatWarnings(Model model, List<String> warnings) {
+		model.addAttribute("warnings", warnings);
 	}
 
 	private void formatSwitch(Model model, String viewKey, Switch switchModel) {

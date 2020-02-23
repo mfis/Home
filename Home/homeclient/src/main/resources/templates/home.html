@@ -11,7 +11,8 @@
 	
 		<div class="container">
 	
-			<!-- Batterie-Warnungen -->
+			<!-- Warnungen -->
+			<div th:replace="fragments :: generalWarning (model=${warnings})"></div>
 			<div th:replace="fragments :: deviceBatterieWarning (model=${lowBattery})"></div>
 	
 			<!-- Wohnzimmer -->

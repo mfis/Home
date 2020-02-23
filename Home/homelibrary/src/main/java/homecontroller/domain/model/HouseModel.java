@@ -40,6 +40,8 @@ public class HouseModel implements Serializable {
 
 	private List<String> lowBatteryDevices;
 
+	private List<String> warnings;
+
 	// ----------
 
 	private OutdoorClimate conclusionClimateFacadeMin;
@@ -52,6 +54,7 @@ public class HouseModel implements Serializable {
 		super();
 		dateTime = new Date().getTime();
 		lowBatteryDevices = new LinkedList<>();
+		warnings = new LinkedList<>();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -210,6 +213,14 @@ public class HouseModel implements Serializable {
 
 	public void setClimateLaundry(RoomClimate climateLaundry) {
 		this.climateLaundry = climateLaundry;
+	}
+
+	public List<String> getWarnings() {
+		return warnings;
+	}
+
+	public void setWarnings(List<String> warnings) {
+		this.warnings = warnings;
 	}
 
 }

@@ -433,13 +433,28 @@
 		<h4 th:text="${model.stateTemperature}"></h4>
 	</div>
 
+	<!-- AllgemeineWarnung -->
+	<th:block th:fragment="generalWarning (model)">
+		<th:block th:if="${#lists.size(model) &gt; 0}">
+			<div th:replace="fragments :: title (name='Achtung!')"></div>
+		</th:block>
+		<th:block th:each="entry : ${model}">
+			<div th:class="'alert alert-danger callout callout-danger'">
+				<h4>
+					<span><i class="fas fa-exclamation-triangle"></i></span> <span
+						th:text="${entry}"></span>
+				</h4>
+			</div>
+		</th:block>	
+	</th:block>
+
 	<!-- Batterie-Warnung -->
 	<th:block th:fragment="deviceBatterieWarning (model)">
 		<th:block th:if="${#lists.size(model) &gt; 0}">
-			<div th:replace="fragments :: title (name='Bitte beachten!')"></div>
+			<div th:replace="fragments :: title (name='Bitte beachten:')"></div>
 		</th:block>
 		<th:block th:each="entry : ${model}">
-			<div th:class="'alert alert-danger callout-danger'">
+			<div th:class="'alert alert-warning callout callout-warning'">
 				<h4>
 					<span><i class="fas fa-battery-quarter"></i></span> <span
 						th:text="'Batterie fast leer: ' + ${entry}"></span>

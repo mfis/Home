@@ -7,6 +7,7 @@ import java.util.concurrent.CompletableFuture;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -151,6 +152,8 @@ public class HouseService {
 		for (Device device : Device.values()) {
 			checkLowBattery(newModel, device);
 		}
+
+		ckeckWarnings(newModel);
 
 		return newModel;
 	}
@@ -567,6 +570,14 @@ public class HouseService {
 		if (state) {
 			model.getLowBatteryDevices().add(device.getDescription());
 		}
+	}
+
+	private void ckeckWarnings(HouseModel newModel) {
+
+		if (BooleanUtils.isFalse(api.getCcuAuthActive())) {
+			newModel.getWarnings().add("CCU Authentifizierung ist nicht aktiv!");
+		}
+
 	}
 
 }
