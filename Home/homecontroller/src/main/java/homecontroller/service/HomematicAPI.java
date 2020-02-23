@@ -12,6 +12,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -36,6 +37,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -62,9 +64,13 @@ public class HomematicAPI {
 
 	private String host;
 
+	private String ccuUser;
+
+	private String ccuPass;
+
 	private boolean writeToHomematicEnabled;
 
-	private static final String REGA_PORT_AND_URI = ":48181/tclrega.exe";
+	private static final String REGA_HTTPS_PORT_AND_URI = ":48181/tclrega.exe";
 
 	private LocalDateTime currentValuesTimestamp;
 
@@ -78,13 +84,27 @@ public class HomematicAPI {
 
 	private long resourceNotAvailableCounter;
 
+	private long lastAuthenticationTestTimestamp = 0;
+
 	private static final Log LOG = LogFactory.getLog(HomematicAPI.class);
 
 	@PostConstruct
 	public void init() {
+
+		ccuUser = env.getProperty("homematic.authuser");
+		ccuPass = env.getProperty("homematic.authpass");
 		host = env.getProperty("homematic.hostName");
+		if (!host.startsWith("https://")) {
+			throw new IllegalArgumentException("Non-SSL connections to ccu not allowed!");
+		}
+
+		if (!testAuthenticationIsActive()) {
+			throw new IllegalArgumentException("Rega API authentication is not active!");
+		}
+
 		writeToHomematicEnabled = Boolean
 				.parseBoolean(env.getProperty("application.write.to.homematic").trim());
+
 		try {
 			digest = MessageDigest.getInstance("SHA-256");
 		} catch (NoSuchAlgorithmException e) {
@@ -152,6 +172,22 @@ public class HomematicAPI {
 		return value;
 	}
 
+	private Boolean testAuthenticationIsActive() {
+
+		String body = buildReGaRequestBody(HomematicCommand.eof());
+		try {
+			callReGaAPI(body, false, false);
+		} catch (HttpClientErrorException e) {
+			if (e.getRawStatusCode() == 401) {
+				return true;
+			}
+			return null; // NOSONAR
+		} catch (Exception e) {
+			return null; // NOSONAR
+		}
+		return false;
+	}
+
 	public synchronized boolean refresh() {
 
 		List<HomematicCommand> commands = new LinkedList<>();
@@ -198,7 +234,7 @@ public class HomematicAPI {
 
 	private boolean executeCommands(boolean refresh, HomematicCommand... commands) {
 		String body = buildReGaRequestBody(commands);
-		return extractCommandResults(callReGaAPI(body, refresh), commands);
+		return extractCommandResults(callReGaAPI(body, refresh, true), commands);
 	}
 
 	private boolean extractCommandResults(Document responseDocument, HomematicCommand... commands) {
@@ -280,26 +316,34 @@ public class HomematicAPI {
 		return sb.toString();
 	}
 
-	HttpHeaders createHeaders(int contentLength) {
+	HttpHeaders createHeaders(int contentLength, boolean withAuthentication) {
 
 		HttpHeaders httpHeaders = new HttpHeaders();
-		httpHeaders.set("Cache-Control", "no-cache");
+		httpHeaders.set(HttpHeaders.CACHE_CONTROL, "no-cache");
+		if (withAuthentication) {
+			String encoding = Base64.getEncoder()
+					.encodeToString(ccuUser.concat(":").concat(ccuPass).getBytes(StandardCharsets.UTF_8));
+			httpHeaders.set(HttpHeaders.AUTHORIZATION, "Basic " + encoding);
+		}
 		httpHeaders.setAccept(Arrays.asList(MediaType.ALL));
 		httpHeaders.setCacheControl(CacheControl.noCache());
 		httpHeaders.setContentLength(contentLength);
 		return httpHeaders;
 	}
 
-	private Document callReGaAPI(String body, boolean refresh) {
+	private Document callReGaAPI(String body, boolean refresh, boolean withAuthentication) {
 
-		HttpHeaders headers = createHeaders(body.length());
+		HttpHeaders headers = createHeaders(body.length(), withAuthentication);
 		HttpEntity<String> requestEntity = new HttpEntity<>(body, headers);
 		ResponseEntity<String> responseEntity = null;
 		try {
-			responseEntity = restTemplateCCU.postForEntity(host + REGA_PORT_AND_URI, requestEntity,
+			responseEntity = restTemplateCCU.postForEntity(host + REGA_HTTPS_PORT_AND_URI, requestEntity,
 					String.class);
 			resourceNotAvailableCounter = 0;
 		} catch (Exception e) {
+			if (!withAuthentication) {
+				throw e;
+			}
 			resourceNotAvailableCounter++;
 			if (resourceNotAvailableCounter > 2) {
 				throw e;
