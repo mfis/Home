@@ -1,21 +1,10 @@
 package home.domain.service;
 
 import java.math.BigDecimal;
-import java.math.MathContext;
-import java.math.RoundingMode;
 import java.text.DecimalFormat;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.YearMonth;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
-import java.util.Collections;
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import javax.annotation.PostConstruct;
@@ -23,18 +12,15 @@ import javax.annotation.PostConstruct;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.Model;
 
 import home.domain.model.ChartEntry;
 import home.domain.model.ClimateView;
 import home.domain.model.FrontDoorView;
-import home.domain.model.HistoryEntry;
 import home.domain.model.PowerView;
 import home.domain.model.ShutterView;
 import home.domain.model.SwitchView;
-import home.domain.model.ValueWithCaption;
 import home.model.Message;
 import home.model.MessageQueue;
 import home.model.MessageType;
@@ -47,16 +33,11 @@ import homecontroller.domain.model.HistoryModel;
 import homecontroller.domain.model.HouseModel;
 import homecontroller.domain.model.Intensity;
 import homecontroller.domain.model.OutdoorClimate;
-import homecontroller.domain.model.PowerConsumptionDay;
-import homecontroller.domain.model.PowerConsumptionMonth;
 import homecontroller.domain.model.PowerMeter;
 import homecontroller.domain.model.RoomClimate;
 import homecontroller.domain.model.ShutterPosition;
 import homecontroller.domain.model.Switch;
-import homecontroller.domain.model.TemperatureHistory;
-import homecontroller.domain.model.TimeRange;
 import homecontroller.domain.model.Window;
-import homecontroller.util.HomeUtils;
 import homelibrary.homematic.model.Device;
 
 @Component
@@ -72,7 +53,6 @@ public class HouseViewService {
 
 	public static final String MESSAGEPATH = "/message?"; // NOSONAR
 
-	private static final String DEGREE = "\u00b0";
 	private static final String TOGGLE_STATE = MESSAGEPATH + TYPE_IS + MessageType.TOGGLESTATE
 			+ AND_DEVICE_IS;
 	private static final String TOGGLE_AUTOMATION = MESSAGEPATH + TYPE_IS + MessageType.TOGGLEAUTOMATION
@@ -82,28 +62,8 @@ public class HouseViewService {
 	private static final BigDecimal LOW_TEMP = new BigDecimal("18");
 	private static final BigDecimal FROST_TEMP = new BigDecimal("3");
 
-	private static final int COMPARE_PERCENTAGE_GREEN_UNTIL = -1;
-	private static final int COMPARE_PERCENTAGE_GRAY_UNTIL = +2;
-	private static final int COMPARE_PERCENTAGE_ORANGE_UNTIL = +15;
-
-	private static final BigDecimal BD100 = new BigDecimal(100);
-	private static final long KWH_FACTOR = 1000L;
-	private static final BigDecimal KWH_FACTOR_BD = new BigDecimal(KWH_FACTOR);
-	private static final BigDecimal SPACER_VALUE = new BigDecimal("0.5");
-	private static final BigDecimal HUNDRED = new BigDecimal("100");
-	private static final BigDecimal ONE_POINT_NINE = new BigDecimal("1.9");
-	private static final BigDecimal PLACEHOLDER_TIMERANGE_KWH = new BigDecimal("3");
-
-	private static final DateTimeFormatter MONTH_YEAR_FORMATTER = DateTimeFormatter.ofPattern("MMM yyyy");
-	private static final DateTimeFormatter DAY_MONTH_YEAR_FORMATTER = DateTimeFormatter
-			.ofPattern("E, dd.MM.yyyy", Locale.GERMAN);
-	private static final DateTimeFormatter WEEKDAY_FORMATTER = DateTimeFormatter.ofPattern("EEEE",
-			Locale.GERMAN);
-	private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm",
-			Locale.GERMAN);
-
 	@Autowired
-	private Environment env;
+	private ViewFormatter viewFormatter;
 
 	@PostConstruct
 	public void init() {
@@ -141,174 +101,20 @@ public class HouseViewService {
 
 		formatLowBattery(model, house.getLowBatteryDevices());
 
-		formatWarnings(model, house.getWarnings());
+		formatWarnings(model, house);
 	}
 
-	public void fillHistoryViewModel(Model model, HistoryModel history, HouseModel house, String key) {
+	public String lookupSunHeating(OutdoorClimate outdoorMaxClimate) {
 
-		if (key.equals(house.getElectricalPowerConsumption().getDevice().programNamePrefix())) {
-			fillPowerHistoryMonthViewModel(model, history);
-			List<ChartEntry> dayViewModel = fillPowerHistoryDayViewModel(model,
-					history.getElectricPowerConsumptionDay(), true);
-			model.addAttribute("chartEntries", dayViewModel);
-		} else if (key.equals(house.getConclusionClimateFacadeMin().getDevice().programNamePrefix())) {
-			fillTemperatureHistoryViewModel(model, history.getOutsideTemperature());
-		} else if (key.equals(house.getClimateBedRoom().getDevice().programNamePrefix())) {
-			fillTemperatureHistoryViewModel(model, history.getBedRoomTemperature());
-		} else if (key.equals(house.getClimateKidsRoom().getDevice().programNamePrefix())) {
-			fillTemperatureHistoryViewModel(model, history.getKidsRoomTemperature());
-		} else if (key.equals(house.getClimateLaundry().getDevice().programNamePrefix())) {
-			fillTemperatureHistoryViewModel(model, history.getLaundryTemperature());
-		}
-	}
-
-	private List<ChartEntry> fillPowerHistoryDayViewModel(Model model, List<PowerConsumptionDay> days,
-			boolean historyView) {
-
-		DecimalFormat decimalFormat = new DecimalFormat("0.#");
-		LocalDateTime today = LocalDateTime.now();
-		TimeRange actualRange = TimeRange.fromDateTime(today);
-		List<ChartEntry> chartEntries = new LinkedList<>();
-
-		BigDecimal maxSum = calculateMaxSum(days, today, actualRange);
-		if (maxSum.compareTo(BigDecimal.ZERO) == 0) {
-			return chartEntries;
-		}
-
-		BigDecimal maxKwh = maxSum.divide(KWH_FACTOR_BD, new MathContext(3, RoundingMode.HALF_UP));
-		int index = 0;
-
-		for (PowerConsumptionDay pcd : days) {
-			boolean isToday = HomeUtils.isSameDay(pcd.measurePointMaxDateTime(), today);
-			BigDecimal percentageBase = HUNDRED
-					.subtract(SPACER_VALUE.multiply(new BigDecimal(pcd.getValues().size())));
-			BigDecimal chartValuePerPowerValue = percentageBase.divide(maxKwh,
-					new MathContext(3, RoundingMode.HALF_UP));
-			ChartEntry chartEntry = new ChartEntry();
-			chartEntry.setLabel(formatPastTimestamp(pcd.getMeasurePointMax(), false));
-			lookupCollapsablePowerDay(days, index, chartEntry);
-			BigDecimal daySum = BigDecimal.ZERO;
-			for (Map.Entry<TimeRange, BigDecimal> entry : pcd.getValues().entrySet()) {
-				ValueWithCaption vwc = new ValueWithCaption();
-				BigDecimal kwh;
-				if (isToday && entry.getValue().equals(BigDecimal.ZERO)
-						&& entry.getKey().ordinal() > actualRange.ordinal()) {
-					kwh = PLACEHOLDER_TIMERANGE_KWH;
-					vwc.setCssClass(" bg-secondary");
-					vwc.setCaption("?");
-				} else {
-					kwh = entry.getValue().divide(KWH_FACTOR_BD, new MathContext(3, RoundingMode.HALF_UP));
-					if (isToday && entry.getKey().ordinal() == actualRange.ordinal()) {
-						vwc.setCssClass(" bg-primary progress-bar-striped progress-bar-animated");
-					} else {
-						vwc.setCssClass(" bg-primary");
-					}
-					vwc.setCaption(chartValueCaption(decimalFormat, kwh));
-					daySum = daySum.add(kwh);
-				}
-				vwc.setValue(chartValuePerPowerValue.multiply(kwh).toString());
-				chartEntry.getValuesWithCaptions().add(vwc);
-				ValueWithCaption spacer = new ValueWithCaption();
-				spacer.setCssClass(" bg-dark");
-				spacer.setValue(SPACER_VALUE.toString());
-				chartEntry.getValuesWithCaptions().add(spacer);
-			}
-			String sumCaption = "\u2211 " + decimalFormat.format(daySum);
-			if (isToday && historyView) {
-				sumCaption += " + ?";
-			}
-			if (historyView) {
-				chartEntry.setAdditionalLabel(sumCaption);
-			} else {
-				chartEntry.setLabel(chartEntry.getLabel() + " " + sumCaption + " kW/h");
-			}
-			chartEntries.add(chartEntry);
-			index++;
-		}
-
-		Collections.reverse(chartEntries);
-		return chartEntries;
-	}
-
-	private BigDecimal calculateMaxSum(List<PowerConsumptionDay> days, LocalDateTime today,
-			TimeRange actualRange) {
-
-		BigDecimal maxSum = BigDecimal.ZERO;
-		for (PowerConsumptionDay pcd : days) {
-			boolean isToday = HomeUtils.isSameDay(pcd.measurePointMaxDateTime(), today);
-			BigDecimal sum = BigDecimal.ZERO;
-			for (Map.Entry<TimeRange, BigDecimal> entry : pcd.getValues().entrySet()) {
-				if (isToday && entry.getValue().equals(BigDecimal.ZERO)
-						&& entry.getKey().ordinal() > actualRange.ordinal()) {
-					sum = sum.add(PLACEHOLDER_TIMERANGE_KWH);
-				} else {
-					sum = sum.add(entry.getValue());
-				}
-			}
-			if (sum.compareTo(maxSum) > 0) {
-				maxSum = sum;
-			}
-		}
-		return maxSum;
-	}
-
-	private String chartValueCaption(DecimalFormat decimalFormat, BigDecimal kwh) {
-
-		if (kwh.compareTo(BigDecimal.ONE) < 0) {
+		if (outdoorMaxClimate == null) {
 			return StringUtils.EMPTY;
-		} else if (kwh.compareTo(BigDecimal.ONE) > 0 && kwh.compareTo(ONE_POINT_NINE) < 0) {
-			return "1..";
+		}
+
+		if (outdoorMaxClimate.getSunBeamIntensity().ordinal() >= outdoorMaxClimate
+				.getSunHeatingInContrastToShadeIntensity().ordinal()) {
+			return outdoorMaxClimate.getSunBeamIntensity().getSun();
 		} else {
-			return decimalFormat.format(kwh);
-		}
-	}
-
-	private void fillPowerHistoryMonthViewModel(Model model, HistoryModel history) {
-
-		List<HistoryEntry> list = new LinkedList<>();
-		DecimalFormat decimalFormat = new DecimalFormat("0");
-		int index = 0;
-		for (PowerConsumptionMonth pcm : history.getElectricPowerConsumptionMonth()) {
-			if (pcm.getPowerConsumption() != null) {
-				HistoryEntry entry = new HistoryEntry();
-				Long calculated = null;
-				entry.setLineOneLabel(MONTH_YEAR_FORMATTER.format(pcm.measurePointMaxDateTime()));
-				entry.setLineOneValue(decimalFormat.format(pcm.getPowerConsumption() / KWH_FACTOR) + " kW/h");
-				lookupCollapsablePowerMonth(history, index, entry);
-				boolean calculateDifference = true;
-				if (index == history.getElectricPowerConsumptionMonth().size() - 1) {
-					if (pcm.measurePointMaxDateTime().getDayOfMonth() > 1) {
-						entry.setLineTwoLabel("Hochgerechnet");
-						entry.setBadgeLabel("Vergleich Vorjahr");
-						calculated = calculateProjectedConsumption(entry, pcm.measurePointMaxDateTime(), pcm);
-					} else {
-						calculateDifference = false;
-					}
-					entry.setColorClass(" list-group-item-secondary");
-					entry.setLineOneLabel(entry.getLineOneLabel() + " bisher");
-				}
-				if (calculateDifference) {
-					calculatePreviousYearDifference(entry, pcm, history.getElectricPowerConsumptionMonth(),
-							pcm.getPowerConsumption(), calculated);
-				}
-				list.add(entry);
-			}
-			index++;
-		}
-
-		Collections.reverse(list);
-		model.addAttribute("historyEntries", list);
-	}
-
-	private void lookupCollapsablePowerMonth(HistoryModel history, int index, HistoryEntry entry) {
-		if (index < history.getElectricPowerConsumptionMonth().size() - 3) {
-			entry.setCollapse(" collapse multi-collapse historyTarget");
-		}
-	}
-
-	private void lookupCollapsablePowerDay(List<PowerConsumptionDay> days, int index, ChartEntry entry) {
-		if (index < days.size() - 3) {
-			entry.setCollapse(" collapse multi-collapse chartTarget");
+			return outdoorMaxClimate.getSunHeatingInContrastToShadeIntensity().getHeating();
 		}
 	}
 
@@ -317,7 +123,8 @@ public class HouseViewService {
 		FrontDoorView frontDoorView = new FrontDoorView();
 
 		if (frontDoor.getTimestampLastDoorbell() != null) {
-			frontDoorView.setLastDoorbells(formatPastTimestamp(frontDoor.getTimestampLastDoorbell(), true));
+			frontDoorView.setLastDoorbells(
+					viewFormatter.formatPastTimestamp(frontDoor.getTimestampLastDoorbell(), true));
 		} else {
 			frontDoorView.setLastDoorbells("unbekannt");
 		}
@@ -331,145 +138,6 @@ public class HouseViewService {
 				+ CameraMode.EVENT + "&ts=" + frontDoor.getTimestampLastDoorbell());
 
 		model.addAttribute("frontDoor", frontDoorView);
-	}
-
-	private String formatPastTimestamp(long date, boolean time) {
-
-		LocalDateTime localDate1 = Instant.ofEpochMilli(date).atZone(ZoneId.systemDefault())
-				.toLocalDateTime();
-		LocalDateTime localDate2 = LocalDateTime.now();
-
-		long between = ChronoUnit.DAYS.between(localDate1.truncatedTo(ChronoUnit.DAYS),
-				localDate2.truncatedTo(ChronoUnit.DAYS));
-
-		String dayString;
-		if (between == 0) {
-			dayString = "Heute";
-		} else if (between == 1) {
-			dayString = "Gestern";
-		} else if (between == 2) {
-			dayString = "Vorgestern";
-		} else if (between > -1 && between < 7) {
-			dayString = WEEKDAY_FORMATTER.format(localDate1);
-		} else {
-			dayString = DAY_MONTH_YEAR_FORMATTER.format(localDate1);
-		}
-		if (time) {
-			dayString += ", " + TIME_FORMATTER.format(localDate1) + " Uhr";
-		}
-		return dayString;
-	}
-
-	private void fillTemperatureHistoryViewModel(Model model, List<TemperatureHistory> historyList) {
-
-		List<HistoryEntry> list = new LinkedList<>();
-		int index = 0;
-		for (TemperatureHistory th : historyList) {
-			HistoryEntry entry = new HistoryEntry();
-			entry.setLineOneValueIcon("fas fa-moon");
-			entry.setLineTwoValueIcon("fas fa-sun");
-			LocalDate date = Instant.ofEpochMilli(th.getDate()).atZone(ZoneId.systemDefault()).toLocalDate();
-			if (th.isSingleDay()) {
-				if (date.compareTo(LocalDate.now()) == 0) {
-					entry.setLineOneLabel("Heute");
-				} else if (date.compareTo(LocalDate.now().minusDays(1)) == 0) {
-					entry.setLineOneLabel("Gestern");
-				} else {
-					entry.setLineOneLabel(DAY_MONTH_YEAR_FORMATTER.format(date));
-				}
-				entry.setColorClass(" list-group-item-secondary");
-			} else {
-				entry.setLineOneLabel(MONTH_YEAR_FORMATTER.format(date));
-			}
-			entry.setLineOneValue(formatTemperatures(th.getNightMin(), th.getNightMax()));
-			entry.setLineTwoValue(formatTemperatures(th.getDayMin(), th.getDayMax()));
-			if (index > 2) {
-				entry.setCollapse(" collapse multi-collapse historyTarget");
-			}
-			list.add(entry);
-			index++;
-		}
-		model.addAttribute("historyEntries", list);
-	}
-
-	private String formatTemperatures(BigDecimal min, BigDecimal max) {
-
-		if (min == null || max == null) {
-			return "n/a";
-		}
-
-		String minFrmt = formatTemperature(min);
-		String maxFrmt = formatTemperature(max);
-
-		if (StringUtils.equals(minFrmt, maxFrmt)) {
-			return minFrmt + DEGREE + "C";
-		}
-
-		return minFrmt + DEGREE + "C bis " + maxFrmt + DEGREE + "C";
-	}
-
-	private String formatTemperature(BigDecimal value) {
-
-		DecimalFormat decimalFormat = new DecimalFormat("0");
-		String frmt = decimalFormat.format(value);
-		if ("-0".equals(frmt)) { // special case: some negative value roundet to
-									// zero has a leading '-'
-			frmt = "0";
-		}
-		return frmt;
-	}
-
-	private void calculatePreviousYearDifference(HistoryEntry entry, PowerConsumptionMonth pcm,
-			List<PowerConsumptionMonth> history, Long actual, Long calculated) {
-
-		DecimalFormat decimalFormat = new DecimalFormat("+0;-0");
-		LocalDateTime baseDateTime = pcm.measurePointMaxDateTime();
-		Long baseValue = calculated != null ? calculated : actual;
-		Long compareValue = null;
-
-		for (PowerConsumptionMonth historyEntry : history) {
-			LocalDateTime otherDateTime = historyEntry.measurePointMaxDateTime();
-			if (otherDateTime.getYear() + 1 == baseDateTime.getYear()
-					&& otherDateTime.getMonthValue() == baseDateTime.getMonthValue()) {
-				compareValue = historyEntry.getPowerConsumption();
-				break;
-			}
-		}
-
-		if (baseValue != null && compareValue != null) {
-			long diff = baseValue - compareValue;
-			BigDecimal percentage = new BigDecimal(diff)
-					.divide(new BigDecimal(baseValue), 4, RoundingMode.HALF_UP).multiply(BD100);
-			entry.setBadgeValue(decimalFormat.format(percentage) + "%");
-			if (percentage.intValue() <= COMPARE_PERCENTAGE_GREEN_UNTIL) {
-				entry.setBadgeClass("badge-success");
-			} else if (percentage.intValue() <= COMPARE_PERCENTAGE_GRAY_UNTIL) {
-				entry.setBadgeClass("badge-secondary");
-			} else if (percentage.intValue() <= COMPARE_PERCENTAGE_ORANGE_UNTIL) {
-				entry.setBadgeClass("badge-warning");
-			} else {
-				entry.setBadgeClass("badge-danger");
-			}
-		}
-	}
-
-	private Long calculateProjectedConsumption(HistoryEntry entry, LocalDateTime dateTime,
-			PowerConsumptionMonth pcm) {
-
-		YearMonth yearMonthObject = YearMonth.of(dateTime.getYear(), dateTime.getMonthValue());
-		int daysInMonth = yearMonthObject.lengthOfMonth();
-		int hoursAgo = ((dateTime.getDayOfMonth() - 1) * 24) + dateTime.getHour();
-		int hoursToGo = (daysInMonth * 24) - hoursAgo;
-		if (hoursAgo > 0) {
-			BigDecimal actualValue = new BigDecimal(pcm.getPowerConsumption());
-			BigDecimal calculated = actualValue
-					.add(actualValue.divide(new BigDecimal(hoursAgo), 2, RoundingMode.HALF_UP)
-							.multiply(new BigDecimal(hoursToGo)));
-			entry.setLineTwoValue(
-					"≈" + new DecimalFormat("0").format(calculated.longValue() / KWH_FACTOR) + " kW/h");
-			return calculated.longValue();
-		}
-		return null;
 	}
 
 	private String format(BigDecimal val, boolean rounded) {
@@ -506,7 +174,8 @@ public class HouseViewService {
 
 		if (climate.getTemperature() != null) {
 			// Temperature and humidity
-			view.setStateTemperature(format(climate.getTemperature().getValue(), false) + DEGREE + "C");
+			view.setStateTemperature(
+					format(climate.getTemperature().getValue(), false) + ViewFormatter.DEGREE + "C");
 			if (climate.getHumidity() != null) {
 				view.setStateHumidity(format(climate.getHumidity().getValue(), true) + "%rH");
 			}
@@ -621,20 +290,6 @@ public class HouseViewService {
 		model.addAttribute(viewKeyMax, viewMax);
 	}
 
-	public String lookupSunHeating(OutdoorClimate outdoorMaxClimate) {
-
-		if (outdoorMaxClimate == null) {
-			return StringUtils.EMPTY;
-		}
-
-		if (outdoorMaxClimate.getSunBeamIntensity().ordinal() >= outdoorMaxClimate
-				.getSunHeatingInContrastToShadeIntensity().ordinal()) {
-			return outdoorMaxClimate.getSunBeamIntensity().getSun();
-		} else {
-			return outdoorMaxClimate.getSunHeatingInContrastToShadeIntensity().getHeating();
-		}
-	}
-
 	private void formatPower(Model model, PowerMeter powerMeter, HistoryModel historyModel) {
 
 		PowerView power = new PowerView();
@@ -650,8 +305,8 @@ public class HouseViewService {
 		}
 
 		if (!historyModel.getElectricPowerConsumptionDay().isEmpty()) {
-			List<ChartEntry> dayViewModel = fillPowerHistoryDayViewModel(model,
-					historyModel.getElectricPowerConsumptionDay(), false);
+			List<ChartEntry> dayViewModel = viewFormatter
+					.fillPowerHistoryDayViewModel(historyModel.getElectricPowerConsumptionDay(), false);
 			power.setTodayConsumption(dayViewModel.get(0));
 		}
 
@@ -662,8 +317,15 @@ public class HouseViewService {
 		model.addAttribute("lowBattery", lowBatteryDevices);
 	}
 
-	private void formatWarnings(Model model, List<String> warnings) {
-		model.addAttribute("warnings", warnings);
+	private void formatWarnings(Model model, HouseModel houseModel) {
+
+		List<String> copy = new ArrayList<>(houseModel.getWarnings());
+		long diff = new Date().getTime() - houseModel.getDateTime();
+		if (diff > 1000 * 60 * 20) {
+			copy.add("Letzte Aktualisierung vor " + (diff / 1000 / 60) + " Min.");
+		}
+
+		model.addAttribute("warnings", copy);
 	}
 
 	private void formatSwitch(Model model, String viewKey, Switch switchModel) {
