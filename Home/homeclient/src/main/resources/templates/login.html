@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org" lang="de">
 
-	<head th:replace="basics :: head (name='Zuhause')"></head>
+	<head th:replace="basics :: head (name='Zuhause')"><title></title></head>
 	
 	<body style="background:#fffafa;" id="idbody">
 	
@@ -11,12 +11,11 @@
 		
 		<br/>
 	
-		<div th:replace="fragments :: title (name='Home - Anmeldung')"></div>
-	
 		<form name="f" th:action="'/'" method="POST">
 		
 			<div th:class="'alert alert-secondary'">
 				<fieldset>
+					<legend>Home - Anmeldung</legend>
 					<label for="username">Benutzername</label> 
 					<br/>
 					<input type="text" id="username" name="login_username" /> 
@@ -27,7 +26,7 @@
 					<br/>
 					<br/>
 					
-					<a><b>Cookie-Information:</b><br/>Diese Internetseite verwendet so genannte Cookies. <br/>Um mehr zu erfahren, klicken Sie bitte hier:</a>
+					<a><strong>Cookie-Information:</strong><br/>Diese Internetseite verwendet so genannte Cookies. <br/>Um mehr zu erfahren, klicken Sie bitte hier:</a>
 					<p/>
 					<a th:href="${lawLink}" target="_blank">Impressum und Datenschutzerkl&auml;rung</a><br/><br/>
 					<input type="checkbox" id="cookiecheck" name="login_cookieok" value="true"></input>

@@ -1,6 +1,8 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org" lang="de">
 	
+	<head><title></title></head>
+	
 	<th:block th:if="${chartEntries != null}">
 		<button class="btn btn-outline-secondary" type="button" data-toggle="collapse" data-target=".chartTarget" aria-expanded="false">Alle Tage anzeigen</button>
 		<div style="height: 10px;"></div>
@@ -28,14 +30,14 @@
 			      <a class="mb-1" th:text="${row.lineOneLabel}">List group item heading</a>
 			      <h4>
 			      	  <span th:text="${row.lineOneValue}">x kW/h</span>
-			      	  <span th:if="${!#strings.isEmpty(row.lineOneValueIcon)}"><i style="font-size: 80%;" th:class="${row.lineOneValueIcon}"></i></span>
+			      	  <span th:if="${!#strings.isEmpty(row.lineOneValueIcon)}"><th:block th:replace="basics :: symbolWithStyle (name=${row.lineOneValueIcon}, style='font-size: 80%;')"/></span>
 			      </h4>
 			    </div>
 			    <div th:if="${!#strings.isEmpty(row.lineTwoValue)}" class="d-flex w-100 justify-content-between">
 			      <a class="mb-1" th:text="${row.lineTwoLabel}">Hochgerechnet</a>
 			      <h4>
 			      	  <span th:text="${row.lineTwoValue}">3 days ago</span>
-			      	  <span th:if="${!#strings.isEmpty(row.lineTwoValueIcon)}"><i style="font-size: 80%;" th:class="${row.lineTwoValueIcon}"></i></span>
+			      	  <span th:if="${!#strings.isEmpty(row.lineTwoValueIcon)}"><th:block th:replace="basics :: symbolWithStyle (name=${row.lineTwoValueIcon}, style='font-size: 80%;')"/></span>
 			      </h4>
 			    </div> 
 			    <div th:if="${!#strings.isEmpty(row.badgeValue)}" class="d-flex w-100 justify-content-between">

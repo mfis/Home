@@ -145,6 +145,9 @@
 	
 </th:block>
 
+<th:block th:fragment="symbol (name)"><i th:class="${name}"></i></th:block> <!-- //NOSONAR -->
+<th:block th:fragment="symbolWithStyle (name, style)"><i th:style="${style}" th:class="${name}"></i></th:block> <!-- //NOSONAR -->
+
 <body>
 
 	<!-- Navigation -->
@@ -152,19 +155,19 @@
 		<nav id="navbar" class="navbar fixed-top navbar-expand-lg navbar-light py-1" style="border-bottom: 4px solid #C0C0C0;">
 			
 			<a class="navbar-brand" href="#">
-				<span><i th:class="${selected.icon}"></i></span>
+				<span><th:block th:replace="basics :: symbol (name=${selected.icon})"/></span>
 				<span th:text="${selected.name}"></span>
 			</a>
 			<a id="statusline" class="text-muted font-weight-light ml-auto" style="font-size: 85%; margin-right:15px">
 				<span th:text="${status}"></span>
-				<span style="display:inline;" id="navbarcheck"><i class="far fa-check-circle"></i></span>
-				<span style="display:none;" id="navbaroffline"><i class="fas fa-exclamation-triangle text-danger"></i></span>
+				<span style="display:inline;" id="navbarcheck"><th:block th:replace="basics :: symbol (name='far fa-check-circle')"/></span>
+				<span style="display:none;" id="navbaroffline"><th:block th:replace="basics :: symbol (name='fas fa-exclamation-triangle text-danger')"/></span>
 			</a>
 			<button class="navbar-toggler" type="button" data-toggle="collapse"
 				data-target="#navbarSupportedContent"
 				aria-controls="navbarSupportedContent" aria-expanded="false"
 				aria-label="Toggle navigation">
-				<span id="navbartoggle" class="navbar-toggler-icon-"><i class="fas fa-bars"></i></span>
+				<span id="navbartoggle" class="navbar-toggler-icon-"><th:block th:replace="basics :: symbol (name='fas fa-bars')"/></span>
 			</button>
 			<div class="collapse navbar-collapse" id="navbarSupportedContent">
 				<ul class="navbar-nav ml-auto">
