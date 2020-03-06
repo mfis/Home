@@ -2,6 +2,7 @@ package home.request;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
 import java.util.concurrent.CompletableFuture;
 
 import org.apache.commons.io.FileUtils;
@@ -75,10 +76,9 @@ public class ControllerRequestMapping {
 
 	@PostMapping(value = CONTROLLER_LONG_POLLING_FOR_AWAIT_MESSAGE_REQUEST)
 	public DeferredResult<Message> controllerLongPollingForAwaitMessageRequest() {
+		ModelObjectDAO.getInstance().setLastLongPollingTimestamp(new Date().getTime());
 		DeferredResult<Message> deferredResult = new DeferredResult<>(Long.MAX_VALUE, null);
-		CompletableFuture.runAsync(() -> {
-			deferredResult.setResult(MessageQueue.getInstance().pollMessage());
-		});
+		CompletableFuture.runAsync(() -> deferredResult.setResult(MessageQueue.getInstance().pollMessage()));
 		return deferredResult;
 	}
 }
