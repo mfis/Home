@@ -25,7 +25,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
 	}
 
 	private List<MediaType> getSupportedMediaTypesForByteArrayHttpMessageConverter() {
-		List<MediaType> list = new ArrayList<MediaType>();
+		List<MediaType> list = new ArrayList<>();
 		list.add(MediaType.IMAGE_JPEG);
 		list.add(MediaType.IMAGE_PNG);
 		list.add(MediaType.APPLICATION_OCTET_STREAM);

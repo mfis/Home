@@ -12,7 +12,7 @@ public class ChartEntry implements Serializable {
 
 	private String additionalLabel = "";
 
-	private List<ValueWithCaption> valuesWithCaptions = new LinkedList<>();;
+	private List<ValueWithCaption> valuesWithCaptions = new LinkedList<>();
 
 	private String collapse = "";
 

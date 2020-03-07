@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import home.domain.service.HistoryViewService;
 import home.domain.service.HouseViewService;
 import home.model.Message;
 import home.model.MessageQueue;
@@ -56,6 +57,9 @@ public class HomeRequestMapping {
 	private HouseViewService houseView;
 
 	@Autowired
+	private HistoryViewService historyViewService;
+
+	@Autowired
 	private SettingsViewService settingsView;
 
 	@Autowired
@@ -80,7 +84,7 @@ public class HomeRequestMapping {
 	public String history(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
 			@RequestParam(name = "key") String key) {
 		fillUserAttributes(model, userCookie);
-		houseView.fillHistoryViewModel(model, ModelObjectDAO.getInstance().readHistoryModel(),
+		historyViewService.fillHistoryViewModel(model, ModelObjectDAO.getInstance().readHistoryModel(),
 				ModelObjectDAO.getInstance().readHouseModel(), key);
 		return "history";
 	}
