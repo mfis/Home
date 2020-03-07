@@ -271,7 +271,7 @@ public class HistoryDatabaseDAO {
 
 		String path = env.getProperty("backup.database.path");
 		if (!path.endsWith("/")) {
-			path = path + "/";
+			path = path + "/"; // NOSONAR
 		}
 		return path;
 	}
