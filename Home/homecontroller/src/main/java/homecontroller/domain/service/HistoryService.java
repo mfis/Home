@@ -21,6 +21,7 @@ import java.util.concurrent.CompletableFuture;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -60,6 +61,8 @@ public class HistoryService {
 	private static final int HOURS_IN_DAY = 24;
 
 	private static final long HIGHEST_OUTSIDE_TEMPERATURE_PERIOD_HOURS = HOURS_IN_DAY;
+
+	private static final Log LOG = LogFactory.getLog(HistoryService.class);
 
 	@PostConstruct
 	public void init() {
@@ -116,6 +119,7 @@ public class HistoryService {
 		try {
 			historyDAO.persistEntries(toInsert);
 		} catch (Exception e) {
+			LOG.error("Could not persistCashedValues(): ", e);
 			increaseTimestamps(toInsert);
 			historyDAO.persistEntries(toInsert);
 		}
@@ -137,7 +141,6 @@ public class HistoryService {
 
 	@Scheduled(cron = "5 10 0 * * *")
 	public synchronized void refreshHistoryModelComplete() {
-
 		HistoryModel oldModel = ModelObjectDAO.getInstance().readHistoryModel();
 		if (oldModel != null) {
 			oldModel.setInitialized(false);
@@ -172,7 +175,6 @@ public class HistoryService {
 
 	@Scheduled(fixedDelay = ((1000 * 60 * 5) + 13))
 	private synchronized void refreshExtremValues() {
-
 		HistoryModel model = ModelObjectDAO.getInstance().readHistoryModel();
 		if (model == null) {
 			return;
@@ -186,7 +188,6 @@ public class HistoryService {
 
 	@Scheduled(fixedDelay = (1000 * 60))
 	private synchronized void refreshHistoryModel() {
-
 		HistoryModel model = ModelObjectDAO.getInstance().readHistoryModel();
 		if (model == null || !model.isInitialized()) {
 			return;
@@ -626,8 +627,8 @@ public class HistoryService {
 			return;
 		}
 
-		long lastValueRounded = lastValue.getValue().setScale(0, BigDecimal.ROUND_HALF_UP).longValue();
-		long actualValueRounded = pair.getValue().setScale(0, BigDecimal.ROUND_HALF_UP).longValue();
+		long lastValueRounded = lastValue.getValue().setScale(0, RoundingMode.HALF_UP).longValue();
+		long actualValueRounded = pair.getValue().setScale(0, RoundingMode.HALF_UP).longValue();
 		if ((actualValueRounded - lastValueRounded) >= history.getValueDifferenceToSave()) {
 			dest.add(pair);
 			return;

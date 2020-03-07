@@ -83,9 +83,6 @@ public class HouseService {
 	public void init() {
 		CompletableFuture.runAsync(() -> {
 			try {
-				if (ModelObjectDAO.getInstance().readHistoryModel() == null) {
-					historyService.refreshHistoryModelComplete();
-				}
 				refreshHouseModel();
 			} catch (Exception e) {
 				LOG.error("Could not initialize HouseService completly.", e);
@@ -93,7 +90,7 @@ public class HouseService {
 		});
 	}
 
-	@Scheduled(fixedDelay = (1000 * 5))
+	@Scheduled(fixedDelay = (1000 * 10))
 	private void scheduledRefreshHouseModel() {
 		refreshHouseModel();
 	}
@@ -158,7 +155,7 @@ public class HouseService {
 		return newModel;
 	}
 
-	public void calculateConclusion(HouseModel oldModel, HouseModel newModel) {
+	private void calculateConclusion(HouseModel oldModel, HouseModel newModel) {
 
 		if (newModel.getClimateTerrace().getTemperature().getValue() == null
 				|| newModel.getClimateEntrance().getTemperature().getValue() == null) {
@@ -323,15 +320,13 @@ public class HouseService {
 				: TARGET_TEMPERATURE_INSIDE;
 		BigDecimal temperatureLimit = targetTemperature.add(TARGET_TEMPERATURE_TOLERANCE_OFFSET);
 
-		if (room.getTemperature() == null || room.getTemperature().getValue() == null) {
+		if (noTemperatureAvailable(room)) {
 			// nothing to do
-		} else if (room.getTemperature().getValue().compareTo(temperatureLimit) < 0) {
-			// TODO: using sun heating in the winter for warming up rooms
+		} else if (temperatueIsOkay(room, temperatureLimit)) {
+			// using sun heating in the winter for warming up rooms
 		} else if (isTooColdOutsideSoNoNeedToCoolingDownRoom(room.getTemperature().getValue())) {
 			// no hint
-		} else if (room.getTemperature().getValue().compareTo(temperatureLimit) > 0
-				&& outdoor.getTemperature().getValue().compareTo(room.getTemperature().getValue()) < 0
-				&& outdoor.getSunBeamIntensity().ordinal() <= Intensity.LOW.ordinal()) {
+		} else if (emperatureOutsideColderThanInside(room, outdoor, temperatureLimit)) {
 			if (isHeatingIsCauseForHighRoomTemperature(heating, temperatureLimit)) {
 				// no hint
 			} else {
@@ -341,10 +336,30 @@ public class HouseService {
 					room.getHints().giveHint(Hint.OPEN_WINDOW, dateTime);
 				}
 			}
-		} else if (room.getTemperature().getValue().compareTo(temperatureLimit) > 0
-				&& outdoor.getSunBeamIntensity().ordinal() > Intensity.LOW.ordinal()) {
+		} else if (temperatureInsideColderThanOutside(room, outdoor, temperatureLimit)) {
 			room.getHints().giveHint(Hint.CLOSE_ROLLER_SHUTTER, dateTime);
 		}
+	}
+
+	private boolean temperatureInsideColderThanOutside(RoomClimate room, OutdoorClimate outdoor,
+			BigDecimal temperatureLimit) {
+		return room.getTemperature().getValue().compareTo(temperatureLimit) > 0
+				&& outdoor.getSunBeamIntensity().ordinal() > Intensity.LOW.ordinal();
+	}
+
+	private boolean emperatureOutsideColderThanInside(RoomClimate room, OutdoorClimate outdoor,
+			BigDecimal temperatureLimit) {
+		return room.getTemperature().getValue().compareTo(temperatureLimit) > 0
+				&& outdoor.getTemperature().getValue().compareTo(room.getTemperature().getValue()) < 0
+				&& outdoor.getSunBeamIntensity().ordinal() <= Intensity.LOW.ordinal();
+	}
+
+	private boolean temperatueIsOkay(RoomClimate room, BigDecimal temperatureLimit) {
+		return room.getTemperature().getValue().compareTo(temperatureLimit) < 0;
+	}
+
+	private boolean noTemperatureAvailable(RoomClimate room) {
+		return room.getTemperature() == null || room.getTemperature().getValue() == null;
 	}
 
 	private boolean isHeatingIsCauseForHighRoomTemperature(Heating heating, BigDecimal temperatureLimit) {
@@ -421,7 +436,7 @@ public class HouseService {
 
 	private boolean newValueForOutdoorTemperature(HouseModel oldModel, HouseModel newModel) {
 
-		// TODO: determinated nullable instances for no-value case (caused
+		// determinated nullable instances for no-value case (caused
 		// NPE after reboot)
 		return newModel.getConclusionClimateFacadeMin() != null
 				&& newModel.getConclusionClimateFacadeMin().getTemperature().getValue() != null
@@ -577,7 +592,6 @@ public class HouseService {
 		if (BooleanUtils.isFalse(api.getCcuAuthActive())) {
 			newModel.getWarnings().add("CCU Authentifizierung ist nicht aktiv!");
 		}
-
 	}
 
 }
