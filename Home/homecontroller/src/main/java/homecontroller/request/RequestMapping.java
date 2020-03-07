@@ -19,16 +19,11 @@ public class RequestMapping {
 	@Autowired
 	private HouseService houseService;
 
-	// @Autowired
-	// private DatabaseMigrationService databaseMigrationService;
-
 	private static final Log LOG = LogFactory.getLog(RequestMapping.class);
-
-	private String uuid = null;
 
 	@PostConstruct
 	private void postConstruct() {
-		uuid = UUID.randomUUID().toString();
+		String uuid = UUID.randomUUID().toString();
 		LOG.info("UUID=" + uuid);
 	}
 
@@ -37,17 +32,5 @@ public class RequestMapping {
 		houseService.refreshHouseModel();
 		return new ActionModel("OK");
 	}
-
-	// @GetMapping("/controller/startDataMigration")
-	// public void startDataMigration(@RequestParam(name = "uuid", required =
-	// false) String uuid) {
-	// if (!this.uuid.equals(uuid)) {
-	// LOG.error("UUID not set correctly");
-	// return;
-	// }
-	// LOG.info("startDataMigration");
-	// databaseMigrationService.startMigration();
-	// postConstruct();
-	// }
 
 }

@@ -61,7 +61,7 @@ public class ClientCommunicationService {
 
 	private static final Log LOG = LogFactory.getLog(ClientCommunicationService.class);
 
-	@Scheduled(fixedDelay = 1)
+	@Scheduled(fixedDelay = 30)
 	private void longPolling() {
 		Message message = pollForMessage();
 		if (message != null) {

@@ -65,45 +65,57 @@ public class PushService {
 		List<SettingsModel> settingsModels = settingsService.lookupUserForPushMessage();
 
 		for (SettingsModel settingsModel : settingsModels) {
-
-			List<String> oldHints = hintList(oldModel, settingsModel);
-			List<String> newHints = hintList(newModel, settingsModel);
-
-			StringBuilder messages = new StringBuilder(300);
-
-			for (String newHint : newHints) {
-				if (!oldHints.contains(newHint)) {
-					messages.append("\n");
-					messages.append("- " + newHint);
-				}
-			}
-
-			int cancelcounter = 0;
-			for (String oldHint : oldHints) {
-				if (!newHints.contains(oldHint)) {
-					messages.append("\n");
-					if (cancelcounter == 0) {
-						messages.append("Aufgehoben:");
-					}
-					messages.append("\n- " + oldHint);
-					cancelcounter++;
-				}
-			}
-
-			String msgString = messages.toString().trim();
-			if (StringUtils.isNotBlank(msgString)) {
-
-				pushMessages.add(PushoverMessage.builderWithApiToken(settingsModel.getPushoverApiToken()) //
-						.setUserId(settingsModel.getPushoverUserId()) //
-						.setDevice(settingsModel.getClientName()) //
-						.setMessage(msgString) //
-						.setPriority(MessagePriority.NORMAL) //
-						.setTitle("Zuhause - Empfehlungen") //
-						.build());
-
-			}
+			hintMessagePerUser(oldModel, newModel, pushMessages, settingsModel);
 		}
 		return pushMessages;
+	}
+
+	private void hintMessagePerUser(HouseModel oldModel, HouseModel newModel,
+			List<PushoverMessage> pushMessages, SettingsModel settingsModel) {
+
+		List<String> oldHints = hintList(oldModel, settingsModel);
+		List<String> newHints = hintList(newModel, settingsModel);
+
+		StringBuilder messages = new StringBuilder(300);
+
+		formatNewHints(oldHints, newHints, messages);
+		formatCanceledHints(oldHints, newHints, messages);
+
+		String msgString = messages.toString().trim();
+		if (StringUtils.isNotBlank(msgString)) {
+			pushMessages.add(PushoverMessage.builderWithApiToken(settingsModel.getPushoverApiToken()) //
+					.setUserId(settingsModel.getPushoverUserId()) //
+					.setDevice(settingsModel.getClientName()) //
+					.setMessage(msgString) //
+					.setPriority(MessagePriority.NORMAL) //
+					.setTitle("Zuhause - Empfehlungen") //
+					.build());
+		}
+	}
+
+	private void formatCanceledHints(List<String> oldHints, List<String> newHints, StringBuilder messages) {
+
+		int cancelcounter = 0;
+		for (String oldHint : oldHints) {
+			if (!newHints.contains(oldHint)) {
+				messages.append("\n");
+				if (cancelcounter == 0) {
+					messages.append("Aufgehoben:");
+				}
+				messages.append("\n- " + oldHint);
+				cancelcounter++;
+			}
+		}
+	}
+
+	private void formatNewHints(List<String> oldHints, List<String> newHints, StringBuilder messages) {
+
+		for (String newHint : newHints) {
+			if (!oldHints.contains(newHint)) {
+				messages.append("\n");
+				messages.append("- " + newHint);
+			}
+		}
 	}
 
 	private List<PushoverMessage> doorbellMessage(HouseModel oldModel, HouseModel newModel) {
