@@ -1,6 +1,8 @@
 package homecontroller.service;
 
 import java.io.FileReader;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.Security;
 import java.security.cert.X509Certificate;
@@ -44,7 +46,7 @@ import homecontroller.util.HomeAppConstants;
 public class SpringConfiguration implements WebMvcConfigurer {
 
 	@Autowired
-	private Environment env;
+	private Environment env; // NOSONAR
 
 	static {
 		Security.addProvider(new BouncyCastleProvider());
@@ -62,7 +64,7 @@ public class SpringConfiguration implements WebMvcConfigurer {
 	}
 
 	@Bean(name = "restTemplateCCU")
-	public RestTemplate restTemplateCCU() throws Exception {
+	public RestTemplate restTemplateCCU() throws IOException, GeneralSecurityException {
 
 		try (PEMParser pemParser = new PEMParser(new FileReader(env.getProperty("homematic.sslcert")))) {
 
@@ -130,21 +132,5 @@ public class SpringConfiguration implements WebMvcConfigurer {
 	public JdbcTemplate jdbcTemplateHistory(DataSource ds) {
 		return new JdbcTemplate(ds);
 	}
-
-	// @Bean(name = "datasourceMigration")
-	// public DataSource datasourceMigration() {
-	// DriverManagerDataSource dataSource = new DriverManagerDataSource();
-	// dataSource.setDriverClassName(env.getProperty("datamigration.driverClassName"));
-	// dataSource.setUrl(env.getProperty("datamigration.url"));
-	// dataSource.setUsername(env.getProperty("datamigration.username"));
-	// dataSource.setPassword(env.getProperty("datamigration.password"));
-	// return dataSource;
-	// }
-	//
-	// @Bean(name = "jdbcTemplateMigrationDB")
-	// public JdbcTemplate
-	// jdbcTemplateMigration(@Qualifier("datasourceMigration") DataSource ds) {
-	// return new JdbcTemplate(ds);
-	// }
 
 }

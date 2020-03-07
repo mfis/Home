@@ -133,7 +133,7 @@ public class CameraService {
 			return;
 		}
 
-		if (pingCamera(false)) {
+		if (pingCamera(deviceSwitch, false)) {
 			LOG.info("Camera already on");
 			return;
 		}
@@ -146,20 +146,19 @@ public class CameraService {
 			if (System.currentTimeMillis() - startPolling > (1000L * 20L)) {
 				throw new IllegalStateException("camera not started");
 			}
-			pingCameraOk = pingCamera(true);
+			pingCameraOk = pingCamera(deviceSwitch, true);
 		} while (!pingCameraOk);
 	}
 
-	private boolean pingCamera(boolean sleepIfNotReachable) {
+	private boolean pingCamera(Device device, boolean sleepIfNotReachable) {
 
 		boolean pingCameraOk = false;
 
 		try {
 			LOG.info("PING");
-			ResponseEntity<String> response = restTemplateLowTimeout.getForEntity("http://192.168.2.203/ping",
-					String.class); // TODO:
-									// externalize
-									// configuration
+			String url = env.getProperty("camera." + device.getId() + ".url");
+			ResponseEntity<String> response = restTemplateLowTimeout.getForEntity(url + "/ping",
+					String.class);
 			if (response.getStatusCode() == HttpStatus.OK) {
 				pingCameraOk = true;
 			} else {
@@ -211,10 +210,9 @@ public class CameraService {
 		}
 
 		try {
-			ResponseEntity<byte[]> response = restTemplateBinaryResponse
-					.getForEntity("http://192.168.2.203/capture", byte[].class); // TODO:
-																					// externalize
-																					// url
+			String url = env.getProperty("camera." + device.getId() + ".url");
+			ResponseEntity<byte[]> response = restTemplateBinaryResponse.getForEntity(url + "/capture",
+					byte[].class);
 
 			if (response.getStatusCode() == HttpStatus.OK) {
 				return response.getBody();
