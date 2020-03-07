@@ -55,8 +55,8 @@ public class UploadService {
 			}
 
 		} catch (Exception e) {
-			LogFactory.getLog(UploadService.class)
-					.warn("Could not upload data:" + instance.toString() + ":" + e.getMessage());
+			LogFactory.getLog(UploadService.class).warn(
+					"Could not upload data:" + instance.getClass().getSimpleName() + ":" + e.getMessage());
 		}
 		return t;
 	}
