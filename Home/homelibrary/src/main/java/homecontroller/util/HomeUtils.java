@@ -2,8 +2,6 @@ package homecontroller.util;
 
 import java.time.LocalDateTime;
 
-import org.springframework.util.StringUtils;
-
 public class HomeUtils {
 
 	private HomeUtils() {
@@ -11,17 +9,21 @@ public class HomeUtils {
 	}
 
 	public static String escape(String string) {
-		string = StringUtils.replace(string, " ", "");
-		string = StringUtils.replace(string, ".", "_");
-		string = StringUtils.replace(string, "-", "_");
-		string = StringUtils.replace(string, ":", "_");
-		string = StringUtils.replace(string, "ä", "ae");
-		string = StringUtils.replace(string, "ö", "oe");
-		string = StringUtils.replace(string, "ü", "ue");
-		string = StringUtils.replace(string, "Ä", "Ae");
-		string = StringUtils.replace(string, "Ö", "Oe");
-		string = StringUtils.replace(string, "Ü", "Ue");
-		string = StringUtils.replace(string, "ß", "ss");
+
+		if (string == null) {
+			return string;
+		}
+		string = string.replace(" ", "");
+		string = string.replace(".", "_");
+		string = string.replace("-", "_");
+		string = string.replace(":", "_");
+		string = string.replace("ä", "ae");
+		string = string.replace("ö", "oe");
+		string = string.replace("ü", "ue");
+		string = string.replace("Ä", "Ae");
+		string = string.replace("Ö", "Oe");
+		string = string.replace("Ü", "Ue");
+		string = string.replace("ß", "ss");
 		return string;
 	}
 
