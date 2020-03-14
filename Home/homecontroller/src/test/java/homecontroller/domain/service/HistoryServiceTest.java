@@ -1,6 +1,7 @@
 package homecontroller.domain.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
@@ -9,20 +10,25 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import homecontroller.command.HomematicCommand;
+import homecontroller.command.HomematicCommandBuilder;
+import homecontroller.command.HomematicCommandProcessor;
 import homecontroller.dao.HistoryDatabaseDAO;
 import homecontroller.database.mapper.TimestampValuePair;
 import homecontroller.domain.model.TimeRange;
+import homecontroller.model.HistoryElement;
 import homecontroller.model.HistoryValueType;
+import homecontroller.service.DeviceQualifier;
 import homelibrary.homematic.model.Datapoint;
 import homelibrary.homematic.model.Device;
-import homelibrary.homematic.model.History;
-import homelibrary.homematic.model.HomematicCommand;
+import homelibrary.homematic.model.HistoryStrategy;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HistoryServiceTest {
@@ -30,8 +36,24 @@ public class HistoryServiceTest {
 	@InjectMocks
 	private HistoryService historyService;
 
+	@InjectMocks
+	private HomematicCommandBuilder homematicCommandBuilder;
+
+	@InjectMocks
+	private HomematicCommandProcessor processor;
+
 	@Mock
 	private HistoryDatabaseDAO dao;
+	
+	@Mock
+	private DeviceQualifier deviceQualifier;
+	
+	@Before
+	public void before() {
+		when(deviceQualifier.idFrom(any(Device.class))).thenReturn("<ID>");
+		when(deviceQualifier.channelFrom(any(Device.class))).thenReturn(99);
+	}
+
 
 	@Test
 	public void testMin() throws Exception {
@@ -94,7 +116,9 @@ public class HistoryServiceTest {
 	}
 
 	private HomematicCommand createCommand() {
-		return HomematicCommand.read(Device.STROMZAEHLER, Datapoint.ENERGY_COUNTER);
+		HomematicCommand command = homematicCommandBuilder.read(Device.STROMZAEHLER, Datapoint.ENERGY_COUNTER);
+		processor.buildVarName(command);
+		return command;
 	}
 
 	@Test
@@ -119,11 +143,10 @@ public class HistoryServiceTest {
 
 			TimestampValuePair dbPair = new TimestampValuePair(LocalDateTime.of(2019, 12, 7, 8, 0),
 					(BigDecimal) testcase[0], HistoryValueType.SINGLE);
-			when(dao.readExtremValueBetween(cmd, (HistoryValueType) testcase[1], start, end))
-					.thenReturn(dbPair);
+			when(dao.readExtremValueBetween(cmd, (HistoryValueType) testcase[1], start, end)).thenReturn(dbPair);
 
-			BigDecimal result = historyService.readExtremValueBetweenWithCache(cmd,
-					(HistoryValueType) testcase[1], start, end, (TimeRange) testcase[2]);
+			BigDecimal result = historyService.readExtremValueBetweenWithCache(cmd, (HistoryValueType) testcase[1],
+					start, end, (TimeRange) testcase[2]);
 			assertThat(result.intValue()).isEqualTo(testcase[3]);
 		}
 
@@ -145,8 +168,8 @@ public class HistoryServiceTest {
 
 			LocalDateTime start = LocalDateTime.of(2019, 12, 7, 22, 0);
 
-			TimestampValuePair dbPair = new TimestampValuePair((LocalDateTime) testcase[0],
-					(BigDecimal) testcase[1], HistoryValueType.SINGLE);
+			TimestampValuePair dbPair = new TimestampValuePair((LocalDateTime) testcase[0], (BigDecimal) testcase[1],
+					HistoryValueType.SINGLE);
 			when(dao.readFirstValueBefore(cmd, start, 48)).thenReturn(dbPair);
 
 			BigDecimal result = historyService.readFirstValueBeforeWithCache(cmd, start, 48);
@@ -159,8 +182,8 @@ public class HistoryServiceTest {
 
 		Object[][] input = new Object[][] { //
 				{ LocalDateTime.of(2019, 12, 7, 19, 00), new BigDecimal(400), null, 4 }, //
-				{ LocalDateTime.of(2019, 12, 7, 19, 00), new BigDecimal(400),
-						LocalDateTime.of(2019, 12, 7, 21, 30), 3 }, //
+				{ LocalDateTime.of(2019, 12, 7, 19, 00), new BigDecimal(400), LocalDateTime.of(2019, 12, 7, 21, 30),
+						3 }, //
 		};
 
 		for (Object[] testcase : input) {
@@ -168,12 +191,11 @@ public class HistoryServiceTest {
 			historyService.getEntryCache().clear();
 			historyService.getEntryCache().put(cmd, createList());
 
-			TimestampValuePair dbPair = new TimestampValuePair((LocalDateTime) testcase[0],
-					(BigDecimal) testcase[1], HistoryValueType.SINGLE);
+			TimestampValuePair dbPair = new TimestampValuePair((LocalDateTime) testcase[0], (BigDecimal) testcase[1],
+					HistoryValueType.SINGLE);
 			when(dao.readValues(cmd, (LocalDateTime) testcase[2])).thenReturn(Arrays.asList(dbPair));
 
-			List<TimestampValuePair> result = historyService.readValuesWithCache(cmd,
-					(LocalDateTime) testcase[2]);
+			List<TimestampValuePair> result = historyService.readValuesWithCache(cmd, (LocalDateTime) testcase[2]);
 			assertThat(result.size()).isEqualTo(testcase[3]);
 		}
 	}
@@ -181,24 +203,25 @@ public class HistoryServiceTest {
 	@Test
 	public void testDiffValueCheckedAdd() throws Exception {
 
+		HistoryElement historyElement = new HistoryElement(
+				homematicCommandBuilder.read(Device.STROMZAEHLER, Datapoint.ENERGY_COUNTER), HistoryStrategy.MAX, 1000);
+
 		LocalDateTime dbTs = LocalDateTime.of(2019, 12, 7, 21, 30);
 		Object[][] input = new Object[][] { //
 				{ new TimestampValuePair(dbTs, new BigDecimal(100), HistoryValueType.SINGLE), 1 }, //
 				{ new TimestampValuePair(dbTs, new BigDecimal(9999), HistoryValueType.SINGLE), 0 }, //
-				{ new TimestampValuePair(dbTs.minusHours(14), new BigDecimal(9999), HistoryValueType.SINGLE),
-						1 }, //
+				{ new TimestampValuePair(dbTs.minusHours(14), new BigDecimal(9999), HistoryValueType.SINGLE), 1 }, //
 		};
 
 		for (Object[] testcase : input) {
 
-			when(dao.readLatestValue(History.STROM_ZAEHLERSTAND.getCommand()))
-					.thenReturn((TimestampValuePair) testcase[0]);
+			when(dao.readLatestValue(historyElement.getCommand())).thenReturn((TimestampValuePair) testcase[0]);
 
 			TimestampValuePair newPair = new TimestampValuePair(LocalDateTime.of(2019, 12, 7, 21, 40),
 					new BigDecimal(10000), HistoryValueType.SINGLE);
 
 			List<TimestampValuePair> result = new LinkedList<>();
-			historyService.diffValueCheckedAdd(History.STROM_ZAEHLERSTAND, newPair, result);
+			historyService.diffValueCheckedAdd(historyElement, newPair, result);
 			assertThat(result.size()).isEqualTo(testcase[1]);
 		}
 	}

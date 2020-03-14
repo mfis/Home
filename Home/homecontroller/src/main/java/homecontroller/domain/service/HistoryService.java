@@ -27,6 +27,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import homecontroller.command.HomematicCommand;
+import homecontroller.command.HomematicCommandBuilder;
 import homecontroller.dao.HistoryDatabaseDAO;
 import homecontroller.database.mapper.TimestampValuePair;
 import homecontroller.database.mapper.TimestampValuePairComparator;
@@ -35,14 +37,14 @@ import homecontroller.domain.model.PowerConsumptionDay;
 import homecontroller.domain.model.PowerConsumptionMonth;
 import homecontroller.domain.model.TemperatureHistory;
 import homecontroller.domain.model.TimeRange;
+import homecontroller.model.History;
+import homecontroller.model.HistoryElement;
 import homecontroller.model.HistoryValueType;
 import homecontroller.service.HomematicAPI;
 import homecontroller.util.HomeUtils;
 import homelibrary.dao.ModelObjectDAO;
 import homelibrary.homematic.model.Datapoint;
 import homelibrary.homematic.model.Device;
-import homelibrary.homematic.model.History;
-import homelibrary.homematic.model.HomematicCommand;
 
 @Component
 public class HistoryService {
@@ -55,6 +57,12 @@ public class HistoryService {
 
 	@Autowired
 	private HomematicAPI api;
+	
+	@Autowired
+	private HomematicCommandBuilder homematicCommandBuilder;
+	
+	@Autowired
+	private History history;
 
 	private Map<HomematicCommand, List<TimestampValuePair>> entryCache = new HashMap<>();
 
@@ -67,7 +75,7 @@ public class HistoryService {
 	@PostConstruct
 	public void init() {
 
-		for (History history : History.values()) {
+		for (HistoryElement history : history.list()) {
 			if (!entryCache.containsKey(history.getCommand())) {
 				entryCache.put(history.getCommand(), new LinkedList<TimestampValuePair>());
 			}
@@ -84,7 +92,7 @@ public class HistoryService {
 	}
 
 	public void saveNewValues() {
-		for (History history : History.values()) {
+		for (HistoryElement history : history.list()) {
 			addEntry(history.getCommand(), new TimestampValuePair(api.getCurrentValuesTimestamp(),
 					api.getAsBigDecimal(history.getCommand()), homecontroller.model.HistoryValueType.SINGLE));
 		}
@@ -95,7 +103,7 @@ public class HistoryService {
 	public void persistCashedValues() {
 
 		Map<HomematicCommand, List<TimestampValuePair>> toInsert = new HashMap<>();
-		for (History history : History.values()) {
+		for (HistoryElement history : history.list()) {
 
 			List<TimestampValuePair> pairs = new LinkedList<>();
 
@@ -123,7 +131,7 @@ public class HistoryService {
 			increaseTimestamps(toInsert);
 			historyDAO.persistEntries(toInsert);
 		}
-		for (History history : History.values()) {
+		for (HistoryElement history : history.list()) {
 			entryCache.get(history.getCommand()).clear();
 		}
 	}
@@ -181,7 +189,7 @@ public class HistoryService {
 		}
 
 		BigDecimal maxValue = readExtremValueBetweenWithCache(
-				HomematicCommand.read(Device.AUSSENTEMPERATUR, Datapoint.VALUE), HistoryValueType.MAX,
+				homematicCommandBuilder.read(Device.AUSSENTEMPERATUR, Datapoint.VALUE), HistoryValueType.MAX,
 				LocalDateTime.now().minusHours(HIGHEST_OUTSIDE_TEMPERATURE_PERIOD_HOURS), null, null);
 		model.setHighestOutsideTemperatureInLast24Hours(maxValue);
 	}
@@ -269,26 +277,26 @@ public class HistoryService {
 	private TemperatureHistory readTemperatureHistory(LocalDate base, boolean singleDay,
 			LocalDateTime monthStart, LocalDateTime monthEnd, Device device, Datapoint datapoint) {
 
-		BigDecimal nightMin = readExtremValueBetweenWithCache(HomematicCommand.read(device, datapoint),
+		BigDecimal nightMin = readExtremValueBetweenWithCache(homematicCommandBuilder.read(device, datapoint),
 				HistoryValueType.MIN, monthStart, monthEnd, TimeRange.NIGHT);
 		if (nightMin == null) { // special case directly after month change
-			nightMin = readFirstValueBeforeWithCache(HomematicCommand.read(device, datapoint), monthStart,
+			nightMin = readFirstValueBeforeWithCache(homematicCommandBuilder.read(device, datapoint), monthStart,
 					48);
 		}
 
-		BigDecimal nightMax = readExtremValueBetweenWithCache(HomematicCommand.read(device, datapoint),
+		BigDecimal nightMax = readExtremValueBetweenWithCache(homematicCommandBuilder.read(device, datapoint),
 				HistoryValueType.MAX, monthStart, monthEnd, TimeRange.NIGHT);
 		if (nightMax == null) {
 			nightMax = nightMin;
 		}
 
-		BigDecimal dayMin = readExtremValueBetweenWithCache(HomematicCommand.read(device, datapoint),
+		BigDecimal dayMin = readExtremValueBetweenWithCache(homematicCommandBuilder.read(device, datapoint),
 				HistoryValueType.MIN, monthStart, monthEnd, TimeRange.DAY);
 		if (dayMin == null) {
 			dayMin = nightMin;
 		}
 
-		BigDecimal dayMax = readExtremValueBetweenWithCache(HomematicCommand.read(device, datapoint),
+		BigDecimal dayMax = readExtremValueBetweenWithCache(homematicCommandBuilder.read(device, datapoint),
 				HistoryValueType.MAX, monthStart, monthEnd, TimeRange.DAY);
 		if (dayMax == null) {
 			dayMax = nightMax;
@@ -327,7 +335,7 @@ public class HistoryService {
 	private void calculateElectricPowerConsumption(HistoryModel newModel, LocalDateTime fromDateTime) {
 
 		List<TimestampValuePair> timestampValues = readValuesWithCache(
-				HomematicCommand.read(Device.STROMZAEHLER, Datapoint.ENERGY_COUNTER), fromDateTime);
+				homematicCommandBuilder.read(Device.STROMZAEHLER, Datapoint.ENERGY_COUNTER), fromDateTime);
 
 		if (timestampValues.isEmpty()) {
 			return;
@@ -618,7 +626,7 @@ public class HistoryService {
 		return combined;
 	}
 
-	public void diffValueCheckedAdd(History history, TimestampValuePair pair, List<TimestampValuePair> dest) {
+	public void diffValueCheckedAdd(HistoryElement history, TimestampValuePair pair, List<TimestampValuePair> dest) {
 
 		TimestampValuePair lastValue = historyDAO.readLatestValue(history.getCommand());
 

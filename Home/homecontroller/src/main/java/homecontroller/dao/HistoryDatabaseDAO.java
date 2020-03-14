@@ -30,15 +30,16 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import homecontroller.command.HomematicCommand;
 import homecontroller.database.mapper.BigDecimalRowMapper;
 import homecontroller.database.mapper.LongRowMapper;
 import homecontroller.database.mapper.StringRowMapper;
 import homecontroller.database.mapper.TimestampValuePair;
 import homecontroller.database.mapper.TimestampValueRowMapper;
 import homecontroller.domain.model.TimeRange;
+import homecontroller.model.History;
+import homecontroller.model.HistoryElement;
 import homecontroller.model.HistoryValueType;
-import homelibrary.homematic.model.History;
-import homelibrary.homematic.model.HomematicCommand;
 
 @Repository
 public class HistoryDatabaseDAO {
@@ -53,7 +54,10 @@ public class HistoryDatabaseDAO {
 
 	@Autowired
 	private Environment env;
-
+	
+	@Autowired
+	private History history;
+	
 	private boolean setupIsRunning = true;
 
 	private static final Log LOG = LogFactory.getLog(HistoryDatabaseDAO.class);
@@ -80,15 +84,16 @@ public class HistoryDatabaseDAO {
 	public long createTables() {
 
 		long completeCount = 0;
-		for (History history : History.values()) {
+		for (HistoryElement history : history.list()) {
+			var varName = history.getCommand().getCashedVarName();
 			jdbcTemplateHistory.update("CREATE CACHED TABLE IF NOT EXISTS "
-					+ history.getCommand().buildVarName()
+					+ varName
 					+ " (TS DATETIME NOT NULL, TYP CHAR(1) NOT NULL, VAL DOUBLE NOT NULL, PRIMARY KEY (TS));");
 			jdbcTemplateHistory.update(
-					"CREATE UNIQUE INDEX IF NOT EXISTS " + "IDX1_" + history.getCommand().buildVarName()
-							+ " ON " + history.getCommand().buildVarName() + " (TS, TYP);");
+					"CREATE UNIQUE INDEX IF NOT EXISTS " + "IDX1_" + varName
+							+ " ON " + varName + " (TS, TYP);");
 
-			String countQuery = "SELECT COUNT(TS) AS CNT FROM " + history.getCommand().buildVarName() + ";";
+			String countQuery = "SELECT COUNT(TS) AS CNT FROM " + varName + ";";
 			long result = jdbcTemplateHistory.queryForObject(countQuery, new Object[] {},
 					new LongRowMapper("CNT"));
 			completeCount += result;
@@ -168,7 +173,7 @@ public class HistoryDatabaseDAO {
 		}
 
 		for (Entry<HomematicCommand, List<TimestampValuePair>> entry : toInsert.entrySet()) {
-			String table = entry.getKey().buildVarName();
+			String table = entry.getKey().getCashedVarName();
 			for (TimestampValuePair pair : entry.getValue()) {
 				if (pair != null) {
 					String ts = formatTimestamp(pair.getTimestamp());
@@ -189,7 +194,7 @@ public class HistoryDatabaseDAO {
 		String and = fromDateTime != null && untilDateTime != null ? " and " : "";
 
 		String query = "select " + (historyValueType == HistoryValueType.MIN ? "min" : "max")
-				+ "(val) as val FROM " + command.buildVarName() + where
+				+ "(val) as val FROM " + command.getCashedVarName() + where
 				+ (fromDateTime != null ? ("ts >= '" + formatTimestamp(fromDateTime) + "'") : "") + and
 				+ (untilDateTime != null ? ("ts < '" + formatTimestamp(untilDateTime) + "'") : "") + ";";
 
@@ -208,7 +213,7 @@ public class HistoryDatabaseDAO {
 			LocalDateTime untilDateTime) {
 
 		String query = "select " + (historyValueType == HistoryValueType.MIN ? "min" : "max")
-				+ "(val) as val FROM " + command.buildVarName() + " where ts >= '"
+				+ "(val) as val FROM " + command.getCashedVarName() + " where ts >= '"
 				+ formatTimestamp(fromDateTime) + "' and ts < '" + formatTimestamp(untilDateTime) + "'"
 				+ " and hour(ts) " + timerange.getHoursSqlQueryString() + ";";
 
@@ -225,7 +230,7 @@ public class HistoryDatabaseDAO {
 	public TimestampValuePair readFirstValueBefore(HomematicCommand command, LocalDateTime localDateTime,
 			int maxHoursReverse) {
 
-		String query = "select val FROM " + command.buildVarName() + " where ts <= '"
+		String query = "select val FROM " + command.getCashedVarName() + " where ts <= '"
 				+ formatTimestamp(localDateTime) + "' and ts > '"
 				+ formatTimestamp(localDateTime.minusHours(maxHoursReverse))
 				+ "' order by ts desc fetch first row only;";
@@ -242,8 +247,9 @@ public class HistoryDatabaseDAO {
 	@Transactional(readOnly = true)
 	public TimestampValuePair readLatestValue(HomematicCommand command) {
 
-		String query = "SELECT * FROM " + command.buildVarName() + " where ts = (select max(ts) from "
-				+ command.buildVarName() + ");";
+		var varName = command.getCashedVarName();
+		String query = "SELECT * FROM " + varName + " where ts = (select max(ts) from "
+				+ varName + ");";
 
 		List<TimestampValuePair> result = jdbcTemplateHistory.query(query, new Object[] {},
 				new TimestampValueRowMapper());
@@ -263,7 +269,7 @@ public class HistoryDatabaseDAO {
 			whereClause = " where ts > '" + startTs + "'";
 		}
 		return jdbcTemplateHistory.query(
-				"select * FROM " + command.buildVarName() + whereClause + " order by ts asc;",
+				"select * FROM " + command.getCashedVarName() + whereClause + " order by ts asc;",
 				new Object[] {}, new TimestampValueRowMapper());
 	}
 

@@ -1,6 +1,6 @@
 package homelibrary.homematic.model;
 
-enum HomematicProtocol {
+public enum HomematicProtocol {
 
 	HM("BidCos"), HMIP("HmIP"), SYSVAR("SysVar");
 

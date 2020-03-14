@@ -30,6 +30,7 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import homecontroller.command.HomematicCommandBuilder;
 import homecontroller.domain.model.CameraMode;
 import homecontroller.domain.model.CameraModel;
 import homecontroller.domain.model.CameraPicture;
@@ -37,7 +38,6 @@ import homecontroller.domain.model.FrontDoor;
 import homecontroller.domain.service.UploadService;
 import homelibrary.dao.ModelObjectDAO;
 import homelibrary.homematic.model.Device;
-import homelibrary.homematic.model.HomematicCommand;
 
 @Component
 public class CameraService {
@@ -55,6 +55,12 @@ public class CameraService {
 
 	@Autowired
 	private UploadService uploadService;
+	
+	@Autowired
+	private DeviceQualifier deviceQualifier;
+	
+	@Autowired
+	private HomematicCommandBuilder homematicCommandBuilder;
 
 	@Autowired
 	private Environment env;
@@ -139,7 +145,7 @@ public class CameraService {
 		}
 
 		LOG.info("Kamera einschalten...");
-		homematicAPI.executeCommand(HomematicCommand.exec(deviceSwitch, "DirektEinschalten"));
+		homematicAPI.executeCommand(homematicCommandBuilder.exec(deviceSwitch, "DirektEinschalten"));
 		boolean pingCameraOk = false;
 		long startPolling = System.currentTimeMillis();
 		do {
@@ -156,7 +162,7 @@ public class CameraService {
 
 		try {
 			LOG.info("PING");
-			String url = env.getProperty("camera." + device.getId() + ".url");
+			String url = env.getProperty("camera." + deviceQualifier.idFrom(device) + ".url");
 			ResponseEntity<String> response = restTemplateLowTimeout.getForEntity(url + "/ping",
 					String.class);
 			if (response.getStatusCode() == HttpStatus.OK) {
@@ -210,7 +216,7 @@ public class CameraService {
 		}
 
 		try {
-			String url = env.getProperty("camera." + device.getId() + ".url");
+			String url = env.getProperty("camera." + deviceQualifier.idFrom(device) + ".url");
 			ResponseEntity<byte[]> response = restTemplateBinaryResponse.getForEntity(url + "/capture",
 					byte[].class);
 

@@ -1,5 +1,9 @@
 package homecontroller.service;
 
+import static homecontroller.command.HomematicCommandConstants.E_O_F;
+import static homecontroller.command.HomematicCommandConstants.PREFIX_RC;
+import static homecontroller.command.HomematicCommandConstants.PREFIX_VAR;
+
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -42,9 +46,11 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import homecontroller.command.HomematicCommand;
+import homecontroller.command.HomematicCommandBuilder;
+import homecontroller.command.HomematicCommandProcessor;
 import homelibrary.homematic.model.Datapoint;
 import homelibrary.homematic.model.Device;
-import homelibrary.homematic.model.HomematicCommand;
 
 @Component
 public class HomematicAPI {
@@ -55,6 +61,12 @@ public class HomematicAPI {
 	@Autowired
 	@Qualifier("restTemplateCCU")
 	private RestTemplate restTemplateCCU;
+	
+	@Autowired
+	private HomematicCommandProcessor homematicCommandProcessor;
+	
+	@Autowired
+	private HomematicCommandBuilder homematicCommandBuilder;
 
 	private static final int INIT_STATE_MINUTES = 90;
 
@@ -134,15 +146,14 @@ public class HomematicAPI {
 	}
 
 	private String readValue(HomematicCommand command) {
-		String key = command.buildVarName();
 		if (currentValues.containsKey(command)) {
 			return currentValues.get(command);
 		} else {
 			StringBuilder sb = new StringBuilder();
 			for (HomematicCommand cmd : currentValues.keySet()) {
-				sb.append(cmd.buildVarName() + "\n");
+				sb.append(cmd.getCashedVarName() + "\n");
 			}
-			LOG.error("Key/Value unknown: " + key + " / known keys: \n" + sb.toString());
+			LOG.error("Key/Value unknown: " + command.getCashedVarName() + " / known keys: \n" + sb.toString());
 			return null;
 		}
 	}
@@ -174,7 +185,7 @@ public class HomematicAPI {
 		long now = System.currentTimeMillis();
 		if (ccuAuthActive == null || (now - lastCCUAuthTestTimestamp) > 1000 * 60 * 60) { // 1h
 
-			String body = buildReGaRequestBody(HomematicCommand.eof());
+			String body = buildReGaRequestBody(homematicCommandBuilder.eof());
 			try {
 				callReGaAPI(body, false, false);
 				ccuAuthActive = false;
@@ -198,23 +209,23 @@ public class HomematicAPI {
 		List<HomematicCommand> commands = new LinkedList<>();
 		for (Device device : Device.values()) {
 			for (Datapoint datapoint : device.getDatapoints()) {
-				commands.add(HomematicCommand.read(device, datapoint));
+				commands.add(homematicCommandBuilder.read(device, datapoint));
 				if (datapoint.isTimestamp()) {
-					commands.add(HomematicCommand.readTS(device, datapoint));
+					commands.add(homematicCommandBuilder.readTS(device, datapoint));
 				}
 			}
 			if (device.getSysVars() != null) {
 				for (String suffix : device.getSysVars()) {
-					commands.add(HomematicCommand.read(device, suffix));
+					commands.add(homematicCommandBuilder.read(device, suffix));
 				}
 			}
 			Datapoint lowBatDatapoint = device.lowBatDatapoint();
 			if (lowBatDatapoint != null) {
-				commands.add(HomematicCommand.read(device, device.lowBatDatapoint()));
+				commands.add(homematicCommandBuilder.read(device, device.lowBatDatapoint()));
 			}
 		}
-		commands.add(HomematicCommand.read("CCU_im_Reboot"));
-		commands.add(HomematicCommand.read("CCU_Uptime"));
+		commands.add(homematicCommandBuilder.read("CCU_im_Reboot"));
+		commands.add(homematicCommandBuilder.read("CCU_Uptime"));
 
 		boolean refreshed = executeCommands(true, commands.toArray(new HomematicCommand[commands.size()]));
 		if (refreshed) {
@@ -225,13 +236,13 @@ public class HomematicAPI {
 
 	private void lookupInitState() {
 
-		boolean reboot = getAsBoolean(HomematicCommand.read("CCU_im_Reboot"));
+		boolean reboot = getAsBoolean(homematicCommandBuilder.read("CCU_im_Reboot"));
 		if (reboot) {
 			ccuInitState = true;
 			return;
 		}
 
-		String uptime = getAsString(HomematicCommand.read("CCU_Uptime"));
+		String uptime = getAsString(homematicCommandBuilder.read("CCU_Uptime"));
 		long minutesUptime = Duration
 				.between(LocalDateTime.parse(uptime, UPTIME_FORMATTER), LocalDateTime.now()).toMinutes();
 		ccuInitState = minutesUptime <= INIT_STATE_MINUTES;
@@ -259,18 +270,18 @@ public class HomematicAPI {
 		NodeList childs = responseDocument.getElementsByTagName("xml").item(0).getChildNodes();
 		for (int i = 0; i < childs.getLength(); i++) {
 			Element child = (Element) childs.item(i);
-			if (child.getTagName().startsWith(HomematicCommand.PREFIX_VAR)) {
+			if (child.getTagName().startsWith(PREFIX_VAR)) {
 				extractVar(newStringToValues, child);
-			} else if (child.getTagName().startsWith(HomematicCommand.PREFIX_RC)) {
+			} else if (child.getTagName().startsWith(PREFIX_RC)) {
 				rcsOk = extractWriteExecRc(rcsOk, child);
-			} else if (child.getTagName().equals(HomematicCommand.E_O_F)) {
+			} else if (child.getTagName().equals(E_O_F)) {
 				eofOK = extractEof(child);
 			}
 		}
 
 		if (rcsOk && eofOK) {
 			for (HomematicCommand command : commands) {
-				newCommandToValues.put(command, newStringToValues.get(command.buildVarName()));
+				newCommandToValues.put(command, newStringToValues.get(command.getCashedVarName()));
 			}
 			currentValues = newCommandToValues;
 			currentValuesTimestamp = LocalDateTime.now();
@@ -281,7 +292,7 @@ public class HomematicAPI {
 	private boolean extractEof(Element child) {
 
 		boolean eofOK;
-		eofOK = HomematicCommand.E_O_F.equals(child.getTextContent());
+		eofOK = E_O_F.equals(child.getTextContent());
 		if (!eofOK) {
 			LOG.error("Command EOF not OK!");
 		}
@@ -311,20 +322,19 @@ public class HomematicAPI {
 			if (command.isProgramRunCommand()) {
 				containsExecuteCommand = true;
 			}
-			sb.append(command.buildCommand());
+			sb.append(homematicCommandProcessor.buildCommand(command));
 			sb.append(" \n");
 		}
 
 		if (containsExecuteCommand) {
-			sb.insert(0, HomematicCommand.write("refreshadress", env.getProperty("refresh.adress"))
-					.buildCommand());
+			sb.insert(0, homematicCommandProcessor.buildCommand(homematicCommandBuilder.write("refreshadress", env.getProperty("refresh.adress"))));
 		}
 
-		sb.append(HomematicCommand.eof().buildCommand());
+		sb.append(homematicCommandProcessor.buildCommand(homematicCommandBuilder.eof()));
 		return sb.toString();
 	}
 
-	HttpHeaders createHeaders(int contentLength, boolean withAuthentication) {
+	private HttpHeaders createHeaders(int contentLength, boolean withAuthentication) {
 
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.set(HttpHeaders.CACHE_CONTROL, "no-cache");
