@@ -3,7 +3,7 @@
 
 	<head th:replace="basics :: head (name=${MENU_SELECTED.name})"><title></title></head>
 	
-	<body style="background:#fffafa;" id="idbody">
+	<body id="idbody">
 	
 		<div
 			th:replace="basics :: navigation (selected=${MENU_SELECTED}, selectable=${MENU_SELECTABLE}, status='')"></div>
@@ -11,19 +11,17 @@
 		<div style="height: 20px;"></div>
 		<div class="container">
 	
-			<h3>
-				Angemeldet: <span class="badge badge-success" th:text="${USER_NAME}"></span>
-			</h3>
+			<div th:replace="fragments :: title (name='Angemeldet: ' + ${USER_NAME})"></div>
 	
-			<div style="height: 10px;"></div>
+			<div style="height: 5px;"></div>
 	
 			<!-- Geräte-Name -->
 			<div th:replace="fragments :: title (name='Push-Nachrichten')"></div>
-			<div class="alert alert-secondary" role="alert">
+			<div th:class="'alert alert-secondary callout callout-secondary'">
 				<div class="form-group">
 					<label for="clientName">Geräte-Name</label> <input type="text"
 						class="form-control" id="clientName" th:value="${clientName}"
-						aria-describedby="clientName" placeholder="Geräte-Name">
+						aria-describedby="clientName" placeholder="Geräte-Name"/>
 				</div>
 				<button type="button" th:onclick="@{'sendClientName()'}"
 					class="btn btn-secondary btn-sm" th:text="'Übernehmen'"></button>

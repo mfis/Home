@@ -3,43 +3,52 @@
 
 	<head th:replace="basics :: head (name='Zuhause')"><title></title></head>
 	
-	<body style="background:#fffafa;" id="idbody">
+	<body id="idbody">
 	
-		<div th:if="${!#strings.isEmpty(loginMessage)}" th:class="'alert alert-danger'">
-			<a th:text="${loginMessage}">title</a>
-		</div>
-		
-		<br/>
+		<div class="container">
 	
-		<form name="f" th:action="'/'" method="POST">
-		
-			<div th:class="'alert alert-secondary'">
-				<fieldset>
-					<legend>Home - Anmeldung</legend>
-					<label for="username">Benutzername</label> 
-					<br/>
-					<input type="text" id="username" name="login_username" /> 
-					<br/>
-					<label for="password">Passwort</label>
-					<br/>
-					<input type="password" id="password" name="login_password" />
-					<br/>
-					<br/>
-					
-					<a><strong>Cookie-Information:</strong><br/>Diese Internetseite verwendet so genannte Cookies. <br/>Um mehr zu erfahren, klicken Sie bitte hier:</a>
-					<p/>
-					<a th:href="${lawLink}" target="_blank">Impressum und Datenschutzerkl&auml;rung</a><br/><br/>
-					<input type="checkbox" id="cookiecheck" name="login_cookieok" value="true"></input>
-					<label for="cookiecheck">Ich bin einverstanden</label>
-					<br/>
-									
-					<div class="form-actions">
-						<button type="submit" class="bbtn btn-secondary btn-smtn">anmelden</button>
-					</div>
-					
-				</fieldset>
+			<div style="height: 10px;"></div>
+	
+			<div th:if="${!#strings.isEmpty(loginMessage)}" th:class="'alert alert-danger callout callout-danger'">
+				<a th:text="${loginMessage}">title</a>
 			</div>
-		</form>
+			
+			<br/>
+			
+			<form name="f" th:action="'/'" method="POST">
+			
+				<div th:class="'alert alert-secondary callout callout-secondary'">
+					<fieldset>
+						<legend>Home - Anmeldung</legend>
+						<div style="margin-right: 20px;">
+							<label for="username">Benutzername</label> 
+							<br/>
+							<input class="form-control" type="text" id="username" name="login_username" /> 
+							<br/>
+						</div>
+						<div style="margin-right: 20px;">
+							<label for="password">Passwort</label>
+							<br/>
+							<input class="form-control" type="password" id="password" name="login_password" />
+							<br/>
+						</div>
+						
+						<a><strong>Cookie-Information:</strong><br/>Diese Internetseite verwendet so genannte Cookies. <br/>Um mehr zu erfahren, klicken Sie bitte hier:</a>
+						<p/>
+						<a th:href="${lawLink}" target="_blank">Impressum und Datenschutzerkl&auml;rung</a><br/><br/>
+						<input type="checkbox" id="cookiecheck" name="login_cookieok" value="true"></input>
+						<label for="cookiecheck">Ich bin einverstanden</label>
+						<br/>
+										
+						<div class="form-actions">
+							<button type="submit" class="btn btn-secondary">anmelden</button>
+						</div>
+						
+					</fieldset>
+				</div>
+			</form>
+	
+		</div>
 	
 	</body>
 	

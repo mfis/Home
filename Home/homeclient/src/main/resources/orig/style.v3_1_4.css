@@ -26,7 +26,6 @@
 #navbar{
 	background-color: #F5F5F5;
 }
-
 .modal-content h5, .modal-content a, .modal-body a, .modal-body h4 {
 	color: #000 !important;
 }
@@ -52,10 +51,13 @@
 
 @media (prefers-color-scheme: dark) {
 	body{
-		background-color:#121212 !important;
+		background-color:#000 !important;
 	}		
+	a:hover, a:link, a:visited, a:active {
+		text-decoration: underline;
+	}	
 	#navbar{
-		background-color:#121212;
+		background-color:#000;
 	}
 	#navbar a span{
 		color:#EEE;
@@ -70,22 +72,22 @@
 		color: rgb(238,238,238) !important;
 	}
 	.callout-secondary {
-		background: #121212 !important;  
+		background: #000 !important;  
 	}
 	.callout-primary {
-		background: #121212 !important;
+		background: #000 !important;
 	}
 	.callout-success {
-		background: #121212 !important;
+		background: #000 !important;
 	}
 	.callout-danger {
-		background: #121212 !important;	
+		background: #000 !important;	
 	}
 	.callout-warning {
-		background: #121212 !important;	
+		background: #000 !important;	
 	}
 	.callout-info {
-		background: #121212 !important;	
+		background: #000 !important;	
 	}	
 	.callout-primary h4, .callout-primary a{
 		color: rgb(66,139,202) !important;
@@ -112,14 +114,25 @@
 		background-color:rgb(218,224,229)!important;
 	} 
 	.modal-content, .model-content .list-group-item-secondary, .lgi {
-		background-color:#121212 !important;
+		background-color:#000 !important;
 		border:1px solid rgb(238,238,238,0.8) !important;
 	}
 	.modal-content .lgi {
-		background-color:#121212 !important;
+		background-color:#000 !important;
 		border:1px solid rgb(238,238,238,0.8) !important;
 	}
 	.modal-content h5, .modal-content a, .modal-footer button, .modal-body a, .modal-body h4 {
 		color: rgb(238,238,238) !important;
+	}	
+	.progress {
+		background-color: #404040 !important;
+	}	
+	input[type=text], input[type=text]:focus, input[type=password], input[type=password]:focus {
+		background-color: #404040 !important;
+		color: white;
+		margin-right: 100px !important;
+	}	
+	label, legend{
+		color: rgb(238,238,238,0.8) !important;
 	}	
 }
