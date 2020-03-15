@@ -18,7 +18,7 @@
 	</properties>
 	<dependencies>
 		<dependency>
-			<groupId>Home</groupId>
+			<groupId>de.fimatas.home</groupId>
 			<artifactId>homelibrary</artifactId>
 			<version>${project.version}</version>
 		</dependency>
