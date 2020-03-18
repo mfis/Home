@@ -1,6 +1,6 @@
 package de.fimatas.home.library.homematic.model;
 
-enum HomematicValueFormat {
+public enum HomematicValueFormat {
 
 	DEC("D"), CHAR("C");
 

@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>de.fimatas.home</groupId>
 		<artifactId>Home</artifactId>
-		<version>DEV</version>
+		<version>1.0</version>
 	</parent>
 	<artifactId>homeclient</artifactId>
 	<name>homeclient</name>
@@ -21,7 +21,7 @@
 		<dependency>
 			<groupId>de.fimatas.home</groupId>
 			<artifactId>homelibrary</artifactId>
-			<version>DEV</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -73,13 +73,6 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
 					<executable>true</executable>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<release>11</release>
 				</configuration>
 			</plugin>
 			<plugin>
