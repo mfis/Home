@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.fimatas.home</groupId>
 	<artifactId>Home</artifactId>
-	<version>1.0</version>
+	<version>${home.version}</version>
 	<packaging>pom</packaging>
 
 	<parent>
@@ -14,6 +14,11 @@
 		<version>2.2.5.RELEASE</version>
 		<relativePath />
 	</parent>
+	
+	<properties>
+		<home.version>1.0</home.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>	
 
 	<modules>
 		<module>homelibrary</module>
@@ -47,10 +52,6 @@
 			</plugins>
 		</pluginManagement>
 	</build>
-
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	</properties>
 
 	<dependencies>
 		<dependency>
