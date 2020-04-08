@@ -18,6 +18,7 @@ import org.springframework.ui.Model;
 import de.fimatas.home.client.domain.model.ChartEntry;
 import de.fimatas.home.client.domain.model.ClimateView;
 import de.fimatas.home.client.domain.model.FrontDoorView;
+import de.fimatas.home.client.domain.model.LockView;
 import de.fimatas.home.client.domain.model.PowerView;
 import de.fimatas.home.client.domain.model.ShutterView;
 import de.fimatas.home.client.domain.model.SwitchView;
@@ -53,8 +54,7 @@ public class HouseViewService {
 
 	public static final String MESSAGEPATH = "/message?"; // NOSONAR
 
-	private static final String TOGGLE_STATE = MESSAGEPATH + TYPE_IS + MessageType.TOGGLESTATE
-			+ AND_DEVICE_IS;
+	private static final String TOGGLE_STATE = MESSAGEPATH + TYPE_IS + MessageType.TOGGLESTATE + AND_DEVICE_IS;
 	private static final String TOGGLE_AUTOMATION = MESSAGEPATH + TYPE_IS + MessageType.TOGGLEAUTOMATION
 			+ AND_DEVICE_IS;
 
@@ -73,8 +73,7 @@ public class HouseViewService {
 				message.setMessageType(MessageType.REFRESH_ALL_MODELS);
 				MessageQueue.getInstance().request(message, false);
 			} catch (Exception e) {
-				LogFactory.getLog(HouseViewService.class)
-						.error("Could not initialize HouseViewService completly.", e);
+				LogFactory.getLog(HouseViewService.class).error("Could not initialize HouseViewService completly.", e);
 			}
 		});
 	}
@@ -96,7 +95,8 @@ public class HouseViewService {
 
 		formatSwitch(model, "switchKitchen", house.getKitchenWindowLightSwitch());
 
-		formatFrontDoor(model, house.getFrontDoor(), Device.HAUSTUER_KAMERA);
+		formatFrontDoorCamera(model, house.getFrontDoor(), Device.HAUSTUER_KAMERA);
+		formatFrontDoorLock(model, house.getFrontDoor(), Device.HAUSTUER_KAMERA);
 		formatPower(model, house.getElectricalPowerConsumption(), historyModel);
 
 		formatLowBattery(model, house.getLowBatteryDevices());
@@ -118,26 +118,57 @@ public class HouseViewService {
 		}
 	}
 
-	private void formatFrontDoor(Model model, FrontDoor frontDoor, Device device) {
+	private void formatFrontDoorCamera(Model model, FrontDoor frontDoor, Device device) {
 
 		FrontDoorView frontDoorView = new FrontDoorView();
 
 		if (frontDoor.getTimestampLastDoorbell() != null) {
-			frontDoorView.setLastDoorbells(
-					viewFormatter.formatPastTimestamp(frontDoor.getTimestampLastDoorbell(), true));
+			frontDoorView
+					.setLastDoorbells(viewFormatter.formatPastTimestamp(frontDoor.getTimestampLastDoorbell(), true));
 		} else {
 			frontDoorView.setLastDoorbells("unbekannt");
 		}
 		frontDoorView.setIdLive("frontdoorcameralive");
 		frontDoorView.setIdBell("frontdoorcamerabell");
-		frontDoorView.setLinkLive(
-				"/cameraPicture?deviceName=" + device.name() + "&cameraMode=" + CameraMode.LIVE + "&ts=");
+		frontDoorView
+				.setLinkLive("/cameraPicture?deviceName=" + device.name() + "&cameraMode=" + CameraMode.LIVE + "&ts=");
 		frontDoorView.setLinkLiveRequest("/cameraPictureRequest?type=" + MessageType.CAMERAPICTUREREQUEST
 				+ AND_DEVICE_IS + device.name() + "&value=null");
-		frontDoorView.setLinkBell("/cameraPicture?deviceName=" + device.name() + "&cameraMode="
-				+ CameraMode.EVENT + "&ts=" + frontDoor.getTimestampLastDoorbell());
+		frontDoorView.setLinkBell("/cameraPicture?deviceName=" + device.name() + "&cameraMode=" + CameraMode.EVENT
+				+ "&ts=" + frontDoor.getTimestampLastDoorbell());
 
 		model.addAttribute("frontDoor", frontDoorView);
+	}
+
+	private void formatFrontDoorLock(Model model, FrontDoor frontDoor, Device device) {
+
+		LockView view = new LockView();
+		view.setId("frontDoorLock");
+		view.setName(frontDoor.getDeviceLock().getType().getTypeName());
+		if(frontDoor.isLockStateUncertain()) {
+			view.setState("Manuell betätigt");
+			view.setIcon("fas fa-door-open");
+		}else {
+			if(frontDoor.isLockState()) {
+				view.setState("Verriegelt");	
+				view.setIcon("fas fa-lock");
+			}else {
+				view.setState("Frei");
+				view.setIcon("fas fa-lock-open");
+			}
+		}
+		if (frontDoor.getLockAutomation() != null) {
+			if (Boolean.TRUE.equals(frontDoor.getLockAutomation())) {
+				view.setLinkManual(TOGGLE_AUTOMATION + frontDoor.getDeviceLock().name() + AND_VALUE_IS
+						+ AutomationState.MANUAL.name());
+				view.setStateSuffix(", programmgesteuert");
+			} else {
+				view.setLinkAuto(TOGGLE_AUTOMATION + frontDoor.getDeviceLock().name() + AND_VALUE_IS
+						+ AutomationState.AUTOMATIC.name());
+			}
+			view.setAutoInfoText(StringUtils.trimToEmpty(frontDoor.getLockAutomationInfoText()));
+		}
+		model.addAttribute("frontDoorLock", view);
 	}
 
 	private String format(BigDecimal val, boolean rounded) {
@@ -148,8 +179,7 @@ public class HouseViewService {
 		}
 	}
 
-	private void formatClimate(Model model, String viewKey, Climate climate, Heating heating,
-			boolean history) {
+	private void formatClimate(Model model, String viewKey, Climate climate, Heating heating, boolean history) {
 		ClimateView view = formatClimate(climate, heating, viewKey, history);
 		model.addAttribute(viewKey, view);
 	}
@@ -158,10 +188,8 @@ public class HouseViewService {
 
 		ClimateView view = new ClimateView();
 
-		if ((climate == null || climate.getTemperature() == null
-				|| climate.getTemperature().getValue() == null)
-				&& (climate == null || climate.getHumidity() == null
-						|| climate.getHumidity().getValue() == null)) {
+		if ((climate == null || climate.getTemperature() == null || climate.getTemperature().getValue() == null)
+				&& (climate == null || climate.getHumidity() == null || climate.getHumidity().getValue() == null)) {
 			view.setStateTemperature("unbekannt");
 			return view;
 		}
@@ -174,8 +202,7 @@ public class HouseViewService {
 
 		if (climate.getTemperature() != null) {
 			// Temperature and humidity
-			view.setStateTemperature(
-					format(climate.getTemperature().getValue(), false) + ViewFormatter.DEGREE + "C");
+			view.setStateTemperature(format(climate.getTemperature().getValue(), false) + ViewFormatter.DEGREE + "C");
 			if (climate.getHumidity() != null) {
 				view.setStateHumidity(format(climate.getHumidity().getValue(), true) + "%rH");
 			}
@@ -225,8 +252,8 @@ public class HouseViewService {
 				view.setLinkBoost(MESSAGEPATH + TYPE_IS + MessageType.HEATINGBOOST + AND_DEVICE_IS
 						+ heating.getDevice().name() + "&value=null");
 			}
-			view.setLinkManual(MESSAGEPATH + TYPE_IS + MessageType.HEATINGMANUAL + AND_DEVICE_IS
-					+ heating.getDevice().name()); // value set in ui fragment
+			view.setLinkManual(
+					MESSAGEPATH + TYPE_IS + MessageType.HEATINGMANUAL + AND_DEVICE_IS + heating.getDevice().name()); 
 			view.setTargetTemp(format(heating.getTargetTemperature(), false));
 			view.setHeatericon("fab fa-hotjar");
 			view.setBusy(Boolean.toString(heating.isBusy()));
@@ -247,8 +274,7 @@ public class HouseViewService {
 		}
 	}
 
-	private void formatFacadeTemperatures(Model model, String viewKeyMin, String viewKeyMax,
-			HouseModel house) {
+	private void formatFacadeTemperatures(Model model, String viewKeyMin, String viewKeyMax, HouseModel house) {
 
 		ClimateView viewMin = formatClimate(house.getConclusionClimateFacadeMin(), null, viewKeyMin, false);
 		ClimateView viewMax = new ClimateView();
@@ -261,8 +287,7 @@ public class HouseViewService {
 
 		if (house.getConclusionClimateFacadeMax() != null) {
 			viewMax.setStateTemperature(lookupSunHeating(house.getConclusionClimateFacadeMax()));
-			viewMax.setName(
-					"Fassade " + house.getConclusionClimateFacadeMax().getDevice().getPlace().getPlaceName());
+			viewMax.setName("Fassade " + house.getConclusionClimateFacadeMax().getDevice().getPlace().getPlaceName());
 
 			switch (Intensity.max(house.getConclusionClimateFacadeMax().getSunBeamIntensity(),
 					house.getConclusionClimateFacadeMax().getSunHeatingInContrastToShadeIntensity())) {
@@ -336,11 +361,10 @@ public class HouseViewService {
 		view.setState(switchModel.isState() ? "Eingeschaltet" : "Ausgeschaltet");
 		if (switchModel.getAutomation() != null) {
 			if (Boolean.TRUE.equals(switchModel.getAutomation())) {
-				view.setState(view.getState() + ", automatisch");
+				view.setStateSuffix(", programmgesteuert");
 				view.setLinkManual(TOGGLE_AUTOMATION + switchModel.getDevice().name() + AND_VALUE_IS
 						+ AutomationState.MANUAL.name());
 			} else {
-				view.setState(view.getState() + ", manuell");
 				view.setLinkAuto(TOGGLE_AUTOMATION + switchModel.getDevice().name() + AND_VALUE_IS
 						+ AutomationState.AUTOMATIC.name());
 			}
@@ -362,10 +386,9 @@ public class HouseViewService {
 
 		if (windowModel.getShutterAutomation() != null) {
 			if (Boolean.TRUE.equals(windowModel.getShutterAutomation())) {
-				view.setState(view.getState() + ", automatisch");
+				view.setStateSuffix(", programmgesteuert");
 				view.setLinkManual(TOGGLE_AUTOMATION + windowModel.getDevice().name() + "&value=false");
 			} else {
-				view.setState(view.getState() + ", manuell");
 				view.setLinkAuto(TOGGLE_AUTOMATION + windowModel.getDevice().name() + "&value=true");
 			}
 			view.setAutoInfoText(windowModel.getShutterAutomationInfoText());
@@ -389,8 +412,8 @@ public class HouseViewService {
 		if (shutterPosition == windowModel.getShutterPosition()) {
 			return "#";
 		} else {
-			return MESSAGEPATH + TYPE_IS + MessageType.SHUTTERPOSITION + AND_DEVICE_IS
-					+ windowModel.getDevice().name() + AND_VALUE_IS + shutterPosition.getControlPosition();
+			return MESSAGEPATH + TYPE_IS + MessageType.SHUTTERPOSITION + AND_DEVICE_IS + windowModel.getDevice().name()
+					+ AND_VALUE_IS + shutterPosition.getControlPosition();
 		}
 	}
 

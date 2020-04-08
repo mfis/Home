@@ -2,18 +2,9 @@ package de.fimatas.home.client.domain.model;
 
 public class PowerView extends View {
 
-	private String state = "";
 	private String tendencyIcon = "";
 	private String description = "";
 	private ChartEntry todayConsumption;
-
-	public String getState() {
-		return state;
-	}
-
-	public void setState(String state) {
-		this.state = state;
-	}
 
 	public String getTendencyIcon() {
 		return tendencyIcon;

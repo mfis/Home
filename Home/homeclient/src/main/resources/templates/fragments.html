@@ -25,7 +25,7 @@
 	<!-- Switch -->
 	<div th:fragment="switch (model)" th:class="'alert alert-secondary callout callout-secondary'">
 		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, place=${model.place}, historyKey=${model.historyKey})"></div>
-		<h4 th:text="${model.state}"></h4>
+		<h4><span th:text="${model.state}"></span><span th:text="${model.stateSuffix}" style="font-size: 80%;"></span></h4>
 		
 		<button type="button" th:onclick="@{'toggleSwitch' + ${model.id} + '()'}"
 			class="btn btn-secondary btn-sm" th:text="${model.label}"></button>
@@ -94,7 +94,7 @@
 	<!-- Window -->
 	<div th:fragment="window (model)" th:class="'alert alert-secondary callout callout-secondary'">
 		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, place=${model.place}, historyKey=${model.historyKey})"></div>
-		<h4 th:text="${model.state}"></h4>
+		<h4><span th:text="${model.state}"></span><span th:text="${model.stateSuffix}" style="font-size: 80%;"></span></h4>
 		
 		<div class="btn-group" role="group" aria-label="shutterControl">
   			<button th:if="${#strings.startsWith(model.linkOpen, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name=${model.iconOpen})"/></span><span>&nbsp;</span></button>
@@ -186,7 +186,7 @@
 		<th:block th:replace="fragments :: modalCamera (id=${model.idLive}, link=${model.linkLive}, linkRequest=${model.linkLiveRequest}, name='Aktuell', refresh='true')"></th:block>
 		<th:block th:replace="fragments :: modalCamera (id=${model.idBell}, link=${model.linkBell}, linkRequest='', name='Türklingel', refresh='false')"></th:block>
 		</th:block>
-	</th:block>						
+	</th:block>	
 	
 	<!-- Modal Camera -->
 	<th:block th:fragment="modalCamera (id, link, linkRequest, name, refresh)">
@@ -300,6 +300,73 @@
 			// }
 		</script>				
 	</th:block>	
+	
+	<!-- Front door lock -->
+	<div th:fragment="doorLock (model)" th:class="'alert alert-secondary callout callout-secondary'">
+		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, place=${model.place}, historyKey=${model.historyKey})"></div>
+		<h4><span th:text="${model.state}"></span><span th:text="${model.stateSuffix}" style="font-size: 80%;"></span></h4>
+
+		<!-- 		
+		<div class="btn-group" role="group" aria-label="lockcontrol">
+  			<button th:if="${#strings.startsWith(model.linkAuto, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-lock')"/></span><span>&nbsp;</span></button>
+  			<button th:if="${#strings.startsWith(model.linkAuto, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToManual' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-lock')"/></span><span>&nbsp;</span></button>
+  			<button th:if="${#strings.startsWith(model.linkManual, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-lock-open')"/></span><span>&nbsp;</span></button>
+  			<button th:if="${#strings.startsWith(model.linkManual, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToAuto' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-lock-open')"/></span><span>&nbsp;</span></button>
+  			<button th:if="${#strings.startsWith(model.linkManual, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-door-open')"/></span><span>&nbsp;</span></button>
+  			<button th:if="${#strings.startsWith(model.linkManual, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToAuto' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-door-open')"/></span><span>&nbsp;</span></button>  			
+		</div>
+		<input type="hidden" th:id="'val_model_linkManual_' + ${model.id}" th:value="${model.linkManual}">
+		<input type="hidden" th:id="'val_model_linkAuto_' + ${model.id}" th:value="${model.linkAuto}">
+ 			<script type="text/javascript">
+			function toggleToAuto[[${model.id}]](){
+				submitContent(document.getElementById('val_model_linkManual_[[${model.id}]]').value);
+			}
+			function toggleToManual[[${model.id}]](){
+				submitContent(document.getElementById('val_model_linkAuto_[[${model.id}]]').value);
+			}	
+		</script>		
+		-->
+		
+		<th:block th:if="${!#strings.startsWith(model.linkAuto, '#') or !#strings.startsWith(model.linkManual, '#')}">
+			<input type="hidden" th:id="'val_model_linkManual_' + ${model.id}" th:value="${model.linkManual}">
+			<input type="hidden" th:id="'val_model_linkAuto_' + ${model.id}" th:value="${model.linkAuto}">		
+			<div class="btn-group" role="group" aria-label="lockauto">
+	  			<button th:if="${#strings.startsWith(model.linkAuto, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-cogs')"/></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(model.linkAuto, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToManual' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-cogs')"/></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(model.linkManual, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-hand-paper')"/></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(model.linkManual, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToAuto' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-hand-paper')"/></span><span>&nbsp;</span></button>
+			</div>
+			<input type="hidden" th:id="'val_model_linkManual_' + ${model.id}" th:value="${model.linkManual}">
+			<input type="hidden" th:id="'val_model_linkAuto_' + ${model.id}" th:value="${model.linkAuto}">
+  			<script type="text/javascript">
+				function toggleToAuto[[${model.id}]](){
+					submitContent(document.getElementById('val_model_linkManual_[[${model.id}]]').value);
+				}
+				function toggleToManual[[${model.id}]](){
+					submitContent(document.getElementById('val_model_linkAuto_[[${model.id}]]').value);
+				}	
+			</script>
+				<button type="button" class="btn btn-link" data-toggle="modal" th:data-target="'#modalAuto' + ${model.id}">
+					<span 
+						class="badge badge-secondary" th:text="'?'">
+					</span>
+				</button>
+				<!-- Modal -->
+				<div class="modal fade" th:id="'modalAuto' + ${model.id}" tabindex="-1" role="dialog" th:aria-labelledby="'#modalAutoLabel' + ${model.id}" aria-hidden="true">
+				  <div class="modal-dialog modal-dialog-centered" role="document">
+				    <div class="modal-content">
+				      <div class="modal-header">
+				        <h5 class="modal-title" id="exampleModalLongTitle" th:text="'Automatik: ' + ${model.name}"></h5>
+				        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+				          <span aria-hidden="true">&times;</span>
+				        </button>
+				      </div>
+				      <div class="modal-body"><a th:utext="${model.autoInfoText}"></a></div>
+				    </div>
+				  </div>
+				</div>
+		</th:block>
+	</div>	
 	
 	<!-- Actual Power Consumption -->
 	<div th:fragment="actualPowerConsumption (model)" th:class="'alert alert-secondary callout callout-secondary'">

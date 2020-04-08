@@ -13,12 +13,22 @@ public class FrontDoor implements Serializable {
 	}
 
 	private Long timestampLastDoorbell;
+	
+	private boolean lockState;
+	
+	private boolean lockStateUncertain;
+
+	private Boolean lockAutomation;
+
+	private String lockAutomationInfoText;
 
 	private Device deviceDoorBell;
 
 	private Device deviceDoorBellHistory;
 
 	private Device deviceCamera;
+	
+	private Device deviceLock;
 
 	public Long getTimestampLastDoorbell() {
 		return timestampLastDoorbell;
@@ -50,6 +60,46 @@ public class FrontDoor implements Serializable {
 
 	public void setDeviceDoorBellHistory(Device deviceDoorBellHistory) {
 		this.deviceDoorBellHistory = deviceDoorBellHistory;
+	}
+
+	public boolean isLockState() {
+		return lockState;
+	}
+
+	public void setLockState(boolean lockState) {
+		this.lockState = lockState;
+	}
+
+	public boolean isLockStateUncertain() {
+		return lockStateUncertain;
+	}
+
+	public void setLockStateUncertain(boolean lockStateUncertain) {
+		this.lockStateUncertain = lockStateUncertain;
+	}
+
+	public Boolean getLockAutomation() {
+		return lockAutomation;
+	}
+
+	public void setLockAutomation(Boolean lockAutomation) {
+		this.lockAutomation = lockAutomation;
+	}
+
+	public String getLockAutomationInfoText() {
+		return lockAutomationInfoText;
+	}
+
+	public void setLockAutomationInfoText(String lockAutomationInfoText) {
+		this.lockAutomationInfoText = lockAutomationInfoText;
+	}
+
+	public Device getDeviceLock() {
+		return deviceLock;
+	}
+
+	public void setDeviceLock(Device deviceLock) {
+		this.deviceLock = deviceLock;
 	}
 
 }

@@ -3,6 +3,8 @@ package de.fimatas.home.client.domain.model;
 public abstract class View {
 
 	private String id = "";
+	private String state = "";
+	private String stateSuffix = "";
 	private String icon = "";
 	private String name = "";
 	private String place = "";
@@ -46,6 +48,22 @@ public abstract class View {
 
 	public void setPlace(String place) {
 		this.place = place;
+	}
+
+	public String getState() {
+		return state;
+	}
+
+	public void setState(String state) {
+		this.state = state;
+	}
+
+	public String getStateSuffix() {
+		return stateSuffix;
+	}
+
+	public void setStateSuffix(String stateSuffix) {
+		this.stateSuffix = stateSuffix;
 	}
 
 }

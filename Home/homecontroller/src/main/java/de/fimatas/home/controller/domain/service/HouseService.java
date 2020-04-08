@@ -569,7 +569,15 @@ public class HouseService {
 					.getAsString(homematicCommandBuilder.read(Device.HAUSTUER_KLINGEL_HISTORIE, StringUtils.EMPTY)));
 		}
 		frontDoor.setTimestampLastDoorbell(tsDoorbell);
-
+		
+		frontDoor.setDeviceLock(Device.HAUSTUER_SCHLOSS);
+		frontDoor.setLockState(!api
+				.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, Datapoint.STATE))); // false=verriegelt
+		frontDoor.setLockStateUncertain(api
+				.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, Datapoint.STATE_UNCERTAIN)));
+		frontDoor.setLockAutomation(api.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, AUTOMATIC)));
+		frontDoor.setLockAutomationInfoText(api.getAsString(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, AUTOMATIC + "InfoText")));
+		
 		return frontDoor;
 	}
 

@@ -50,6 +50,9 @@ public enum Device {
 
 	HAUSTUER_KAMERA(HomematicProtocol.HM, Type.SWITCH_FRONTDOOR_CAMERA, Place.FRONTDOOR, false, Datapoint.LIST_CAMERA,
 			null), //
+	
+	HAUSTUER_SCHLOSS(HomematicProtocol.HM, Type.DOORLOCK, Place.FRONTDOOR, false, Datapoint.LIST_DOORLOCK, Type.VAR_PREFIXES_SWITCH_AUTO,
+			null, null), //
 
 	// ROLLLADE_SCHLAFZIMMER_LINKS(HomematicProtocol.HM, "D_U_M_M_Y", 1,
 	// Type.SHUTTER_LEFT, Place.BEDROOM, false,
@@ -73,6 +76,7 @@ public enum Device {
 
 	private Device(HomematicProtocol homematicProtocol, Type type, Place place, // NOSONAR
 			boolean textQueryEnabled, List<Datapoint> datapoints, List<String> sysVars, Class<?>... valueTypes) {
+		
 		this.homematicProtocol = homematicProtocol;
 		this.type = type;
 		this.place = place;

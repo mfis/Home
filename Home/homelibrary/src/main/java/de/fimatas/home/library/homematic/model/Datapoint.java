@@ -12,6 +12,7 @@ public enum Datapoint {
 	BOOST_STATE(HomematicValueFormat.DEC, null, false), //
 	SET_TEMPERATURE(HomematicValueFormat.DEC, null, false), //
 	STATE(HomematicValueFormat.DEC, null, false), //
+	STATE_UNCERTAIN(HomematicValueFormat.DEC, null, false), //
 	POWER(HomematicValueFormat.DEC, null, false), //
 	LOWBAT(HomematicValueFormat.DEC, 0, false), //
 	LOW_BAT(HomematicValueFormat.DEC, 0, false), //
@@ -39,6 +40,8 @@ public enum Datapoint {
 	protected static final List<Datapoint> LIST_DOORBELL = Arrays.asList(Datapoint.PRESS_SHORT);
 
 	protected static final List<Datapoint> LIST_CAMERA = Arrays.asList(Datapoint.STATE);
+	
+	protected static final List<Datapoint> LIST_DOORLOCK = Arrays.asList(Datapoint.STATE, Datapoint.STATE_UNCERTAIN);
 
 	private HomematicValueFormat homematicValueFormat;
 

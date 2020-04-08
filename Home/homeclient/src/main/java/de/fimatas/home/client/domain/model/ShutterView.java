@@ -2,7 +2,6 @@ package de.fimatas.home.client.domain.model;
 
 public class ShutterView extends View {
 
-	private String state = "";
 	private String linkOpen = "#";
 	private String linkHalf = "#";
 	private String linkSunshade = "#";
@@ -14,14 +13,6 @@ public class ShutterView extends View {
 	private String iconHalf = "";
 	private String iconSunshade = "";
 	private String iconClose = "";
-
-	public String getState() {
-		return state;
-	}
-
-	public void setState(String state) {
-		this.state = state;
-	}
 
 	public String getLinkOpen() {
 		return linkOpen;
