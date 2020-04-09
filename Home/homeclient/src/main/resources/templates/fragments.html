@@ -306,14 +306,14 @@
 		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, place=${model.place}, historyKey=${model.historyKey})"></div>
 		<h4><span th:text="${model.state}"></span><span th:text="${model.stateSuffix}" style="font-size: 80%;"></span></h4>
 
-		<!-- 		
+		<!-- 
 		<div class="btn-group" role="group" aria-label="lockcontrol">
   			<button th:if="${#strings.startsWith(model.linkAuto, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-lock')"/></span><span>&nbsp;</span></button>
-  			<button th:if="${#strings.startsWith(model.linkAuto, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToManual' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-lock')"/></span><span>&nbsp;</span></button>
+  			<button th:if="${#strings.startsWith(model.linkAuto, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'openPin' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-lock')"/></span><span>&nbsp;</span></button>
   			<button th:if="${#strings.startsWith(model.linkManual, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-lock-open')"/></span><span>&nbsp;</span></button>
-  			<button th:if="${#strings.startsWith(model.linkManual, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToAuto' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-lock-open')"/></span><span>&nbsp;</span></button>
+  			<button th:if="${#strings.startsWith(model.linkManual, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'openPin' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-lock-open')"/></span><span>&nbsp;</span></button>
   			<button th:if="${#strings.startsWith(model.linkManual, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-door-open')"/></span><span>&nbsp;</span></button>
-  			<button th:if="${#strings.startsWith(model.linkManual, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToAuto' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-door-open')"/></span><span>&nbsp;</span></button>  			
+  			<button th:if="${#strings.startsWith(model.linkManual, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToAuto' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-door-open')"/></span><span>&nbsp;</span></button>
 		</div>
 		<input type="hidden" th:id="'val_model_linkManual_' + ${model.id}" th:value="${model.linkManual}">
 		<input type="hidden" th:id="'val_model_linkAuto_' + ${model.id}" th:value="${model.linkAuto}">
@@ -325,8 +325,9 @@
 				submitContent(document.getElementById('val_model_linkAuto_[[${model.id}]]').value);
 			}	
 		</script>		
-		-->
 		
+		<span>&nbsp;</span>
+		 -->
 		<th:block th:if="${!#strings.startsWith(model.linkAuto, '#') or !#strings.startsWith(model.linkManual, '#')}">
 			<input type="hidden" th:id="'val_model_linkManual_' + ${model.id}" th:value="${model.linkManual}">
 			<input type="hidden" th:id="'val_model_linkAuto_' + ${model.id}" th:value="${model.linkAuto}">		
@@ -356,7 +357,7 @@
 				  <div class="modal-dialog modal-dialog-centered" role="document">
 				    <div class="modal-content">
 				      <div class="modal-header">
-				        <h5 class="modal-title" id="exampleModalLongTitle" th:text="'Automatik: ' + ${model.name}"></h5>
+				        <h5 class="modal-title" th:text="'Automatik: ' + ${model.name}"></h5>
 				        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
 				          <span aria-hidden="true">&times;</span>
 				        </button>
@@ -366,6 +367,51 @@
 				  </div>
 				</div>
 		</th:block>
+		
+		<div class="modal fade" th:id="'modalPin' + ${model.id}" tabindex="-1" role="dialog" th:aria-labelledby="'#modalPin' + ${model.id}" aria-hidden="true">
+		  <div class="modal-dialog modal-dialog-centered" role="document">
+		    <div class="modal-content">
+		      <div class="modal-header">
+		        <h5 class="modal-title text-dark" th:id="'modalPinId' + ${model.id}" th:text="'Pin eingeben:'"></h5>
+		        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+		          <span aria-hidden="true">&times;</span>
+		        </button>
+		      </div>
+		      <div th:id="'modalPinBody' + ${model.id}" class="modal-body" style="max-height: calc(100vh - 200px); overflow-y: auto;">
+				<table style="margin: auto; ">
+				  <tbody>
+				    <tr>
+				      <td><button style="width:70px;" type="button" th:onclick="@{'setBoost' + ${model.id} + '()'}" class="btn btn-secondary btn-lg">1</button></td>
+				      <td><button style="width:70px;" type="button" th:onclick="@{'setBoost' + ${model.id} + '()'}" class="btn btn-secondary btn-lg">2</button></td>
+				      <td><button style="width:70px;" type="button" th:onclick="@{'setBoost' + ${model.id} + '()'}" class="btn btn-secondary btn-lg">3</button></td>
+				    </tr>
+				    <tr>
+				      <td><button style="width:70px;" type="button" th:onclick="@{'setBoost' + ${model.id} + '()'}" class="btn btn-secondary btn-lg">4</button></td>
+				      <td><button style="width:70px;" type="button" th:onclick="@{'setBoost' + ${model.id} + '()'}" class="btn btn-secondary btn-lg">5</button></td>
+				      <td><button style="width:70px;" type="button" th:onclick="@{'setBoost' + ${model.id} + '()'}" class="btn btn-secondary btn-lg">6</button></td>
+				    </tr>
+				    <tr>
+				      <td><button style="width:70px;" type="button" th:onclick="@{'setBoost' + ${model.id} + '()'}" class="btn btn-secondary btn-lg">7</button></td>
+				      <td><button style="width:70px;" type="button" th:onclick="@{'setBoost' + ${model.id} + '()'}" class="btn btn-secondary btn-lg">8</button></td>
+				      <td><button style="width:70px;" type="button" th:onclick="@{'setBoost' + ${model.id} + '()'}" class="btn btn-secondary btn-lg">9</button></td>
+				    </tr>
+				    <tr>
+				      <td></td>
+				      <td><button style="width:70px;" type="button" th:onclick="@{'setBoost' + ${model.id} + '()'}" class="btn btn-secondary btn-lg">0</button></td>
+				      <td></td>
+				    </tr>				    
+				  </tbody>
+				</table>		      
+		      </div>
+		    </div>
+		  </div>
+		</div>		
+		<script type="text/javascript">
+			function openPin[[${model.id}]](){
+				$("#modalPin[[${model.id}]]").modal();
+			}
+		</script>
+		
 	</div>	
 	
 	<!-- Actual Power Consumption -->
@@ -461,11 +507,11 @@
 		<th:block th:unless="${#strings.equals(model.busy,'true')}">	
 			<h4 th:if="${#strings.startsWith(model.linkBoost,'/')}"><span th:text="'Manuell auf ' + ${model.targetTemp} + '°C'"></span></h4>
 			<h4 th:unless="${#strings.startsWith(model.linkBoost,'/')}"><span th:text="'Aufheizen - noch ' + ${model.linkBoost} + ' Min.'"></span></h4>
-			<div th:if="${#strings.startsWith(model.linkBoost,'/')}" class="btn-group" role="group" aria-label="heating">
-	  			<button type="button" th:id="'idHeatMinus' + ${model.id}" class="btn btn-secondary btn-sm" th:onclick="@{'adjustHeating' + ${model.id} + '(-0.5)'}">&nbsp;-&nbsp;</button>
-	  			<button type="button" th:id="'idHeatTarget' + ${model.id}" class="btn btn-outline-secondary btn-sm" disabled><span th:id="'idHeatTargetLabel' + ${model.id}" th:text="${model.targetTemp}"></span><span>°C</span></button>
-	  			<button type="button" th:id="'idHeatPlus' + ${model.id}" class="btn btn-secondary btn-sm" th:onclick="@{'adjustHeating' + ${model.id} + '(+0.5)'}">&nbsp;+&nbsp;</button>
-			</div>
+				<div th:if="${#strings.startsWith(model.linkBoost,'/')}" class="btn-group" role="group" aria-label="heating">
+		  			<button type="button" th:id="'idHeatMinus' + ${model.id}" class="btn btn-secondary btn-sm" th:onclick="@{'adjustHeating' + ${model.id} + '(-0.5)'}">&nbsp;-&nbsp;</button>
+		  			<button type="button" th:id="'idHeatTarget' + ${model.id}" class="btn btn-outline-secondary btn-sm" disabled><span th:id="'idHeatTargetLabel' + ${model.id}" th:text="${model.targetTemp}"></span><span>°C</span></button>
+		  			<button type="button" th:id="'idHeatPlus' + ${model.id}" class="btn btn-secondary btn-sm" th:onclick="@{'adjustHeating' + ${model.id} + '(+0.5)'}">&nbsp;+&nbsp;</button>
+				</div>
 			<span th:if="${#strings.startsWith(model.linkBoost,'/')}">&nbsp;</span>
 			
 			<button th:if="${#strings.startsWith(model.linkBoost,'/')}"
