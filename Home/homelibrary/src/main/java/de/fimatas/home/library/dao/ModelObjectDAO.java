@@ -127,7 +127,13 @@ public class ModelObjectDAO {
 		if (settingsModels == null) {
 			settingsModels = new HashMap<>();
 		}
-		return settingsModels.get(user);
+		SettingsModel model = settingsModels.get(user);
+		if(model==null) {
+			model = new SettingsModel();
+			model.setUser(user);
+			model.setClientName("ONLY_LOGGING");
+		}
+		return model;
 	}
 
 	public String getLastHouseModelState() {
