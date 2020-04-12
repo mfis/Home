@@ -14,21 +14,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
-import de.fimatas.home.client.domain.service.HistoryViewService;
-import de.fimatas.home.client.domain.service.HouseViewService;
 import de.fimatas.home.client.request.ControllerRequestMapping;
 import de.fimatas.home.library.util.HomeAppConstants;
 
@@ -38,11 +26,8 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 
 	private static final String LOGIN_USERNAME = "login_username";
 
-	@Value("${authenticationURL}")
-	private String authURL;
-
 	@Autowired
-	private RestTemplate restTemplate;
+	private UserService userService;
 
 	@Autowired
 	private Environment env;
@@ -62,8 +47,7 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 		if (isControllerRequest(request)) {
 			String token = env.getProperty(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN);
 			String tokenSent = request.getHeader(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN);
-			return controllerSuccessResponse(
-					StringUtils.isNotBlank(tokenSent) && StringUtils.equals(token, tokenSent));
+			return controllerSuccessResponse(StringUtils.isNotBlank(tokenSent) && StringUtils.equals(token, tokenSent));
 		}
 
 		if (isAssetRequest(request)) {
@@ -83,7 +67,7 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 		Map<String, String> params = mapRequestParameters(request);
 		String cookie = cookieRead(request);
 		String userName = null;
-		
+
 		if (params.containsKey(LOGIN_USERNAME)) {
 			if (userHasNotAcceptedCookies(params)) {
 				response.sendRedirect(LoginController.LOGIN_COOKIECHECK_URI);
@@ -111,8 +95,8 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 			if (cookie != null || loginUser != null) {
 				response.sendRedirect(LoginController.LOGIN_FAILED_URI);
 				handleClientFalseLoginCounter();
-				logger.info("attempt login not successful - user=" + loginUser + ", cookie=" + cookie
-						+ ", requested=" + request.getRequestURI());
+				logger.info("attempt login not successful - user=" + loginUser + ", cookie=" + cookie + ", requested="
+						+ request.getRequestURI());
 			} else {
 				response.sendRedirect(LoginController.LOGIN_URI);
 			}
@@ -208,40 +192,11 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 
 		String loginUser = StringUtils.trimToEmpty(params.get(LOGIN_USERNAME));
 		String loginPass = StringUtils.trimToEmpty(params.get(LOGIN_PASSWORD));
-		if (checkAuthentication(loginUser, loginPass)) {
+		if (userService.checkAuthentication(loginUser, loginPass)) {
 			return loginUser;
 		} else {
 			return null;
 		}
-	}
-
-	public boolean checkAuthentication(String user, String pass) {
-
-		HttpHeaders headers = new HttpHeaders();
-		headers.add("Accept", "*/*");
-		headers.add("Cache-Control", "no-cache");
-		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-		MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
-		map.add("user", user);
-		map.add("pass", pass);
-		map.add("application", "de.fimatas.home.client");
-
-		HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
-		try {
-			ResponseEntity<String> responseEntity = restTemplate.postForEntity(authURL, request,
-					String.class);
-			return responseEntity.getStatusCode().is2xxSuccessful();
-		} catch (HttpClientErrorException e) {
-			if (e.getStatusCode() == HttpStatus.UNAUTHORIZED) {
-				return false;
-			} else {
-				logger.error("Checking authentication not successful.(#1)", e);
-			}
-		} catch (Exception e) {
-			logger.error("Checking authentication not successful.(#2)", e);
-		}
-		return false;
 	}
 
 	private String cookieRead(HttpServletRequest request) {

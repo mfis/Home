@@ -29,6 +29,7 @@ import de.fimatas.home.client.service.LoginCookieDAO;
 import de.fimatas.home.client.service.LoginInterceptor;
 import de.fimatas.home.client.service.SettingsViewService;
 import de.fimatas.home.client.service.TextQueryService;
+import de.fimatas.home.client.service.UserService;
 import de.fimatas.home.client.service.ViewAttributesDAO;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.CameraMode;
@@ -64,6 +65,9 @@ public class HomeRequestMapping {
 
 	@Autowired
 	private TextQueryService textQueryService;
+	
+	@Autowired
+	private UserService userService;
 
 	@GetMapping("/message")
 	public String message(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
@@ -72,8 +76,10 @@ public class HomeRequestMapping {
 			@RequestParam("value") String value,
 			@RequestParam(name = "securityPin", required = false) String securityPin) {
 
-		if (StringUtils.isNotBlank(securityPin)) {
+		String user = LoginCookieDAO.getInstance().read(userCookie);
+		if (StringUtils.isNotBlank(securityPin) && !userService.checkPin(user, securityPin)) {
 			ViewAttributesDAO.getInstance().push(userCookie, ViewAttributesDAO.MESSAGE, "**-#+test**");
+			return REDIRECT + MessageType.valueOf(type).getTargetSite();
 		}
 		
 		Message response = request(userCookie, type, deviceName, value, securityPin);
