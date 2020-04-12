@@ -20,7 +20,7 @@ import de.fimatas.home.controller.service.CameraService;
 import de.fimatas.home.controller.service.HomematicAPI;
 import de.fimatas.home.controller.service.PushService;
 import de.fimatas.home.library.dao.ModelObjectDAO;
-import de.fimatas.home.library.domain.model.AutomationState;
+import de.fimatas.home.library.domain.model.State;
 import de.fimatas.home.library.domain.model.Climate;
 import de.fimatas.home.library.domain.model.FrontDoor;
 import de.fimatas.home.library.domain.model.Heating;
@@ -61,6 +61,7 @@ public class HouseService {
 
 	private static final String AUTOMATIC = "Automatic";
 	private static final String BUSY = "Busy";
+	private static final String IS_OPENED = "IsOpened";
 
 	private static final Log LOG = LogFactory.getLog(HouseService.class);
 
@@ -402,7 +403,7 @@ public class HouseService {
 		api.executeCommand(homematicCommandBuilder.write(device, Datapoint.STATE, value));
 	}
 
-	public void toggleautomation(Device device, AutomationState value) {
+	public void toggleautomation(Device device, State value) {
 		api.executeCommand(homematicCommandBuilder.write(device, AUTOMATIC, value.isBooleanValue()));
 	}
 
@@ -575,6 +576,7 @@ public class HouseService {
 				.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, Datapoint.STATE))); // false=verriegelt
 		frontDoor.setLockStateUncertain(api
 				.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, Datapoint.STATE_UNCERTAIN)));
+		frontDoor.setOpen(api.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, IS_OPENED)));
 		frontDoor.setLockAutomation(api.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, AUTOMATIC)));
 		frontDoor.setLockAutomationInfoText(api.getAsString(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, AUTOMATIC + "InfoText")));
 		

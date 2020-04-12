@@ -27,6 +27,8 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
+import de.fimatas.home.client.domain.service.HistoryViewService;
+import de.fimatas.home.client.domain.service.HouseViewService;
 import de.fimatas.home.client.request.ControllerRequestMapping;
 import de.fimatas.home.library.util.HomeAppConstants;
 
@@ -81,7 +83,7 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 		Map<String, String> params = mapRequestParameters(request);
 		String cookie = cookieRead(request);
 		String userName = null;
-
+		
 		if (params.containsKey(LOGIN_USERNAME)) {
 			if (userHasNotAcceptedCookies(params)) {
 				response.sendRedirect(LoginController.LOGIN_COOKIECHECK_URI);

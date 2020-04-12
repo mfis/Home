@@ -13,16 +13,28 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import de.fimatas.home.client.domain.model.ChartEntry;
 import de.fimatas.home.client.domain.model.HistoryEntry;
+import de.fimatas.home.client.request.HomeRequestMapping;
+import de.fimatas.home.client.service.LoginInterceptor;
+import de.fimatas.home.client.service.ViewAttributesDAO;
+import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.HistoryModel;
 import de.fimatas.home.library.domain.model.HouseModel;
 import de.fimatas.home.library.domain.model.PowerConsumptionMonth;
 import de.fimatas.home.library.domain.model.TemperatureHistory;
+import de.fimatas.home.library.model.Pages;
 
 @Component
 public class HistoryViewService {

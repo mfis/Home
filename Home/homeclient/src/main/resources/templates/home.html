@@ -10,6 +10,8 @@
 		<input type="hidden" th:id="'modelTimestamp'" th:value="${modelTimestamp}"></input>	
 	
 		<div class="container">
+		
+			<th:block th:if="${!#strings.isEmpty(userErrorMessageText)}"><th:block th:replace="basics :: userErrorMessage (text=${userErrorMessageText})"></th:block></th:block>
 	
 			<!-- Warnungen -->
 			<div th:replace="fragments :: generalWarning (model=${warnings})"></div>

@@ -72,7 +72,11 @@ public class HomeRequestMapping {
 			@RequestParam("value") String value,
 			@RequestParam(name = "securityPin", required = false) String securityPin) {
 
-		Message response = request(userCookie, type, deviceName, value);
+		if (StringUtils.isNotBlank(securityPin)) {
+			ViewAttributesDAO.getInstance().push(userCookie, ViewAttributesDAO.MESSAGE, "**-#+test**");
+		}
+		
+		Message response = request(userCookie, type, deviceName, value, securityPin);
 
 		if (!response.isSuccessfullExecuted()) {
 			log.error("MESSAGE EXECUTION NOT SUCCESSFUL !!!");
@@ -127,7 +131,7 @@ public class HomeRequestMapping {
 
 		log.info("requesting new camera image " + deviceName);
 
-		Message response = request(userCookie, type, deviceName, value);
+		Message response = request(userCookie, type, deviceName, value, null);
 		return new ResponseEntity<>(response.getResponse(), HttpStatus.OK);
 	}
 
@@ -135,20 +139,26 @@ public class HomeRequestMapping {
 	public String homePage(Model model, HttpServletResponse response,
 			@CookieValue(name = LoginInterceptor.COOKIE_NAME, required = false) String userCookie,
 			@RequestHeader(name = "ETag", required = false) String etag) {
+		
+		boolean isNewMessage = ViewAttributesDAO.getInstance().isPresent(userCookie, ViewAttributesDAO.MESSAGE);
 		fillMenu(Pages.PATH_HOME, model);
 		fillUserAttributes(model, userCookie);
 		HouseModel houseModel = ModelObjectDAO.getInstance().readHouseModel();
 		if (houseModel == null) {
 			throw new IllegalStateException(
 					"State error - " + ModelObjectDAO.getInstance().getLastHouseModelState());
-		} else if (StringUtils.isNotBlank(etag)
-				&& StringUtils.equals(etag, Long.toString(houseModel.getDateTime()))) {
+		} else if (isModelUnchanged(etag, houseModel) && !isNewMessage) {
 			response.setStatus(HttpStatus.NOT_MODIFIED.value());
 			return "empty";
 		} else {
 			houseView.fillViewModel(model, houseModel, ModelObjectDAO.getInstance().readHistoryModel());
 			return Pages.getEntry(Pages.PATH_HOME).getTemplate();
 		}
+	}
+
+	private boolean isModelUnchanged(String etag, HouseModel houseModel) {
+		return StringUtils.isNotBlank(etag)
+				&& StringUtils.equals(etag, Long.toString(houseModel.getDateTime()));
 	}
 
 	@GetMapping(Pages.PATH_SETTINGS)
@@ -161,7 +171,7 @@ public class HomeRequestMapping {
 		return Pages.getEntry(Pages.PATH_SETTINGS).getTemplate();
 	}
 
-	private Message request(String userCookie, String type, String deviceName, String value) {
+	private Message request(String userCookie, String type, String deviceName, String value, String securityPin) {
 
 		MessageType messageType = MessageType.valueOf(type);
 		Device device = StringUtils.isBlank(deviceName) ? null : Device.valueOf(deviceName);
@@ -171,6 +181,7 @@ public class HomeRequestMapping {
 		message.setDevice(device);
 		message.setValue(value);
 		message.setUser(LoginCookieDAO.getInstance().read(userCookie));
+		message.setSecurityPin(securityPin);
 
 		return MessageQueue.getInstance().request(message, true);
 	}
@@ -188,6 +199,7 @@ public class HomeRequestMapping {
 		if (user != null) {
 			model.addAttribute(ViewAttributesDAO.USER_NAME, user);
 		}
+		model.addAttribute("userErrorMessageText", StringUtils.trimToEmpty(ViewAttributesDAO.getInstance().pull(userCookie, ViewAttributesDAO.MESSAGE)));
 	}
 
 	private void fillMenu(String pathHome, Model model) {

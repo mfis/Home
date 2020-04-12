@@ -10,6 +10,8 @@ public class ViewAttributesDAO {
 	private Map<String, Map<String, String>> attributes = new HashMap<>();
 
 	public static final String Y_POS_HOME = "Y_POS_HOME";
+	
+	public static final String MESSAGE = "MESSAGE";
 
 	public static final String USER_NAME = "USER_NAME";
 
@@ -33,6 +35,15 @@ public class ViewAttributesDAO {
 		attributes.get(user).put(key, value);
 	}
 
+	public boolean isPresent(String user, String key) {
+
+		if (!attributes.containsKey(user)) {
+			return false;
+		}
+
+		return attributes.get(user).containsKey(key);
+	}
+	
 	public String pull(String user, String key) {
 
 		if (!attributes.containsKey(user)) {

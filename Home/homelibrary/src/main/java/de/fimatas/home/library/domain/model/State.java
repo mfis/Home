@@ -1,9 +1,12 @@
 package de.fimatas.home.library.domain.model;
 
-public enum AutomationState {
+public enum State {
 
 	AUTOMATIC(true), //
 	MANUAL(false), //
+	
+	UNLOCK(true), //
+	LOCK(false), //
 	;
 	
 	private boolean booleanValue;
@@ -12,7 +15,7 @@ public enum AutomationState {
 		return booleanValue;
 	}
 
-	private AutomationState(Boolean booleanValue) {
+	private State(Boolean booleanValue) {
 		this.booleanValue = booleanValue;
 	}
 }

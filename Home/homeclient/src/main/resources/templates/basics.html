@@ -37,6 +37,12 @@
 
 	<script>
 	
+		function showUserErrorMessage(){
+			if(document.getElementById('idUserErrorMessage')){
+				$('#idUserErrorMessage').modal('show');
+			}
+		}	
+	
 		function submitContent(target){
 			if(navigator.onLine){
 				var httpRequest = new XMLHttpRequest();
@@ -50,6 +56,7 @@
 							document.getElementById('idbody').innerHTML = doc.getElementById('idbody').innerHTML;
 							lastRefresh = (new Date).getTime();
 							showCheck();
+							showUserErrorMessage();
 						} else if(httpRequest.status == 304){	
 							lastRefresh = (new Date).getTime();
 							showCheck();
@@ -93,7 +100,9 @@
 				document.getElementById('navbarcheck').style.display = 'none';
 				document.getElementById('navbaroffline').style.display = 'inline';
 			}			
-		}		
+		}	
+		
+		showUserErrorMessage();
 		
 	</script>
 
@@ -133,7 +142,7 @@
 		if (element !== null && element.value !== '') {
 			// onfocus
 			document.getElementById('idbody').onfocus = function(){
-				doAutoRefresh();
+				doAutoRefresh(); 
 				setAutoRefresh();			
 			};
 			// onblur
@@ -147,6 +156,28 @@
 
 <th:block th:fragment="symbol (name)"><i th:class="${name}"></i></th:block> <!-- //NOSONAR -->
 <th:block th:fragment="symbolWithStyle (name, style)"><i th:style="${style}" th:class="${name}"></i></th:block> <!-- //NOSONAR -->
+
+<!-- Modal User-ErrorMessage-->
+<th:block th:fragment="userErrorMessage (text)">
+
+	<div class="modal fade" id="idUserErrorMessage" tabindex="-1" role="dialog">
+	  <div class="modal-dialog modal-dialog-centered" role="document">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <h5 class="modal-title" th:text="'Fehler:'"></h5>
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+	          <span aria-hidden="true">&times;</span>
+	        </button>
+	      </div>
+	      <div class="modal-body"><a th:utext="${text}"></a></div>
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-secondary" data-dismiss="modal">OK</button>
+	      </div>	      
+	    </div>
+	  </div>
+	</div>
+	
+</th:block>
 
 <body>
 

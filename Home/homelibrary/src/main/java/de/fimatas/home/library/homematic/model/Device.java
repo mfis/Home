@@ -2,7 +2,7 @@ package de.fimatas.home.library.homematic.model;
 
 import java.util.List;
 
-import de.fimatas.home.library.domain.model.AutomationState;
+import de.fimatas.home.library.domain.model.State;
 import de.fimatas.home.library.domain.model.Place;
 import de.fimatas.home.library.util.HomeUtils;
 
@@ -36,7 +36,7 @@ public enum Device {
 			Datapoint.LIST_DIFFTHERMOMETER_HM, null), //
 
 	SCHALTER_KUECHE_LICHT(HomematicProtocol.HM, Type.SWITCH_WINDOWLIGHT, Place.KITCHEN, true, Datapoint.LIST_SWITCH_HM,
-			Type.VAR_PREFIXES_SWITCH_AUTO, Boolean.class, AutomationState.class), //
+			Type.VAR_PREFIXES_SWITCH_AUTO, Boolean.class, State.class), //
 
 	STROMZAEHLER(HomematicProtocol.HM, Type.ELECTRIC_POWER, Place.HOUSE, true, Datapoint.LIST_POWERMETER_HM, null), //
 
@@ -51,7 +51,7 @@ public enum Device {
 	HAUSTUER_KAMERA(HomematicProtocol.HM, Type.SWITCH_FRONTDOOR_CAMERA, Place.FRONTDOOR, false, Datapoint.LIST_CAMERA,
 			null), //
 	
-	HAUSTUER_SCHLOSS(HomematicProtocol.HM, Type.DOORLOCK, Place.FRONTDOOR, false, Datapoint.LIST_DOORLOCK, Type.VAR_PREFIXES_SWITCH_AUTO,
+	HAUSTUER_SCHLOSS(HomematicProtocol.HM, Type.DOORLOCK, Place.FRONTDOOR, false, Datapoint.LIST_DOORLOCK, Type.VAR_PREFIXES_DOORLOCK,
 			null, null), //
 
 	// ROLLLADE_SCHLAFZIMMER_LINKS(HomematicProtocol.HM, "D_U_M_M_Y", 1,

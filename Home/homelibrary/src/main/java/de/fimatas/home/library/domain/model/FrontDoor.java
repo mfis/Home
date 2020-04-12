@@ -14,6 +14,8 @@ public class FrontDoor implements Serializable {
 
 	private Long timestampLastDoorbell;
 	
+	private boolean open;
+	
 	private boolean lockState;
 	
 	private boolean lockStateUncertain;
@@ -100,6 +102,14 @@ public class FrontDoor implements Serializable {
 
 	public void setDeviceLock(Device deviceLock) {
 		this.deviceLock = deviceLock;
+	}
+
+	public boolean isOpen() {
+		return open;
+	}
+
+	public void setOpen(boolean open) {
+		this.open = open;
 	}
 
 }

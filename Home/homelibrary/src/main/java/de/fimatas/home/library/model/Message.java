@@ -18,6 +18,8 @@ public class Message implements Serializable {
 	private String value;
 
 	private String user;
+	
+	private String securityPin;
 
 	boolean successfullExecuted;
 
@@ -81,6 +83,14 @@ public class Message implements Serializable {
 
 	public void setResponse(String response) {
 		this.response = response;
+	}
+
+	public String getSecurityPin() {
+		return securityPin;
+	}
+
+	public void setSecurityPin(String securityPin) {
+		this.securityPin = securityPin;
 	}
 
 }

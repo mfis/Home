@@ -27,7 +27,7 @@ import de.fimatas.home.controller.domain.service.HouseService;
 import de.fimatas.home.controller.domain.service.UploadService;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.ActionModel;
-import de.fimatas.home.library.domain.model.AutomationState;
+import de.fimatas.home.library.domain.model.State;
 import de.fimatas.home.library.domain.model.SettingsModel;
 import de.fimatas.home.library.model.Message;
 import de.fimatas.home.library.util.HomeAppConstants;
@@ -78,7 +78,7 @@ public class ClientCommunicationService {
 				break;
 			case TOGGLEAUTOMATION:
 				houseService.toggleautomation(message.getDevice(),
-						AutomationState.valueOf(message.getValue()));
+						State.valueOf(message.getValue()));
 				houseService.refreshHouseModel();
 				break;
 			case TOGGLESTATE:
