@@ -76,9 +76,7 @@ public class HomeRequestMapping {
 			@RequestParam("value") String value,
 			@RequestParam(name = "securityPin", required = false) String securityPin) {
 
-		String user = LoginCookieDAO.getInstance().read(userCookie);
-		if (StringUtils.isNotBlank(securityPin) && !userService.checkPin(user, securityPin)) {
-			ViewAttributesDAO.getInstance().push(userCookie, ViewAttributesDAO.MESSAGE, "**-#+test**");
+		if(!isPinBlankOrSetAndCorrect(userCookie, securityPin)) {
 			return REDIRECT + MessageType.valueOf(type).getTargetSite();
 		}
 		
@@ -88,6 +86,16 @@ public class HomeRequestMapping {
 			log.error("MESSAGE EXECUTION NOT SUCCESSFUL !!!");
 		}
 		return REDIRECT + response.getMessageType().getTargetSite();
+	}
+
+	private boolean isPinBlankOrSetAndCorrect(String userCookie, String securityPin) {
+		
+		String user = LoginCookieDAO.getInstance().read(userCookie);
+		if (StringUtils.isNotBlank(securityPin) && !userService.checkPin(user, securityPin)) {
+			ViewAttributesDAO.getInstance().push(userCookie, ViewAttributesDAO.MESSAGE, "Die eingegebene PIN ist nicht korrekt.");
+			return false;
+		}
+		return true;
 	}
 
 	@GetMapping("/history")

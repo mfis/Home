@@ -428,7 +428,7 @@
 			function addPin[[${model.id}]](i){
 				document.getElementById('val_pin_[[${model.id}]]').value += i;
 				document.getElementById('modalPinStarId[[${model.id}]]').innerHTML += '* ';
-				if(document.getElementById('val_pin_[[${model.id}]]').value.length == 4){
+				if(document.getElementById('val_pin_[[${model.id}]]').value.length == 6){
 					pinCallback[[${model.id}]]();
 					$("#modalPin[[${model.id}]]").modal('hide');
 				}
