@@ -161,7 +161,8 @@ public class HouseViewService {
 		
 		if(frontDoor.isOpen()) {
 			view.setState("Öffner aktiv");
-			view.setIcon("fas fa-door-open");			
+			view.setIcon("fas fa-door-open");
+			setButtonLock = true;
 		}else {
 			setButtonOpen = true;
 			if(frontDoor.isLockStateUncertain()) {
@@ -177,7 +178,7 @@ public class HouseViewService {
 				}else {
 					view.setState("Entriegelt");
 					view.setIcon("fas fa-lock-open");
-					setButtonLock = true;;
+					setButtonLock = true;
 				}
 			}
 		}

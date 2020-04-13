@@ -419,10 +419,10 @@ public class HouseService {
 		if(StringUtils.isNotBlank(message.getSecurityPin()) && userService.checkPin(message.getUser(), message.getSecurityPin())) {
 			switch(StateValue.valueOf(message.getValue())) {
 			case LOCK:
-				// FIXME: runProgram(device, "Manual");
+				runProgram(message.getDevice(), "Lock");
 				break;
 			case UNLOCK:
-				// FIXME: runProgram(device, "Manual");				
+				runProgram(message.getDevice(), "Unlock");				
 				break;
 			case OPEN:
 				runProgram(message.getDevice(), "Open");
