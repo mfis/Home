@@ -382,63 +382,7 @@
 				</div>
 		</th:block>
 		
-		<div class="modal fade" th:id="'modalPin' + ${model.id}" tabindex="-1" role="dialog" th:aria-labelledby="'#modalPin' + ${model.id}" aria-hidden="true">
-		  <div class="modal-dialog modal-dialog-centered" role="document">
-		    <div class="modal-content">
-		      <div class="modal-header">
-		        <h5 class="modal-title text-dark" th:id="'modalPinId' + ${model.id}"><span th:id="'modalPinLabelId' + ${model.id}"></span><span>&nbsp;</span><span th:id="'modalPinStarId' + ${model.id}"></span></h5>
-		        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-		          <span aria-hidden="true">&times;</span>
-		        </button>
-		      </div>
-		      <div th:id="'modalPinBody' + ${model.id}" class="modal-body" style="max-height: calc(100vh - 200px); overflow-y: auto;">
-		      	<input type="hidden" th:id="'val_pin_' + ${model.id}" th:value="''">
-				<table style="margin: auto; ">
-				  <tbody>
-				    <tr>
-				      <td><button style="width:70px;" type="button" th:onclick="@{'addPin' + ${model.id} + '(1)'}" class="btn btn-secondary btn-lg">1</button></td>
-				      <td><button style="width:70px;" type="button" th:onclick="@{'addPin' + ${model.id} + '(2)'}" class="btn btn-secondary btn-lg">2</button></td>
-				      <td><button style="width:70px;" type="button" th:onclick="@{'addPin' + ${model.id} + '(3)'}" class="btn btn-secondary btn-lg">3</button></td>
-				    </tr>
-				    <tr>
-				      <td><button style="width:70px;" type="button" th:onclick="@{'addPin' + ${model.id} + '(4)'}" class="btn btn-secondary btn-lg">4</button></td>
-				      <td><button style="width:70px;" type="button" th:onclick="@{'addPin' + ${model.id} + '(5)'}" class="btn btn-secondary btn-lg">5</button></td>
-				      <td><button style="width:70px;" type="button" th:onclick="@{'addPin' + ${model.id} + '(6)'}" class="btn btn-secondary btn-lg">6</button></td>
-				    </tr>
-				    <tr>
-				      <td><button style="width:70px;" type="button" th:onclick="@{'addPin' + ${model.id} + '(7)'}" class="btn btn-secondary btn-lg">7</button></td>
-				      <td><button style="width:70px;" type="button" th:onclick="@{'addPin' + ${model.id} + '(8)'}" class="btn btn-secondary btn-lg">8</button></td>
-				      <td><button style="width:70px;" type="button" th:onclick="@{'addPin' + ${model.id} + '(9)'}" class="btn btn-secondary btn-lg">9</button></td>
-				    </tr>
-				    <tr>
-				      <td></td>
-				      <td><button style="width:70px;" type="button" th:onclick="@{'addPin' + ${model.id} + '(0)'}" class="btn btn-secondary btn-lg">0</button></td>
-				      <td></td>
-				    </tr>				    
-				  </tbody>
-				</table>		      
-		      </div>
-		    </div>
-		  </div>
-		</div>		
-		<script type="text/javascript">
-			var pinCallback[[${model.id}]] = null;
-			function openPin[[${model.id}]](label, cb){
-				pinCallback[[${model.id}]] = cb;
-				document.getElementById('modalPinLabelId[[${model.id}]]').innerHTML = label();
-				document.getElementById('val_pin_[[${model.id}]]').value = '';
-				document.getElementById('modalPinStarId[[${model.id}]]').innerHTML = '';
-				$("#modalPin[[${model.id}]]").modal();
-			}
-			function addPin[[${model.id}]](i){
-				document.getElementById('val_pin_[[${model.id}]]').value += i;
-				document.getElementById('modalPinStarId[[${model.id}]]').innerHTML += '* ';
-				if(document.getElementById('val_pin_[[${model.id}]]').value.length == 6){
-					pinCallback[[${model.id}]]();
-					$("#modalPin[[${model.id}]]").modal('hide');
-				}
-			}
-		</script>
+		<div th:replace="pin :: pin (id=${model.id})"></div>
 		
 	</div>	
 	
