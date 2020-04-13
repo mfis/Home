@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 import de.fimatas.home.library.homematic.model.Device;
 
-public class FrontDoor implements Serializable {
+public class FrontDoor extends AbstractDeviceModel implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 

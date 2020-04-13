@@ -2,7 +2,7 @@ package de.fimatas.home.library.homematic.model;
 
 import java.util.List;
 
-import de.fimatas.home.library.domain.model.State;
+import de.fimatas.home.library.domain.model.AutomationState;
 import de.fimatas.home.library.domain.model.Place;
 import de.fimatas.home.library.util.HomeUtils;
 
@@ -36,7 +36,7 @@ public enum Device {
 			Datapoint.LIST_DIFFTHERMOMETER_HM, null), //
 
 	SCHALTER_KUECHE_LICHT(HomematicProtocol.HM, Type.SWITCH_WINDOWLIGHT, Place.KITCHEN, true, Datapoint.LIST_SWITCH_HM,
-			Type.VAR_PREFIXES_SWITCH_AUTO, Boolean.class, State.class), //
+			Type.VAR_PREFIXES_SWITCH_AUTO, Boolean.class, AutomationState.class), //
 
 	STROMZAEHLER(HomematicProtocol.HM, Type.ELECTRIC_POWER, Place.HOUSE, true, Datapoint.LIST_POWERMETER_HM, null), //
 

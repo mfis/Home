@@ -9,6 +9,7 @@ public abstract class View {
 	private String name = "";
 	private String place = "";
 	private String historyKey = "";
+	private String busy = "";
 
 	public String getIcon() {
 		return icon;
@@ -64,6 +65,14 @@ public abstract class View {
 
 	public void setStateSuffix(String stateSuffix) {
 		this.stateSuffix = stateSuffix;
+	}
+
+	public String getBusy() {
+		return busy;
+	}
+
+	public void setBusy(String busy) {
+		this.busy = busy;
 	}
 
 }

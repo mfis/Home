@@ -83,7 +83,8 @@ public class HomeRequestMapping {
 		Message response = request(userCookie, type, deviceName, value, securityPin);
 
 		if (!response.isSuccessfullExecuted()) {
-			log.error("MESSAGE EXECUTION NOT SUCCESSFUL !!!");
+			ViewAttributesDAO.getInstance().push(userCookie, ViewAttributesDAO.MESSAGE, "Die Anfrage konnte nicht erfolgreich verarbeitet werden.");
+			log.error("MESSAGE EXECUTION NOT SUCCESSFUL !!! - " + type);
 		}
 		return REDIRECT + response.getMessageType().getTargetSite();
 	}

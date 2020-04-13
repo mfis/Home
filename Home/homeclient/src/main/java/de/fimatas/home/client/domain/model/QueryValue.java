@@ -4,7 +4,7 @@ import java.lang.reflect.Field;
 
 import org.apache.commons.logging.LogFactory;
 
-import de.fimatas.home.library.domain.model.State;
+import de.fimatas.home.library.domain.model.AutomationState;
 import de.fimatas.home.library.domain.model.ShutterPosition;
 import de.fimatas.home.library.homematic.model.Device;
 
@@ -16,7 +16,7 @@ public class QueryValue {
 
 	private Integer integerValue;
 
-	private State state;
+	private AutomationState automationState;
 
 	public boolean matchesDevice(Device device) {
 		
@@ -40,12 +40,12 @@ public class QueryValue {
 		return false;
 	}
 
-	public State getAutomationState() {
-		return state;
+	public AutomationState getAutomationState() {
+		return automationState;
 	}
 
-	public void setAutomationState(State state) {
-		this.state = state;
+	public void setAutomationState(AutomationState automationState) {
+		this.automationState = automationState;
 	}
 
 	public ShutterPosition getShutterPositionValue() {

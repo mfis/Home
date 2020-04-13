@@ -18,7 +18,6 @@ public class ClimateView extends View {
 	private String linkManual = "";
 	private String targetTemp = "";
 	private String heatericon = "";
-	private String busy = "";
 	private List<String> hints = new LinkedList<>();
 
 	public String getColorClass() {
@@ -123,14 +122,6 @@ public class ClimateView extends View {
 
 	public void setTendencyIconHumidity(String tendencyIconHumidity) {
 		this.tendencyIconHumidity = tendencyIconHumidity;
-	}
-
-	public String getBusy() {
-		return busy;
-	}
-
-	public void setBusy(String busy) {
-		this.busy = busy;
 	}
 
 	public String getColorClassHeating() {

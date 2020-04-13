@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import de.fimatas.home.library.domain.model.State;
+import de.fimatas.home.library.domain.model.AutomationState;
 import de.fimatas.home.library.domain.model.Place;
 import de.fimatas.home.library.domain.model.ShutterPosition;
 import de.fimatas.home.library.homematic.model.Type;
@@ -44,8 +44,8 @@ public class SynonymeRepository {
 				"Thermometer|Temperatur|warm|kalt|Wärme|Kälte|Grad|Wetter|sonnig|Sonne|Luftfeuchtigkeit",
 				Type.SYSVAR_THERMOMETER));
 		
-		SYNONYMES.add(new Synonym<State>("automatisch|automatik|automation", State.AUTOMATIC));
-		SYNONYMES.add(new Synonym<State>("manuell|manuelle", State.MANUAL));
+		SYNONYMES.add(new Synonym<AutomationState>("automatisch|automatik|automation", AutomationState.AUTOMATIC));
+		SYNONYMES.add(new Synonym<AutomationState>("manuell|manuelle", AutomationState.MANUAL));
 		
 		SYNONYMES.add(new Synonym<ShutterPosition>("öffne|hoch|oben", ShutterPosition.OPEN));
 		SYNONYMES.add(new Synonym<ShutterPosition>("halb|halbe|Hälfte", ShutterPosition.HALF));

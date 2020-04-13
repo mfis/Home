@@ -28,7 +28,7 @@ public enum Type {
 			"AutomaticInfoText");
 	
 	protected static final List<String> VAR_PREFIXES_DOORLOCK = Arrays.asList("Automatic",
-			"AutomaticInfoText", "IsOpened");
+			"AutomaticInfoText", "IsOpened", "Busy");
 
 	protected static final List<String> VAR_PREFIXES_PROG_CONTROL = Arrays.asList("Busy");
 

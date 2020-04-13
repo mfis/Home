@@ -22,7 +22,7 @@ import de.fimatas.home.client.domain.service.HouseViewService;
 import de.fimatas.home.client.model.MessageQueue;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.AbstractDeviceModel;
-import de.fimatas.home.library.domain.model.State;
+import de.fimatas.home.library.domain.model.AutomationState;
 import de.fimatas.home.library.domain.model.Climate;
 import de.fimatas.home.library.domain.model.Heating;
 import de.fimatas.home.library.domain.model.HouseModel;
@@ -336,7 +336,7 @@ public class TextQueryService {
 			queryValue.setBooleanValue(booleanValues.iterator().next());
 		}
 
-		Set<State> automationStateValueValues = Synonym.lookupSynonyms(State.class,
+		Set<AutomationState> automationStateValueValues = Synonym.lookupSynonyms(AutomationState.class,
 				words);
 		if (automationStateValueValues.size() == 1) {
 			queryValue.setAutomationState(automationStateValueValues.iterator().next());

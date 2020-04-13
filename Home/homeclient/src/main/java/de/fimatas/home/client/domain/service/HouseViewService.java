@@ -34,7 +34,8 @@ import de.fimatas.home.library.domain.model.OutdoorClimate;
 import de.fimatas.home.library.domain.model.PowerMeter;
 import de.fimatas.home.library.domain.model.RoomClimate;
 import de.fimatas.home.library.domain.model.ShutterPosition;
-import de.fimatas.home.library.domain.model.State;
+import de.fimatas.home.library.domain.model.StateValue;
+import de.fimatas.home.library.domain.model.AutomationState;
 import de.fimatas.home.library.domain.model.Switch;
 import de.fimatas.home.library.domain.model.Window;
 import de.fimatas.home.library.homematic.model.Device;
@@ -43,6 +44,8 @@ import de.fimatas.home.library.model.MessageType;
 
 @Component
 public class HouseViewService {
+
+	private static final String PROGRAMMGESTEUERT = ", programmgesteuert";
 
 	private static final String AND_VALUE_IS = "&value=";
 
@@ -151,6 +154,7 @@ public class HouseViewService {
 		view.setId("frontDoorLock");
 		view.setName(frontDoor.getDeviceLock().getType().getTypeName());
 		view.setCaption(device.getPlace().getPlaceName());
+		view.setBusy(Boolean.toString(frontDoor.isBusy()));
 		boolean setButtonLock = false;
 		boolean setButtonUnlock = false;
 		boolean setButtonOpen = false;
@@ -179,26 +183,26 @@ public class HouseViewService {
 		}
 		
 		if(setButtonLock) {
-			view.setLinkLock(TOGGLE_STATE + frontDoor.getDeviceLock().name() + AND_VALUE_IS
-					+ State.LOCK.name()+ AND_PIN_IS);
+			view.setLinkLock(OPEN_STATE + frontDoor.getDeviceLock().name() + AND_VALUE_IS +
+					StateValue.LOCK.name() + AND_PIN_IS);
 		}
 		if(setButtonUnlock) {
-			view.setLinkUnlock(TOGGLE_STATE + frontDoor.getDeviceLock().name() + AND_VALUE_IS
-					+ State.UNLOCK.name()+ AND_PIN_IS);
+			view.setLinkUnlock(OPEN_STATE + frontDoor.getDeviceLock().name() + AND_VALUE_IS +
+					StateValue.UNLOCK.name() + AND_PIN_IS);
 		}
 		if(setButtonOpen) {
 			view.setLinkOpen(OPEN_STATE + frontDoor.getDeviceLock().name() + AND_VALUE_IS +
-					Boolean.TRUE.toString() + AND_PIN_IS);
+					StateValue.OPEN.name() + AND_PIN_IS);
 		}
 		
 		if (frontDoor.getLockAutomation() != null) {
 			if (Boolean.TRUE.equals(frontDoor.getLockAutomation())) {
 				view.setLinkManual(TOGGLE_AUTOMATION + frontDoor.getDeviceLock().name() + AND_VALUE_IS
-						+ State.MANUAL.name());
-				view.setStateSuffix(", programmgesteuert");
+						+ AutomationState.MANUAL.name());
+				view.setStateSuffix(PROGRAMMGESTEUERT);
 			} else {
 				view.setLinkAuto(TOGGLE_AUTOMATION + frontDoor.getDeviceLock().name() + AND_VALUE_IS
-						+ State.AUTOMATIC.name());
+						+ AutomationState.AUTOMATIC.name());
 			}
 			view.setAutoInfoText(StringUtils.trimToEmpty(frontDoor.getLockAutomationInfoText()));
 		}
@@ -396,12 +400,12 @@ public class HouseViewService {
 		view.setState(switchModel.isState() ? "Eingeschaltet" : "Ausgeschaltet");
 		if (switchModel.getAutomation() != null) {
 			if (Boolean.TRUE.equals(switchModel.getAutomation())) {
-				view.setStateSuffix(", programmgesteuert");
+				view.setStateSuffix(PROGRAMMGESTEUERT);
 				view.setLinkManual(TOGGLE_AUTOMATION + switchModel.getDevice().name() + AND_VALUE_IS
-						+ State.MANUAL.name());
+						+ AutomationState.MANUAL.name());
 			} else {
 				view.setLinkAuto(TOGGLE_AUTOMATION + switchModel.getDevice().name() + AND_VALUE_IS
-						+ State.AUTOMATIC.name());
+						+ AutomationState.AUTOMATIC.name());
 			}
 			view.setAutoInfoText(StringUtils.trimToEmpty(switchModel.getAutomationInfoText()));
 		}
@@ -421,7 +425,7 @@ public class HouseViewService {
 
 		if (windowModel.getShutterAutomation() != null) {
 			if (Boolean.TRUE.equals(windowModel.getShutterAutomation())) {
-				view.setStateSuffix(", programmgesteuert");
+				view.setStateSuffix(PROGRAMMGESTEUERT);
 				view.setLinkManual(TOGGLE_AUTOMATION + windowModel.getDevice().name() + "&value=false");
 			} else {
 				view.setLinkAuto(TOGGLE_AUTOMATION + windowModel.getDevice().name() + "&value=true");

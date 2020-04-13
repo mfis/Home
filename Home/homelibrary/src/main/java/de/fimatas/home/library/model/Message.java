@@ -18,7 +18,7 @@ public class Message implements Serializable {
 	private String value;
 
 	private String user;
-	
+
 	private String securityPin;
 
 	boolean successfullExecuted;
