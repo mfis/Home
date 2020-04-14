@@ -107,7 +107,7 @@ public class HouseService {
 	public synchronized void refreshHouseModel() {
 
 		HouseModel oldModel = ModelObjectDAO.getInstance().readHouseModel();
-		HouseModel newModel = refreshModel();
+		HouseModel newModel = refreshModel(oldModel);
 		if (newModel == null) {
 			return;
 		}
@@ -127,7 +127,7 @@ public class HouseService {
 		cameraService.cleanUp();
 	}
 
-	private HouseModel refreshModel() {
+	private HouseModel refreshModel(HouseModel oldModel) {
 
 		if (!api.refresh()) {
 			return null;
@@ -151,7 +151,7 @@ public class HouseService {
 
 		newModel.setKitchenWindowLightSwitch(readSwitchState(Device.SCHALTER_KUECHE_LICHT));
 
-		newModel.setFrontDoor(readFrontDoor());
+		newModel.setFrontDoor(readFrontDoor(oldModel));
 
 		newModel.setElectricalPowerConsumption(readPowerConsumption(Device.STROMZAEHLER));
 
@@ -427,8 +427,8 @@ public class HouseService {
 			case OPEN:
 				runProgram(message.getDevice(), "Open");
 				break;
-				default:
-					// noop
+			default:
+				// noop
 			}
 		}
 	}
@@ -569,7 +569,7 @@ public class HouseService {
 		return switchModel;
 	}
 
-	private FrontDoor readFrontDoor() {
+	private FrontDoor readFrontDoor(HouseModel oldModel) {
 
 		FrontDoor frontDoor = new FrontDoor();
 		frontDoor.setDeviceCamera(Device.HAUSTUER_KAMERA);
@@ -585,17 +585,32 @@ public class HouseService {
 		frontDoor.setTimestampLastDoorbell(tsDoorbell);
 
 		frontDoor.setDeviceLock(Device.HAUSTUER_SCHLOSS);
-		frontDoor.setBusy(checkBusyState(Device.HAUSTUER_SCHLOSS));
 		frontDoor.setLockState(
 				!api.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, Datapoint.STATE))); // false=verriegelt
 		frontDoor.setLockStateUncertain(
 				api.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, Datapoint.STATE_UNCERTAIN)));
 		frontDoor.setOpen(api.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, IS_OPENED)));
+
+		boolean newBusy = checkBusyState(Device.HAUSTUER_SCHLOSS);
+		if(oldModel!=null && oldModel.getFrontDoor().isBusy() && !newBusy) {
+			frontDoor.setBusy(doorLockHash(oldModel.getFrontDoor())==doorLockHash(frontDoor));
+		}else {
+			frontDoor.setBusy(checkBusyState(Device.HAUSTUER_SCHLOSS));
+		}
+		
 		frontDoor.setLockAutomation(api.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, AUTOMATIC)));
 		frontDoor.setLockAutomationInfoText(
 				api.getAsString(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, AUTOMATIC + "InfoText")));
 
 		return frontDoor;
+	}
+	
+	private int doorLockHash(FrontDoor frontDoor) { // compoment sends delayed state change
+	    int hash = 7;
+	    hash = 31 * hash + (frontDoor.isLockState()?1:0);
+	    hash = 31 * hash + (frontDoor.isLockStateUncertain()?1:0);
+	    hash = 31 * hash + (frontDoor.isOpen()?1:0);
+	    return hash;
 	}
 
 	private PowerMeter readPowerConsumption(Device device) {

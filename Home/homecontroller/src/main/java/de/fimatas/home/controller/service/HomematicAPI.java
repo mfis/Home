@@ -255,10 +255,10 @@ public class HomematicAPI {
 		testCcuAuthIsActive();
 
 		String body = buildReGaRequestBody(commands);
-		return extractCommandResults(callReGaAPI(body, refresh, true), commands);
+		return extractCommandResults(refresh, callReGaAPI(body, refresh, true), commands);
 	}
 
-	private boolean extractCommandResults(Document responseDocument, HomematicCommand... commands) {
+	private boolean extractCommandResults(boolean refresh, Document responseDocument, HomematicCommand... commands) {
 
 		if (responseDocument == null) {
 			return false;
@@ -281,7 +281,7 @@ public class HomematicAPI {
 			}
 		}
 
-		if (rcsOk && eofOK) {
+		if (rcsOk && eofOK && refresh) {
 			for (HomematicCommand command : commands) {
 				newCommandToValues.put(command, newStringToValues.get(command.getCashedVarName()));
 			}
@@ -387,6 +387,9 @@ public class HomematicAPI {
 				} else {
 					refreshHashString = actualHashString;
 				}
+			}
+			if(LOG.isDebugEnabled()) {
+				LOG.debug(new String(responseBytes));
 			}
 			InputStream inputStream = new ByteArrayInputStream(responseBytes);
 			Document doc = dBuilder.parse(inputStream);

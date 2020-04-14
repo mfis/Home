@@ -304,7 +304,7 @@
 	<!-- Front door lock -->
 	<div th:fragment="doorLock (model)" th:class="'alert alert-secondary callout callout-secondary'">
 		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, place=${model.place}, historyKey=${model.historyKey})"></div>
-		<h4><span th:text="${model.state}"></span><span th:text="${model.stateSuffix}" style="font-size: 80%;"></span></h4>
+		<h4 th:unless="${#strings.equals(model.busy,'true')}"><span th:text="${model.state}"></span><span th:text="${model.stateSuffix}" style="font-size: 80%;"></span></h4>
 
 		<th:block th:unless="${#strings.equals(model.busy,'true')}">	
 			<div class="btn-group" role="group" aria-label="lockcontrol">
@@ -315,9 +315,6 @@
 	  			<button th:if="${#strings.startsWith(model.linkOpen, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-door-open')"/></span><span>&nbsp;</span></button>
 	  			<button th:if="${#strings.startsWith(model.linkOpen, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'openPin' + ${model.id} + '(openModalLabel' + ${model.id} + ', open' + ${model.id} + ')'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-door-open')"/></span><span>&nbsp;</span></button>
 			</div>
-			<th:block th:if="${#strings.equals(model.busy,'true')}">
-				<span><th:block th:replace="basics :: symbol (name='fa fa-spinner fa-spin')"/></span>
-			</th:block>			
 		</th:block>
 		<input type="hidden" th:id="'val_model_linkLock_' + ${model.id}" th:value="${model.linkLock}">
 		<input type="hidden" th:id="'val_model_linkUnlock_' + ${model.id}" th:value="${model.linkUnlock}">
@@ -344,7 +341,7 @@
 		</script>		
 		
 		<span>&nbsp;</span>
-		<th:block th:if="${!#strings.startsWith(model.linkAuto, '#') or !#strings.startsWith(model.linkManual, '#')}">
+		<th:block th:unless="${#strings.equals(model.busy,'true')}">
 			<div class="btn-group" role="group" aria-label="lockauto">
 	  			<button th:if="${#strings.startsWith(model.linkAuto, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-cogs')"/></span><span>&nbsp;</span></button>
 	  			<button th:if="${#strings.startsWith(model.linkAuto, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToManual' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-cogs')"/></span><span>&nbsp;</span></button>
@@ -382,6 +379,10 @@
 				</div>
 		</th:block>
 		
+		<th:block th:if="${#strings.equals(model.busy,'true')}">
+			<span><th:block th:replace="basics :: symbol (name='fa fa-spinner fa-spin')"/></span>
+		</th:block>
+					
 		<div th:replace="pin :: pin (id=${model.id})"></div>
 		
 	</div>	
