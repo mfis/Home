@@ -19,6 +19,7 @@ public enum Datapoint {
 	ENERGY_COUNTER(HomematicValueFormat.DEC, null, false), //
 	VALUE(HomematicValueFormat.DEC, null, false), //
 	PRESS_SHORT(HomematicValueFormat.DEC, null, true), //
+	ERROR(HomematicValueFormat.DEC, null, false), //
 	SYSVAR_DUMMY(null, null, false), //
 	;
 
@@ -41,7 +42,7 @@ public enum Datapoint {
 
 	protected static final List<Datapoint> LIST_CAMERA = Arrays.asList(Datapoint.STATE);
 	
-	protected static final List<Datapoint> LIST_DOORLOCK = Arrays.asList(Datapoint.STATE, Datapoint.STATE_UNCERTAIN);
+	protected static final List<Datapoint> LIST_DOORLOCK = Arrays.asList(Datapoint.STATE, Datapoint.STATE_UNCERTAIN, Datapoint.ERROR);
 
 	private HomematicValueFormat homematicValueFormat;
 

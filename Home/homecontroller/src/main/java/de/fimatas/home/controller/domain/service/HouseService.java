@@ -597,6 +597,8 @@ public class HouseService {
 		}else {
 			frontDoor.setBusy(checkBusyState(Device.HAUSTUER_SCHLOSS));
 		}
+		frontDoor.setErrorcode(
+				api.getAsBigDecimal(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, Datapoint.ERROR)).intValue());
 		
 		frontDoor.setLockAutomation(api.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, AUTOMATIC)));
 		frontDoor.setLockAutomationInfoText(
@@ -610,6 +612,7 @@ public class HouseService {
 	    hash = 31 * hash + (frontDoor.isLockState()?1:0);
 	    hash = 31 * hash + (frontDoor.isLockStateUncertain()?1:0);
 	    hash = 31 * hash + (frontDoor.isOpen()?1:0);
+	    hash = 31 * hash + (frontDoor.getErrorcode()==0?0:1);
 	    return hash;
 	}
 

@@ -159,11 +159,17 @@ public class HouseViewService {
 		boolean setButtonUnlock = false;
 		boolean setButtonOpen = false;
 		
-		if(frontDoor.isOpen()) {
+		if(frontDoor.getErrorcode()!=0) {
+			view.setState("Mechanischer Fehler!");
+			view.setIcon("fas fa-bug");
+			setButtonOpen = true;
+			setButtonLock = true;
+			setButtonUnlock = true;			
+		} else if(frontDoor.isOpen()) {
 			view.setState("Öffner aktiv");
 			view.setIcon("fas fa-door-open");
 			setButtonLock = true;
-		}else {
+		} else {
 			setButtonOpen = true;
 			if(frontDoor.isLockStateUncertain()) {
 				view.setState("Manuell betätigt");
@@ -200,7 +206,9 @@ public class HouseViewService {
 			if (Boolean.TRUE.equals(frontDoor.getLockAutomation())) {
 				view.setLinkManual(TOGGLE_AUTOMATION + frontDoor.getDeviceLock().name() + AND_VALUE_IS
 						+ AutomationState.MANUAL.name());
-				view.setStateSuffix(PROGRAMMGESTEUERT);
+				if(frontDoor.getErrorcode()==0) {
+					view.setStateSuffix(PROGRAMMGESTEUERT);
+				}
 			} else {
 				view.setLinkAuto(TOGGLE_AUTOMATION + frontDoor.getDeviceLock().name() + AND_VALUE_IS
 						+ AutomationState.AUTOMATIC.name());

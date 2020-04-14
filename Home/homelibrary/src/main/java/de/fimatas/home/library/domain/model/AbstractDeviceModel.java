@@ -14,6 +14,8 @@ public abstract class AbstractDeviceModel implements Serializable {
 	private Type subType;
 
 	private boolean busy;
+	
+	private int errorcode;
 
 	public Device getDevice() {
 		return device;
@@ -37,5 +39,13 @@ public abstract class AbstractDeviceModel implements Serializable {
 
 	public void setBusy(boolean busy) {
 		this.busy = busy;
+	}
+
+	public int getErrorcode() {
+		return errorcode;
+	}
+
+	public void setErrorcode(int errorcode) {
+		this.errorcode = errorcode;
 	}
 }

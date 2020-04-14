@@ -358,29 +358,29 @@
 					submitContent(document.getElementById('val_model_linkAuto_[[${model.id}]]').value);
 				}	
 			</script>
-				<button type="button" class="btn btn-link" data-toggle="modal" th:data-target="'#modalAuto' + ${model.id}">
-					<span 
-						class="badge badge-secondary" th:text="'?'">
-					</span>
-				</button>
-				<!-- Modal -->
-				<div class="modal fade" th:id="'modalAuto' + ${model.id}" tabindex="-1" role="dialog" th:aria-labelledby="'#modalAutoLabel' + ${model.id}" aria-hidden="true">
-				  <div class="modal-dialog modal-dialog-centered" role="document">
-				    <div class="modal-content">
-				      <div class="modal-header">
-				        <h5 class="modal-title" th:text="'Automatik: ' + ${model.name}"></h5>
-				        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-				          <span aria-hidden="true">&times;</span>
-				        </button>
-				      </div>
-				      <div class="modal-body"><a th:utext="${model.autoInfoText}"></a></div>
-				    </div>
-				  </div>
-				</div>
+			<button type="button" class="btn btn-link" data-toggle="modal" th:data-target="'#modalAuto' + ${model.id}">
+				<span 
+					class="badge badge-secondary" th:text="'?'">
+				</span>
+			</button>
+			<!-- Modal -->
+			<div class="modal fade" th:id="'modalAuto' + ${model.id}" tabindex="-1" role="dialog" th:aria-labelledby="'#modalAutoLabel' + ${model.id}" aria-hidden="true">
+			  <div class="modal-dialog modal-dialog-centered" role="document">
+			    <div class="modal-content">
+			      <div class="modal-header">
+			        <h5 class="modal-title" th:text="'Automatik: ' + ${model.name}"></h5>
+			        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+			          <span aria-hidden="true">&times;</span>
+			        </button>
+			      </div>
+			      <div class="modal-body"><a th:utext="${model.autoInfoText}"></a></div>
+			    </div>
+			  </div>
+			</div>
 		</th:block>
 		
 		<th:block th:if="${#strings.equals(model.busy,'true')}">
-			<span><th:block th:replace="basics :: symbol (name='fa fa-spinner fa-spin')"/></span>
+			<h4><span><th:block th:replace="basics :: symbol (name='fa fa-spinner fa-spin')"/></span></h4>
 		</th:block>
 					
 		<div th:replace="pin :: pin (id=${model.id})"></div>
