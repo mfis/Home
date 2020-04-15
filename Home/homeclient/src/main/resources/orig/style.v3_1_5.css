@@ -121,7 +121,7 @@
 		background-color:#000 !important;
 		border:1px solid rgb(238,238,238,0.8) !important;
 	}
-	.modal-content h5, .modal-content a, .modal-footer button, .modal-body a, .modal-body h4 {
+	.modal-content h5, .modal-content a, .modal-footer button, .modal-body a, .modal-body h4, .pincode {
 		color: rgb(238,238,238) !important;
 	}	
 	.progress {

@@ -12,10 +12,8 @@
 			  <div class="modal-dialog modal-dialog-centered" role="document">
 			    <div class="modal-content">
 			      <div class="modal-header">
-			        <h5 class="modal-title text-dark" th:id="'modalPinId' + ${id}"><span th:id="'modalPinLabelId' + ${id}"></span><span>&nbsp;</span><span th:id="'modalPinStarId' + ${id}"></span></h5>
-			        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-			          <span aria-hidden="true">&times;</span>
-			        </button>
+			        <h5 class="modal-title text-dark" th:id="'modalPinId' + ${id}"><span th:id="'modalPinLabelId' + ${id}"></span><span>&nbsp;&nbsp;</span><span></span></h5>
+			        <code style="font-size: 1.0rem; margin-top: 5px;" class="pincode" th:id="'modalPinStarId' + ${id}"></code>
 			      </div>
 			      <div th:id="'modalPinBody' + ${id}" class="modal-body" style="max-height: calc(100vh - 200px); overflow-y: auto;">
 			      	<input type="hidden" th:id="'val_pin_' + ${id}" th:value="''">
@@ -37,9 +35,9 @@
 					      <td><button style="width:70px;" type="button" th:onclick="@{'addPin' + ${id} + '(9)'}" class="btn btn-secondary btn-lg">9</button></td>
 					    </tr>
 					    <tr>
-					      <td></td>
+					      <td><button style="width:70px;" type="button" class="btn btn-dark btn-lg" data-dismiss="modal" aria-label="Close"><i class="fas fa-times-circle"></i></button></td>
 					      <td><button style="width:70px;" type="button" th:onclick="@{'addPin' + ${id} + '(0)'}" class="btn btn-secondary btn-lg">0</button></td>
-					      <td></td>
+					      <td><button style="width:70px;" type="button" th:onclick="@{'resetPin' + ${id} + '()'}"class="btn btn-dark btn-lg"><i class="fas fa-arrow-alt-circle-left"></i></button></td>
 					    </tr>				    
 					  </tbody>
 					</table>		      
@@ -54,16 +52,31 @@
 					pinCallback[[${id}]] = cb;
 					document.getElementById('modalPinLabelId[[${id}]]').innerHTML = label();
 					document.getElementById('val_pin_[[${id}]]').value = '';
-					document.getElementById('modalPinStarId[[${id}]]').innerHTML = '';
+					stars[[${id}]](document.getElementById('val_pin_[[${id}]]').value);
 					$("#modalPin[[${id}]]").modal();
 				}
+				function resetPin[[${id}]](){
+					document.getElementById('val_pin_[[${id}]]').value = '';
+					stars[[${id}]]('');
+				}				
 				function addPin[[${id}]](i){
 					document.getElementById('val_pin_[[${id}]]').value += i;
-					document.getElementById('modalPinStarId[[${id}]]').innerHTML += '* ';
+					stars[[${id}]](document.getElementById('val_pin_[[${id}]]').value);
 					if(document.getElementById('val_pin_[[${id}]]').value.length == 6){
 						pinCallback[[${id}]]();
 						$("#modalPin[[${id}]]").modal('hide');
 					}
+				}
+				function stars[[${id}]](x){
+					var p = '';
+					for(i = 1;i<=6;i++){
+						if(i<=x.length){
+							p += '* '
+						}else{
+							p += '_ ';
+						}
+					}
+					document.getElementById('modalPinStarId[[${id}]]').innerHTML = p;					
 				}
 			</script>
 		</th:block>
