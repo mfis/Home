@@ -33,10 +33,11 @@ import org.springframework.web.client.RestTemplate;
 import de.fimatas.home.controller.command.HomematicCommandBuilder;
 import de.fimatas.home.controller.domain.service.UploadService;
 import de.fimatas.home.library.dao.ModelObjectDAO;
+import de.fimatas.home.library.domain.model.Camera;
 import de.fimatas.home.library.domain.model.CameraMode;
 import de.fimatas.home.library.domain.model.CameraModel;
 import de.fimatas.home.library.domain.model.CameraPicture;
-import de.fimatas.home.library.domain.model.FrontDoor;
+import de.fimatas.home.library.domain.model.Doorbell;
 import de.fimatas.home.library.homematic.model.Device;
 
 @Component
@@ -77,10 +78,10 @@ public class CameraService {
 		}
 	}
 
-	public void takeEventPicture(FrontDoor frontdoor) {
+	public void takeEventPicture(Doorbell frontdoorbell, Camera frontdoorcamera) {
 		CameraPicture cameraPicture = new CameraPicture();
-		cameraPicture.setTimestamp(frontdoor.getTimestampLastDoorbell());
-		cameraPicture.setDevice(frontdoor.getDeviceCamera());
+		cameraPicture.setTimestamp(frontdoorbell.getTimestampLastDoorbell());
+		cameraPicture.setDevice(frontdoorcamera.getDevice());
 		cameraPicture.setCameraMode(CameraMode.EVENT);
 		takePicture(cameraPicture);
 	}

@@ -16,6 +16,8 @@ public abstract class AbstractDeviceModel implements Serializable {
 	private boolean busy;
 	
 	private int errorcode;
+	
+	private boolean unreach;
 
 	public Device getDevice() {
 		return device;
@@ -47,5 +49,13 @@ public abstract class AbstractDeviceModel implements Serializable {
 
 	public void setErrorcode(int errorcode) {
 		this.errorcode = errorcode;
+	}
+
+	public boolean isUnreach() {
+		return unreach;
+	}
+
+	public void setUnreach(boolean unreach) {
+		this.unreach = unreach;
 	}
 }

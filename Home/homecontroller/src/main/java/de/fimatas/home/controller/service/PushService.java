@@ -130,7 +130,7 @@ public class PushService {
 		for (SettingsModel settingsModel : settingsModels) {
 			if (settingsModel.isPushDoorbell()) {
 				String time = TIME_FORMATTER
-						.format(Instant.ofEpochMilli(newModel.getFrontDoor().getTimestampLastDoorbell())
+						.format(Instant.ofEpochMilli(newModel.getFrontDoorBell().getTimestampLastDoorbell())
 								.atZone(ZoneId.systemDefault()).toLocalDateTime());
 				String message = "Türklingelbetätigung um " + time + " Uhr";
 				if (StringUtils.equals(settingsModel.getClientName(), "ONLY_LOGGING")) {

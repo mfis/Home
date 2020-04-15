@@ -225,6 +225,7 @@ public class HomematicAPI {
 			if (lowBatDatapoint != null) {
 				commands.add(homematicCommandBuilder.read(device, device.lowBatDatapoint()));
 			}
+			commands.add(homematicCommandBuilder.read(device, Datapoint.UNREACH));
 		}
 		commands.add(homematicCommandBuilder.read("CCU_im_Reboot"));
 		commands.add(homematicCommandBuilder.read("CCU_Uptime"));

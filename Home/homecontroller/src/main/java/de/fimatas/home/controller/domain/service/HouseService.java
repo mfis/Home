@@ -22,8 +22,10 @@ import de.fimatas.home.controller.service.PushService;
 import de.fimatas.home.controller.service.UserService;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.AutomationState;
+import de.fimatas.home.library.domain.model.Camera;
 import de.fimatas.home.library.domain.model.Climate;
-import de.fimatas.home.library.domain.model.FrontDoor;
+import de.fimatas.home.library.domain.model.Doorbell;
+import de.fimatas.home.library.domain.model.Doorlock;
 import de.fimatas.home.library.domain.model.Heating;
 import de.fimatas.home.library.domain.model.Hint;
 import de.fimatas.home.library.domain.model.HouseModel;
@@ -84,7 +86,7 @@ public class HouseService {
 
 	@Autowired
 	private HomematicCommandBuilder homematicCommandBuilder;
-	
+
 	@Autowired
 	private UserService userService;
 
@@ -151,7 +153,9 @@ public class HouseService {
 
 		newModel.setKitchenWindowLightSwitch(readSwitchState(Device.SCHALTER_KUECHE_LICHT));
 
-		newModel.setFrontDoor(readFrontDoor(oldModel));
+		newModel.setFrontDoorBell(readFrontDoorBell());
+		newModel.setFrontDoorCamera(readFrontDoorCamera());
+		newModel.setFrontDoorLock(readFrontDoorLock(oldModel));
 
 		newModel.setElectricalPowerConsumption(readPowerConsumption(Device.STROMZAEHLER));
 
@@ -416,13 +420,14 @@ public class HouseService {
 	}
 
 	public void doorState(Message message) {
-		if(StringUtils.isNotBlank(message.getSecurityPin()) && userService.checkPin(message.getUser(), message.getSecurityPin())) {
-			switch(StateValue.valueOf(message.getValue())) {
+		if (StringUtils.isNotBlank(message.getSecurityPin())
+				&& userService.checkPin(message.getUser(), message.getSecurityPin())) {
+			switch (StateValue.valueOf(message.getValue())) {
 			case LOCK:
 				runProgram(message.getDevice(), "Lock");
 				break;
 			case UNLOCK:
-				runProgram(message.getDevice(), "Unlock");				
+				runProgram(message.getDevice(), "Unlock");
 				break;
 			case OPEN:
 				runProgram(message.getDevice(), "Open");
@@ -447,8 +452,8 @@ public class HouseService {
 		}
 
 		if (doorbellTimestampChanged(oldModel, newModel)) {
-			api.executeCommand(homematicCommandBuilder.write(newModel.getFrontDoor().getDeviceDoorBellHistory(),
-					Datapoint.SYSVAR_DUMMY, Long.toString(newModel.getFrontDoor().getTimestampLastDoorbell())));
+			api.executeCommand(homematicCommandBuilder.write(newModel.getFrontDoorBell().getHistoryDevice(),
+					Datapoint.SYSVAR_DUMMY, Long.toString(newModel.getFrontDoorBell().getTimestampLastDoorbell())));
 		}
 	}
 
@@ -469,19 +474,19 @@ public class HouseService {
 
 		// FrontDoor
 		if (doorbellTimestampChanged(oldModel, newModel)) {
-			cameraService.takeEventPicture(newModel.getFrontDoor());
+			cameraService.takeEventPicture(newModel.getFrontDoorBell(), newModel.getFrontDoorCamera());
 		}
 	}
 
 	public static boolean doorbellTimestampChanged(HouseModel oldModel, HouseModel newModel) {
 
-		long doorbellOld = oldModel != null && oldModel.getFrontDoor() != null
-				&& oldModel.getFrontDoor().getTimestampLastDoorbell() != null
-						? oldModel.getFrontDoor().getTimestampLastDoorbell()
+		long doorbellOld = oldModel != null && oldModel.getFrontDoorBell() != null
+				&& oldModel.getFrontDoorBell().getTimestampLastDoorbell() != null
+						? oldModel.getFrontDoorBell().getTimestampLastDoorbell()
 						: 0;
-		long doorbellNew = newModel != null && newModel.getFrontDoor() != null
-				&& newModel.getFrontDoor().getTimestampLastDoorbell() != null
-						? newModel.getFrontDoor().getTimestampLastDoorbell()
+		long doorbellNew = newModel != null && newModel.getFrontDoorBell() != null
+				&& newModel.getFrontDoorBell().getTimestampLastDoorbell() != null
+						? newModel.getFrontDoorBell().getTimestampLastDoorbell()
 						: 0;
 
 		long minutesAgo = (System.currentTimeMillis() - doorbellNew) / 1000 / 60;
@@ -491,6 +496,7 @@ public class HouseService {
 
 	private OutdoorClimate readOutdoorClimate(Device outside, Device diff) {
 		OutdoorClimate outdoorClimate = new OutdoorClimate();
+		outdoorClimate.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(outside, Datapoint.UNREACH)));
 		outdoorClimate.setTemperature(new ValueWithTendency<BigDecimal>(
 				api.getAsBigDecimal(homematicCommandBuilder.read(outside, Datapoint.TEMPERATURE))));
 		outdoorClimate.setSunBeamIntensity(
@@ -502,6 +508,7 @@ public class HouseService {
 
 	private RoomClimate readRoomClimate(Device thermometer) {
 		RoomClimate roomClimate = new RoomClimate();
+		roomClimate.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(thermometer, Datapoint.UNREACH)));
 		roomClimate.setTemperature(new ValueWithTendency<BigDecimal>(
 				api.getAsBigDecimal(homematicCommandBuilder.read(thermometer, Datapoint.ACTUAL_TEMPERATURE))));
 		BigDecimal humidity = thermometer.getType() == Type.THERMOSTAT ? null
@@ -518,6 +525,7 @@ public class HouseService {
 
 	private Heating readHeating(Device heating) {
 		Heating heatingModel = new Heating();
+		heatingModel.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(heating, Datapoint.UNREACH)));
 		heatingModel.setBoostActive(api.getAsBigDecimal(homematicCommandBuilder.read(heating, Datapoint.CONTROL_MODE))
 				.compareTo(HomematicConstants.HEATING_CONTROL_MODE_BOOST) == 0);
 		BigDecimal boostLeft = api.getAsBigDecimal(homematicCommandBuilder.read(heating, Datapoint.BOOST_STATE));
@@ -548,6 +556,7 @@ public class HouseService {
 	private Window readWindow(Device shutter) { // TODO: D_U_M_M_Y
 		Window window = new Window();
 		window.setDevice(shutter);
+		window.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(shutter, Datapoint.UNREACH)));
 		window.setShutterPositionPercentage(30);
 		window.setShutterPosition(ShutterPosition.fromPosition(window.getShutterPositionPercentage()));
 		window.setShutterAutomation(true);
@@ -561,6 +570,7 @@ public class HouseService {
 
 	private Switch readSwitchState(Device device) {
 		Switch switchModel = new Switch();
+		switchModel.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(device, Datapoint.UNREACH)));
 		switchModel.setState(api.getAsBoolean(homematicCommandBuilder.read(device, Datapoint.STATE)));
 		switchModel.setDevice(device);
 		switchModel.setAutomation(api.getAsBoolean(homematicCommandBuilder.read(device, AUTOMATIC)));
@@ -569,12 +579,12 @@ public class HouseService {
 		return switchModel;
 	}
 
-	private FrontDoor readFrontDoor(HouseModel oldModel) {
+	private Doorbell readFrontDoorBell() {
 
-		FrontDoor frontDoor = new FrontDoor();
-		frontDoor.setDeviceCamera(Device.HAUSTUER_KAMERA);
-		frontDoor.setDeviceDoorBell(Device.HAUSTUER_KLINGEL);
-		frontDoor.setDeviceDoorBellHistory(Device.HAUSTUER_KLINGEL_HISTORIE);
+		Doorbell frontDoor = new Doorbell();
+		frontDoor.setDevice(Device.HAUSTUER_KLINGEL);
+		frontDoor.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_KLINGEL, Datapoint.UNREACH)));
+		frontDoor.setHistoryDevice(Device.HAUSTUER_KLINGEL_HISTORIE);
 
 		Long tsDoorbell = api
 				.getTimestamp(homematicCommandBuilder.readTS(Device.HAUSTUER_KLINGEL, Datapoint.PRESS_SHORT));
@@ -584,7 +594,22 @@ public class HouseService {
 		}
 		frontDoor.setTimestampLastDoorbell(tsDoorbell);
 
-		frontDoor.setDeviceLock(Device.HAUSTUER_SCHLOSS);
+		return frontDoor;
+	}
+
+	private Camera readFrontDoorCamera() {
+
+		Camera frontDoor = new Camera();
+		frontDoor.setDevice(Device.HAUSTUER_KAMERA);
+		return frontDoor;
+	}
+
+	private Doorlock readFrontDoorLock(HouseModel oldModel) {
+
+		Doorlock frontDoor = new Doorlock();
+
+		frontDoor.setDevice(Device.HAUSTUER_SCHLOSS);
+		frontDoor.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, Datapoint.UNREACH)));
 		frontDoor.setLockState(
 				!api.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, Datapoint.STATE))); // false=verriegelt
 		frontDoor.setLockStateUncertain(
@@ -592,34 +617,35 @@ public class HouseService {
 		frontDoor.setOpen(api.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, IS_OPENED)));
 
 		boolean newBusy = checkBusyState(Device.HAUSTUER_SCHLOSS);
-		if(oldModel!=null && oldModel.getFrontDoor().isBusy() && !newBusy) {
-			frontDoor.setBusy(doorLockHash(oldModel.getFrontDoor())==doorLockHash(frontDoor));
-		}else {
+		if (oldModel != null && oldModel.getFrontDoorLock().isBusy() && !newBusy) {
+			frontDoor.setBusy(doorLockHash(oldModel.getFrontDoorLock()) == doorLockHash(frontDoor));
+		} else {
 			frontDoor.setBusy(checkBusyState(Device.HAUSTUER_SCHLOSS));
 		}
 		frontDoor.setErrorcode(
 				api.getAsBigDecimal(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, Datapoint.ERROR)).intValue());
-		
+
 		frontDoor.setLockAutomation(api.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, AUTOMATIC)));
 		frontDoor.setLockAutomationInfoText(
 				api.getAsString(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, AUTOMATIC + "InfoText")));
 
 		return frontDoor;
 	}
-	
-	private int doorLockHash(FrontDoor frontDoor) { // compoment sends delayed state change
-	    int hash = 7;
-	    hash = 31 * hash + (frontDoor.isLockState()?1:0);
-	    hash = 31 * hash + (frontDoor.isLockStateUncertain()?1:0);
-	    hash = 31 * hash + (frontDoor.isOpen()?1:0);
-	    hash = 31 * hash + (frontDoor.getErrorcode()==0?0:1);
-	    return hash;
+
+	private int doorLockHash(Doorlock doorlock) { // compoment sends delayed state change
+		int hash = 7;
+		hash = 31 * hash + (doorlock.isLockState() ? 1 : 0);
+		hash = 31 * hash + (doorlock.isLockStateUncertain() ? 1 : 0);
+		hash = 31 * hash + (doorlock.isOpen() ? 1 : 0);
+		hash = 31 * hash + (doorlock.getErrorcode() == 0 ? 0 : 1);
+		return hash;
 	}
 
 	private PowerMeter readPowerConsumption(Device device) {
 
 		PowerMeter model = new PowerMeter();
 		model.setDevice(device);
+		model.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(device, Datapoint.UNREACH)));
 		model.setActualConsumption(new ValueWithTendency<BigDecimal>(
 				api.getAsBigDecimal(homematicCommandBuilder.read(device, Datapoint.POWER))));
 		return model;

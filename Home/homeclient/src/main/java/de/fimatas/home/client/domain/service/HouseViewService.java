@@ -23,9 +23,12 @@ import de.fimatas.home.client.domain.model.PowerView;
 import de.fimatas.home.client.domain.model.ShutterView;
 import de.fimatas.home.client.domain.model.SwitchView;
 import de.fimatas.home.client.model.MessageQueue;
+import de.fimatas.home.library.domain.model.AutomationState;
+import de.fimatas.home.library.domain.model.Camera;
 import de.fimatas.home.library.domain.model.CameraMode;
 import de.fimatas.home.library.domain.model.Climate;
-import de.fimatas.home.library.domain.model.FrontDoor;
+import de.fimatas.home.library.domain.model.Doorbell;
+import de.fimatas.home.library.domain.model.Doorlock;
 import de.fimatas.home.library.domain.model.Heating;
 import de.fimatas.home.library.domain.model.HistoryModel;
 import de.fimatas.home.library.domain.model.HouseModel;
@@ -35,10 +38,8 @@ import de.fimatas.home.library.domain.model.PowerMeter;
 import de.fimatas.home.library.domain.model.RoomClimate;
 import de.fimatas.home.library.domain.model.ShutterPosition;
 import de.fimatas.home.library.domain.model.StateValue;
-import de.fimatas.home.library.domain.model.AutomationState;
 import de.fimatas.home.library.domain.model.Switch;
 import de.fimatas.home.library.domain.model.Window;
-import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.model.Message;
 import de.fimatas.home.library.model.MessageType;
 
@@ -49,10 +50,10 @@ public class HouseViewService {
 
 	private static final String AND_VALUE_IS = "&value=";
 
-	private static final String AND_DEVICE_IS = "&deviceName=";   
-	
+	private static final String AND_DEVICE_IS = "&deviceName=";
+
 	public static final String PIN = "securityPin";
-	
+
 	private static final String AND_PIN_IS = "&" + PIN + "=";
 
 	private static final String TYPE_IS = "type=";
@@ -103,8 +104,8 @@ public class HouseViewService {
 
 		formatSwitch(model, "switchKitchen", house.getKitchenWindowLightSwitch());
 
-		formatFrontDoorCamera(model, house.getFrontDoor(), Device.HAUSTUER_KAMERA);
-		formatFrontDoorLock(model, house.getFrontDoor(), Device.HAUSTUER_KAMERA);
+		formatFrontDoorBell(model, house.getFrontDoorBell(), house.getFrontDoorCamera());
+		formatFrontDoorLock(model, house.getFrontDoorLock());
 		formatPower(model, house.getElectricalPowerConsumption(), historyModel);
 
 		formatLowBattery(model, house.getLowBatteryDevices());
@@ -126,96 +127,98 @@ public class HouseViewService {
 		}
 	}
 
-	private void formatFrontDoorCamera(Model model, FrontDoor frontDoor, Device device) {
+	private void formatFrontDoorBell(Model model, Doorbell doorbell, Camera camera) {
 
 		FrontDoorView frontDoorView = new FrontDoorView();
+		frontDoorView.setUnreach(Boolean.toString(doorbell.isUnreach()));
 
-		if (frontDoor.getTimestampLastDoorbell() != null) {
+		if (doorbell.getTimestampLastDoorbell() != null) {
 			frontDoorView
-					.setLastDoorbells(viewFormatter.formatPastTimestamp(frontDoor.getTimestampLastDoorbell(), true));
+					.setLastDoorbells(viewFormatter.formatPastTimestamp(doorbell.getTimestampLastDoorbell(), true));
 		} else {
 			frontDoorView.setLastDoorbells("unbekannt");
 		}
 		frontDoorView.setIdLive("frontdoorcameralive");
 		frontDoorView.setIdBell("frontdoorcamerabell");
-		frontDoorView
-				.setLinkLive("/cameraPicture?deviceName=" + device.name() + "&cameraMode=" + CameraMode.LIVE + "&ts=");
+		frontDoorView.setLinkLive(
+				"/cameraPicture?deviceName=" + camera.getDevice() + "&cameraMode=" + CameraMode.LIVE + "&ts=");
 		frontDoorView.setLinkLiveRequest("/cameraPictureRequest?type=" + MessageType.CAMERAPICTUREREQUEST
-				+ AND_DEVICE_IS + device.name() + "&value=null");
-		frontDoorView.setLinkBell("/cameraPicture?deviceName=" + device.name() + "&cameraMode=" + CameraMode.EVENT
-				+ "&ts=" + frontDoor.getTimestampLastDoorbell());
+				+ AND_DEVICE_IS + camera.getDevice() + "&value=null");
+		frontDoorView.setLinkBell("/cameraPicture?deviceName=" + camera.getDevice() + "&cameraMode=" + CameraMode.EVENT
+				+ "&ts=" + doorbell.getTimestampLastDoorbell());
 
 		model.addAttribute("frontDoor", frontDoorView);
 	}
 
-	private void formatFrontDoorLock(Model model, FrontDoor frontDoor, Device device) {
+	private void formatFrontDoorLock(Model model, Doorlock doorlock) {
 
 		LockView view = new LockView();
 		view.setId("frontDoorLock");
-		view.setName(frontDoor.getDeviceLock().getType().getTypeName());
-		view.setCaption(device.getPlace().getPlaceName());
-		view.setBusy(Boolean.toString(frontDoor.isBusy()));
+		view.setName(doorlock.getDevice().getType().getTypeName());
+		view.setCaption(doorlock.getDevice().getPlace().getPlaceName());
+		view.setBusy(Boolean.toString(doorlock.isBusy()));
+		view.setUnreach(Boolean.toString(doorlock.isUnreach()));
 		boolean setButtonLock = false;
 		boolean setButtonUnlock = false;
 		boolean setButtonOpen = false;
-		
-		if(frontDoor.getErrorcode()!=0) {
+
+		if (doorlock.getErrorcode() != 0) {
 			view.setState("Mechanischer Fehler!");
 			view.setIcon("fas fa-bug");
 			setButtonOpen = true;
 			setButtonLock = true;
-			setButtonUnlock = true;			
-		} else if(frontDoor.isOpen()) {
+			setButtonUnlock = true;
+		} else if (doorlock.isOpen()) {
 			view.setState("Öffner aktiv");
 			view.setIcon("fas fa-door-open");
 			setButtonLock = true;
 		} else {
 			setButtonOpen = true;
-			if(frontDoor.isLockStateUncertain()) {
+			if (doorlock.isLockStateUncertain()) {
 				view.setState("Manuell betätigt");
 				view.setIcon("fas fa-door-open");
 				setButtonLock = true;
 				setButtonUnlock = true;
-			}else {
-				if(frontDoor.isLockState()) {
-					view.setState("Verriegelt");	
+			} else {
+				if (doorlock.isLockState()) {
+					view.setState("Verriegelt");
 					view.setIcon("fas fa-lock");
 					setButtonUnlock = true;
-				}else {
+				} else {
 					view.setState("Entriegelt");
 					view.setIcon("fas fa-lock-open");
 					setButtonLock = true;
 				}
 			}
 		}
-		
-		if(setButtonLock) {
-			view.setLinkLock(OPEN_STATE + frontDoor.getDeviceLock().name() + AND_VALUE_IS +
-					StateValue.LOCK.name() + AND_PIN_IS);
+
+		if (setButtonLock) {
+			view.setLinkLock(
+					OPEN_STATE + doorlock.getDevice().name() + AND_VALUE_IS + StateValue.LOCK.name() + AND_PIN_IS);
 		}
-		if(setButtonUnlock) {
-			view.setLinkUnlock(OPEN_STATE + frontDoor.getDeviceLock().name() + AND_VALUE_IS +
-					StateValue.UNLOCK.name() + AND_PIN_IS);
+		if (setButtonUnlock) {
+			view.setLinkUnlock(
+					OPEN_STATE + doorlock.getDevice().name() + AND_VALUE_IS + StateValue.UNLOCK.name() + AND_PIN_IS);
 		}
-		if(setButtonOpen) {
-			view.setLinkOpen(OPEN_STATE + frontDoor.getDeviceLock().name() + AND_VALUE_IS +
-					StateValue.OPEN.name() + AND_PIN_IS);
+		if (setButtonOpen) {
+			view.setLinkOpen(
+					OPEN_STATE + doorlock.getDevice().name() + AND_VALUE_IS + StateValue.OPEN.name() + AND_PIN_IS);
 		}
-		
-		if (frontDoor.getLockAutomation() != null) {
-			if (Boolean.TRUE.equals(frontDoor.getLockAutomation())) {
-				view.setLinkManual(TOGGLE_AUTOMATION + frontDoor.getDeviceLock().name() + AND_VALUE_IS
-						+ AutomationState.MANUAL.name());
-				if(frontDoor.getErrorcode()==0) {
+
+		if (doorlock.getLockAutomation() != null) {
+			if (Boolean.TRUE.equals(doorlock.getLockAutomation())) {
+				view.setLinkManual(
+						TOGGLE_AUTOMATION + doorlock.getDevice().name() + AND_VALUE_IS + AutomationState.MANUAL.name());
+				if (doorlock.getErrorcode() == 0) {
 					view.setStateSuffix(PROGRAMMGESTEUERT);
 				}
 			} else {
-				view.setLinkAuto(TOGGLE_AUTOMATION + frontDoor.getDeviceLock().name() + AND_VALUE_IS
+				view.setLinkAuto(TOGGLE_AUTOMATION + doorlock.getDevice().name() + AND_VALUE_IS
 						+ AutomationState.AUTOMATIC.name());
 			}
-			view.setAutoInfoText(StringUtils.trimToEmpty(frontDoor.getLockAutomationInfoText()));
+			view.setAutoInfoText(StringUtils.trimToEmpty(doorlock.getLockAutomationInfoText()));
 		}
-		
+
 		model.addAttribute("frontDoorLock", view);
 	}
 
@@ -235,6 +238,7 @@ public class HouseViewService {
 	private ClimateView formatClimate(Climate climate, Heating heating, String viewKey, boolean history) {
 
 		ClimateView view = new ClimateView();
+		view.setUnreach(Boolean.toString(climate.isUnreach() || (heating!=null && heating.isUnreach())));
 
 		if ((climate == null || climate.getTemperature() == null || climate.getTemperature().getValue() == null)
 				&& (climate == null || climate.getHumidity() == null || climate.getHumidity().getValue() == null)) {
@@ -301,7 +305,7 @@ public class HouseViewService {
 						+ heating.getDevice().name() + "&value=null");
 			}
 			view.setLinkManual(
-					MESSAGEPATH + TYPE_IS + MessageType.HEATINGMANUAL + AND_DEVICE_IS + heating.getDevice().name()); 
+					MESSAGEPATH + TYPE_IS + MessageType.HEATINGMANUAL + AND_DEVICE_IS + heating.getDevice().name());
 			view.setTargetTemp(format(heating.getTargetTemperature(), false));
 			view.setHeatericon("fab fa-hotjar");
 			view.setBusy(Boolean.toString(heating.isBusy()));
@@ -366,6 +370,7 @@ public class HouseViewService {
 	private void formatPower(Model model, PowerMeter powerMeter, HistoryModel historyModel) {
 
 		PowerView power = new PowerView();
+		power.setUnreach(Boolean.toString(powerMeter.isUnreach()));
 		power.setId(powerMeter.getDevice().programNamePrefix());
 		power.setPlace(powerMeter.getDevice().getPlace().getPlaceName());
 		power.setDescription(powerMeter.getDevice().getDescription());
@@ -404,6 +409,7 @@ public class HouseViewService {
 	private void formatSwitch(Model model, String viewKey, Switch switchModel) {
 
 		SwitchView view = new SwitchView();
+		view.setUnreach(Boolean.toString(switchModel.isUnreach()));
 		view.setId(viewKey);
 		view.setName(switchModel.getDevice().getType().getTypeName());
 		view.setState(switchModel.isState() ? "Eingeschaltet" : "Ausgeschaltet");
@@ -428,6 +434,7 @@ public class HouseViewService {
 	private void formatWindow(Model model, String viewKey, Window windowModel) {
 
 		ShutterView view = new ShutterView();
+		view.setUnreach(Boolean.toString(windowModel.isUnreach()));
 		view.setId(viewKey);
 		view.setName(windowModel.getDevice().getType().getTypeName());
 		view.setState(windowModel.getShutterPosition().getText(windowModel.getShutterPositionPercentage()));

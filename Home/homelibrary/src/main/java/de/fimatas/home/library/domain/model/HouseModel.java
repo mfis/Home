@@ -36,7 +36,11 @@ public class HouseModel implements Serializable {
 
 	private PowerMeter electricalPowerConsumption;
 
-	private FrontDoor frontDoor;
+	private Doorbell frontDoorBell;
+	
+	private Camera frontDoorCamera;
+	
+	private Doorlock frontDoorLock;
 
 	private List<String> lowBatteryDevices;
 
@@ -195,14 +199,6 @@ public class HouseModel implements Serializable {
 		this.heatingBathRoom = heatingBathRoom;
 	}
 
-	public FrontDoor getFrontDoor() {
-		return frontDoor;
-	}
-
-	public void setFrontDoor(FrontDoor frontDoor) {
-		this.frontDoor = frontDoor;
-	}
-
 	public void setDateTime(long dateTime) {
 		this.dateTime = dateTime;
 	}
@@ -221,6 +217,30 @@ public class HouseModel implements Serializable {
 
 	public void setWarnings(List<String> warnings) {
 		this.warnings = warnings;
+	}
+
+	public Doorbell getFrontDoorBell() {
+		return frontDoorBell;
+	}
+
+	public void setFrontDoorBell(Doorbell frontDoorBell) {
+		this.frontDoorBell = frontDoorBell;
+	}
+
+	public Camera getFrontDoorCamera() {
+		return frontDoorCamera;
+	}
+
+	public void setFrontDoorCamera(Camera frontDoorCamera) {
+		this.frontDoorCamera = frontDoorCamera;
+	}
+
+	public Doorlock getFrontDoorLock() {
+		return frontDoorLock;
+	}
+
+	public void setFrontDoorLock(Doorlock frontDoorLock) {
+		this.frontDoorLock = frontDoorLock;
 	}
 
 }

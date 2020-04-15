@@ -12,19 +12,20 @@
 	</div>
 	
 	<!-- Name -->
-	<div th:fragment="elementname (icon, name, place, historyKey)">
+	<div th:fragment="elementname (icon, name, place, historyKey, unreach)">
 		<th:block th:replace="fragments :: historyLink (key=${historyKey}, name=${name}, place=${place})"></th:block>
 		<div>
 			<a>
 				<span th:if="${!#strings.isEmpty(icon)}"><th:block th:replace="basics :: symbol (name=${icon})"/></span>
 				<span th:text="${name}"></span>
+				<span th:if="${#strings.startsWith(unreach, 'true')}" class="text-danger">&nbsp;- Verbindungsfehler!</span>			
 			</a>
 		</div>
 	</div>	
 
 	<!-- Switch -->
 	<div th:fragment="switch (model)" th:class="'alert alert-secondary callout callout-secondary'">
-		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, place=${model.place}, historyKey=${model.historyKey})"></div>
+		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, place=${model.place}, historyKey=${model.historyKey}, unreach=${model.unreach})"></div>
 		<h4><span th:text="${model.state}"></span><span th:text="${model.stateSuffix}" style="font-size: 80%;"></span></h4>
 		
 		<button type="button" th:onclick="@{'toggleSwitch' + ${model.id} + '()'}"
@@ -76,9 +77,9 @@
 		</th:block>
 	</div>
 	
-	<!-- Switch -->
+	<!-- Switch Settings-->
 	<div th:fragment="switchSetting (model)" th:class="'alert alert-secondary callout callout-secondary'">
-		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, place=${model.place}, historyKey=${model.historyKey})"></div>
+		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, place=${model.place}, historyKey=${model.historyKey}, unreach='')"></div>
 		<h4 th:text="${model.state}"></h4>
 		
 		<button type="button" th:onclick="@{'toggleSwitch' + ${model.id} + '()'}"
@@ -93,7 +94,7 @@
 	
 	<!-- Window -->
 	<div th:fragment="window (model)" th:class="'alert alert-secondary callout callout-secondary'">
-		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, place=${model.place}, historyKey=${model.historyKey})"></div>
+		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, place=${model.place}, historyKey=${model.historyKey}, unreach=${model.unreach})"></div>
 		<h4><span th:text="${model.state}"></span><span th:text="${model.stateSuffix}" style="font-size: 80%;"></span></h4>
 		
 		<div class="btn-group" role="group" aria-label="shutterControl">
@@ -167,24 +168,24 @@
 	</div>	
 
 	<!-- Frontdoor -->
-	<th:block th:fragment="frontDoor (model, user)">
+	<th:block th:fragment="frontDoor (model)">
 		<div th:class="'alert alert-secondary callout callout-secondary'">
-			<div th:replace="fragments :: elementname (icon='fas fa-bell', name='Türklingel', place='', historyKey=${model.historyKey})"></div>
+			<div th:replace="fragments :: elementname (icon='fas fa-bell', name='Türklingel', place='', historyKey=${model.historyKey}, unreach=${model.unreach})"></div>
 			<h4>
 				<span th:text="${model.lastDoorbells}"></span>
 			</h4>
 		</div>
-		<th:block th:if="${#strings.equals(user, 'x')}">
-		<div th:class="'alert alert-secondary callout callout-secondary'">
-			<div th:replace="fragments :: elementname (icon='fas fa-camera', name='Kamera', place='', historyKey=${model.historyKey})"></div>
-			<div style="padding-top:6px;">
-				<button th:id="${model.idLive} + 'Button'" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'buttonOnclick' + ${model.idLive} + '()'}"><span><th:block th:replace="basics :: symbol (name='fas fa-eye')"/></span><span>&nbsp;Aktuell</span></button>
-				<a>&nbsp;</a>
-				<button th:id="${model.idBell} + 'Button'" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'buttonOnclick' + ${model.idBell} + '()'}"><span><th:block th:replace="basics :: symbol (name='fas fa-eye')"/></span><span>&nbsp;Türklingel</span></button>
-			</div>
-		</div>	
-		<th:block th:replace="fragments :: modalCamera (id=${model.idLive}, link=${model.linkLive}, linkRequest=${model.linkLiveRequest}, name='Aktuell', refresh='true')"></th:block>
-		<th:block th:replace="fragments :: modalCamera (id=${model.idBell}, link=${model.linkBell}, linkRequest='', name='Türklingel', refresh='false')"></th:block>
+		<th:block th:if="${#strings.equals('x', 'y')}">
+			<div th:class="'alert alert-secondary callout callout-secondary'">
+				<div th:replace="fragments :: elementname (icon='fas fa-camera', name='Kamera', place='', historyKey=${model.historyKey}, unreach='')"></div>
+				<div style="padding-top:6px;">
+					<button th:id="${model.idLive} + 'Button'" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'buttonOnclick' + ${model.idLive} + '()'}"><span><th:block th:replace="basics :: symbol (name='fas fa-eye')"/></span><span>&nbsp;Aktuell</span></button>
+					<a>&nbsp;</a>
+					<button th:id="${model.idBell} + 'Button'" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'buttonOnclick' + ${model.idBell} + '()'}"><span><th:block th:replace="basics :: symbol (name='fas fa-eye')"/></span><span>&nbsp;Türklingel</span></button>
+				</div>
+			</div>	
+			<th:block th:replace="fragments :: modalCamera (id=${model.idLive}, link=${model.linkLive}, linkRequest=${model.linkLiveRequest}, name='Aktuell', refresh='true')"></th:block>
+			<th:block th:replace="fragments :: modalCamera (id=${model.idBell}, link=${model.linkBell}, linkRequest='', name='Türklingel', refresh='false')"></th:block>
 		</th:block>
 	</th:block>	
 	
@@ -303,7 +304,7 @@
 	
 	<!-- Front door lock -->
 	<div th:fragment="doorLock (model)" th:class="'alert alert-secondary callout callout-secondary'">
-		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, place=${model.place}, historyKey=${model.historyKey})"></div>
+		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, place=${model.place}, historyKey=${model.historyKey}, unreach=${model.unreach})"></div>
 		<h4 th:unless="${#strings.equals(model.busy,'true')}"><span th:text="${model.state}"></span><span th:text="${model.stateSuffix}" style="font-size: 80%;"></span></h4>
 
 		<th:block th:unless="${#strings.equals(model.busy,'true')}">	
@@ -390,7 +391,7 @@
 	<!-- Actual Power Consumption -->
 	<div th:fragment="actualPowerConsumption (model)" th:class="'alert alert-secondary callout callout-secondary'">
 
-		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, place=${model.place}, historyKey=${model.historyKey})"></div>
+		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, place=${model.place}, historyKey=${model.historyKey}, unreach=${model.unreach})"></div>
 		<h4>
 			<span th:text="${model.state}"></span>
 			<th:block th:replace="fragments :: tendency (icon=${model.tendencyIcon})"></th:block>
@@ -451,7 +452,7 @@
 
 	<!-- Temperature -->
 	<div th:fragment="temperature (model)" th:class="'alert alert-' + ${model.colorClass} + ' callout callout-' + ${model.colorClass}">
-		<div th:replace="fragments :: elementname (icon=${model.icon}, name='Temperatur', place=${model.place}, historyKey=${model.historyKey})"></div>
+		<div th:replace="fragments :: elementname (icon=${model.icon}, name='Temperatur', place=${model.place}, historyKey=${model.historyKey}, unreach=${model.unreach})"></div>
 		<h4>
 			<span th:if="${!#strings.isEmpty(model.stateTemperature)}" th:text="${model.stateTemperature}"></span>
 			<th:block th:replace="fragments :: tendency (icon=${model.tendencyIconTemperature})"></th:block>
@@ -475,7 +476,7 @@
 	
 	<!-- Thermostat -->
 	<div th:fragment="thermostat (model)" th:class="'alert alert-' + ${model.colorClassHeating} + ' callout callout-' + ${model.colorClassHeating}">
-		<div th:replace="fragments :: elementname (icon=${model.heatericon}, name='Heizkörpersteuerung', place=${model.place}, historyKey=${model.historyKey})"></div>
+		<div th:replace="fragments :: elementname (icon=${model.heatericon}, name='Heizkörpersteuerung', place=${model.place}, historyKey=${model.historyKey}, unreach=${model.unreach})"></div>
 			
 		<th:block th:unless="${#strings.equals(model.busy,'true')}">	
 			<h4 th:if="${#strings.startsWith(model.linkBoost,'/')}"><span th:text="'Manuell auf ' + ${model.targetTemp} + '°C'"></span></h4>
@@ -521,7 +522,7 @@
 
 	<!-- Sonne -->
 	<div th:fragment="sunStatus (model)" th:if="${!#strings.isEmpty(model.stateTemperature)}" th:class="'alert alert-' + ${model.colorClass} + ' callout callout-' + ${model.colorClass}">
-		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, place=${model.place}, historyKey=${model.historyKey})"></div>
+		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, place=${model.place}, historyKey=${model.historyKey}, unreach=${model.unreach})"></div>
 		<h4 th:text="${model.stateTemperature}"></h4>
 	</div>
 

@@ -10,6 +10,7 @@ public abstract class View {
 	private String place = "";
 	private String historyKey = "";
 	private String busy = "";
+	private String unreach = "";
 
 	public String getIcon() {
 		return icon;
@@ -73,6 +74,14 @@ public abstract class View {
 
 	public void setBusy(String busy) {
 		this.busy = busy;
+	}
+
+	public String getUnreach() {
+		return unreach;
+	}
+
+	public void setUnreach(String unreach) {
+		this.unreach = unreach;
 	}
 
 }

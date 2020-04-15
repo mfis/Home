@@ -20,6 +20,7 @@ public enum Datapoint {
 	VALUE(HomematicValueFormat.DEC, null, false), //
 	PRESS_SHORT(HomematicValueFormat.DEC, null, true), //
 	ERROR(HomematicValueFormat.DEC, null, false), //
+	UNREACH(HomematicValueFormat.DEC, 0, false), //
 	SYSVAR_DUMMY(null, null, false), //
 	;
 
