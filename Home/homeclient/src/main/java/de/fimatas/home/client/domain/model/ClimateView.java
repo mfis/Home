@@ -12,21 +12,12 @@ public class ClimateView extends View {
 	private String stateHumidity = "";
 	private String statePostfixIconHumidity = "";
 	private String tendencyIconHumidity = "";
-	private String colorClass = "secondary";
 	private String colorClassHeating = "secondary";
 	private String linkBoost = "";
 	private String linkManual = "";
 	private String targetTemp = "";
 	private String heatericon = "";
 	private List<String> hints = new LinkedList<>();
-
-	public String getColorClass() {
-		return colorClass;
-	}
-
-	public void setColorClass(String colorClass) {
-		this.colorClass = colorClass;
-	}
 
 	public String getLinkBoost() {
 		return linkBoost;

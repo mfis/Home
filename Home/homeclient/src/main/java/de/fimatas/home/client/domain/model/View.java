@@ -11,6 +11,7 @@ public abstract class View {
 	private String historyKey = "";
 	private String busy = "";
 	private String unreach = "";
+	private String colorClass = "secondary";
 
 	public String getIcon() {
 		return icon;
@@ -82,6 +83,14 @@ public abstract class View {
 
 	public void setUnreach(String unreach) {
 		this.unreach = unreach;
+	}
+
+	public String getColorClass() {
+		return colorClass;
+	}
+
+	public void setColorClass(String colorClass) {
+		this.colorClass = colorClass;
 	}
 
 }

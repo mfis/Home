@@ -61,6 +61,10 @@ public class HouseViewService {
 	private static final String TYPE_IS = "type=";
 
 	private static final String COLOR_CLASS_RED = "danger";
+	
+	private static final String COLOR_CLASS_ORANGE = "warning";
+	
+	private static final String COLOR_CLASS_GREEN = "success";
 
 	public static final String MESSAGEPATH = "/message?"; // NOSONAR
 
@@ -167,28 +171,33 @@ public class HouseViewService {
 		if (doorlock.getErrorcode() != 0) {
 			view.setState("Mechanischer Fehler!");
 			view.setIcon("fas fa-bug");
+			view.setColorClass(COLOR_CLASS_RED);
 			setButtonOpen = true;
 			setButtonLock = true;
 			setButtonUnlock = true;
 		} else if (doorlock.isOpen()) {
 			view.setState("Öffner aktiv");
 			view.setIcon("fas fa-door-open");
+			view.setColorClass(COLOR_CLASS_RED);
 			setButtonLock = true;
 		} else {
 			setButtonOpen = true;
 			if (doorlock.isLockStateUncertain()) {
 				view.setState("Manuell betätigt");
 				view.setIcon("fas fa-door-open");
+				view.setColorClass(COLOR_CLASS_ORANGE);
 				setButtonLock = true;
 				setButtonUnlock = true;
 			} else {
 				if (doorlock.isLockState()) {
 					view.setState("Verriegelt");
 					view.setIcon("fas fa-lock");
+					view.setColorClass(COLOR_CLASS_GREEN);
 					setButtonUnlock = true;
 				} else {
 					view.setState("Entriegelt");
 					view.setIcon("fas fa-lock-open");
+					view.setColorClass(COLOR_CLASS_ORANGE);
 					setButtonLock = true;
 				}
 			}
