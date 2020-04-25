@@ -2,17 +2,9 @@ package de.fimatas.home.library.domain.model;
 
 public enum AutomationState {
 
-	AUTOMATIC(true), //
-	MANUAL(false), //
+	AUTOMATIC_PLUS_EVENT, //
+	AUTOMATIC, //
+	MANUAL, //
 	;
 	
-	private boolean booleanValue;
-	
-	public boolean isBooleanValue() {
-		return booleanValue;
-	}
-
-	private AutomationState(Boolean booleanValue) {
-		this.booleanValue = booleanValue;
-	}
 }

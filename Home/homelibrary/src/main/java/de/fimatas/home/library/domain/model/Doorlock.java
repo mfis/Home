@@ -17,6 +17,8 @@ public class Doorlock extends AbstractDeviceModel implements Serializable {
 	private boolean lockStateUncertain;
 
 	private Boolean lockAutomation;
+	
+	private Boolean lockAutomationEvent;
 
 	private String lockAutomationInfoText;
 
@@ -58,6 +60,14 @@ public class Doorlock extends AbstractDeviceModel implements Serializable {
 
 	public void setOpen(boolean open) {
 		this.open = open;
+	}
+
+	public Boolean getLockAutomationEvent() {
+		return lockAutomationEvent;
+	}
+
+	public void setLockAutomationEvent(Boolean lockAutomationEvent) {
+		this.lockAutomationEvent = lockAutomationEvent;
 	}
 
 }

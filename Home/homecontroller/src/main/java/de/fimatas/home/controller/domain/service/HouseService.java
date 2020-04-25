@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import de.fimatas.home.controller.command.HomematicCommand;
 import de.fimatas.home.controller.command.HomematicCommandBuilder;
 import de.fimatas.home.controller.service.CameraService;
 import de.fimatas.home.controller.service.HomematicAPI;
@@ -64,6 +65,7 @@ public class HouseService {
 	private static final BigDecimal SUN_INTENSITY_MEDIUM = new BigDecimal("15");
 
 	private static final String AUTOMATIC = "Automatic";
+	private static final String EVENT = "Event";
 	private static final String BUSY = "Busy";
 	private static final String IS_OPENED = "IsOpened";
 
@@ -405,7 +407,27 @@ public class HouseService {
 	}
 
 	public void toggleautomation(Device device, AutomationState value) {
-		api.executeCommand(homematicCommandBuilder.write(device, AUTOMATIC, value.isBooleanValue()));
+
+		boolean event = false;
+		switch (value) {
+		case MANUAL:
+			api.executeCommand(homematicCommandBuilder.write(device, AUTOMATIC, false));
+			event = false;
+			break;
+		case AUTOMATIC:
+			api.executeCommand(homematicCommandBuilder.write(device, AUTOMATIC, true));
+			event = false;
+			break;
+
+		case AUTOMATIC_PLUS_EVENT:
+			api.executeCommand(homematicCommandBuilder.write(device, AUTOMATIC, true));
+			event = true;
+			break;
+		}
+		HomematicCommand eventCommand = homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, AUTOMATIC + EVENT);
+		if (api.isPresent(eventCommand)) {
+			api.executeCommand(homematicCommandBuilder.write(device, AUTOMATIC + EVENT, event));
+		}
 	}
 
 	public synchronized void heatingBoost(Device device) {
@@ -583,7 +605,8 @@ public class HouseService {
 
 		Doorbell frontDoor = new Doorbell();
 		frontDoor.setDevice(Device.HAUSTUER_KLINGEL);
-		frontDoor.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_KLINGEL, Datapoint.UNREACH)));
+		frontDoor
+				.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_KLINGEL, Datapoint.UNREACH)));
 		frontDoor.setHistoryDevice(Device.HAUSTUER_KLINGEL_HISTORIE);
 
 		Long tsDoorbell = api
@@ -609,7 +632,8 @@ public class HouseService {
 		Doorlock frontDoor = new Doorlock();
 
 		frontDoor.setDevice(Device.HAUSTUER_SCHLOSS);
-		frontDoor.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, Datapoint.UNREACH)));
+		frontDoor
+				.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, Datapoint.UNREACH)));
 		frontDoor.setLockState(
 				!api.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, Datapoint.STATE))); // false=verriegelt
 		frontDoor.setLockStateUncertain(
@@ -626,6 +650,8 @@ public class HouseService {
 				api.getAsBigDecimal(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, Datapoint.ERROR)).intValue());
 
 		frontDoor.setLockAutomation(api.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, AUTOMATIC)));
+		frontDoor.setLockAutomationEvent(
+				api.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, AUTOMATIC + EVENT)));
 		frontDoor.setLockAutomationInfoText(
 				api.getAsString(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, AUTOMATIC + "InfoText")));
 

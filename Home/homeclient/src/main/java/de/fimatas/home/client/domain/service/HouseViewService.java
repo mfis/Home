@@ -46,6 +46,8 @@ import de.fimatas.home.library.model.MessageType;
 @Component
 public class HouseViewService {
 
+	private static final String EREIGNISGESTEUERT = ", ereignisgesteuert";
+	
 	private static final String PROGRAMMGESTEUERT = ", programmgesteuert";
 
 	private static final String AND_VALUE_IS = "&value=";
@@ -205,19 +207,29 @@ public class HouseViewService {
 					OPEN_STATE + doorlock.getDevice().name() + AND_VALUE_IS + StateValue.OPEN.name() + AND_PIN_IS);
 		}
 
-		if (doorlock.getLockAutomation() != null) {
-			if (Boolean.TRUE.equals(doorlock.getLockAutomation())) {
-				view.setLinkManual(
-						TOGGLE_AUTOMATION + doorlock.getDevice().name() + AND_VALUE_IS + AutomationState.MANUAL.name());
-				if (doorlock.getErrorcode() == 0) {
-					view.setStateSuffix(PROGRAMMGESTEUERT);
-				}
-			} else {
-				view.setLinkAuto(TOGGLE_AUTOMATION + doorlock.getDevice().name() + AND_VALUE_IS
-						+ AutomationState.AUTOMATIC.name());
+		if (Boolean.TRUE.equals(doorlock.getLockAutomationEvent())) {
+			view.setLinkManual(
+					TOGGLE_AUTOMATION + doorlock.getDevice().name() + AND_VALUE_IS + AutomationState.MANUAL.name());			
+			view.setLinkAuto(
+					TOGGLE_AUTOMATION + doorlock.getDevice().name() + AND_VALUE_IS + AutomationState.AUTOMATIC.name());
+			if (doorlock.getErrorcode() == 0) {
+				view.setStateSuffix(EREIGNISGESTEUERT);
 			}
-			view.setAutoInfoText(StringUtils.trimToEmpty(doorlock.getLockAutomationInfoText()));
+		} else if (Boolean.TRUE.equals(doorlock.getLockAutomation())) {
+			view.setLinkManual(
+					TOGGLE_AUTOMATION + doorlock.getDevice().name() + AND_VALUE_IS + AutomationState.MANUAL.name());
+			view.setLinkAutoEvent(
+					TOGGLE_AUTOMATION + doorlock.getDevice().name() + AND_VALUE_IS + AutomationState.AUTOMATIC_PLUS_EVENT.name());
+			if (doorlock.getErrorcode() == 0) {
+				view.setStateSuffix(PROGRAMMGESTEUERT);
+			}
+		} else {
+			view.setLinkAuto(
+					TOGGLE_AUTOMATION + doorlock.getDevice().name() + AND_VALUE_IS + AutomationState.AUTOMATIC.name());
+			view.setLinkAutoEvent(
+					TOGGLE_AUTOMATION + doorlock.getDevice().name() + AND_VALUE_IS + AutomationState.AUTOMATIC_PLUS_EVENT.name());
 		}
+		view.setAutoInfoText(StringUtils.trimToEmpty(doorlock.getLockAutomationInfoText()));
 
 		model.addAttribute("frontDoorLock", view);
 	}
@@ -238,7 +250,7 @@ public class HouseViewService {
 	private ClimateView formatClimate(Climate climate, Heating heating, String viewKey, boolean history) {
 
 		ClimateView view = new ClimateView();
-		view.setUnreach(Boolean.toString(climate.isUnreach() || (heating!=null && heating.isUnreach())));
+		view.setUnreach(Boolean.toString(climate.isUnreach() || (heating != null && heating.isUnreach())));
 
 		if ((climate == null || climate.getTemperature() == null || climate.getTemperature().getValue() == null)
 				&& (climate == null || climate.getHumidity() == null || climate.getHumidity().getValue() == null)) {

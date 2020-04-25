@@ -4,6 +4,7 @@ public class LockView extends View {
 
 	private String caption = "";
 	private String linkAuto = "#";
+	private String linkAutoEvent = "#";
 	private String linkManual = "#";
 	private String autoInfoText = "";
 	private String linkLock = "#";
@@ -64,6 +65,14 @@ public class LockView extends View {
 
 	public void setCaption(String caption) {
 		this.caption = caption;
+	}
+
+	public String getLinkAutoEvent() {
+		return linkAutoEvent;
+	}
+
+	public void setLinkAutoEvent(String linkAutoEvent) {
+		this.linkAutoEvent = linkAutoEvent;
 	}
 
 }

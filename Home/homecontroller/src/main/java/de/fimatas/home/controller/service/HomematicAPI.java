@@ -147,6 +147,10 @@ public class HomematicAPI {
 		}
 	}
 
+	public boolean isPresent(HomematicCommand command) {
+		return currentValues.containsKey(command);
+	}
+	
 	private String readValue(HomematicCommand command) {
 		if (currentValues.containsKey(command)) {
 			return currentValues.get(command);
