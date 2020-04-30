@@ -278,6 +278,7 @@ public class HouseViewService {
 			view.setStateTemperature(format(climate.getTemperature().getValue(), false) + ViewFormatter.DEGREE + "C");
 			if (climate.getHumidity() != null) {
 				view.setStateHumidity(format(climate.getHumidity().getValue(), true) + "%rH");
+				// view.setAbsoluteHumidityIcon("fas fa-tint"); FIXME
 			}
 			if (climate.getTemperature().getValue().compareTo(FROST_TEMP) < 0) {
 				view.setStatePostfixIconTemperature("far fa-snowflake");

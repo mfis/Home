@@ -17,6 +17,7 @@ public class ClimateView extends View {
 	private String linkManual = "";
 	private String targetTemp = "";
 	private String heatericon = "";
+	private String absoluteHumidityIcon = "";
 	private List<String> hints = new LinkedList<>();
 
 	public String getLinkBoost() {
@@ -121,6 +122,14 @@ public class ClimateView extends View {
 
 	public void setColorClassHeating(String colorClassHeating) {
 		this.colorClassHeating = colorClassHeating;
+	}
+
+	public String getAbsoluteHumidityIcon() {
+		return absoluteHumidityIcon;
+	}
+
+	public void setAbsoluteHumidityIcon(String absoluteHumidityIcon) {
+		this.absoluteHumidityIcon = absoluteHumidityIcon;
 	}
 
 }

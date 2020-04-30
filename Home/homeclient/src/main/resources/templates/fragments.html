@@ -466,7 +466,10 @@
 			<span th:if="${!#strings.isEmpty(model.stateHumidity)}" th:utext="'&nbsp;&ndash;&nbsp;'"></span>
 			<span th:if="${!#strings.isEmpty(model.stateHumidity)}" th:text="${model.stateHumidity}"></span>
 			<th:block th:replace="fragments :: tendency (icon=${model.tendencyIconHumidity})"></th:block>
-			<span th:if="${!#strings.isEmpty(model.statePostfixIconHumidity)}"><th:block th:replace="basics :: symbol (name=${model.statePostfixIconHumidity})"/></span>			
+			<span th:if="${!#strings.isEmpty(model.statePostfixIconHumidity)}"><th:block th:replace="basics :: symbol (name=${model.statePostfixIconHumidity})"/></span>
+			<span th:if="${!#strings.isEmpty(model.absoluteHumidityIcon)}" th:utext="'&hairsp;'"></span>
+			<span onclick="$('#idDropSymbolMessage').modal();" th:if="${!#strings.isEmpty(model.absoluteHumidityIcon)}"><th:block th:replace="fragments :: tendency (icon=${model.absoluteHumidityIcon})"/></span>
+						
 		</h4>
 			
 		<th:block th:each="hint : ${model.hints}">
