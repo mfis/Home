@@ -16,6 +16,7 @@ public enum Place {
 	HOUSE("Haus", false), //
 	ENTRANCE("Einfahrt", false), //
 	TERRACE("Terrasse", false), //
+	GARDEN("Südseite", false), //
 	FRONTDOOR("Haustür", false), //
 	// with sub-places
 	OUTSIDE("Draußen", false, Place.ENTRANCE, Place.TERRACE), //

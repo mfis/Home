@@ -1,6 +1,8 @@
 package de.fimatas.home.controller.domain.service;
 
 import java.math.BigDecimal;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
@@ -152,6 +154,7 @@ public class HouseService {
 				readOutdoorClimate(Device.DIFF_TEMPERATUR_TERRASSE_AUSSEN, Device.DIFF_TEMPERATUR_TERRASSE_DIFF));
 		newModel.setClimateEntrance(
 				readOutdoorClimate(Device.DIFF_TEMPERATUR_EINFAHRT_AUSSEN, Device.DIFF_TEMPERATUR_EINFAHRT_DIFF));
+		newModel.setClimateGarden(readOutdoorClimate(Device.THERMOMETER_GARTEN, null));
 
 		newModel.setKitchenWindowLightSwitch(readSwitchState(Device.SCHALTER_KUECHE_LICHT));
 
@@ -172,21 +175,23 @@ public class HouseService {
 
 	private void calculateConclusion(HouseModel oldModel, HouseModel newModel) {
 
-		if (newModel.getClimateTerrace().getTemperature().getValue() == null
-				|| newModel.getClimateEntrance().getTemperature().getValue() == null) {
+		List<OutdoorClimate> outdoor = List.of(newModel.getClimateEntrance(), newModel.getClimateTerrace(),
+				newModel.getClimateGarden());
+
+		if (outdoor.stream().filter(c -> c.getTemperature().getValue() == null).findFirst().isPresent()) {
 			newModel.setConclusionClimateFacadeMin(null);
 			newModel.setConclusionClimateFacadeMax(null);
 			return;
 		}
 
-		if (newModel.getClimateTerrace().getTemperature().getValue()
-				.compareTo(newModel.getClimateEntrance().getTemperature().getValue()) < 0) {
-			newModel.setConclusionClimateFacadeMin(newModel.getClimateTerrace());
-			newModel.setConclusionClimateFacadeMax(newModel.getClimateEntrance());
-		} else {
-			newModel.setConclusionClimateFacadeMin(newModel.getClimateEntrance());
-			newModel.setConclusionClimateFacadeMax(newModel.getClimateTerrace());
-		}
+		Comparator<OutdoorClimate> comparator = Comparator.comparing(OutdoorClimate::getTemperature,
+				(t1, t2) -> t1.getValue().compareTo(t2.getValue()));
+		newModel.setConclusionClimateFacadeMin(outdoor.stream().min(comparator).get());
+		newModel.setConclusionClimateFacadeMax(outdoor.stream().max(comparator).get());
+
+		// compensating absent diff temperature value
+		newModel.getClimateGarden().setSunBeamIntensity(
+				lookupIntensity(newModel.getConclusionClimateFacadeMin().getTemperature().getValue()));
 
 		BigDecimal sunShadeDiff = newModel.getConclusionClimateFacadeMax().getTemperature().getValue()
 				.subtract(newModel.getConclusionClimateFacadeMin().getTemperature().getValue()).abs();
@@ -287,7 +292,7 @@ public class HouseService {
 			lookupHint(oldModel != null ? oldModel.getClimateKidsRoom() : null, newModel.getClimateKidsRoom(), null,
 					newModel.getClimateEntrance(), newModel.getDateTime());
 			lookupHint(oldModel != null ? oldModel.getClimateBathRoom() : null, newModel.getClimateBathRoom(),
-					newModel.getHeatingBathRoom(), newModel.getClimateEntrance(), newModel.getDateTime());
+					newModel.getHeatingBathRoom(), newModel.getClimateGarden(), newModel.getDateTime());
 			lookupHint(oldModel != null ? oldModel.getClimateBedRoom() : null, newModel.getClimateBedRoom(), null,
 					newModel.getClimateTerrace(), newModel.getDateTime());
 			lookupHint(oldModel != null ? oldModel.getClimateLivingRoom() : null, newModel.getClimateLivingRoom(), null,
@@ -517,12 +522,22 @@ public class HouseService {
 	}
 
 	private OutdoorClimate readOutdoorClimate(Device outside, Device diff) {
+
 		OutdoorClimate outdoorClimate = new OutdoorClimate();
 		outdoorClimate.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(outside, Datapoint.UNREACH)));
-		outdoorClimate.setTemperature(new ValueWithTendency<BigDecimal>(
-				api.getAsBigDecimal(homematicCommandBuilder.read(outside, Datapoint.TEMPERATURE))));
-		outdoorClimate.setSunBeamIntensity(
-				lookupIntensity(api.getAsBigDecimal(homematicCommandBuilder.read(diff, Datapoint.TEMPERATURE))));
+		outdoorClimate.setTemperature(new ValueWithTendency<BigDecimal>(api.getAsBigDecimal(homematicCommandBuilder
+				.read(outside, outside.isHomematicIP() ? Datapoint.ACTUAL_TEMPERATURE : Datapoint.TEMPERATURE))));
+
+		HomematicCommand humidityCommand = homematicCommandBuilder.read(outside, Datapoint.HUMIDITY);
+		BigDecimal humidity = api.isPresent(humidityCommand) ? api.getAsBigDecimal(humidityCommand) : null;
+		if (humidity != null) {
+			outdoorClimate.setHumidity(new ValueWithTendency<BigDecimal>(humidity));
+		}
+
+		if (diff != null) {
+			outdoorClimate.setSunBeamIntensity(
+					lookupIntensity(api.getAsBigDecimal(homematicCommandBuilder.read(diff, Datapoint.TEMPERATURE))));
+		}
 		outdoorClimate.setDevice(outside);
 
 		return outdoorClimate;

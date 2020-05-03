@@ -23,6 +23,9 @@ public enum Device {
 	THERMOMETER_WASCHKUECHE(HomematicProtocol.HMIP, Type.THERMOMETER, Place.LAUNDRY, true,
 			Datapoint.LIST_THERMOMETER_HMIP, null), //
 
+	THERMOMETER_GARTEN(HomematicProtocol.HMIP, Type.THERMOMETER, Place.GARDEN, true,
+			Datapoint.LIST_THERMOMETER_HMIP, null), //
+	
 	DIFF_TEMPERATUR_TERRASSE_AUSSEN(HomematicProtocol.HM, Type.THERMOMETER, Place.TERRACE, false,
 			Datapoint.LIST_DIFFTHERMOMETER_HM, null), //
 

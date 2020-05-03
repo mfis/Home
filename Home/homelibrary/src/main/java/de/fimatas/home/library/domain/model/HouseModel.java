@@ -28,6 +28,8 @@ public class HouseModel implements Serializable {
 
 	private RoomClimate climateLaundry;
 
+	private OutdoorClimate climateGarden;
+	
 	private OutdoorClimate climateTerrace;
 
 	private OutdoorClimate climateEntrance;
@@ -241,6 +243,14 @@ public class HouseModel implements Serializable {
 
 	public void setFrontDoorLock(Doorlock frontDoorLock) {
 		this.frontDoorLock = frontDoorLock;
+	}
+
+	public OutdoorClimate getClimateGarden() {
+		return climateGarden;
+	}
+
+	public void setClimateGarden(OutdoorClimate climateGarden) {
+		this.climateGarden = climateGarden;
 	}
 
 }
