@@ -243,9 +243,13 @@ public class HouseViewService {
 		model.addAttribute("frontDoorLock", view);
 	}
 
-	private String format(BigDecimal val, boolean rounded) {
+	private String format(BigDecimal val, boolean rounded, boolean onlyInteger) {
 		if (val != null) {
-			return new DecimalFormat("0." + (rounded ? "#" : "0")).format(val);
+			if(onlyInteger) {
+				return new DecimalFormat(rounded ? "#" : "0").format(val);
+			}else {
+				return new DecimalFormat("0." + (rounded ? "#" : "0")).format(val);
+			}
 		} else {
 			return null;
 		}
@@ -275,9 +279,9 @@ public class HouseViewService {
 
 		if (climate.getTemperature() != null) {
 			// Temperature and humidity
-			view.setStateTemperature(format(climate.getTemperature().getValue(), false) + ViewFormatter.DEGREE + "C");
+			view.setStateTemperature(format(climate.getTemperature().getValue(), false, false) + ViewFormatter.DEGREE + "C");
 			if (climate.getHumidity() != null) {
-				view.setStateHumidity(format(climate.getHumidity().getValue(), true) + "%rH");
+				view.setStateHumidity(format(climate.getHumidity().getValue(), true, true) + "%rH");
 				// view.setAbsoluteHumidityIcon("fas fa-tint"); FIXME
 			}
 			if (climate.getTemperature().getValue().compareTo(FROST_TEMP) < 0) {
@@ -328,7 +332,7 @@ public class HouseViewService {
 			}
 			view.setLinkManual(
 					MESSAGEPATH + TYPE_IS + MessageType.HEATINGMANUAL + AND_DEVICE_IS + heating.getDevice().name());
-			view.setTargetTemp(format(heating.getTargetTemperature(), false));
+			view.setTargetTemp(format(heating.getTargetTemperature(), false, false));
 			view.setHeatericon("fab fa-hotjar");
 			view.setBusy(Boolean.toString(heating.isBusy()));
 		}
@@ -355,7 +359,7 @@ public class HouseViewService {
 		viewMax.setId(viewKeyMax);
 
 		if (house.getConclusionClimateFacadeMin() != null) {
-			viewMin.setPostfix(house.getConclusionClimateFacadeMin().getDevice().getPlace().getPlaceName());
+			viewMin.setPostfix(" (" + house.getConclusionClimateFacadeMin().getBase().getPlace().getPlaceName() + ")");
 			viewMin.setHistoryKey(house.getConclusionClimateFacadeMin().getDevice().programNamePrefix());
 		}
 
@@ -366,14 +370,12 @@ public class HouseViewService {
 			switch (Intensity.max(house.getConclusionClimateFacadeMax().getSunBeamIntensity(),
 					house.getConclusionClimateFacadeMax().getSunHeatingInContrastToShadeIntensity())) {
 			case NO:
-				viewMin.setPostfix(""); // No sun, no heating -> no special
-										// house
-										// side name
+				viewMax.setIcon("fas fa-cloud");
 				viewMax.setColorClass("secondary");
 				break;
 			case LOW:
 				viewMax.setColorClass("success");
-				viewMax.setIcon("far fa-sun");
+				viewMax.setIcon("fas fa-cloud-sun");
 				break;
 			case MEDIUM:
 				viewMax.setColorClass("warning");

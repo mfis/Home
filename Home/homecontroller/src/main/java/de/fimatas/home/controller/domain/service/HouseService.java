@@ -10,6 +10,7 @@ import java.util.concurrent.CompletableFuture;
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -21,6 +22,7 @@ import de.fimatas.home.controller.command.HomematicCommand;
 import de.fimatas.home.controller.command.HomematicCommandBuilder;
 import de.fimatas.home.controller.service.CameraService;
 import de.fimatas.home.controller.service.HomematicAPI;
+import de.fimatas.home.controller.service.HumidityCalculator;
 import de.fimatas.home.controller.service.PushService;
 import de.fimatas.home.controller.service.UserService;
 import de.fimatas.home.library.dao.ModelObjectDAO;
@@ -75,6 +77,9 @@ public class HouseService {
 
 	@Autowired
 	private HomematicAPI api;
+
+	@Autowired
+	private HumidityCalculator humidityCalculator;
 
 	@Autowired
 	private CameraService cameraService;
@@ -186,8 +191,8 @@ public class HouseService {
 
 		Comparator<OutdoorClimate> comparator = Comparator.comparing(OutdoorClimate::getTemperature,
 				(t1, t2) -> t1.getValue().compareTo(t2.getValue()));
-		newModel.setConclusionClimateFacadeMin(outdoor.stream().min(comparator).get());
-		newModel.setConclusionClimateFacadeMax(outdoor.stream().max(comparator).get());
+		newModel.setConclusionClimateFacadeMin(SerializationUtils.clone(outdoor.stream().min(comparator).get()));
+		newModel.setConclusionClimateFacadeMax(SerializationUtils.clone(outdoor.stream().max(comparator).get()));
 
 		// compensating absent diff temperature value
 		newModel.getClimateGarden().setSunBeamIntensity(
@@ -197,8 +202,20 @@ public class HouseService {
 				.subtract(newModel.getConclusionClimateFacadeMin().getTemperature().getValue()).abs();
 		newModel.getConclusionClimateFacadeMax().setSunHeatingInContrastToShadeIntensity(lookupIntensity(sunShadeDiff));
 
+		newModel.getConclusionClimateFacadeMin().setBase(newModel.getConclusionClimateFacadeMin().getDevice());
 		newModel.getConclusionClimateFacadeMin().setDevice(Device.AUSSENTEMPERATUR);
 		newModel.getConclusionClimateFacadeMin().setMaxSideSunHeating(newModel.getConclusionClimateFacadeMax());
+
+		if (newModel.getConclusionClimateFacadeMin().getHumidity() == null && newModel.getClimateGarden() != null
+				&& newModel.getClimateGarden().getHumidity() != null) {
+			double absoluteHumidity = humidityCalculator.relToAbs(
+					newModel.getClimateGarden().getTemperature().getValue().doubleValue(),
+					newModel.getClimateGarden().getHumidity().getValue().doubleValue());
+			newModel.getConclusionClimateFacadeMin()
+					.setHumidity(new ValueWithTendency<BigDecimal>(new BigDecimal(humidityCalculator.absToRel(
+							newModel.getConclusionClimateFacadeMin().getTemperature().getValue().doubleValue(),
+							absoluteHumidity))));
+		}
 
 		calculateTendencies(oldModel, newModel);
 	}

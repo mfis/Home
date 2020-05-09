@@ -1,11 +1,14 @@
 package de.fimatas.home.controller.service;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class HumidityCalculator {
 
 	private static final double PERCENT_BASE = 100.0;
-	private static final double AZ_CELSIUS = 273.15; 
-	private static final double MOLAR_MASS_STEAM = 18.0153; 
-	private static final double GAS_CONSTANT_R = 8.3145; 
+	private static final double AZ_CELSIUS = 273.15;
+	private static final double MOLAR_MASS_STEAM = 18.0153;
+	private static final double GAS_CONSTANT_R = 8.3145;
 	private static final double MAGNUS_FORMULA_E0 = 6.1078;
 	private static final double MAGNUS_FORMULA_A_PLUS = 7.5;
 	private static final double MAGNUS_FORMULA_A_MINUS = 7.6;

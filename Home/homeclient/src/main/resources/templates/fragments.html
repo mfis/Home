@@ -458,7 +458,7 @@
 
 	<!-- Temperature -->
 	<div th:fragment="temperature (model)" th:class="'alert alert-' + ${model.colorClass} + ' callout callout-' + ${model.colorClass}">
-		<div th:replace="fragments :: elementname (icon=${model.icon}, name='Temperatur', place=${model.place}, historyKey=${model.historyKey}, unreach=${model.unreach})"></div>
+		<div th:replace="fragments :: elementname (icon=${model.icon}, name='Temperatur' + ${model.postfix}, place=${model.place}, historyKey=${model.historyKey}, unreach=${model.unreach})"></div>
 		<h4>
 			<span th:if="${!#strings.isEmpty(model.stateTemperature)}" th:text="${model.stateTemperature}"></span>
 			<th:block th:replace="fragments :: tendency (icon=${model.tendencyIconTemperature})"></th:block>
