@@ -47,7 +47,7 @@ import de.fimatas.home.library.model.MessageType;
 public class HouseViewService {
 
 	private static final String EREIGNISGESTEUERT = ", ereignisgesteuert";
-	
+
 	private static final String PROGRAMMGESTEUERT = ", programmgesteuert";
 
 	private static final String AND_VALUE_IS = "&value=";
@@ -61,9 +61,9 @@ public class HouseViewService {
 	private static final String TYPE_IS = "type=";
 
 	private static final String COLOR_CLASS_RED = "danger";
-	
+
 	private static final String COLOR_CLASS_ORANGE = "warning";
-	
+
 	private static final String COLOR_CLASS_GREEN = "success";
 
 	public static final String MESSAGEPATH = "/message?"; // NOSONAR
@@ -218,7 +218,7 @@ public class HouseViewService {
 
 		if (Boolean.TRUE.equals(doorlock.getLockAutomationEvent())) {
 			view.setLinkManual(
-					TOGGLE_AUTOMATION + doorlock.getDevice().name() + AND_VALUE_IS + AutomationState.MANUAL.name());			
+					TOGGLE_AUTOMATION + doorlock.getDevice().name() + AND_VALUE_IS + AutomationState.MANUAL.name());
 			view.setLinkAuto(
 					TOGGLE_AUTOMATION + doorlock.getDevice().name() + AND_VALUE_IS + AutomationState.AUTOMATIC.name());
 			if (doorlock.getErrorcode() == 0) {
@@ -227,16 +227,16 @@ public class HouseViewService {
 		} else if (Boolean.TRUE.equals(doorlock.getLockAutomation())) {
 			view.setLinkManual(
 					TOGGLE_AUTOMATION + doorlock.getDevice().name() + AND_VALUE_IS + AutomationState.MANUAL.name());
-			view.setLinkAutoEvent(
-					TOGGLE_AUTOMATION + doorlock.getDevice().name() + AND_VALUE_IS + AutomationState.AUTOMATIC_PLUS_EVENT.name());
+			view.setLinkAutoEvent(TOGGLE_AUTOMATION + doorlock.getDevice().name() + AND_VALUE_IS
+					+ AutomationState.AUTOMATIC_PLUS_EVENT.name());
 			if (doorlock.getErrorcode() == 0) {
 				view.setStateSuffix(PROGRAMMGESTEUERT);
 			}
 		} else {
 			view.setLinkAuto(
 					TOGGLE_AUTOMATION + doorlock.getDevice().name() + AND_VALUE_IS + AutomationState.AUTOMATIC.name());
-			view.setLinkAutoEvent(
-					TOGGLE_AUTOMATION + doorlock.getDevice().name() + AND_VALUE_IS + AutomationState.AUTOMATIC_PLUS_EVENT.name());
+			view.setLinkAutoEvent(TOGGLE_AUTOMATION + doorlock.getDevice().name() + AND_VALUE_IS
+					+ AutomationState.AUTOMATIC_PLUS_EVENT.name());
 		}
 		view.setAutoInfoText(StringUtils.trimToEmpty(doorlock.getLockAutomationInfoText()));
 
@@ -245,9 +245,9 @@ public class HouseViewService {
 
 	private String format(BigDecimal val, boolean rounded, boolean onlyInteger) {
 		if (val != null) {
-			if(onlyInteger) {
+			if (onlyInteger) {
 				return new DecimalFormat(rounded ? "#" : "0").format(val);
-			}else {
+			} else {
 				return new DecimalFormat("0." + (rounded ? "#" : "0")).format(val);
 			}
 		} else {
@@ -279,10 +279,15 @@ public class HouseViewService {
 
 		if (climate.getTemperature() != null) {
 			// Temperature and humidity
-			view.setStateTemperature(format(climate.getTemperature().getValue(), false, false) + ViewFormatter.DEGREE + "C");
+			view.setStateTemperature(
+					format(climate.getTemperature().getValue(), false, false) + ViewFormatter.DEGREE + "C");
 			if (climate.getHumidity() != null) {
 				view.setStateHumidity(format(climate.getHumidity().getValue(), true, true) + "%rH");
-				// view.setAbsoluteHumidityIcon("fas fa-tint"); FIXME
+			}
+			if (climate instanceof RoomClimate && ((RoomClimate) climate).getHumidityWetterThanOutdoor() != null) {
+				view.setAbsoluteHumidityIcon(
+						((RoomClimate) climate).getHumidityWetterThanOutdoor().booleanValue() ? "fas fa-tint"
+								: "fas fa-tint-slash");
 			}
 			if (climate.getTemperature().getValue().compareTo(FROST_TEMP) < 0) {
 				view.setStatePostfixIconTemperature("far fa-snowflake");

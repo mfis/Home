@@ -189,6 +189,28 @@ public class HouseService {
 			return;
 		}
 
+		calculateOutdoorMinMax(newModel, outdoor);
+		calculateOutdoorHumidity(newModel);
+		calculateTendencies(oldModel, newModel);
+		calculateHumidityComparison(newModel);
+	}
+
+	private void calculateOutdoorHumidity(HouseModel newModel) {
+		
+		if (newModel.getConclusionClimateFacadeMin().getHumidity() == null && newModel.getClimateGarden() != null
+				&& newModel.getClimateGarden().getHumidity() != null) {
+			double absoluteHumidity = humidityCalculator.relToAbs(
+					newModel.getClimateGarden().getTemperature().getValue().doubleValue(),
+					newModel.getClimateGarden().getHumidity().getValue().doubleValue());
+			newModel.getConclusionClimateFacadeMin()
+					.setHumidity(new ValueWithTendency<BigDecimal>(new BigDecimal(humidityCalculator.absToRel(
+							newModel.getConclusionClimateFacadeMin().getTemperature().getValue().doubleValue(),
+							absoluteHumidity))));
+		}
+	}
+
+	private void calculateOutdoorMinMax(HouseModel newModel, List<OutdoorClimate> outdoor) {
+		
 		Comparator<OutdoorClimate> comparator = Comparator.comparing(OutdoorClimate::getTemperature,
 				(t1, t2) -> t1.getValue().compareTo(t2.getValue()));
 		newModel.setConclusionClimateFacadeMin(SerializationUtils.clone(outdoor.stream().min(comparator).get()));
@@ -205,21 +227,8 @@ public class HouseService {
 		newModel.getConclusionClimateFacadeMin().setBase(newModel.getConclusionClimateFacadeMin().getDevice());
 		newModel.getConclusionClimateFacadeMin().setDevice(Device.AUSSENTEMPERATUR);
 		newModel.getConclusionClimateFacadeMin().setMaxSideSunHeating(newModel.getConclusionClimateFacadeMax());
-
-		if (newModel.getConclusionClimateFacadeMin().getHumidity() == null && newModel.getClimateGarden() != null
-				&& newModel.getClimateGarden().getHumidity() != null) {
-			double absoluteHumidity = humidityCalculator.relToAbs(
-					newModel.getClimateGarden().getTemperature().getValue().doubleValue(),
-					newModel.getClimateGarden().getHumidity().getValue().doubleValue());
-			newModel.getConclusionClimateFacadeMin()
-					.setHumidity(new ValueWithTendency<BigDecimal>(new BigDecimal(humidityCalculator.absToRel(
-							newModel.getConclusionClimateFacadeMin().getTemperature().getValue().doubleValue(),
-							absoluteHumidity))));
-		}
-
-		calculateTendencies(oldModel, newModel);
 	}
-
+	
 	void calculateTendencies(HouseModel oldModel, HouseModel newModel) {
 
 		Map<String, Climate> places = newModel.lookupFields(Climate.class);
@@ -233,6 +242,30 @@ public class HouseService {
 
 		// Power consumption
 		calculatePowerConsumptionTendencies(oldModel, newModel);
+	}
+	
+	void calculateHumidityComparison(HouseModel newModel) {
+
+		if(newModel.getClimateGarden()==null || newModel.getClimateGarden().getHumidity()==null) {
+			return;
+		}
+		
+		double absoluteHumidityGarden = humidityCalculator.relToAbs(
+				newModel.getClimateGarden().getTemperature().getValue().doubleValue(),
+				newModel.getClimateGarden().getHumidity().getValue().doubleValue());
+		
+		Map<String, RoomClimate> places = newModel.lookupFields(RoomClimate.class);
+
+		for (Entry<String, RoomClimate> entry : places.entrySet()) {
+			RoomClimate roomClimate = entry.getValue();
+			if(roomClimate.getHumidity()!=null) {
+				double absoluteHumidityRoom = humidityCalculator.relToAbs(
+						roomClimate.getTemperature().getValue().doubleValue(),
+						roomClimate.getHumidity().getValue().doubleValue());
+				roomClimate.setHumidityWetterThanOutdoor(absoluteHumidityRoom > absoluteHumidityGarden);
+			}
+		}
+
 	}
 
 	private void calculatePowerConsumptionTendencies(HouseModel oldModel, HouseModel newModel) {
