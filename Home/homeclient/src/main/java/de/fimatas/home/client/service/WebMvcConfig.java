@@ -16,35 +16,33 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
-	@Bean
-	public ByteArrayHttpMessageConverter byteArrayHttpMessageConverter() {
-		ByteArrayHttpMessageConverter arrayHttpMessageConverter = new ByteArrayHttpMessageConverter();
-		arrayHttpMessageConverter
-				.setSupportedMediaTypes(getSupportedMediaTypesForByteArrayHttpMessageConverter());
-		return arrayHttpMessageConverter;
-	}
+    @Bean
+    public ByteArrayHttpMessageConverter byteArrayHttpMessageConverter() {
+        ByteArrayHttpMessageConverter arrayHttpMessageConverter = new ByteArrayHttpMessageConverter();
+        arrayHttpMessageConverter.setSupportedMediaTypes(getSupportedMediaTypesForByteArrayHttpMessageConverter());
+        return arrayHttpMessageConverter;
+    }
 
-	private List<MediaType> getSupportedMediaTypesForByteArrayHttpMessageConverter() {
-		List<MediaType> list = new ArrayList<>();
-		list.add(MediaType.IMAGE_JPEG);
-		list.add(MediaType.IMAGE_PNG);
-		list.add(MediaType.APPLICATION_OCTET_STREAM);
-		return list;
-	}
+    private List<MediaType> getSupportedMediaTypesForByteArrayHttpMessageConverter() {
+        List<MediaType> list = new ArrayList<>();
+        list.add(MediaType.IMAGE_JPEG);
+        list.add(MediaType.IMAGE_PNG);
+        list.add(MediaType.APPLICATION_OCTET_STREAM);
+        return list;
+    }
 
-	@Bean
-	public RestTemplate restTemplate(RestTemplateBuilder restTemplateBuilder) {
-		return restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(8))
-				.setReadTimeout(Duration.ofSeconds(8)).build();
-	}
+    @Bean
+    public RestTemplate restTemplate(RestTemplateBuilder restTemplateBuilder) {
+        return restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(8)).setReadTimeout(Duration.ofSeconds(8)).build();
+    }
 
-	@Bean
-	public LoginInterceptor pagePopulationInterceptor() {
-		return new LoginInterceptor();
-	}
+    @Bean
+    public LoginInterceptor pagePopulationInterceptor() {
+        return new LoginInterceptor();
+    }
 
-	@Override
-	public void addInterceptors(InterceptorRegistry registry) {
-		registry.addInterceptor(pagePopulationInterceptor());
-	}
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(pagePopulationInterceptor());
+    }
 }

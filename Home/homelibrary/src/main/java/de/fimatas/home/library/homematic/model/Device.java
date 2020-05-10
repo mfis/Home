@@ -8,147 +8,144 @@ import de.fimatas.home.library.util.HomeUtils;
 
 public enum Device {
 
-	THERMOSTAT_BAD(HomematicProtocol.HM, Type.THERMOSTAT, Place.BATHROOM, true, Datapoint.LIST_THERMOSTAT_HM,
-			Type.VAR_PREFIXES_PROG_CONTROL, Boolean.class, Integer.class), //
+    THERMOSTAT_BAD(HomematicProtocol.HM, Type.THERMOSTAT, Place.BATHROOM, true, Datapoint.LIST_THERMOSTAT_HM,
+        Type.VAR_PREFIXES_PROG_CONTROL, Boolean.class, Integer.class), //
 
-	THERMOMETER_KINDERZIMMER(HomematicProtocol.HMIP, Type.THERMOMETER, Place.KIDSROOM, true,
-			Datapoint.LIST_THERMOMETER_HMIP, null), //
+    THERMOMETER_KINDERZIMMER(HomematicProtocol.HMIP, Type.THERMOMETER, Place.KIDSROOM, true, Datapoint.LIST_THERMOMETER_HMIP,
+        null), //
 
-	THERMOMETER_WOHNZIMMER(HomematicProtocol.HMIP, Type.THERMOMETER, Place.LIVINGROOM, true,
-			Datapoint.LIST_THERMOMETER_HMIP, null), //
+    THERMOMETER_WOHNZIMMER(HomematicProtocol.HMIP, Type.THERMOMETER, Place.LIVINGROOM, true, Datapoint.LIST_THERMOMETER_HMIP,
+        null), //
 
-	THERMOMETER_SCHLAFZIMMER(HomematicProtocol.HMIP, Type.THERMOMETER, Place.BEDROOM, true,
-			Datapoint.LIST_THERMOMETER_HMIP, null), //
+    THERMOMETER_SCHLAFZIMMER(HomematicProtocol.HMIP, Type.THERMOMETER, Place.BEDROOM, true, Datapoint.LIST_THERMOMETER_HMIP,
+        null), //
 
-	THERMOMETER_WASCHKUECHE(HomematicProtocol.HMIP, Type.THERMOMETER, Place.LAUNDRY, true,
-			Datapoint.LIST_THERMOMETER_HMIP, null), //
+    THERMOMETER_WASCHKUECHE(HomematicProtocol.HMIP, Type.THERMOMETER, Place.LAUNDRY, true, Datapoint.LIST_THERMOMETER_HMIP,
+        null), //
 
-	THERMOMETER_GARTEN(HomematicProtocol.HMIP, Type.THERMOMETER, Place.GARDEN, true,
-			Datapoint.LIST_THERMOMETER_HMIP, null), //
-	
-	DIFF_TEMPERATUR_TERRASSE_AUSSEN(HomematicProtocol.HM, Type.THERMOMETER, Place.TERRACE, false,
-			Datapoint.LIST_DIFFTHERMOMETER_HM, null), //
+    THERMOMETER_GARTEN(HomematicProtocol.HMIP, Type.THERMOMETER, Place.GARDEN, true, Datapoint.LIST_THERMOMETER_HMIP, null), //
 
-	DIFF_TEMPERATUR_TERRASSE_DIFF(HomematicProtocol.HM, Type.SUN_SENSOR, Place.TERRACE, false,
-			Datapoint.LIST_DIFFTHERMOMETER_HM, null), //
+    DIFF_TEMPERATUR_TERRASSE_AUSSEN(HomematicProtocol.HM, Type.THERMOMETER, Place.TERRACE, false,
+        Datapoint.LIST_DIFFTHERMOMETER_HM, null), //
 
-	DIFF_TEMPERATUR_EINFAHRT_AUSSEN(HomematicProtocol.HM, Type.THERMOMETER, Place.ENTRANCE, false,
-			Datapoint.LIST_DIFFTHERMOMETER_HM, null), //
+    DIFF_TEMPERATUR_TERRASSE_DIFF(HomematicProtocol.HM, Type.SUN_SENSOR, Place.TERRACE, false,
+        Datapoint.LIST_DIFFTHERMOMETER_HM, null), //
 
-	DIFF_TEMPERATUR_EINFAHRT_DIFF(HomematicProtocol.HM, Type.SUN_SENSOR, Place.ENTRANCE, false,
-			Datapoint.LIST_DIFFTHERMOMETER_HM, null), //
+    DIFF_TEMPERATUR_EINFAHRT_AUSSEN(HomematicProtocol.HM, Type.THERMOMETER, Place.ENTRANCE, false,
+        Datapoint.LIST_DIFFTHERMOMETER_HM, null), //
 
-	SCHALTER_KUECHE_LICHT(HomematicProtocol.HM, Type.SWITCH_WINDOWLIGHT, Place.KITCHEN, true, Datapoint.LIST_SWITCH_HM,
-			Type.VAR_PREFIXES_SWITCH_AUTO, Boolean.class, AutomationState.class), //
+    DIFF_TEMPERATUR_EINFAHRT_DIFF(HomematicProtocol.HM, Type.SUN_SENSOR, Place.ENTRANCE, false,
+        Datapoint.LIST_DIFFTHERMOMETER_HM, null), //
 
-	STROMZAEHLER(HomematicProtocol.HM, Type.ELECTRIC_POWER, Place.HOUSE, true, Datapoint.LIST_POWERMETER_HM, null), //
+    SCHALTER_KUECHE_LICHT(HomematicProtocol.HM, Type.SWITCH_WINDOWLIGHT, Place.KITCHEN, true, Datapoint.LIST_SWITCH_HM,
+        Type.VAR_PREFIXES_SWITCH_AUTO, Boolean.class, AutomationState.class), //
 
-	AUSSENTEMPERATUR(HomematicProtocol.SYSVAR, Type.SYSVAR_THERMOMETER, Place.OUTSIDE, true, Datapoint.LIST_SYSVAR,
-			null), //
+    STROMZAEHLER(HomematicProtocol.HM, Type.ELECTRIC_POWER, Place.HOUSE, true, Datapoint.LIST_POWERMETER_HM, null), //
 
-	HAUSTUER_KLINGEL(HomematicProtocol.HM, Type.DOORBELL, Place.FRONTDOOR, false, Datapoint.LIST_DOORBELL, null), //
+    AUSSENTEMPERATUR(HomematicProtocol.SYSVAR, Type.SYSVAR_THERMOMETER, Place.OUTSIDE, true, Datapoint.LIST_SYSVAR, null), //
 
-	HAUSTUER_KLINGEL_HISTORIE(HomematicProtocol.SYSVAR, Type.SYSVAR_LAST_BELL_TIMESTAMP, Place.FRONTDOOR, false,
-			Datapoint.LIST_SYSVAR, null), //
+    HAUSTUER_KLINGEL(HomematicProtocol.HM, Type.DOORBELL, Place.FRONTDOOR, false, Datapoint.LIST_DOORBELL, null), //
 
-	HAUSTUER_KAMERA(HomematicProtocol.HM, Type.SWITCH_FRONTDOOR_CAMERA, Place.FRONTDOOR, false, Datapoint.LIST_CAMERA,
-			null), //
-	
-	HAUSTUER_SCHLOSS(HomematicProtocol.HM, Type.DOORLOCK, Place.FRONTDOOR, false, Datapoint.LIST_DOORLOCK, Type.VAR_PREFIXES_DOORLOCK,
-			null, null), //
+    HAUSTUER_KLINGEL_HISTORIE(HomematicProtocol.SYSVAR, Type.SYSVAR_LAST_BELL_TIMESTAMP, Place.FRONTDOOR, false,
+        Datapoint.LIST_SYSVAR, null), //
 
-	// ROLLLADE_SCHLAFZIMMER_LINKS(HomematicProtocol.HM, "D_U_M_M_Y", 1,
-	// Type.SHUTTER_LEFT, Place.BEDROOM, false,
-	// Integer.class, ShutterPosition.class), //
+    HAUSTUER_KAMERA(HomematicProtocol.HM, Type.SWITCH_FRONTDOOR_CAMERA, Place.FRONTDOOR, false, Datapoint.LIST_CAMERA, null), //
 
-	;
+    HAUSTUER_SCHLOSS(HomematicProtocol.HM, Type.DOORLOCK, Place.FRONTDOOR, false, Datapoint.LIST_DOORLOCK,
+        Type.VAR_PREFIXES_DOORLOCK, null, null), //
 
-	private HomematicProtocol homematicProtocol;
+    // ROLLLADE_SCHLAFZIMMER_LINKS(HomematicProtocol.HM, "D_U_M_M_Y", 1,
+    // Type.SHUTTER_LEFT, Place.BEDROOM, false,
+    // Integer.class, ShutterPosition.class), //
 
-	private Type type;
+    ;
 
-	private Place place;
+    private HomematicProtocol homematicProtocol;
 
-	private boolean textQueryEnabled;
+    private Type type;
 
-	private List<Datapoint> datapoints;
+    private Place place;
 
-	private List<String> sysVars;
+    private boolean textQueryEnabled;
 
-	private Class<?>[] valueTypes;
+    private List<Datapoint> datapoints;
 
-	private Device(HomematicProtocol homematicProtocol, Type type, Place place, // NOSONAR
-			boolean textQueryEnabled, List<Datapoint> datapoints, List<String> sysVars, Class<?>... valueTypes) {
-		
-		this.homematicProtocol = homematicProtocol;
-		this.type = type;
-		this.place = place;
-		this.textQueryEnabled = textQueryEnabled;
-		this.datapoints = datapoints;
-		this.sysVars = sysVars;
-		this.valueTypes = valueTypes;
-	}
+    private List<String> sysVars;
 
-	public boolean isControllable() {
-		return valueTypes != null && valueTypes.length > 0;
-	}
+    private Class<?>[] valueTypes;
 
-	public String programNamePrefix() {
-		return HomeUtils.escape(getDescription());
-	}
+    private Device(HomematicProtocol homematicProtocol, Type type, Place place, // NOSONAR
+            boolean textQueryEnabled, List<Datapoint> datapoints, List<String> sysVars, Class<?>... valueTypes) {
 
-	public Datapoint lowBatDatapoint() {
-		if (isHomematic()) {
-			return Datapoint.LOWBAT;
-		} else if (isHomematicIP()) {
-			return Datapoint.LOW_BAT;
-		} else {
-			return null;
-		}
-	}
+        this.homematicProtocol = homematicProtocol;
+        this.type = type;
+        this.place = place;
+        this.textQueryEnabled = textQueryEnabled;
+        this.datapoints = datapoints;
+        this.sysVars = sysVars;
+        this.valueTypes = valueTypes;
+    }
 
-	public boolean isHomematic() {
-		return homematicProtocol == HomematicProtocol.HM;
-	}
+    public boolean isControllable() {
+        return valueTypes != null && valueTypes.length > 0;
+    }
 
-	public boolean isHomematicIP() {
-		return homematicProtocol == HomematicProtocol.HMIP;
-	}
+    public String programNamePrefix() {
+        return HomeUtils.escape(getDescription());
+    }
 
-	public boolean isSysVar() {
-		return homematicProtocol == HomematicProtocol.SYSVAR;
-	}
+    public Datapoint lowBatDatapoint() {
+        if (isHomematic()) {
+            return Datapoint.LOWBAT;
+        } else if (isHomematicIP()) {
+            return Datapoint.LOW_BAT;
+        } else {
+            return null;
+        }
+    }
 
-	public String getDescription() {
-		return type.getTypeName() + " " + place.getPlaceName();
-	}
+    public boolean isHomematic() {
+        return homematicProtocol == HomematicProtocol.HM;
+    }
 
-	public Type getType() {
-		return type;
-	}
+    public boolean isHomematicIP() {
+        return homematicProtocol == HomematicProtocol.HMIP;
+    }
 
-	public Place getPlace() {
-		return place;
-	}
+    public boolean isSysVar() {
+        return homematicProtocol == HomematicProtocol.SYSVAR;
+    }
 
-	public boolean isTextQueryEnabled() {
-		return textQueryEnabled;
-	}
+    public String getDescription() {
+        return type.getTypeName() + " " + place.getPlaceName();
+    }
 
-	public Class<?>[] getValueTypes() {
-		return valueTypes;
-	}
+    public Type getType() {
+        return type;
+    }
 
-	public HomematicProtocol getHomematicProtocol() {
-		return homematicProtocol;
-	}
+    public Place getPlace() {
+        return place;
+    }
 
-	public List<Datapoint> getDatapoints() {
-		return datapoints;
-	}
+    public boolean isTextQueryEnabled() {
+        return textQueryEnabled;
+    }
 
-	public List<String> getSysVars() {
-		return sysVars;
-	}
+    public Class<?>[] getValueTypes() {
+        return valueTypes;
+    }
+
+    public HomematicProtocol getHomematicProtocol() {
+        return homematicProtocol;
+    }
+
+    public List<Datapoint> getDatapoints() {
+        return datapoints;
+    }
+
+    public List<String> getSysVars() {
+        return sysVars;
+    }
 
 }

@@ -43,238 +43,232 @@ import de.fimatas.home.library.homematic.model.Device;
 @Component
 public class CameraService {
 
-	@Autowired
-	@Qualifier("restTemplateLowTimeout")
-	private RestTemplate restTemplateLowTimeout;
+    @Autowired
+    @Qualifier("restTemplateLowTimeout")
+    private RestTemplate restTemplateLowTimeout;
 
-	@Autowired
-	@Qualifier("restTemplateBinaryResponse")
-	private RestTemplate restTemplateBinaryResponse;
+    @Autowired
+    @Qualifier("restTemplateBinaryResponse")
+    private RestTemplate restTemplateBinaryResponse;
 
-	@Autowired
-	private HomematicAPI homematicAPI;
+    @Autowired
+    private HomematicAPI homematicAPI;
 
-	@Autowired
-	private UploadService uploadService;
-	
-	@Autowired
-	private DeviceQualifier deviceQualifier;
-	
-	@Autowired
-	private HomematicCommandBuilder homematicCommandBuilder;
+    @Autowired
+    private UploadService uploadService;
 
-	@Autowired
-	private Environment env;
+    @Autowired
+    private DeviceQualifier deviceQualifier;
 
-	private static final Log LOG = LogFactory.getLog(CameraService.class);
+    @Autowired
+    private HomematicCommandBuilder homematicCommandBuilder;
 
-	private static final Object MONITOR = new Object();
+    @Autowired
+    private Environment env;
 
-	public void cleanUp() {
-		CameraModel cameraModel = ModelObjectDAO.getInstance().readCameraModel();
-		if (cameraModel.cleanUp()) {
-			LOG.info("Cleaned up camera pictures");
-			uploadService.upload(cameraModel);
-		}
-	}
+    private static final Log LOG = LogFactory.getLog(CameraService.class);
 
-	public void takeEventPicture(Doorbell frontdoorbell, Camera frontdoorcamera) {
-		CameraPicture cameraPicture = new CameraPicture();
-		cameraPicture.setTimestamp(frontdoorbell.getTimestampLastDoorbell());
-		cameraPicture.setDevice(frontdoorcamera.getDevice());
-		cameraPicture.setCameraMode(CameraMode.EVENT);
-		takePicture(cameraPicture);
-	}
+    private static final Object MONITOR = new Object();
 
-	public String takeLivePicture(Device device) {
-		CameraPicture cameraPicture = new CameraPicture();
-		cameraPicture.setTimestamp(new Date().getTime());
-		cameraPicture.setDevice(device);
-		cameraPicture.setCameraMode(CameraMode.LIVE);
-		takePicture(cameraPicture);
-		return String.valueOf(cameraPicture.getTimestamp());
-	}
+    public void cleanUp() {
+        CameraModel cameraModel = ModelObjectDAO.getInstance().readCameraModel();
+        if (cameraModel.cleanUp()) {
+            LOG.info("Cleaned up camera pictures");
+            uploadService.upload(cameraModel);
+        }
+    }
 
-	private void takePicture(CameraPicture cameraPicture) {
+    public void takeEventPicture(Doorbell frontdoorbell, Camera frontdoorcamera) {
+        CameraPicture cameraPicture = new CameraPicture();
+        cameraPicture.setTimestamp(frontdoorbell.getTimestampLastDoorbell());
+        cameraPicture.setDevice(frontdoorcamera.getDevice());
+        cameraPicture.setCameraMode(CameraMode.EVENT);
+        takePicture(cameraPicture);
+    }
 
-		CompletableFuture.runAsync(() -> {
-			synchronized (MONITOR) {
-				long l1 = System.currentTimeMillis();
-				try {
-					turnOnCamera(cameraPicture.getDevice());
-					byte[] picture = cameraReadPicture(Device.HAUSTUER_KAMERA);
-					writePicture(cameraPicture, picture);
-				} catch (Exception e) {
-					LOG.error("Exception taking picture:", e);
-				}
-				if (LOG.isDebugEnabled()) {
-					LOG.debug("TIME = " + (System.currentTimeMillis() - l1) + " ms");
-				}
-			}
-		});
-	}
+    public String takeLivePicture(Device device) {
+        CameraPicture cameraPicture = new CameraPicture();
+        cameraPicture.setTimestamp(new Date().getTime());
+        cameraPicture.setDevice(device);
+        cameraPicture.setCameraMode(CameraMode.LIVE);
+        takePicture(cameraPicture);
+        return String.valueOf(cameraPicture.getTimestamp());
+    }
 
-	private void writePicture(CameraPicture cameraPicture, byte[] picture) {
+    private void takePicture(CameraPicture cameraPicture) {
 
-		if (picture.length == 0) {
-			LOG.error("empty camera image!");
-			return;
-		}
+        CompletableFuture.runAsync(() -> {
+            synchronized (MONITOR) {
+                long l1 = System.currentTimeMillis();
+                try {
+                    turnOnCamera(cameraPicture.getDevice());
+                    byte[] picture = cameraReadPicture(Device.HAUSTUER_KAMERA);
+                    writePicture(cameraPicture, picture);
+                } catch (Exception e) {
+                    LOG.error("Exception taking picture:", e);
+                }
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("TIME = " + (System.currentTimeMillis() - l1) + " ms");
+                }
+            }
+        });
+    }
 
-		cameraPicture.setBytes(picture);
-		CameraModel cameraModel = ModelObjectDAO.getInstance().readCameraModel();
-		if (cameraPicture.getCameraMode() == CameraMode.LIVE) {
-			cameraModel.setLivePicture(cameraPicture);
-		} else if (cameraPicture.getCameraMode() == CameraMode.EVENT) {
-			LOG.info("writing event picture: " + cameraPicture.getTimestamp());
-			cameraModel.getEventPictures().add(cameraPicture); // TODO:
-																// DELETE
-																// OLDEST
-		}
-		uploadService.upload(cameraModel);
-	}
+    private void writePicture(CameraPicture cameraPicture, byte[] picture) {
 
-	private void turnOnCamera(Device deviceSwitch) {
+        if (picture.length == 0) {
+            LOG.error("empty camera image!");
+            return;
+        }
 
-		if (cameraUseMock()) {
-			return;
-		}
+        cameraPicture.setBytes(picture);
+        CameraModel cameraModel = ModelObjectDAO.getInstance().readCameraModel();
+        if (cameraPicture.getCameraMode() == CameraMode.LIVE) {
+            cameraModel.setLivePicture(cameraPicture);
+        } else if (cameraPicture.getCameraMode() == CameraMode.EVENT) {
+            LOG.info("writing event picture: " + cameraPicture.getTimestamp());
+            cameraModel.getEventPictures().add(cameraPicture); // TODO:
+                                                               // DELETE
+                                                               // OLDEST
+        }
+        uploadService.upload(cameraModel);
+    }
 
-		if (pingCamera(deviceSwitch, false)) {
-			LOG.info("Camera already on");
-			return;
-		}
+    private void turnOnCamera(Device deviceSwitch) {
 
-		LOG.info("Kamera einschalten...");
-		homematicAPI.executeCommand(homematicCommandBuilder.exec(deviceSwitch, "DirektEinschalten"));
-		boolean pingCameraOk = false;
-		long startPolling = System.currentTimeMillis();
-		do {
-			if (System.currentTimeMillis() - startPolling > (1000L * 20L)) {
-				throw new IllegalStateException("camera not started");
-			}
-			pingCameraOk = pingCamera(deviceSwitch, true);
-		} while (!pingCameraOk);
-	}
+        if (cameraUseMock()) {
+            return;
+        }
 
-	private boolean pingCamera(Device device, boolean sleepIfNotReachable) {
+        if (pingCamera(deviceSwitch, false)) {
+            LOG.info("Camera already on");
+            return;
+        }
 
-		boolean pingCameraOk = false;
+        LOG.info("Kamera einschalten...");
+        homematicAPI.executeCommand(homematicCommandBuilder.exec(deviceSwitch, "DirektEinschalten"));
+        boolean pingCameraOk = false;
+        long startPolling = System.currentTimeMillis();
+        do {
+            if (System.currentTimeMillis() - startPolling > (1000L * 20L)) {
+                throw new IllegalStateException("camera not started");
+            }
+            pingCameraOk = pingCamera(deviceSwitch, true);
+        } while (!pingCameraOk);
+    }
 
-		try {
-			LOG.info("PING");
-			String url = env.getProperty("camera." + deviceQualifier.idFrom(device) + ".url");
-			ResponseEntity<String> response = restTemplateLowTimeout.getForEntity(url + "/ping",
-					String.class);
-			if (response.getStatusCode() == HttpStatus.OK) {
-				pingCameraOk = true;
-			} else {
-				sleep(1000, sleepIfNotReachable); // RC=404 etc
-			}
-		} catch (Exception e) {
-			if (isExceptionExpectedTimeout(e)) {
-				LOG.info("PING - Timeout");
-				sleep(1000, sleepIfNotReachable);
-			} else if (isExceptionExpectedHostDown(e)) {
-				LOG.info("PING - Host is down");
-				sleep(1000, sleepIfNotReachable);
-			} else {
-				LOG.error("Error ping camera: ", e);
-				sleep(1000, sleepIfNotReachable);
-			}
-		}
-		return pingCameraOk;
-	}
+    private boolean pingCamera(Device device, boolean sleepIfNotReachable) {
 
-	private void sleep(long ms, boolean doSleep) {
-		try {
-			if (doSleep) {
-				Thread.sleep(ms);
-			}
-		} catch (InterruptedException e) { // NOSONAR
-			// noop
-		}
-	}
+        boolean pingCameraOk = false;
 
-	private boolean isExceptionExpectedTimeout(Exception e) {
-		return e.getClass().isAssignableFrom(ResourceAccessException.class) && e.getCause() != null
-				&& e.getCause().getClass().isAssignableFrom(ConnectTimeoutException.class)
-				&& e.getCause().getCause() != null
-				&& e.getCause().getCause().getClass().isAssignableFrom(SocketTimeoutException.class);
-	}
+        try {
+            LOG.info("PING");
+            String url = env.getProperty("camera." + deviceQualifier.idFrom(device) + ".url");
+            ResponseEntity<String> response = restTemplateLowTimeout.getForEntity(url + "/ping", String.class);
+            if (response.getStatusCode() == HttpStatus.OK) {
+                pingCameraOk = true;
+            } else {
+                sleep(1000, sleepIfNotReachable); // RC=404 etc
+            }
+        } catch (Exception e) {
+            if (isExceptionExpectedTimeout(e)) {
+                LOG.info("PING - Timeout");
+                sleep(1000, sleepIfNotReachable);
+            } else if (isExceptionExpectedHostDown(e)) {
+                LOG.info("PING - Host is down");
+                sleep(1000, sleepIfNotReachable);
+            } else {
+                LOG.error("Error ping camera: ", e);
+                sleep(1000, sleepIfNotReachable);
+            }
+        }
+        return pingCameraOk;
+    }
 
-	private boolean isExceptionExpectedHostDown(Exception e) {
-		return e.getClass().isAssignableFrom(ResourceAccessException.class) && e.getCause() != null
-				&& e.getCause().getClass().isAssignableFrom(HttpHostConnectException.class)
-				&& e.getCause().getCause() != null
-				&& e.getCause().getCause().getClass().isAssignableFrom(ConnectException.class);
-	}
+    private void sleep(long ms, boolean doSleep) {
+        try {
+            if (doSleep) {
+                Thread.sleep(ms);
+            }
+        } catch (InterruptedException e) { // NOSONAR
+            // noop
+        }
+    }
 
-	private byte[] cameraReadPicture(Device device) {
+    private boolean isExceptionExpectedTimeout(Exception e) {
+        return e.getClass().isAssignableFrom(ResourceAccessException.class) && e.getCause() != null
+            && e.getCause().getClass().isAssignableFrom(ConnectTimeoutException.class) && e.getCause().getCause() != null
+            && e.getCause().getCause().getClass().isAssignableFrom(SocketTimeoutException.class);
+    }
 
-		if (cameraUseMock()) {
-			return createMockPicture();
-		}
+    private boolean isExceptionExpectedHostDown(Exception e) {
+        return e.getClass().isAssignableFrom(ResourceAccessException.class) && e.getCause() != null
+            && e.getCause().getClass().isAssignableFrom(HttpHostConnectException.class) && e.getCause().getCause() != null
+            && e.getCause().getCause().getClass().isAssignableFrom(ConnectException.class);
+    }
 
-		try {
-			String url = env.getProperty("camera." + deviceQualifier.idFrom(device) + ".url");
-			ResponseEntity<byte[]> response = restTemplateBinaryResponse.getForEntity(url + "/capture",
-					byte[].class);
+    private byte[] cameraReadPicture(Device device) {
 
-			if (response.getStatusCode() == HttpStatus.OK) {
-				return response.getBody();
-			} else {
-				throw new IllegalStateException(
-						"could not capture picture from camera: " + response.getStatusCode());
-			}
-		} catch (RestClientException rce) {
-			LOG.error("Error read camera picture: ", rce);
-			return new byte[0];
-		}
-	}
+        if (cameraUseMock()) {
+            return createMockPicture();
+        }
 
-	private boolean cameraUseMock() {
-		return Boolean.parseBoolean(env.getProperty("camera.mock"));
-	}
+        try {
+            String url = env.getProperty("camera." + deviceQualifier.idFrom(device) + ".url");
+            ResponseEntity<byte[]> response = restTemplateBinaryResponse.getForEntity(url + "/capture", byte[].class);
 
-	private byte[] createMockPicture() {
+            if (response.getStatusCode() == HttpStatus.OK) {
+                return response.getBody();
+            } else {
+                throw new IllegalStateException("could not capture picture from camera: " + response.getStatusCode());
+            }
+        } catch (RestClientException rce) {
+            LOG.error("Error read camera picture: ", rce);
+            return new byte[0];
+        }
+    }
 
-		SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
-		String text = sdf.format(new Date());
+    private boolean cameraUseMock() {
+        return Boolean.parseBoolean(env.getProperty("camera.mock"));
+    }
 
-		BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_3BYTE_BGR);
-		Graphics2D g2d = img.createGraphics();
-		Font font = new Font("Arial", Font.PLAIN, 24);
-		g2d.setFont(font);
-		FontMetrics fm = g2d.getFontMetrics();
-		int width = fm.stringWidth(text) + 2;
-		int height = fm.getHeight() + 2;
-		g2d.dispose();
+    private byte[] createMockPicture() {
 
-		img = new BufferedImage(width, height, BufferedImage.TYPE_3BYTE_BGR);
-		g2d = img.createGraphics();
-		g2d.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION,
-				RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
-		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
-		g2d.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
-		g2d.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_DISABLE);
-		g2d.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
-		g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-		g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-		g2d.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
-		g2d.setFont(font);
-		fm = g2d.getFontMetrics();
-		g2d.setColor(Color.BLUE);
-		g2d.drawString(text, 0, fm.getAscent());
-		g2d.dispose();
+        SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
+        String text = sdf.format(new Date());
 
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		try {
-			ImageIO.write(img, "jpg", out);
-		} catch (IOException e) {
-			LOG.error("Could not create mock image:", e);
-		}
-		return out.toByteArray();
-	}
+        BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_3BYTE_BGR);
+        Graphics2D g2d = img.createGraphics();
+        Font font = new Font("Arial", Font.PLAIN, 24);
+        g2d.setFont(font);
+        FontMetrics fm = g2d.getFontMetrics();
+        int width = fm.stringWidth(text) + 2;
+        int height = fm.getHeight() + 2;
+        g2d.dispose();
+
+        img = new BufferedImage(width, height, BufferedImage.TYPE_3BYTE_BGR);
+        g2d = img.createGraphics();
+        g2d.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+        g2d.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
+        g2d.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_DISABLE);
+        g2d.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g2d.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
+        g2d.setFont(font);
+        fm = g2d.getFontMetrics();
+        g2d.setColor(Color.BLUE);
+        g2d.drawString(text, 0, fm.getAscent());
+        g2d.dispose();
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
+            ImageIO.write(img, "jpg", out);
+        } catch (IOException e) {
+            LOG.error("Could not create mock image:", e);
+        }
+        return out.toByteArray();
+    }
 
 }

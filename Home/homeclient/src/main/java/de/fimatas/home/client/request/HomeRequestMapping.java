@@ -44,184 +44,179 @@ import de.fimatas.home.library.model.Pages;
 @Controller
 public class HomeRequestMapping {
 
-	private static final String REDIRECT = "redirect:";
+    private static final String REDIRECT = "redirect:";
 
-	private static final DateTimeFormatter TS_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
+    private static final DateTimeFormatter TS_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
-	private static final String DEVICE_NAME = "deviceName";
+    private static final String DEVICE_NAME = "deviceName";
 
-	private static final String CAMERA_MODE = "cameraMode";
+    private static final String CAMERA_MODE = "cameraMode";
 
-	private static final Log log = LogFactory.getLog(HomeRequestMapping.class);
+    private static final Log log = LogFactory.getLog(HomeRequestMapping.class);
 
-	@Autowired
-	private HouseViewService houseView;
+    @Autowired
+    private HouseViewService houseView;
 
-	@Autowired
-	private HistoryViewService historyViewService;
+    @Autowired
+    private HistoryViewService historyViewService;
 
-	@Autowired
-	private SettingsViewService settingsView;
+    @Autowired
+    private SettingsViewService settingsView;
 
-	@Autowired
-	private TextQueryService textQueryService;
-	
-	@Autowired
-	private UserService userService;
+    @Autowired
+    private TextQueryService textQueryService;
 
-	@GetMapping("/message")
-	public String message(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
-			@RequestParam(name = "type") String type,
-			@RequestParam(name = DEVICE_NAME, required = false) String deviceName,
-			@RequestParam("value") String value,
-			@RequestParam(name = "securityPin", required = false) String securityPin) {
+    @Autowired
+    private UserService userService;
 
-		if(!isPinBlankOrSetAndCorrect(userCookie, securityPin)) {
-			return REDIRECT + MessageType.valueOf(type).getTargetSite();
-		}
-		
-		Message response = request(userCookie, type, deviceName, value, securityPin);
+    @GetMapping("/message")
+    public String message(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
+            @RequestParam(name = "type") String type, @RequestParam(name = DEVICE_NAME, required = false) String deviceName,
+            @RequestParam("value") String value, @RequestParam(name = "securityPin", required = false) String securityPin) {
 
-		if (!response.isSuccessfullExecuted()) {
-			ViewAttributesDAO.getInstance().push(userCookie, ViewAttributesDAO.MESSAGE, "Die Anfrage konnte nicht erfolgreich verarbeitet werden.");
-			log.error("MESSAGE EXECUTION NOT SUCCESSFUL !!! - " + type);
-		}
-		return REDIRECT + response.getMessageType().getTargetSite();
-	}
+        if (!isPinBlankOrSetAndCorrect(userCookie, securityPin)) {
+            return REDIRECT + MessageType.valueOf(type).getTargetSite();
+        }
 
-	private boolean isPinBlankOrSetAndCorrect(String userCookie, String securityPin) {
-		
-		String user = LoginCookieDAO.getInstance().read(userCookie);
-		if (StringUtils.isNotBlank(securityPin) && !userService.checkPin(user, securityPin)) {
-			ViewAttributesDAO.getInstance().push(userCookie, ViewAttributesDAO.MESSAGE, "Die eingegebene PIN ist nicht korrekt.");
-			return false;
-		}
-		return true;
-	}
+        Message response = request(userCookie, type, deviceName, value, securityPin);
 
-	@GetMapping("/history")
-	public String history(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
-			@RequestParam(name = "key") String key) {
-		fillUserAttributes(model, userCookie);
-		historyViewService.fillHistoryViewModel(model, ModelObjectDAO.getInstance().readHistoryModel(),
-				ModelObjectDAO.getInstance().readHouseModel(), key);
-		return "history";
-	}
+        if (!response.isSuccessfullExecuted()) {
+            ViewAttributesDAO.getInstance().push(userCookie, ViewAttributesDAO.MESSAGE,
+                "Die Anfrage konnte nicht erfolgreich verarbeitet werden.");
+            log.error("MESSAGE EXECUTION NOT SUCCESSFUL !!! - " + type);
+        }
+        return REDIRECT + response.getMessageType().getTargetSite();
+    }
 
-	@PostMapping("/textquery")
-	public String textquery(Model model, @RequestParam("text") String text, @RequestParam("user") String user,
-			@RequestParam("pass") String pass) {
-		model.addAttribute("responsetext",
-				textQueryService.execute(ModelObjectDAO.getInstance().readHouseModel(), text));
-		return "textquery";
-	}
+    private boolean isPinBlankOrSetAndCorrect(String userCookie, String securityPin) {
 
-	@GetMapping(value = "/cameraPicture", produces = "image/jpeg")
-	public ResponseEntity<byte[]> cameraPicture(@RequestParam(DEVICE_NAME) String deviceName,
-			@RequestParam(CAMERA_MODE) String cameraMode, @RequestParam("ts") String timestamp,
-			@RequestParam(name = "onlyheader", required = false) String onlyheader) {
+        String user = LoginCookieDAO.getInstance().read(userCookie);
+        if (StringUtils.isNotBlank(securityPin) && !userService.checkPin(user, securityPin)) {
+            ViewAttributesDAO.getInstance().push(userCookie, ViewAttributesDAO.MESSAGE,
+                "Die eingegebene PIN ist nicht korrekt.");
+            return false;
+        }
+        return true;
+    }
 
-		boolean onlyHeaderFlag = onlyheader != null && Boolean.parseBoolean(onlyheader);
-		log.info("poll for camera image - " + timestamp + (onlyHeaderFlag ? " onlyHeader" : ""));
-		byte[] bytes = cameraPicture(Device.valueOf(deviceName), CameraMode.valueOf(cameraMode),
-				Long.parseLong(timestamp));
+    @GetMapping("/history")
+    public String history(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
+            @RequestParam(name = "key") String key) {
+        fillUserAttributes(model, userCookie);
+        historyViewService.fillHistoryViewModel(model, ModelObjectDAO.getInstance().readHistoryModel(),
+            ModelObjectDAO.getInstance().readHouseModel(), key);
+        return "history";
+    }
 
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(new MediaType("image", "jpeg"));
-		headers.setContentDispositionFormData("attachment", deviceName + "_" + cameraMode + ".jpg");
-		headers.setContentLength(bytes.length);
-		if (bytes.length == 0) {
-			return new ResponseEntity<>(bytes, headers, HttpStatus.NO_CONTENT);
-		} else {
-			return new ResponseEntity<>(bytes, headers, HttpStatus.OK);
-		}
-	}
+    @PostMapping("/textquery")
+    public String textquery(Model model, @RequestParam("text") String text, @RequestParam("user") String user,
+            @RequestParam("pass") String pass) {
+        model.addAttribute("responsetext", textQueryService.execute(ModelObjectDAO.getInstance().readHouseModel(), text));
+        return "textquery";
+    }
 
-	@GetMapping(value = "/cameraPictureRequest")
-	public ResponseEntity<String> cameraPictureRequest(Model model,
-			@CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
-			@RequestParam(name = "type") String type,
-			@RequestParam(name = DEVICE_NAME, required = false) String deviceName,
-			@RequestParam("value") String value) {
+    @GetMapping(value = "/cameraPicture", produces = "image/jpeg")
+    public ResponseEntity<byte[]> cameraPicture(@RequestParam(DEVICE_NAME) String deviceName,
+            @RequestParam(CAMERA_MODE) String cameraMode, @RequestParam("ts") String timestamp,
+            @RequestParam(name = "onlyheader", required = false) String onlyheader) {
 
-		log.info("requesting new camera image " + deviceName);
+        boolean onlyHeaderFlag = onlyheader != null && Boolean.parseBoolean(onlyheader);
+        log.info("poll for camera image - " + timestamp + (onlyHeaderFlag ? " onlyHeader" : ""));
+        byte[] bytes = cameraPicture(Device.valueOf(deviceName), CameraMode.valueOf(cameraMode), Long.parseLong(timestamp));
 
-		Message response = request(userCookie, type, deviceName, value, null);
-		return new ResponseEntity<>(response.getResponse(), HttpStatus.OK);
-	}
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(new MediaType("image", "jpeg"));
+        headers.setContentDispositionFormData("attachment", deviceName + "_" + cameraMode + ".jpg");
+        headers.setContentLength(bytes.length);
+        if (bytes.length == 0) {
+            return new ResponseEntity<>(bytes, headers, HttpStatus.NO_CONTENT);
+        } else {
+            return new ResponseEntity<>(bytes, headers, HttpStatus.OK);
+        }
+    }
 
-	@RequestMapping(Pages.PATH_HOME) // NOSONAR
-	public String homePage(Model model, HttpServletResponse response,
-			@CookieValue(name = LoginInterceptor.COOKIE_NAME, required = false) String userCookie,
-			@RequestHeader(name = "ETag", required = false) String etag) {
-		
-		boolean isNewMessage = ViewAttributesDAO.getInstance().isPresent(userCookie, ViewAttributesDAO.MESSAGE);
-		fillMenu(Pages.PATH_HOME, model);
-		fillUserAttributes(model, userCookie);
-		HouseModel houseModel = ModelObjectDAO.getInstance().readHouseModel();
-		if (houseModel == null) {
-			throw new IllegalStateException(
-					"State error - " + ModelObjectDAO.getInstance().getLastHouseModelState());
-		} else if (isModelUnchanged(etag, houseModel) && !isNewMessage) {
-			response.setStatus(HttpStatus.NOT_MODIFIED.value());
-			response.setHeader("SITE_REQUEST_TS", TS_FORMATTER.format(LocalDateTime.now()));
-			return "empty";
-		} else {
-			houseView.fillViewModel(model, houseModel, ModelObjectDAO.getInstance().readHistoryModel());
-			return Pages.getEntry(Pages.PATH_HOME).getTemplate();
-		}
-	}
+    @GetMapping(value = "/cameraPictureRequest")
+    public ResponseEntity<String> cameraPictureRequest(Model model,
+            @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, @RequestParam(name = "type") String type,
+            @RequestParam(name = DEVICE_NAME, required = false) String deviceName, @RequestParam("value") String value) {
 
-	private boolean isModelUnchanged(String etag, HouseModel houseModel) {
-		return StringUtils.isNotBlank(etag)
-				&& StringUtils.equals(etag, Long.toString(houseModel.getDateTime()));
-	}
+        log.info("requesting new camera image " + deviceName);
 
-	@GetMapping(Pages.PATH_SETTINGS)
-	public String settings(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie) {
-		fillMenu(Pages.PATH_SETTINGS, model);
-		fillUserAttributes(model, userCookie);
-		String user = LoginCookieDAO.getInstance().read(userCookie);
-		SettingsModel settings = ModelObjectDAO.getInstance().readSettingsModels(user);
-		settingsView.fillSettings(model, settings);
-		return Pages.getEntry(Pages.PATH_SETTINGS).getTemplate();
-	}
+        Message response = request(userCookie, type, deviceName, value, null);
+        return new ResponseEntity<>(response.getResponse(), HttpStatus.OK);
+    }
 
-	private Message request(String userCookie, String type, String deviceName, String value, String securityPin) {
+    @RequestMapping(Pages.PATH_HOME) // NOSONAR
+    public String homePage(Model model, HttpServletResponse response,
+            @CookieValue(name = LoginInterceptor.COOKIE_NAME, required = false) String userCookie,
+            @RequestHeader(name = "ETag", required = false) String etag) {
 
-		MessageType messageType = MessageType.valueOf(type);
-		Device device = StringUtils.isBlank(deviceName) ? null : Device.valueOf(deviceName);
+        boolean isNewMessage = ViewAttributesDAO.getInstance().isPresent(userCookie, ViewAttributesDAO.MESSAGE);
+        fillMenu(Pages.PATH_HOME, model);
+        fillUserAttributes(model, userCookie);
+        HouseModel houseModel = ModelObjectDAO.getInstance().readHouseModel();
+        if (houseModel == null) {
+            throw new IllegalStateException("State error - " + ModelObjectDAO.getInstance().getLastHouseModelState());
+        } else if (isModelUnchanged(etag, houseModel) && !isNewMessage) {
+            response.setStatus(HttpStatus.NOT_MODIFIED.value());
+            response.setHeader("SITE_REQUEST_TS", TS_FORMATTER.format(LocalDateTime.now()));
+            return "empty";
+        } else {
+            houseView.fillViewModel(model, houseModel, ModelObjectDAO.getInstance().readHistoryModel());
+            return Pages.getEntry(Pages.PATH_HOME).getTemplate();
+        }
+    }
 
-		Message message = new Message();
-		message.setMessageType(messageType);
-		message.setDevice(device);
-		message.setValue(value);
-		message.setUser(LoginCookieDAO.getInstance().read(userCookie));
-		message.setSecurityPin(securityPin);
+    private boolean isModelUnchanged(String etag, HouseModel houseModel) {
+        return StringUtils.isNotBlank(etag) && StringUtils.equals(etag, Long.toString(houseModel.getDateTime()));
+    }
 
-		return MessageQueue.getInstance().request(message, true);
-	}
+    @GetMapping(Pages.PATH_SETTINGS)
+    public String settings(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie) {
+        fillMenu(Pages.PATH_SETTINGS, model);
+        fillUserAttributes(model, userCookie);
+        String user = LoginCookieDAO.getInstance().read(userCookie);
+        SettingsModel settings = ModelObjectDAO.getInstance().readSettingsModels(user);
+        settingsView.fillSettings(model, settings);
+        return Pages.getEntry(Pages.PATH_SETTINGS).getTemplate();
+    }
 
-	private byte[] cameraPicture(Device device, CameraMode mode, long timestamp) {
-		CameraPicture cameraPicture = ModelObjectDAO.getInstance().readCameraPicture(device, mode, timestamp);
-		if (cameraPicture != null) {
-			return cameraPicture.getBytes();
-		}
-		return new byte[0];
-	}
+    private Message request(String userCookie, String type, String deviceName, String value, String securityPin) {
 
-	private void fillUserAttributes(Model model, String userCookie) {
-		String user = LoginCookieDAO.getInstance().read(userCookie);
-		if (user != null) {
-			model.addAttribute(ViewAttributesDAO.USER_NAME, user);
-		}
-		model.addAttribute("userErrorMessageText", StringUtils.trimToEmpty(ViewAttributesDAO.getInstance().pull(userCookie, ViewAttributesDAO.MESSAGE)));
-	}
+        MessageType messageType = MessageType.valueOf(type);
+        Device device = StringUtils.isBlank(deviceName) ? null : Device.valueOf(deviceName);
 
-	private void fillMenu(String pathHome, Model model) {
-		model.addAttribute("MENU_SELECTED", Pages.getEntry(pathHome));
-		model.addAttribute("MENU_SELECTABLE", Pages.getOtherEntries(pathHome));
-		model.addAttribute("SITE_REQUEST_TS", TS_FORMATTER.format(LocalDateTime.now()));
-	}
+        Message message = new Message();
+        message.setMessageType(messageType);
+        message.setDevice(device);
+        message.setValue(value);
+        message.setUser(LoginCookieDAO.getInstance().read(userCookie));
+        message.setSecurityPin(securityPin);
+
+        return MessageQueue.getInstance().request(message, true);
+    }
+
+    private byte[] cameraPicture(Device device, CameraMode mode, long timestamp) {
+        CameraPicture cameraPicture = ModelObjectDAO.getInstance().readCameraPicture(device, mode, timestamp);
+        if (cameraPicture != null) {
+            return cameraPicture.getBytes();
+        }
+        return new byte[0];
+    }
+
+    private void fillUserAttributes(Model model, String userCookie) {
+        String user = LoginCookieDAO.getInstance().read(userCookie);
+        if (user != null) {
+            model.addAttribute(ViewAttributesDAO.USER_NAME, user);
+        }
+        model.addAttribute("userErrorMessageText",
+            StringUtils.trimToEmpty(ViewAttributesDAO.getInstance().pull(userCookie, ViewAttributesDAO.MESSAGE)));
+    }
+
+    private void fillMenu(String pathHome, Model model) {
+        model.addAttribute("MENU_SELECTED", Pages.getEntry(pathHome));
+        model.addAttribute("MENU_SELECTABLE", Pages.getOtherEntries(pathHome));
+        model.addAttribute("SITE_REQUEST_TS", TS_FORMATTER.format(LocalDateTime.now()));
+    }
 
 }

@@ -2,47 +2,47 @@ package de.fimatas.home.controller.command;
 
 public class HomematicCommandConstants {
 
-	private HomematicCommandConstants() {
-		super();
-	}
+    private HomematicCommandConstants() {
+        super();
+    }
 
-	public static final String E_O_F = "EOF";
+    public static final String E_O_F = "EOF";
 
-	public static final String PREFIX_VAR = "VAR_";
+    public static final String PREFIX_VAR = "VAR_";
 
-	public static final String PREFIX_RC = "RC_";
-	
-	static final String EMPTY = "";
+    public static final String PREFIX_RC = "RC_";
 
-	static final String DOM_METHOD = "dom.GetObject";
+    static final String EMPTY = "";
 
-	static final String DATAPOINT_METHOD = "datapoints.Get";
+    static final String DOM_METHOD = "dom.GetObject";
 
-	// read: last known value of the ccu.
-	// write: only devices
-	static final String VALUE = "Value";
+    static final String DATAPOINT_METHOD = "datapoints.Get";
 
-	// read: requests for new value.
-	// write: devices and sysvar's
-	static final String STATE = "State";
+    // read: last known value of the ccu.
+    // write: only devices
+    static final String VALUE = "Value";
 
-	static final String LAST_TIMESTAMP = "LastTimestamp";
+    // read: requests for new value.
+    // write: devices and sysvar's
+    static final String STATE = "State";
 
-	static final String PROGRAM_EXECUTE = "ProgramExecute";
+    static final String LAST_TIMESTAMP = "LastTimestamp";
 
-	static final String SUFFIX_TS = "_TS";
+    static final String PROGRAM_EXECUTE = "ProgramExecute";
 
-	static final String VAR = "var ";
+    static final String SUFFIX_TS = "_TS";
 
-	static final String EQUAL = " = ";
+    static final String VAR = "var ";
 
-	static final String POINT = ".";
+    static final String EQUAL = " = ";
 
-	static final String QUOTE = "'";
+    static final String POINT = ".";
 
-	static final String BRACKET_OPEN = "(";
+    static final String QUOTE = "'";
 
-	static final String BRACKET_CLOSE = ")";
+    static final String BRACKET_OPEN = "(";
 
-	static final String SEMICOLON = ";";
+    static final String BRACKET_CLOSE = ")";
+
+    static final String SEMICOLON = ";";
 }

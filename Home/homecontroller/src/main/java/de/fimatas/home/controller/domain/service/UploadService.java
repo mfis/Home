@@ -19,46 +19,44 @@ import de.fimatas.home.library.util.HomeAppConstants;
 @Component
 public class UploadService {
 
-	@Autowired
-	private RestTemplate restTemplate;
+    @Autowired
+    private RestTemplate restTemplate;
 
-	@Autowired
-	private Environment env;
+    @Autowired
+    private Environment env;
 
-	public void upload(Object object) {
-		String host = env.getProperty("client.hostName");
-		uploadBinary(host + "/upload" + object.getClass().getSimpleName(), object.getClass(), object);
-	}
+    public void upload(Object object) {
+        String host = env.getProperty("client.hostName");
+        uploadBinary(host + "/upload" + object.getClass().getSimpleName(), object.getClass(), object);
+    }
 
-	private <T> T uploadBinary(String url, T t, Object instance) {
+    private <T> T uploadBinary(String url, T t, Object instance) {
 
-		HttpHeaders headers = new HttpHeaders();
-		headers.setAccept(Arrays.asList(MediaType.ALL));
-		headers.setContentType(MediaType.APPLICATION_JSON);
-		headers.set("Cache-Control", "no-cache");
-		headers.set(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN,
-				env.getProperty(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN));
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(Arrays.asList(MediaType.ALL));
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Cache-Control", "no-cache");
+        headers.set(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN,
+            env.getProperty(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN));
 
-		String plainClientCredentials = env.getProperty("client.auth.user") + ":"
-				+ env.getProperty("client.auth.pass");
-		String base64ClientCredentials = new String(Base64.encodeBase64(plainClientCredentials.getBytes()));
-		headers.set("Authorization", "Basic " + base64ClientCredentials);
+        String plainClientCredentials = env.getProperty("client.auth.user") + ":" + env.getProperty("client.auth.pass");
+        String base64ClientCredentials = new String(Base64.encodeBase64(plainClientCredentials.getBytes()));
+        headers.set("Authorization", "Basic " + base64ClientCredentials);
 
-		try {
-			@SuppressWarnings("unchecked")
-			HttpEntity<T> request = new HttpEntity<>((T) instance, headers);
-			ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
-			HttpStatus statusCode = response.getStatusCode();
-			if (!statusCode.is2xxSuccessful()) {
-				LogFactory.getLog(UploadService.class)
-						.error("Could not successful upload data. RC=" + statusCode.value());
-			}
+        try {
+            @SuppressWarnings("unchecked")
+            HttpEntity<T> request = new HttpEntity<>((T) instance, headers);
+            ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+            HttpStatus statusCode = response.getStatusCode();
+            if (!statusCode.is2xxSuccessful()) {
+                LogFactory.getLog(UploadService.class).error("Could not successful upload data. RC=" + statusCode.value());
+            }
 
-		} catch (Exception e) {
-			LogFactory.getLog(UploadService.class).warn(
-					"Could not upload data:" + instance.getClass().getSimpleName() + ":" + e.getMessage());
-		}
-		return t;
-	}
+        } catch (Exception e) {
+            LogFactory.getLog(UploadService.class)
+                .warn("Could not upload data:" + instance.getClass().getSimpleName() + ":" + e.getMessage());
+        }
+        return t;
+    }
 
 }

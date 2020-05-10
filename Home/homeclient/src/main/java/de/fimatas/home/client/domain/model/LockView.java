@@ -2,77 +2,84 @@ package de.fimatas.home.client.domain.model;
 
 public class LockView extends View {
 
-	private String caption = "";
-	private String linkAuto = "#";
-	private String linkAutoEvent = "#";
-	private String linkManual = "#";
-	private String autoInfoText = "";
-	private String linkLock = "#";
-	private String linkUnlock = "#";
-	private String linkOpen = "#";
+    private String caption = "";
 
-	public String getLinkAuto() {
-		return linkAuto;
-	}
+    private String linkAuto = "#";
 
-	public void setLinkAuto(String linkAuto) {
-		this.linkAuto = linkAuto;
-	}
+    private String linkAutoEvent = "#";
 
-	public String getLinkManual() {
-		return linkManual;
-	}
+    private String linkManual = "#";
 
-	public void setLinkManual(String linkManual) {
-		this.linkManual = linkManual;
-	}
+    private String autoInfoText = "";
 
-	public String getAutoInfoText() {
-		return autoInfoText;
-	}
+    private String linkLock = "#";
 
-	public void setAutoInfoText(String autoInfoText) {
-		this.autoInfoText = autoInfoText;
-	}
+    private String linkUnlock = "#";
 
-	public String getLinkLock() {
-		return linkLock;
-	}
+    private String linkOpen = "#";
 
-	public void setLinkLock(String linkLock) {
-		this.linkLock = linkLock;
-	}
+    public String getLinkAuto() {
+        return linkAuto;
+    }
 
-	public String getLinkUnlock() {
-		return linkUnlock;
-	}
+    public void setLinkAuto(String linkAuto) {
+        this.linkAuto = linkAuto;
+    }
 
-	public void setLinkUnlock(String linkUnlock) {
-		this.linkUnlock = linkUnlock;
-	}
+    public String getLinkManual() {
+        return linkManual;
+    }
 
-	public String getLinkOpen() {
-		return linkOpen;
-	}
+    public void setLinkManual(String linkManual) {
+        this.linkManual = linkManual;
+    }
 
-	public void setLinkOpen(String linkOpen) {
-		this.linkOpen = linkOpen;
-	}
+    public String getAutoInfoText() {
+        return autoInfoText;
+    }
 
-	public String getCaption() {
-		return caption;
-	}
+    public void setAutoInfoText(String autoInfoText) {
+        this.autoInfoText = autoInfoText;
+    }
 
-	public void setCaption(String caption) {
-		this.caption = caption;
-	}
+    public String getLinkLock() {
+        return linkLock;
+    }
 
-	public String getLinkAutoEvent() {
-		return linkAutoEvent;
-	}
+    public void setLinkLock(String linkLock) {
+        this.linkLock = linkLock;
+    }
 
-	public void setLinkAutoEvent(String linkAutoEvent) {
-		this.linkAutoEvent = linkAutoEvent;
-	}
+    public String getLinkUnlock() {
+        return linkUnlock;
+    }
+
+    public void setLinkUnlock(String linkUnlock) {
+        this.linkUnlock = linkUnlock;
+    }
+
+    public String getLinkOpen() {
+        return linkOpen;
+    }
+
+    public void setLinkOpen(String linkOpen) {
+        this.linkOpen = linkOpen;
+    }
+
+    public String getCaption() {
+        return caption;
+    }
+
+    public void setCaption(String caption) {
+        this.caption = caption;
+    }
+
+    public String getLinkAutoEvent() {
+        return linkAutoEvent;
+    }
+
+    public void setLinkAutoEvent(String linkAutoEvent) {
+        this.linkAutoEvent = linkAutoEvent;
+    }
 
 }

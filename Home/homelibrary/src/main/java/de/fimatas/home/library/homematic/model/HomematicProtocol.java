@@ -2,21 +2,21 @@ package de.fimatas.home.library.homematic.model;
 
 public enum HomematicProtocol {
 
-	HM("BidCos"), HMIP("HmIP"), SYSVAR("SysVar");
+    HM("BidCos"), HMIP("HmIP"), SYSVAR("SysVar");
 
-	private String key;
+    private String key;
 
-	public static final String RF = "RF";
+    public static final String RF = "RF";
 
-	private HomematicProtocol(String protocol) {
-		this.key = protocol;
-	}
+    private HomematicProtocol(String protocol) {
+        this.key = protocol;
+    }
 
-	public String toHistorianString() {
-		return key.toUpperCase() + (key.equals(SYSVAR.key) ? "" : "_" + RF);
-	}
+    public String toHistorianString() {
+        return key.toUpperCase() + (key.equals(SYSVAR.key) ? "" : "_" + RF);
+    }
 
-	public String getKey() {
-		return key;
-	}
+    public String getKey() {
+        return key;
+    }
 }

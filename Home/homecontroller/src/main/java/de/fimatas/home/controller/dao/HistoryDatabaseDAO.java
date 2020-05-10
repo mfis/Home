@@ -44,253 +44,235 @@ import de.fimatas.home.library.domain.model.TimeRange;
 @Repository
 public class HistoryDatabaseDAO {
 
-	private static final String VALUE = "VAL";
+    private static final String VALUE = "VAL";
 
-	private static final DateTimeFormatter SQL_TIMESTAMP_FORMATTER = DateTimeFormatter
-			.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+    private static final DateTimeFormatter SQL_TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
-	@Autowired
-	private JdbcTemplate jdbcTemplateHistory;
+    @Autowired
+    private JdbcTemplate jdbcTemplateHistory;
 
-	@Autowired
-	private Environment env;
-	
-	@Autowired
-	private History history;
-	
-	private boolean setupIsRunning = true;
+    @Autowired
+    private Environment env;
 
-	private static final Log LOG = LogFactory.getLog(HistoryDatabaseDAO.class);
+    @Autowired
+    private History history;
 
-	@PostConstruct
-	@Transactional
-	public void setupTables() throws IOException {
+    private boolean setupIsRunning = true;
 
-		long completeCount = createTables();
+    private static final Log LOG = LogFactory.getLog(HistoryDatabaseDAO.class);
 
-		if (completeCount == 0) {
-			File importFile = new File(lookupPath() + "import.sql.zip");
-			if (importFile.exists()) {
-				LOG.info("auto-import database from: " + importFile.getAbsolutePath());
-				restoreDatabase(importFile.getAbsolutePath());
-				importFile.renameTo(new File(importFile.getAbsolutePath() + ".done")); // NOSONAR
-			}
-		}
+    @PostConstruct
+    @Transactional
+    public void setupTables() throws IOException {
 
-		setupIsRunning = false;
-	}
+        long completeCount = createTables();
 
-	@Transactional(propagation = Propagation.REQUIRED)
-	public long createTables() {
+        if (completeCount == 0) {
+            File importFile = new File(lookupPath() + "import.sql.zip");
+            if (importFile.exists()) {
+                LOG.info("auto-import database from: " + importFile.getAbsolutePath());
+                restoreDatabase(importFile.getAbsolutePath());
+                importFile.renameTo(new File(importFile.getAbsolutePath() + ".done")); // NOSONAR
+            }
+        }
 
-		long completeCount = 0;
-		for (HistoryElement history : history.list()) {
-			var varName = history.getCommand().getCashedVarName();
-			jdbcTemplateHistory.update("CREATE CACHED TABLE IF NOT EXISTS "
-					+ varName
-					+ " (TS DATETIME NOT NULL, TYP CHAR(1) NOT NULL, VAL DOUBLE NOT NULL, PRIMARY KEY (TS));");
-			jdbcTemplateHistory.update(
-					"CREATE UNIQUE INDEX IF NOT EXISTS " + "IDX1_" + varName
-							+ " ON " + varName + " (TS, TYP);");
+        setupIsRunning = false;
+    }
 
-			String countQuery = "SELECT COUNT(TS) AS CNT FROM " + varName + ";";
-			long result = jdbcTemplateHistory.queryForObject(countQuery, new Object[] {},
-					new LongRowMapper("CNT"));
-			completeCount += result;
-		}
-		LOG.info("database row count: " + completeCount);
-		return completeCount;
-	}
+    @Transactional(propagation = Propagation.REQUIRED)
+    public long createTables() {
 
-	@Transactional
-	public void backupDatabase(String filename) {
+        long completeCount = 0;
+        for (HistoryElement history : history.list()) {
+            var varName = history.getCommand().getCashedVarName();
+            jdbcTemplateHistory.update("CREATE CACHED TABLE IF NOT EXISTS " + varName
+                + " (TS DATETIME NOT NULL, TYP CHAR(1) NOT NULL, VAL DOUBLE NOT NULL, PRIMARY KEY (TS));");
+            jdbcTemplateHistory
+                .update("CREATE UNIQUE INDEX IF NOT EXISTS " + "IDX1_" + varName + " ON " + varName + " (TS, TYP);");
 
-		List<String> scriptQueries = jdbcTemplateHistory.query("SCRIPT;", new Object[] {},
-				new StringRowMapper("SCRIPT"));
+            String countQuery = "SELECT COUNT(TS) AS CNT FROM " + varName + ";";
+            long result = jdbcTemplateHistory.queryForObject(countQuery, new Object[] {}, new LongRowMapper("CNT"));
+            completeCount += result;
+        }
+        LOG.info("database row count: " + completeCount);
+        return completeCount;
+    }
 
-		try (FileOutputStream fos = new FileOutputStream(filename);
-				ZipOutputStream zipOut = new ZipOutputStream(fos);) {
+    @Transactional
+    public void backupDatabase(String filename) {
 
-			ZipEntry zipEntry = new ZipEntry(new File(filename).getName().replace(".zip", ""));
-			zipOut.putNextEntry(zipEntry);
+        List<String> scriptQueries = jdbcTemplateHistory.query("SCRIPT;", new Object[] {}, new StringRowMapper("SCRIPT"));
 
-			scriptQueries.stream().forEach(e -> {
-				String line = StringUtils.trimToEmpty(e);
-				if (isNotCreateOrAlterStatement(line)) {
-					byte[] cmdBytes = line.concat("\n").getBytes(StandardCharsets.UTF_8);
-					try {
-						zipOut.write(cmdBytes, 0, cmdBytes.length);
-					} catch (IOException ioe) {
-						throw new IllegalArgumentException("error writing zio out", ioe);
-					}
-				}
-			});
-		} catch (Exception e) {
-			LOG.error("error processing backup file:", e);
-		}
-	}
+        try (FileOutputStream fos = new FileOutputStream(filename); ZipOutputStream zipOut = new ZipOutputStream(fos);) {
 
-	private boolean isNotCreateOrAlterStatement(String line) {
-		return StringUtils.isNotBlank(line) && !StringUtils.startsWithIgnoreCase(line, "CREATE ")
-				&& !StringUtils.startsWithIgnoreCase(line, "ALTER ")
-				&& !StringUtils.startsWithIgnoreCase(line, "-- ");
-	}
+            ZipEntry zipEntry = new ZipEntry(new File(filename).getName().replace(".zip", ""));
+            zipOut.putNextEntry(zipEntry);
 
-	@Transactional(propagation = Propagation.REQUIRED)
-	public void restoreDatabase(String filename) throws IOException {
+            scriptQueries.stream().forEach(e -> {
+                String line = StringUtils.trimToEmpty(e);
+                if (isNotCreateOrAlterStatement(line)) {
+                    byte[] cmdBytes = line.concat("\n").getBytes(StandardCharsets.UTF_8);
+                    try {
+                        zipOut.write(cmdBytes, 0, cmdBytes.length);
+                    } catch (IOException ioe) {
+                        throw new IllegalArgumentException("error writing zio out", ioe);
+                    }
+                }
+            });
+        } catch (Exception e) {
+            LOG.error("error processing backup file:", e);
+        }
+    }
 
-		StringBuilder sb = new StringBuilder();
-		try (ZipInputStream zis = new ZipInputStream(new FileInputStream(filename));) {
-			byte[] buffer = new byte[1024];
-			ZipEntry zipEntry = zis.getNextEntry();
-			while (zipEntry != null) {
-				int len;
-				while ((len = zis.read(buffer)) > 0) {
-					String s = new String(buffer, 0, len, StandardCharsets.UTF_8);
-					sb.append(s);
-				}
-				zipEntry = zis.getNextEntry();
-			}
-			zis.closeEntry();
-		}
+    private boolean isNotCreateOrAlterStatement(String line) {
+        return StringUtils.isNotBlank(line) && !StringUtils.startsWithIgnoreCase(line, "CREATE ")
+            && !StringUtils.startsWithIgnoreCase(line, "ALTER ") && !StringUtils.startsWithIgnoreCase(line, "-- ");
+    }
 
-		StringTokenizer tokenizer = new StringTokenizer(sb.toString(), ";");
-		while (tokenizer.hasMoreTokens()) {
-			insertFromStatement(tokenizer.nextToken().trim() + ";");
-		}
-	}
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void restoreDatabase(String filename) throws IOException {
 
-	@Transactional(propagation = Propagation.REQUIRED)
-	public void insertFromStatement(String statement) {
-		jdbcTemplateHistory.update(statement);
-	}
+        StringBuilder sb = new StringBuilder();
+        try (ZipInputStream zis = new ZipInputStream(new FileInputStream(filename));) {
+            byte[] buffer = new byte[1024];
+            ZipEntry zipEntry = zis.getNextEntry();
+            while (zipEntry != null) {
+                int len;
+                while ((len = zis.read(buffer)) > 0) {
+                    String s = new String(buffer, 0, len, StandardCharsets.UTF_8);
+                    sb.append(s);
+                }
+                zipEntry = zis.getNextEntry();
+            }
+            zis.closeEntry();
+        }
 
-	@Transactional
-	public void persistEntries(Map<HomematicCommand, List<TimestampValuePair>> toInsert) {
+        StringTokenizer tokenizer = new StringTokenizer(sb.toString(), ";");
+        while (tokenizer.hasMoreTokens()) {
+            insertFromStatement(tokenizer.nextToken().trim() + ";");
+        }
+    }
 
-		if (setupIsRunning) {
-			throw new IllegalStateException("connat persist entries - setup is still running");
-		}
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void insertFromStatement(String statement) {
+        jdbcTemplateHistory.update(statement);
+    }
 
-		for (Entry<HomematicCommand, List<TimestampValuePair>> entry : toInsert.entrySet()) {
-			String table = entry.getKey().getCashedVarName();
-			for (TimestampValuePair pair : entry.getValue()) {
-				if (pair != null) {
-					String ts = formatTimestamp(pair.getTimestamp());
-					String val = pair.getValue().toString();
-					String sql = "insert into " + table + " (TS, TYP, VAL) values ('" + ts + "', '"
-							+ pair.getType().getDatabaseKey() + "', " + val + ");";
-					jdbcTemplateHistory.update(sql);
-				}
-			}
-		}
-	}
+    @Transactional
+    public void persistEntries(Map<HomematicCommand, List<TimestampValuePair>> toInsert) {
 
-	@Transactional(readOnly = true)
-	public TimestampValuePair readExtremValueBetween(HomematicCommand command,
-			HistoryValueType historyValueType, LocalDateTime fromDateTime, LocalDateTime untilDateTime) {
+        if (setupIsRunning) {
+            throw new IllegalStateException("connat persist entries - setup is still running");
+        }
 
-		String where = fromDateTime != null || untilDateTime != null ? " where " : "";
-		String and = fromDateTime != null && untilDateTime != null ? " and " : "";
+        for (Entry<HomematicCommand, List<TimestampValuePair>> entry : toInsert.entrySet()) {
+            String table = entry.getKey().getCashedVarName();
+            for (TimestampValuePair pair : entry.getValue()) {
+                if (pair != null) {
+                    String ts = formatTimestamp(pair.getTimestamp());
+                    String val = pair.getValue().toString();
+                    String sql = "insert into " + table + " (TS, TYP, VAL) values ('" + ts + "', '"
+                        + pair.getType().getDatabaseKey() + "', " + val + ");";
+                    jdbcTemplateHistory.update(sql);
+                }
+            }
+        }
+    }
 
-		String query = "select " + (historyValueType == HistoryValueType.MIN ? "min" : "max")
-				+ "(val) as val FROM " + command.getCashedVarName() + where
-				+ (fromDateTime != null ? ("ts >= '" + formatTimestamp(fromDateTime) + "'") : "") + and
-				+ (untilDateTime != null ? ("ts < '" + formatTimestamp(untilDateTime) + "'") : "") + ";";
+    @Transactional(readOnly = true)
+    public TimestampValuePair readExtremValueBetween(HomematicCommand command, HistoryValueType historyValueType,
+            LocalDateTime fromDateTime, LocalDateTime untilDateTime) {
 
-		BigDecimal result = jdbcTemplateHistory.queryForObject(query, new Object[] {},
-				new BigDecimalRowMapper(VALUE));
-		if (result == null) {
-			return null;
-		} else {
-			return new TimestampValuePair(null, result, historyValueType);
-		}
-	}
+        String where = fromDateTime != null || untilDateTime != null ? " where " : "";
+        String and = fromDateTime != null && untilDateTime != null ? " and " : "";
 
-	@Transactional(readOnly = true)
-	public TimestampValuePair readExtremValueInTimeRange(HomematicCommand command,
-			HistoryValueType historyValueType, TimeRange timerange, LocalDateTime fromDateTime,
-			LocalDateTime untilDateTime) {
+        String query = "select " + (historyValueType == HistoryValueType.MIN ? "min" : "max") + "(val) as val FROM "
+            + command.getCashedVarName() + where
+            + (fromDateTime != null ? ("ts >= '" + formatTimestamp(fromDateTime) + "'") : "") + and
+            + (untilDateTime != null ? ("ts < '" + formatTimestamp(untilDateTime) + "'") : "") + ";";
 
-		String query = "select " + (historyValueType == HistoryValueType.MIN ? "min" : "max")
-				+ "(val) as val FROM " + command.getCashedVarName() + " where ts >= '"
-				+ formatTimestamp(fromDateTime) + "' and ts < '" + formatTimestamp(untilDateTime) + "'"
-				+ " and hour(ts) " + timerange.getHoursSqlQueryString() + ";";
+        BigDecimal result = jdbcTemplateHistory.queryForObject(query, new Object[] {}, new BigDecimalRowMapper(VALUE));
+        if (result == null) {
+            return null;
+        } else {
+            return new TimestampValuePair(null, result, historyValueType);
+        }
+    }
 
-		BigDecimal result = jdbcTemplateHistory.queryForObject(query, new Object[] {},
-				new BigDecimalRowMapper(VALUE));
-		if (result == null) {
-			return null;
-		} else {
-			return new TimestampValuePair(null, result, historyValueType);
-		}
-	}
+    @Transactional(readOnly = true)
+    public TimestampValuePair readExtremValueInTimeRange(HomematicCommand command, HistoryValueType historyValueType,
+            TimeRange timerange, LocalDateTime fromDateTime, LocalDateTime untilDateTime) {
 
-	@Transactional(readOnly = true)
-	public TimestampValuePair readFirstValueBefore(HomematicCommand command, LocalDateTime localDateTime,
-			int maxHoursReverse) {
+        String query = "select " + (historyValueType == HistoryValueType.MIN ? "min" : "max") + "(val) as val FROM "
+            + command.getCashedVarName() + " where ts >= '" + formatTimestamp(fromDateTime) + "' and ts < '"
+            + formatTimestamp(untilDateTime) + "'" + " and hour(ts) " + timerange.getHoursSqlQueryString() + ";";
 
-		String query = "select val FROM " + command.getCashedVarName() + " where ts <= '"
-				+ formatTimestamp(localDateTime) + "' and ts > '"
-				+ formatTimestamp(localDateTime.minusHours(maxHoursReverse))
-				+ "' order by ts desc fetch first row only;";
+        BigDecimal result = jdbcTemplateHistory.queryForObject(query, new Object[] {}, new BigDecimalRowMapper(VALUE));
+        if (result == null) {
+            return null;
+        } else {
+            return new TimestampValuePair(null, result, historyValueType);
+        }
+    }
 
-		List<BigDecimal> result = jdbcTemplateHistory.query(query, new Object[] {},
-				new BigDecimalRowMapper(VALUE));
-		if (result.isEmpty()) {
-			return null;
-		} else {
-			return new TimestampValuePair(null, result.get(0), HistoryValueType.SINGLE);
-		}
-	}
+    @Transactional(readOnly = true)
+    public TimestampValuePair readFirstValueBefore(HomematicCommand command, LocalDateTime localDateTime, int maxHoursReverse) {
 
-	@Transactional(readOnly = true)
-	public TimestampValuePair readLatestValue(HomematicCommand command) {
+        String query =
+            "select val FROM " + command.getCashedVarName() + " where ts <= '" + formatTimestamp(localDateTime) + "' and ts > '"
+                + formatTimestamp(localDateTime.minusHours(maxHoursReverse)) + "' order by ts desc fetch first row only;";
 
-		var varName = command.getCashedVarName();
-		String query = "SELECT * FROM " + varName + " where ts = (select max(ts) from "
-				+ varName + ");";
+        List<BigDecimal> result = jdbcTemplateHistory.query(query, new Object[] {}, new BigDecimalRowMapper(VALUE));
+        if (result.isEmpty()) {
+            return null;
+        } else {
+            return new TimestampValuePair(null, result.get(0), HistoryValueType.SINGLE);
+        }
+    }
 
-		List<TimestampValuePair> result = jdbcTemplateHistory.query(query, new Object[] {},
-				new TimestampValueRowMapper());
-		if (result.isEmpty()) {
-			return null;
-		} else {
-			return result.get(0);
-		}
-	}
+    @Transactional(readOnly = true)
+    public TimestampValuePair readLatestValue(HomematicCommand command) {
 
-	@Transactional(readOnly = true)
-	public List<TimestampValuePair> readValues(HomematicCommand command, LocalDateTime optionalFromDateTime) {
+        var varName = command.getCashedVarName();
+        String query = "SELECT * FROM " + varName + " where ts = (select max(ts) from " + varName + ");";
 
-		String whereClause = StringUtils.EMPTY;
-		if (optionalFromDateTime != null) {
-			String startTs = formatTimestamp(optionalFromDateTime);
-			whereClause = " where ts > '" + startTs + "'";
-		}
-		return jdbcTemplateHistory.query(
-				"select * FROM " + command.getCashedVarName() + whereClause + " order by ts asc;",
-				new Object[] {}, new TimestampValueRowMapper());
-	}
+        List<TimestampValuePair> result = jdbcTemplateHistory.query(query, new Object[] {}, new TimestampValueRowMapper());
+        if (result.isEmpty()) {
+            return null;
+        } else {
+            return result.get(0);
+        }
+    }
 
-	public String lookupPath() {
+    @Transactional(readOnly = true)
+    public List<TimestampValuePair> readValues(HomematicCommand command, LocalDateTime optionalFromDateTime) {
 
-		String path = env.getProperty("backup.database.path");
-		if (!path.endsWith("/")) {
-			path = path + "/"; // NOSONAR
-		}
-		return path;
-	}
+        String whereClause = StringUtils.EMPTY;
+        if (optionalFromDateTime != null) {
+            String startTs = formatTimestamp(optionalFromDateTime);
+            whereClause = " where ts > '" + startTs + "'";
+        }
+        return jdbcTemplateHistory.query("select * FROM " + command.getCashedVarName() + whereClause + " order by ts asc;",
+            new Object[] {}, new TimestampValueRowMapper());
+    }
 
-	private String formatTimestamp(LocalDateTime optionalFromDateTime) {
-		String startTs;
-		if (optionalFromDateTime == null) {
-			startTs = SQL_TIMESTAMP_FORMATTER
-					.format(LocalDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault()));
-		} else {
-			startTs = SQL_TIMESTAMP_FORMATTER.format(optionalFromDateTime);
-		}
-		return startTs;
-	}
+    public String lookupPath() {
+
+        String path = env.getProperty("backup.database.path");
+        if (!path.endsWith("/")) {
+            path = path + "/"; // NOSONAR
+        }
+        return path;
+    }
+
+    private String formatTimestamp(LocalDateTime optionalFromDateTime) {
+        String startTs;
+        if (optionalFromDateTime == null) {
+            startTs = SQL_TIMESTAMP_FORMATTER.format(LocalDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault()));
+        } else {
+            startTs = SQL_TIMESTAMP_FORMATTER.format(optionalFromDateTime);
+        }
+        return startTs;
+    }
 
 }

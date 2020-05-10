@@ -16,21 +16,21 @@ import de.fimatas.home.library.domain.model.ActionModel;
 @RestController
 public class RequestMapping {
 
-	@Autowired
-	private HouseService houseService;
+    @Autowired
+    private HouseService houseService;
 
-	private static final Log LOG = LogFactory.getLog(RequestMapping.class);
+    private static final Log LOG = LogFactory.getLog(RequestMapping.class);
 
-	@PostConstruct
-	private void postConstruct() {
-		String uuid = UUID.randomUUID().toString();
-		LOG.info("UUID=" + uuid);
-	}
+    @PostConstruct
+    private void postConstruct() {
+        String uuid = UUID.randomUUID().toString();
+        LOG.info("UUID=" + uuid);
+    }
 
-	@GetMapping("/controller/refresh")
-	public ActionModel refresh() {
-		houseService.refreshHouseModel();
-		return new ActionModel("OK");
-	}
+    @GetMapping("/controller/refresh")
+    public ActionModel refresh() {
+        houseService.refreshHouseModel();
+        return new ActionModel("OK");
+    }
 
 }

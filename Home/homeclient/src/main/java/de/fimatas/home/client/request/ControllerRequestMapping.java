@@ -26,59 +26,60 @@ import de.fimatas.home.library.model.Message;
 @RestController
 public class ControllerRequestMapping {
 
-	public static final String CONTROLLER_LONG_POLLING_FOR_AWAIT_MESSAGE_REQUEST = "/controllerLongPollingForAwaitMessageRequest";
+    public static final String CONTROLLER_LONG_POLLING_FOR_AWAIT_MESSAGE_REQUEST =
+        "/controllerLongPollingForAwaitMessageRequest";
 
-	public static final String UPLOAD_METHOD_PREFIX = "/upload";
+    public static final String UPLOAD_METHOD_PREFIX = "/upload";
 
-	@Autowired
-	private Environment env;
+    @Autowired
+    private Environment env;
 
-	@PostMapping(value = UPLOAD_METHOD_PREFIX + "CameraModel")
-	public ActionModel uploadCameraModel(@RequestBody CameraModel cameraModel) {
-		ModelObjectDAO.getInstance().write(cameraModel);
-		return new ActionModel("OK");
-	}
+    @PostMapping(value = UPLOAD_METHOD_PREFIX + "CameraModel")
+    public ActionModel uploadCameraModel(@RequestBody CameraModel cameraModel) {
+        ModelObjectDAO.getInstance().write(cameraModel);
+        return new ActionModel("OK");
+    }
 
-	@PostMapping(value = UPLOAD_METHOD_PREFIX + "HouseModel")
-	public ActionModel uploadHouseModel(@RequestBody HouseModel houseModel) {
-		ModelObjectDAO.getInstance().write(houseModel);
-		return new ActionModel("OK");
-	}
+    @PostMapping(value = UPLOAD_METHOD_PREFIX + "HouseModel")
+    public ActionModel uploadHouseModel(@RequestBody HouseModel houseModel) {
+        ModelObjectDAO.getInstance().write(houseModel);
+        return new ActionModel("OK");
+    }
 
-	@PostMapping(value = UPLOAD_METHOD_PREFIX + "HistoryModel")
-	public ActionModel uploadHistoryModel(@RequestBody HistoryModel historyModel) {
-		ModelObjectDAO.getInstance().write(historyModel);
-		return new ActionModel("OK");
-	}
+    @PostMapping(value = UPLOAD_METHOD_PREFIX + "HistoryModel")
+    public ActionModel uploadHistoryModel(@RequestBody HistoryModel historyModel) {
+        ModelObjectDAO.getInstance().write(historyModel);
+        return new ActionModel("OK");
+    }
 
-	@PostMapping(value = UPLOAD_METHOD_PREFIX + "SettingsModel")
-	public ActionModel uploadSettingsModel(@RequestBody SettingsModel settingsModel) {
-		ModelObjectDAO.getInstance().write(settingsModel);
-		return new ActionModel("OK");
-	}
+    @PostMapping(value = UPLOAD_METHOD_PREFIX + "SettingsModel")
+    public ActionModel uploadSettingsModel(@RequestBody SettingsModel settingsModel) {
+        ModelObjectDAO.getInstance().write(settingsModel);
+        return new ActionModel("OK");
+    }
 
-	@PostMapping(value = UPLOAD_METHOD_PREFIX + "Message")
-	public ActionModel controllerLongPollingForAsyncResponse(@RequestBody Message response) {
-		MessageQueue.getInstance().addResponse(response);
-		return new ActionModel("OK");
-	}
+    @PostMapping(value = UPLOAD_METHOD_PREFIX + "Message")
+    public ActionModel controllerLongPollingForAsyncResponse(@RequestBody Message response) {
+        MessageQueue.getInstance().addResponse(response);
+        return new ActionModel("OK");
+    }
 
-	@PostMapping(value = UPLOAD_METHOD_PREFIX + "BackupFile")
-	public ActionModel uploadBackupFile(@RequestBody BackupFile backupFile) throws IOException {
-		String path = env.getProperty("backup.location");
-		if (!path.endsWith("/")) {
-			path = path + "/"; // NOSONAR
-		}
-		String absFilePath = path + backupFile.getFilename();
-		FileUtils.writeByteArrayToFile(new File(absFilePath), backupFile.getBytes());
-		return new ActionModel("OK");
-	}
+    @PostMapping(value = UPLOAD_METHOD_PREFIX + "BackupFile")
+    public ActionModel uploadBackupFile(@RequestBody BackupFile backupFile) throws IOException {
+        String path = env.getProperty("backup.location");
+        if (!path.endsWith("/")) {
+            path = path + "/"; // NOSONAR
+        }
+        String absFilePath = path + backupFile.getFilename();
+        FileUtils.writeByteArrayToFile(new File(absFilePath), backupFile.getBytes());
+        return new ActionModel("OK");
+    }
 
-	@PostMapping(value = CONTROLLER_LONG_POLLING_FOR_AWAIT_MESSAGE_REQUEST)
-	public DeferredResult<Message> controllerLongPollingForAwaitMessageRequest() {
-		ModelObjectDAO.getInstance().setLastLongPollingTimestamp(new Date().getTime());
-		DeferredResult<Message> deferredResult = new DeferredResult<>(Long.MAX_VALUE, null);
-		CompletableFuture.runAsync(() -> deferredResult.setResult(MessageQueue.getInstance().pollMessage()));
-		return deferredResult;
-	}
+    @PostMapping(value = CONTROLLER_LONG_POLLING_FOR_AWAIT_MESSAGE_REQUEST)
+    public DeferredResult<Message> controllerLongPollingForAwaitMessageRequest() {
+        ModelObjectDAO.getInstance().setLastLongPollingTimestamp(new Date().getTime());
+        DeferredResult<Message> deferredResult = new DeferredResult<>(Long.MAX_VALUE, null);
+        CompletableFuture.runAsync(() -> deferredResult.setResult(MessageQueue.getInstance().pollMessage()));
+        return deferredResult;
+    }
 }

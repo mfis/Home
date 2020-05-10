@@ -8,109 +8,113 @@ import java.util.List;
 
 public class HistoryModel implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private long dateTime;
+    private long dateTime;
 
-	private List<PowerConsumptionMonth> electricPowerConsumptionMonth;
-	private List<PowerConsumptionDay> electricPowerConsumptionDay;
+    private List<PowerConsumptionMonth> electricPowerConsumptionMonth;
 
-	private boolean initialized = false;
+    private List<PowerConsumptionDay> electricPowerConsumptionDay;
 
-	private BigDecimal highestOutsideTemperatureInLast24Hours;
+    private boolean initialized = false;
 
-	private LinkedList<TemperatureHistory> outsideTemperature;
-	private LinkedList<TemperatureHistory> bedRoomTemperature;
-	private LinkedList<TemperatureHistory> kidsRoomTemperature;
-	private LinkedList<TemperatureHistory> laundryTemperature;
+    private BigDecimal highestOutsideTemperatureInLast24Hours;
 
-	// ----------
+    private LinkedList<TemperatureHistory> outsideTemperature;
 
-	public void updateDateTime() {
-		dateTime = new Date().getTime();
-	}
+    private LinkedList<TemperatureHistory> bedRoomTemperature;
 
-	public boolean isInitialized() {
-		return initialized;
-	}
+    private LinkedList<TemperatureHistory> kidsRoomTemperature;
 
-	public void setInitialized(boolean initialized) {
-		this.initialized = initialized;
-	}
+    private LinkedList<TemperatureHistory> laundryTemperature;
 
-	public LinkedList<TemperatureHistory> getOutsideTemperature() { // NOSONAR
-		return outsideTemperature;
-	}
+    // ----------
 
-	public void setOutsideTemperature(LinkedList<TemperatureHistory> outsideTemperature) { // NOSONAR
-		this.outsideTemperature = outsideTemperature;
-	}
+    public void updateDateTime() {
+        dateTime = new Date().getTime();
+    }
 
-	public HistoryModel() {
-		super();
-		updateDateTime();
-		electricPowerConsumptionMonth = new LinkedList<>();
-		electricPowerConsumptionDay = new LinkedList<>();
-		outsideTemperature = new LinkedList<>();
-		bedRoomTemperature = new LinkedList<>();
-		kidsRoomTemperature = new LinkedList<>();
-		laundryTemperature = new LinkedList<>();
-	}
+    public boolean isInitialized() {
+        return initialized;
+    }
 
-	public long getDateTime() {
-		return dateTime;
-	}
+    public void setInitialized(boolean initialized) {
+        this.initialized = initialized;
+    }
 
-	public BigDecimal getHighestOutsideTemperatureInLast24Hours() {
-		return highestOutsideTemperatureInLast24Hours;
-	}
+    public LinkedList<TemperatureHistory> getOutsideTemperature() { // NOSONAR
+        return outsideTemperature;
+    }
 
-	public void setHighestOutsideTemperatureInLast24Hours(BigDecimal highestOutsideTemperatureInLast24Hours) {
-		this.highestOutsideTemperatureInLast24Hours = highestOutsideTemperatureInLast24Hours;
-	}
+    public void setOutsideTemperature(LinkedList<TemperatureHistory> outsideTemperature) { // NOSONAR
+        this.outsideTemperature = outsideTemperature;
+    }
 
-	public void setDateTime(long dateTime) {
-		this.dateTime = dateTime;
-	}
+    public HistoryModel() {
+        super();
+        updateDateTime();
+        electricPowerConsumptionMonth = new LinkedList<>();
+        electricPowerConsumptionDay = new LinkedList<>();
+        outsideTemperature = new LinkedList<>();
+        bedRoomTemperature = new LinkedList<>();
+        kidsRoomTemperature = new LinkedList<>();
+        laundryTemperature = new LinkedList<>();
+    }
 
-	public LinkedList<TemperatureHistory> getBedRoomTemperature() {// NOSONAR
-		return bedRoomTemperature;
-	}
+    public long getDateTime() {
+        return dateTime;
+    }
 
-	public void setBedRoomTemperature(LinkedList<TemperatureHistory> bedRoomTemperature) {// NOSONAR
-		this.bedRoomTemperature = bedRoomTemperature;
-	}
+    public BigDecimal getHighestOutsideTemperatureInLast24Hours() {
+        return highestOutsideTemperatureInLast24Hours;
+    }
 
-	public LinkedList<TemperatureHistory> getKidsRoomTemperature() {// NOSONAR
-		return kidsRoomTemperature;
-	}
+    public void setHighestOutsideTemperatureInLast24Hours(BigDecimal highestOutsideTemperatureInLast24Hours) {
+        this.highestOutsideTemperatureInLast24Hours = highestOutsideTemperatureInLast24Hours;
+    }
 
-	public void setKidsRoomTemperature(LinkedList<TemperatureHistory> kidsRoomTemperature) {// NOSONAR
-		this.kidsRoomTemperature = kidsRoomTemperature;
-	}
+    public void setDateTime(long dateTime) {
+        this.dateTime = dateTime;
+    }
 
-	public LinkedList<TemperatureHistory> getLaundryTemperature() {// NOSONAR
-		return laundryTemperature;
-	}
+    public LinkedList<TemperatureHistory> getBedRoomTemperature() {// NOSONAR
+        return bedRoomTemperature;
+    }
 
-	public void setLaundryTemperature(LinkedList<TemperatureHistory> laundryTemperature) {// NOSONAR
-		this.laundryTemperature = laundryTemperature;
-	}
+    public void setBedRoomTemperature(LinkedList<TemperatureHistory> bedRoomTemperature) {// NOSONAR
+        this.bedRoomTemperature = bedRoomTemperature;
+    }
 
-	public List<PowerConsumptionMonth> getElectricPowerConsumptionMonth() {
-		return electricPowerConsumptionMonth;
-	}
+    public LinkedList<TemperatureHistory> getKidsRoomTemperature() {// NOSONAR
+        return kidsRoomTemperature;
+    }
 
-	public void setElectricPowerConsumptionMonth(List<PowerConsumptionMonth> electricPowerConsumptionMonth) {
-		this.electricPowerConsumptionMonth = electricPowerConsumptionMonth;
-	}
+    public void setKidsRoomTemperature(LinkedList<TemperatureHistory> kidsRoomTemperature) {// NOSONAR
+        this.kidsRoomTemperature = kidsRoomTemperature;
+    }
 
-	public List<PowerConsumptionDay> getElectricPowerConsumptionDay() {
-		return electricPowerConsumptionDay;
-	}
+    public LinkedList<TemperatureHistory> getLaundryTemperature() {// NOSONAR
+        return laundryTemperature;
+    }
 
-	public void setElectricPowerConsumptionDay(List<PowerConsumptionDay> electricPowerConsumptionDay) {
-		this.electricPowerConsumptionDay = electricPowerConsumptionDay;
-	}
+    public void setLaundryTemperature(LinkedList<TemperatureHistory> laundryTemperature) {// NOSONAR
+        this.laundryTemperature = laundryTemperature;
+    }
+
+    public List<PowerConsumptionMonth> getElectricPowerConsumptionMonth() {
+        return electricPowerConsumptionMonth;
+    }
+
+    public void setElectricPowerConsumptionMonth(List<PowerConsumptionMonth> electricPowerConsumptionMonth) {
+        this.electricPowerConsumptionMonth = electricPowerConsumptionMonth;
+    }
+
+    public List<PowerConsumptionDay> getElectricPowerConsumptionDay() {
+        return electricPowerConsumptionDay;
+    }
+
+    public void setElectricPowerConsumptionDay(List<PowerConsumptionDay> electricPowerConsumptionDay) {
+        this.electricPowerConsumptionDay = electricPowerConsumptionDay;
+    }
 
 }

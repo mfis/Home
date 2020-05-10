@@ -5,20 +5,20 @@ import java.math.BigDecimal;
 
 public class PowerMeter extends AbstractDeviceModel implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public PowerMeter() {
-		super();
-	}
+    public PowerMeter() {
+        super();
+    }
 
-	private ValueWithTendency<BigDecimal> actualConsumption;
+    private ValueWithTendency<BigDecimal> actualConsumption;
 
-	public ValueWithTendency<BigDecimal> getActualConsumption() {
-		return actualConsumption;
-	}
+    public ValueWithTendency<BigDecimal> getActualConsumption() {
+        return actualConsumption;
+    }
 
-	public void setActualConsumption(ValueWithTendency<BigDecimal> actualConsumption) {
-		this.actualConsumption = actualConsumption;
-	}
+    public void setActualConsumption(ValueWithTendency<BigDecimal> actualConsumption) {
+        this.actualConsumption = actualConsumption;
+    }
 
 }

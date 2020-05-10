@@ -8,15 +8,15 @@ import org.springframework.jdbc.core.RowMapper;
 
 public class BigDecimalRowMapper implements RowMapper<BigDecimal> {
 
-	private String colName;
+    private String colName;
 
-	public BigDecimalRowMapper(String colName) {
-		this.colName = colName;
-	}
+    public BigDecimalRowMapper(String colName) {
+        this.colName = colName;
+    }
 
-	@Override
-	public BigDecimal mapRow(ResultSet rs, int rowNum) throws SQLException {
-		return rs.getBigDecimal(colName);
-	}
+    @Override
+    public BigDecimal mapRow(ResultSet rs, int rowNum) throws SQLException {
+        return rs.getBigDecimal(colName);
+    }
 
 }

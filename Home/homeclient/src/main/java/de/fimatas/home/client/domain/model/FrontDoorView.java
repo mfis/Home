@@ -2,61 +2,64 @@ package de.fimatas.home.client.domain.model;
 
 public class FrontDoorView extends View {
 
-	private String lastDoorbells = "";
+    private String lastDoorbells = "";
 
-	private String idLive = "";
-	private String linkLive = "";
-	private String linkLiveRequest = "";
+    private String idLive = "";
 
-	private String idBell = "";
-	private String linkBell = "";
+    private String linkLive = "";
 
-	public String getLastDoorbells() {
-		return lastDoorbells;
-	}
+    private String linkLiveRequest = "";
 
-	public void setLastDoorbells(String lastDoorbells) {
-		this.lastDoorbells = lastDoorbells;
-	}
+    private String idBell = "";
 
-	public String getLinkLive() {
-		return linkLive;
-	}
+    private String linkBell = "";
 
-	public void setLinkLive(String linkLive) {
-		this.linkLive = linkLive;
-	}
+    public String getLastDoorbells() {
+        return lastDoorbells;
+    }
 
-	public String getIdLive() {
-		return idLive;
-	}
+    public void setLastDoorbells(String lastDoorbells) {
+        this.lastDoorbells = lastDoorbells;
+    }
 
-	public void setIdLive(String idLive) {
-		this.idLive = idLive;
-	}
+    public String getLinkLive() {
+        return linkLive;
+    }
 
-	public String getIdBell() {
-		return idBell;
-	}
+    public void setLinkLive(String linkLive) {
+        this.linkLive = linkLive;
+    }
 
-	public void setIdBell(String idBell) {
-		this.idBell = idBell;
-	}
+    public String getIdLive() {
+        return idLive;
+    }
 
-	public String getLinkBell() {
-		return linkBell;
-	}
+    public void setIdLive(String idLive) {
+        this.idLive = idLive;
+    }
 
-	public void setLinkBell(String linkBell) {
-		this.linkBell = linkBell;
-	}
+    public String getIdBell() {
+        return idBell;
+    }
 
-	public String getLinkLiveRequest() {
-		return linkLiveRequest;
-	}
+    public void setIdBell(String idBell) {
+        this.idBell = idBell;
+    }
 
-	public void setLinkLiveRequest(String linkLiveRequest) {
-		this.linkLiveRequest = linkLiveRequest;
-	}
+    public String getLinkBell() {
+        return linkBell;
+    }
+
+    public void setLinkBell(String linkBell) {
+        this.linkBell = linkBell;
+    }
+
+    public String getLinkLiveRequest() {
+        return linkLiveRequest;
+    }
+
+    public void setLinkLiveRequest(String linkLiveRequest) {
+        this.linkLiveRequest = linkLiveRequest;
+    }
 
 }

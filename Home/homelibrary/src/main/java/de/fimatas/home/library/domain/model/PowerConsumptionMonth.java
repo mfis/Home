@@ -7,47 +7,46 @@ import java.time.ZoneId;
 
 public class PowerConsumptionMonth implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private Long powerConsumption;
+    private Long powerConsumption;
 
-	private long measurePointMin;
+    private long measurePointMin;
 
-	private long measurePointMax;
+    private long measurePointMax;
 
-	private transient LocalDateTime measurePointMaxDateTime = null;
+    private transient LocalDateTime measurePointMaxDateTime = null;
 
-	public Long getPowerConsumption() {
-		return powerConsumption;
-	}
+    public Long getPowerConsumption() {
+        return powerConsumption;
+    }
 
-	public void setPowerConsumption(Long powerConsumption) {
-		this.powerConsumption = powerConsumption;
-	}
+    public void setPowerConsumption(Long powerConsumption) {
+        this.powerConsumption = powerConsumption;
+    }
 
-	public long getMeasurePointMin() {
-		return measurePointMin;
-	}
+    public long getMeasurePointMin() {
+        return measurePointMin;
+    }
 
-	public void setMeasurePointMin(long measurePointMin) {
-		this.measurePointMin = measurePointMin;
-	}
+    public void setMeasurePointMin(long measurePointMin) {
+        this.measurePointMin = measurePointMin;
+    }
 
-	public long getMeasurePointMax() {
-		return measurePointMax;
-	}
+    public long getMeasurePointMax() {
+        return measurePointMax;
+    }
 
-	public LocalDateTime measurePointMaxDateTime() {
-		if (measurePointMaxDateTime == null) {
-			measurePointMaxDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(measurePointMax),
-					ZoneId.systemDefault());
-		}
-		return measurePointMaxDateTime;
-	}
+    public LocalDateTime measurePointMaxDateTime() {
+        if (measurePointMaxDateTime == null) {
+            measurePointMaxDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(measurePointMax), ZoneId.systemDefault());
+        }
+        return measurePointMaxDateTime;
+    }
 
-	public void setMeasurePointMax(long measurePointMax) {
-		this.measurePointMax = measurePointMax;
-		measurePointMaxDateTime = null;
-	}
+    public void setMeasurePointMax(long measurePointMax) {
+        this.measurePointMax = measurePointMax;
+        measurePointMaxDateTime = null;
+    }
 
 }

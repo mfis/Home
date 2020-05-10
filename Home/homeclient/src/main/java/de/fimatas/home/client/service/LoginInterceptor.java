@@ -22,235 +22,232 @@ import de.fimatas.home.library.util.HomeAppConstants;
 
 public class LoginInterceptor extends HandlerInterceptorAdapter {
 
-	private static final String LOGIN_PASSWORD = "login_password"; // NOSONAR
+    private static final String LOGIN_PASSWORD = "login_password"; // NOSONAR
 
-	private static final String LOGIN_USERNAME = "login_username";
+    private static final String LOGIN_USERNAME = "login_username";
 
-	@Autowired
-	private UserService userService;
+    @Autowired
+    private UserService userService;
 
-	@Autowired
-	private Environment env;
+    @Autowired
+    private Environment env;
 
-	private int controllerFalseLoginCounter = 0;
+    private int controllerFalseLoginCounter = 0;
 
-	private int clientFalseLoginCounter = 0;
+    private int clientFalseLoginCounter = 0;
 
-	public static final String COOKIE_NAME = "HomeLoginCookie";
+    public static final String COOKIE_NAME = "HomeLoginCookie";
 
-	private Log logger = LogFactory.getLog(LoginInterceptor.class);
+    private Log logger = LogFactory.getLog(LoginInterceptor.class);
 
-	@Override
-	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
-			throws Exception {
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
-		if (isControllerRequest(request)) {
-			String token = env.getProperty(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN);
-			String tokenSent = request.getHeader(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN);
-			return controllerSuccessResponse(StringUtils.isNotBlank(tokenSent) && StringUtils.equals(token, tokenSent));
-		}
+        if (isControllerRequest(request)) {
+            String token = env.getProperty(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN);
+            String tokenSent = request.getHeader(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN);
+            return controllerSuccessResponse(StringUtils.isNotBlank(tokenSent) && StringUtils.equals(token, tokenSent));
+        }
 
-		if (isAssetRequest(request)) {
-			return true;
-		}
+        if (isAssetRequest(request)) {
+            return true;
+        }
 
-		if (isLoginRequest(request)) {
-			return true;
-		}
+        if (isLoginRequest(request)) {
+            return true;
+        }
 
-		if (isLogoffRequest(request)) {
-			cookieDelete(request, response);
-			response.sendRedirect(LoginController.LOGIN_URI);
-			return false;
-		}
+        if (isLogoffRequest(request)) {
+            cookieDelete(request, response);
+            response.sendRedirect(LoginController.LOGIN_URI);
+            return false;
+        }
 
-		Map<String, String> params = mapRequestParameters(request);
-		String cookie = cookieRead(request);
-		String userName = null;
+        Map<String, String> params = mapRequestParameters(request);
+        String cookie = cookieRead(request);
+        String userName = null;
 
-		if (params.containsKey(LOGIN_USERNAME)) {
-			if (userHasNotAcceptedCookies(params)) {
-				response.sendRedirect(LoginController.LOGIN_COOKIECHECK_URI);
-				return false;
-			} else {
-				userName = login(params);
-			}
-		} else if (cookie != null) {
-			userName = StringUtils.trimToNull(LoginCookieDAO.getInstance().read(cookie));
-		}
+        if (params.containsKey(LOGIN_USERNAME)) {
+            if (userHasNotAcceptedCookies(params)) {
+                response.sendRedirect(LoginController.LOGIN_COOKIECHECK_URI);
+                return false;
+            } else {
+                userName = login(params);
+            }
+        } else if (cookie != null) {
+            userName = StringUtils.trimToNull(LoginCookieDAO.getInstance().read(cookie));
+        }
 
-		return handleLoginttempt(request, response, params, userName);
-	}
+        return handleLoginttempt(request, response, params, userName);
+    }
 
-	private boolean userHasNotAcceptedCookies(Map<String, String> params) {
-		return !StringUtils.trimToEmpty(params.get("login_cookieok")).equals("true");
-	}
+    private boolean userHasNotAcceptedCookies(Map<String, String> params) {
+        return !StringUtils.trimToEmpty(params.get("login_cookieok")).equals("true");
+    }
 
-	private boolean handleLoginttempt(HttpServletRequest request, HttpServletResponse response,
-			Map<String, String> params, String userName) throws IOException {
+    private boolean handleLoginttempt(HttpServletRequest request, HttpServletResponse response, Map<String, String> params,
+            String userName) throws IOException {
 
-		if (userName == null) {
-			String loginUser = StringUtils.trimToNull(params.get(LOGIN_USERNAME));
-			String cookie = StringUtils.trimToNull(cookieRead(request));
-			if (cookie != null || loginUser != null) {
-				response.sendRedirect(LoginController.LOGIN_FAILED_URI);
-				handleClientFalseLoginCounter();
-				logger.info("attempt login not successful - user=" + loginUser + ", cookie=" + cookie + ", requested="
-						+ request.getRequestURI());
-			} else {
-				response.sendRedirect(LoginController.LOGIN_URI);
-			}
-			return false;
-		} else {
-			controllerFalseLoginCounter = 0; // reset at manual login
-			setNewCookie(request, response, userName);
-			return true;
-		}
-	}
+        if (userName == null) {
+            String loginUser = StringUtils.trimToNull(params.get(LOGIN_USERNAME));
+            String cookie = StringUtils.trimToNull(cookieRead(request));
+            if (cookie != null || loginUser != null) {
+                response.sendRedirect(LoginController.LOGIN_FAILED_URI);
+                handleClientFalseLoginCounter();
+                logger.info("attempt login not successful - user=" + loginUser + ", cookie=" + cookie + ", requested="
+                    + request.getRequestURI());
+            } else {
+                response.sendRedirect(LoginController.LOGIN_URI);
+            }
+            return false;
+        } else {
+            controllerFalseLoginCounter = 0; // reset at manual login
+            setNewCookie(request, response, userName);
+            return true;
+        }
+    }
 
-	private Map<String, String> mapRequestParameters(HttpServletRequest request) {
+    private Map<String, String> mapRequestParameters(HttpServletRequest request) {
 
-		Map<String, String> params = new HashMap<>();
-		Enumeration<String> parameterNames = request.getParameterNames();
-		while (parameterNames.hasMoreElements()) {
-			String key = parameterNames.nextElement();
-			params.put(key, request.getParameter(key));
-		}
-		return params;
-	}
+        Map<String, String> params = new HashMap<>();
+        Enumeration<String> parameterNames = request.getParameterNames();
+        while (parameterNames.hasMoreElements()) {
+            String key = parameterNames.nextElement();
+            params.put(key, request.getParameter(key));
+        }
+        return params;
+    }
 
-	private boolean isLogoffRequest(HttpServletRequest request) {
-		return StringUtils.equals(request.getRequestURI(), LoginController.LOGOFF_URI);
-	}
+    private boolean isLogoffRequest(HttpServletRequest request) {
+        return StringUtils.equals(request.getRequestURI(), LoginController.LOGOFF_URI);
+    }
 
-	private void handleClientFalseLoginCounter() {
+    private void handleClientFalseLoginCounter() {
 
-		clientFalseLoginCounter++;
-		if (clientFalseLoginCounter > 10) { // cookie brute force attack?
-			logger.info("handleClientFalseLogin - deleting all cookie information");
-			LoginCookieDAO.getInstance().deleteAll();
-			clientFalseLoginCounter = 0;
-		}
-	}
+        clientFalseLoginCounter++;
+        if (clientFalseLoginCounter > 10) { // cookie brute force attack?
+            logger.info("handleClientFalseLogin - deleting all cookie information");
+            LoginCookieDAO.getInstance().deleteAll();
+            clientFalseLoginCounter = 0;
+        }
+    }
 
-	private boolean controllerSuccessResponse(boolean success) {
+    private boolean controllerSuccessResponse(boolean success) {
 
-		if (controllerFalseLoginCounter > 3) { // controller token brute force
-												// attack?
-			logger.error("controllerFalseLoginCounter=" + controllerFalseLoginCounter);
-			return false;
-		} else if (success) {
-			return true;
-		} else {
-			controllerFalseLoginCounter++;
-			return false;
-		}
-	}
+        if (controllerFalseLoginCounter > 3) { // controller token brute force
+                                               // attack?
+            logger.error("controllerFalseLoginCounter=" + controllerFalseLoginCounter);
+            return false;
+        } else if (success) {
+            return true;
+        } else {
+            controllerFalseLoginCounter++;
+            return false;
+        }
+    }
 
-	private boolean isControllerRequest(HttpServletRequest request) {
-		return StringUtils.startsWith(request.getRequestURI(), ControllerRequestMapping.UPLOAD_METHOD_PREFIX)
-				|| StringUtils.equals(request.getRequestURI(),
-						ControllerRequestMapping.CONTROLLER_LONG_POLLING_FOR_AWAIT_MESSAGE_REQUEST);
-	}
+    private boolean isControllerRequest(HttpServletRequest request) {
+        return StringUtils.startsWith(request.getRequestURI(), ControllerRequestMapping.UPLOAD_METHOD_PREFIX) || StringUtils
+            .equals(request.getRequestURI(), ControllerRequestMapping.CONTROLLER_LONG_POLLING_FOR_AWAIT_MESSAGE_REQUEST);
+    }
 
-	private boolean isAssetRequest(HttpServletRequest request) {
+    private boolean isAssetRequest(HttpServletRequest request) {
 
-		if (StringUtils.startsWith(request.getRequestURI(), "/webjars/")) {
-			return true;
-		}
+        if (StringUtils.startsWith(request.getRequestURI(), "/webjars/")) {
+            return true;
+        }
 
-		if ((StringUtils.endsWith(request.getRequestURI(), ".png")
-				|| StringUtils.endsWith(request.getRequestURI(), ".ico")
-				|| StringUtils.endsWith(request.getRequestURI(), ".css")
-				|| StringUtils.endsWith(request.getRequestURI(), "robots.txt")
-				|| StringUtils.endsWith(request.getRequestURI(), ".js"))
-				&& StringUtils.countMatches(request.getRequestURI(), "/") == 1) {
-			return true;
-		}
+        if ((StringUtils.endsWith(request.getRequestURI(), ".png") || StringUtils.endsWith(request.getRequestURI(), ".ico")
+            || StringUtils.endsWith(request.getRequestURI(), ".css")
+            || StringUtils.endsWith(request.getRequestURI(), "robots.txt")
+            || StringUtils.endsWith(request.getRequestURI(), ".js"))
+            && StringUtils.countMatches(request.getRequestURI(), "/") == 1) {
+            return true;
+        }
 
-		return StringUtils.equals(request.getRequestURI(), "/error");
-	}
+        return StringUtils.equals(request.getRequestURI(), "/error");
+    }
 
-	private boolean isLoginRequest(HttpServletRequest request) {
+    private boolean isLoginRequest(HttpServletRequest request) {
 
-		if (StringUtils.equals(request.getRequestURI(), LoginController.LOGIN_URI)) {
-			return true;
-		}
+        if (StringUtils.equals(request.getRequestURI(), LoginController.LOGIN_URI)) {
+            return true;
+        }
 
-		if (StringUtils.equals(request.getRequestURI(), LoginController.LOGIN_COOKIECHECK_URI)) {
-			return true;
-		}
+        if (StringUtils.equals(request.getRequestURI(), LoginController.LOGIN_COOKIECHECK_URI)) {
+            return true;
+        }
 
-		if (StringUtils.equals(request.getRequestURI(), LoginController.LOGIN_FAILED_URI)) { // NOSONAR
-			return true;
-		}
+        if (StringUtils.equals(request.getRequestURI(), LoginController.LOGIN_FAILED_URI)) { // NOSONAR
+            return true;
+        }
 
-		return false;
-	}
+        return false;
+    }
 
-	private String login(Map<String, String> params) {
+    private String login(Map<String, String> params) {
 
-		String loginUser = StringUtils.trimToEmpty(params.get(LOGIN_USERNAME));
-		String loginPass = StringUtils.trimToEmpty(params.get(LOGIN_PASSWORD));
-		if (userService.checkAuthentication(loginUser, loginPass)) {
-			return loginUser;
-		} else {
-			return null;
-		}
-	}
+        String loginUser = StringUtils.trimToEmpty(params.get(LOGIN_USERNAME));
+        String loginPass = StringUtils.trimToEmpty(params.get(LOGIN_PASSWORD));
+        if (userService.checkAuthentication(loginUser, loginPass)) {
+            return loginUser;
+        } else {
+            return null;
+        }
+    }
 
-	private String cookieRead(HttpServletRequest request) {
+    private String cookieRead(HttpServletRequest request) {
 
-		Cookie[] cookies = request.getCookies();
-		if (cookies == null) {
-			return null;
-		}
-		for (Cookie cookie : cookies) {
-			if (cookie.getName().equals(COOKIE_NAME)) {
-				return StringUtils.trimToNull(cookie.getValue());
-			}
-		}
-		return null;
-	}
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return null;
+        }
+        for (Cookie cookie : cookies) {
+            if (cookie.getName().equals(COOKIE_NAME)) {
+                return StringUtils.trimToNull(cookie.getValue());
+            }
+        }
+        return null;
+    }
 
-	public String setNewCookie(HttpServletRequest request, HttpServletResponse response, String loginUser) {
+    public String setNewCookie(HttpServletRequest request, HttpServletResponse response, String loginUser) {
 
-		String oldCookieID = cookieRead(request);
+        String oldCookieID = cookieRead(request);
 
-		String uuid = null;
-		if (StringUtils.isBlank(oldCookieID)) {
-			uuid = UUID.randomUUID().toString();
-		} else {
-			uuid = oldCookieID;
-		}
-		cookieWrite(response, uuid);
-		LoginCookieDAO.getInstance().write(uuid, loginUser);
+        String uuid = null;
+        if (StringUtils.isBlank(oldCookieID)) {
+            uuid = UUID.randomUUID().toString();
+        } else {
+            uuid = oldCookieID;
+        }
+        cookieWrite(response, uuid);
+        LoginCookieDAO.getInstance().write(uuid, loginUser);
 
-		if (!StringUtils.equals(oldCookieID, uuid) && oldCookieID != null) {
-			LoginCookieDAO.getInstance().delete(oldCookieID);
-		}
+        if (!StringUtils.equals(oldCookieID, uuid) && oldCookieID != null) {
+            LoginCookieDAO.getInstance().delete(oldCookieID);
+        }
 
-		return uuid;
-	}
+        return uuid;
+    }
 
-	public void cookieDelete(HttpServletRequest request, HttpServletResponse response) {
+    public void cookieDelete(HttpServletRequest request, HttpServletResponse response) {
 
-		String oldCookie = cookieRead(request);
-		if (oldCookie != null) {
-			LoginCookieDAO.getInstance().delete(oldCookie);
-		}
+        String oldCookie = cookieRead(request);
+        if (oldCookie != null) {
+            LoginCookieDAO.getInstance().delete(oldCookie);
+        }
 
-		Cookie cookie = new Cookie(COOKIE_NAME, "");
-		cookie.setHttpOnly(true);
-		cookie.setMaxAge(0);
-		response.addCookie(cookie);
-	}
+        Cookie cookie = new Cookie(COOKIE_NAME, "");
+        cookie.setHttpOnly(true);
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
+    }
 
-	private static void cookieWrite(HttpServletResponse response, String value) {
+    private static void cookieWrite(HttpServletResponse response, String value) {
 
-		Cookie cookie = new Cookie(COOKIE_NAME, value);
-		cookie.setHttpOnly(true);
-		cookie.setMaxAge(60 * 60 * 24 * 180);
-		response.addCookie(cookie);
-	}
+        Cookie cookie = new Cookie(COOKIE_NAME, value);
+        cookie.setHttpOnly(true);
+        cookie.setMaxAge(60 * 60 * 24 * 180);
+        response.addCookie(cookie);
+    }
 }

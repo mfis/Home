@@ -19,97 +19,98 @@ import de.fimatas.home.library.domain.model.SettingsModel;
 @Component
 public class SettingsService {
 
-	@Autowired
-	private Environment env;
+    @Autowired
+    private Environment env;
 
-	@Autowired
-	private UploadService uploadService;
+    @Autowired
+    private UploadService uploadService;
 
-	private static final String PUSH_DEVICE = ".push.device";
-	private static final String PUSH_HINTS = ".push.hints";
-	private static final String PUSH_HINTS_HYSTERESIS = ".push.hintshysteresis";
-	private static final String PUSH_HINTS_DOORBELL = ".push.doorbell";
+    private static final String PUSH_DEVICE = ".push.device";
 
-	private static final String PUSH_USERID = "pushover.userid";
-	private static final String PUSH_TOKEN = "pushover.token";
+    private static final String PUSH_HINTS = ".push.hints";
 
-	@PostConstruct
-	public void init() {
+    private static final String PUSH_HINTS_HYSTERESIS = ".push.hintshysteresis";
 
-		try {
-			refreshSettingsModelsComplete();
-		} catch (Exception e) {
-			LogFactory.getLog(HistoryService.class).error("Could not initialize SettingsService completly.",
-					e);
-		}
-	}
+    private static final String PUSH_HINTS_DOORBELL = ".push.doorbell";
 
-	public void refreshSettingsModelsComplete() {
+    private static final String PUSH_USERID = "pushover.userid";
 
-		List<String> names = ExternalPropertiesDAO.getInstance().lookupNamesContainingString(PUSH_DEVICE);
-		for (String name : names) {
-			String user = StringUtils.substringBefore(name, PUSH_DEVICE);
-			SettingsModel settingsModel = read(user);
-			uploadService.upload(settingsModel);
-		}
-	}
+    private static final String PUSH_TOKEN = "pushover.token";
 
-	public void updateSettingsModel(SettingsModel settingsModel) {
+    @PostConstruct
+    public void init() {
 
-		ExternalPropertiesDAO.getInstance().write(settingsModel.getUser() + PUSH_DEVICE,
-				StringUtils.trimToEmpty(settingsModel.getClientName()));
-		ExternalPropertiesDAO.getInstance().write(settingsModel.getUser() + PUSH_HINTS,
-				Boolean.toString(settingsModel.isPushHints()));
-		ExternalPropertiesDAO.getInstance().write(settingsModel.getUser() + PUSH_HINTS_HYSTERESIS,
-				Boolean.toString(settingsModel.isHintsHysteresis()));
-		ExternalPropertiesDAO.getInstance().write(settingsModel.getUser() + PUSH_HINTS_DOORBELL,
-				Boolean.toString(settingsModel.isPushDoorbell()));
-		uploadService.upload(settingsModel);
-	}
+        try {
+            refreshSettingsModelsComplete();
+        } catch (Exception e) {
+            LogFactory.getLog(HistoryService.class).error("Could not initialize SettingsService completly.", e);
+        }
+    }
 
-	public SettingsModel read(String user) {
+    public void refreshSettingsModelsComplete() {
 
-		SettingsModel model = new SettingsModel();
+        List<String> names = ExternalPropertiesDAO.getInstance().lookupNamesContainingString(PUSH_DEVICE);
+        for (String name : names) {
+            String user = StringUtils.substringBefore(name, PUSH_DEVICE);
+            SettingsModel settingsModel = read(user);
+            uploadService.upload(settingsModel);
+        }
+    }
 
-		String token = StringUtils.trimToEmpty(env.getProperty(PUSH_TOKEN));
-		model.setPushoverApiToken(token);
+    public void updateSettingsModel(SettingsModel settingsModel) {
 
-		String userid = StringUtils.trimToEmpty(env.getProperty(PUSH_USERID));
-		model.setPushoverUserId(userid);
+        ExternalPropertiesDAO.getInstance().write(settingsModel.getUser() + PUSH_DEVICE,
+            StringUtils.trimToEmpty(settingsModel.getClientName()));
+        ExternalPropertiesDAO.getInstance().write(settingsModel.getUser() + PUSH_HINTS,
+            Boolean.toString(settingsModel.isPushHints()));
+        ExternalPropertiesDAO.getInstance().write(settingsModel.getUser() + PUSH_HINTS_HYSTERESIS,
+            Boolean.toString(settingsModel.isHintsHysteresis()));
+        ExternalPropertiesDAO.getInstance().write(settingsModel.getUser() + PUSH_HINTS_DOORBELL,
+            Boolean.toString(settingsModel.isPushDoorbell()));
+        uploadService.upload(settingsModel);
+    }
 
-		model.setUser(user);
+    public SettingsModel read(String user) {
 
-		String device = StringUtils.trimToEmpty(ExternalPropertiesDAO.getInstance().read(user + PUSH_DEVICE));
-		model.setClientName(device);
+        SettingsModel model = new SettingsModel();
 
-		String hints = StringUtils.trimToEmpty(ExternalPropertiesDAO.getInstance().read(user + PUSH_HINTS));
-		model.setPushHints(Boolean.parseBoolean(hints));
+        String token = StringUtils.trimToEmpty(env.getProperty(PUSH_TOKEN));
+        model.setPushoverApiToken(token);
 
-		String hysteresis = StringUtils
-				.trimToEmpty(ExternalPropertiesDAO.getInstance().read(user + PUSH_HINTS_HYSTERESIS));
-		model.setHintsHysteresis(Boolean.parseBoolean(hysteresis));
+        String userid = StringUtils.trimToEmpty(env.getProperty(PUSH_USERID));
+        model.setPushoverUserId(userid);
 
-		String doorbell = StringUtils
-				.trimToEmpty(ExternalPropertiesDAO.getInstance().read(user + PUSH_HINTS_DOORBELL));
-		model.setPushDoorbell(Boolean.parseBoolean(doorbell));
+        model.setUser(user);
 
-		return model;
-	}
+        String device = StringUtils.trimToEmpty(ExternalPropertiesDAO.getInstance().read(user + PUSH_DEVICE));
+        model.setClientName(device);
 
-	public List<SettingsModel> lookupUserForPushMessage() {
+        String hints = StringUtils.trimToEmpty(ExternalPropertiesDAO.getInstance().read(user + PUSH_HINTS));
+        model.setPushHints(Boolean.parseBoolean(hints));
 
-		List<SettingsModel> userModelsWithActivePush = new LinkedList<>();
+        String hysteresis = StringUtils.trimToEmpty(ExternalPropertiesDAO.getInstance().read(user + PUSH_HINTS_HYSTERESIS));
+        model.setHintsHysteresis(Boolean.parseBoolean(hysteresis));
 
-		List<String> names = ExternalPropertiesDAO.getInstance().lookupNamesContainingString(PUSH_DEVICE);
-		for (String name : names) {
-			String user = StringUtils.substringBefore(name, PUSH_DEVICE);
-			SettingsModel model = read(user);
-			if (model.isPushHints() || model.isPushDoorbell()) {
-				userModelsWithActivePush.add(model);
-			}
-		}
+        String doorbell = StringUtils.trimToEmpty(ExternalPropertiesDAO.getInstance().read(user + PUSH_HINTS_DOORBELL));
+        model.setPushDoorbell(Boolean.parseBoolean(doorbell));
 
-		return userModelsWithActivePush;
-	}
+        return model;
+    }
+
+    public List<SettingsModel> lookupUserForPushMessage() {
+
+        List<SettingsModel> userModelsWithActivePush = new LinkedList<>();
+
+        List<String> names = ExternalPropertiesDAO.getInstance().lookupNamesContainingString(PUSH_DEVICE);
+        for (String name : names) {
+            String user = StringUtils.substringBefore(name, PUSH_DEVICE);
+            SettingsModel model = read(user);
+            if (model.isPushHints() || model.isPushDoorbell()) {
+                userModelsWithActivePush.add(model);
+            }
+        }
+
+        return userModelsWithActivePush;
+    }
 
 }

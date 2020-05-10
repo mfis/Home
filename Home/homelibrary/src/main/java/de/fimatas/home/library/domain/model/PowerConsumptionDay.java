@@ -10,49 +10,48 @@ import java.util.Map;
 
 public class PowerConsumptionDay implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private transient LocalDateTime measurePointMaxDateTime = null;
+    private transient LocalDateTime measurePointMaxDateTime = null;
 
-	private long measurePointMax;
+    private long measurePointMax;
 
-	private Map<TimeRange, BigDecimal> values;
+    private Map<TimeRange, BigDecimal> values;
 
-	public PowerConsumptionDay() {
-		values = new LinkedHashMap<>();
-	}
+    public PowerConsumptionDay() {
+        values = new LinkedHashMap<>();
+    }
 
-	public LocalDateTime measurePointMaxDateTime() {
-		if (measurePointMaxDateTime == null) {
-			measurePointMaxDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(measurePointMax),
-					ZoneId.systemDefault());
-		}
-		return measurePointMaxDateTime;
-	}
+    public LocalDateTime measurePointMaxDateTime() {
+        if (measurePointMaxDateTime == null) {
+            measurePointMaxDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(measurePointMax), ZoneId.systemDefault());
+        }
+        return measurePointMaxDateTime;
+    }
 
-	public LocalDateTime getMeasurePointMaxDateTime() {
-		return measurePointMaxDateTime;
-	}
+    public LocalDateTime getMeasurePointMaxDateTime() {
+        return measurePointMaxDateTime;
+    }
 
-	public void setMeasurePointMaxDateTime(LocalDateTime measurePointMaxDateTime) {
-		this.measurePointMaxDateTime = measurePointMaxDateTime;
-	}
+    public void setMeasurePointMaxDateTime(LocalDateTime measurePointMaxDateTime) {
+        this.measurePointMaxDateTime = measurePointMaxDateTime;
+    }
 
-	public long getMeasurePointMax() {
-		return measurePointMax;
-	}
+    public long getMeasurePointMax() {
+        return measurePointMax;
+    }
 
-	public void setMeasurePointMax(long measurePointMax) {
-		this.measurePointMax = measurePointMax;
-		measurePointMaxDateTime = null;
-	}
+    public void setMeasurePointMax(long measurePointMax) {
+        this.measurePointMax = measurePointMax;
+        measurePointMaxDateTime = null;
+    }
 
-	public Map<TimeRange, BigDecimal> getValues() {
-		return values;
-	}
+    public Map<TimeRange, BigDecimal> getValues() {
+        return values;
+    }
 
-	public void setValues(Map<TimeRange, BigDecimal> values) {
-		this.values = values;
-	}
+    public void setValues(Map<TimeRange, BigDecimal> values) {
+        this.values = values;
+    }
 
 }

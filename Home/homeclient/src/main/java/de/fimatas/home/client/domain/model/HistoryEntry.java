@@ -2,129 +2,129 @@ package de.fimatas.home.client.domain.model;
 
 public class HistoryEntry {
 
-	private String lineOneLabel;
+    private String lineOneLabel;
 
-	private String lineOneValue;
-	
-	private String lineOneValueIcon;
+    private String lineOneValue;
 
-	private String colorClass;
+    private String lineOneValueIcon;
 
-	private String lineTwoLabel;
-	
-	private String lineTwoValue;
-	
-	private String lineTwoValueIcon;
+    private String colorClass;
 
-	private String badgeLabel;
-	
-	private String badgeValue;
+    private String lineTwoLabel;
 
-	private String badgeClass;
+    private String lineTwoValue;
 
-	private String collapse;
+    private String lineTwoValueIcon;
 
-	public HistoryEntry() {
-		super();
-		lineOneLabel = "";
-		lineOneValue = "";
-		lineOneValueIcon = "";
-		colorClass = "";
-		lineTwoLabel = "";
-		lineTwoValue = "";
-		lineTwoValueIcon = "";
-		badgeLabel = "";
-		badgeValue = "";
-		badgeClass = "";
-		collapse = "";
-	}
+    private String badgeLabel;
 
-	public String getLineOneValueIcon() {
-		return lineOneValueIcon;
-	}
+    private String badgeValue;
 
-	public void setLineOneValueIcon(String lineOneValueIcon) {
-		this.lineOneValueIcon = lineOneValueIcon;
-	}
+    private String badgeClass;
 
-	public String getLineTwoValueIcon() {
-		return lineTwoValueIcon;
-	}
+    private String collapse;
 
-	public void setLineTwoValueIcon(String lineTwoValueIcon) {
-		this.lineTwoValueIcon = lineTwoValueIcon;
-	}
+    public HistoryEntry() {
+        super();
+        lineOneLabel = "";
+        lineOneValue = "";
+        lineOneValueIcon = "";
+        colorClass = "";
+        lineTwoLabel = "";
+        lineTwoValue = "";
+        lineTwoValueIcon = "";
+        badgeLabel = "";
+        badgeValue = "";
+        badgeClass = "";
+        collapse = "";
+    }
 
-	public String getLineOneLabel() {
-		return lineOneLabel;
-	}
+    public String getLineOneValueIcon() {
+        return lineOneValueIcon;
+    }
 
-	public void setLineOneLabel(String lineOneLabel) {
-		this.lineOneLabel = lineOneLabel;
-	}
+    public void setLineOneValueIcon(String lineOneValueIcon) {
+        this.lineOneValueIcon = lineOneValueIcon;
+    }
 
-	public String getLineOneValue() {
-		return lineOneValue;
-	}
+    public String getLineTwoValueIcon() {
+        return lineTwoValueIcon;
+    }
 
-	public void setLineOneValue(String lineOneValue) {
-		this.lineOneValue = lineOneValue;
-	}
+    public void setLineTwoValueIcon(String lineTwoValueIcon) {
+        this.lineTwoValueIcon = lineTwoValueIcon;
+    }
 
-	public String getColorClass() {
-		return colorClass;
-	}
+    public String getLineOneLabel() {
+        return lineOneLabel;
+    }
 
-	public void setColorClass(String colorClass) {
-		this.colorClass = colorClass;
-	}
+    public void setLineOneLabel(String lineOneLabel) {
+        this.lineOneLabel = lineOneLabel;
+    }
 
-	public String getLineTwoLabel() {
-		return lineTwoLabel;
-	}
+    public String getLineOneValue() {
+        return lineOneValue;
+    }
 
-	public void setLineTwoLabel(String lineTwoLabel) {
-		this.lineTwoLabel = lineTwoLabel;
-	}
+    public void setLineOneValue(String lineOneValue) {
+        this.lineOneValue = lineOneValue;
+    }
 
-	public String getLineTwoValue() {
-		return lineTwoValue;
-	}
+    public String getColorClass() {
+        return colorClass;
+    }
 
-	public void setLineTwoValue(String lineTwoValue) {
-		this.lineTwoValue = lineTwoValue;
-	}
+    public void setColorClass(String colorClass) {
+        this.colorClass = colorClass;
+    }
 
-	public String getBadgeLabel() {
-		return badgeLabel;
-	}
+    public String getLineTwoLabel() {
+        return lineTwoLabel;
+    }
 
-	public void setBadgeLabel(String badgeLabel) {
-		this.badgeLabel = badgeLabel;
-	}
+    public void setLineTwoLabel(String lineTwoLabel) {
+        this.lineTwoLabel = lineTwoLabel;
+    }
 
-	public String getBadgeValue() {
-		return badgeValue;
-	}
+    public String getLineTwoValue() {
+        return lineTwoValue;
+    }
 
-	public void setBadgeValue(String badgeValue) {
-		this.badgeValue = badgeValue;
-	}
+    public void setLineTwoValue(String lineTwoValue) {
+        this.lineTwoValue = lineTwoValue;
+    }
 
-	public String getBadgeClass() {
-		return badgeClass;
-	}
+    public String getBadgeLabel() {
+        return badgeLabel;
+    }
 
-	public void setBadgeClass(String badgeClass) {
-		this.badgeClass = badgeClass;
-	}
+    public void setBadgeLabel(String badgeLabel) {
+        this.badgeLabel = badgeLabel;
+    }
 
-	public String getCollapse() {
-		return collapse;
-	}
+    public String getBadgeValue() {
+        return badgeValue;
+    }
 
-	public void setCollapse(String collapse) {
-		this.collapse = collapse;
-	}
+    public void setBadgeValue(String badgeValue) {
+        this.badgeValue = badgeValue;
+    }
+
+    public String getBadgeClass() {
+        return badgeClass;
+    }
+
+    public void setBadgeClass(String badgeClass) {
+        this.badgeClass = badgeClass;
+    }
+
+    public String getCollapse() {
+        return collapse;
+    }
+
+    public void setCollapse(String collapse) {
+        this.collapse = collapse;
+    }
 
 }

@@ -7,55 +7,55 @@ import de.fimatas.home.library.homematic.model.Type;
 
 public abstract class AbstractDeviceModel implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private Device device;
+    private Device device;
 
-	private Type subType;
+    private Type subType;
 
-	private boolean busy;
-	
-	private int errorcode;
-	
-	private boolean unreach;
+    private boolean busy;
 
-	public Device getDevice() {
-		return device;
-	}
+    private int errorcode;
 
-	public void setDevice(Device device) {
-		this.device = device;
-	}
+    private boolean unreach;
 
-	public Type getSubType() {
-		return subType;
-	}
+    public Device getDevice() {
+        return device;
+    }
 
-	public void setSubType(Type subType) {
-		this.subType = subType;
-	}
+    public void setDevice(Device device) {
+        this.device = device;
+    }
 
-	public boolean isBusy() {
-		return busy;
-	}
+    public Type getSubType() {
+        return subType;
+    }
 
-	public void setBusy(boolean busy) {
-		this.busy = busy;
-	}
+    public void setSubType(Type subType) {
+        this.subType = subType;
+    }
 
-	public int getErrorcode() {
-		return errorcode;
-	}
+    public boolean isBusy() {
+        return busy;
+    }
 
-	public void setErrorcode(int errorcode) {
-		this.errorcode = errorcode;
-	}
+    public void setBusy(boolean busy) {
+        this.busy = busy;
+    }
 
-	public boolean isUnreach() {
-		return unreach;
-	}
+    public int getErrorcode() {
+        return errorcode;
+    }
 
-	public void setUnreach(boolean unreach) {
-		this.unreach = unreach;
-	}
+    public void setErrorcode(int errorcode) {
+        this.errorcode = errorcode;
+    }
+
+    public boolean isUnreach() {
+        return unreach;
+    }
+
+    public void setUnreach(boolean unreach) {
+        this.unreach = unreach;
+    }
 }

@@ -13,47 +13,48 @@ import de.fimatas.home.library.homematic.model.Device;
 @Component
 public class DeviceQualifier {
 
-	@Autowired
-	private Environment env;
+    @Autowired
+    private Environment env;
 
-	private static final String PROPERTY_PREFIX = "device.qualifier.";
+    private static final String PROPERTY_PREFIX = "device.qualifier.";
 
-	private static final String PROPERTY_SEPARATOR = ":";
+    private static final String PROPERTY_SEPARATOR = ":";
 
-	private HashMap<String, HomematicQualifiers> map = new HashMap<>();
+    private HashMap<String, HomematicQualifiers> map = new HashMap<>();
 
-	public String idFrom(Device device) {
-		return get(device).id;
-	}
+    public String idFrom(Device device) {
+        return get(device).id;
+    }
 
-	public Integer channelFrom(Device device) {
-		return get(device).channel;
-	}
+    public Integer channelFrom(Device device) {
+        return get(device).channel;
+    }
 
-	private HomematicQualifiers get(Device device) {
+    private HomematicQualifiers get(Device device) {
 
-		if (map.containsKey(device.name())) {
-			return map.get(device.name());
-		} else {
-			read(device);
-			return map.get(device.name());
-		}
-	}
+        if (map.containsKey(device.name())) {
+            return map.get(device.name());
+        } else {
+            read(device);
+            return map.get(device.name());
+        }
+    }
 
-	private void read(Device device) {
+    private void read(Device device) {
 
-		var key = PROPERTY_PREFIX + device.name();
-		var property = env.getProperty(key);
-		Assert.notNull(property, "Property '" + key + "' not set!");
-		HomematicQualifiers hq = new HomematicQualifiers();
-		hq.id = StringUtils.substringBefore(property, PROPERTY_SEPARATOR).trim();
-		hq.channel = Integer.parseInt(StringUtils.substringAfter(property, PROPERTY_SEPARATOR).trim());
-		map.put(device.name(), hq);
-	}
+        var key = PROPERTY_PREFIX + device.name();
+        var property = env.getProperty(key);
+        Assert.notNull(property, "Property '" + key + "' not set!");
+        HomematicQualifiers hq = new HomematicQualifiers();
+        hq.id = StringUtils.substringBefore(property, PROPERTY_SEPARATOR).trim();
+        hq.channel = Integer.parseInt(StringUtils.substringAfter(property, PROPERTY_SEPARATOR).trim());
+        map.put(device.name(), hq);
+    }
 
-	private class HomematicQualifiers {
-		private String id;
-		private Integer channel;
-	}
+    private class HomematicQualifiers {
+        private String id;
+
+        private Integer channel;
+    }
 
 }

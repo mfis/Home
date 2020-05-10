@@ -5,58 +5,58 @@ import java.util.Map;
 
 public class ViewAttributesDAO {
 
-	private static ViewAttributesDAO instance;
+    private static ViewAttributesDAO instance;
 
-	private Map<String, Map<String, String>> attributes = new HashMap<>();
+    private Map<String, Map<String, String>> attributes = new HashMap<>();
 
-	public static final String Y_POS_HOME = "Y_POS_HOME";
-	
-	public static final String MESSAGE = "MESSAGE";
+    public static final String Y_POS_HOME = "Y_POS_HOME";
 
-	public static final String USER_NAME = "USER_NAME";
+    public static final String MESSAGE = "MESSAGE";
 
-	private ViewAttributesDAO() {
-		super();
-	}
+    public static final String USER_NAME = "USER_NAME";
 
-	public static synchronized ViewAttributesDAO getInstance() {
-		if (instance == null) {
-			instance = new ViewAttributesDAO();
-		}
-		return instance;
-	}
+    private ViewAttributesDAO() {
+        super();
+    }
 
-	public void push(String user, String key, String value) {
+    public static synchronized ViewAttributesDAO getInstance() {
+        if (instance == null) {
+            instance = new ViewAttributesDAO();
+        }
+        return instance;
+    }
 
-		if (!attributes.containsKey(user)) {
-			attributes.put(user, new HashMap<>());
-		}
+    public void push(String user, String key, String value) {
 
-		attributes.get(user).put(key, value);
-	}
+        if (!attributes.containsKey(user)) {
+            attributes.put(user, new HashMap<>());
+        }
 
-	public boolean isPresent(String user, String key) {
+        attributes.get(user).put(key, value);
+    }
 
-		if (!attributes.containsKey(user)) {
-			return false;
-		}
+    public boolean isPresent(String user, String key) {
 
-		return attributes.get(user).containsKey(key);
-	}
-	
-	public String pull(String user, String key) {
+        if (!attributes.containsKey(user)) {
+            return false;
+        }
 
-		if (!attributes.containsKey(user)) {
-			return null;
-		}
+        return attributes.get(user).containsKey(key);
+    }
 
-		if (!attributes.get(user).containsKey(key)) {
-			return null;
-		}
+    public String pull(String user, String key) {
 
-		String value = attributes.get(user).get(key);
-		attributes.get(user).remove(key);
-		return value;
-	}
+        if (!attributes.containsKey(user)) {
+            return null;
+        }
+
+        if (!attributes.get(user).containsKey(key)) {
+            return null;
+        }
+
+        String value = attributes.get(user).get(key);
+        attributes.get(user).remove(key);
+        return value;
+    }
 
 }

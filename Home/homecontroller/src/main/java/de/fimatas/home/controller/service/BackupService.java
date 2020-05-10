@@ -25,77 +25,76 @@ import de.fimatas.home.library.domain.model.BackupFile;
 @Component
 public class BackupService {
 
-	@Autowired
-	private BackblazeBackupAPI backupAPI;
+    @Autowired
+    private BackblazeBackupAPI backupAPI;
 
-	@Autowired
-	private HistoryDatabaseDAO historyDatabaseDAO;
+    @Autowired
+    private HistoryDatabaseDAO historyDatabaseDAO;
 
-	@Autowired
-	private UploadService uploadService;
+    @Autowired
+    private UploadService uploadService;
 
-	private static final DateTimeFormatter BACKUP_DAILY_TIMESTAMP_FORMATTER = DateTimeFormatter
-			.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter BACKUP_DAILY_TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-	private static final DateTimeFormatter BACKUP_ADHOC_TIMESTAMP_FORMATTER = DateTimeFormatter
-			.ofPattern("yyyy-MM-dd__HH-mm_ss_SSS");
+    private static final DateTimeFormatter BACKUP_ADHOC_TIMESTAMP_FORMATTER =
+        DateTimeFormatter.ofPattern("yyyy-MM-dd__HH-mm_ss_SSS");
 
-	private static final Log LOG = LogFactory.getLog(BackupService.class);
+    private static final Log LOG = LogFactory.getLog(BackupService.class);
 
-	@PreDestroy
-	private void backupDatabaseOnShutdown() {
-		historyDatabaseDAO.backupDatabase(backupFilename(BACKUP_ADHOC_TIMESTAMP_FORMATTER, false));
-	}
+    @PreDestroy
+    private void backupDatabaseOnShutdown() {
+        historyDatabaseDAO.backupDatabase(backupFilename(BACKUP_ADHOC_TIMESTAMP_FORMATTER, false));
+    }
 
-	@Scheduled(cron = "0 45 01 * * *")
-	private void backupDatabaseCreateNew() {
-		historyDatabaseDAO.backupDatabase(backupFilename(BACKUP_DAILY_TIMESTAMP_FORMATTER, false));
-	}
+    @Scheduled(cron = "0 45 01 * * *")
+    private void backupDatabaseCreateNew() {
+        historyDatabaseDAO.backupDatabase(backupFilename(BACKUP_DAILY_TIMESTAMP_FORMATTER, false));
+    }
 
-	@Scheduled(cron = "0 50 01 * * *")
-	private void backupDatabaseUpload() {
+    @Scheduled(cron = "0 50 01 * * *")
+    private void backupDatabaseUpload() {
 
-		Path path = Paths.get(backupFilename(BACKUP_DAILY_TIMESTAMP_FORMATTER, false));
+        Path path = Paths.get(backupFilename(BACKUP_DAILY_TIMESTAMP_FORMATTER, false));
 
-		try {
-			List<Path> list = new LinkedList<>();
-			if (path.toFile().exists()) {
-				list.add(path);
-			}
-			backupAPI.backup(list.stream());
-		} catch (Exception e) {
-			LOG.error("Exception upload backup file to backblaze:", e);
-		}
+        try {
+            List<Path> list = new LinkedList<>();
+            if (path.toFile().exists()) {
+                list.add(path);
+            }
+            backupAPI.backup(list.stream());
+        } catch (Exception e) {
+            LOG.error("Exception upload backup file to backblaze:", e);
+        }
 
-		try {
-			if (path.toFile().exists()) {
-				BackupFile backupFile = new BackupFile();
-				backupFile.setFilename(path.toFile().getName());
-				backupFile.setBytes(FileUtils.readFileToByteArray(path.toFile()));
-				uploadService.upload(backupFile);
-			}
-		} catch (Exception e) {
-			LOG.error("Exception upload backup file to client:", e);
-		}
+        try {
+            if (path.toFile().exists()) {
+                BackupFile backupFile = new BackupFile();
+                backupFile.setFilename(path.toFile().getName());
+                backupFile.setBytes(FileUtils.readFileToByteArray(path.toFile()));
+                uploadService.upload(backupFile);
+            }
+        } catch (Exception e) {
+            LOG.error("Exception upload backup file to client:", e);
+        }
 
-		Path yesterdaysFile = Paths.get(backupFilename(BACKUP_DAILY_TIMESTAMP_FORMATTER, true));
-		if (yesterdaysFile.toFile().exists()) {
-			try {
-				Files.delete(yesterdaysFile);
-			} catch (IOException e) {
-				LOG.error("Exception deleting database backup file:", e);
-			}
-		}
-	}
+        Path yesterdaysFile = Paths.get(backupFilename(BACKUP_DAILY_TIMESTAMP_FORMATTER, true));
+        if (yesterdaysFile.toFile().exists()) {
+            try {
+                Files.delete(yesterdaysFile);
+            } catch (IOException e) {
+                LOG.error("Exception deleting database backup file:", e);
+            }
+        }
+    }
 
-	private String backupFilename(DateTimeFormatter formatter, boolean yesterday) {
+    private String backupFilename(DateTimeFormatter formatter, boolean yesterday) {
 
-		LocalDateTime dateTime = LocalDateTime.now();
-		if (yesterday) {
-			dateTime = dateTime.minusHours(24);
-		}
-		String path = historyDatabaseDAO.lookupPath();
-		String timestamp = formatter.format(dateTime);
-		return path + "backup_" + timestamp + ".sql.zip";
-	}
+        LocalDateTime dateTime = LocalDateTime.now();
+        if (yesterday) {
+            dateTime = dateTime.minusHours(24);
+        }
+        String path = historyDatabaseDAO.lookupPath();
+        String timestamp = formatter.format(dateTime);
+        return path + "backup_" + timestamp + ".sql.zip";
+    }
 }

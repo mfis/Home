@@ -4,54 +4,54 @@ import java.io.Serializable;
 
 public class ValueWithTendency<T extends Serializable> implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private T value;
+    private T value;
 
-	private T referenceValue;
+    private T referenceValue;
 
-	private long referenceDateTime;
+    private long referenceDateTime;
 
-	private Tendency tendency;
+    private Tendency tendency;
 
-	public ValueWithTendency(T value) {
-		super();
-		this.value = value;
-	}
+    public ValueWithTendency(T value) {
+        super();
+        this.value = value;
+    }
 
-	public ValueWithTendency() {
-		super();
-	}
+    public ValueWithTendency() {
+        super();
+    }
 
-	public T getValue() {
-		return value;
-	}
+    public T getValue() {
+        return value;
+    }
 
-	public void setValue(T value) {
-		this.value = value;
-	}
+    public void setValue(T value) {
+        this.value = value;
+    }
 
-	public T getReferenceValue() {
-		return referenceValue;
-	}
+    public T getReferenceValue() {
+        return referenceValue;
+    }
 
-	public void setReferenceValue(T referenceValue) {
-		this.referenceValue = referenceValue;
-	}
+    public void setReferenceValue(T referenceValue) {
+        this.referenceValue = referenceValue;
+    }
 
-	public long getReferenceDateTime() {
-		return referenceDateTime;
-	}
+    public long getReferenceDateTime() {
+        return referenceDateTime;
+    }
 
-	public void setReferenceDateTime(long referenceDateTime) {
-		this.referenceDateTime = referenceDateTime;
-	}
+    public void setReferenceDateTime(long referenceDateTime) {
+        this.referenceDateTime = referenceDateTime;
+    }
 
-	public Tendency getTendency() {
-		return tendency;
-	}
+    public Tendency getTendency() {
+        return tendency;
+    }
 
-	public void setTendency(Tendency tendency) {
-		this.tendency = tendency;
-	}
+    public void setTendency(Tendency tendency) {
+        this.tendency = tendency;
+    }
 }

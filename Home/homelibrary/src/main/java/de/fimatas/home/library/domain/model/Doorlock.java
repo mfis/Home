@@ -4,70 +4,70 @@ import java.io.Serializable;
 
 public class Doorlock extends AbstractDeviceModel implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public Doorlock() {
-		super();
-	}
+    public Doorlock() {
+        super();
+    }
 
-	private boolean open;
+    private boolean open;
 
-	private boolean lockState;
+    private boolean lockState;
 
-	private boolean lockStateUncertain;
+    private boolean lockStateUncertain;
 
-	private Boolean lockAutomation;
-	
-	private Boolean lockAutomationEvent;
+    private Boolean lockAutomation;
 
-	private String lockAutomationInfoText;
+    private Boolean lockAutomationEvent;
 
-	public boolean isLockState() {
-		return lockState;
-	}
+    private String lockAutomationInfoText;
 
-	public void setLockState(boolean lockState) {
-		this.lockState = lockState;
-	}
+    public boolean isLockState() {
+        return lockState;
+    }
 
-	public boolean isLockStateUncertain() {
-		return lockStateUncertain;
-	}
+    public void setLockState(boolean lockState) {
+        this.lockState = lockState;
+    }
 
-	public void setLockStateUncertain(boolean lockStateUncertain) {
-		this.lockStateUncertain = lockStateUncertain;
-	}
+    public boolean isLockStateUncertain() {
+        return lockStateUncertain;
+    }
 
-	public Boolean getLockAutomation() {
-		return lockAutomation;
-	}
+    public void setLockStateUncertain(boolean lockStateUncertain) {
+        this.lockStateUncertain = lockStateUncertain;
+    }
 
-	public void setLockAutomation(Boolean lockAutomation) {
-		this.lockAutomation = lockAutomation;
-	}
+    public Boolean getLockAutomation() {
+        return lockAutomation;
+    }
 
-	public String getLockAutomationInfoText() {
-		return lockAutomationInfoText;
-	}
+    public void setLockAutomation(Boolean lockAutomation) {
+        this.lockAutomation = lockAutomation;
+    }
 
-	public void setLockAutomationInfoText(String lockAutomationInfoText) {
-		this.lockAutomationInfoText = lockAutomationInfoText;
-	}
+    public String getLockAutomationInfoText() {
+        return lockAutomationInfoText;
+    }
 
-	public boolean isOpen() {
-		return open;
-	}
+    public void setLockAutomationInfoText(String lockAutomationInfoText) {
+        this.lockAutomationInfoText = lockAutomationInfoText;
+    }
 
-	public void setOpen(boolean open) {
-		this.open = open;
-	}
+    public boolean isOpen() {
+        return open;
+    }
 
-	public Boolean getLockAutomationEvent() {
-		return lockAutomationEvent;
-	}
+    public void setOpen(boolean open) {
+        this.open = open;
+    }
 
-	public void setLockAutomationEvent(Boolean lockAutomationEvent) {
-		this.lockAutomationEvent = lockAutomationEvent;
-	}
+    public Boolean getLockAutomationEvent() {
+        return lockAutomationEvent;
+    }
+
+    public void setLockAutomationEvent(Boolean lockAutomationEvent) {
+        this.lockAutomationEvent = lockAutomationEvent;
+    }
 
 }

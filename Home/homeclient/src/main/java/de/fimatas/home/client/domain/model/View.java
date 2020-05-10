@@ -2,95 +2,104 @@ package de.fimatas.home.client.domain.model;
 
 public abstract class View {
 
-	private String id = "";
-	private String state = "";
-	private String stateSuffix = "";
-	private String icon = "";
-	private String name = "";
-	private String place = "";
-	private String historyKey = "";
-	private String busy = "";
-	private String unreach = "";
-	private String colorClass = "secondary";
+    private String id = "";
 
-	public String getIcon() {
-		return icon;
-	}
+    private String state = "";
 
-	public void setIcon(String icon) {
-		this.icon = icon;
-	}
+    private String stateSuffix = "";
 
-	public String getId() {
-		return id;
-	}
+    private String icon = "";
 
-	public void setId(String id) {
-		this.id = id;
-	}
+    private String name = "";
 
-	public String getName() {
-		return name;
-	}
+    private String place = "";
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    private String historyKey = "";
 
-	public String getHistoryKey() {
-		return historyKey;
-	}
+    private String busy = "";
 
-	public void setHistoryKey(String historyKey) {
-		this.historyKey = historyKey;
-	}
+    private String unreach = "";
 
-	public String getPlace() {
-		return place;
-	}
+    private String colorClass = "secondary";
 
-	public void setPlace(String place) {
-		this.place = place;
-	}
+    public String getIcon() {
+        return icon;
+    }
 
-	public String getState() {
-		return state;
-	}
+    public void setIcon(String icon) {
+        this.icon = icon;
+    }
 
-	public void setState(String state) {
-		this.state = state;
-	}
+    public String getId() {
+        return id;
+    }
 
-	public String getStateSuffix() {
-		return stateSuffix;
-	}
+    public void setId(String id) {
+        this.id = id;
+    }
 
-	public void setStateSuffix(String stateSuffix) {
-		this.stateSuffix = stateSuffix;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public String getBusy() {
-		return busy;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public void setBusy(String busy) {
-		this.busy = busy;
-	}
+    public String getHistoryKey() {
+        return historyKey;
+    }
 
-	public String getUnreach() {
-		return unreach;
-	}
+    public void setHistoryKey(String historyKey) {
+        this.historyKey = historyKey;
+    }
 
-	public void setUnreach(String unreach) {
-		this.unreach = unreach;
-	}
+    public String getPlace() {
+        return place;
+    }
 
-	public String getColorClass() {
-		return colorClass;
-	}
+    public void setPlace(String place) {
+        this.place = place;
+    }
 
-	public void setColorClass(String colorClass) {
-		this.colorClass = colorClass;
-	}
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
+    }
+
+    public String getStateSuffix() {
+        return stateSuffix;
+    }
+
+    public void setStateSuffix(String stateSuffix) {
+        this.stateSuffix = stateSuffix;
+    }
+
+    public String getBusy() {
+        return busy;
+    }
+
+    public void setBusy(String busy) {
+        this.busy = busy;
+    }
+
+    public String getUnreach() {
+        return unreach;
+    }
+
+    public void setUnreach(String unreach) {
+        this.unreach = unreach;
+    }
+
+    public String getColorClass() {
+        return colorClass;
+    }
+
+    public void setColorClass(String colorClass) {
+        this.colorClass = colorClass;
+    }
 
 }

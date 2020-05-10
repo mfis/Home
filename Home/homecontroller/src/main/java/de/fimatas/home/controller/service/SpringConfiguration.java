@@ -45,92 +45,89 @@ import de.fimatas.home.library.util.HomeAppConstants;
 @Configuration
 public class SpringConfiguration implements WebMvcConfigurer {
 
-	@Autowired
-	private Environment env; // NOSONAR
+    @Autowired
+    private Environment env; // NOSONAR
 
-	static {
-		Security.addProvider(new BouncyCastleProvider());
-	}
+    static {
+        Security.addProvider(new BouncyCastleProvider());
+    }
 
-	@Bean
-	public ByteArrayHttpMessageConverter byteArrayHttpMessageConverter() {
-		return new ByteArrayHttpMessageConverter();
-	}
+    @Bean
+    public ByteArrayHttpMessageConverter byteArrayHttpMessageConverter() {
+        return new ByteArrayHttpMessageConverter();
+    }
 
-	@Bean
-	public RestTemplate restTemplate(RestTemplateBuilder restTemplateBuilder) {
-		return restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(10))
-				.setReadTimeout(Duration.ofSeconds(10)).build();
-	}
+    @Bean
+    public RestTemplate restTemplate(RestTemplateBuilder restTemplateBuilder) {
+        return restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(10)).setReadTimeout(Duration.ofSeconds(10)).build();
+    }
 
-	@Bean(name = "restTemplateCCU")
-	public RestTemplate restTemplateCCU() throws IOException, GeneralSecurityException {
+    @Bean(name = "restTemplateCCU")
+    public RestTemplate restTemplateCCU() throws IOException, GeneralSecurityException {
 
-		try (PEMParser pemParser = new PEMParser(new FileReader(env.getProperty("homematic.sslcert")))) {
+        try (PEMParser pemParser = new PEMParser(new FileReader(env.getProperty("homematic.sslcert")))) {
 
-			pemParser.readObject();
-			PemObject pemObject = pemParser.readPemObject();
+            pemParser.readObject();
+            PemObject pemObject = pemParser.readPemObject();
 
-			X509CertificateHolder holder = new X509CertificateHolder(pemObject.getContent());
-			X509Certificate bc = new JcaX509CertificateConverter().setProvider("BC").getCertificate(holder);
+            X509CertificateHolder holder = new X509CertificateHolder(pemObject.getContent());
+            X509Certificate bc = new JcaX509CertificateConverter().setProvider("BC").getCertificate(holder);
 
-			KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-			keyStore.load(null, null);
-			keyStore.setCertificateEntry("ca", bc);
+            KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+            keyStore.load(null, null);
+            keyStore.setCertificateEntry("ca", bc);
 
-			TrustManager trustManager = TrustManagerUtils.getDefaultTrustManager(keyStore);
-			SSLContext sslContext = SSLContextUtils.createSSLContext("TLS", null, trustManager);
+            TrustManager trustManager = TrustManagerUtils.getDefaultTrustManager(keyStore);
+            SSLContext sslContext = SSLContextUtils.createSSLContext("TLS", null, trustManager);
 
-			SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(sslContext);
+            SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(sslContext);
 
-			RequestConfig config = RequestConfig.custom().setConnectTimeout(5 * 1000)
-					.setConnectionRequestTimeout(10 * 1000).setSocketTimeout(10 * 1000).build();
+            RequestConfig config = RequestConfig.custom().setConnectTimeout(5 * 1000).setConnectionRequestTimeout(10 * 1000)
+                .setSocketTimeout(10 * 1000).build();
 
-			CloseableHttpClient httpClient = HttpClients.custom().setDefaultRequestConfig(config)
-					.setSSLSocketFactory(socketFactory).build();
-			HttpComponentsClientHttpRequestFactory httpComponentsClientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory(
-					httpClient);
-			return new RestTemplate(httpComponentsClientHttpRequestFactory);
-		}
-	}
+            CloseableHttpClient httpClient =
+                HttpClients.custom().setDefaultRequestConfig(config).setSSLSocketFactory(socketFactory).build();
+            HttpComponentsClientHttpRequestFactory httpComponentsClientHttpRequestFactory =
+                new HttpComponentsClientHttpRequestFactory(httpClient);
+            return new RestTemplate(httpComponentsClientHttpRequestFactory);
+        }
+    }
 
-	@Bean(name = "restTemplateBinaryResponse")
-	public RestTemplate restTemplateBinaryResponse(RestTemplateBuilder restTemplateBuilder,
-			List<HttpMessageConverter<?>> messageConverters) {
-		return restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(5))
-				.setReadTimeout(Duration.ofSeconds(20)).additionalMessageConverters(messageConverters)
-				.build();
-	}
+    @Bean(name = "restTemplateBinaryResponse")
+    public RestTemplate restTemplateBinaryResponse(RestTemplateBuilder restTemplateBuilder,
+            List<HttpMessageConverter<?>> messageConverters) {
+        return restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(5)).setReadTimeout(Duration.ofSeconds(20))
+            .additionalMessageConverters(messageConverters).build();
+    }
 
-	@Bean(name = "restTemplateLowTimeout")
-	public RestTemplate restTemplateLowTimeout(RestTemplateBuilder restTemplateBuilder) {
-		return restTemplateBuilder.setConnectTimeout(Duration.ofMillis(500))
-				.setReadTimeout(Duration.ofMillis(500)).build();
-	}
+    @Bean(name = "restTemplateLowTimeout")
+    public RestTemplate restTemplateLowTimeout(RestTemplateBuilder restTemplateBuilder) {
+        return restTemplateBuilder.setConnectTimeout(Duration.ofMillis(500)).setReadTimeout(Duration.ofMillis(500)).build();
+    }
 
-	@Bean(name = "restTemplateLongPolling")
-	public RestTemplate restTemplateLongPolling(RestTemplateBuilder restTemplateBuilder) {
-		return restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(10)).setReadTimeout(Duration
-				.ofSeconds(HomeAppConstants.CONTROLLER_CLIENT_LONGPOLLING_REQUEST_TIMEOUT_SECONDS * 2L))
-				.build();
-	}
+    @Bean(name = "restTemplateLongPolling")
+    public RestTemplate restTemplateLongPolling(RestTemplateBuilder restTemplateBuilder) {
+        return restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(10))
+            .setReadTimeout(Duration.ofSeconds(HomeAppConstants.CONTROLLER_CLIENT_LONGPOLLING_REQUEST_TIMEOUT_SECONDS * 2L))
+            .build();
+    }
 
-	@Bean
-	@Primary
-	public DataSourceProperties dataSourceProperties() {
-		return new DataSourceProperties();
-	}
+    @Bean
+    @Primary
+    public DataSourceProperties dataSourceProperties() {
+        return new DataSourceProperties();
+    }
 
-	@Bean
-	@Primary
-	public DataSource dataSource() {
-		return dataSourceProperties().initializeDataSourceBuilder().type(HikariDataSource.class).build();
-	}
+    @Bean
+    @Primary
+    public DataSource dataSource() {
+        return dataSourceProperties().initializeDataSourceBuilder().type(HikariDataSource.class).build();
+    }
 
-	@Bean
-	@Primary
-	public JdbcTemplate jdbcTemplateHistory(DataSource ds) {
-		return new JdbcTemplate(ds);
-	}
+    @Bean
+    @Primary
+    public JdbcTemplate jdbcTemplateHistory(DataSource ds) {
+        return new JdbcTemplate(ds);
+    }
 
 }

@@ -2,50 +2,54 @@ package de.fimatas.home.client.domain.model;
 
 public class SwitchView extends View {
 
-	private String label = "";
-	private String link = "#";
-	private String linkAuto = "#";
-	private String linkManual = "#";
-	private String autoInfoText = "";
+    private String label = "";
 
-	public String getLabel() {
-		return label;
-	}
+    private String link = "#";
 
-	public void setLabel(String label) {
-		this.label = label;
-	}
+    private String linkAuto = "#";
 
-	public String getLink() {
-		return link;
-	}
+    private String linkManual = "#";
 
-	public void setLink(String link) {
-		this.link = link;
-	}
+    private String autoInfoText = "";
 
-	public String getLinkAuto() {
-		return linkAuto;
-	}
+    public String getLabel() {
+        return label;
+    }
 
-	public void setLinkAuto(String linkAuto) {
-		this.linkAuto = linkAuto;
-	}
+    public void setLabel(String label) {
+        this.label = label;
+    }
 
-	public String getLinkManual() {
-		return linkManual;
-	}
+    public String getLink() {
+        return link;
+    }
 
-	public void setLinkManual(String linkManual) {
-		this.linkManual = linkManual;
-	}
+    public void setLink(String link) {
+        this.link = link;
+    }
 
-	public String getAutoInfoText() {
-		return autoInfoText;
-	}
+    public String getLinkAuto() {
+        return linkAuto;
+    }
 
-	public void setAutoInfoText(String autoInfoText) {
-		this.autoInfoText = autoInfoText;
-	}
+    public void setLinkAuto(String linkAuto) {
+        this.linkAuto = linkAuto;
+    }
+
+    public String getLinkManual() {
+        return linkManual;
+    }
+
+    public void setLinkManual(String linkManual) {
+        this.linkManual = linkManual;
+    }
+
+    public String getAutoInfoText() {
+        return autoInfoText;
+    }
+
+    public void setAutoInfoText(String autoInfoText) {
+        this.autoInfoText = autoInfoText;
+    }
 
 }

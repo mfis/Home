@@ -7,15 +7,15 @@ import org.springframework.jdbc.core.RowMapper;
 
 public class LongRowMapper implements RowMapper<Long> {
 
-	private String colName;
+    private String colName;
 
-	public LongRowMapper(String colName) {
-		this.colName = colName;
-	}
+    public LongRowMapper(String colName) {
+        this.colName = colName;
+    }
 
-	@Override
-	public Long mapRow(ResultSet rs, int rowNum) throws SQLException {
-		return rs.getLong(colName);
-	}
+    @Override
+    public Long mapRow(ResultSet rs, int rowNum) throws SQLException {
+        return rs.getLong(colName);
+    }
 
 }

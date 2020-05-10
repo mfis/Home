@@ -2,32 +2,34 @@ package de.fimatas.home.client.domain.model;
 
 public class PowerView extends View {
 
-	private String tendencyIcon = "";
-	private String description = "";
-	private ChartEntry todayConsumption;
+    private String tendencyIcon = "";
 
-	public String getTendencyIcon() {
-		return tendencyIcon;
-	}
+    private String description = "";
 
-	public void setTendencyIcon(String tendencyIcon) {
-		this.tendencyIcon = tendencyIcon;
-	}
+    private ChartEntry todayConsumption;
 
-	public String getDescription() {
-		return description;
-	}
+    public String getTendencyIcon() {
+        return tendencyIcon;
+    }
 
-	public void setDescription(String description) {
-		this.description = description;
-	}
+    public void setTendencyIcon(String tendencyIcon) {
+        this.tendencyIcon = tendencyIcon;
+    }
 
-	public ChartEntry getTodayConsumption() {
-		return todayConsumption;
-	}
+    public String getDescription() {
+        return description;
+    }
 
-	public void setTodayConsumption(ChartEntry todayConsumption) {
-		this.todayConsumption = todayConsumption;
-	}
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public ChartEntry getTodayConsumption() {
+        return todayConsumption;
+    }
+
+    public void setTodayConsumption(ChartEntry todayConsumption) {
+        this.todayConsumption = todayConsumption;
+    }
 
 }

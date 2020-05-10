@@ -4,26 +4,26 @@ import java.io.Serializable;
 
 public class RoomClimate extends Climate implements Serializable {
 
-	private static final long serialVersionUID = 1L;
-	
-	private Boolean humidityWetterThanOutdoor;
+    private static final long serialVersionUID = 1L;
 
-	private Hints hints = new Hints();
+    private Boolean humidityWetterThanOutdoor;
 
-	public Hints getHints() {
-		return hints;
-	}
+    private Hints hints = new Hints();
 
-	public void setHints(Hints hints) {
-		this.hints = hints;
-	}
+    public Hints getHints() {
+        return hints;
+    }
 
-	public Boolean getHumidityWetterThanOutdoor() {
-		return humidityWetterThanOutdoor;
-	}
+    public void setHints(Hints hints) {
+        this.hints = hints;
+    }
 
-	public void setHumidityWetterThanOutdoor(Boolean humidityWetterThanOutdoor) {
-		this.humidityWetterThanOutdoor = humidityWetterThanOutdoor;
-	}
+    public Boolean getHumidityWetterThanOutdoor() {
+        return humidityWetterThanOutdoor;
+    }
+
+    public void setHumidityWetterThanOutdoor(Boolean humidityWetterThanOutdoor) {
+        this.humidityWetterThanOutdoor = humidityWetterThanOutdoor;
+    }
 
 }
