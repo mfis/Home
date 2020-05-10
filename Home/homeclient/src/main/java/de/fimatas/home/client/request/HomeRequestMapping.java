@@ -164,6 +164,7 @@ public class HomeRequestMapping {
 					"State error - " + ModelObjectDAO.getInstance().getLastHouseModelState());
 		} else if (isModelUnchanged(etag, houseModel) && !isNewMessage) {
 			response.setStatus(HttpStatus.NOT_MODIFIED.value());
+			response.setHeader("SITE_REQUEST_TS", TS_FORMATTER.format(LocalDateTime.now()));
 			return "empty";
 		} else {
 			houseView.fillViewModel(model, houseModel, ModelObjectDAO.getInstance().readHistoryModel());

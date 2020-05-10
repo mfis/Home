@@ -59,6 +59,7 @@
 							showUserErrorMessage();
 						} else if(httpRequest.status == 304){	
 							lastRefresh = (new Date).getTime();
+							document.getElementById('idHeaderStatusText').innerHTML = httpRequest.getResponseHeader('SITE_REQUEST_TS');
 							showCheck();
 						}else{
 							showOffline();
@@ -190,7 +191,7 @@
 				<span th:text="${selected.name}"></span>
 			</a>
 			<a id="statusline" class="text-muted font-weight-light ml-auto" style="font-size: 85%; margin-right:15px">
-				<span th:text="${status}"></span>
+				<span id="idHeaderStatusText" th:text="${status}"></span>
 				<span style="display:inline;" id="navbarcheck"><th:block th:replace="basics :: symbol (name='far fa-check-circle')"/></span>
 				<span style="display:none;" id="navbaroffline"><th:block th:replace="basics :: symbol (name='fas fa-exclamation-triangle text-danger')"/></span>
 			</a>
