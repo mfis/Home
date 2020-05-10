@@ -12,8 +12,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import de.fimatas.home.controller.command.HomematicCommandBuilder;
-import de.fimatas.home.controller.command.HomematicCommandProcessor;
 import de.fimatas.home.controller.service.DeviceQualifier;
 import de.fimatas.home.library.homematic.model.Datapoint;
 import de.fimatas.home.library.homematic.model.Device;

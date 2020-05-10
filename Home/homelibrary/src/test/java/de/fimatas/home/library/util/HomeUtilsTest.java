@@ -5,8 +5,6 @@ import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 
-import de.fimatas.home.library.util.HomeUtils;
-
 public class HomeUtilsTest {
 
 	@Test

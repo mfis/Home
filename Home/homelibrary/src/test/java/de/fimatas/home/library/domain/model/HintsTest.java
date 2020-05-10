@@ -6,9 +6,6 @@ import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 
-import de.fimatas.home.library.domain.model.Hint;
-import de.fimatas.home.library.domain.model.Hints;
-
 public class HintsTest {
 
 	private static final long ONE_MINUTE = 1000 * 60;

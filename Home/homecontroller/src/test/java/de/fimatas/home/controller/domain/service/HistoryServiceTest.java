@@ -22,7 +22,6 @@ import de.fimatas.home.controller.command.HomematicCommandBuilder;
 import de.fimatas.home.controller.command.HomematicCommandProcessor;
 import de.fimatas.home.controller.dao.HistoryDatabaseDAO;
 import de.fimatas.home.controller.database.mapper.TimestampValuePair;
-import de.fimatas.home.controller.domain.service.HistoryService;
 import de.fimatas.home.controller.model.HistoryElement;
 import de.fimatas.home.controller.model.HistoryValueType;
 import de.fimatas.home.controller.service.DeviceQualifier;

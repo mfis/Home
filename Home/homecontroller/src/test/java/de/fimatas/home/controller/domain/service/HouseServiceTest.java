@@ -10,7 +10,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import de.fimatas.home.controller.domain.service.HouseService;
 import de.fimatas.home.library.domain.model.HouseModel;
 import de.fimatas.home.library.domain.model.OutdoorClimate;
 import de.fimatas.home.library.domain.model.RoomClimate;

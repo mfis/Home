@@ -12,8 +12,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import de.fimatas.home.controller.service.PushService;
-import de.fimatas.home.controller.service.SettingsService;
 import de.fimatas.home.library.domain.model.Hint;
 import de.fimatas.home.library.domain.model.HouseModel;
 import de.fimatas.home.library.domain.model.RoomClimate;
