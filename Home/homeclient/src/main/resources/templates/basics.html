@@ -131,6 +131,13 @@
 				setAutoRefresh();
 			}
 		}
+		function checkScrollUp(){
+			var classHomeWarning = document.getElementsByClassName('classHomeWarning');
+			if (classHomeWarning != null && classHomeWarning.length > 0) {	
+				  document.body.scrollTop = 0; 
+				  document.documentElement.scrollTop = 0; 
+			}
+		}
 	</script>	
 	
 	<script>
@@ -144,7 +151,8 @@
 			// onfocus
 			document.getElementById('idbody').onfocus = function(){
 				doAutoRefresh(); 
-				setAutoRefresh();			
+				setAutoRefresh();		
+				checkScrollUp();
 			};
 			// onblur
 			document.getElementById('idbody').onblur = function(){

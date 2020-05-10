@@ -541,7 +541,7 @@
 			<div th:replace="fragments :: title (name='Achtung!')"></div>
 		</th:block>
 		<th:block th:each="entry : ${model}">
-			<div th:class="'alert alert-danger callout callout-danger'">
+			<div th:class="'alert alert-danger callout callout-danger classHomeWarning'">
 				<h4>
 					<span><th:block th:replace="basics :: symbol (name='fas fa-exclamation-triangle')"/></span> <span th:text="${entry}"></span>
 				</h4>
@@ -555,7 +555,7 @@
 			<div th:replace="fragments :: title (name='Bitte beachten:')"></div>
 		</th:block>
 		<th:block th:each="entry : ${model}">
-			<div th:class="'alert alert-warning callout callout-warning'">
+			<div th:class="'alert alert-warning callout callout-warning classHomeWarning'">
 				<h4>
 					<span><th:block th:replace="basics :: symbol (name='fas fa-battery-quarter')"/></span> <span
 						th:text="'Batterie fast leer: ' + ${entry}"></span>
