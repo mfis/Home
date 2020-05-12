@@ -192,11 +192,11 @@
 
 	<!-- Navigation -->
 	<div th:fragment="navigation (selected, selectable, status)">
-		<nav id="navbar" class="navbar fixed-top navbar-expand-lg navbar-light py-1" style="border-bottom: 4px solid #C0C0C0;">
+		<nav id="navbar" class="navbar fixed-top navbar-expand-lg navbar-light py-1" style="border-bottom: 2px solid rgb(119,119,119);">
 			
 			<a class="navbar-brand" href="#">
 				<span><th:block th:replace="basics :: symbol (name=${selected.icon})"/></span>
-				<span th:text="${selected.name}"></span>
+				<span style="letter-spacing: 2px;" th:text="${selected.name}"></span>
 			</a>
 			<a id="statusline" class="text-muted font-weight-light ml-auto" style="font-size: 85%; margin-right:15px">
 				<span id="idHeaderStatusText" th:text="${status}"></span>
