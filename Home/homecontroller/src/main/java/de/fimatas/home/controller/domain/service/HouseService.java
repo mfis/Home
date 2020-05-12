@@ -6,9 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
-
 import javax.annotation.PostConstruct;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -17,7 +15,6 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
 import de.fimatas.home.controller.command.HomematicCommand;
 import de.fimatas.home.controller.command.HomematicCommandBuilder;
 import de.fimatas.home.controller.service.CameraService;
@@ -222,12 +219,14 @@ public class HouseService {
 
         Comparator<OutdoorClimate> comparator =
             Comparator.comparing(OutdoorClimate::getTemperature, (t1, t2) -> t1.getValue().compareTo(t2.getValue()));
-        newModel.setConclusionClimateFacadeMin(SerializationUtils.clone(outdoor.stream().min(comparator).get()));
-        newModel.setConclusionClimateFacadeMax(SerializationUtils.clone(outdoor.stream().max(comparator).get()));
 
         // compensating absent diff temperature value
-        newModel.getClimateGarden()
-            .setSunBeamIntensity(lookupIntensity(newModel.getConclusionClimateFacadeMin().getTemperature().getValue()));
+        BigDecimal diffGarden = newModel.getClimateGarden().getTemperature().getValue()
+            .subtract(outdoor.stream().min(comparator).get().getTemperature().getValue()).abs();
+        newModel.getClimateGarden().setSunBeamIntensity(lookupIntensity(diffGarden));
+
+        newModel.setConclusionClimateFacadeMin(SerializationUtils.clone(outdoor.stream().min(comparator).get()));
+        newModel.setConclusionClimateFacadeMax(SerializationUtils.clone(outdoor.stream().max(comparator).get()));
 
         BigDecimal sunShadeDiff = newModel.getConclusionClimateFacadeMax().getTemperature().getValue()
             .subtract(newModel.getConclusionClimateFacadeMin().getTemperature().getValue()).abs();

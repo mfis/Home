@@ -6,15 +6,12 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-
 import javax.annotation.PostConstruct;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.Model;
-
 import de.fimatas.home.client.domain.model.ChartEntry;
 import de.fimatas.home.client.domain.model.ClimateView;
 import de.fimatas.home.client.domain.model.FrontDoorView;
@@ -124,7 +121,8 @@ public class HouseViewService {
 
     public String lookupSunHeating(OutdoorClimate outdoorMaxClimate) {
 
-        if (outdoorMaxClimate == null) {
+        if (outdoorMaxClimate == null || outdoorMaxClimate.getSunBeamIntensity() == null
+            || outdoorMaxClimate.getSunHeatingInContrastToShadeIntensity() == null) {
             return StringUtils.EMPTY;
         }
 
