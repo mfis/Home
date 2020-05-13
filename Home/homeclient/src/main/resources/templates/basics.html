@@ -94,14 +94,23 @@
 			if (document.getElementById('statusline') !== null ) {
 				document.getElementById('navbarcheck').style.display = 'inline';
 				document.getElementById('navbaroffline').style.display = 'none';
+				document.getElementById('navbarstop').style.display = 'none';
 			}
 		}	
 		function showOffline(){
 			if (document.getElementById('statusline') !== null ) {
 				document.getElementById('navbarcheck').style.display = 'none';
 				document.getElementById('navbaroffline').style.display = 'inline';
+				document.getElementById('navbarstop').style.display = 'none';
 			}			
-		}	
+		}
+		function showStop(){
+			if (document.getElementById('statusline') !== null ) {
+				document.getElementById('navbarcheck').style.display = 'none';
+				document.getElementById('navbaroffline').style.display = 'none';
+				document.getElementById('navbarstop').style.display = 'inline';
+			}			
+		}			
 		
 		showUserErrorMessage();
 		
@@ -156,7 +165,8 @@
 			};
 			// onblur
 			document.getElementById('idbody').onblur = function(){
-				unsetAutoRefresh();			
+				unsetAutoRefresh();		
+				showStop();
 			};			
 		}
 	</script>
@@ -202,6 +212,7 @@
 				<span id="idHeaderStatusText" th:text="${status}"></span>
 				<span style="display:inline;" id="navbarcheck"><th:block th:replace="basics :: symbol (name='far fa-check-circle')"/></span>
 				<span style="display:none;" id="navbaroffline"><th:block th:replace="basics :: symbol (name='fas fa-exclamation-triangle text-danger')"/></span>
+				<span style="display:none;" id="navbarstop"><th:block th:replace="basics :: symbol (name='far fa-stop-circle text-warning')"/></span>
 			</a>
 			<button class="navbar-toggler" type="button" data-toggle="collapse"
 				data-target="#navbarSupportedContent"
