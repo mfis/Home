@@ -401,10 +401,12 @@ public class HouseViewService {
             power.setTendencyIcon(powerMeter.getActualConsumption().getTendency().getIconCssClass());
         }
 
-        if (!historyModel.getElectricPowerConsumptionDay().isEmpty()) {
+        if (historyModel.getElectricPowerConsumptionDay() != null && !historyModel.getElectricPowerConsumptionDay().isEmpty()) {
             List<ChartEntry> dayViewModel =
                 viewFormatter.fillPowerHistoryDayViewModel(historyModel.getElectricPowerConsumptionDay(), false);
-            power.setTodayConsumption(dayViewModel.get(0));
+            if (!dayViewModel.isEmpty()) {
+                power.setTodayConsumption(dayViewModel.get(0));
+            }
         }
 
         model.addAttribute(powerMeter.getDevice().programNamePrefix(), power);
