@@ -2,9 +2,7 @@ package de.fimatas.home.client.request;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-
 import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -21,7 +19,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-
 import de.fimatas.home.client.domain.service.HistoryViewService;
 import de.fimatas.home.client.domain.service.HouseViewService;
 import de.fimatas.home.client.model.MessageQueue;
@@ -149,17 +146,18 @@ public class HomeRequestMapping {
     @RequestMapping(Pages.PATH_HOME) // NOSONAR
     public String homePage(Model model, HttpServletResponse response,
             @CookieValue(name = LoginInterceptor.COOKIE_NAME, required = false) String userCookie,
-            @RequestHeader(name = "ETag", required = false) String etag) {
+            @RequestHeader(name = "ETag", required = false) String etag,
+            @RequestHeader(name = LoginInterceptor.APP_DEVICE, required = false) String appDevice) {
 
+        // log.info("requesting home");
         boolean isNewMessage = ViewAttributesDAO.getInstance().isPresent(userCookie, ViewAttributesDAO.MESSAGE);
-        fillMenu(Pages.PATH_HOME, model);
+        fillMenu(Pages.PATH_HOME, model, response, appDevice);
         fillUserAttributes(model, userCookie);
         HouseModel houseModel = ModelObjectDAO.getInstance().readHouseModel();
         if (houseModel == null) {
             throw new IllegalStateException("State error - " + ModelObjectDAO.getInstance().getLastHouseModelState());
         } else if (isModelUnchanged(etag, houseModel) && !isNewMessage) {
             response.setStatus(HttpStatus.NOT_MODIFIED.value());
-            response.setHeader("SITE_REQUEST_TS", TS_FORMATTER.format(LocalDateTime.now()));
             return "empty";
         } else {
             houseView.fillViewModel(model, houseModel, ModelObjectDAO.getInstance().readHistoryModel());
@@ -172,8 +170,9 @@ public class HomeRequestMapping {
     }
 
     @GetMapping(Pages.PATH_SETTINGS)
-    public String settings(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie) {
-        fillMenu(Pages.PATH_SETTINGS, model);
+    public String settings(Model model, HttpServletResponse response,
+            @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie) {
+        fillMenu(Pages.PATH_SETTINGS, model, response, null);
         fillUserAttributes(model, userCookie);
         String user = LoginCookieDAO.getInstance().read(userCookie);
         SettingsModel settings = ModelObjectDAO.getInstance().readSettingsModels(user);
@@ -213,10 +212,23 @@ public class HomeRequestMapping {
             StringUtils.trimToEmpty(ViewAttributesDAO.getInstance().pull(userCookie, ViewAttributesDAO.MESSAGE)));
     }
 
-    private void fillMenu(String pathHome, Model model) {
-        model.addAttribute("MENU_SELECTED", Pages.getEntry(pathHome));
+    private void fillMenu(String pathHome, Model model, HttpServletResponse response, String appDevice) {
+
+        boolean isApp = StringUtils.isNotEmpty(appDevice);
+
+        if (isApp) {
+            model.addAttribute("MENU_SELECTED", Pages.getAppHomeEntry());
+        } else {
+            model.addAttribute("MENU_SELECTED", Pages.getEntry(pathHome));
+        }
+
         model.addAttribute("MENU_SELECTABLE", Pages.getOtherEntries(pathHome));
+
+        model.addAttribute("SITE_REQUEST_DEVICE", StringUtils.trimToEmpty(appDevice));
+        model.addAttribute("SITE_REQUEST_IS_APP", Boolean.toString(isApp));
+
         model.addAttribute("SITE_REQUEST_TS", TS_FORMATTER.format(LocalDateTime.now()));
+        response.setHeader("SITE_REQUEST_TS", TS_FORMATTER.format(LocalDateTime.now()));
     }
 
 }

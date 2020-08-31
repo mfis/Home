@@ -48,6 +48,7 @@
 				var httpRequest = new XMLHttpRequest();
 				httpRequest.open('GET', target);
 				httpRequest.setRequestHeader('ETag', document.getElementById('modelTimestamp').value);
+				httpRequest.setRequestHeader('appDevice', document.getElementById('SITE_REQUEST_DEVICE').value);
 				httpRequest.send();
 				httpRequest.onreadystatechange=(e)=>{
 					if (httpRequest.readyState == 4) {
@@ -59,11 +60,11 @@
 							showUserErrorMessage();
 						} else if(httpRequest.status == 304){	
 							lastRefresh = (new Date).getTime();
-							document.getElementById('idHeaderStatusText').innerHTML = httpRequest.getResponseHeader('SITE_REQUEST_TS');
 							showCheck();
 						}else{
 							showOffline();
 						}
+						setAppTitle(httpRequest);
 					}
 				}	
 			}else{
@@ -112,6 +113,23 @@
 			}			
 		}			
 		
+		function setAppTitle(httpRequest){
+			
+			var ts;
+			if(httpRequest != null && httpRequest.getResponseHeader('SITE_REQUEST_TS')!=null){
+				ts = httpRequest.getResponseHeader('SITE_REQUEST_TS');
+			}else{
+				ts = document.getElementById('SITE_REQUEST_TS').value;
+			}
+			
+			if(document.getElementById('SITE_REQUEST_IS_APP').value == 'true'){
+				document.title = ts;
+			}else{
+				document.getElementById('idHeaderStatusText').innerHTML = ts;
+			}			
+		}	
+		
+		setAppTitle(null);
 		showUserErrorMessage();
 		
 	</script>
@@ -133,10 +151,12 @@
 		}	
 		function doAutoRefresh(){
 			
-			if(document.hasFocus() && $('.modal.fade.show').length === 0 && ((new Date).getTime() - lastRefresh > (1000))){
+			var isApp = document.getElementById('SITE_REQUEST_IS_APP').value == 'true'
+			
+			if((document.hasFocus() || isApp) && $('.modal.fade.show').length === 0 && ((new Date).getTime() - lastRefresh > (1000))){
 				refreshContent();
 			}
-			if(document.hasFocus()){
+			if((document.hasFocus() || isApp)){
 				setAutoRefresh();
 			}
 		}
@@ -147,6 +167,7 @@
 				  document.documentElement.scrollTop = 0; 
 			}
 		}
+		
 	</script>	
 	
 	<script>
@@ -156,7 +177,7 @@
 		var lastRefresh = (new Date).getTime();
 		setAutoRefresh();
 		
-		if (element !== null && element.value !== '') {
+		if (element !== null && element.value !== '' && document.getElementById('SITE_REQUEST_IS_APP').value == 'false') {
 			// onfocus
 			document.getElementById('idbody').onfocus = function(){
 				doAutoRefresh(); 
@@ -201,62 +222,65 @@
 <body>
 
 	<!-- Navigation -->
-	<div th:fragment="navigation (selected, selectable, status)">
-		<nav id="navbar" class="navbar fixed-top navbar-expand-lg navbar-light py-1" style="border-bottom: 2px solid rgb(119,119,119);">
-			
-			<a class="navbar-brand" href="#">
-				<span><th:block th:replace="basics :: symbol (name=${selected.icon})"/></span>
-				<span style="letter-spacing: 2px;" th:text="${selected.name}"></span>
-			</a>
-			<a id="statusline" class="text-muted font-weight-light ml-auto" style="font-size: 85%; margin-right:15px">
-				<span id="idHeaderStatusText" th:text="${status}"></span>
-				<span style="display:inline;" id="navbarcheck"><th:block th:replace="basics :: symbol (name='far fa-check-circle')"/></span>
-				<span style="display:none;" id="navbaroffline"><th:block th:replace="basics :: symbol (name='fas fa-exclamation-triangle text-danger')"/></span>
-				<span style="display:none;" id="navbarstop"><th:block th:replace="basics :: symbol (name='far fa-stop-circle text-warning')"/></span>
-			</a>
-			<button class="navbar-toggler" type="button" data-toggle="collapse"
-				data-target="#navbarSupportedContent"
-				aria-controls="navbarSupportedContent" aria-expanded="false"
-				aria-label="Toggle navigation">
-				<span id="navbartoggle" class="navbar-toggler-icon-"><th:block th:replace="basics :: symbol (name='fas fa-bars')"/></span>
-			</button>
-			<div class="collapse navbar-collapse" id="navbarSupportedContent">
-				<ul class="navbar-nav ml-auto">
-					<th:block th:each="entry : ${selectable}">
-						<li class="nav-item" style="cursor:pointer"><a class="nav-link" th:onclick="@{'menu_' + ${entry.name} + '()'}"
-							th:text="${entry.name}">name</a></li>
-					</th:block>
-				</ul>
-			</div>
-			<th:block th:each="entry : ${selectable}">
-				<script type="text/javascript">
-					function menu_[[${entry.name}]](){
-						window.location.href = "[[${entry.path}]]";
-					}		
-				</script>		
-			</th:block>
-		</nav>
-		<div style="height: 50px;"></div>
+	<div th:fragment="navigation (selected, selectable, status, isApp)">
+	
+		<th:block th:if="${#strings.equals(isApp, 'false')}">	
+			<nav id="navbar" class="navbar fixed-top navbar-expand-lg navbar-light py-1" style="border-bottom: 2px solid rgb(119,119,119);">
+				
+				<a class="navbar-brand" href="#">
+					<span><th:block th:replace="basics :: symbol (name=${selected.icon})"/></span>
+					<span style="letter-spacing: 2px;" th:text="${selected.name}"></span>
+				</a>
+				<a id="statusline" class="text-muted font-weight-light ml-auto" style="font-size: 85%; margin-right:15px">
+					<span id="idHeaderStatusText" th:text="${status}"></span>
+					<span style="display:inline;" id="navbarcheck"><th:block th:replace="basics :: symbol (name='far fa-check-circle')"/></span>
+					<span style="display:none;" id="navbaroffline"><th:block th:replace="basics :: symbol (name='fas fa-exclamation-triangle text-danger')"/></span>
+					<span style="display:none;" id="navbarstop"><th:block th:replace="basics :: symbol (name='far fa-stop-circle text-warning')"/></span>
+				</a>
+				<button class="navbar-toggler" type="button" data-toggle="collapse"
+					data-target="#navbarSupportedContent"
+					aria-controls="navbarSupportedContent" aria-expanded="false"
+					aria-label="Toggle navigation">
+					<span id="navbartoggle" class="navbar-toggler-icon-"><th:block th:replace="basics :: symbol (name='fas fa-bars')"/></span>
+				</button>
+				<div class="collapse navbar-collapse" id="navbarSupportedContent">
+					<ul class="navbar-nav ml-auto">
+						<th:block th:each="entry : ${selectable}">
+							<li class="nav-item" style="cursor:pointer"><a class="nav-link" th:onclick="@{'menu_' + ${entry.name} + '()'}"
+								th:text="${entry.name}">name</a></li>
+						</th:block>
+					</ul>
+				</div>
+				<th:block th:each="entry : ${selectable}">
+					<script type="text/javascript">
+						function menu_[[${entry.name}]](){
+							window.location.href = "[[${entry.path}]]";
+						}		
+					</script>		
+				</th:block>
+			</nav>
+			<div style="height: 50px;"></div>
+		</th:block>
 		
-	<div class="modal fade" id="idDropSymbolMessage" tabindex="-1" role="dialog">
-	  <div class="modal-dialog modal-dialog-centered" role="document">
-	    <div class="modal-content">
-	      <div class="modal-header">
-	        <h5 class="modal-title" th:text="'Luftfeuchtigkeit'"></h5>
-	        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-	          <span aria-hidden="true">&times;</span>
-	        </button>
-	      </div>
-	      <div class="modal-body">
-	      	<span><a>Anzeige der Differenz der absoluten Luftfeuchtigkeit dieses Raumes im Vergleich zu Draußen unter Berücksichtigung der jeweiligen Temperatur.<br/><br/></a></span>
-	      	<span><a><th:block th:replace="basics :: symbol (name='fas fa-tint')"/></a></span>
-	      	<span><a> - Höhere Raum-Luftfeuchtigkeit. Lüften würde den Wert verringern.<br/><br/></a></span>
-	      	<span><a><th:block th:replace="basics :: symbol (name='fas fa-tint-slash')"/></a></span>
-	      	<span><a> - Niedrigere Raum-Luftfeuchtigkeit. Lüften würde den Wert erhöhen.<br/></a></span>
-	      </div>
-	    </div>
-	  </div>
-	</div>		
+		<div class="modal fade" id="idDropSymbolMessage" tabindex="-1" role="dialog">
+		  <div class="modal-dialog modal-dialog-centered" role="document">
+		    <div class="modal-content">
+		      <div class="modal-header">
+		        <h5 class="modal-title" th:text="'Luftfeuchtigkeit'"></h5>
+		        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+		          <span aria-hidden="true">&times;</span>
+		        </button>
+		      </div>
+		      <div class="modal-body">
+		      	<span><a>Anzeige der Differenz der absoluten Luftfeuchtigkeit dieses Raumes im Vergleich zu Draußen unter Berücksichtigung der jeweiligen Temperatur.<br/><br/></a></span>
+		      	<span><a><th:block th:replace="basics :: symbol (name='fas fa-tint')"/></a></span>
+		      	<span><a> - Höhere Raum-Luftfeuchtigkeit. Lüften würde den Wert verringern.<br/><br/></a></span>
+		      	<span><a><th:block th:replace="basics :: symbol (name='fas fa-tint-slash')"/></a></span>
+		      	<span><a> - Niedrigere Raum-Luftfeuchtigkeit. Lüften würde den Wert erhöhen.<br/></a></span>
+		      </div>
+		    </div>
+		  </div>
+		</div>		
 		
 	</div>
 	

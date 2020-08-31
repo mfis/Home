@@ -5,22 +5,26 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
-
+import de.fimatas.home.client.request.AppRequestMapping;
 import de.fimatas.home.client.request.ControllerRequestMapping;
 import de.fimatas.home.library.util.HomeAppConstants;
 
 public class LoginInterceptor extends HandlerInterceptorAdapter {
+
+    public static final String APP_DEVICE = "appDevice";
+
+    private static final String APP_USER_NAME = "appUserName";
+
+    private static final String APP_USER_TOKEN = "appUserToken";
 
     private static final String LOGIN_PASSWORD = "login_password"; // NOSONAR
 
@@ -44,9 +48,10 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
         if (isControllerRequest(request)) {
-            String token = env.getProperty(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN);
-            String tokenSent = request.getHeader(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN);
-            return controllerSuccessResponse(StringUtils.isNotBlank(tokenSent) && StringUtils.equals(token, tokenSent));
+            String controllerToken = env.getProperty(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN);
+            String controllerTokenSent = request.getHeader(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN);
+            return controllerSuccessResponse(
+                StringUtils.isNotBlank(controllerTokenSent) && StringUtils.equals(controllerToken, controllerTokenSent));
         }
 
         if (isAssetRequest(request)) {
@@ -78,6 +83,12 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
             userName = StringUtils.trimToNull(LoginCookieDAO.getInstance().read(cookie));
         }
 
+        // app user handling
+        if (userName == null && request.getHeader(APP_USER_TOKEN) != null && userService
+            .checkToken(request.getHeader(APP_USER_NAME), request.getHeader(APP_USER_TOKEN), request.getHeader(APP_DEVICE))) {
+            userName = request.getHeader(APP_USER_NAME);
+        }
+
         return handleLoginttempt(request, response, params, userName);
     }
 
@@ -91,13 +102,14 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
         if (userName == null) {
             String loginUser = StringUtils.trimToNull(params.get(LOGIN_USERNAME));
             String cookie = StringUtils.trimToNull(cookieRead(request));
+            boolean isApp = request.getHeader(APP_USER_TOKEN) != null;
             if (cookie != null || loginUser != null) {
-                response.sendRedirect(LoginController.LOGIN_FAILED_URI);
+                response.sendRedirect(isApp ? LoginController.LOGIN_VIA_APP_FAILED_URI : LoginController.LOGIN_FAILED_URI);
                 handleClientFalseLoginCounter();
                 logger.info("attempt login not successful - user=" + loginUser + ", cookie=" + cookie + ", requested="
                     + request.getRequestURI());
             } else {
-                response.sendRedirect(LoginController.LOGIN_URI);
+                response.sendRedirect(isApp ? LoginController.LOGIN_VIA_APP_FAILED_URI : LoginController.LOGIN_URI);
             }
             return false;
         } else {
@@ -178,7 +190,19 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
             return true;
         }
 
-        if (StringUtils.equals(request.getRequestURI(), LoginController.LOGIN_FAILED_URI)) { // NOSONAR
+        if (StringUtils.equals(request.getRequestURI(), LoginController.LOGIN_FAILED_URI)) {
+            return true;
+        }
+
+        if (StringUtils.equals(request.getRequestURI(), LoginController.LOGIN_VIA_APP_FAILED_URI)) {
+            return true;
+        }
+
+        if (StringUtils.equals(request.getRequestURI(), AppRequestMapping.URI_WHOAMI)) {
+            return true;
+        }
+
+        if (StringUtils.equals(request.getRequestURI(), AppRequestMapping.URI_CREATE_AUTH_TOKEN)) { // NOSONAR
             return true;
         }
 
@@ -216,7 +240,7 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 
         String uuid = null;
         if (StringUtils.isBlank(oldCookieID)) {
-            uuid = UUID.randomUUID().toString();
+            uuid = UUID.randomUUID().toString() + UUID.randomUUID().toString();
         } else {
             uuid = oldCookieID;
         }

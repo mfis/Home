@@ -14,9 +14,13 @@ public class LoginController {
 
     public static final String LOGIN_FAILED_URI = "/loginFailed";
 
+    public static final String LOGIN_VIA_APP_FAILED_URI = "/loginViaAppFailed";
+
     public static final String LOGOFF_URI = "/logoff";
 
     private static final String LOGIN_TEMPLATE = "login";
+
+    private static final String LOGIN_VIA_APP_TEMPLATE = "loginViaAppMock";
 
     private static final String LAW_LINK = "lawLink";
 
@@ -45,6 +49,11 @@ public class LoginController {
         model.addAttribute(LAW_LINK, lawLink);
         model.addAttribute(LOGIN_MESSAGE, "Name und/oder Passwort nicht korrekt.");
         return LOGIN_TEMPLATE;
+    }
+
+    @GetMapping(LOGIN_VIA_APP_FAILED_URI)
+    public String loginViaAppFailed(Model model) {
+        return LOGIN_VIA_APP_TEMPLATE;
     }
 
     @GetMapping(path = LOGOFF_URI)

@@ -42,4 +42,8 @@ public class Pages {
         throw new NullPointerException("Entry not found:" + path);
     }
 
+    public static PageEntry getAppHomeEntry() {
+        return new PageEntry("", PATH_HOME, "fas fa-home", "home");
+    }
+
 }
