@@ -43,7 +43,7 @@ public class HomeRequestMapping {
 
     private static final String REDIRECT = "redirect:";
 
-    private static final DateTimeFormatter TS_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
+    public static final DateTimeFormatter TS_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
     private static final String DEVICE_NAME = "deviceName";
 
