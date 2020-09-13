@@ -46,6 +46,7 @@ import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.homematic.model.HomematicConstants;
 import de.fimatas.home.library.homematic.model.Type;
 import de.fimatas.home.library.model.Message;
+import de.fimatas.home.library.util.HomeAppConstants;
 
 @Component
 public class HouseService {
@@ -61,10 +62,6 @@ public class HouseService {
     private static final BigDecimal HUMIDITY_TENDENCY_DIFF = new BigDecimal("1.99");
 
     private static final BigDecimal POWER_TENDENCY_DIFF = new BigDecimal("99.99");
-
-    private static final BigDecimal TARGET_HUMIDITY_MIN_INSIDE = new BigDecimal("40");
-
-    private static final BigDecimal TARGET_HUMIDITY_MAX_INSIDE = new BigDecimal("70");
 
     private static final BigDecimal SUN_INTENSITY_NO = new BigDecimal("3");
 
@@ -377,9 +374,9 @@ public class HouseService {
             return;
         }
 
-        if (room.getHumidity().getValue().compareTo(TARGET_HUMIDITY_MAX_INSIDE) > 0) {
+        if (room.getHumidity().getValue().compareTo(HomeAppConstants.TARGET_HUMIDITY_MAX_INSIDE) > 0) {
             room.getHints().giveHint(Hint.DECREASE_HUMIDITY, dateTime);
-        } else if (room.getHumidity().getValue().compareTo(TARGET_HUMIDITY_MIN_INSIDE) < 0) {
+        } else if (room.getHumidity().getValue().compareTo(HomeAppConstants.TARGET_HUMIDITY_MIN_INSIDE) < 0) {
             room.getHints().giveHint(Hint.INCREASE_HUMIDITY, dateTime);
         }
     }

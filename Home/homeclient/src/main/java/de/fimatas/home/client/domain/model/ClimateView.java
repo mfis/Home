@@ -19,6 +19,8 @@ public class ClimateView extends View {
 
     private String tendencyIconHumidity = "";
 
+    private String colorClassHumidity = "secondary";
+
     private String colorClassHeating = "secondary";
 
     private String linkBoost = "";
@@ -143,6 +145,14 @@ public class ClimateView extends View {
 
     public void setAbsoluteHumidityIcon(String absoluteHumidityIcon) {
         this.absoluteHumidityIcon = absoluteHumidityIcon;
+    }
+
+    public String getColorClassHumidity() {
+        return colorClassHumidity;
+    }
+
+    public void setColorClassHumidity(String colorClassHumidity) {
+        this.colorClassHumidity = colorClassHumidity;
     }
 
 }

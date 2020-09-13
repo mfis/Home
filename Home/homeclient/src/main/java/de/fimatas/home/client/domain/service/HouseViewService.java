@@ -39,6 +39,7 @@ import de.fimatas.home.library.domain.model.Switch;
 import de.fimatas.home.library.domain.model.Window;
 import de.fimatas.home.library.model.Message;
 import de.fimatas.home.library.model.MessageType;
+import de.fimatas.home.library.util.HomeAppConstants;
 
 @Component
 public class HouseViewService {
@@ -57,11 +58,13 @@ public class HouseViewService {
 
     private static final String TYPE_IS = "type=";
 
-    private static final String COLOR_CLASS_RED = "danger";
+    public static final String COLOR_CLASS_RED = "danger";
 
-    private static final String COLOR_CLASS_ORANGE = "warning";
+    public static final String COLOR_CLASS_ORANGE = "warning";
 
-    private static final String COLOR_CLASS_GREEN = "success";
+    public static final String COLOR_CLASS_GREEN = "success";
+
+    public static final String COLOR_CLASS_GRAY = "secondary";
 
     public static final String MESSAGEPATH = "/message?"; // NOSONAR
 
@@ -342,8 +345,21 @@ public class HouseViewService {
             view.setColorClass("info");
             view.setIcon("fas fa-thermometer-empty");
         } else {
-            view.setColorClass("success");
+            view.setColorClass(COLOR_CLASS_GREEN);
             view.setIcon("fas fa-thermometer-half");
+        }
+
+        // for now only used in app
+        if (climate instanceof RoomClimate && climate.getHumidity() != null) {
+            if (climate.getHumidity().getValue().compareTo(HomeAppConstants.TARGET_HUMIDITY_MAX_INSIDE) > 0) {
+                view.setColorClassHumidity("COLOR_CLASS_ORANGE");
+            } else if (climate.getHumidity().getValue().compareTo(HomeAppConstants.TARGET_HUMIDITY_MIN_INSIDE) < 0) {
+                view.setColorClassHumidity(COLOR_CLASS_ORANGE);
+            } else {
+                view.setColorClassHumidity(COLOR_CLASS_GREEN);
+            }
+        } else {
+            view.setColorClassHumidity(COLOR_CLASS_GRAY);
         }
     }
 
@@ -366,14 +382,14 @@ public class HouseViewService {
                 house.getConclusionClimateFacadeMax().getSunHeatingInContrastToShadeIntensity())) {
             case NO:
                 viewMax.setIcon("fas fa-cloud");
-                viewMax.setColorClass("secondary");
+                viewMax.setColorClass(COLOR_CLASS_GRAY);
                 break;
             case LOW:
-                viewMax.setColorClass("success");
+                viewMax.setColorClass(COLOR_CLASS_GREEN);
                 viewMax.setIcon("fas fa-cloud-sun");
                 break;
             case MEDIUM:
-                viewMax.setColorClass("warning");
+                viewMax.setColorClass(COLOR_CLASS_ORANGE);
                 viewMax.setIcon("far fa-sun");
                 break;
             case HIGH:

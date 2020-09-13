@@ -41,6 +41,8 @@ import de.fimatas.home.library.model.Pages;
 @Controller
 public class HomeRequestMapping {
 
+    private static final String SITE_REQUEST_TS = "SITE_REQUEST_TS";
+
     private static final String REDIRECT = "redirect:";
 
     public static final DateTimeFormatter TS_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
@@ -227,8 +229,8 @@ public class HomeRequestMapping {
         model.addAttribute("SITE_REQUEST_DEVICE", StringUtils.trimToEmpty(appDevice));
         model.addAttribute("SITE_REQUEST_IS_APP", Boolean.toString(isApp));
 
-        model.addAttribute("SITE_REQUEST_TS", TS_FORMATTER.format(LocalDateTime.now()));
-        response.setHeader("SITE_REQUEST_TS", TS_FORMATTER.format(LocalDateTime.now()));
+        model.addAttribute(SITE_REQUEST_TS, TS_FORMATTER.format(LocalDateTime.now()));
+        response.setHeader(SITE_REQUEST_TS, TS_FORMATTER.format(LocalDateTime.now()));
     }
 
 }
