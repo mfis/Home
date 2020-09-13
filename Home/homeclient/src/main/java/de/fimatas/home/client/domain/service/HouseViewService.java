@@ -64,6 +64,8 @@ public class HouseViewService {
 
     public static final String COLOR_CLASS_GREEN = "success";
 
+    public static final String COLOR_CLASS_BLUE = "info";
+
     public static final String COLOR_CLASS_GRAY = "secondary";
 
     public static final String MESSAGEPATH = "/message?"; // NOSONAR
@@ -342,7 +344,7 @@ public class HouseViewService {
             view.setColorClass(COLOR_CLASS_RED);
             view.setIcon("fas fa-thermometer-full");
         } else if (climate.getTemperature().getValue().compareTo(LOW_TEMP) < 0) {
-            view.setColorClass("info");
+            view.setColorClass(COLOR_CLASS_BLUE);
             view.setIcon("fas fa-thermometer-empty");
         } else {
             view.setColorClass(COLOR_CLASS_GREEN);
@@ -352,7 +354,7 @@ public class HouseViewService {
         // for now only used in app
         if (climate instanceof RoomClimate && climate.getHumidity() != null) {
             if (climate.getHumidity().getValue().compareTo(HomeAppConstants.TARGET_HUMIDITY_MAX_INSIDE) > 0) {
-                view.setColorClassHumidity("COLOR_CLASS_ORANGE");
+                view.setColorClassHumidity(COLOR_CLASS_ORANGE);
             } else if (climate.getHumidity().getValue().compareTo(HomeAppConstants.TARGET_HUMIDITY_MIN_INSIDE) < 0) {
                 view.setColorClassHumidity(COLOR_CLASS_ORANGE);
             } else {

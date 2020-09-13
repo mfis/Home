@@ -62,6 +62,9 @@ public class AppViewService {
             placesOrder.add(Place.LIVINGROOM);
             placesOrder.add(Place.BATHROOM);
             placesOrder.add(Place.KIDSROOM);
+            placesOrder.add(Place.BEDROOM);
+            placesOrder.add(Place.LAUNDRY);
+            placesOrder.add(Place.OUTSIDE);
             break;
         case "widget":
             break;
@@ -117,6 +120,8 @@ public class AppViewService {
             return "ffb84d";
         case HouseViewService.COLOR_CLASS_RED:
             return "ff6666";
+        case HouseViewService.COLOR_CLASS_BLUE:
+            return "66b3ff";
         default:
             return "bebebe";
         }
