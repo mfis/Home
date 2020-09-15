@@ -60,6 +60,8 @@ public class HomeViewModel implements Serializable {
 
         private String accent;
 
+        private String tendency = "";
+
         public String getId() {
             return id;
         }
@@ -90,6 +92,14 @@ public class HomeViewModel implements Serializable {
 
         public void setAccent(String accent) {
             this.accent = accent;
+        }
+
+        public String getTendency() {
+            return tendency;
+        }
+
+        public void setTendency(String tendency) {
+            this.tendency = tendency;
         }
     }
 

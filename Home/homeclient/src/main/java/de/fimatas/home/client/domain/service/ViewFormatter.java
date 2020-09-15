@@ -14,10 +14,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
-
 import de.fimatas.home.client.domain.model.ChartEntry;
 import de.fimatas.home.client.domain.model.ValueWithCaption;
 import de.fimatas.home.library.domain.model.PowerConsumptionDay;
@@ -26,6 +24,8 @@ import de.fimatas.home.library.util.HomeUtils;
 
 @Component
 public class ViewFormatter {
+
+    public static final String SUM_SIGN = "\u2211 ";
 
     public static final String DEGREE = "\u00b0";
 
@@ -189,7 +189,7 @@ public class ViewFormatter {
 
     private String sumCaption(boolean historyView, DecimalFormat decimalFormat, boolean isToday, BigDecimal daySum) {
 
-        String sumCaption = "\u2211 " + decimalFormat.format(daySum);
+        String sumCaption = SUM_SIGN + decimalFormat.format(daySum);
         if (isToday && historyView) {
             sumCaption += " + ?";
         }

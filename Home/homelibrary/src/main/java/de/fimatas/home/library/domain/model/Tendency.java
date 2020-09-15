@@ -69,6 +69,15 @@ public enum Tendency {
         public static final long ONE_MINUTE = 1000L * 60L;
     }
 
+    public static String nameFromCssClass(String cssClass) {
+        for (Tendency tendency : values()) {
+            if (tendency.getIconCssClass().equals(cssClass)) {
+                return tendency.name();
+            }
+        }
+        return NONE.name();
+    }
+
     public long getTimeDiff() {
         return timeDiff;
     }
