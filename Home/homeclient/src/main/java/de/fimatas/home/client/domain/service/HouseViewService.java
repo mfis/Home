@@ -167,6 +167,7 @@ public class HouseViewService {
         view.setId("frontDoorLock");
         view.setName(doorlock.getDevice().getType().getTypeName());
         view.setCaption(doorlock.getDevice().getPlace().getPlaceName());
+        view.setPlace(doorlock.getDevice().getPlace().getPlaceName());
         view.setBusy(Boolean.toString(doorlock.isBusy()));
         view.setUnreach(Boolean.toString(doorlock.isUnreach()));
         boolean setButtonLock = false;

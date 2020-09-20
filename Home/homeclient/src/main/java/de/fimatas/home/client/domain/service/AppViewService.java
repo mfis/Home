@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.Model;
 import de.fimatas.home.client.domain.model.ClimateView;
+import de.fimatas.home.client.domain.model.LockView;
 import de.fimatas.home.client.domain.model.PowerView;
 import de.fimatas.home.client.domain.model.View;
 import de.fimatas.home.client.model.HomeViewModel;
@@ -45,9 +46,17 @@ public class AppViewService {
                 mapClimateView(placeInOrder, (ClimateView) view, placeModel);
             } else if (view instanceof PowerView) {
                 mapPowerView(placeInOrder, (PowerView) view, placeModel);
+            } else if (view instanceof LockView) {
+                mapLockView(placeInOrder, (LockView) view, placeModel);
             }
             appModel.getPlaces().add(placeModel);
         }
+    }
+
+    private void mapLockView(Place placeInOrder, LockView view, HomeViewPlaceModel placeModel) {
+
+        placeModel.setName("Haustür");
+        placeModel.getValues().add(mapLockStatus(placeInOrder, view));
     }
 
     private void mapPowerView(Place placeInOrder, PowerView view, HomeViewPlaceModel placeModel) {
@@ -77,6 +86,7 @@ public class AppViewService {
             placesOrder.add(Place.BEDROOM);
             placesOrder.add(Place.LAUNDRY);
             placesOrder.add(Place.OUTSIDE);
+            placesOrder.add(Place.FRONTDOOR);
             placesOrder.add(Place.HOUSE);
             break;
         case "widget":
@@ -141,6 +151,15 @@ public class AppViewService {
         hvm.setId(place.getPlaceName() + "#todayPowerSum");
         hvm.setKey("Heute");
         hvm.setValue(view.getTodayConsumption().getLabel().replace(ViewFormatter.SUM_SIGN, "").trim());
+        hvm.setAccent(mapAccent(view.getColorClass()));
+        return hvm;
+    }
+
+    private HomeViewValueModel mapLockStatus(Place place, LockView view) {
+        HomeViewValueModel hvm = new HomeViewModel().new HomeViewValueModel();
+        hvm.setId(place.getPlaceName() + "#lockStatus");
+        hvm.setKey("Zustand");
+        hvm.setValue(view.getState());
         hvm.setAccent(mapAccent(view.getColorClass()));
         return hvm;
     }
