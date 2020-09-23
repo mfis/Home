@@ -36,7 +36,11 @@ public class HouseModel implements Serializable {
 
     private Switch kitchenWindowLightSwitch;
 
-    private PowerMeter electricalPowerConsumption;
+    private Switch wallboxSwitch;
+
+    private PowerMeter totalElectricalPowerConsumption;
+
+    private PowerMeter wallboxElectricalPowerConsumption;
 
     private Doorbell frontDoorBell;
 
@@ -176,14 +180,6 @@ public class HouseModel implements Serializable {
         this.conclusionClimateFacadeMax = conclusionClimateFacadeMax;
     }
 
-    public PowerMeter getElectricalPowerConsumption() {
-        return electricalPowerConsumption;
-    }
-
-    public void setElectricalPowerConsumption(PowerMeter electricalPowerConsumption) {
-        this.electricalPowerConsumption = electricalPowerConsumption;
-    }
-
     public Window getLeftWindowBedRoom() {
         return leftWindowBedRoom;
     }
@@ -250,6 +246,30 @@ public class HouseModel implements Serializable {
 
     public void setClimateGarden(OutdoorClimate climateGarden) {
         this.climateGarden = climateGarden;
+    }
+
+    public Switch getWallboxSwitch() {
+        return wallboxSwitch;
+    }
+
+    public void setWallboxSwitch(Switch wallboxSwitch) {
+        this.wallboxSwitch = wallboxSwitch;
+    }
+
+    public PowerMeter getTotalElectricalPowerConsumption() {
+        return totalElectricalPowerConsumption;
+    }
+
+    public void setTotalElectricalPowerConsumption(PowerMeter totalElectricalPowerConsumption) {
+        this.totalElectricalPowerConsumption = totalElectricalPowerConsumption;
+    }
+
+    public PowerMeter getWallboxElectricalPowerConsumption() {
+        return wallboxElectricalPowerConsumption;
+    }
+
+    public void setWallboxElectricalPowerConsumption(PowerMeter wallboxElectricalPowerConsumption) {
+        this.wallboxElectricalPowerConsumption = wallboxElectricalPowerConsumption;
     }
 
 }

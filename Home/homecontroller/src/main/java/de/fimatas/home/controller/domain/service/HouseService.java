@@ -166,12 +166,14 @@ public class HouseService {
         newModel.setClimateGarden(readOutdoorClimate(Device.THERMOMETER_GARTEN, null));
 
         newModel.setKitchenWindowLightSwitch(readSwitchState(Device.SCHALTER_KUECHE_LICHT));
+        newModel.setWallboxSwitch(readSwitchState(Device.SCHALTER_WALLBOX));
 
         newModel.setFrontDoorBell(readFrontDoorBell());
         newModel.setFrontDoorCamera(readFrontDoorCamera());
         newModel.setFrontDoorLock(readFrontDoorLock(oldModel));
 
-        newModel.setElectricalPowerConsumption(readPowerConsumption(Device.STROMZAEHLER));
+        newModel.setTotalElectricalPowerConsumption(readPowerConsumption(Device.STROMZAEHLER_GESAMT));
+        newModel.setWallboxElectricalPowerConsumption(readPowerConsumption(Device.STROMZAEHLER_WALLBOX));
 
         for (Device device : Device.values()) {
             checkLowBattery(newModel, device);
@@ -246,7 +248,12 @@ public class HouseService {
         }
 
         // Power consumption
-        calculatePowerConsumptionTendencies(oldModel, newModel);
+        calculatePowerConsumptionTendencies(newModel.getDateTime(),
+            oldModel == null ? null : oldModel.getTotalElectricalPowerConsumption(),
+            newModel.getTotalElectricalPowerConsumption());
+        calculatePowerConsumptionTendencies(newModel.getDateTime(),
+            oldModel == null ? null : oldModel.getWallboxElectricalPowerConsumption(),
+            newModel.getWallboxElectricalPowerConsumption());
     }
 
     void calculateHumidityComparison(HouseModel newModel) {
@@ -272,17 +279,17 @@ public class HouseService {
 
     }
 
-    private void calculatePowerConsumptionTendencies(HouseModel oldModel, HouseModel newModel) {
+    private void calculatePowerConsumptionTendencies(long newModelDateTime, PowerMeter oldModel, PowerMeter newModel) {
 
-        if (newModel.getElectricalPowerConsumption() != null) {
+        if (newModel != null) {
             ValueWithTendency<BigDecimal> referencePower;
             if (oldModel == null) {
-                referencePower = newModel.getElectricalPowerConsumption().getActualConsumption();
+                referencePower = newModel.getActualConsumption();
                 referencePower.setReferenceValue(referencePower.getValue());
             } else {
-                referencePower = oldModel.getElectricalPowerConsumption().getActualConsumption();
+                referencePower = oldModel.getActualConsumption();
             }
-            calculateTendency(newModel, referencePower, newModel.getElectricalPowerConsumption().getActualConsumption(),
+            calculateTendency(newModelDateTime, referencePower, newModel.getActualConsumption(),
                 POWER_TENDENCY_DIFF);
         }
     }
@@ -298,7 +305,8 @@ public class HouseService {
             } else {
                 referenceTemperature = climateOld.getTemperature();
             }
-            calculateTendency(newModel, referenceTemperature, climateNew.getTemperature(), TEMPERATURE_TENDENCY_DIFF);
+            calculateTendency(newModel.getDateTime(), referenceTemperature, climateNew.getTemperature(),
+                TEMPERATURE_TENDENCY_DIFF);
         }
 
         // Humidity
@@ -310,11 +318,11 @@ public class HouseService {
             } else {
                 referenceHumidity = climateOld.getHumidity();
             }
-            calculateTendency(newModel, referenceHumidity, climateNew.getHumidity(), HUMIDITY_TENDENCY_DIFF);
+            calculateTendency(newModel.getDateTime(), referenceHumidity, climateNew.getHumidity(), HUMIDITY_TENDENCY_DIFF);
         }
     }
 
-    private void calculateTendency(HouseModel newModel, ValueWithTendency<BigDecimal> reference,
+    private void calculateTendency(long newTimestamp, ValueWithTendency<BigDecimal> reference,
             ValueWithTendency<BigDecimal> actual, BigDecimal diffValue) {
 
         if (actual.getValue() == null || reference == null || reference.getReferenceValue() == null) {
@@ -327,13 +335,13 @@ public class HouseService {
         if (diff.compareTo(BigDecimal.ZERO) > 0 && diff.compareTo(diffValue) > 0) {
             actual.setTendency(Tendency.RISE);
             actual.setReferenceValue(actual.getValue());
-            actual.setReferenceDateTime(newModel.getDateTime());
+            actual.setReferenceDateTime(newTimestamp);
         } else if (diff.compareTo(BigDecimal.ZERO) < 0 && diff.abs().compareTo(diffValue) > 0) {
             actual.setTendency(Tendency.FALL);
             actual.setReferenceValue(actual.getValue());
-            actual.setReferenceDateTime(newModel.getDateTime());
+            actual.setReferenceDateTime(newTimestamp);
         } else {
-            long timeDiff = newModel.getDateTime() - reference.getReferenceDateTime();
+            long timeDiff = newTimestamp - reference.getReferenceDateTime();
             actual.setTendency(Tendency.calculate(reference, timeDiff));
             actual.setReferenceValue(reference.getReferenceValue());
             actual.setReferenceDateTime(reference.getReferenceDateTime());

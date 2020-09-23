@@ -16,6 +16,7 @@ public enum Type {
     SWITCH_FRONTDOOR_CAMERA("Schalter Kamera", true), //
     DOORBELL("Türklingel", true), //
     DOORLOCK("Türschloss", true), //
+    SWITCH_WALLBOX("Schalter", true), //
     ELECTRIC_POWER("Stromverbrauch", false), //
     // with sub-types
     THERMOSTAT("Thermostat", true, Type.THERMOMETER), //

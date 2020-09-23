@@ -28,6 +28,18 @@
 		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, place=${model.place}, historyKey=${model.historyKey}, unreach=${model.unreach})"></div>
 		<h4><span th:text="${model.state}"></span><span th:text="${model.stateSuffix}" style="font-size: 80%;"></span></h4>
 		
+		<div th:replace="fragments :: switchControls (model=${model})"></div>
+	</div>
+
+	<!-- PowerMeter with switch -->
+	<div th:fragment="powerMeterWithSwitch (modelSwitch)" th:class="'alert alert-secondary callout callout-secondary'">
+		<!-- <div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, place=${model.place}, historyKey=${model.historyKey}, unreach=${model.unreach})"></div>
+		<h4><span th:text="${model.state}"></span><span th:text="${model.stateSuffix}" style="font-size: 80%;"></span></h4>   -->
+		
+		<div th:replace="fragments :: switchControls (model=${modelSwitch})"></div>
+	</div>
+
+	<th:block th:fragment="switchControls (model)">
 		<button type="button" th:onclick="@{'toggleSwitch' + ${model.id} + '()'}"
 			class="btn btn-secondary btn-sm" th:text="${model.label}"></button>
 		<input type="hidden" th:id="'val_model_link_' + ${model.id}" th:value="${model.link}">	
@@ -75,7 +87,7 @@
 				  </div>
 				</div>
 		</th:block>
-	</div>
+	</th:block>
 	
 	<!-- Switch Settings-->
 	<div th:fragment="switchSetting (model)" th:class="'alert alert-secondary callout callout-secondary'">
@@ -397,7 +409,7 @@
 	<!-- Actual Power Consumption -->
 	<div th:fragment="actualPowerConsumption (model)" th:class="'alert alert-secondary callout callout-secondary'">
 
-		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, place=${model.place}, historyKey=${model.historyKey}, unreach=${model.unreach})"></div>
+		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name} + ' Gesamt', place=${model.place}, historyKey=${model.historyKey}, unreach=${model.unreach})"></div>
 		<h4>
 			<span th:text="${model.state}"></span>
 			<th:block th:replace="fragments :: tendency (icon=${model.tendencyIcon})"></th:block>

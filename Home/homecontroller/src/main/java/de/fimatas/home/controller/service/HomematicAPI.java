@@ -3,7 +3,6 @@ package de.fimatas.home.controller.service;
 import static de.fimatas.home.controller.command.HomematicCommandConstants.E_O_F;
 import static de.fimatas.home.controller.command.HomematicCommandConstants.PREFIX_RC;
 import static de.fimatas.home.controller.command.HomematicCommandConstants.PREFIX_VAR;
-
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -20,12 +19,10 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
 import javax.annotation.PostConstruct;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -45,7 +42,6 @@ import org.springframework.web.client.RestTemplate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-
 import de.fimatas.home.controller.command.HomematicCommand;
 import de.fimatas.home.controller.command.HomematicCommandBuilder;
 import de.fimatas.home.controller.command.HomematicCommandProcessor;

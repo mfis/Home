@@ -12,9 +12,13 @@ public class HistoryModel implements Serializable {
 
     private long dateTime;
 
-    private List<PowerConsumptionMonth> electricPowerConsumptionMonth;
+    private List<PowerConsumptionMonth> totalElectricPowerConsumptionMonth;
 
-    private List<PowerConsumptionDay> electricPowerConsumptionDay;
+    private List<PowerConsumptionDay> totalElectricPowerConsumptionDay;
+
+    private List<PowerConsumptionMonth> wallboxElectricPowerConsumptionMonth;
+
+    private List<PowerConsumptionDay> wallboxElectricPowerConsumptionDay;
 
     private boolean initialized = false;
 
@@ -53,8 +57,10 @@ public class HistoryModel implements Serializable {
     public HistoryModel() {
         super();
         updateDateTime();
-        electricPowerConsumptionMonth = new LinkedList<>();
-        electricPowerConsumptionDay = new LinkedList<>();
+        totalElectricPowerConsumptionMonth = new LinkedList<>();
+        totalElectricPowerConsumptionDay = new LinkedList<>();
+        wallboxElectricPowerConsumptionMonth = new LinkedList<>();
+        wallboxElectricPowerConsumptionDay = new LinkedList<>();
         outsideTemperature = new LinkedList<>();
         bedRoomTemperature = new LinkedList<>();
         kidsRoomTemperature = new LinkedList<>();
@@ -101,20 +107,36 @@ public class HistoryModel implements Serializable {
         this.laundryTemperature = laundryTemperature;
     }
 
-    public List<PowerConsumptionMonth> getElectricPowerConsumptionMonth() {
-        return electricPowerConsumptionMonth;
+    public List<PowerConsumptionMonth> getTotalElectricPowerConsumptionMonth() {
+        return totalElectricPowerConsumptionMonth;
     }
 
-    public void setElectricPowerConsumptionMonth(List<PowerConsumptionMonth> electricPowerConsumptionMonth) {
-        this.electricPowerConsumptionMonth = electricPowerConsumptionMonth;
+    public void setTotalElectricPowerConsumptionMonth(List<PowerConsumptionMonth> totalElectricPowerConsumptionMonth) {
+        this.totalElectricPowerConsumptionMonth = totalElectricPowerConsumptionMonth;
     }
 
-    public List<PowerConsumptionDay> getElectricPowerConsumptionDay() {
-        return electricPowerConsumptionDay;
+    public List<PowerConsumptionDay> getTotalElectricPowerConsumptionDay() {
+        return totalElectricPowerConsumptionDay;
     }
 
-    public void setElectricPowerConsumptionDay(List<PowerConsumptionDay> electricPowerConsumptionDay) {
-        this.electricPowerConsumptionDay = electricPowerConsumptionDay;
+    public void setTotalElectricPowerConsumptionDay(List<PowerConsumptionDay> totalElectricPowerConsumptionDay) {
+        this.totalElectricPowerConsumptionDay = totalElectricPowerConsumptionDay;
+    }
+
+    public List<PowerConsumptionMonth> getWallboxElectricPowerConsumptionMonth() {
+        return wallboxElectricPowerConsumptionMonth;
+    }
+
+    public void setWallboxElectricPowerConsumptionMonth(List<PowerConsumptionMonth> wallboxElectricPowerConsumptionMonth) {
+        this.wallboxElectricPowerConsumptionMonth = wallboxElectricPowerConsumptionMonth;
+    }
+
+    public List<PowerConsumptionDay> getWallboxElectricPowerConsumptionDay() {
+        return wallboxElectricPowerConsumptionDay;
+    }
+
+    public void setWallboxElectricPowerConsumptionDay(List<PowerConsumptionDay> wallboxElectricPowerConsumptionDay) {
+        this.wallboxElectricPowerConsumptionDay = wallboxElectricPowerConsumptionDay;
     }
 
 }

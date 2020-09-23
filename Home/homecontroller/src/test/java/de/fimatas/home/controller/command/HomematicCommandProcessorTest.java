@@ -4,14 +4,12 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
 import de.fimatas.home.controller.service.DeviceQualifier;
 import de.fimatas.home.library.homematic.model.Datapoint;
 import de.fimatas.home.library.homematic.model.Device;
@@ -36,7 +34,7 @@ public class HomematicCommandProcessorTest {
 
     @Test
     public void testBuildCommandReadDeviceDatapoint() throws Exception {
-        assertThat(processor.buildCommand(homematicCommandBuilder.read(Device.STROMZAEHLER, Datapoint.POWER)),
+        assertThat(processor.buildCommand(homematicCommandBuilder.read(Device.STROMZAEHLER_GESAMT, Datapoint.POWER)),
             is("var VAR_BIDCOS_RF_<ID>_99_POWER = datapoints.Get('BidCos-RF.<ID>:99.POWER').Value();"));
     }
 
@@ -48,7 +46,7 @@ public class HomematicCommandProcessorTest {
 
     @Test
     public void testBuildCommandReadDeviceSuffix() throws Exception {
-        assertThat(processor.buildCommand(homematicCommandBuilder.read(Device.STROMZAEHLER, "SUFFIX")),
+        assertThat(processor.buildCommand(homematicCommandBuilder.read(Device.STROMZAEHLER_GESAMT, "SUFFIX")),
             is("var VAR_STROMVERBRAUCHHAUSSUFFIX = dom.GetObject('StromverbrauchHausSUFFIX').Value();"));
     }
 
@@ -60,19 +58,20 @@ public class HomematicCommandProcessorTest {
 
     @Test
     public void testBuildCommandReadTSDeviceDatapoint() throws Exception {
-        assertThat(processor.buildCommand(homematicCommandBuilder.readTS(Device.STROMZAEHLER, Datapoint.POWER)),
+        assertThat(processor.buildCommand(homematicCommandBuilder.readTS(Device.STROMZAEHLER_GESAMT, Datapoint.POWER)),
             is("var VAR_BIDCOS_RF_<ID>_99_POWER_TS = datapoints.Get('BidCos-RF.<ID>:99.POWER').LastTimestamp();"));
     }
 
     @Test
     public void testBuildCommandWriteDeviceDatapointBoolean() throws Exception {
-        assertThat(processor.buildCommand(homematicCommandBuilder.write(Device.STROMZAEHLER, Datapoint.POWER, true)),
+        assertThat(processor.buildCommand(homematicCommandBuilder.write(Device.STROMZAEHLER_GESAMT, Datapoint.POWER, true)),
             is("var RC_BIDCOS_RF_<ID>_99_POWER = datapoints.Get('BidCos-RF.<ID>:99.POWER').State(true);"));
     }
 
     @Test
     public void testBuildCommandWriteDeviceDatapointString() throws Exception {
-        assertThat(processor.buildCommand(homematicCommandBuilder.write(Device.STROMZAEHLER, Datapoint.POWER, "NEWVALUE")),
+        assertThat(
+            processor.buildCommand(homematicCommandBuilder.write(Device.STROMZAEHLER_GESAMT, Datapoint.POWER, "NEWVALUE")),
             is("var RC_BIDCOS_RF_<ID>_99_POWER = datapoints.Get('BidCos-RF.<ID>:99.POWER').State('NEWVALUE');"));
     }
 
@@ -85,13 +84,13 @@ public class HomematicCommandProcessorTest {
 
     @Test
     public void testBuildCommandWriteDeviceSuffixBoolean() throws Exception {
-        assertThat(processor.buildCommand(homematicCommandBuilder.write(Device.STROMZAEHLER, "SUFFIX", true)),
+        assertThat(processor.buildCommand(homematicCommandBuilder.write(Device.STROMZAEHLER_GESAMT, "SUFFIX", true)),
             is("var RC_STROMVERBRAUCHHAUSSUFFIX = dom.GetObject('StromverbrauchHausSUFFIX').State(true);"));
     }
 
     @Test
     public void testBuildCommandWriteDeviceSuffixString() throws Exception {
-        assertThat(processor.buildCommand(homematicCommandBuilder.write(Device.STROMZAEHLER, "SUFFIX", "NEWVALUE")),
+        assertThat(processor.buildCommand(homematicCommandBuilder.write(Device.STROMZAEHLER_GESAMT, "SUFFIX", "NEWVALUE")),
             is("var RC_STROMVERBRAUCHHAUSSUFFIX = dom.GetObject('StromverbrauchHausSUFFIX').State('NEWVALUE');"));
     }
 
@@ -103,7 +102,7 @@ public class HomematicCommandProcessorTest {
 
     @Test
     public void testBuildCommandExecDeviceSuffix() throws Exception {
-        assertThat(processor.buildCommand(homematicCommandBuilder.exec(Device.STROMZAEHLER, "SUFFIX")),
+        assertThat(processor.buildCommand(homematicCommandBuilder.exec(Device.STROMZAEHLER_GESAMT, "SUFFIX")),
             is("var RC_STROMVERBRAUCHHAUSSUFFIX = dom.GetObject('StromverbrauchHausSUFFIX').ProgramExecute();"));
     }
 

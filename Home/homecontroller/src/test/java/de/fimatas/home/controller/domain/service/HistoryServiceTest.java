@@ -3,20 +3,17 @@ package de.fimatas.home.controller.domain.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
 import de.fimatas.home.controller.command.HomematicCommand;
 import de.fimatas.home.controller.command.HomematicCommandBuilder;
 import de.fimatas.home.controller.command.HomematicCommandProcessor;
@@ -112,7 +109,7 @@ public class HistoryServiceTest {
     }
 
     private HomematicCommand createCommand() {
-        HomematicCommand command = homematicCommandBuilder.read(Device.STROMZAEHLER, Datapoint.ENERGY_COUNTER);
+        HomematicCommand command = homematicCommandBuilder.read(Device.STROMZAEHLER_GESAMT, Datapoint.ENERGY_COUNTER);
         processor.buildVarName(command);
         return command;
     }
@@ -199,7 +196,7 @@ public class HistoryServiceTest {
     public void testDiffValueCheckedAdd() throws Exception {
 
         HistoryElement historyElement = new HistoryElement(
-            homematicCommandBuilder.read(Device.STROMZAEHLER, Datapoint.ENERGY_COUNTER), HistoryStrategy.MAX, 1000);
+            homematicCommandBuilder.read(Device.STROMZAEHLER_GESAMT, Datapoint.ENERGY_COUNTER), HistoryStrategy.MAX, 1000);
 
         LocalDateTime dbTs = LocalDateTime.of(2019, 12, 7, 21, 30);
         Object[][] input = new Object[][] { //

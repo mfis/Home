@@ -12,11 +12,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.Model;
-
 import de.fimatas.home.client.domain.model.ChartEntry;
 import de.fimatas.home.client.domain.model.HistoryEntry;
 import de.fimatas.home.library.domain.model.HistoryModel;
@@ -42,10 +40,15 @@ public class HistoryViewService {
 
     public void fillHistoryViewModel(Model model, HistoryModel history, HouseModel house, String key) {
 
-        if (key.equals(house.getElectricalPowerConsumption().getDevice().programNamePrefix())) {
-            fillPowerHistoryMonthViewModel(model, history);
+        if (key.equals(house.getTotalElectricalPowerConsumption().getDevice().programNamePrefix())) {
+            fillPowerHistoryMonthViewModel(model, history.getTotalElectricPowerConsumptionMonth());
             List<ChartEntry> dayViewModel =
-                viewFormatter.fillPowerHistoryDayViewModel(history.getElectricPowerConsumptionDay(), true);
+                viewFormatter.fillPowerHistoryDayViewModel(history.getTotalElectricPowerConsumptionDay(), true);
+            model.addAttribute("chartEntries", dayViewModel);
+        } else if (key.equals(house.getWallboxElectricalPowerConsumption().getDevice().programNamePrefix())) {
+            fillPowerHistoryMonthViewModel(model, history.getWallboxElectricPowerConsumptionMonth());
+            List<ChartEntry> dayViewModel =
+                viewFormatter.fillPowerHistoryDayViewModel(history.getWallboxElectricPowerConsumptionDay(), true);
             model.addAttribute("chartEntries", dayViewModel);
         } else if (key.equals(house.getConclusionClimateFacadeMin().getDevice().programNamePrefix())) {
             fillTemperatureHistoryViewModel(model, history.getOutsideTemperature());
@@ -58,21 +61,21 @@ public class HistoryViewService {
         }
     }
 
-    private void fillPowerHistoryMonthViewModel(Model model, HistoryModel history) {
+    private void fillPowerHistoryMonthViewModel(Model model, List<PowerConsumptionMonth> pcms) {
 
         List<HistoryEntry> list = new LinkedList<>();
         DecimalFormat decimalFormat = new DecimalFormat("0");
         int index = 0;
-        for (PowerConsumptionMonth pcm : history.getElectricPowerConsumptionMonth()) {
+        for (PowerConsumptionMonth pcm : pcms) {
             if (pcm.getPowerConsumption() != null) {
                 HistoryEntry entry = new HistoryEntry();
                 Long calculated = null;
                 entry.setLineOneLabel(MONTH_YEAR_FORMATTER.format(pcm.measurePointMaxDateTime()));
                 entry.setLineOneValue(
                     decimalFormat.format(pcm.getPowerConsumption() / ViewFormatter.KWH_FACTOR) + ViewFormatter.K_W_H);
-                lookupCollapsablePowerMonth(history, index, entry);
+                lookupCollapsablePowerMonth(pcms, index, entry);
                 boolean calculateDifference = true;
-                if (index == history.getElectricPowerConsumptionMonth().size() - 1) {
+                if (index == pcms.size() - 1) {
                     if (pcm.measurePointMaxDateTime().getDayOfMonth() > 1) {
                         entry.setLineTwoLabel("Hochgerechnet");
                         entry.setBadgeLabel("Vergleich Vorjahr");
@@ -84,7 +87,7 @@ public class HistoryViewService {
                     entry.setLineOneLabel(entry.getLineOneLabel() + " bisher");
                 }
                 if (calculateDifference) {
-                    calculatePreviousYearDifference(entry, pcm, history.getElectricPowerConsumptionMonth(),
+                    calculatePreviousYearDifference(entry, pcm, pcms,
                         pcm.getPowerConsumption(), calculated);
                 }
                 list.add(entry);
@@ -147,8 +150,8 @@ public class HistoryViewService {
         }
     }
 
-    private void lookupCollapsablePowerMonth(HistoryModel history, int index, HistoryEntry entry) {
-        if (index < history.getElectricPowerConsumptionMonth().size() - 3) {
+    private void lookupCollapsablePowerMonth(List<PowerConsumptionMonth> pcm, int index, HistoryEntry entry) {
+        if (index < pcm.size() - 3) {
             entry.setCollapse(" collapse multi-collapse historyTarget");
         }
     }

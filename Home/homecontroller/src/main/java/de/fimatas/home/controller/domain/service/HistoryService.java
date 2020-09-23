@@ -17,16 +17,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
-
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
 import de.fimatas.home.controller.command.HomematicCommand;
 import de.fimatas.home.controller.command.HomematicCommandBuilder;
 import de.fimatas.home.controller.dao.HistoryDatabaseDAO;
@@ -75,9 +72,9 @@ public class HistoryService {
     @PostConstruct
     public void init() {
 
-        for (HistoryElement history : history.list()) {
-            if (!entryCache.containsKey(history.getCommand())) {
-                entryCache.put(history.getCommand(), new LinkedList<TimestampValuePair>());
+        for (HistoryElement historyElement : history.list()) {
+            if (!entryCache.containsKey(historyElement.getCommand())) {
+                entryCache.put(historyElement.getCommand(), new LinkedList<>());
             }
         }
 
@@ -91,9 +88,9 @@ public class HistoryService {
     }
 
     public void saveNewValues() {
-        for (HistoryElement history : history.list()) {
-            addEntry(history.getCommand(), new TimestampValuePair(api.getCurrentValuesTimestamp(),
-                api.getAsBigDecimal(history.getCommand()), de.fimatas.home.controller.model.HistoryValueType.SINGLE));
+        for (HistoryElement historyElement : history.list()) {
+            addEntry(historyElement.getCommand(), new TimestampValuePair(api.getCurrentValuesTimestamp(),
+                api.getAsBigDecimal(historyElement.getCommand()), de.fimatas.home.controller.model.HistoryValueType.SINGLE));
         }
     }
 
@@ -102,26 +99,26 @@ public class HistoryService {
     public void persistCashedValues() {
 
         Map<HomematicCommand, List<TimestampValuePair>> toInsert = new HashMap<>();
-        for (HistoryElement history : history.list()) {
+        for (HistoryElement historyElement : history.list()) {
 
             List<TimestampValuePair> pairs = new LinkedList<>();
 
-            switch (history.getStrategy()) {
+            switch (historyElement.getStrategy()) {
             case MIN:
-                diffValueCheckedAdd(history, min(entryCache.get(history.getCommand())), pairs);
+                diffValueCheckedAdd(historyElement, min(entryCache.get(historyElement.getCommand())), pairs);
                 break;
             case MAX:
-                diffValueCheckedAdd(history, max(entryCache.get(history.getCommand())), pairs);
+                diffValueCheckedAdd(historyElement, max(entryCache.get(historyElement.getCommand())), pairs);
                 break;
             case MIN_MAX:
-                diffValueCheckedAdd(history, min(entryCache.get(history.getCommand())), pairs);
-                diffValueCheckedAdd(history, max(entryCache.get(history.getCommand())), pairs);
+                diffValueCheckedAdd(historyElement, min(entryCache.get(historyElement.getCommand())), pairs);
+                diffValueCheckedAdd(historyElement, max(entryCache.get(historyElement.getCommand())), pairs);
                 break;
             case AVG:
-                diffValueCheckedAdd(history, avg(entryCache.get(history.getCommand())), pairs);
+                diffValueCheckedAdd(historyElement, avg(entryCache.get(historyElement.getCommand())), pairs);
                 break;
             }
-            toInsert.put(history.getCommand(), pairs);
+            toInsert.put(historyElement.getCommand(), pairs);
         }
         try {
             historyDAO.persistEntries(toInsert);
@@ -130,8 +127,8 @@ public class HistoryService {
             increaseTimestamps(toInsert);
             historyDAO.persistEntries(toInsert);
         }
-        for (HistoryElement history : history.list()) {
-            entryCache.get(history.getCommand()).clear();
+        for (HistoryElement historyElement : history.list()) {
+            entryCache.get(historyElement.getCommand()).clear();
         }
     }
 
@@ -155,7 +152,11 @@ public class HistoryService {
 
         HistoryModel newModel = new HistoryModel();
 
-        calculateElectricPowerConsumption(newModel, null);
+        calculateElectricPowerConsumption(newModel.getTotalElectricPowerConsumptionDay(),
+            newModel.getTotalElectricPowerConsumptionMonth(), Device.STROMZAEHLER_GESAMT, null);
+        calculateElectricPowerConsumption(newModel.getWallboxElectricPowerConsumptionDay(),
+            newModel.getWallboxElectricPowerConsumptionMonth(), Device.STROMZAEHLER_WALLBOX, null);
+
         calculateTemperatureHistory(newModel.getOutsideTemperature(), Device.AUSSENTEMPERATUR, Datapoint.VALUE);
         calculateTemperatureHistory(newModel.getKidsRoomTemperature(), Device.THERMOMETER_KINDERZIMMER,
             Datapoint.ACTUAL_TEMPERATURE);
@@ -173,7 +174,7 @@ public class HistoryService {
     private void addEntry(HomematicCommand command, TimestampValuePair pair) {
         if (pair != null && pair.getValue() != null) {
             if (!entryCache.containsKey(command)) {
-                entryCache.put(command, new LinkedList<TimestampValuePair>());
+                entryCache.put(command, new LinkedList<>());
             }
             entryCache.get(command).add(pair);
         }
@@ -199,9 +200,15 @@ public class HistoryService {
             return;
         }
 
-        calculateElectricPowerConsumption(model,
-            model.getElectricPowerConsumptionMonth().isEmpty() ? null : model.getElectricPowerConsumptionMonth()
-                .get(model.getElectricPowerConsumptionMonth().size() - 1).measurePointMaxDateTime());
+        calculateElectricPowerConsumption(model.getTotalElectricPowerConsumptionDay(),
+            model.getTotalElectricPowerConsumptionMonth(), Device.STROMZAEHLER_GESAMT,
+            model.getTotalElectricPowerConsumptionMonth().isEmpty() ? null : model.getTotalElectricPowerConsumptionMonth()
+                .get(model.getTotalElectricPowerConsumptionMonth().size() - 1).measurePointMaxDateTime());
+
+        calculateElectricPowerConsumption(model.getWallboxElectricPowerConsumptionDay(),
+            model.getWallboxElectricPowerConsumptionMonth(), Device.STROMZAEHLER_WALLBOX,
+            model.getWallboxElectricPowerConsumptionMonth().isEmpty() ? null : model.getWallboxElectricPowerConsumptionMonth()
+                .get(model.getWallboxElectricPowerConsumptionMonth().size() - 1).measurePointMaxDateTime());
 
         updateTemperatureHistory(model.getOutsideTemperature(), Device.AUSSENTEMPERATUR, Datapoint.VALUE);
         updateTemperatureHistory(model.getKidsRoomTemperature(), Device.THERMOMETER_KINDERZIMMER, Datapoint.ACTUAL_TEMPERATURE);
@@ -315,10 +322,11 @@ public class HistoryService {
         return ldt;
     }
 
-    private void calculateElectricPowerConsumption(HistoryModel newModel, LocalDateTime fromDateTime) {
+    private void calculateElectricPowerConsumption(List<PowerConsumptionDay> day, List<PowerConsumptionMonth> month,
+            Device device, LocalDateTime fromDateTime) {
 
         List<TimestampValuePair> timestampValues =
-            readValuesWithCache(homematicCommandBuilder.read(Device.STROMZAEHLER, Datapoint.ENERGY_COUNTER), fromDateTime);
+            readValuesWithCache(homematicCommandBuilder.read(device, Datapoint.ENERGY_COUNTER), fromDateTime);
 
         if (timestampValues.isEmpty()) {
             return;
@@ -330,13 +338,15 @@ public class HistoryService {
         BigDecimal lastSingleValue = timestampValues.get(0).getValue();
 
         for (TimestampValuePair pair : timestampValues) {
-            calculateElectricPowerConsumptionDay(newModel, pair, dayFrom, dayTo, lastSingleValue);
-            calculateElectricPowerConsumptionMonth(newModel, pair, lastSingleValue);
+            calculateElectricPowerConsumptionDay(day, pair, dayFrom, dayTo,
+                lastSingleValue);
+            calculateElectricPowerConsumptionMonth(month, pair, lastSingleValue);
             lastSingleValue = pair.getValue();
         }
     }
 
-    private void calculateElectricPowerConsumptionDay(HistoryModel newModel, TimestampValuePair pair, LocalDateTime dayFrom,
+    private void calculateElectricPowerConsumptionDay(List<PowerConsumptionDay> powerConsumptionDay, TimestampValuePair pair,
+            LocalDateTime dayFrom,
             LocalDateTime dayTo, BigDecimal lastSingleValue) {
 
         if (pair.getTimestamp().isAfter(dayTo) || pair.getTimestamp().isBefore(dayFrom)) {
@@ -344,7 +354,7 @@ public class HistoryService {
         }
 
         PowerConsumptionDay dest = null;
-        for (PowerConsumptionDay pcd : newModel.getElectricPowerConsumptionDay()) {
+        for (PowerConsumptionDay pcd : powerConsumptionDay) {
             if (HomeUtils.isSameDay(pair.getTimestamp(), pcd.measurePointMaxDateTime())) {
                 dest = pcd;
                 break;
@@ -355,16 +365,17 @@ public class HistoryService {
             for (TimeRange range : TimeRange.values()) {
                 dest.getValues().put(range, BigDecimal.ZERO);
             }
-            newModel.getElectricPowerConsumptionDay().add(dest);
+            powerConsumptionDay.add(dest);
         }
         addMeasurePointDay(dest, pair, lastSingleValue);
     }
 
-    private void calculateElectricPowerConsumptionMonth(HistoryModel newModel, TimestampValuePair pair,
+    private void calculateElectricPowerConsumptionMonth(List<PowerConsumptionMonth> powerConsumptionMonth,
+            TimestampValuePair pair,
             BigDecimal lastSingleValue) {
 
         PowerConsumptionMonth dest = null;
-        for (PowerConsumptionMonth pcm : newModel.getElectricPowerConsumptionMonth()) {
+        for (PowerConsumptionMonth pcm : powerConsumptionMonth) {
             if (HomeUtils.isSameMonth(pair.getTimestamp(), pcm.measurePointMaxDateTime())) {
                 dest = pcm;
                 break;
@@ -372,12 +383,11 @@ public class HistoryService {
         }
         if (dest == null) {
             dest = new PowerConsumptionMonth();
-            if (!newModel.getElectricPowerConsumptionMonth().isEmpty()) {
+            if (!powerConsumptionMonth.isEmpty()) {
                 dest.setPowerConsumption(0L);
-                dest.setMeasurePointMin(newModel.getElectricPowerConsumptionMonth()
-                    .get(newModel.getElectricPowerConsumptionMonth().size() - 1).getMeasurePointMax());
+                dest.setMeasurePointMin(powerConsumptionMonth.get(powerConsumptionMonth.size() - 1).getMeasurePointMax());
             }
-            newModel.getElectricPowerConsumptionMonth().add(dest);
+            powerConsumptionMonth.add(dest);
         }
         addMeasurePointMonth(dest, pair, lastSingleValue);
     }

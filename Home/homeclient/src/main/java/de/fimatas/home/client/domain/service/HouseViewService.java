@@ -31,6 +31,7 @@ import de.fimatas.home.library.domain.model.HistoryModel;
 import de.fimatas.home.library.domain.model.HouseModel;
 import de.fimatas.home.library.domain.model.Intensity;
 import de.fimatas.home.library.domain.model.OutdoorClimate;
+import de.fimatas.home.library.domain.model.PowerConsumptionDay;
 import de.fimatas.home.library.domain.model.PowerMeter;
 import de.fimatas.home.library.domain.model.RoomClimate;
 import de.fimatas.home.library.domain.model.ShutterPosition;
@@ -114,10 +115,12 @@ public class HouseViewService {
         formatFacadeTemperatures(model, "tempMinHouse", "tempMaxHouse", house);
 
         formatSwitch(model, "switchKitchen", house.getKitchenWindowLightSwitch());
+        formatSwitch(model, "switchWallbox", house.getWallboxSwitch());
 
         formatFrontDoorBell(model, house.getFrontDoorBell(), house.getFrontDoorCamera());
         formatFrontDoorLock(model, house.getFrontDoorLock());
-        formatPower(model, house.getElectricalPowerConsumption(), historyModel);
+        formatPower(model, house.getTotalElectricalPowerConsumption(), historyModel.getTotalElectricPowerConsumptionDay());
+        formatPower(model, house.getWallboxElectricalPowerConsumption(), historyModel.getWallboxElectricPowerConsumptionDay());
 
         formatLowBattery(model, house.getLowBatteryDevices());
 
@@ -405,7 +408,7 @@ public class HouseViewService {
         model.addAttribute(viewKeyMax, viewMax);
     }
 
-    private void formatPower(Model model, PowerMeter powerMeter, HistoryModel historyModel) {
+    private void formatPower(Model model, PowerMeter powerMeter, List<PowerConsumptionDay> pcd) {
 
         PowerView power = new PowerView();
         power.setUnreach(Boolean.toString(powerMeter.isUnreach()));
@@ -420,9 +423,9 @@ public class HouseViewService {
             power.setTendencyIcon(powerMeter.getActualConsumption().getTendency().getIconCssClass());
         }
 
-        if (historyModel.getElectricPowerConsumptionDay() != null && !historyModel.getElectricPowerConsumptionDay().isEmpty()) {
+        if (pcd != null && !pcd.isEmpty()) {
             List<ChartEntry> dayViewModel =
-                viewFormatter.fillPowerHistoryDayViewModel(historyModel.getElectricPowerConsumptionDay(), false);
+                viewFormatter.fillPowerHistoryDayViewModel(pcd, false);
             if (!dayViewModel.isEmpty()) {
                 power.setTodayConsumption(dayViewModel.get(0));
             }

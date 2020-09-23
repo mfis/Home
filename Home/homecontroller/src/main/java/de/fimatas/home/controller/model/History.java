@@ -3,12 +3,9 @@ package de.fimatas.home.controller.model;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-
 import javax.annotation.PostConstruct;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import de.fimatas.home.controller.command.HomematicCommandBuilder;
 import de.fimatas.home.library.homematic.model.Datapoint;
 import de.fimatas.home.library.homematic.model.Device;
@@ -51,7 +48,10 @@ public class History {
         elements.add(
             new HistoryElement(homematicCommandBuilder.read(Device.AUSSENTEMPERATUR, Datapoint.VALUE), HistoryStrategy.AVG, 1));
 
-        elements.add(new HistoryElement(homematicCommandBuilder.read(Device.STROMZAEHLER, Datapoint.ENERGY_COUNTER),
+        elements.add(new HistoryElement(homematicCommandBuilder.read(Device.STROMZAEHLER_GESAMT, Datapoint.ENERGY_COUNTER),
+            HistoryStrategy.MAX, 1000));
+
+        elements.add(new HistoryElement(homematicCommandBuilder.read(Device.STROMZAEHLER_WALLBOX, Datapoint.ENERGY_COUNTER),
             HistoryStrategy.MAX, 1000));
     }
 
