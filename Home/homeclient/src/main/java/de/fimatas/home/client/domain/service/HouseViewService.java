@@ -477,7 +477,11 @@ public class HouseViewService {
         }
         view.setLabel(switchModel.isState() ? "ausschalten" : "einschalten");
         view.setIcon(switchModel.isState() ? "fas fa-toggle-on" : "fas fa-toggle-off");
-        view.setLink(TOGGLE_STATE + switchModel.getDevice().name() + AND_VALUE_IS + !switchModel.isState());
+        if (switchModel.isState()) {
+            view.setLinkOff(TOGGLE_STATE + switchModel.getDevice().name() + AND_VALUE_IS + !switchModel.isState());
+        } else {
+            view.setLinkOn(TOGGLE_STATE + switchModel.getDevice().name() + AND_VALUE_IS + !switchModel.isState());
+        }
         model.addAttribute(viewKey, view);
     }
 

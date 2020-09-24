@@ -4,7 +4,12 @@ public class SwitchView extends View {
 
     private String label = "";
 
+    @Deprecated
     private String link = "#";
+
+    private String linkOn = "#";
+
+    private String linkOff = "#";
 
     private String linkAuto = "#";
 
@@ -18,14 +23,6 @@ public class SwitchView extends View {
 
     public void setLabel(String label) {
         this.label = label;
-    }
-
-    public String getLink() {
-        return link;
-    }
-
-    public void setLink(String link) {
-        this.link = link;
     }
 
     public String getLinkAuto() {
@@ -50,6 +47,32 @@ public class SwitchView extends View {
 
     public void setAutoInfoText(String autoInfoText) {
         this.autoInfoText = autoInfoText;
+    }
+
+    public String getLinkOn() {
+        return linkOn;
+    }
+
+    public void setLinkOn(String linkOn) {
+        this.linkOn = linkOn;
+    }
+
+    public String getLinkOff() {
+        return linkOff;
+    }
+
+    public void setLinkOff(String linkOff) {
+        this.linkOff = linkOff;
+    }
+
+    @Deprecated
+    public String getLink() {
+        return link;
+    }
+
+    @Deprecated
+    public void setLink(String link) {
+        this.link = link;
     }
 
 }

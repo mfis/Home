@@ -35,27 +35,39 @@
 	<div th:fragment="powerMeterWithSwitch (modelMeter, modelSwitch)" th:class="'alert alert-' + ${modelSwitch.colorClass} + ' callout callout-' + ${modelSwitch.colorClass}">
 		<div th:replace="fragments :: elementname (icon=${modelMeter.icon}, name=${modelMeter.name} + ' ' + ${modelMeter.place}, place='', historyKey=${modelMeter.historyKey}, unreach=${modelMeter.unreach})"></div>
 		<h4>
-			<th:block th:if="${modelMeter.todayConsumption != null}">
-				<span class="mb-1" th:text="${modelMeter.todayConsumption.label}">Gestern</span>
-				<span class="text-muted" style="font-size: 80%;" th:text="${modelMeter.todayConsumption.additionalLabel}">Summe</span>
-				<span th:utext="'&nbsp;&ndash;&nbsp;'"></span>
-			</th:block>		
 			<span th:text="${modelMeter.state}"></span>
 			<th:block th:replace="fragments :: tendency (icon=${modelMeter.tendencyIcon})"></th:block>
+			<th:block th:if="${modelMeter.todayConsumption != null}">
+				<span th:utext="'&nbsp;&ndash;&nbsp;'"></span>
+				<span class="mb-1" th:text="${modelMeter.todayConsumption.label}">Gestern</span>
+				<span class="text-muted" style="font-size: 80%;" th:text="${modelMeter.todayConsumption.additionalLabel}">Summe</span>
+			</th:block>		
 		</h4>
+		<h4><span th:text="${modelSwitch.state}"></span><span th:text="${modelSwitch.stateSuffix}" style="font-size: 80%;"></span></h4>
 		<div th:replace="fragments :: switchControls (model=${modelSwitch})"></div>
 	</div>
 
 	<th:block th:fragment="switchControls (model)">
-		<button type="button" th:onclick="@{'toggleSwitch' + ${model.id} + '()'}"
-			class="btn btn-secondary btn-sm" th:text="${model.label}"></button>
-		<input type="hidden" th:id="'val_model_link_' + ${model.id}" th:value="${model.link}">	
-		<script type="text/javascript">
-			function toggleSwitch[[${model.id}]](){
-				submitContent(document.getElementById('val_model_link_[[${model.id}]]').value);
-			}		
+
+		<!-- on/off -->
+		<div class="btn-group" role="group" aria-label="heating">
+  			<button th:if="${#strings.startsWith(model.linkOn, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-check-circle')"/></span><span>&nbsp;</span></button>
+  			<button th:if="${#strings.startsWith(model.linkOn, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToOn' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-check-circle')"/></span><span>&nbsp;</span></button>
+  			<button th:if="${#strings.startsWith(model.linkOff, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-power-off')"/></span><span>&nbsp;</span></button>
+  			<button th:if="${#strings.startsWith(model.linkOff, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToOff' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-power-off')"/></span><span>&nbsp;</span></button>
+		</div>
+		<input type="hidden" th:id="'val_model_linkOff_' + ${model.id}" th:value="${model.linkOff}">
+		<input type="hidden" th:id="'val_model_linkOn_' + ${model.id}" th:value="${model.linkOn}">
+ 			<script type="text/javascript">
+			function toggleToOn[[${model.id}]](){
+				submitContent(document.getElementById('val_model_linkOn_[[${model.id}]]').value);
+			}
+			function toggleToOff[[${model.id}]](){
+				submitContent(document.getElementById('val_model_linkOff_[[${model.id}]]').value);
+			}	
 		</script>
 		
+		<!-- auto/manual -->
 		<th:block th:if="${!#strings.startsWith(model.linkAuto, '#') or !#strings.startsWith(model.linkManual, '#')}">
 			<span>&nbsp;</span>
 			<div class="btn-group" role="group" aria-label="heating">
@@ -74,25 +86,25 @@
 					submitContent(document.getElementById('val_model_linkManual_[[${model.id}]]').value);
 				}	
 			</script>
-				<button type="button" class="btn btn-link" data-toggle="modal" th:data-target="'#modalAuto' + ${model.id}">
-					<span 
-						class="badge badge-secondary" th:text="'?'">
-					</span>
-				</button>
-				<!-- Modal -->
-				<div class="modal fade" th:id="'modalAuto' + ${model.id}" tabindex="-1" role="dialog" th:aria-labelledby="'#modalAutoLabel' + ${model.id}" aria-hidden="true">
-				  <div class="modal-dialog modal-dialog-centered" role="document">
-				    <div class="modal-content">
-				      <div class="modal-header">
-				        <h5 class="modal-title" id="exampleModalLongTitle" th:text="'Automatik: ' + ${model.name}"></h5>
-				        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-				          <span aria-hidden="true">&times;</span>
-				        </button>
-				      </div>
-				      <div class="modal-body"><a th:utext="${model.autoInfoText}"></a></div>
-				    </div>
-				  </div>
-				</div>
+			<button type="button" class="btn btn-link" data-toggle="modal" th:data-target="'#modalAuto' + ${model.id}">
+				<span 
+					class="badge badge-secondary" th:text="'?'">
+				</span>
+			</button>
+			<!-- Modal -->
+			<div class="modal fade" th:id="'modalAuto' + ${model.id}" tabindex="-1" role="dialog" th:aria-labelledby="'#modalAutoLabel' + ${model.id}" aria-hidden="true">
+			  <div class="modal-dialog modal-dialog-centered" role="document">
+			    <div class="modal-content">
+			      <div class="modal-header">
+			        <h5 class="modal-title" id="exampleModalLongTitle" th:text="'Automatik: ' + ${model.name}"></h5>
+			        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+			          <span aria-hidden="true">&times;</span>
+			        </button>
+			      </div>
+			      <div class="modal-body"><a th:utext="${model.autoInfoText}"></a></div>
+			    </div>
+			  </div>
+			</div>
 		</th:block>
 	</th:block>
 	
@@ -418,13 +430,13 @@
 
 		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name} + ' Gesamt', place=${model.place}, historyKey=${model.historyKey}, unreach=${model.unreach})"></div>
 		<h4>
-			<th:block th:if="${model.todayConsumption != null}">
-				<span class="mb-1" th:text="${model.todayConsumption.label}">Gestern</span>
-				<span class="text-muted" style="font-size: 80%;" th:text="${model.todayConsumption.additionalLabel}">Summe</span>
-				<span th:utext="'&nbsp;&ndash;&nbsp;'"></span>
-			</th:block>		
 			<span th:text="${model.state}"></span>
 			<th:block th:replace="fragments :: tendency (icon=${model.tendencyIcon})"></th:block>
+			<th:block th:if="${model.todayConsumption != null}">
+				<span th:utext="'&nbsp;&ndash;&nbsp;'"></span>
+				<span class="mb-1" th:text="${model.todayConsumption.label}">Gestern</span>
+				<span class="text-muted" style="font-size: 80%;" th:text="${model.todayConsumption.additionalLabel}">Summe</span>
+			</th:block>		
 		</h4>
 		
 		<th:block th:if="${model.todayConsumption != null}">
