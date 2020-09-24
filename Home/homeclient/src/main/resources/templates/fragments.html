@@ -32,9 +32,22 @@
 	</div>
 
 	<!-- PowerMeter with switch -->
-	<div th:fragment="powerMeterWithSwitch (modelSwitch)" th:class="'alert alert-secondary callout callout-secondary'">
-		<!-- <div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, place=${model.place}, historyKey=${model.historyKey}, unreach=${model.unreach})"></div>
-		<h4><span th:text="${model.state}"></span><span th:text="${model.stateSuffix}" style="font-size: 80%;"></span></h4>   -->
+	<div th:fragment="powerMeterWithSwitch (modelMeter, modelSwitch)" th:class="'alert alert-secondary callout callout-secondary'">
+		<div th:replace="fragments :: elementname (icon=${modelMeter.icon}, name=${modelMeter.name} + ' ' + ${modelMeter.place}, place='', historyKey=${modelMeter.historyKey}, unreach=${modelMeter.unreach})"></div>
+		<h4>
+			<span th:text="${modelMeter.state}"></span>
+			<th:block th:replace="fragments :: tendency (icon=${modelMeter.tendencyIcon})"></th:block>
+		</h4>
+		
+		<div>
+			<th:block th:if="${modelMeter.todayConsumption != null}">
+				<a th:class="${modelMeter.todayConsumption.collapse}">
+					<span class="mb-1" th:text="${modelMeter.todayConsumption.label}">Gestern</span>
+					<span>&nbsp;</span>
+					<span class="text-muted" style="font-size: 80%;" th:text="${modelMeter.todayConsumption.additionalLabel}">Summe</span>
+				</a>
+			</th:block>
+		</div>
 		
 		<div th:replace="fragments :: switchControls (model=${modelSwitch})"></div>
 	</div>

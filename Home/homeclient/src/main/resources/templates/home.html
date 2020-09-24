@@ -50,15 +50,15 @@
 			<div th:replace="fragments :: frontDoor (model=${frontDoor})"></div>
 			<div th:replace="fragments :: doorLock (model=${frontDoorLock})"></div>
 	
-			<!-- Energie -->
-			<div th:replace="fragments :: title (name='Energie')"></div>
-			<div th:replace="fragments :: actualPowerConsumption (model=${StromverbrauchHaus})"></div>
-			<div th:replace="fragments :: powerMeterWithSwitch (modelSwitch=${switchWallbox})"></div>
-	
 			<!-- Draussen -->
 			<div th:replace="fragments :: title (name='Draußen')"></div>
 			<div th:replace="fragments :: temperature (model=${tempMinHouse})"></div>
 			<div th:replace="fragments :: sunStatus (model=${tempMaxHouse})"></div>
+	
+			<!-- Energie -->
+			<div th:replace="fragments :: title (name='Energie')"></div>
+			<div th:replace="fragments :: actualPowerConsumption (model=${StromverbrauchHaus})"></div>
+			<div th:replace="fragments :: powerMeterWithSwitch (modelMeter=${StromverbrauchWallbox}, modelSwitch=${switchWallbox})"></div>
 			
 			<div style="height: 25px;"></div>
 		</div>
