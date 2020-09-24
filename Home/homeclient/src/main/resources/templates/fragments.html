@@ -32,23 +32,17 @@
 	</div>
 
 	<!-- PowerMeter with switch -->
-	<div th:fragment="powerMeterWithSwitch (modelMeter, modelSwitch)" th:class="'alert alert-secondary callout callout-secondary'">
+	<div th:fragment="powerMeterWithSwitch (modelMeter, modelSwitch)" th:class="'alert alert-' + ${modelSwitch.colorClass} + ' callout callout-' + ${modelSwitch.colorClass}">
 		<div th:replace="fragments :: elementname (icon=${modelMeter.icon}, name=${modelMeter.name} + ' ' + ${modelMeter.place}, place='', historyKey=${modelMeter.historyKey}, unreach=${modelMeter.unreach})"></div>
 		<h4>
+			<th:block th:if="${modelMeter.todayConsumption != null}">
+				<span class="mb-1" th:text="${modelMeter.todayConsumption.label}">Gestern</span>
+				<span class="text-muted" style="font-size: 80%;" th:text="${modelMeter.todayConsumption.additionalLabel}">Summe</span>
+				<span th:utext="'&nbsp;&ndash;&nbsp;'"></span>
+			</th:block>		
 			<span th:text="${modelMeter.state}"></span>
 			<th:block th:replace="fragments :: tendency (icon=${modelMeter.tendencyIcon})"></th:block>
 		</h4>
-		
-		<div>
-			<th:block th:if="${modelMeter.todayConsumption != null}">
-				<a th:class="${modelMeter.todayConsumption.collapse}">
-					<span class="mb-1" th:text="${modelMeter.todayConsumption.label}">Gestern</span>
-					<span>&nbsp;</span>
-					<span class="text-muted" style="font-size: 80%;" th:text="${modelMeter.todayConsumption.additionalLabel}">Summe</span>
-				</a>
-			</th:block>
-		</div>
-		
 		<div th:replace="fragments :: switchControls (model=${modelSwitch})"></div>
 	</div>
 
@@ -328,7 +322,7 @@
 	</th:block>	
 	
 	<!-- Front door lock -->
-	<div th:fragment="doorLock (model)"  th:class="'alert alert-' + ${model.colorClass} + ' callout callout-' + ${model.colorClass}">
+	<div th:fragment="doorLock (model)" th:class="'alert alert-' + ${model.colorClass} + ' callout callout-' + ${model.colorClass}">
 		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, place=${model.place}, historyKey=${model.historyKey}, unreach=${model.unreach})"></div>
 		<h4 th:unless="${#strings.equals(model.busy,'true')}"><span th:text="${model.state}"></span><span th:text="${model.stateSuffix}" style="font-size: 80%;"></span></h4>
 
@@ -424,6 +418,11 @@
 
 		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name} + ' Gesamt', place=${model.place}, historyKey=${model.historyKey}, unreach=${model.unreach})"></div>
 		<h4>
+			<th:block th:if="${model.todayConsumption != null}">
+				<span class="mb-1" th:text="${model.todayConsumption.label}">Gestern</span>
+				<span class="text-muted" style="font-size: 80%;" th:text="${model.todayConsumption.additionalLabel}">Summe</span>
+				<span th:utext="'&nbsp;&ndash;&nbsp;'"></span>
+			</th:block>		
 			<span th:text="${model.state}"></span>
 			<th:block th:replace="fragments :: tendency (icon=${model.tendencyIcon})"></th:block>
 		</h4>
@@ -431,7 +430,7 @@
 		<th:block th:if="${model.todayConsumption != null}">
 			<div style="max-width:80%;">
 				<div style="max-width:400px;">
-					<div th:replace="fragments :: chartEntry (chart=${model.todayConsumption})"></div>
+					<div th:replace="fragments :: chartEntry (chart=${model.todayConsumption}, showCaption='false')"></div>
 				</div>
 			</div>
 		</th:block>
@@ -590,12 +589,14 @@
 	</th:block>
 	
 	<!-- Chart Entry -->
-	<th:block th:fragment="chartEntry (chart)">	
-		<a th:class="${chart.collapse}">
-			<span class="mb-1" th:text="${chart.label}">Gestern</span>
-			<span>&nbsp;</span>
-			<span class="text-muted" style="font-size: 80%;" th:text="${chart.additionalLabel}">Summe</span>
-		</a>
+	<th:block th:fragment="chartEntry (chart, showCaption)">	
+		<th:block th:if="${#strings.equals(showCaption,'true')}">
+			<a th:class="${chart.collapse}">
+				<span class="mb-1" th:text="${chart.label}">Gestern</span>
+				<span>&nbsp;</span>
+				<span class="text-muted" style="font-size: 80%;" th:text="${chart.additionalLabel}">Summe</span>
+			</a>
+		</th:block>
 		<div th:class="'progress' + ${chart.collapse}" style="margin-bottom: 10px !important; margin-top: 4px !important">
 			<th:block th:each="valueWithCaption : ${chart.valuesWithCaptions}">
 				<div th:class="'progress-bar' + ${valueWithCaption.cssClass}" role="progressbar" th:style="'width: ' + ${valueWithCaption.value} + '%;'" th:aria-valuenow="${valueWithCaption.value}" aria-valuemin="0" aria-valuemax="100" th:text="${valueWithCaption.caption}"></div> 

@@ -9,7 +9,7 @@
 		<div class="list-group">
 			<div th:class="'list-group-item lgi' + ' flex-column align-items-start'">
 				<th:block th:each="chart : ${chartEntries}">
-					<div th:replace="fragments :: chartEntry (chart=${chart})"></div>
+					<div th:replace="fragments :: chartEntry (chart=${chart}, showCaption='true')"></div>
 				</th:block>
 				<p class="text-center text-muted font-weight-light" style="margin-bottom: 0 !important; font-size: 80%;">Werte in kW/h</p>
 				<p class="text-center text-muted font-weight-light" style="margin-bottom: 0 !important; font-size: 80%;">Nacht | Vormittag | Nachmittag | Abend</p>

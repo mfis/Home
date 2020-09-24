@@ -38,6 +38,7 @@ import de.fimatas.home.library.domain.model.ShutterPosition;
 import de.fimatas.home.library.domain.model.StateValue;
 import de.fimatas.home.library.domain.model.Switch;
 import de.fimatas.home.library.domain.model.Window;
+import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.model.Message;
 import de.fimatas.home.library.model.MessageType;
 import de.fimatas.home.library.util.HomeAppConstants;
@@ -114,8 +115,8 @@ public class HouseViewService {
 
         formatFacadeTemperatures(model, "tempMinHouse", "tempMaxHouse", house);
 
-        formatSwitch(model, "switchKitchen", house.getKitchenWindowLightSwitch());
-        formatSwitch(model, "switchWallbox", house.getWallboxSwitch());
+        formatSwitch(model, "switchKitchen", house.getKitchenWindowLightSwitch(), false);
+        formatSwitch(model, "switchWallbox", house.getWallboxSwitch(), true);
 
         formatFrontDoorBell(model, house.getFrontDoorBell(), house.getFrontDoorCamera());
         formatFrontDoorLock(model, house.getFrontDoorLock());
@@ -416,9 +417,13 @@ public class HouseViewService {
         power.setPlace(powerMeter.getDevice().getPlace().getPlaceName());
         power.setDescription(powerMeter.getDevice().getDescription());
         power.setHistoryKey(powerMeter.getDevice().programNamePrefix());
-        power.setState(powerMeter.getActualConsumption().getValue().intValue() + " Watt");
+        power.setState(powerMeter.getActualConsumption().getValue().intValue() + " W");
         power.setName(powerMeter.getDevice().getType().getTypeName());
-        power.setIcon("fas fa-bolt");
+        if (powerMeter.getDevice() == Device.STROMZAEHLER_WALLBOX) {
+            power.setIcon("fas fa-charging-station");
+        } else {
+            power.setIcon("fas fa-bolt");
+        }
         if (powerMeter.getActualConsumption().getTendency() != null) {
             power.setTendencyIcon(powerMeter.getActualConsumption().getTendency().getIconCssClass());
         }
@@ -449,13 +454,16 @@ public class HouseViewService {
         model.addAttribute("warnings", copy);
     }
 
-    private void formatSwitch(Model model, String viewKey, Switch switchModel) {
+    private void formatSwitch(Model model, String viewKey, Switch switchModel, boolean highlightStateOn) {
 
         SwitchView view = new SwitchView();
         view.setUnreach(Boolean.toString(switchModel.isUnreach()));
         view.setId(viewKey);
         view.setName(switchModel.getDevice().getType().getTypeName());
         view.setState(switchModel.isState() ? "Eingeschaltet" : "Ausgeschaltet");
+        if (switchModel.isState() && highlightStateOn) {
+            view.setColorClass(COLOR_CLASS_ORANGE);
+        }
         if (switchModel.getAutomation() != null) {
             if (Boolean.TRUE.equals(switchModel.getAutomation())) {
                 view.setStateSuffix(PROGRAMMGESTEUERT);
