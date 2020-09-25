@@ -10,6 +10,8 @@ public class HomeViewModel implements Serializable {
 
     private String timestamp;
 
+    private String defaultAccent;
+
     private List<HomeViewPlaceModel> places = new LinkedList<>();
 
     public class HomeViewPlaceModel implements Serializable {
@@ -117,6 +119,14 @@ public class HomeViewModel implements Serializable {
 
     public void setPlaces(List<HomeViewPlaceModel> places) {
         this.places = places;
+    }
+
+    public String getDefaultAccent() {
+        return defaultAccent;
+    }
+
+    public void setDefaultAccent(String defaultAccent) {
+        this.defaultAccent = defaultAccent;
     }
 
 }
