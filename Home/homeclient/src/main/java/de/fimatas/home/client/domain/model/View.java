@@ -6,6 +6,8 @@ public abstract class View {
 
     private String state = "";
 
+    private String stateShort = "";
+
     private String stateSuffix = "";
 
     private String icon = "";
@@ -100,6 +102,14 @@ public abstract class View {
 
     public void setColorClass(String colorClass) {
         this.colorClass = colorClass;
+    }
+
+    public String getStateShort() {
+        return stateShort;
+    }
+
+    public void setStateShort(String stateShort) {
+        this.stateShort = stateShort;
     }
 
 }

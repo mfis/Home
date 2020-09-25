@@ -9,6 +9,7 @@ import org.springframework.ui.Model;
 import de.fimatas.home.client.domain.model.ClimateView;
 import de.fimatas.home.client.domain.model.LockView;
 import de.fimatas.home.client.domain.model.PowerView;
+import de.fimatas.home.client.domain.model.SwitchView;
 import de.fimatas.home.client.domain.model.View;
 import de.fimatas.home.client.model.HomeViewModel;
 import de.fimatas.home.client.model.HomeViewModel.HomeViewPlaceModel;
@@ -40,7 +41,7 @@ public class AppViewService {
     private void mapView(HomeViewModel appModel, Place placeInOrder, Object value) {
 
         View view = (View) value;
-        if (view.getPlace().contentEquals(placeInOrder.getPlaceName())) {
+        if (view.getPlace().equals(placeInOrder.getPlaceName())) {
             HomeViewPlaceModel placeModel = lookupPlaceModel(appModel, placeInOrder);
             if (view instanceof ClimateView) {
                 mapClimateView(placeInOrder, (ClimateView) view, placeModel);
@@ -48,20 +49,30 @@ public class AppViewService {
                 mapPowerView(placeInOrder, (PowerView) view, placeModel);
             } else if (view instanceof LockView) {
                 mapLockView(placeInOrder, (LockView) view, placeModel);
+            } else if (view instanceof SwitchView) {
+                mapSwitchView(placeInOrder, (SwitchView) view, placeModel);
             }
-            appModel.getPlaces().add(placeModel);
         }
     }
 
-    private void mapLockView(Place placeInOrder, LockView view, HomeViewPlaceModel placeModel) {
+    private void mapSwitchView(Place placeInOrder, SwitchView view, HomeViewPlaceModel placeModel) {
 
+        placeModel.setName(placeInOrder.getPlaceName());
+        placeModel.getValues().add(mapSwitchStatus(placeInOrder, view));
+    }
+
+    private void mapLockView(Place placeInOrder, LockView view, HomeViewPlaceModel placeModel) {
         placeModel.setName("Haustür");
         placeModel.getValues().add(mapLockStatus(placeInOrder, view));
     }
 
     private void mapPowerView(Place placeInOrder, PowerView view, HomeViewPlaceModel placeModel) {
 
-        placeModel.setName("Strom");
+        if (placeInOrder == Place.HOUSE) {
+            placeModel.setName("Strom Gesamt");
+        } else {
+            placeModel.setName(placeInOrder.getPlaceName());
+        }
         placeModel.getValues().add(mapActualPower(placeInOrder, view));
         placeModel.getValues().add(mapTodayPower(placeInOrder, view));
     }
@@ -88,6 +99,7 @@ public class AppViewService {
             placesOrder.add(Place.OUTSIDE);
             placesOrder.add(Place.FRONTDOOR);
             placesOrder.add(Place.HOUSE);
+            placesOrder.add(Place.WALLBOX);
             break;
         case "widget":
             break;
@@ -112,6 +124,7 @@ public class AppViewService {
             placeModel = appModel.new HomeViewPlaceModel();
             placeModel.setId(placeInOrder.name());
             // name is set in mapper
+            appModel.getPlaces().add(placeModel);
         }
         return placeModel;
     }
@@ -159,6 +172,15 @@ public class AppViewService {
         HomeViewValueModel hvm = new HomeViewModel().new HomeViewValueModel();
         hvm.setId(place.getPlaceName() + "#lockStatus");
         hvm.setKey("Zustand");
+        hvm.setValue(view.getState());
+        hvm.setAccent(mapAccent(view.getColorClass()));
+        return hvm;
+    }
+
+    private HomeViewValueModel mapSwitchStatus(Place place, SwitchView view) {
+        HomeViewValueModel hvm = new HomeViewModel().new HomeViewValueModel();
+        hvm.setId(place.getPlaceName() + "#switchStatus");
+        hvm.setKey("Schalter");
         hvm.setValue(view.getState());
         hvm.setAccent(mapAccent(view.getColorClass()));
         return hvm;
