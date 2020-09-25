@@ -53,7 +53,8 @@ public enum Device {
     HAUSTUER_KLINGEL_HISTORIE(HomematicProtocol.SYSVAR, Type.SYSVAR_LAST_BELL_TIMESTAMP, Place.FRONTDOOR, false,
         Datapoint.LIST_SYSVAR, null), //
 
-    HAUSTUER_KAMERA(HomematicProtocol.HM, Type.SWITCH_FRONTDOOR_CAMERA, Place.FRONTDOOR, false, Datapoint.LIST_CAMERA, null), //
+    // HAUSTUER_KAMERA(HomematicProtocol.HM, Type.SWITCH_FRONTDOOR_CAMERA, Place.FRONTDOOR, false, Datapoint.LIST_CAMERA, null),
+    // //
 
     HAUSTUER_SCHLOSS(HomematicProtocol.HM, Type.DOORLOCK, Place.FRONTDOOR, false, Datapoint.LIST_DOORLOCK,
         Type.VAR_PREFIXES_DOORLOCK, null, null), //

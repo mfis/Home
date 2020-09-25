@@ -13,9 +13,7 @@ import java.net.SocketTimeoutException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.CompletableFuture;
-
 import javax.imageio.ImageIO;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.conn.ConnectTimeoutException;
@@ -29,7 +27,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-
 import de.fimatas.home.controller.command.HomematicCommandBuilder;
 import de.fimatas.home.controller.domain.service.UploadService;
 import de.fimatas.home.library.dao.ModelObjectDAO;
@@ -102,7 +99,7 @@ public class CameraService {
                 long l1 = System.currentTimeMillis();
                 try {
                     turnOnCamera(cameraPicture.getDevice());
-                    byte[] picture = cameraReadPicture(Device.HAUSTUER_KAMERA);
+                    byte[] picture = cameraReadPicture(cameraPicture.getDevice());
                     writePicture(cameraPicture, picture);
                 } catch (Exception e) {
                     LOG.error("Exception taking picture:", e);

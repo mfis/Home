@@ -289,8 +289,7 @@ public class HouseService {
             } else {
                 referencePower = oldModel.getActualConsumption();
             }
-            calculateTendency(newModelDateTime, referencePower, newModel.getActualConsumption(),
-                POWER_TENDENCY_DIFF);
+            calculateTendency(newModelDateTime, referencePower, newModel.getActualConsumption(), POWER_TENDENCY_DIFF);
         }
     }
 
@@ -558,7 +557,8 @@ public class HouseService {
     private void updateCameraPictures(HouseModel oldModel, HouseModel newModel) {
 
         // FrontDoor
-        if (doorbellTimestampChanged(oldModel, newModel)) {
+        if (doorbellTimestampChanged(oldModel, newModel) && newModel.getFrontDoorCamera() != null
+            && newModel.getFrontDoorCamera().getDevice() != null) {
             cameraService.takeEventPicture(newModel.getFrontDoorBell(), newModel.getFrontDoorCamera());
         }
     }
@@ -691,7 +691,7 @@ public class HouseService {
     private Camera readFrontDoorCamera() {
 
         Camera frontDoor = new Camera();
-        frontDoor.setDevice(Device.HAUSTUER_KAMERA);
+        frontDoor.setDevice(null /* TODO: DUMMY */);
         return frontDoor;
     }
 

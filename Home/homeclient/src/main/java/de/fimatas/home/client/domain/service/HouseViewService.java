@@ -153,14 +153,16 @@ public class HouseViewService {
         } else {
             frontDoorView.setLastDoorbells("unbekannt");
         }
-        frontDoorView.setIdLive("frontdoorcameralive");
-        frontDoorView.setIdBell("frontdoorcamerabell");
-        frontDoorView
-            .setLinkLive("/cameraPicture?deviceName=" + camera.getDevice() + "&cameraMode=" + CameraMode.LIVE + "&ts=");
-        frontDoorView.setLinkLiveRequest("/cameraPictureRequest?type=" + MessageType.CAMERAPICTUREREQUEST + AND_DEVICE_IS
-            + camera.getDevice() + "&value=null");
-        frontDoorView.setLinkBell("/cameraPicture?deviceName=" + camera.getDevice() + "&cameraMode=" + CameraMode.EVENT + "&ts="
-            + doorbell.getTimestampLastDoorbell());
+        if (camera != null && camera.getDevice() != null) {
+            frontDoorView.setIdLive("frontdoorcameralive");
+            frontDoorView.setIdBell("frontdoorcamerabell");
+            frontDoorView
+                .setLinkLive("/cameraPicture?deviceName=" + camera.getDevice() + "&cameraMode=" + CameraMode.LIVE + "&ts=");
+            frontDoorView.setLinkLiveRequest("/cameraPictureRequest?type=" + MessageType.CAMERAPICTUREREQUEST + AND_DEVICE_IS
+                + camera.getDevice() + "&value=null");
+            frontDoorView.setLinkBell("/cameraPicture?deviceName=" + camera.getDevice() + "&cameraMode=" + CameraMode.EVENT
+                + "&ts=" + doorbell.getTimestampLastDoorbell());
+        }
 
         model.addAttribute("frontDoor", frontDoorView);
     }
@@ -429,8 +431,7 @@ public class HouseViewService {
         }
 
         if (pcd != null && !pcd.isEmpty()) {
-            List<ChartEntry> dayViewModel =
-                viewFormatter.fillPowerHistoryDayViewModel(pcd, false);
+            List<ChartEntry> dayViewModel = viewFormatter.fillPowerHistoryDayViewModel(pcd, false);
             if (!dayViewModel.isEmpty()) {
                 power.setTodayConsumption(dayViewModel.get(0));
             }
