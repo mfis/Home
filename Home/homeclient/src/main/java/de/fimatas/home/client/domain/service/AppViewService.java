@@ -181,7 +181,7 @@ public class AppViewService {
         HomeViewValueModel hvm = new HomeViewModel().new HomeViewValueModel();
         hvm.setId(place.getPlaceName() + "#switchStatus");
         hvm.setKey("Schalter");
-        hvm.setValue(view.getState());
+        hvm.setValue(view.getStateShort());
         hvm.setAccent(mapAccent(view.getColorClass()));
         return hvm;
     }
