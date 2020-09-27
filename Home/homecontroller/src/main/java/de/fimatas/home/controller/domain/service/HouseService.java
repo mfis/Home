@@ -487,7 +487,7 @@ public class HouseService {
             event = true;
             break;
         }
-        HomematicCommand eventCommand = homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, AUTOMATIC + EVENT);
+        HomematicCommand eventCommand = homematicCommandBuilder.read(device, AUTOMATIC + EVENT);
         if (api.isPresent(eventCommand)) {
             api.executeCommand(homematicCommandBuilder.write(device, AUTOMATIC + EVENT, event));
         }
