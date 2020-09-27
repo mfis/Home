@@ -137,7 +137,7 @@ public class HomematicAPI {
         if (writeToHomematicEnabled) {
             executeCommands(false, commands);
         } else {
-            LOG.info("Write to homematic is not enabled!");
+            LOG.info("Write to homematic is not enabled! - " + homematicCommandProcessor.buildCommand(commands[0]));
         }
     }
 
