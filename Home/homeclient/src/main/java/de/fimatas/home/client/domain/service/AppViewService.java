@@ -164,7 +164,11 @@ public class AppViewService {
         HomeViewValueModel hvm = new HomeViewModel().new HomeViewValueModel();
         hvm.setId(place.getPlaceName() + "#todayPowerSum");
         hvm.setKey("Heute");
-        hvm.setValue(view.getTodayConsumption().getLabel().replace(ViewFormatter.SUM_SIGN, "").trim());
+        if (view.getTodayConsumption() == null) {
+            hvm.setValue("0" + ViewFormatter.K_W_H);
+        }else {
+            hvm.setValue(view.getTodayConsumption().getLabel().replace(ViewFormatter.SUM_SIGN, "").trim());
+        }
         hvm.setAccent(mapAccent(view.getColorClass()));
         return hvm;
     }
