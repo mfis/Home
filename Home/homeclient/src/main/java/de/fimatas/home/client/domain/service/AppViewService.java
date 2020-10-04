@@ -2,6 +2,8 @@ package de.fimatas.home.client.domain.service;
 
 import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -12,6 +14,7 @@ import de.fimatas.home.client.domain.model.PowerView;
 import de.fimatas.home.client.domain.model.SwitchView;
 import de.fimatas.home.client.domain.model.View;
 import de.fimatas.home.client.model.HomeViewModel;
+import de.fimatas.home.client.model.HomeViewModel.HomeViewActionModel;
 import de.fimatas.home.client.model.HomeViewModel.HomeViewPlaceModel;
 import de.fimatas.home.client.model.HomeViewModel.HomeViewValueModel;
 import de.fimatas.home.client.request.HomeRequestMapping;
@@ -60,6 +63,7 @@ public class AppViewService {
 
         placeModel.setName(placeInOrder.getPlaceName());
         placeModel.getValues().add(mapSwitchStatus(placeInOrder, view));
+        placeModel.getActions().addAll(mapSwitchActions(placeInOrder, view));
     }
 
     private void mapLockView(Place placeInOrder, LockView view, HomeViewPlaceModel placeModel) {
@@ -93,6 +97,7 @@ public class AppViewService {
         switch (viewTarget) {
         case "watch":
             placesOrder.add(Place.LIVINGROOM);
+            placesOrder.add(Place.KITCHEN);
             placesOrder.add(Place.BATHROOM);
             placesOrder.add(Place.KIDSROOM);
             placesOrder.add(Place.BEDROOM);
@@ -177,7 +182,7 @@ public class AppViewService {
         HomeViewValueModel hvm = new HomeViewModel().new HomeViewValueModel();
         hvm.setId(place.getPlaceName() + "#lockStatus");
         hvm.setKey("Zustand");
-        hvm.setValue(view.getState());
+        hvm.setValue(Boolean.TRUE.toString().equalsIgnoreCase(view.getBusy()) ? ". . ." : view.getState());
         hvm.setAccent(mapAccent(view.getColorClass()));
         return hvm;
     }
@@ -189,6 +194,21 @@ public class AppViewService {
         hvm.setValue(view.getStateShort());
         hvm.setAccent(mapAccent(view.getColorClass()));
         return hvm;
+    }
+
+    private List<HomeViewActionModel> mapSwitchActions(Place place, SwitchView view) {
+        List<HomeViewActionModel> actions = new LinkedList<>();
+        HomeViewActionModel actionOn = new HomeViewModel().new HomeViewActionModel();
+        actionOn.setId(place.getPlaceName() + "#switchActionOn");
+        actionOn.setName("Ein");
+        actionOn.setLink(view.getLinkOn());
+        HomeViewActionModel actionOff = new HomeViewModel().new HomeViewActionModel();
+        actionOff.setId(place.getPlaceName() + "#switchActionOff");
+        actionOff.setName("Aus");
+        actionOff.setLink(view.getLinkOff());
+        actions.add(actionOn);
+        actions.add(actionOff);
+        return actions;
     }
 
     private String mapAccent(String colorClass) {
