@@ -69,6 +69,7 @@ public class AppViewService {
     private void mapLockView(Place placeInOrder, LockView view, HomeViewPlaceModel placeModel) {
         placeModel.setName("Haustür");
         placeModel.getValues().add(mapLockStatus(placeInOrder, view));
+        placeModel.getActions().addAll(mapLockActions(placeInOrder, view));
     }
 
     private void mapPowerView(Place placeInOrder, PowerView view, HomeViewPlaceModel placeModel) {
@@ -187,6 +188,45 @@ public class AppViewService {
         return hvm;
     }
 
+    private List<List<HomeViewActionModel>> mapLockActions(Place place, LockView view) {
+        List<HomeViewActionModel> actionsState = new LinkedList<>();
+        HomeViewActionModel actionLock = new HomeViewModel().new HomeViewActionModel();
+        actionLock.setId(place.getPlaceName() + "#lockActionLock");
+        actionLock.setName("Verriegeln");
+        actionLock.setLink(view.getLinkLock());
+        actionsState.add(actionLock);
+        HomeViewActionModel actionUnlock = new HomeViewModel().new HomeViewActionModel();
+        actionUnlock.setId(place.getPlaceName() + "#lockActionUnlock");
+        actionUnlock.setName("Entriegeln");
+        actionUnlock.setLink(view.getLinkUnlock());
+        actionsState.add(actionUnlock);
+        HomeViewActionModel actionOpen = new HomeViewModel().new HomeViewActionModel();
+        actionOpen.setId(place.getPlaceName() + "#lockActionOpen");
+        actionOpen.setName("Öffnen");
+        actionOpen.setLink(view.getLinkOpen());
+        actionsState.add(actionOpen);
+        List<HomeViewActionModel> actionsControl = new LinkedList<>();
+        HomeViewActionModel actionAuto = new HomeViewModel().new HomeViewActionModel();
+        actionAuto.setId(place.getPlaceName() + "#lockActionAuto");
+        actionAuto.setName("Automatisch");
+        actionAuto.setLink(view.getLinkAuto());
+        actionsControl.add(actionAuto);
+        HomeViewActionModel actionManu = new HomeViewModel().new HomeViewActionModel();
+        actionManu.setId(place.getPlaceName() + "#lockActionManu");
+        actionManu.setName("Manuell");
+        actionManu.setLink(view.getLinkManual());
+        actionsControl.add(actionManu);
+        HomeViewActionModel actionEvent = new HomeViewModel().new HomeViewActionModel();
+        actionEvent.setId(place.getPlaceName() + "#lockActionEvent");
+        actionEvent.setName("Ereignis");
+        actionEvent.setLink(view.getLinkAutoEvent());
+        actionsControl.add(actionEvent);
+        List<List<HomeViewActionModel>> actions = new LinkedList<>();
+        actions.add(actionsState);
+        actions.add(actionsControl);
+        return actions;
+    }
+
     private HomeViewValueModel mapSwitchStatus(Place place, SwitchView view) {
         HomeViewValueModel hvm = new HomeViewModel().new HomeViewValueModel();
         hvm.setId(place.getPlaceName() + "#switchStatus");
@@ -196,18 +236,32 @@ public class AppViewService {
         return hvm;
     }
 
-    private List<HomeViewActionModel> mapSwitchActions(Place place, SwitchView view) {
-        List<HomeViewActionModel> actions = new LinkedList<>();
+    private List<List<HomeViewActionModel>> mapSwitchActions(Place place, SwitchView view) {
+        List<HomeViewActionModel> actionsOnOff = new LinkedList<>();
         HomeViewActionModel actionOn = new HomeViewModel().new HomeViewActionModel();
         actionOn.setId(place.getPlaceName() + "#switchActionOn");
         actionOn.setName("Ein");
         actionOn.setLink(view.getLinkOn());
+        actionsOnOff.add(actionOn);
         HomeViewActionModel actionOff = new HomeViewModel().new HomeViewActionModel();
         actionOff.setId(place.getPlaceName() + "#switchActionOff");
         actionOff.setName("Aus");
         actionOff.setLink(view.getLinkOff());
-        actions.add(actionOn);
-        actions.add(actionOff);
+        actionsOnOff.add(actionOff);
+        List<HomeViewActionModel> actionsControl = new LinkedList<>();
+        HomeViewActionModel actionAuto = new HomeViewModel().new HomeViewActionModel();
+        actionAuto.setId(place.getPlaceName() + "#switchActionAuto");
+        actionAuto.setName("Automatisch");
+        actionAuto.setLink(view.getLinkAuto());
+        actionsControl.add(actionAuto);
+        HomeViewActionModel actionManu = new HomeViewModel().new HomeViewActionModel();
+        actionManu.setId(place.getPlaceName() + "#switchActionManu");
+        actionManu.setName("Manuell");
+        actionManu.setLink(view.getLinkManual());
+        actionsControl.add(actionManu);
+        List<List<HomeViewActionModel>> actions = new LinkedList<>();
+        actions.add(actionsOnOff);
+        actions.add(actionsControl);
         return actions;
     }
 

@@ -24,7 +24,7 @@ public class HomeViewModel implements Serializable {
 
         private List<HomeViewValueModel> values = new LinkedList<>();
 
-        private List<HomeViewActionModel> actions = new LinkedList<>();
+        private List<List<HomeViewActionModel>> actions = new LinkedList<>();
 
         public String getId() {
             return id;
@@ -50,11 +50,11 @@ public class HomeViewModel implements Serializable {
             this.values = values;
         }
 
-        public List<HomeViewActionModel> getActions() {
+        public List<List<HomeViewActionModel>> getActions() {
             return actions;
         }
 
-        public void setActions(List<HomeViewActionModel> actions) {
+        public void setActions(List<List<HomeViewActionModel>> actions) {
             this.actions = actions;
         }
 
