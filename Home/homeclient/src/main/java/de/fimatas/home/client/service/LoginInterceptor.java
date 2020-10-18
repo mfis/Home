@@ -22,7 +22,7 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 
     public static final String APP_DEVICE = "appDevice";
 
-    private static final String APP_USER_NAME = "appUserName";
+    public static final String APP_USER_NAME = "appUserName";
 
     private static final String APP_USER_TOKEN = "appUserToken";
 
@@ -47,6 +47,16 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
+        boolean loginOK = checkLogin(request, response);
+
+        if (!loginOK && Boolean.parseBoolean(env.getProperty("debug.mode"))) {
+            logger.warn("Request: " + request.getRequestURI() + " NOT ok");
+        }
+
+        return loginOK;
+    }
+
+    private boolean checkLogin(HttpServletRequest request, HttpServletResponse response) throws IOException {
         if (isControllerRequest(request)) {
             String controllerToken = env.getProperty(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN);
             String controllerTokenSent = request.getHeader(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN);

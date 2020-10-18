@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -54,6 +55,9 @@ public class HomeRequestMapping {
     private static final Log log = LogFactory.getLog(HomeRequestMapping.class);
 
     @Autowired
+    private Environment env;
+
+    @Autowired
     private HouseViewService houseView;
 
     @Autowired
@@ -71,28 +75,58 @@ public class HomeRequestMapping {
     @GetMapping("/message")
     public String message(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
             @RequestParam(name = "type") String type, @RequestParam(name = DEVICE_NAME, required = false) String deviceName,
-            @RequestParam("value") String value, @RequestParam(name = "securityPin", required = false) String securityPin) {
+            @RequestParam("value") String value, @RequestParam(name = "securityPin", required = false) String securityPin,
+            @RequestHeader(name = LoginInterceptor.APP_USER_NAME, required = false) String appUserName,
+            HttpServletResponse httpServletResponse) {
+
+        boolean isApp = StringUtils.isNotBlank(appUserName);
+
+        if (Boolean.parseBoolean(env.getProperty("debug.mode"))) {
+            log.info(
+                "message: type=" + type + ", deviceName=" + deviceName + ", value=" + value + ", securityPin=" + securityPin
+                    + ", isApp=" + isApp);
+        }
 
         if (!isPinBlankOrSetAndCorrect(userCookie, securityPin)) {
-            return REDIRECT + MessageType.valueOf(type).getTargetSite();
+            prepareErrorMessage(isApp, "Die eingegebene PIN ist nicht korrekt.", userCookie, httpServletResponse);
+            return lookupMessageReturnValue(isApp, MessageType.valueOf(type).getTargetSite());
         }
 
-        Message response = request(userCookie, type, deviceName, value, securityPin);
+        Message responseMessage = request(userCookie, type, deviceName, value, securityPin);
 
-        if (!response.isSuccessfullExecuted()) {
-            ViewAttributesDAO.getInstance().push(userCookie, ViewAttributesDAO.MESSAGE,
-                "Die Anfrage konnte nicht erfolgreich verarbeitet werden.");
+        if (!responseMessage.isSuccessfullExecuted()) {
+            prepareErrorMessage(isApp, "Die Anfrage konnte nicht erfolgreich verarbeitet werden.", userCookie,
+                httpServletResponse);
             log.error("MESSAGE EXECUTION NOT SUCCESSFUL !!! - " + type);
         }
-        return REDIRECT + response.getMessageType().getTargetSite();
+        return lookupMessageReturnValue(isApp, responseMessage.getMessageType().getTargetSite());
+    }
+
+    private void prepareErrorMessage(boolean isApp, String message, String userCookie,
+            HttpServletResponse httpServletResponse) {
+        if (isApp) {
+            httpServletResponse.setStatus(HttpStatus.CONFLICT.value());
+        } else {
+            ViewAttributesDAO.getInstance().push(userCookie, ViewAttributesDAO.MESSAGE,
+                message);
+        }
+        if (Boolean.parseBoolean(env.getProperty("debug.mode"))) {
+            log.info("message - error=" + message);
+        }
+    }
+
+    private String lookupMessageReturnValue(boolean isApp, String template) {
+        if (isApp) {
+            return "empty";
+        } else {
+            return REDIRECT + template;
+        }
     }
 
     private boolean isPinBlankOrSetAndCorrect(String userCookie, String securityPin) {
 
         String user = LoginCookieDAO.getInstance().read(userCookie);
         if (StringUtils.isNotBlank(securityPin) && !userService.checkPin(user, securityPin)) {
-            ViewAttributesDAO.getInstance().push(userCookie, ViewAttributesDAO.MESSAGE,
-                "Die eingegebene PIN ist nicht korrekt.");
             return false;
         }
         return true;
@@ -151,7 +185,9 @@ public class HomeRequestMapping {
             @RequestHeader(name = "ETag", required = false) String etag,
             @RequestHeader(name = LoginInterceptor.APP_DEVICE, required = false) String appDevice) {
 
-        // log.info("requesting home");
+        if (Boolean.parseBoolean(env.getProperty("debug.mode"))) {
+            log.info("homePage");
+        }
         boolean isNewMessage = ViewAttributesDAO.getInstance().isPresent(userCookie, ViewAttributesDAO.MESSAGE);
         fillMenu(Pages.PATH_HOME, model, response, appDevice);
         fillUserAttributes(model, userCookie);
