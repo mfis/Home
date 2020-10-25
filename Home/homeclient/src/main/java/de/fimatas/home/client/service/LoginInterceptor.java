@@ -11,6 +11,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.text.CharacterPredicates;
+import org.apache.commons.text.RandomStringGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
@@ -118,6 +120,7 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
                 handleClientFalseLoginCounter();
                 logger.info("attempt login not successful - user=" + loginUser + ", cookie=" + cookie + ", requested="
                     + request.getRequestURI());
+                cookieDelete(request, response);
             } else {
                 response.sendRedirect(isApp ? LoginController.LOGIN_VIA_APP_FAILED_URI : LoginController.LOGIN_URI);
             }
@@ -147,7 +150,7 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
     private void handleClientFalseLoginCounter() {
 
         clientFalseLoginCounter++;
-        if (clientFalseLoginCounter > 10) { // cookie brute force attack?
+        if (clientFalseLoginCounter > 6) { // cookie brute force attack?
             logger.info("handleClientFalseLogin - deleting all cookie information");
             LoginCookieDAO.getInstance().deleteAll();
             clientFalseLoginCounter = 0;
@@ -156,7 +159,7 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 
     private boolean controllerSuccessResponse(boolean success) {
 
-        if (controllerFalseLoginCounter > 3) { // controller token brute force
+        if (controllerFalseLoginCounter > 2) { // controller token brute force
                                                // attack?
             logger.error("controllerFalseLoginCounter=" + controllerFalseLoginCounter);
             return false;
@@ -250,7 +253,8 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 
         String uuid = null;
         if (StringUtils.isBlank(oldCookieID)) {
-            uuid = UUID.randomUUID().toString() + UUID.randomUUID().toString();
+            uuid = UUID.randomUUID().toString().hashCode() + "__" + new RandomStringGenerator.Builder().withinRange('0', 'z')
+                .filteredBy(CharacterPredicates.LETTERS, CharacterPredicates.DIGITS).build().generate(3600);
         } else {
             uuid = oldCookieID;
         }
