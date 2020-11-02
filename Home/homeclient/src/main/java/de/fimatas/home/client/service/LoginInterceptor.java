@@ -59,6 +59,7 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
     }
 
     private boolean checkLogin(HttpServletRequest request, HttpServletResponse response) throws IOException {
+
         if (isControllerRequest(request)) {
             String controllerToken = env.getProperty(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN);
             String controllerTokenSent = request.getHeader(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN);
@@ -81,24 +82,30 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
         }
 
         Map<String, String> params = mapRequestParameters(request);
-        String cookie = cookieRead(request);
         String userName = null;
+        boolean cookieLoginPermitted = true;
 
-        if (params.containsKey(LOGIN_USERNAME)) {
-            if (userHasNotAcceptedCookies(params)) {
-                response.sendRedirect(LoginController.LOGIN_COOKIECHECK_URI);
-                return false;
-            } else {
-                userName = login(params);
+        // Token hat hoehere Prio als Cookie
+        if (StringUtils.isNotBlank(request.getHeader(APP_USER_TOKEN))) {
+            if (userService.checkToken(request.getHeader(APP_USER_NAME), request.getHeader(APP_USER_TOKEN),
+                request.getHeader(APP_DEVICE))) {
+                userName = request.getHeader(APP_USER_NAME);
             }
-        } else if (cookie != null) {
-            userName = StringUtils.trimToNull(LoginCookieDAO.getInstance().read(cookie));
+            cookieLoginPermitted = false;
         }
 
-        // app user handling
-        if (userName == null && request.getHeader(APP_USER_TOKEN) != null && userService
-            .checkToken(request.getHeader(APP_USER_NAME), request.getHeader(APP_USER_TOKEN), request.getHeader(APP_DEVICE))) {
-            userName = request.getHeader(APP_USER_NAME);
+        if (cookieLoginPermitted) {
+            String cookie = cookieRead(request);
+            if (params.containsKey(LOGIN_USERNAME)) {
+                if (userHasNotAcceptedCookies(params)) {
+                    response.sendRedirect(LoginController.LOGIN_COOKIECHECK_URI);
+                    return false;
+                } else {
+                    userName = login(params);
+                }
+            } else if (cookie != null) {
+                userName = StringUtils.trimToNull(LoginCookieDAO.getInstance().read(cookie));
+            }
         }
 
         return handleLoginttempt(request, response, params, userName);
@@ -114,20 +121,26 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
         if (userName == null) {
             String loginUser = StringUtils.trimToNull(params.get(LOGIN_USERNAME));
             String cookie = StringUtils.trimToNull(cookieRead(request));
-            boolean isApp = request.getHeader(APP_USER_TOKEN) != null;
-            if (cookie != null || loginUser != null) {
-                response.sendRedirect(isApp ? LoginController.LOGIN_VIA_APP_FAILED_URI : LoginController.LOGIN_FAILED_URI);
-                handleClientFalseLoginCounter();
-                logger.info("attempt login not successful - user=" + loginUser + ", cookie=" + cookie + ", requested="
-                    + request.getRequestURI());
-                cookieDelete(request, response);
+            if (StringUtils.isNotBlank(cookie) || StringUtils.isNotBlank(loginUser)
+                || StringUtils.isNotBlank(request.getHeader(APP_USER_TOKEN))) {
+                response.sendRedirect(StringUtils.isNotBlank(request.getHeader(APP_DEVICE))
+                    ? LoginController.LOGIN_VIA_APP_FAILED_URI : LoginController.LOGIN_FAILED_URI);
+                if (StringUtils.isNotBlank(cookie)) {
+                    handleCookieFalseLoginCounter();
+                    cookieDelete(request, response);
+                }
+                logger.info("attempt login not successful - user=" + loginUser + ", cookie=" + StringUtils.left(cookie, 30)
+                    + ", requested=" + request.getRequestURI());
             } else {
-                response.sendRedirect(isApp ? LoginController.LOGIN_VIA_APP_FAILED_URI : LoginController.LOGIN_URI);
+                response.sendRedirect(LoginController.LOGIN_URI);
             }
             return false;
         } else {
-            controllerFalseLoginCounter = 0; // reset at manual login
-            setNewCookie(request, response, userName);
+            // app with web view is cookie based. watch app not, neighter browser (header not set)
+            if (StringUtils.startsWith(request.getHeader(APP_DEVICE), "CookieBased_")
+                || StringUtils.isBlank(request.getHeader(APP_DEVICE))) {
+                setNewCookie(request, response, userName);
+            }
             return true;
         }
     }
@@ -147,11 +160,12 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
         return StringUtils.equals(request.getRequestURI(), LoginController.LOGOFF_URI);
     }
 
-    private void handleClientFalseLoginCounter() {
+    private void handleCookieFalseLoginCounter() {
 
+        logger.info("handleClientFalseLogin");
         clientFalseLoginCounter++;
-        if (clientFalseLoginCounter > 6) { // cookie brute force attack?
-            logger.info("handleClientFalseLogin - deleting all cookie information");
+        if (clientFalseLoginCounter > 4) { // cookie brute force attack?
+            logger.info("deleting all cookie information");
             LoginCookieDAO.getInstance().deleteAll();
             clientFalseLoginCounter = 0;
         }
@@ -247,12 +261,16 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
         return null;
     }
 
-    public String setNewCookie(HttpServletRequest request, HttpServletResponse response, String loginUser) {
+    private String setNewCookie(HttpServletRequest request, HttpServletResponse response, String loginUser) {
 
         String oldCookieID = cookieRead(request);
+        boolean oldCookieValid = false;
+        if (StringUtils.isNotBlank(oldCookieID)) {
+            oldCookieValid = StringUtils.isNotBlank(LoginCookieDAO.getInstance().read(oldCookieID));
+        }
 
         String uuid = null;
-        if (StringUtils.isBlank(oldCookieID)) {
+        if (!oldCookieValid) {
             uuid = UUID.randomUUID().toString().hashCode() + "__" + new RandomStringGenerator.Builder().withinRange('0', 'z')
                 .filteredBy(CharacterPredicates.LETTERS, CharacterPredicates.DIGITS).build().generate(3600);
         } else {
@@ -261,14 +279,14 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
         cookieWrite(response, uuid);
         LoginCookieDAO.getInstance().write(uuid, loginUser);
 
-        if (!StringUtils.equals(oldCookieID, uuid) && oldCookieID != null) {
+        if (!StringUtils.equals(oldCookieID, uuid) && StringUtils.isNotBlank(oldCookieID)) {
             LoginCookieDAO.getInstance().delete(oldCookieID);
         }
 
         return uuid;
     }
 
-    public void cookieDelete(HttpServletRequest request, HttpServletResponse response) {
+    private void cookieDelete(HttpServletRequest request, HttpServletResponse response) {
 
         String oldCookie = cookieRead(request);
         if (oldCookie != null) {

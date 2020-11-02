@@ -115,18 +115,22 @@
 		
 		function setAppTitle(httpRequest){
 			
-			var ts;
+			var ts = null;
 			if(httpRequest != null && httpRequest.getResponseHeader('SITE_REQUEST_TS')!=null){
 				ts = httpRequest.getResponseHeader('SITE_REQUEST_TS');
 			}else{
-				ts = document.getElementById('SITE_REQUEST_TS').value;
+				if(document.getElementById('SITE_REQUEST_TS') != null){
+					ts = document.getElementById('SITE_REQUEST_TS').value;
+				}
 			}
-			
-			if(document.getElementById('SITE_REQUEST_IS_APP').value == 'true'){
-				document.title = ts;
-			}else{
-				document.getElementById('idHeaderStatusText').innerHTML = ts;
-			}			
+	
+			if(ts != null){
+				if(document.getElementById('SITE_REQUEST_IS_APP').value == 'true'){
+					document.title = ts;
+				}else{
+					document.getElementById('idHeaderStatusText').innerHTML = ts;
+				}			
+			}
 		}	
 		
 		setAppTitle(null);
