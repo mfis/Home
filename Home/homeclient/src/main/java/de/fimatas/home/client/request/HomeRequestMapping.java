@@ -23,11 +23,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import de.fimatas.home.client.domain.service.HistoryViewService;
 import de.fimatas.home.client.domain.service.HouseViewService;
 import de.fimatas.home.client.model.MessageQueue;
-import de.fimatas.home.client.service.LoginCookieDAO;
 import de.fimatas.home.client.service.LoginInterceptor;
 import de.fimatas.home.client.service.SettingsViewService;
 import de.fimatas.home.client.service.TextQueryService;
-import de.fimatas.home.client.service.UserService;
 import de.fimatas.home.client.service.ViewAttributesDAO;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.CameraMode;
@@ -38,6 +36,7 @@ import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.model.Message;
 import de.fimatas.home.library.model.MessageType;
 import de.fimatas.home.library.model.Pages;
+import mfi.files.api.UserService;
 
 @Controller
 public class HomeRequestMapping {
@@ -125,7 +124,7 @@ public class HomeRequestMapping {
 
     private boolean isPinBlankOrSetAndCorrect(String userCookie, String securityPin) {
 
-        String user = LoginCookieDAO.getInstance().read(userCookie);
+        String user = userService.userNameFromLoginCookie(userCookie);
         if (StringUtils.isNotBlank(securityPin) && !userService.checkPin(user, securityPin)) {
             return false;
         }
@@ -212,7 +211,7 @@ public class HomeRequestMapping {
             @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie) {
         fillMenu(Pages.PATH_SETTINGS, model, response, null);
         fillUserAttributes(model, userCookie);
-        String user = LoginCookieDAO.getInstance().read(userCookie);
+        String user = userService.userNameFromLoginCookie(userCookie);
         SettingsModel settings = ModelObjectDAO.getInstance().readSettingsModels(user);
         settingsView.fillSettings(model, settings);
         return Pages.getEntry(Pages.PATH_SETTINGS).getTemplate();
@@ -227,7 +226,7 @@ public class HomeRequestMapping {
         message.setMessageType(messageType);
         message.setDevice(device);
         message.setValue(value);
-        message.setUser(LoginCookieDAO.getInstance().read(userCookie));
+        message.setUser(userService.userNameFromLoginCookie(userCookie));
         message.setSecurityPin(securityPin);
 
         return MessageQueue.getInstance().request(message, true);
@@ -242,7 +241,7 @@ public class HomeRequestMapping {
     }
 
     private void fillUserAttributes(Model model, String userCookie) {
-        String user = LoginCookieDAO.getInstance().read(userCookie);
+        String user = userService.userNameFromLoginCookie(userCookie);
         if (user != null) {
             model.addAttribute(ViewAttributesDAO.USER_NAME, user);
         }

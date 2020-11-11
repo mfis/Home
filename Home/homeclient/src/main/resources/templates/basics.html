@@ -49,6 +49,7 @@
 				httpRequest.open('GET', target);
 				httpRequest.setRequestHeader('ETag', document.getElementById('modelTimestamp').value);
 				httpRequest.setRequestHeader('appDevice', document.getElementById('SITE_REQUEST_DEVICE').value);
+				httpRequest.setRequestHeader('isAjaxRequest', 'true');
 				httpRequest.send();
 				httpRequest.onreadystatechange=(e)=>{
 					if (httpRequest.readyState == 4) {

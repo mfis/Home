@@ -2,6 +2,7 @@ package de.fimatas.home.client.request;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.ExtendedModelMap;
@@ -10,14 +11,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import de.fimatas.home.client.Application;
 import de.fimatas.home.client.domain.service.AppViewService;
 import de.fimatas.home.client.domain.service.HouseViewService;
 import de.fimatas.home.client.model.AppTokenCreationModel;
 import de.fimatas.home.client.model.HomeViewModel;
-import de.fimatas.home.client.service.UserService;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.HouseModel;
+import mfi.files.api.UserService;
 
 @RestController
 public class AppRequestMapping {
@@ -35,9 +35,12 @@ public class AppRequestMapping {
     @Autowired
     private AppViewService appViewService;
 
+    @Value("${application.identifier}")
+    private String applicationIdentifier;
+
     @GetMapping(value = URI_WHOAMI)
     public ResponseEntity<String> whoami() {
-        return new ResponseEntity<>(Application.APPLICATION_NAME, HttpStatus.OK);
+        return new ResponseEntity<>(applicationIdentifier, HttpStatus.OK);
     }
 
     @PostMapping(value = URI_CREATE_AUTH_TOKEN)

@@ -2,7 +2,6 @@ package de.fimatas.home.client.service;
 
 import org.springframework.stereotype.Component;
 import org.springframework.ui.Model;
-
 import de.fimatas.home.client.domain.model.SwitchView;
 import de.fimatas.home.client.domain.service.HouseViewService;
 import de.fimatas.home.library.domain.model.SettingsModel;

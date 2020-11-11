@@ -4,7 +4,6 @@ public class SwitchView extends View {
 
     private String label = "";
 
-    @Deprecated
     private String link = "#";
 
     private String linkOn = "#";
@@ -65,12 +64,10 @@ public class SwitchView extends View {
         this.linkOff = linkOff;
     }
 
-    @Deprecated
     public String getLink() {
         return link;
     }
 
-    @Deprecated
     public void setLink(String link) {
         this.link = link;
     }

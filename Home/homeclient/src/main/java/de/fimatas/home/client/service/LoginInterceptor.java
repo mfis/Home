@@ -19,6 +19,7 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import de.fimatas.home.client.request.AppRequestMapping;
 import de.fimatas.home.client.request.ControllerRequestMapping;
 import de.fimatas.home.library.util.HomeAppConstants;
+import mfi.files.api.UserService;
 
 public class LoginInterceptor extends HandlerInterceptorAdapter {
 
