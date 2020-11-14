@@ -39,7 +39,7 @@ public class Pages {
                 return entry;
             }
         }
-        throw new NullPointerException("Entry not found:" + path);
+        return null;
     }
 
     public static PageEntry getAppHomeEntry() {

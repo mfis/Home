@@ -17,6 +17,8 @@ import de.fimatas.home.client.model.AppTokenCreationModel;
 import de.fimatas.home.client.model.HomeViewModel;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.HouseModel;
+import mfi.files.api.DeviceType;
+import mfi.files.api.TokenResult;
 import mfi.files.api.UserService;
 
 @RestController
@@ -47,10 +49,10 @@ public class AppRequestMapping {
     public AppTokenCreationModel createAuthToken(@RequestParam("user") String user, @RequestParam("pass") String pass,
             @RequestParam("device") String device) {
 
-        String token = userService.createAppToken(user, pass, device);
+        TokenResult result = userService.createToken(user, pass, device, DeviceType.APP);
         AppTokenCreationModel model = new AppTokenCreationModel();
-        model.setSuccess(token != null);
-        model.setToken(StringUtils.trimToEmpty(token));
+        model.setSuccess(result.isCheckOk());
+        model.setToken(StringUtils.trimToEmpty(result.getNewToken()));
         return model;
     }
 
