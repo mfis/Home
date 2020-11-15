@@ -171,13 +171,12 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
             request.getHeader(APP_DEVICE), DeviceType.APP, !isUpdateRequest);
 
         if (tokenResult.isCheckOk()) {
-            if (!isUpdateRequest) {
+            if (isUpdateRequest) {
+                return userService.userNameFromLoginCookie(request.getHeader(APP_USER_TOKEN));
+            } else {
                 response.addHeader(APP_USER_TOKEN, tokenResult.getNewToken());
+                return userService.userNameFromLoginCookie(tokenResult.getNewToken());
             }
-            if (StringUtils.startsWith(request.getHeader(APP_DEVICE), "CookieBased_")) {
-                cookieWrite(response, tokenResult.getNewToken());
-            }
-            return userService.userNameFromLoginCookie(tokenResult.getNewToken());
         } else {
             response.sendRedirect(LoginController.LOGIN_VIA_APP_FAILED_URI);
             return null;
@@ -293,7 +292,7 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 
         Cookie cookie = new Cookie(COOKIE_NAME, value);
         cookie.setHttpOnly(true);
-        cookie.setMaxAge(60 * 60 * 24 * 180);
+        cookie.setMaxAge(60 * 60 * 24 * 92);
         response.addCookie(cookie);
     }
 
