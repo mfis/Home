@@ -15,6 +15,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import de.fimatas.home.client.request.AppRequestMapping;
 import de.fimatas.home.client.request.ControllerRequestMapping;
@@ -57,15 +58,15 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 
     private int controllerFalseLoginCounter = 0;
 
-    private Log logger = LogFactory.getLog(LoginInterceptor.class);
+    private Log log = LogFactory.getLog(LoginInterceptor.class);
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
         boolean loginOK = checkLogin(request, response);
 
-        if (!loginOK && Boolean.parseBoolean(env.getProperty("debug.mode"))) {
-            logger.warn("Request: " + request.getRequestURI() + " NOT ok");
+        if (!loginOK) {
+            log.warn("Request: " + request.getRequestURI() + " NOT ok");
         }
 
         return loginOK;
@@ -73,14 +74,14 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 
     static boolean isAssetRequest(HttpServletRequest request) {
 
-        if(Pages.getEntry(request.getRequestURI())!=null) {
+        if (Pages.getEntry(request.getRequestURI()) != null) {
             return false;
         }
-        
-        if(WHITELIST_URIS.contains(request.getRequestURI())) {
+
+        if (WHITELIST_URIS.contains(request.getRequestURI())) {
             return true;
         }
-        
+
         if (WHITELIST_EXTENSIONS.contains(FilenameUtils.getExtension(request.getRequestURI()))) { // NOSONAR
             return true;
         }
@@ -136,7 +137,7 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
         return StringUtils.isNotBlank(userName);
     }
 
-    private void logoff(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    private void logoff(HttpServletRequest request, HttpServletResponse response) {
 
         String oldCookie = cookieRead(request);
         if (checkUser(oldCookie)) {
@@ -164,21 +165,25 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
             checkUser(controllerTokenSent) && StringUtils.equals(controllerToken, controllerTokenSent));
     }
 
-    private String tokenLogin(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    private String tokenLogin(HttpServletRequest request, HttpServletResponse response) {
 
-        boolean isUpdateRequest = BooleanUtils.toBoolean(request.getHeader("isUpdateRequest"));
+        log.debug("REQUESTED TOKEN: " + StringUtils.substring(request.getHeader(APP_USER_TOKEN), 0, 50));
+
+        boolean refreshToken = BooleanUtils.toBoolean(request.getHeader("refreshToken"));
         TokenResult tokenResult = userService.checkToken(request.getHeader(APP_USER_NAME), request.getHeader(APP_USER_TOKEN),
-            request.getHeader(APP_DEVICE), DeviceType.APP, !isUpdateRequest);
+            request.getHeader(APP_DEVICE), DeviceType.APP, refreshToken);
 
         if (tokenResult.isCheckOk()) {
-            if (isUpdateRequest) {
-                return userService.userNameFromLoginCookie(request.getHeader(APP_USER_TOKEN));
-            } else {
+            if (refreshToken) {
                 response.addHeader(APP_USER_TOKEN, tokenResult.getNewToken());
+                log.debug("REFRESHED TOKEN: " + StringUtils.substring(tokenResult.getNewToken(), 0, 50));
                 return userService.userNameFromLoginCookie(tokenResult.getNewToken());
+            } else {
+                log.debug("NO REFRESH");
+                return userService.userNameFromLoginCookie(request.getHeader(APP_USER_TOKEN));
             }
         } else {
-            response.sendRedirect(LoginController.LOGIN_VIA_APP_FAILED_URI);
+            response.setStatus(HttpStatus.UNAUTHORIZED.value()); // 401
             return null;
         }
     }
@@ -247,7 +252,7 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 
         if (controllerFalseLoginCounter > 2) { // controller token brute force
                                                // attack?
-            logger.error("controllerFalseLoginCounter=" + controllerFalseLoginCounter);
+            log.error("controllerFalseLoginCounter=" + controllerFalseLoginCounter);
             return false;
         } else if (success) {
             return true;

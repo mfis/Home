@@ -7,7 +7,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -54,9 +53,6 @@ public class HomeRequestMapping {
     private static final Log log = LogFactory.getLog(HomeRequestMapping.class);
 
     @Autowired
-    private Environment env;
-
-    @Autowired
     private HouseViewService houseView;
 
     @Autowired
@@ -80,10 +76,9 @@ public class HomeRequestMapping {
 
         boolean isApp = StringUtils.isNotBlank(appUserName);
 
-        if (Boolean.parseBoolean(env.getProperty("debug.mode"))) {
-            log.info(
-                "message: type=" + type + ", deviceName=" + deviceName + ", value=" + value + ", securityPin=" + securityPin
-                    + ", isApp=" + isApp);
+        if (log.isDebugEnabled()) {
+            log.debug("message: type=" + type + ", deviceName=" + deviceName + ", value=" + value + 
+                ", isApp=" + isApp);
         }
 
         if (!isPinBlankOrSetAndCorrect(userCookie, securityPin)) {
@@ -109,7 +104,7 @@ public class HomeRequestMapping {
             ViewAttributesDAO.getInstance().push(userCookie, ViewAttributesDAO.MESSAGE,
                 message);
         }
-        if (Boolean.parseBoolean(env.getProperty("debug.mode"))) {
+        if (log.isInfoEnabled()) {
             log.info("message - error=" + message);
         }
     }
@@ -184,8 +179,8 @@ public class HomeRequestMapping {
             @RequestHeader(name = "ETag", required = false) String etag,
             @RequestHeader(name = LoginInterceptor.APP_DEVICE, required = false) String appDevice) {
 
-        if (Boolean.parseBoolean(env.getProperty("debug.mode"))) {
-            log.info("homePage");
+        if (log.isDebugEnabled()) {
+            log.debug("requesting PATH_HOME");
         }
         boolean isNewMessage = ViewAttributesDAO.getInstance().isPresent(userCookie, ViewAttributesDAO.MESSAGE);
         fillMenu(Pages.PATH_HOME, model, response, appDevice);

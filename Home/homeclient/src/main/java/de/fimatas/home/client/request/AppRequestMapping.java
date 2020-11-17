@@ -1,6 +1,8 @@
 package de.fimatas.home.client.request;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -40,6 +42,8 @@ public class AppRequestMapping {
     @Value("${application.identifier}")
     private String applicationIdentifier;
 
+    private static final Log log = LogFactory.getLog(AppRequestMapping.class);
+
     @GetMapping(value = URI_WHOAMI)
     public ResponseEntity<String> whoami() {
         return new ResponseEntity<>(applicationIdentifier, HttpStatus.OK);
@@ -53,6 +57,7 @@ public class AppRequestMapping {
         AppTokenCreationModel model = new AppTokenCreationModel();
         model.setSuccess(result.isCheckOk());
         model.setToken(StringUtils.trimToEmpty(result.getNewToken()));
+        log.debug("NEW TOKEN: " + StringUtils.substring(result.getNewToken(), 0, 50));
         return model;
     }
 
