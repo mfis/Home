@@ -118,12 +118,8 @@ public class HomeRequestMapping {
     }
 
     private boolean isPinBlankOrSetAndCorrect(String userCookie, String securityPin) {
-
         String user = userService.userNameFromLoginCookie(userCookie);
-        if (StringUtils.isNotBlank(securityPin) && !userService.checkPin(user, securityPin)) {
-            return false;
-        }
-        return true;
+        return StringUtils.isBlank(securityPin) || userService.checkPin(user, securityPin);
     }
 
     @GetMapping("/history")

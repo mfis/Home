@@ -21,7 +21,6 @@ import de.fimatas.home.controller.service.CameraService;
 import de.fimatas.home.controller.service.HomematicAPI;
 import de.fimatas.home.controller.service.HumidityCalculator;
 import de.fimatas.home.controller.service.PushService;
-import de.fimatas.home.controller.service.UserService;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.AutomationState;
 import de.fimatas.home.library.domain.model.Camera;
@@ -47,6 +46,7 @@ import de.fimatas.home.library.homematic.model.HomematicConstants;
 import de.fimatas.home.library.homematic.model.Type;
 import de.fimatas.home.library.model.Message;
 import de.fimatas.home.library.util.HomeAppConstants;
+import mfi.files.api.UserService;
 
 @Component
 public class HouseService {
