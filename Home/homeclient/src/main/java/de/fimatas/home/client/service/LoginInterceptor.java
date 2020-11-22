@@ -179,7 +179,6 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
                 log.debug("REFRESHED TOKEN: " + StringUtils.substring(tokenResult.getNewToken(), 0, 50));
                 return userService.userNameFromLoginCookie(tokenResult.getNewToken());
             } else {
-                log.debug("NO REFRESH");
                 return userService.userNameFromLoginCookie(request.getHeader(APP_USER_TOKEN));
             }
         } else {

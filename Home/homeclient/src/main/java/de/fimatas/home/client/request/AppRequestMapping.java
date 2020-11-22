@@ -64,6 +64,7 @@ public class AppRequestMapping {
     @GetMapping(value = "/getAppModel")
     public HomeViewModel getModel(@RequestParam("viewTarget") String viewTarget) {
 
+        log.debug("getModel()");
         Model model = new ExtendedModelMap();
         HouseModel houseModel = ModelObjectDAO.getInstance().readHouseModel();
         if (houseModel == null) {
