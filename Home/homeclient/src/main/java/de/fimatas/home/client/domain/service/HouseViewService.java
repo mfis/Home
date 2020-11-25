@@ -117,6 +117,7 @@ public class HouseViewService {
 
         formatSwitch(model, "switchKitchen", house.getKitchenWindowLightSwitch(), false);
         formatSwitch(model, "switchWallbox", house.getWallboxSwitch(), true);
+        formatSwitch(model, "switchWorkshopVentilation", house.getWorkshopVentilationSwitch(), true);
 
         formatFrontDoorBell(model, house.getFrontDoorBell(), house.getFrontDoorCamera());
         formatFrontDoorLock(model, house.getFrontDoorLock());
@@ -480,6 +481,7 @@ public class HouseViewService {
         }
         view.setLabel(switchModel.isState() ? "ausschalten" : "einschalten");
         view.setIcon(switchModel.isState() ? "fas fa-toggle-on" : "fas fa-toggle-off");
+        // view.setIcon(switchModel.isState() ? "fas number-3" : "fas fa-toggle-off");
         if (switchModel.isState()) {
             view.setLinkOff(TOGGLE_STATE + switchModel.getDevice().name() + AND_VALUE_IS + !switchModel.isState());
         } else {

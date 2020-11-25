@@ -59,6 +59,9 @@ public enum Device {
     HAUSTUER_SCHLOSS(HomematicProtocol.HM, Type.DOORLOCK, Place.FRONTDOOR, false, Datapoint.LIST_DOORLOCK,
         Type.VAR_PREFIXES_DOORLOCK, null, null), //
 
+    SCHALTER_WERKSTATT_LUEFTUNG(HomematicProtocol.HMIP, Type.SWITCH_VENTILATION, Place.WORKSHOP, true, Datapoint.LIST_SWITCH_HM,
+        Type.VAR_PREFIXES_SWITCH_AUTO, Boolean.class, AutomationState.class), //
+
     // ROLLLADE_SCHLAFZIMMER_LINKS(HomematicProtocol.HM, "D_U_M_M_Y", 1,
     // Type.SHUTTER_LEFT, Place.BEDROOM, false,
     // Integer.class, ShutterPosition.class), //
@@ -100,12 +103,14 @@ public enum Device {
     }
 
     public Datapoint lowBatDatapoint() {
-        if (isHomematic()) {
+        if (!getType().isHasBattery()) {
+            return null;
+        } else if (isHomematic()) {
             return Datapoint.LOWBAT;
         } else if (isHomematicIP()) {
             return Datapoint.LOW_BAT;
         } else {
-            return null;
+            throw new IllegalStateException("unknown protocol type for device with battery");
         }
     }
 

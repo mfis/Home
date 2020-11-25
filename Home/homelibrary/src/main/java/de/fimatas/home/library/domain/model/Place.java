@@ -21,6 +21,7 @@ public enum Place {
     FRONTDOOR("Haustür", false), //
     // with sub-places
     OUTSIDE("Draußen", false, Place.ENTRANCE, Place.TERRACE), //
+    WORKSHOP("Werkstatt", false), //
     ;
 
     private String placeName;

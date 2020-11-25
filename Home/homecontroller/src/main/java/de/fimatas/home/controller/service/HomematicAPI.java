@@ -388,7 +388,7 @@ public class HomematicAPI {
                 }
             }
             if (LOG.isDebugEnabled()) {
-                LOG.debug(new String(responseBytes));
+                LOG.debug("REQUEST:\n" + body + "\nRESPONSE:\n" + new String(responseBytes));
             }
             InputStream inputStream = new ByteArrayInputStream(responseBytes);
             Document doc = dBuilder.parse(inputStream);

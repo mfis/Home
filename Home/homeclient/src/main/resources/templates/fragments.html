@@ -24,7 +24,7 @@
 	</div>	
 
 	<!-- Switch -->
-	<div th:fragment="switch (model)" th:class="'alert alert-secondary callout callout-secondary'">
+	<div th:fragment="switch (model)" th:class="'alert alert-secondary callout callout-' + ${model.colorClass}">
 		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, place=${model.place}, historyKey=${model.historyKey}, unreach=${model.unreach})"></div>
 		<h4><span th:text="${model.state}"></span><span th:text="${model.stateSuffix}" style="font-size: 80%;"></span></h4>
 		

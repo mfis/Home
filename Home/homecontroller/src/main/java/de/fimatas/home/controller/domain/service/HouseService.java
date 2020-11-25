@@ -167,6 +167,7 @@ public class HouseService {
 
         newModel.setKitchenWindowLightSwitch(readSwitchState(Device.SCHALTER_KUECHE_LICHT));
         newModel.setWallboxSwitch(readSwitchState(Device.SCHALTER_WALLBOX));
+        newModel.setWorkshopVentilationSwitch(readSwitchState(Device.SCHALTER_WERKSTATT_LUEFTUNG));
 
         newModel.setFrontDoorBell(readFrontDoorBell());
         newModel.setFrontDoorCamera(readFrontDoorCamera());
@@ -475,13 +476,10 @@ public class HouseService {
         switch (value) {
         case MANUAL:
             api.executeCommand(homematicCommandBuilder.write(device, AUTOMATIC, false));
-            event = false;
             break;
         case AUTOMATIC:
             api.executeCommand(homematicCommandBuilder.write(device, AUTOMATIC, true));
-            event = false;
             break;
-
         case AUTOMATIC_PLUS_EVENT:
             api.executeCommand(homematicCommandBuilder.write(device, AUTOMATIC, true));
             event = true;
@@ -581,13 +579,13 @@ public class HouseService {
 
         OutdoorClimate outdoorClimate = new OutdoorClimate();
         outdoorClimate.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(outside, Datapoint.UNREACH)));
-        outdoorClimate.setTemperature(new ValueWithTendency<BigDecimal>(api.getAsBigDecimal(homematicCommandBuilder
+        outdoorClimate.setTemperature(new ValueWithTendency<>(api.getAsBigDecimal(homematicCommandBuilder
             .read(outside, outside.isHomematicIP() ? Datapoint.ACTUAL_TEMPERATURE : Datapoint.TEMPERATURE))));
 
         HomematicCommand humidityCommand = homematicCommandBuilder.read(outside, Datapoint.HUMIDITY);
         BigDecimal humidity = api.isPresent(humidityCommand) ? api.getAsBigDecimal(humidityCommand) : null;
         if (humidity != null) {
-            outdoorClimate.setHumidity(new ValueWithTendency<BigDecimal>(humidity));
+            outdoorClimate.setHumidity(new ValueWithTendency<>(humidity));
         }
 
         if (diff != null) {
@@ -602,7 +600,7 @@ public class HouseService {
     private RoomClimate readRoomClimate(Device thermometer) {
         RoomClimate roomClimate = new RoomClimate();
         roomClimate.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(thermometer, Datapoint.UNREACH)));
-        roomClimate.setTemperature(new ValueWithTendency<BigDecimal>(
+        roomClimate.setTemperature(new ValueWithTendency<>(
             api.getAsBigDecimal(homematicCommandBuilder.read(thermometer, Datapoint.ACTUAL_TEMPERATURE))));
         BigDecimal humidity = thermometer.getType() == Type.THERMOSTAT ? null
             : api.getAsBigDecimal(homematicCommandBuilder.read(thermometer, Datapoint.HUMIDITY));
@@ -739,11 +737,15 @@ public class HouseService {
         model.setDevice(device);
         model.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(device, Datapoint.UNREACH)));
         model.setActualConsumption(
-            new ValueWithTendency<BigDecimal>(api.getAsBigDecimal(homematicCommandBuilder.read(device, Datapoint.POWER))));
+            new ValueWithTendency<>(api.getAsBigDecimal(homematicCommandBuilder.read(device, Datapoint.POWER))));
         return model;
     }
 
     private void checkLowBattery(HouseModel model, Device device) {
+
+        if (!device.getType().isHasBattery()) {
+            return;
+        }
 
         boolean state = api.getAsBoolean(homematicCommandBuilder.read(device, device.lowBatDatapoint()));
         if (state) {

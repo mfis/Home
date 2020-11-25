@@ -44,6 +44,10 @@
 			<!-- Waschküche -->
 			<div th:replace="fragments :: title (name='Waschküche')"></div>
 			<div th:replace="fragments :: temperature (model=${tempLaundry})"></div>
+
+			<!-- Werkstatt -->
+			<div th:replace="fragments :: title (name='Werkstatt')"></div>
+			<div th:replace="fragments :: switch (model=${switchWorkshopVentilation})"></div>
 	
 			<!-- Haustür -->
 			<div th:replace="fragments :: title (name='Haustür')"></div>
