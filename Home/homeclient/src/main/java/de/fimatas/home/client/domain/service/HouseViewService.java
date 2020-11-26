@@ -7,6 +7,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import javax.annotation.PostConstruct;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +41,7 @@ import de.fimatas.home.library.domain.model.StateValue;
 import de.fimatas.home.library.domain.model.Switch;
 import de.fimatas.home.library.domain.model.Window;
 import de.fimatas.home.library.homematic.model.Device;
+import de.fimatas.home.library.homematic.model.Type;
 import de.fimatas.home.library.model.Message;
 import de.fimatas.home.library.model.MessageType;
 import de.fimatas.home.library.util.HomeAppConstants;
@@ -468,20 +471,38 @@ public class HouseViewService {
         if (switchModel.isState() && highlightStateOn) {
             view.setColorClass(COLOR_CLASS_ORANGE);
         }
+
+        String[] buttonCaptions = StringUtils.substringsBetween(switchModel.getAutomationInfoText(), "{", "}");
+
+        String suffixAuto = PROGRAMMGESTEUERT;
+        String suffixManual = "";
+        if (ArrayUtils.isNotEmpty(buttonCaptions)) {
+            view.setButtonCaptionAuto(buttonCaptions[0]);
+            view.setButtonCaptionManual(buttonCaptions[1]);
+            suffixAuto += ", " + buttonCaptions[0];
+            suffixManual = PROGRAMMGESTEUERT + ", " + buttonCaptions[1];
+        }
+        
         if (switchModel.getAutomation() != null) {
             if (Boolean.TRUE.equals(switchModel.getAutomation())) {
-                view.setStateSuffix(PROGRAMMGESTEUERT);
+                view.setStateSuffix(suffixAuto);
                 view.setLinkManual(
                     TOGGLE_AUTOMATION + switchModel.getDevice().name() + AND_VALUE_IS + AutomationState.MANUAL.name());
             } else {
+                view.setStateSuffix(suffixManual);
                 view.setLinkAuto(
                     TOGGLE_AUTOMATION + switchModel.getDevice().name() + AND_VALUE_IS + AutomationState.AUTOMATIC.name());
             }
-            view.setAutoInfoText(StringUtils.trimToEmpty(switchModel.getAutomationInfoText()));
+            view.setAutoInfoText(
+                StringUtils.trimToEmpty(RegExUtils.removeAll(switchModel.getAutomationInfoText(), "[\\x7b\\x7d]")));
         }
+
         view.setLabel(switchModel.isState() ? "ausschalten" : "einschalten");
-        view.setIcon(switchModel.isState() ? "fas fa-toggle-on" : "fas fa-toggle-off");
-        // view.setIcon(switchModel.isState() ? "fas number-3" : "fas fa-toggle-off");
+        if (switchModel.getDevice().getType() == Type.SWITCH_VENTILATION) {
+            view.setIcon("fas fa-fan");
+        } else {
+            view.setIcon(switchModel.isState() ? "fas fa-toggle-on" : "fas fa-toggle-off");
+        }
         if (switchModel.isState()) {
             view.setLinkOff(TOGGLE_STATE + switchModel.getDevice().name() + AND_VALUE_IS + !switchModel.isState());
         } else {

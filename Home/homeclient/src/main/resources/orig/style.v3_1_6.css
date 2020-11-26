@@ -144,7 +144,4 @@ button{
 	label, legend{
 		color: rgb(238,238,238,0.8) !important;
 	}
-	.number-3:before {
-		content: "3";
-	}
 }

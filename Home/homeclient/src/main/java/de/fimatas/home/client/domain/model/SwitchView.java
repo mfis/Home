@@ -16,6 +16,10 @@ public class SwitchView extends View {
 
     private String autoInfoText = "";
 
+    private String buttonCaptionAuto = "";
+
+    private String buttonCaptionManual = "";
+
     public String getLabel() {
         return label;
     }
@@ -70,6 +74,22 @@ public class SwitchView extends View {
 
     public void setLink(String link) {
         this.link = link;
+    }
+
+    public String getButtonCaptionAuto() {
+        return buttonCaptionAuto;
+    }
+
+    public void setButtonCaptionAuto(String buttonCaptionAuto) {
+        this.buttonCaptionAuto = buttonCaptionAuto;
+    }
+
+    public String getButtonCaptionManual() {
+        return buttonCaptionManual;
+    }
+
+    public void setButtonCaptionManual(String buttonCaptionManual) {
+        this.buttonCaptionManual = buttonCaptionManual;
     }
 
 }
