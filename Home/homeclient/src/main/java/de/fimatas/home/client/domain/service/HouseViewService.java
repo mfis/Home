@@ -49,9 +49,9 @@ import de.fimatas.home.library.util.HomeAppConstants;
 @Component
 public class HouseViewService {
 
-    private static final String EREIGNISGESTEUERT = ", ereignisgesteuert";
+    private static final String EREIGNISGESTEUERT = ", Ereignissteuerung";
 
-    private static final String PROGRAMMGESTEUERT = ", programmgesteuert";
+    private static final String PROGRAMMGESTEUERT = ", Automatik";
 
     private static final String AND_VALUE_IS = "&value=";
 

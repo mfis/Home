@@ -32,7 +32,11 @@ public class HumidityCalculator {
     public double absToRel(double temp, double absH) {
         double kelvin = toKelvin(temp);
         double svp = saturatedVaporPressure(temp);
-        return (PERCENT_BASE * absH * (GAS_CONSTANT_R / PERCENT_BASE) * kelvin) / (MOLAR_MASS_STEAM * svp);
+        double rel = (PERCENT_BASE * absH * (GAS_CONSTANT_R / PERCENT_BASE) * kelvin) / (MOLAR_MASS_STEAM * svp);
+        if (rel > PERCENT_BASE) {
+            rel = PERCENT_BASE;
+        }
+        return rel;
     }
 
     private double toKelvin(double temp) {

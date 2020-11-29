@@ -210,7 +210,7 @@ public class HouseService {
                 humidityCalculator.relToAbs(newModel.getClimateGarden().getTemperature().getValue().doubleValue(),
                     newModel.getClimateGarden().getHumidity().getValue().doubleValue());
             newModel.getConclusionClimateFacadeMin()
-                .setHumidity(new ValueWithTendency<BigDecimal>(new BigDecimal(humidityCalculator.absToRel(
+                .setHumidity(new ValueWithTendency<>(BigDecimal.valueOf(humidityCalculator.absToRel(
                     newModel.getConclusionClimateFacadeMin().getTemperature().getValue().doubleValue(), absoluteHumidity))));
         }
     }
