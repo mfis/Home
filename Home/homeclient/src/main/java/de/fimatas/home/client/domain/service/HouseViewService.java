@@ -465,6 +465,7 @@ public class HouseViewService {
         view.setUnreach(Boolean.toString(switchModel.isUnreach()));
         view.setId(viewKey);
         view.setName(switchModel.getDevice().getType().getTypeName());
+        view.setShortName(switchModel.getDevice().getType().getShortName());
         view.setPlace(switchModel.getDevice().getPlace().getPlaceName());
         view.setState(switchModel.isState() ? "Eingeschaltet" : "Ausgeschaltet");
         view.setStateShort(switchModel.isState() ? "Ein" : "Aus");

@@ -14,6 +14,8 @@ public abstract class View {
 
     private String name = "";
 
+    private String shortName = "";
+
     private String place = "";
 
     private String historyKey = "";
@@ -110,6 +112,14 @@ public abstract class View {
 
     public void setStateShort(String stateShort) {
         this.stateShort = stateShort;
+    }
+
+    public String getShortName() {
+        return shortName;
+    }
+
+    public void setShortName(String shortName) {
+        this.shortName = shortName;
     }
 
 }

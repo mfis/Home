@@ -103,6 +103,7 @@ public class AppViewService {
             placesOrder.add(Place.KIDSROOM);
             placesOrder.add(Place.BEDROOM);
             placesOrder.add(Place.LAUNDRY);
+            placesOrder.add(Place.WORKSHOP);
             placesOrder.add(Place.OUTSIDE);
             placesOrder.add(Place.FRONTDOOR);
             placesOrder.add(Place.HOUSE);
@@ -230,7 +231,7 @@ public class AppViewService {
     private HomeViewValueModel mapSwitchStatus(Place place, SwitchView view) {
         HomeViewValueModel hvm = new HomeViewModel().new HomeViewValueModel();
         hvm.setId(place.getPlaceName() + "#switchStatus");
-        hvm.setKey("Schalter");
+        hvm.setKey(view.getShortName());
         hvm.setValue(view.getStateShort());
         hvm.setAccent(mapAccent(view.getColorClass()));
         return hvm;
