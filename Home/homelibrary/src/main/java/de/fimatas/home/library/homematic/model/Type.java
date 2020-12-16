@@ -77,7 +77,7 @@ public enum Type {
     }
 
     public String getShortName() {
-        return shortName;
+        return shortName != null ? shortName : typeName;
     }
 
 }
