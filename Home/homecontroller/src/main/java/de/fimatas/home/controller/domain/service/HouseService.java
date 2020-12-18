@@ -40,6 +40,7 @@ import de.fimatas.home.library.domain.model.Switch;
 import de.fimatas.home.library.domain.model.Tendency;
 import de.fimatas.home.library.domain.model.ValueWithTendency;
 import de.fimatas.home.library.domain.model.Window;
+import de.fimatas.home.library.domain.model.WindowSensor;
 import de.fimatas.home.library.homematic.model.Datapoint;
 import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.homematic.model.HomematicConstants;
@@ -156,6 +157,8 @@ public class HouseService {
         newModel.setClimateLivingRoom(readRoomClimate(Device.THERMOMETER_WOHNZIMMER));
         newModel.setClimateBedRoom(readRoomClimate(Device.THERMOMETER_SCHLAFZIMMER));
         newModel.setClimateLaundry(readRoomClimate(Device.THERMOMETER_WASCHKUECHE));
+
+        newModel.setGuestRoomWindowSensor(readWindowSensorState(Device.FENSTERSENSOR_GAESTEZIMMER));
 
         // newModel.setLeftWindowBedRoom(readWindow(Device.ROLLLADE_SCHLAFZIMMER_LINKS));
 
@@ -667,6 +670,23 @@ public class HouseService {
         switchModel.setAutomation(api.getAsBoolean(homematicCommandBuilder.read(device, AUTOMATIC)));
         switchModel.setAutomationInfoText(api.getAsString(homematicCommandBuilder.read(device, AUTOMATIC + "InfoText")));
         return switchModel;
+    }
+
+    private WindowSensor readWindowSensorState(Device device) {
+
+        WindowSensor windowSensorModel = new WindowSensor();
+        windowSensorModel.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(device, Datapoint.UNREACH)));
+        windowSensorModel.setState(api.getAsBoolean(homematicCommandBuilder.read(device, Datapoint.STATE)));
+        windowSensorModel.setDevice(device);
+
+//        Long ts = api.getTimestamp(homematicCommandBuilder.readTS(device, Datapoint.STATE));
+//        if (ts == null || ts == 0) {
+//            windowSensorModel.setStateTimestamp(null);
+//        } else {
+//            windowSensorModel.setStateTimestamp(ts);
+//        }
+
+        return windowSensorModel;
     }
 
     private Doorbell readFrontDoorBell() {

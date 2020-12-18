@@ -21,6 +21,7 @@ import de.fimatas.home.client.domain.model.LockView;
 import de.fimatas.home.client.domain.model.PowerView;
 import de.fimatas.home.client.domain.model.ShutterView;
 import de.fimatas.home.client.domain.model.SwitchView;
+import de.fimatas.home.client.domain.model.WindowSensorView;
 import de.fimatas.home.client.model.MessageQueue;
 import de.fimatas.home.library.domain.model.AutomationState;
 import de.fimatas.home.library.domain.model.Camera;
@@ -40,6 +41,7 @@ import de.fimatas.home.library.domain.model.ShutterPosition;
 import de.fimatas.home.library.domain.model.StateValue;
 import de.fimatas.home.library.domain.model.Switch;
 import de.fimatas.home.library.domain.model.Window;
+import de.fimatas.home.library.domain.model.WindowSensor;
 import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.homematic.model.Type;
 import de.fimatas.home.library.model.Message;
@@ -117,6 +119,8 @@ public class HouseViewService {
         // house.getLeftWindowBedRoom()); // NOSONAR
 
         formatFacadeTemperatures(model, "tempMinHouse", "tempMaxHouse", house);
+
+        formatWindowSensor(model, "windowSensorGuestroom", house.getGuestRoomWindowSensor());
 
         formatSwitch(model, "switchKitchen", house.getKitchenWindowLightSwitch(), false);
         formatSwitch(model, "switchWallbox", house.getWallboxSwitch(), true);
@@ -459,6 +463,30 @@ public class HouseViewService {
         model.addAttribute("warnings", copy);
     }
 
+    private void formatWindowSensor(Model model, String viewKey, WindowSensor windowSensor) {
+
+        WindowSensorView view = new WindowSensorView();
+        view.setUnreach(Boolean.toString(windowSensor.isUnreach()));
+        view.setId(viewKey);
+        view.setName(windowSensor.getDevice().getType().getTypeName());
+        view.setShortName(windowSensor.getDevice().getType().getShortName());
+        view.setPlace(windowSensor.getDevice().getPlace().getPlaceName());
+
+        String stateSuffix = StringUtils.EMPTY;
+        if (windowSensor.getStateTimestamp() != null) {
+            stateSuffix =
+                " seit " + StringUtils.uncapitalize(viewFormatter.formatPastTimestamp(windowSensor.getStateTimestamp(), true));
+        }
+
+        view.setState((windowSensor.isState() ? "Geöffnet" : "Geschlossen") + stateSuffix);
+        view.setStateShort(windowSensor.isState() ? "Geöffnet" : "Geschlossen");
+        if (windowSensor.isState()) {
+            view.setColorClass(COLOR_CLASS_ORANGE);
+        }
+        view.setIcon(windowSensor.isState() ? "fas fa-folder-open" : "fas fa-folder");
+        model.addAttribute(viewKey, view);
+    }
+
     private void formatSwitch(Model model, String viewKey, Switch switchModel, boolean highlightStateOn) {
 
         SwitchView view = new SwitchView();
@@ -483,7 +511,7 @@ public class HouseViewService {
             suffixAuto += ", " + buttonCaptions[0];
             suffixManual = PROGRAMMGESTEUERT + ", " + buttonCaptions[1];
         }
-        
+
         if (switchModel.getAutomation() != null) {
             if (Boolean.TRUE.equals(switchModel.getAutomation())) {
                 view.setStateSuffix(suffixAuto);

@@ -42,6 +42,8 @@ public enum Datapoint {
 
     protected static final List<Datapoint> LIST_CAMERA = Arrays.asList(Datapoint.STATE);
 
+    protected static final List<Datapoint> LIST_WINDOW_SENSOR = Arrays.asList(Datapoint.STATE);
+
     protected static final List<Datapoint> LIST_DOORLOCK =
         Arrays.asList(Datapoint.STATE, Datapoint.STATE_UNCERTAIN, Datapoint.ERROR);
 

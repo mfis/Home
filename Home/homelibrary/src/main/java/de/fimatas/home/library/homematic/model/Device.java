@@ -62,6 +62,9 @@ public enum Device {
     SCHALTER_WERKSTATT_LUEFTUNG(HomematicProtocol.HMIP, Type.SWITCH_VENTILATION, Place.WORKSHOP, true, Datapoint.LIST_SWITCH_HM,
         Type.VAR_PREFIXES_SWITCH_AUTO, Boolean.class, AutomationState.class), //
 
+    FENSTERSENSOR_GAESTEZIMMER(HomematicProtocol.HMIP, Type.WINDOW_SENSOR, Place.GUESTROOM, false, Datapoint.LIST_WINDOW_SENSOR,
+        null),
+
     // ROLLLADE_SCHLAFZIMMER_LINKS(HomematicProtocol.HM, "D_U_M_M_Y", 1,
     // Type.SHUTTER_LEFT, Place.BEDROOM, false,
     // Integer.class, ShutterPosition.class), //

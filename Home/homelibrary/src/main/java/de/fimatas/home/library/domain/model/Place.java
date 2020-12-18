@@ -12,7 +12,9 @@ public enum Place {
     KIDSROOM("Kinderzimmer", true), //
     BATHROOM("Bad", true), //
     BEDROOM("Schlafzimmer", true), //
-    LAUNDRY("Waschküche", true), //
+    LAUNDRY("Waschküche", false), //
+    GUESTROOM("Waschküche", false), //
+    WORKSHOP("Werkstatt", false), //
     HOUSE("Haus", false), //
     WALLBOX("Wallbox", false), //
     ENTRANCE("Einfahrt", false), //
@@ -21,7 +23,6 @@ public enum Place {
     FRONTDOOR("Haustür", false), //
     // with sub-places
     OUTSIDE("Draußen", false, Place.ENTRANCE, Place.TERRACE), //
-    WORKSHOP("Werkstatt", false), //
     ;
 
     private String placeName;
