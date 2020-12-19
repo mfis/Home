@@ -673,7 +673,8 @@ public class HouseService {
 
         WindowSensor windowSensorModel = new WindowSensor();
         windowSensorModel.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(device, Datapoint.UNREACH)));
-        windowSensorModel.setState(api.getAsBoolean(homematicCommandBuilder.read(device, Datapoint.STATE)));
+        windowSensorModel.setState(
+            BooleanUtils.toBoolean(api.getAsBigDecimal(homematicCommandBuilder.read(device, Datapoint.STATE)).intValue()));
         windowSensorModel.setDevice(device);
 
         String ts = api.getAsString(homematicCommandBuilder.read(device, TIMESTAMP));

@@ -122,9 +122,9 @@ public class HouseViewService {
 
         formatWindowSensor(model, "windowSensorGuestroom", house.getGuestRoomWindowSensor());
 
-        formatSwitch(model, "switchKitchen", house.getKitchenWindowLightSwitch(), false);
-        formatSwitch(model, "switchWallbox", house.getWallboxSwitch(), true);
-        formatSwitch(model, "switchWorkshopVentilation", house.getWorkshopVentilationSwitch(), true);
+        formatSwitch(model, "switchKitchen", house.getKitchenWindowLightSwitch());
+        formatSwitch(model, "switchWallbox", house.getWallboxSwitch());
+        formatSwitch(model, "switchWorkshopVentilation", house.getWorkshopVentilationSwitch());
 
         formatFrontDoorBell(model, house.getFrontDoorBell(), house.getFrontDoorCamera());
         formatFrontDoorLock(model, house.getFrontDoorLock());
@@ -509,7 +509,7 @@ public class HouseViewService {
         model.addAttribute(viewKey, view);
     }
 
-    private void formatSwitch(Model model, String viewKey, Switch switchModel, boolean highlightStateOn) {
+    private void formatSwitch(Model model, String viewKey, Switch switchModel) {
 
         SwitchView view = new SwitchView();
         view.setUnreach(Boolean.toString(switchModel.isUnreach()));
@@ -519,7 +519,7 @@ public class HouseViewService {
         view.setPlace(switchModel.getDevice().getPlace().getPlaceName());
         view.setState(switchModel.isState() ? "Eingeschaltet" : "Ausgeschaltet");
         view.setStateShort(switchModel.isState() ? "Ein" : "Aus");
-        if (switchModel.isState() && highlightStateOn) {
+        if (switchModel.isState()) {
             view.setColorClass(COLOR_CLASS_ORANGE);
         }
 
