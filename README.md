@@ -62,6 +62,10 @@ CCU System variable:
 * [devicename]Timestamp - Unix Timestamp of last value change - updated by CCU program, used by Home application
 CCU Program:
 * [devicename]Aktion - listener for value change - writes system variable
+```
+string ts = dom.GetObject("FensterGaestezimmer").LastDPActionTime().ToInteger();
+dom.GetObject('FensterGaestezimmerTimestamp').State(ts);
+```
 
 # Recommended control principles:
 Simple programs (based on clocks, timers etc) are written in the CCU to ensure function even if the Home application is not running or accessible.  
