@@ -54,6 +54,15 @@ CCU Programs:
 * [devicename]Boost - starts boost mode
 * [devicename]Manual - starts manual mode with destination temperature from system variable [devicename]Temperature
 
+## Value timestamps
+CCU Device:
+* [devicename]Device - for main device
+* [devicename] - for used channel
+CCU System variable:
+* [devicename]Timestamp - Unix Timestamp of last value change - updated by CCU program, used by Home application
+CCU Program:
+* [devicename]Aktion - listener for value change - writes system variable
+
 # Recommended control principles:
 Simple programs (based on clocks, timers etc) are written in the CCU to ensure function even if the Home application is not running or accessible.  
 
