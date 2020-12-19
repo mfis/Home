@@ -473,12 +473,16 @@ public class HouseViewService {
         view.setPlace(windowSensor.getDevice().getPlace().getPlaceName());
 
         String stateSuffix = StringUtils.EMPTY;
+        String stateDelimiter = StringUtils.EMPTY;
+
         if (windowSensor.getStateTimestamp() != null) {
+            stateDelimiter = ", ";
             stateSuffix =
-                " seit " + StringUtils.uncapitalize(viewFormatter.formatPastTimestamp(windowSensor.getStateTimestamp(), true));
+                "seit " + StringUtils.uncapitalize(viewFormatter.formatPastTimestamp(windowSensor.getStateTimestamp(), true));
         }
 
-        view.setState((windowSensor.isState() ? "Geöffnet" : "Geschlossen") + stateSuffix);
+        view.setState((windowSensor.isState() ? "Geöffnet" : "Geschlossen") + stateDelimiter);
+        view.setStateSuffix(stateSuffix);
         view.setStateShort(windowSensor.isState() ? "Geöffnet" : "Geschlossen");
         if (windowSensor.isState()) {
             view.setColorClass(COLOR_CLASS_ORANGE);

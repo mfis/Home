@@ -13,6 +13,7 @@ import de.fimatas.home.client.domain.model.LockView;
 import de.fimatas.home.client.domain.model.PowerView;
 import de.fimatas.home.client.domain.model.SwitchView;
 import de.fimatas.home.client.domain.model.View;
+import de.fimatas.home.client.domain.model.WindowSensorView;
 import de.fimatas.home.client.model.HomeViewModel;
 import de.fimatas.home.client.model.HomeViewModel.HomeViewActionModel;
 import de.fimatas.home.client.model.HomeViewModel.HomeViewPlaceModel;
@@ -55,6 +56,8 @@ public class AppViewService {
                 mapLockView(placeInOrder, (LockView) view, placeModel);
             } else if (view instanceof SwitchView) {
                 mapSwitchView(placeInOrder, (SwitchView) view, placeModel);
+            } else if (view instanceof WindowSensorView) {
+                mapWindowView(placeInOrder, (WindowSensorView) view, placeModel);
             }
         }
     }
@@ -64,6 +67,13 @@ public class AppViewService {
         placeModel.setName(placeInOrder.getPlaceName());
         placeModel.getValues().add(mapSwitchStatus(placeInOrder, view));
         placeModel.getActions().addAll(mapSwitchActions(placeInOrder, view));
+    }
+
+    private void mapWindowView(Place placeInOrder, WindowSensorView view, HomeViewPlaceModel placeModel) {
+
+        placeModel.setName(placeInOrder.getPlaceName());
+        placeModel.getValues().add(mapWindowStatus(placeInOrder, view));
+
     }
 
     private void mapLockView(Place placeInOrder, LockView view, HomeViewPlaceModel placeModel) {
@@ -103,6 +113,7 @@ public class AppViewService {
             placesOrder.add(Place.KIDSROOM);
             placesOrder.add(Place.BEDROOM);
             placesOrder.add(Place.LAUNDRY);
+            placesOrder.add(Place.GUESTROOM);
             placesOrder.add(Place.WORKSHOP);
             placesOrder.add(Place.OUTSIDE);
             placesOrder.add(Place.FRONTDOOR);
@@ -231,6 +242,15 @@ public class AppViewService {
     private HomeViewValueModel mapSwitchStatus(Place place, SwitchView view) {
         HomeViewValueModel hvm = new HomeViewModel().new HomeViewValueModel();
         hvm.setId(place.getPlaceName() + "#switchStatus");
+        hvm.setKey(view.getShortName());
+        hvm.setValue(view.getStateShort());
+        hvm.setAccent(mapAccent(view.getColorClass()));
+        return hvm;
+    }
+
+    private HomeViewValueModel mapWindowStatus(Place place, WindowSensorView view) {
+        HomeViewValueModel hvm = new HomeViewModel().new HomeViewValueModel();
+        hvm.setId(place.getPlaceName() + "#windowStatus");
         hvm.setKey(view.getShortName());
         hvm.setValue(view.getStateShort());
         hvm.setAccent(mapAccent(view.getColorClass()));

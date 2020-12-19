@@ -78,6 +78,8 @@ public class HouseService {
 
     private static final String IS_OPENED = "IsOpened";
 
+    private static final String TIMESTAMP = "Timestamp";
+
     private static final Log LOG = LogFactory.getLog(HouseService.class);
 
     @Autowired
@@ -535,11 +537,6 @@ public class HouseService {
             api.executeCommand(homematicCommandBuilder.write(newModel.getConclusionClimateFacadeMin().getDevice(),
                 Datapoint.SYSVAR_DUMMY, newModel.getConclusionClimateFacadeMin().getTemperature().getValue().toString()));
         }
-
-        if (doorbellTimestampChanged(oldModel, newModel)) {
-            api.executeCommand(homematicCommandBuilder.write(newModel.getFrontDoorBell().getHistoryDevice(),
-                Datapoint.SYSVAR_DUMMY, Long.toString(newModel.getFrontDoorBell().getTimestampLastDoorbell())));
-        }
     }
 
     private boolean newValueForOutdoorTemperature(HouseModel oldModel, HouseModel newModel) {
@@ -582,8 +579,8 @@ public class HouseService {
 
         OutdoorClimate outdoorClimate = new OutdoorClimate();
         outdoorClimate.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(outside, Datapoint.UNREACH)));
-        outdoorClimate.setTemperature(new ValueWithTendency<>(api.getAsBigDecimal(homematicCommandBuilder
-            .read(outside, outside.isHomematicIP() ? Datapoint.ACTUAL_TEMPERATURE : Datapoint.TEMPERATURE))));
+        outdoorClimate.setTemperature(new ValueWithTendency<>(api.getAsBigDecimal(homematicCommandBuilder.read(outside,
+            outside.isHomematicIP() ? Datapoint.ACTUAL_TEMPERATURE : Datapoint.TEMPERATURE))));
 
         HomematicCommand humidityCommand = homematicCommandBuilder.read(outside, Datapoint.HUMIDITY);
         BigDecimal humidity = api.isPresent(humidityCommand) ? api.getAsBigDecimal(humidityCommand) : null;
@@ -679,12 +676,10 @@ public class HouseService {
         windowSensorModel.setState(api.getAsBoolean(homematicCommandBuilder.read(device, Datapoint.STATE)));
         windowSensorModel.setDevice(device);
 
-//        Long ts = api.getTimestamp(homematicCommandBuilder.readTS(device, Datapoint.STATE));
-//        if (ts == null || ts == 0) {
-//            windowSensorModel.setStateTimestamp(null);
-//        } else {
-//            windowSensorModel.setStateTimestamp(ts);
-//        }
+        String ts = api.getAsString(homematicCommandBuilder.read(device, TIMESTAMP));
+        if (StringUtils.isNumeric(ts)) {
+            windowSensorModel.setStateTimestamp(Long.parseLong(ts) * 1000);
+        }
 
         return windowSensorModel;
     }
@@ -694,14 +689,11 @@ public class HouseService {
         Doorbell frontDoor = new Doorbell();
         frontDoor.setDevice(Device.HAUSTUER_KLINGEL);
         frontDoor.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_KLINGEL, Datapoint.UNREACH)));
-        frontDoor.setHistoryDevice(Device.HAUSTUER_KLINGEL_HISTORIE);
 
-        Long tsDoorbell = api.getTimestamp(homematicCommandBuilder.readTS(Device.HAUSTUER_KLINGEL, Datapoint.PRESS_SHORT));
-        if (tsDoorbell == null || tsDoorbell == 0) {
-            tsDoorbell = Long
-                .parseLong(api.getAsString(homematicCommandBuilder.read(Device.HAUSTUER_KLINGEL_HISTORIE, StringUtils.EMPTY)));
+        String ts = api.getAsString(homematicCommandBuilder.read(Device.HAUSTUER_KLINGEL, TIMESTAMP));
+        if (StringUtils.isNumeric(ts)) {
+            frontDoor.setTimestampLastDoorbell(Long.parseLong(ts) * 1000);
         }
-        frontDoor.setTimestampLastDoorbell(tsDoorbell);
 
         return frontDoor;
     }

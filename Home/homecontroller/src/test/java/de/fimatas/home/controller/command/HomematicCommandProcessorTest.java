@@ -57,12 +57,6 @@ public class HomematicCommandProcessorTest {
     }
 
     @Test
-    public void testBuildCommandReadTSDeviceDatapoint() throws Exception {
-        assertThat(processor.buildCommand(homematicCommandBuilder.readTS(Device.STROMZAEHLER_GESAMT, Datapoint.POWER)),
-            is("var VAR_BIDCOS_RF_<ID>_99_POWER_TS = datapoints.Get('BidCos-RF.<ID>:99.POWER').LastTimestamp();"));
-    }
-
-    @Test
     public void testBuildCommandWriteDeviceDatapointBoolean() throws Exception {
         assertThat(processor.buildCommand(homematicCommandBuilder.write(Device.STROMZAEHLER_GESAMT, Datapoint.POWER, true)),
             is("var RC_BIDCOS_RF_<ID>_99_POWER = datapoints.Get('BidCos-RF.<ID>:99.POWER').State(true);"));

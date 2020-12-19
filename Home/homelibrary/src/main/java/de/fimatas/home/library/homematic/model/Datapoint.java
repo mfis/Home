@@ -5,23 +5,23 @@ import java.util.List;
 
 public enum Datapoint {
 
-    TEMPERATURE(HomematicValueFormat.DEC, null, false), //
-    ACTUAL_TEMPERATURE(HomematicValueFormat.DEC, null, false), //
-    HUMIDITY(HomematicValueFormat.DEC, null, false), //
-    CONTROL_MODE(HomematicValueFormat.DEC, null, false), //
-    BOOST_STATE(HomematicValueFormat.DEC, null, false), //
-    SET_TEMPERATURE(HomematicValueFormat.DEC, null, false), //
-    STATE(HomematicValueFormat.DEC, null, false), //
-    STATE_UNCERTAIN(HomematicValueFormat.DEC, null, false), //
-    POWER(HomematicValueFormat.DEC, null, false), //
-    LOWBAT(HomematicValueFormat.DEC, 0, false), //
-    LOW_BAT(HomematicValueFormat.DEC, 0, false), //
-    ENERGY_COUNTER(HomematicValueFormat.DEC, null, false), //
-    VALUE(HomematicValueFormat.DEC, null, false), //
-    PRESS_SHORT(HomematicValueFormat.DEC, null, true), //
-    ERROR(HomematicValueFormat.DEC, null, false), //
-    UNREACH(HomematicValueFormat.DEC, 0, false), //
-    SYSVAR_DUMMY(null, null, false), //
+    TEMPERATURE(HomematicValueFormat.DEC, null), //
+    ACTUAL_TEMPERATURE(HomematicValueFormat.DEC, null), //
+    HUMIDITY(HomematicValueFormat.DEC, null), //
+    CONTROL_MODE(HomematicValueFormat.DEC, null), //
+    BOOST_STATE(HomematicValueFormat.DEC, null), //
+    SET_TEMPERATURE(HomematicValueFormat.DEC, null), //
+    STATE(HomematicValueFormat.DEC, null), //
+    STATE_UNCERTAIN(HomematicValueFormat.DEC, null), //
+    POWER(HomematicValueFormat.DEC, null), //
+    LOWBAT(HomematicValueFormat.DEC, 0), //
+    LOW_BAT(HomematicValueFormat.DEC, 0), //
+    ENERGY_COUNTER(HomematicValueFormat.DEC, null), //
+    VALUE(HomematicValueFormat.DEC, null), //
+    PRESS_SHORT(HomematicValueFormat.DEC, null), //
+    ERROR(HomematicValueFormat.DEC, null), //
+    UNREACH(HomematicValueFormat.DEC, 0), //
+    SYSVAR_DUMMY(null, null), //
     ;
 
     protected static final List<Datapoint> LIST_THERMOSTAT_HM =
@@ -51,12 +51,9 @@ public enum Datapoint {
 
     private Integer fixedChannel;
 
-    private boolean timestamp;
-
-    private Datapoint(HomematicValueFormat homematicValueFormat, Integer fixedChannel, boolean timestamp) {
+    private Datapoint(HomematicValueFormat homematicValueFormat, Integer fixedChannel) {
         this.homematicValueFormat = homematicValueFormat;
         this.fixedChannel = fixedChannel;
-        this.timestamp = timestamp;
     }
 
     public String getHistorianPrefix() {
@@ -71,7 +68,4 @@ public enum Datapoint {
         return fixedChannel;
     }
 
-    public boolean isTimestamp() {
-        return timestamp;
-    }
 }

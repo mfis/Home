@@ -13,7 +13,7 @@ public enum Place {
     BATHROOM("Bad", true), //
     BEDROOM("Schlafzimmer", true), //
     LAUNDRY("Waschküche", false), //
-    GUESTROOM("Waschküche", false), //
+    GUESTROOM("Gästezimmer", false), //
     WORKSHOP("Werkstatt", false), //
     HOUSE("Haus", false), //
     WALLBOX("Wallbox", false), //

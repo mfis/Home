@@ -211,9 +211,6 @@ public class HomematicAPI {
         for (Device device : Device.values()) {
             for (Datapoint datapoint : device.getDatapoints()) {
                 commands.add(homematicCommandBuilder.read(device, datapoint));
-                if (datapoint.isTimestamp()) {
-                    commands.add(homematicCommandBuilder.readTS(device, datapoint));
-                }
             }
             if (device.getSysVars() != null) {
                 for (String suffix : device.getSysVars()) {

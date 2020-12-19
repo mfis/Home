@@ -2,7 +2,6 @@ package de.fimatas.home.controller.command;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import de.fimatas.home.library.homematic.model.Datapoint;
 import de.fimatas.home.library.homematic.model.Device;
 
@@ -41,15 +40,6 @@ public class HomematicCommandBuilder {
         if (name == null) {
             throw new IllegalArgumentException("null value to read!");
         }
-        hc.setCashedVarName(cacheVarName(hc));
-        return hc;
-    }
-
-    public HomematicCommand readTS(Device device, Datapoint datapoint) {
-        HomematicCommand hc = new HomematicCommand();
-        hc.setCommandType(CommandType.GET_DEVICE_VALUE_TS);
-        hc.setDevice(device);
-        hc.setDatapoint(datapoint);
         hc.setCashedVarName(cacheVarName(hc));
         return hc;
     }

@@ -48,10 +48,8 @@ public enum Device {
 
     AUSSENTEMPERATUR(HomematicProtocol.SYSVAR, Type.SYSVAR_THERMOMETER, Place.OUTSIDE, true, Datapoint.LIST_SYSVAR, null), //
 
-    HAUSTUER_KLINGEL(HomematicProtocol.HM, Type.DOORBELL, Place.FRONTDOOR, false, Datapoint.LIST_DOORBELL, null), //
-
-    HAUSTUER_KLINGEL_HISTORIE(HomematicProtocol.SYSVAR, Type.SYSVAR_LAST_BELL_TIMESTAMP, Place.FRONTDOOR, false,
-        Datapoint.LIST_SYSVAR, null), //
+    HAUSTUER_KLINGEL(HomematicProtocol.HM, Type.DOORBELL, Place.FRONTDOOR, false, Datapoint.LIST_DOORBELL,
+        Type.VAR_PREFIXES_TIMESTAMP), //
 
     // HAUSTUER_KAMERA(HomematicProtocol.HM, Type.SWITCH_FRONTDOOR_CAMERA, Place.FRONTDOOR, false, Datapoint.LIST_CAMERA, null),
     // //
@@ -63,7 +61,7 @@ public enum Device {
         Type.VAR_PREFIXES_SWITCH_AUTO, Boolean.class, AutomationState.class), //
 
     FENSTERSENSOR_GAESTEZIMMER(HomematicProtocol.HMIP, Type.WINDOW_SENSOR, Place.GUESTROOM, false, Datapoint.LIST_WINDOW_SENSOR,
-        null),
+        Type.VAR_PREFIXES_TIMESTAMP),
 
     // ROLLLADE_SCHLAFZIMMER_LINKS(HomematicProtocol.HM, "D_U_M_M_Y", 1,
     // Type.SHUTTER_LEFT, Place.BEDROOM, false,

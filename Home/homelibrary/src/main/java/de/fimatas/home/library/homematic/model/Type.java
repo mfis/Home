@@ -23,11 +23,12 @@ public enum Type {
     // with sub-types
     THERMOSTAT("Thermostat", null, true, true, Type.THERMOMETER), //
     // pseudo-types
-    SYSVAR_LAST_BELL_TIMESTAMP("LastBellTimestamp", null, false, false), //
     SYSVAR_THERMOMETER("ConclusionTemperature", null, false, false, Type.THERMOMETER), //
     ;
 
     protected static final List<String> VAR_PREFIXES_SWITCH_AUTO = Arrays.asList("Automatic", "AutomaticInfoText");
+
+    protected static final List<String> VAR_PREFIXES_TIMESTAMP = Arrays.asList("Timestamp");
 
     protected static final List<String> VAR_PREFIXES_DOORLOCK =
         Arrays.asList("Automatic", "AutomaticEvent", "AutomaticInfoText", "IsOpened", "Busy");

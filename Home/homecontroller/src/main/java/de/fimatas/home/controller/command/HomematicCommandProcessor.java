@@ -9,10 +9,8 @@ import static de.fimatas.home.controller.command.HomematicCommandConstants.POINT
 import static de.fimatas.home.controller.command.HomematicCommandConstants.QUOTE;
 import static de.fimatas.home.controller.command.HomematicCommandConstants.SEMICOLON;
 import static de.fimatas.home.controller.command.HomematicCommandConstants.VAR;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import de.fimatas.home.controller.service.DeviceQualifier;
 import de.fimatas.home.library.homematic.model.HomematicProtocol;
 import de.fimatas.home.library.util.HomeUtils;
@@ -46,9 +44,6 @@ public class HomematicCommandProcessor {
             } else {
                 accessMethodParam = datapointAdress(command);
             }
-            break;
-        case GET_DEVICE_VALUE_TS:
-            accessMethodParam = datapointAdress(command);
             break;
         case GET_SYSVAR:
         case SET_SYSVAR:
@@ -98,7 +93,6 @@ public class HomematicCommandProcessor {
         switch (command.getCommandType()) {
         case GET_DEVICE_VALUE:
         case SET_DEVICE_STATE:
-        case GET_DEVICE_VALUE_TS:
             if (command.getDevice().isSysVar()) {
                 name = deviceQualifier.idFrom(command.getDevice());
             } else {
