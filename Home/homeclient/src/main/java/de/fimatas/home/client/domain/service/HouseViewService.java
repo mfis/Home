@@ -233,6 +233,14 @@ public class HouseViewService {
             view.setLinkOpen(OPEN_STATE + doorlock.getDevice().name() + AND_VALUE_IS + StateValue.OPEN.name() + AND_PIN_IS);
         }
 
+        formatFrontDoorLockLinks(doorlock, view);
+        view.setAutoInfoText(StringUtils.trimToEmpty(doorlock.getLockAutomationInfoText()));
+
+        model.addAttribute("frontDoorLock", view);
+    }
+
+    public void formatFrontDoorLockLinks(Doorlock doorlock, LockView view) {
+
         if (Boolean.TRUE.equals(doorlock.getLockAutomationEvent())) {
             view.setLinkManual(TOGGLE_AUTOMATION + doorlock.getDevice().name() + AND_VALUE_IS + AutomationState.MANUAL.name());
             view.setLinkAuto(TOGGLE_AUTOMATION + doorlock.getDevice().name() + AND_VALUE_IS + AutomationState.AUTOMATIC.name());
@@ -251,9 +259,6 @@ public class HouseViewService {
             view.setLinkAutoEvent(
                 TOGGLE_AUTOMATION + doorlock.getDevice().name() + AND_VALUE_IS + AutomationState.AUTOMATIC_PLUS_EVENT.name());
         }
-        view.setAutoInfoText(StringUtils.trimToEmpty(doorlock.getLockAutomationInfoText()));
-
-        model.addAttribute("frontDoorLock", view);
     }
 
     private String format(BigDecimal val, boolean rounded, boolean onlyInteger) {
@@ -278,8 +283,7 @@ public class HouseViewService {
         ClimateView view = new ClimateView();
         view.setUnreach(Boolean.toString(climate.isUnreach() || (heating != null && heating.isUnreach())));
 
-        if ((climate == null || climate.getTemperature() == null || climate.getTemperature().getValue() == null)
-            && (climate == null || climate.getHumidity() == null || climate.getHumidity().getValue() == null)) {
+        if (climateStateUnknown(climate)) {
             view.setStateTemperature("unbekannt");
             return view;
         }
@@ -296,13 +300,7 @@ public class HouseViewService {
             if (climate.getHumidity() != null) {
                 view.setStateHumidity(format(climate.getHumidity().getValue(), true, true) + "%rH");
             }
-            if (climate instanceof RoomClimate && ((RoomClimate) climate).getHumidityWetterThanOutdoor() != null) {
-                view.setAbsoluteHumidityIcon(((RoomClimate) climate).getHumidityWetterThanOutdoor().booleanValue()
-                    ? "fas fa-tint" : "fas fa-tint-slash");
-            }
-            if (climate.getTemperature().getValue().compareTo(FROST_TEMP) < 0) {
-                view.setStatePostfixIconTemperature("far fa-snowflake");
-            }
+            formatClimateIcons(climate, view);
 
             // Background color
             formatClimateBackground(climate, view);
@@ -317,13 +315,33 @@ public class HouseViewService {
             view.setStateTemperature("?");
         }
 
+        formatClimateHints(climate, view);
+
+        return view;
+    }
+
+    public void formatClimateIcons(Climate climate, ClimateView view) {
+
+        if (climate instanceof RoomClimate && ((RoomClimate) climate).getHumidityWetterThanOutdoor() != null) {
+            view.setAbsoluteHumidityIcon(((RoomClimate) climate).getHumidityWetterThanOutdoor().booleanValue()
+                ? "fas fa-tint" : "fas fa-tint-slash");
+        }
+        if (climate.getTemperature().getValue().compareTo(FROST_TEMP) < 0) {
+            view.setStatePostfixIconTemperature("far fa-snowflake");
+        }
+    }
+
+    public void formatClimateHints(Climate climate, ClimateView view) {
         if (climate instanceof RoomClimate) {
             for (String hintText : ((RoomClimate) climate).getHints().formatAsText(false, false, null)) {
                 view.getHints().add(hintText);
             }
         }
+    }
 
-        return view;
+    public boolean climateStateUnknown(Climate climate) {
+        return (climate == null || climate.getTemperature() == null || climate.getTemperature().getValue() == null)
+            && (climate == null || climate.getHumidity() == null || climate.getHumidity().getValue() == null);
     }
 
     private void formatClimateTendency(Climate climate, ClimateView view) {
@@ -478,12 +496,12 @@ public class HouseViewService {
         if (windowSensor.getStateTimestamp() != null) {
             stateDelimiter = ", ";
             stateSuffix =
-                "seit " + StringUtils.uncapitalize(viewFormatter.formatPastTimestamp(windowSensor.getStateTimestamp(), true));
+                StringUtils.uncapitalize(viewFormatter.formatPastTimestamp(windowSensor.getStateTimestamp(), true));
         }
 
         view.setState((windowSensor.isState() ? "Geöffnet" : "Geschlossen") + stateDelimiter);
         view.setStateSuffix(stateSuffix);
-        view.setStateShort(windowSensor.isState() ? "Geöffnet" : "Geschlossen");
+        view.setStateShort(view.getState());
         if (windowSensor.isState()) {
             view.setColorClass(COLOR_CLASS_ORANGE);
         }
@@ -516,19 +534,7 @@ public class HouseViewService {
             suffixManual = PROGRAMMGESTEUERT + ", " + buttonCaptions[1];
         }
 
-        if (switchModel.getAutomation() != null) {
-            if (Boolean.TRUE.equals(switchModel.getAutomation())) {
-                view.setStateSuffix(suffixAuto);
-                view.setLinkManual(
-                    TOGGLE_AUTOMATION + switchModel.getDevice().name() + AND_VALUE_IS + AutomationState.MANUAL.name());
-            } else {
-                view.setStateSuffix(suffixManual);
-                view.setLinkAuto(
-                    TOGGLE_AUTOMATION + switchModel.getDevice().name() + AND_VALUE_IS + AutomationState.AUTOMATIC.name());
-            }
-            view.setAutoInfoText(
-                StringUtils.trimToEmpty(RegExUtils.removeAll(switchModel.getAutomationInfoText(), "[\\x7b\\x7d]")));
-        }
+        formatSwitchAutomation(switchModel, view, suffixAuto, suffixManual);
 
         view.setLabel(switchModel.isState() ? "ausschalten" : "einschalten");
         if (switchModel.getDevice().getType() == Type.SWITCH_VENTILATION) {
@@ -542,6 +548,23 @@ public class HouseViewService {
             view.setLinkOn(TOGGLE_STATE + switchModel.getDevice().name() + AND_VALUE_IS + !switchModel.isState());
         }
         model.addAttribute(viewKey, view);
+    }
+
+    public void formatSwitchAutomation(Switch switchModel, SwitchView view, String suffixAuto, String suffixManual) {
+
+        if (switchModel.getAutomation() != null) {
+            if (Boolean.TRUE.equals(switchModel.getAutomation())) {
+                view.setStateSuffix(suffixAuto);
+                view.setLinkManual(
+                    TOGGLE_AUTOMATION + switchModel.getDevice().name() + AND_VALUE_IS + AutomationState.MANUAL.name());
+            } else {
+                view.setStateSuffix(suffixManual);
+                view.setLinkAuto(
+                    TOGGLE_AUTOMATION + switchModel.getDevice().name() + AND_VALUE_IS + AutomationState.AUTOMATIC.name());
+            }
+            view.setAutoInfoText(
+                StringUtils.trimToEmpty(RegExUtils.removeAll(switchModel.getAutomationInfoText(), "[\\x7b\\x7d]")));
+        }
     }
 
     @SuppressWarnings("unused")
