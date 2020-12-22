@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.stereotype.Component;
 import de.fimatas.home.client.domain.model.ChartEntry;
 import de.fimatas.home.client.domain.model.ValueWithCaption;
@@ -51,6 +52,10 @@ public class ViewFormatter {
     public static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm", Locale.GERMAN);
 
     public String formatPastTimestamp(long date, boolean time) {
+
+        if (date == NumberUtils.INTEGER_ZERO) {
+            return "unbekannt";
+        }
 
         LocalDateTime localDate1 = Instant.ofEpochMilli(date).atZone(ZoneId.systemDefault()).toLocalDateTime();
         LocalDateTime localDate2 = LocalDateTime.now();
