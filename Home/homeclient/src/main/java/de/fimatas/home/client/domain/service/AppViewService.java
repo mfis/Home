@@ -28,9 +28,7 @@ public class AppViewService {
     public HomeViewModel mapAppModel(Model model, String viewTarget) {
 
         Set<Place> placesOrder = lookupPlacesOrder(viewTarget);
-        HomeViewModel appModel = new HomeViewModel();
-        appModel.setTimestamp(HomeRequestMapping.TS_FORMATTER.format(LocalDateTime.now()));
-        appModel.setDefaultAccent(mapAccent(""));
+        HomeViewModel appModel = newEmptyModel();
 
         for (Place placeInOrder : placesOrder) {
             for (Object value : model.asMap().values()) {
@@ -40,6 +38,14 @@ public class AppViewService {
             }
         }
 
+        return appModel;
+    }
+
+    public HomeViewModel newEmptyModel() {
+
+        HomeViewModel appModel = new HomeViewModel();
+        appModel.setTimestamp(HomeRequestMapping.TS_FORMATTER.format(LocalDateTime.now()));
+        appModel.setDefaultAccent(mapAccent(""));
         return appModel;
     }
 

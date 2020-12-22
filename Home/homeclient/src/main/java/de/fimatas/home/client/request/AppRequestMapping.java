@@ -65,13 +65,18 @@ public class AppRequestMapping {
     public HomeViewModel getModel(@RequestParam("viewTarget") String viewTarget) {
 
         log.debug("getModel()");
-        Model model = new ExtendedModelMap();
         HouseModel houseModel = ModelObjectDAO.getInstance().readHouseModel();
-        if (houseModel == null) {
-            throw new IllegalStateException("State error - " + ModelObjectDAO.getInstance().getLastHouseModelState());
-        } else {
-            houseView.fillViewModel(model, houseModel, ModelObjectDAO.getInstance().readHistoryModel());
-            return appViewService.mapAppModel(model, viewTarget);
+        try {
+            if (houseModel == null) {
+                throw new IllegalStateException("State error - " + ModelObjectDAO.getInstance().getLastHouseModelState());
+            } else {
+                Model model = new ExtendedModelMap();
+                houseView.fillViewModel(model, houseModel, ModelObjectDAO.getInstance().readHistoryModel());
+                return appViewService.mapAppModel(model, viewTarget);
+            }
+        } catch (Exception e) {
+            log.error("sending empty app model due to exception while mapping.", e);
+            return appViewService.newEmptyModel();
         }
     }
 

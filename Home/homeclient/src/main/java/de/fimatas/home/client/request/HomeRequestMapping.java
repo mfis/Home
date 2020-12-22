@@ -77,8 +77,7 @@ public class HomeRequestMapping {
         boolean isApp = StringUtils.isNotBlank(appUserName);
 
         if (log.isDebugEnabled()) {
-            log.debug("message: type=" + type + ", deviceName=" + deviceName + ", value=" + value + 
-                ", isApp=" + isApp);
+            log.debug("message: type=" + type + ", deviceName=" + deviceName + ", value=" + value + ", isApp=" + isApp);
         }
 
         if (!isPinBlankOrSetAndCorrect(userCookie, securityPin)) {
@@ -101,8 +100,7 @@ public class HomeRequestMapping {
         if (isApp) {
             httpServletResponse.setStatus(HttpStatus.CONFLICT.value());
         } else {
-            ViewAttributesDAO.getInstance().push(userCookie, ViewAttributesDAO.MESSAGE,
-                message);
+            ViewAttributesDAO.getInstance().push(userCookie, ViewAttributesDAO.MESSAGE, message);
         }
         if (log.isInfoEnabled()) {
             log.info("message - error=" + message);
@@ -182,15 +180,32 @@ public class HomeRequestMapping {
         fillMenu(Pages.PATH_HOME, model, response, appDevice);
         fillUserAttributes(model, userCookie);
         HouseModel houseModel = ModelObjectDAO.getInstance().readHouseModel();
-        if (houseModel == null) {
-            throw new IllegalStateException("State error - " + ModelObjectDAO.getInstance().getLastHouseModelState());
-        } else if (isModelUnchanged(etag, houseModel) && !isNewMessage) {
-            response.setStatus(HttpStatus.NOT_MODIFIED.value());
-            return "empty";
-        } else {
-            houseView.fillViewModel(model, houseModel, ModelObjectDAO.getInstance().readHistoryModel());
-            return Pages.getEntry(Pages.PATH_HOME).getTemplate();
+
+        try {
+            if (houseModel == null) {
+                throw new IllegalStateException("State error - " + ModelObjectDAO.getInstance().getLastHouseModelState());
+            } else if (isModelUnchanged(etag, houseModel) && !isNewMessage) {
+                response.setStatus(HttpStatus.NOT_MODIFIED.value());
+                return "empty";
+            } else {
+                houseView.fillViewModel(model, houseModel, ModelObjectDAO.getInstance().readHistoryModel());
+                return Pages.getEntry(Pages.PATH_HOME).getTemplate();
+            }
+        } catch (Exception e) {
+            String message = "sending error page to browser due to exception while mapping.";
+            mappingErrorAttributes(model, response, message, e);
+            log.error(message, e);
+            return "error";
         }
+    }
+
+    public void mappingErrorAttributes(Model model, HttpServletResponse response, String message, Exception exception) {
+        model.addAttribute("timestamp", LocalDateTime.now().toString());
+        model.addAttribute("status", response.getStatus());
+        model.addAttribute("error", "n/a");
+        model.addAttribute("path", Pages.PATH_HOME);
+        model.addAttribute("message", message);
+        model.addAttribute("exception", exception.getMessage());
     }
 
     private boolean isModelUnchanged(String etag, HouseModel houseModel) {
