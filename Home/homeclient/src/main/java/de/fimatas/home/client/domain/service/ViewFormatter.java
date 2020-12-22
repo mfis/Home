@@ -60,11 +60,11 @@ public class ViewFormatter {
 
         String dayString;
         if (between == 0) {
-            dayString = "Heute";
+            dayString = "heute";
         } else if (between == 1) {
-            dayString = "Gestern";
+            dayString = "gestern";
         } else if (between == 2) {
-            dayString = "Vorgestern";
+            dayString = "vorgestern";
         } else if (between > -1 && between < 7) {
             dayString = WEEKDAY_FORMATTER.format(localDate1);
         } else {
@@ -139,7 +139,7 @@ public class ViewFormatter {
 
     private void chartEntryLabels(boolean historyView, PowerConsumptionDay pcd, ChartEntry chartEntry, String sumCaption) {
         if (historyView) {
-            chartEntry.setLabel(formatPastTimestamp(pcd.getMeasurePointMax(), false));
+            chartEntry.setLabel(StringUtils.capitalize(formatPastTimestamp(pcd.getMeasurePointMax(), false)));
             chartEntry.setAdditionalLabel(sumCaption);
         } else {
             chartEntry.setLabel(chartEntry.getLabel() + " " + sumCaption + ViewFormatter.K_W_H);

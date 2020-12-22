@@ -51,6 +51,8 @@ import de.fimatas.home.library.util.HomeAppConstants;
 @Component
 public class HouseViewService {
 
+    private static final String UNBEKANNT = "unbekannt";
+
     private static final String EREIGNISGESTEUERT = ", Ereignissteuerung";
 
     private static final String PROGRAMMGESTEUERT = ", Automatik";
@@ -157,9 +159,10 @@ public class HouseViewService {
         frontDoorView.setUnreach(Boolean.toString(doorbell.isUnreach()));
 
         if (doorbell.getTimestampLastDoorbell() != null) {
-            frontDoorView.setLastDoorbells(viewFormatter.formatPastTimestamp(doorbell.getTimestampLastDoorbell(), true));
+            frontDoorView.setLastDoorbells(
+                StringUtils.capitalize(viewFormatter.formatPastTimestamp(doorbell.getTimestampLastDoorbell(), true)));
         } else {
-            frontDoorView.setLastDoorbells("unbekannt");
+            frontDoorView.setLastDoorbells(UNBEKANNT);
         }
         if (camera != null && camera.getDevice() != null) {
             frontDoorView.setIdLive("frontdoorcameralive");
@@ -284,7 +287,7 @@ public class HouseViewService {
         view.setUnreach(Boolean.toString(climate.isUnreach() || (heating != null && heating.isUnreach())));
 
         if (climateStateUnknown(climate)) {
-            view.setStateTemperature("unbekannt");
+            view.setStateTemperature(UNBEKANNT);
             return view;
         }
 
@@ -445,7 +448,8 @@ public class HouseViewService {
         power.setPlace(powerMeter.getDevice().getPlace().getPlaceName());
         power.setDescription(powerMeter.getDevice().getDescription());
         power.setHistoryKey(powerMeter.getDevice().programNamePrefix());
-        power.setState(powerMeter.getActualConsumption().getValue().intValue() + " W");
+        power.setState(powerMeter.getActualConsumption().getValue() == null ? UNBEKANNT
+            : powerMeter.getActualConsumption().getValue().intValue() + " W");
         power.setName(powerMeter.getDevice().getType().getTypeName());
         if (powerMeter.getDevice() == Device.STROMZAEHLER_WALLBOX) {
             power.setIcon("fas fa-charging-station");
@@ -496,12 +500,12 @@ public class HouseViewService {
         if (windowSensor.getStateTimestamp() != null) {
             stateDelimiter = ", ";
             stateSuffix =
-                StringUtils.uncapitalize(viewFormatter.formatPastTimestamp(windowSensor.getStateTimestamp(), true));
+                viewFormatter.formatPastTimestamp(windowSensor.getStateTimestamp(), true);
         }
 
         view.setState((windowSensor.isState() ? "Geöffnet" : "Geschlossen") + stateDelimiter);
         view.setStateSuffix(stateSuffix);
-        view.setStateShort(view.getState());
+        view.setStateShort((windowSensor.isState() ? "Geöffnet" : "Geschlossen"));
         if (windowSensor.isState()) {
             view.setColorClass(COLOR_CLASS_ORANGE);
         }
