@@ -5,7 +5,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.SerializationUtils;
@@ -34,12 +36,12 @@ import de.fimatas.home.library.domain.model.Intensity;
 import de.fimatas.home.library.domain.model.OutdoorClimate;
 import de.fimatas.home.library.domain.model.PowerMeter;
 import de.fimatas.home.library.domain.model.RoomClimate;
+import de.fimatas.home.library.domain.model.Shutter;
 import de.fimatas.home.library.domain.model.ShutterPosition;
 import de.fimatas.home.library.domain.model.StateValue;
 import de.fimatas.home.library.domain.model.Switch;
 import de.fimatas.home.library.domain.model.Tendency;
 import de.fimatas.home.library.domain.model.ValueWithTendency;
-import de.fimatas.home.library.domain.model.Window;
 import de.fimatas.home.library.domain.model.WindowSensor;
 import de.fimatas.home.library.homematic.model.Datapoint;
 import de.fimatas.home.library.homematic.model.Device;
@@ -162,7 +164,7 @@ public class HouseService {
 
         newModel.setGuestRoomWindowSensor(readWindowSensorState(Device.FENSTERSENSOR_GAESTEZIMMER));
 
-        // newModel.setLeftWindowBedRoom(readWindow(Device.ROLLLADE_SCHLAFZIMMER_LINKS));
+        // newModel.setLeftWindowBedRoom(readWindow(Device.ROLLLADE_SCHLAFZIMMER_LINKS)); // NOSONAR
 
         newModel.setClimateTerrace(
             readOutdoorClimate(Device.DIFF_TEMPERATUR_TERRASSE_AUSSEN, Device.DIFF_TEMPERATUR_TERRASSE_DIFF));
@@ -192,14 +194,9 @@ public class HouseService {
 
     private void calculateConclusion(HouseModel oldModel, HouseModel newModel) {
 
-        List<OutdoorClimate> outdoor =
-            List.of(newModel.getClimateEntrance(), newModel.getClimateTerrace(), newModel.getClimateGarden());
-
-        if (outdoor.stream().filter(c -> c.getTemperature().getValue() == null).findFirst().isPresent()) {
-            newModel.setConclusionClimateFacadeMin(null);
-            newModel.setConclusionClimateFacadeMax(null);
-            return;
-        }
+        List<OutdoorClimate> outdoor = List.of(//
+            newModel.getClimateEntrance(), newModel.getClimateTerrace(), newModel.getClimateGarden() //
+        ).stream().filter(c -> !c.isUnreach()).collect(Collectors.toList());
 
         calculateOutdoorMinMax(newModel, outdoor);
         calculateOutdoorHumidity(newModel);
@@ -208,6 +205,10 @@ public class HouseService {
     }
 
     private void calculateOutdoorHumidity(HouseModel newModel) {
+
+        if (newModel.getConclusionClimateFacadeMin() == null) {
+            return;
+        }
 
         if (newModel.getConclusionClimateFacadeMin().getHumidity() == null && newModel.getClimateGarden() != null
             && newModel.getClimateGarden().getHumidity() != null) {
@@ -224,22 +225,35 @@ public class HouseService {
 
         Comparator<OutdoorClimate> comparator =
             Comparator.comparing(OutdoorClimate::getTemperature, (t1, t2) -> t1.getValue().compareTo(t2.getValue()));
+        Optional<OutdoorClimate> minTemperature = outdoor.stream().min(comparator);
+        Optional<OutdoorClimate> maxTemperature = outdoor.stream().max(comparator);
 
-        // compensating absent diff temperature value
-        BigDecimal diffGarden = newModel.getClimateGarden().getTemperature().getValue()
-            .subtract(outdoor.stream().min(comparator).get().getTemperature().getValue()).abs();
-        newModel.getClimateGarden().setSunBeamIntensity(lookupIntensity(diffGarden));
+        // compensating absent difference temperature value
+        if (minTemperature.isPresent()) {
+            BigDecimal diffGarden = newModel.getClimateGarden().getTemperature().getValue()
+                .subtract(minTemperature.get().getTemperature().getValue()).abs();
+            newModel.getClimateGarden().setSunBeamIntensity(lookupIntensity(diffGarden));
+            newModel.setConclusionClimateFacadeMin(SerializationUtils.clone(minTemperature.get()));
+            newModel.getConclusionClimateFacadeMin().setDevice(Device.AUSSENTEMPERATUR);
+            newModel.getConclusionClimateFacadeMin().setBase(newModel.getConclusionClimateFacadeMin().getDevice());
+            newModel.getConclusionClimateFacadeMin().setMaxSideSunHeating(newModel.getConclusionClimateFacadeMax());
+        } else {
+            var empty = new OutdoorClimate();
+            empty.setDevice(Device.AUSSENTEMPERATUR);
+            empty.setUnreach(true);
+            newModel.setConclusionClimateFacadeMin(empty);
+        }
 
-        newModel.setConclusionClimateFacadeMin(SerializationUtils.clone(outdoor.stream().min(comparator).get()));
-        newModel.setConclusionClimateFacadeMax(SerializationUtils.clone(outdoor.stream().max(comparator).get()));
-
-        BigDecimal sunShadeDiff = newModel.getConclusionClimateFacadeMax().getTemperature().getValue()
-            .subtract(newModel.getConclusionClimateFacadeMin().getTemperature().getValue()).abs();
-        newModel.getConclusionClimateFacadeMax().setSunHeatingInContrastToShadeIntensity(lookupIntensity(sunShadeDiff));
-
-        newModel.getConclusionClimateFacadeMin().setBase(newModel.getConclusionClimateFacadeMin().getDevice());
-        newModel.getConclusionClimateFacadeMin().setDevice(Device.AUSSENTEMPERATUR);
-        newModel.getConclusionClimateFacadeMin().setMaxSideSunHeating(newModel.getConclusionClimateFacadeMax());
+        if (maxTemperature.isPresent()) {
+            newModel.setConclusionClimateFacadeMax(SerializationUtils.clone(maxTemperature.get()));
+            BigDecimal sunShadeDiff = newModel.getConclusionClimateFacadeMax().getTemperature().getValue()
+                .subtract(newModel.getConclusionClimateFacadeMin().getTemperature().getValue()).abs();
+            newModel.getConclusionClimateFacadeMax().setSunHeatingInContrastToShadeIntensity(lookupIntensity(sunShadeDiff));
+        } else {
+            var empty = new OutdoorClimate();
+            empty.setUnreach(true);
+            newModel.setConclusionClimateFacadeMax(empty);
+        }
     }
 
     void calculateTendencies(HouseModel oldModel, HouseModel newModel) {
@@ -264,7 +278,8 @@ public class HouseService {
 
     void calculateHumidityComparison(HouseModel newModel) {
 
-        if (newModel.getClimateGarden() == null || newModel.getClimateGarden().getHumidity() == null) {
+        if (newModel.getClimateGarden() == null || newModel.getClimateGarden().isUnreach()
+            || newModel.getClimateGarden().getHumidity() == null) {
             return;
         }
 
@@ -287,19 +302,25 @@ public class HouseService {
 
     private void calculatePowerConsumptionTendencies(long newModelDateTime, PowerMeter oldModel, PowerMeter newModel) {
 
-        if (newModel != null) {
-            ValueWithTendency<BigDecimal> referencePower;
-            if (oldModel == null) {
-                referencePower = newModel.getActualConsumption();
-                referencePower.setReferenceValue(referencePower.getValue());
-            } else {
-                referencePower = oldModel.getActualConsumption();
-            }
-            calculateTendency(newModelDateTime, referencePower, newModel.getActualConsumption(), POWER_TENDENCY_DIFF);
+        if (newModel.isUnreach()) {
+            return;
         }
+
+        ValueWithTendency<BigDecimal> referencePower;
+        if (oldModel == null) {
+            referencePower = newModel.getActualConsumption();
+            referencePower.setReferenceValue(referencePower.getValue());
+        } else {
+            referencePower = oldModel.getActualConsumption();
+        }
+        calculateTendency(newModelDateTime, referencePower, newModel.getActualConsumption(), POWER_TENDENCY_DIFF);
     }
 
     private void calculateClimateTendencies(HouseModel newModel, Climate climateNew, Climate climateOld) {
+
+        if (climateNew == null) {
+            return;
+        }
 
         // Temperature
         if (climateNew.getTemperature() != null) {
@@ -396,7 +417,8 @@ public class HouseService {
 
     private void lookupTemperatureHint(RoomClimate room, Heating heating, OutdoorClimate outdoor, long dateTime) {
 
-        BigDecimal targetTemperature = heating != null ? heating.getTargetTemperature() : TARGET_TEMPERATURE_INSIDE;
+        BigDecimal targetTemperature =
+            heating != null && !heating.isUnreach() ? heating.getTargetTemperature() : TARGET_TEMPERATURE_INSIDE;
         BigDecimal temperatureLimit = targetTemperature.add(TARGET_TEMPERATURE_TOLERANCE_OFFSET);
 
         if (noTemperatureAvailable(room)) {
@@ -541,15 +563,18 @@ public class HouseService {
 
     private boolean newValueForOutdoorTemperature(HouseModel oldModel, HouseModel newModel) {
 
-        // determinated nullable instances for no-value case (caused
-        // NPE after reboot)
-        return newModel.getConclusionClimateFacadeMin() != null
-            && newModel.getConclusionClimateFacadeMin().getTemperature().getValue() != null
-            && (oldModel == null || oldModel.getConclusionClimateFacadeMin() == null
-                || oldModel.getConclusionClimateFacadeMin().getTemperature() == null
-                || oldModel.getConclusionClimateFacadeMin().getTemperature().getValue() == null
-                || oldModel.getConclusionClimateFacadeMin().getTemperature().getValue()
-                    .compareTo(newModel.getConclusionClimateFacadeMin().getTemperature().getValue()) != 0);
+        BigDecimal oldVal =
+            oldModel != null && oldModel.getConclusionClimateFacadeMin() != null
+                && !oldModel.getConclusionClimateFacadeMin().isUnreach()
+                && oldModel.getConclusionClimateFacadeMin().getTemperature() != null
+                    ? oldModel.getConclusionClimateFacadeMin().getTemperature().getValue() : null;
+
+        BigDecimal newVal =
+            newModel.getConclusionClimateFacadeMin() != null && !newModel.getConclusionClimateFacadeMin().isUnreach()
+                && newModel.getConclusionClimateFacadeMin().getTemperature() != null
+                    ? newModel.getConclusionClimateFacadeMin().getTemperature().getValue() : null;
+
+        return newVal != null && (oldVal == null || oldVal.compareTo(newVal) != 0);
     }
 
     private void updateCameraPictures(HouseModel oldModel, HouseModel newModel) {
@@ -578,7 +603,12 @@ public class HouseService {
     private OutdoorClimate readOutdoorClimate(Device outside, Device diff) {
 
         OutdoorClimate outdoorClimate = new OutdoorClimate();
+        outdoorClimate.setDevice(outside);
         outdoorClimate.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(outside, Datapoint.UNREACH)));
+        if (outdoorClimate.isUnreach()) {
+            return outdoorClimate;
+        }
+
         outdoorClimate.setTemperature(new ValueWithTendency<>(api.getAsBigDecimal(homematicCommandBuilder.read(outside,
             outside.isHomematicIP() ? Datapoint.ACTUAL_TEMPERATURE : Datapoint.TEMPERATURE))));
 
@@ -592,22 +622,26 @@ public class HouseService {
             outdoorClimate.setSunBeamIntensity(
                 lookupIntensity(api.getAsBigDecimal(homematicCommandBuilder.read(diff, Datapoint.TEMPERATURE))));
         }
-        outdoorClimate.setDevice(outside);
 
         return outdoorClimate;
     }
 
     private RoomClimate readRoomClimate(Device thermometer) {
+
         RoomClimate roomClimate = new RoomClimate();
+        roomClimate.setDevice(thermometer);
         roomClimate.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(thermometer, Datapoint.UNREACH)));
+        if (roomClimate.isUnreach()) {
+            return roomClimate;
+        }
+
         roomClimate.setTemperature(new ValueWithTendency<>(
             api.getAsBigDecimal(homematicCommandBuilder.read(thermometer, Datapoint.ACTUAL_TEMPERATURE))));
         BigDecimal humidity = thermometer.getType() == Type.THERMOSTAT ? null
             : api.getAsBigDecimal(homematicCommandBuilder.read(thermometer, Datapoint.HUMIDITY));
         if (humidity != null) {
-            roomClimate.setHumidity(new ValueWithTendency<BigDecimal>(humidity));
+            roomClimate.setHumidity(new ValueWithTendency<>(humidity));
         }
-        roomClimate.setDevice(thermometer);
         if (thermometer.getType() != Type.THERMOMETER) {
             roomClimate.setSubType(Type.THERMOMETER);
         }
@@ -615,15 +649,20 @@ public class HouseService {
     }
 
     private Heating readHeating(Device heating) {
+
         Heating heatingModel = new Heating();
+        heatingModel.setDevice(heating);
         heatingModel.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(heating, Datapoint.UNREACH)));
+        if (heatingModel.isUnreach()) {
+            return heatingModel;
+        }
+
         heatingModel.setBoostActive(api.getAsBigDecimal(homematicCommandBuilder.read(heating, Datapoint.CONTROL_MODE))
             .compareTo(HomematicConstants.HEATING_CONTROL_MODE_BOOST) == 0);
         BigDecimal boostLeft = api.getAsBigDecimal(homematicCommandBuilder.read(heating, Datapoint.BOOST_STATE));
         heatingModel.setBoostMinutesLeft(boostLeft == null ? 0 : boostLeft.intValue());
         heatingModel
             .setTargetTemperature(api.getAsBigDecimal(homematicCommandBuilder.read(heating, Datapoint.SET_TEMPERATURE)));
-        heatingModel.setDevice(heating);
         heatingModel.setBusy(checkBusyState(heating));
 
         return heatingModel;
@@ -644,26 +683,34 @@ public class HouseService {
     }
 
     @SuppressWarnings("unused")
-    private Window readWindow(Device shutter) { // TODO: D_U_M_M_Y
-        Window window = new Window();
-        window.setDevice(shutter);
-        window.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(shutter, Datapoint.UNREACH)));
-        window.setShutterPositionPercentage(30);
-        window.setShutterPosition(ShutterPosition.fromPosition(window.getShutterPositionPercentage()));
-        window.setShutterAutomation(true);
-        window.setShutterAutomationInfoText("Dummy Text");
-        return window;
+    private Shutter readShutter(Device shutterDevice) { // TODO: D_U_M_M_Y // NOSONAR
+        Shutter shutter = new Shutter();
+        shutter.setDevice(shutterDevice);
+        shutter.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(shutterDevice, Datapoint.UNREACH)));
+        if (shutter.isUnreach()) {
+            return shutter;
+        }
+
+        shutter.setShutterPositionPercentage(30);
+        shutter.setShutterPosition(ShutterPosition.fromPosition(shutter.getShutterPositionPercentage()));
+        shutter.setShutterAutomation(true);
+        shutter.setShutterAutomationInfoText("Dummy Text");
+        return shutter;
     }
 
     public void shutterPosition(Device device, int parseInt) {
-        // TODO: D U M M Y
+        // TODO: D U M M Y // NOSONAR
     }
 
     private Switch readSwitchState(Device device) {
         Switch switchModel = new Switch();
-        switchModel.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(device, Datapoint.UNREACH)));
-        switchModel.setState(api.getAsBoolean(homematicCommandBuilder.read(device, Datapoint.STATE)));
         switchModel.setDevice(device);
+        switchModel.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(device, Datapoint.UNREACH)));
+        if (switchModel.isUnreach()) {
+            return switchModel;
+        }
+
+        switchModel.setState(api.getAsBoolean(homematicCommandBuilder.read(device, Datapoint.STATE)));
         switchModel.setAutomation(api.getAsBoolean(homematicCommandBuilder.read(device, AUTOMATIC)));
         switchModel.setAutomationInfoText(api.getAsString(homematicCommandBuilder.read(device, AUTOMATIC + "InfoText")));
         return switchModel;
@@ -672,10 +719,15 @@ public class HouseService {
     private WindowSensor readWindowSensorState(Device device) {
 
         WindowSensor windowSensorModel = new WindowSensor();
-        windowSensorModel.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(device, Datapoint.UNREACH)));
-        windowSensorModel.setState(
-            BooleanUtils.toBoolean(api.getAsBigDecimal(homematicCommandBuilder.read(device, Datapoint.STATE)).intValue()));
         windowSensorModel.setDevice(device);
+        windowSensorModel.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(device, Datapoint.UNREACH)));
+        if (windowSensorModel.isUnreach()) {
+            return windowSensorModel;
+        }
+
+        BigDecimal decimalState = api.getAsBigDecimal(homematicCommandBuilder.read(device, Datapoint.STATE));
+        int stateInt = decimalState == null ? 0 : decimalState.intValue();
+        windowSensorModel.setState(BooleanUtils.toBoolean(stateInt));
 
         String ts = api.getAsString(homematicCommandBuilder.read(device, TIMESTAMP));
         if (StringUtils.isNumeric(ts)) {
@@ -690,6 +742,9 @@ public class HouseService {
         Doorbell frontDoor = new Doorbell();
         frontDoor.setDevice(Device.HAUSTUER_KLINGEL);
         frontDoor.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_KLINGEL, Datapoint.UNREACH)));
+        if (frontDoor.isUnreach()) {
+            return frontDoor;
+        }
 
         String ts = api.getAsString(homematicCommandBuilder.read(Device.HAUSTUER_KLINGEL, TIMESTAMP));
         if (StringUtils.isNumeric(ts)) {
@@ -702,7 +757,7 @@ public class HouseService {
     private Camera readFrontDoorCamera() {
 
         Camera frontDoor = new Camera();
-        frontDoor.setDevice(null /* TODO: DUMMY */);
+        frontDoor.setDevice(null /* TODO: DUMMY */); // NOSONAR
         return frontDoor;
     }
 
@@ -712,6 +767,10 @@ public class HouseService {
 
         frontDoor.setDevice(Device.HAUSTUER_SCHLOSS);
         frontDoor.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, Datapoint.UNREACH)));
+        if (frontDoor.isUnreach()) {
+            return frontDoor;
+        }
+
         frontDoor.setLockState(!api.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, Datapoint.STATE))); // false=verriegelt
         frontDoor.setLockStateUncertain(
             api.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, Datapoint.STATE_UNCERTAIN)));
@@ -723,8 +782,8 @@ public class HouseService {
         } else {
             frontDoor.setBusy(checkBusyState(Device.HAUSTUER_SCHLOSS));
         }
-        frontDoor.setErrorcode(
-            api.getAsBigDecimal(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, Datapoint.ERROR)).intValue());
+        BigDecimal errorCode = api.getAsBigDecimal(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, Datapoint.ERROR));
+        frontDoor.setErrorcode(errorCode == null ? 0 : errorCode.intValue());
 
         frontDoor.setLockAutomation(api.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, AUTOMATIC)));
         frontDoor
@@ -749,6 +808,10 @@ public class HouseService {
         PowerMeter model = new PowerMeter();
         model.setDevice(device);
         model.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(device, Datapoint.UNREACH)));
+        if (model.isUnreach()) {
+            return model;
+        }
+
         model.setActualConsumption(
             new ValueWithTendency<>(api.getAsBigDecimal(homematicCommandBuilder.read(device, Datapoint.POWER))));
         return model;

@@ -5,6 +5,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.Model;
@@ -188,7 +189,9 @@ public class AppViewService {
         HomeViewValueModel hvm = new HomeViewModel().new HomeViewValueModel();
         hvm.setId(place.getPlaceName() + "#todayPowerSum");
         hvm.setKey("Heute");
-        if (view.getTodayConsumption() == null) {
+        if (BooleanUtils.toBoolean(view.getUnreach())) {
+            hvm.setValue(StringUtils.EMPTY);
+        } else if (view.getTodayConsumption() == null) {
             hvm.setValue("0" + ViewFormatter.K_W_H);
         }else {
             hvm.setValue(view.getTodayConsumption().getLabel().replace(ViewFormatter.SUM_SIGN, "").trim());
@@ -207,6 +210,11 @@ public class AppViewService {
     }
 
     private List<List<HomeViewActionModel>> mapLockActions(Place place, LockView view) {
+
+        if (BooleanUtils.toBoolean(view.getUnreach())) {
+            return new LinkedList<>();
+        }
+
         List<HomeViewActionModel> actionsState = new LinkedList<>();
         HomeViewActionModel actionLock = new HomeViewModel().new HomeViewActionModel();
         actionLock.setId(place.getPlaceName() + "#lockActionLock");
@@ -264,6 +272,11 @@ public class AppViewService {
     }
 
     private List<List<HomeViewActionModel>> mapSwitchActions(Place place, SwitchView view) {
+
+        if (BooleanUtils.toBoolean(view.getUnreach())) {
+            return new LinkedList<>();
+        }
+
         List<HomeViewActionModel> actionsOnOff = new LinkedList<>();
         HomeViewActionModel actionOn = new HomeViewModel().new HomeViewActionModel();
         actionOn.setId(place.getPlaceName() + "#switchActionOn");

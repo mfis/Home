@@ -2,7 +2,7 @@ package de.fimatas.home.library.domain.model;
 
 import java.io.Serializable;
 
-public class Window extends AbstractDeviceModel implements Serializable {
+public class Shutter extends AbstractDeviceModel implements Serializable {
 
     private static final long serialVersionUID = 1L;
 

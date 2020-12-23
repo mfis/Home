@@ -22,7 +22,7 @@ public class HouseModel implements Serializable {
 
     private RoomClimate climateBedRoom;
 
-    private Window leftWindowBedRoom;
+    private Shutter leftWindowBedRoom;
 
     private RoomClimate climateLivingRoom;
 
@@ -184,11 +184,11 @@ public class HouseModel implements Serializable {
         this.conclusionClimateFacadeMax = conclusionClimateFacadeMax;
     }
 
-    public Window getLeftWindowBedRoom() {
+    public Shutter getLeftWindowBedRoom() {
         return leftWindowBedRoom;
     }
 
-    public void setLeftWindowBedRoom(Window leftWindowBedRoom) {
+    public void setLeftWindowBedRoom(Shutter leftWindowBedRoom) {
         this.leftWindowBedRoom = leftWindowBedRoom;
     }
 

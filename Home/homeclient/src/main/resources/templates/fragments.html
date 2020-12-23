@@ -56,22 +56,24 @@
 	<th:block th:fragment="switchControls (model)">
 
 		<!-- on/off -->
-		<div class="btn-group" role="group" aria-label="heating">
-  			<button th:if="${#strings.startsWith(model.linkOn, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-check-circle')"/></span><span>&nbsp;</span></button>
-  			<button th:if="${#strings.startsWith(model.linkOn, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToOn' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-check-circle')"/></span><span>&nbsp;</span></button>
-  			<button th:if="${#strings.startsWith(model.linkOff, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-power-off')"/></span><span>&nbsp;</span></button>
-  			<button th:if="${#strings.startsWith(model.linkOff, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToOff' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-power-off')"/></span><span>&nbsp;</span></button>
-		</div>
-		<input type="hidden" th:id="'val_model_linkOff_' + ${model.id}" th:value="${model.linkOff}">
-		<input type="hidden" th:id="'val_model_linkOn_' + ${model.id}" th:value="${model.linkOn}">
- 			<script type="text/javascript">
-			function toggleToOn[[${model.id}]](){
-				submitContent(document.getElementById('val_model_linkOn_[[${model.id}]]').value);
-			}
-			function toggleToOff[[${model.id}]](){
-				submitContent(document.getElementById('val_model_linkOff_[[${model.id}]]').value);
-			}	
-		</script>
+		<th:block th:unless="${#strings.equals(model.unreach, 'true')}">
+			<div class="btn-group" role="group" aria-label="heating">
+	  			<button th:if="${#strings.startsWith(model.linkOn, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-check-circle')"/></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(model.linkOn, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToOn' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-check-circle')"/></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(model.linkOff, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-power-off')"/></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(model.linkOff, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToOff' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-power-off')"/></span><span>&nbsp;</span></button>
+			</div>
+			<input type="hidden" th:id="'val_model_linkOff_' + ${model.id}" th:value="${model.linkOff}">
+			<input type="hidden" th:id="'val_model_linkOn_' + ${model.id}" th:value="${model.linkOn}">
+	 			<script type="text/javascript">
+				function toggleToOn[[${model.id}]](){
+					submitContent(document.getElementById('val_model_linkOn_[[${model.id}]]').value);
+				}
+				function toggleToOff[[${model.id}]](){
+					submitContent(document.getElementById('val_model_linkOff_[[${model.id}]]').value);
+				}	
+			</script>
+		</th:block>
 		
 		<!-- auto/manual -->
 		<th:block th:if="${!#strings.startsWith(model.linkAuto, '#') or !#strings.startsWith(model.linkManual, '#')}">
@@ -154,85 +156,87 @@
 		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, place=${model.place}, historyKey=${model.historyKey}, unreach=${model.unreach})"></div>
 		<h4><span th:text="${model.state}"></span><span th:text="${model.stateSuffix}" style="font-size: 80%;"></span></h4>
 		
-		<div class="btn-group" role="group" aria-label="shutterControl">
-  			<button th:if="${#strings.startsWith(model.linkOpen, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name=${model.iconOpen})"/></span><span>&nbsp;</span></button>
-  			<button th:if="${#strings.startsWith(model.linkOpen, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'openShutter' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name=${model.iconOpen})"/></span><span>&nbsp;</span></button>
-			<button th:if="${#strings.startsWith(model.linkHalf, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name=${model.iconHalf})"/></span><span>&nbsp;</span></button>
-  			<button th:if="${#strings.startsWith(model.linkHalf, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'halfShutter' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name=${model.iconHalf})"/></span><span>&nbsp;</span></button>  			
-  			<button th:if="${#strings.startsWith(model.linkSunshade, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name=${model.iconSUnshade})"/></span><span>&nbsp;</span></button>
-  			<button th:if="${#strings.startsWith(model.linkSunshade, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'sunshadeShutter' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name=${model.iconSunshade})"/></span><span>&nbsp;</span></button>
-  			<button th:if="${#strings.startsWith(model.linkClose, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name=${model.iconClose})"/></span><span>&nbsp;</span></button>
-  			<button th:if="${#strings.startsWith(model.linkClose, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'closeShutter' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name=${model.iconClose})"/></span><span>&nbsp;</span></button>
-		</div>		
-		
-		<input type="hidden" th:id="'val_model_linkOpen_' + ${model.id}" th:value="${model.linkOpen}">
-		<input type="hidden" th:id="'val_model_linkClose_' + ${model.id}" th:value="${model.linkClose}">
-		<input type="hidden" th:id="'val_model_linkHalf_' + ${model.id}" th:value="${model.linkHalf}">
-		<input type="hidden" th:id="'val_model_linkSunshade_' + ${model.id}" th:value="${model.linkSunshade}">
-		<script type="text/javascript">
-			function openShutter[[${model.id}]](){
-				submitContent(document.getElementById('val_model_linkOpen_[[${model.id}]]').value);
-			}
-			function closeShutter[[${model.id}]](){
-				submitContent(document.getElementById('val_model_linkClose_[[${model.id}]]').value);
-			}
-			function halfShutter[[${model.id}]](){
-				submitContent(document.getElementById('val_model_linkHalf_[[${model.id}]]').value);
-			}			
-			function sunshadeShutter[[${model.id}]](){
-				submitContent(document.getElementById('val_model_linkSunshade_[[${model.id}]]').value);
-			}			
-		</script>
-		
-		<th:block th:if="${!#strings.startsWith(model.linkAuto, '#') or !#strings.startsWith(model.linkManual, '#')}">
-			<span>&nbsp;</span>
-			<div class="btn-group" role="group" aria-label="shutterMode">
-	  			<button th:if="${#strings.startsWith(model.linkAuto, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-cogs')"/></span><span>&nbsp;</span></button>
-	  			<button th:if="${#strings.startsWith(model.linkAuto, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleShutterToManual' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-cogs')"/></span><span>&nbsp;</span></button>
-	  			<button th:if="${#strings.startsWith(model.linkManual, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-hand-paper')"/></span><span>&nbsp;</span></button>
-	  			<button th:if="${#strings.startsWith(model.linkManual, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleShutterToAuto' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-hand-paper')"/></span><span>&nbsp;</span></button>
-			</div>
-			<input type="hidden" th:id="'val_model_linkManual_' + ${model.id}" th:value="${model.linkManual}">
-			<input type="hidden" th:id="'val_model_linkAuto_' + ${model.id}" th:value="${model.linkAuto}">
-  			<script type="text/javascript">
-				function toggleShutterToAuto[[${model.id}]](){
-					submitContent(document.getElementById('val_model_linkManual_[[${model.id}]]').value);
+		<th:block th:unless="${#strings.equals(model.unreach, 'true')}">
+			<div class="btn-group" role="group" aria-label="shutterControl">
+	  			<button th:if="${#strings.startsWith(model.linkOpen, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name=${model.iconOpen})"/></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(model.linkOpen, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'openShutter' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name=${model.iconOpen})"/></span><span>&nbsp;</span></button>
+				<button th:if="${#strings.startsWith(model.linkHalf, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name=${model.iconHalf})"/></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(model.linkHalf, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'halfShutter' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name=${model.iconHalf})"/></span><span>&nbsp;</span></button>  			
+	  			<button th:if="${#strings.startsWith(model.linkSunshade, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name=${model.iconSUnshade})"/></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(model.linkSunshade, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'sunshadeShutter' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name=${model.iconSunshade})"/></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(model.linkClose, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name=${model.iconClose})"/></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(model.linkClose, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'closeShutter' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name=${model.iconClose})"/></span><span>&nbsp;</span></button>
+			</div>		
+			
+			<input type="hidden" th:id="'val_model_linkOpen_' + ${model.id}" th:value="${model.linkOpen}">
+			<input type="hidden" th:id="'val_model_linkClose_' + ${model.id}" th:value="${model.linkClose}">
+			<input type="hidden" th:id="'val_model_linkHalf_' + ${model.id}" th:value="${model.linkHalf}">
+			<input type="hidden" th:id="'val_model_linkSunshade_' + ${model.id}" th:value="${model.linkSunshade}">
+			<script type="text/javascript">
+				function openShutter[[${model.id}]](){
+					submitContent(document.getElementById('val_model_linkOpen_[[${model.id}]]').value);
 				}
-				function toggleShutterToManual[[${model.id}]](){
-					submitContent(document.getElementById('val_model_linkAuto_[[${model.id}]]').value);
-				}					
+				function closeShutter[[${model.id}]](){
+					submitContent(document.getElementById('val_model_linkClose_[[${model.id}]]').value);
+				}
+				function halfShutter[[${model.id}]](){
+					submitContent(document.getElementById('val_model_linkHalf_[[${model.id}]]').value);
+				}			
+				function sunshadeShutter[[${model.id}]](){
+					submitContent(document.getElementById('val_model_linkSunshade_[[${model.id}]]').value);
+				}			
 			</script>
-				<button type="button" class="btn btn-link" data-toggle="modal" th:data-target="'#modalAuto' + ${model.id}">
-					<span 
-						class="badge badge-secondary" th:text="'?'">
-					</span>
-				</button>
-				<!-- Modal -->
-				<div class="modal fade" th:id="'modalAuto' + ${model.id}" tabindex="-1" role="dialog" th:aria-labelledby="'#modalAutoLabel' + ${model.id}" aria-hidden="true">
-				  <div class="modal-dialog modal-dialog-centered" role="document">
-				    <div class="modal-content">
-				      <div class="modal-header">
-				        <h5 class="modal-title" id="exampleModalLongTitle" th:text="'Automatik: ' + ${model.name}"></h5>
-				        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-				          <span aria-hidden="true">&times;</span>
-				        </button>
-				      </div>
-				      <div class="modal-body"><a th:utext="${model.autoInfoText}"></a></div>
-				    </div>
-				  </div>
+			
+			<th:block th:if="${!#strings.startsWith(model.linkAuto, '#') or !#strings.startsWith(model.linkManual, '#')}">
+				<span>&nbsp;</span>
+				<div class="btn-group" role="group" aria-label="shutterMode">
+		  			<button th:if="${#strings.startsWith(model.linkAuto, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-cogs')"/></span><span>&nbsp;</span></button>
+		  			<button th:if="${#strings.startsWith(model.linkAuto, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleShutterToManual' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-cogs')"/></span><span>&nbsp;</span></button>
+		  			<button th:if="${#strings.startsWith(model.linkManual, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-hand-paper')"/></span><span>&nbsp;</span></button>
+		  			<button th:if="${#strings.startsWith(model.linkManual, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleShutterToAuto' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-hand-paper')"/></span><span>&nbsp;</span></button>
 				</div>
+				<input type="hidden" th:id="'val_model_linkManual_' + ${model.id}" th:value="${model.linkManual}">
+				<input type="hidden" th:id="'val_model_linkAuto_' + ${model.id}" th:value="${model.linkAuto}">
+	  			<script type="text/javascript">
+					function toggleShutterToAuto[[${model.id}]](){
+						submitContent(document.getElementById('val_model_linkManual_[[${model.id}]]').value);
+					}
+					function toggleShutterToManual[[${model.id}]](){
+						submitContent(document.getElementById('val_model_linkAuto_[[${model.id}]]').value);
+					}					
+				</script>
+					<button type="button" class="btn btn-link" data-toggle="modal" th:data-target="'#modalAuto' + ${model.id}">
+						<span 
+							class="badge badge-secondary" th:text="'?'">
+						</span>
+					</button>
+					<!-- Modal -->
+					<div class="modal fade" th:id="'modalAuto' + ${model.id}" tabindex="-1" role="dialog" th:aria-labelledby="'#modalAutoLabel' + ${model.id}" aria-hidden="true">
+					  <div class="modal-dialog modal-dialog-centered" role="document">
+					    <div class="modal-content">
+					      <div class="modal-header">
+					        <h5 class="modal-title" id="exampleModalLongTitle" th:text="'Automatik: ' + ${model.name}"></h5>
+					        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					          <span aria-hidden="true">&times;</span>
+					        </button>
+					      </div>
+					      <div class="modal-body"><a th:utext="${model.autoInfoText}"></a></div>
+					    </div>
+					  </div>
+					</div>
+			</th:block>
 		</th:block>
 	</div>	
 
 	<!-- Frontdoor -->
 	<th:block th:fragment="frontDoor (model)">
 		<div th:class="'alert alert-secondary callout callout-secondary'">
-			<div th:replace="fragments :: elementname (icon='fas fa-bell', name='Türklingel', place='', historyKey=${model.historyKey}, unreach=${model.unreach})"></div>
+			<div th:replace="fragments :: elementname (icon=${model.icon}, name='Türklingel', place='', historyKey=${model.historyKey}, unreach=${model.unreach})"></div>
 			<h4>
 				<span th:text="${model.lastDoorbells}"></span>
 			</h4>
 		</div>
-		<th:block th:if="${#strings.equals('x', 'y')}">
+		<th:block th:if="${#strings.equals('x', 'y') and #strings.equals(model.unreach, 'false')}">
 			<div th:class="'alert alert-secondary callout callout-secondary'">
 				<div th:replace="fragments :: elementname (icon='fas fa-camera', name='Kamera', place='', historyKey=${model.historyKey}, unreach='')"></div>
 				<div style="padding-top:6px;">
@@ -364,7 +368,7 @@
 		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, place=${model.place}, historyKey=${model.historyKey}, unreach=${model.unreach})"></div>
 		<h4 th:unless="${#strings.equals(model.busy,'true')}"><span th:text="${model.state}"></span><span th:text="${model.stateSuffix}" style="font-size: 80%;"></span></h4>
 
-		<th:block th:unless="${#strings.equals(model.busy,'true')}">	
+		<th:block th:unless="${#strings.equals(model.busy,'true') or #strings.equals(model.unreach,'true')}">	
 			<div class="btn-group" role="group" aria-label="lockcontrol">
 	  			<button th:if="${#strings.startsWith(model.linkLock, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-lock')"/></span><span>&nbsp;</span></button>
 	  			<button th:if="${#strings.startsWith(model.linkLock, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'openPin' + ${model.id} + '(lockModalLabel' + ${model.id} + ', lock' + ${model.id} + ')'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-lock')"/></span><span>&nbsp;</span></button>
@@ -398,8 +402,8 @@
 			}			
 		</script>		
 		
-		<span>&nbsp;</span>
-		<th:block th:unless="${#strings.equals(model.busy,'true')}">
+		<span th:unless="${#strings.equals(model.unreach,'true')}">&nbsp;</span>
+		<th:block th:unless="${#strings.equals(model.busy,'true') or #strings.equals(model.unreach,'true')}">
 			<div class="btn-group" role="group" aria-label="lockauto">
 	  			<button th:if="${#strings.startsWith(model.linkAutoEvent, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-bell')"/></span><span>&nbsp;</span></button>
 	  			<button th:if="${#strings.startsWith(model.linkAutoEvent, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToAutoEvent' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-bell')"/></span><span>&nbsp;</span></button>
@@ -549,7 +553,7 @@
 	<div th:fragment="thermostat (model)" th:class="'alert alert-' + ${model.colorClassHeating} + ' callout callout-' + ${model.colorClassHeating}">
 		<div th:replace="fragments :: elementname (icon=${model.heatericon}, name='Heizkörpersteuerung', place=${model.place}, historyKey=${model.historyKey}, unreach=${model.unreach})"></div>
 			
-		<th:block th:unless="${#strings.equals(model.busy,'true')}">	
+		<th:block th:unless="${#strings.equals(model.busy,'true') or #strings.equals(model.unreach,'true')}">
 			<h4 th:if="${#strings.startsWith(model.linkBoost,'/')}"><span th:text="'Manuell auf ' + ${model.targetTemp} + '°C'"></span></h4>
 			<h4 th:unless="${#strings.startsWith(model.linkBoost,'/')}"><span th:text="'Aufheizen - noch ' + ${model.linkBoost} + ' Min.'"></span></h4>
 				<div th:if="${#strings.startsWith(model.linkBoost,'/')}" class="btn-group" role="group" aria-label="heating">
@@ -570,7 +574,7 @@
 		<th:block th:if="${#strings.equals(model.busy,'true')}">
 			<h4><span><th:block th:replace="basics :: symbol (name='fa fa-spinner fa-spin')"/></span></h4>
 		</th:block>
-		<script type="text/javascript">
+		<script type="text/javascript" th:unless="${#strings.equals(model.unreach,'true')}">
 			var timeout[[${model.id}]] = null;
 			var newTargetTemp[[${model.id}]] = parseFloat(document.getElementById('val_model_targetTemp_[[${model.id}]]').value.replace(/,/, '.'));
 			function adjustHeating[[${model.id}]](diff){

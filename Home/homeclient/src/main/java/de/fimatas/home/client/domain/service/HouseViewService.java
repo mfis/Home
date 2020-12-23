@@ -37,10 +37,10 @@ import de.fimatas.home.library.domain.model.OutdoorClimate;
 import de.fimatas.home.library.domain.model.PowerConsumptionDay;
 import de.fimatas.home.library.domain.model.PowerMeter;
 import de.fimatas.home.library.domain.model.RoomClimate;
+import de.fimatas.home.library.domain.model.Shutter;
 import de.fimatas.home.library.domain.model.ShutterPosition;
 import de.fimatas.home.library.domain.model.StateValue;
 import de.fimatas.home.library.domain.model.Switch;
-import de.fimatas.home.library.domain.model.Window;
 import de.fimatas.home.library.domain.model.WindowSensor;
 import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.homematic.model.Type;
@@ -128,8 +128,8 @@ public class HouseViewService {
         formatSwitch(model, "switchWallbox", house.getWallboxSwitch());
         formatSwitch(model, "switchWorkshopVentilation", house.getWorkshopVentilationSwitch());
 
-        formatFrontDoorBell(model, house.getFrontDoorBell(), house.getFrontDoorCamera());
-        formatFrontDoorLock(model, house.getFrontDoorLock());
+        formatFrontDoorBell(model, "frontDoor", house.getFrontDoorBell(), house.getFrontDoorCamera());
+        formatFrontDoorLock(model, "frontDoorLock", house.getFrontDoorLock());
         formatPower(model, house.getTotalElectricalPowerConsumption(), historyModel.getTotalElectricPowerConsumptionDay());
         formatPower(model, house.getWallboxElectricalPowerConsumption(), historyModel.getWallboxElectricPowerConsumptionDay());
 
@@ -153,11 +153,16 @@ public class HouseViewService {
         }
     }
 
-    private void formatFrontDoorBell(Model model, Doorbell doorbell, Camera camera) {
+    private void formatFrontDoorBell(Model model, String id, Doorbell doorbell, Camera camera) {
 
         FrontDoorView frontDoorView = new FrontDoorView();
         frontDoorView.setUnreach(Boolean.toString(doorbell.isUnreach()));
+        if (doorbell.isUnreach()) {
+            model.addAttribute(id, frontDoorView);
+            return;
+        }
 
+        frontDoorView.setIcon("fas fa-bell");
         if (doorbell.getTimestampLastDoorbell() != null) {
             frontDoorView.setLastDoorbells(
                 StringUtils.capitalize(viewFormatter.formatPastTimestamp(doorbell.getTimestampLastDoorbell(), true)));
@@ -175,18 +180,23 @@ public class HouseViewService {
                 + "&ts=" + doorbell.getTimestampLastDoorbell());
         }
 
-        model.addAttribute("frontDoor", frontDoorView);
+        model.addAttribute(id, frontDoorView);
     }
 
-    private void formatFrontDoorLock(Model model, Doorlock doorlock) {
+    private void formatFrontDoorLock(Model model, String id, Doorlock doorlock) {
 
         LockView view = new LockView();
-        view.setId("frontDoorLock");
+        view.setId(id);
         view.setName(doorlock.getDevice().getType().getTypeName());
         view.setCaption(doorlock.getDevice().getPlace().getPlaceName());
         view.setPlace(doorlock.getDevice().getPlace().getPlaceName());
-        view.setBusy(Boolean.toString(doorlock.isBusy()));
         view.setUnreach(Boolean.toString(doorlock.isUnreach()));
+        if (doorlock.isUnreach()) {
+            model.addAttribute(id, view);
+            return;
+        }
+
+        view.setBusy(Boolean.toString(doorlock.isBusy()));
         boolean setButtonLock = false;
         boolean setButtonUnlock = false;
         boolean setButtonOpen = false;
@@ -239,7 +249,7 @@ public class HouseViewService {
         formatFrontDoorLockLinks(doorlock, view);
         view.setAutoInfoText(StringUtils.trimToEmpty(doorlock.getLockAutomationInfoText()));
 
-        model.addAttribute("frontDoorLock", view);
+        model.addAttribute(id, view);
     }
 
     public void formatFrontDoorLockLinks(Doorlock doorlock, LockView view) {
@@ -265,6 +275,7 @@ public class HouseViewService {
     }
 
     private String format(BigDecimal val, boolean rounded, boolean onlyInteger) {
+
         if (val != null) {
             if (onlyInteger) {
                 return new DecimalFormat(rounded ? "#" : "0").format(val);
@@ -284,15 +295,18 @@ public class HouseViewService {
     private ClimateView formatClimate(Climate climate, Heating heating, String viewKey, boolean history) {
 
         ClimateView view = new ClimateView();
+        view.setId(viewKey);
+        view.setPlace(climate.getDevice().getPlace().getPlaceName());
         view.setUnreach(Boolean.toString(climate.isUnreach() || (heating != null && heating.isUnreach())));
+        if (climate.isUnreach() || (heating != null && heating.isUnreach())) {
+            return view;
+        }
 
         if (climateStateUnknown(climate)) {
             view.setStateTemperature(UNBEKANNT);
             return view;
         }
 
-        view.setId(viewKey);
-        view.setPlace(climate.getDevice().getPlace().getPlaceName());
         if (history) {
             view.setHistoryKey(climate.getDevice().programNamePrefix());
         }
@@ -326,8 +340,8 @@ public class HouseViewService {
     public void formatClimateIcons(Climate climate, ClimateView view) {
 
         if (climate instanceof RoomClimate && ((RoomClimate) climate).getHumidityWetterThanOutdoor() != null) {
-            view.setAbsoluteHumidityIcon(((RoomClimate) climate).getHumidityWetterThanOutdoor().booleanValue()
-                ? "fas fa-tint" : "fas fa-tint-slash");
+            view.setAbsoluteHumidityIcon(
+                ((RoomClimate) climate).getHumidityWetterThanOutdoor().booleanValue() ? "fas fa-tint" : "fas fa-tint-slash");
         }
         if (climate.getTemperature().getValue().compareTo(FROST_TEMP) < 0) {
             view.setStatePostfixIconTemperature("far fa-snowflake");
@@ -407,12 +421,12 @@ public class HouseViewService {
         ClimateView viewMax = new ClimateView();
         viewMax.setId(viewKeyMax);
 
-        if (house.getConclusionClimateFacadeMin() != null) {
+        if (!house.getConclusionClimateFacadeMin().isUnreach()) {
             viewMin.setPostfix(" (" + house.getConclusionClimateFacadeMin().getBase().getPlace().getPlaceName() + ")");
             viewMin.setHistoryKey(house.getConclusionClimateFacadeMin().getDevice().programNamePrefix());
         }
 
-        if (house.getConclusionClimateFacadeMax() != null) {
+        if (!house.getConclusionClimateFacadeMax().isUnreach()) {
             viewMax.setStateTemperature(lookupSunHeating(house.getConclusionClimateFacadeMax()));
             viewMax.setName(house.getConclusionClimateFacadeMax().getDevice().getPlace().getPlaceName());
 
@@ -443,10 +457,15 @@ public class HouseViewService {
     private void formatPower(Model model, PowerMeter powerMeter, List<PowerConsumptionDay> pcd) {
 
         PowerView power = new PowerView();
-        power.setUnreach(Boolean.toString(powerMeter.isUnreach()));
         power.setId(powerMeter.getDevice().programNamePrefix());
         power.setPlace(powerMeter.getDevice().getPlace().getPlaceName());
         power.setDescription(powerMeter.getDevice().getDescription());
+        power.setUnreach(Boolean.toString(powerMeter.isUnreach()));
+        if (powerMeter.isUnreach()) {
+            model.addAttribute(powerMeter.getDevice().programNamePrefix(), power);
+            return;
+        }
+
         power.setHistoryKey(powerMeter.getDevice().programNamePrefix());
         power.setState(powerMeter.getActualConsumption().getValue() == null ? UNBEKANNT
             : powerMeter.getActualConsumption().getValue().intValue() + " W");
@@ -488,19 +507,22 @@ public class HouseViewService {
     private void formatWindowSensor(Model model, String viewKey, WindowSensor windowSensor) {
 
         WindowSensorView view = new WindowSensorView();
-        view.setUnreach(Boolean.toString(windowSensor.isUnreach()));
         view.setId(viewKey);
         view.setName(windowSensor.getDevice().getType().getTypeName());
         view.setShortName(windowSensor.getDevice().getType().getShortName());
         view.setPlace(windowSensor.getDevice().getPlace().getPlaceName());
+        view.setUnreach(Boolean.toString(windowSensor.isUnreach()));
+        if (windowSensor.isUnreach()) {
+            model.addAttribute(viewKey, view);
+            return;
+        }
 
         String stateSuffix = StringUtils.EMPTY;
         String stateDelimiter = StringUtils.EMPTY;
 
         if (windowSensor.getStateTimestamp() != null) {
             stateDelimiter = ", ";
-            stateSuffix =
-                viewFormatter.formatPastTimestamp(windowSensor.getStateTimestamp(), true);
+            stateSuffix = viewFormatter.formatPastTimestamp(windowSensor.getStateTimestamp(), true);
         }
 
         view.setState((windowSensor.isState() ? "Geöffnet" : "Geschlossen") + stateDelimiter);
@@ -516,11 +538,16 @@ public class HouseViewService {
     private void formatSwitch(Model model, String viewKey, Switch switchModel) {
 
         SwitchView view = new SwitchView();
-        view.setUnreach(Boolean.toString(switchModel.isUnreach()));
         view.setId(viewKey);
         view.setName(switchModel.getDevice().getType().getTypeName());
         view.setShortName(switchModel.getDevice().getType().getShortName());
         view.setPlace(switchModel.getDevice().getPlace().getPlaceName());
+        view.setUnreach(Boolean.toString(switchModel.isUnreach()));
+        if (switchModel.isUnreach()) {
+            model.addAttribute(viewKey, view);
+            return;
+        }
+
         view.setState(switchModel.isState() ? "Eingeschaltet" : "Ausgeschaltet");
         view.setStateShort(switchModel.isState() ? "Ein" : "Aus");
         if (switchModel.isState()) {
@@ -572,12 +599,17 @@ public class HouseViewService {
     }
 
     @SuppressWarnings("unused")
-    private void formatWindow(Model model, String viewKey, Window windowModel) {
+    private void formatWindow(Model model, String viewKey, Shutter windowModel) {
 
         ShutterView view = new ShutterView();
-        view.setUnreach(Boolean.toString(windowModel.isUnreach()));
         view.setId(viewKey);
         view.setName(windowModel.getDevice().getType().getTypeName());
+        view.setUnreach(Boolean.toString(windowModel.isUnreach()));
+        if (windowModel.isUnreach()) {
+            model.addAttribute(viewKey, view);
+            return;
+        }
+
         view.setState(windowModel.getShutterPosition().getText(windowModel.getShutterPositionPercentage()));
 
         if (windowModel.getShutterAutomation() != null) {
@@ -604,7 +636,7 @@ public class HouseViewService {
         model.addAttribute(viewKey, view);
     }
 
-    private String shutterLink(Window windowModel, ShutterPosition shutterPosition) {
+    private String shutterLink(Shutter windowModel, ShutterPosition shutterPosition) {
         if (shutterPosition == windowModel.getShutterPosition()) {
             return "#";
         } else {
