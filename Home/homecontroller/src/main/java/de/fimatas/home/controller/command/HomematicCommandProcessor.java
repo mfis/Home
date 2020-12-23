@@ -45,6 +45,9 @@ public class HomematicCommandProcessor {
                 accessMethodParam = datapointAdress(command);
             }
             break;
+        case GET_DEVICE_VALUE_TS:
+            accessMethodParam = datapointAdress(command);
+            break;
         case GET_SYSVAR:
         case SET_SYSVAR:
             accessMethodParam = command.getSuffix();
@@ -93,6 +96,7 @@ public class HomematicCommandProcessor {
         switch (command.getCommandType()) {
         case GET_DEVICE_VALUE:
         case SET_DEVICE_STATE:
+        case GET_DEVICE_VALUE_TS:
             if (command.getDevice().isSysVar()) {
                 name = deviceQualifier.idFrom(command.getDevice());
             } else {

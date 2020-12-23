@@ -9,7 +9,6 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -19,6 +18,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.annotation.PostConstruct;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
@@ -37,6 +37,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.w3c.dom.Document;
@@ -64,8 +65,6 @@ public class HomematicAPI {
     @Autowired
     private HomematicCommandBuilder homematicCommandBuilder;
 
-    private static final int INIT_STATE_MINUTES = 90;
-
     private static final DateTimeFormatter UPTIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private String host;
@@ -92,6 +91,8 @@ public class HomematicAPI {
 
     private long lastCCUAuthTestTimestamp = 0;
 
+    private static final long ONE_DAY_IN_MILLIS = 1000L * 60L * 60L * 24L;
+
     private Boolean ccuAuthActive;
 
     private static final Log LOG = LogFactory.getLog(HomematicAPI.class);
@@ -102,11 +103,18 @@ public class HomematicAPI {
         ccuUser = env.getProperty("homematic.authuser");
         ccuPass = env.getProperty("homematic.authpass");
         host = env.getProperty("homematic.hostName");
+        String writeEnabled = env.getProperty("application.write.to.homematic");
+
+        Assert.notNull(ccuUser, "ccuUser not set");
+        Assert.notNull(ccuPass, "ccuPass not set");
+        Assert.notNull(host, "host not set");
+        Assert.notNull(writeEnabled, "writeEnabled not set");
+
         if (!host.startsWith("https://")) {
             throw new IllegalArgumentException("Non-SSL connections to ccu not allowed!");
         }
 
-        writeToHomematicEnabled = Boolean.parseBoolean(env.getProperty("application.write.to.homematic").trim());
+        writeToHomematicEnabled = Boolean.parseBoolean(writeEnabled.trim());
 
         try {
             digest = MessageDigest.getInstance("SHA-256");
@@ -115,22 +123,43 @@ public class HomematicAPI {
         }
     }
 
+    public boolean isDeviceUnreachableOrNotSending(Device device) {
+        if (ccuInitState) {
+            return true;
+        }
+
+        boolean unreachable = getAsBoolean(homematicCommandBuilder.read(device, Datapoint.UNREACH));
+        if (unreachable) {
+            return true;
+        }
+
+        Optional<Datapoint> datapointWithTimestamp = device.getDatapoints().stream().filter(Datapoint::isReadTimestamp).findFirst();
+        if(datapointWithTimestamp.isPresent()) {
+            long datapointTimestamp = getTimestamp(homematicCommandBuilder.readTS(device, datapointWithTimestamp.get()));
+            if (datapointTimestamp < ONE_DAY_IN_MILLIS) { // 0 +- timezone
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public String getAsString(HomematicCommand command) {
-        return checkInit(readValue(command));
+        return readValue(command);
     }
 
     public boolean getAsBoolean(HomematicCommand command) {
-        return checkInit(Boolean.valueOf(readValue(command)));
+        return Boolean.valueOf(readValue(command));
     }
 
     public BigDecimal getAsBigDecimal(HomematicCommand command) {
-        return checkInit(new BigDecimal(readValue(command)));
+        return new BigDecimal(readValue(command));
     }
 
-    public Long getTimestamp(HomematicCommand command) {
+    private long getTimestamp(HomematicCommand command) {
         ZonedDateTime zonedDateTime =
             ZonedDateTime.of(LocalDateTime.parse(readValue(command), UPTIME_FORMATTER), ZoneId.systemDefault());
-        return checkInit(zonedDateTime.toInstant().toEpochMilli());
+        return zonedDateTime.toInstant().toEpochMilli();
     }
 
     public void executeCommand(HomematicCommand... commands) {
@@ -158,27 +187,6 @@ public class HomematicAPI {
             LOG.error("Key/Value unknown: " + command.getCashedVarName() + " / known keys: \n" + sb.toString());
             return null;
         }
-    }
-
-    private <T> T checkInit(T value) {
-
-        if (!ccuInitState) {
-            return value;
-        }
-
-        if (value == null) {
-            return value;
-        }
-
-        if (value.getClass().isAssignableFrom(String.class) && StringUtils.isBlank((String) value)) {
-            return null;
-        }
-
-        if (value.getClass().isAssignableFrom(BigDecimal.class) && BigDecimal.ZERO.compareTo((BigDecimal) value) == 0) {
-            return null;
-        }
-
-        return value;
     }
 
     private Boolean testCcuAuthIsActive() {
@@ -211,6 +219,9 @@ public class HomematicAPI {
         for (Device device : Device.values()) {
             for (Datapoint datapoint : device.getDatapoints()) {
                 commands.add(homematicCommandBuilder.read(device, datapoint));
+                if (datapoint.isReadTimestamp()) {
+                    commands.add(homematicCommandBuilder.readTS(device, datapoint));
+                }
             }
             if (device.getSysVars() != null) {
                 for (String suffix : device.getSysVars()) {
@@ -234,16 +245,7 @@ public class HomematicAPI {
     }
 
     private void lookupInitState() {
-
-        boolean reboot = getAsBoolean(homematicCommandBuilder.read("CCU_im_Reboot"));
-        if (reboot) {
-            ccuInitState = true;
-            return;
-        }
-
-        String uptime = getAsString(homematicCommandBuilder.read("CCU_Uptime"));
-        long minutesUptime = Duration.between(LocalDateTime.parse(uptime, UPTIME_FORMATTER), LocalDateTime.now()).toMinutes();
-        ccuInitState = minutesUptime <= INIT_STATE_MINUTES;
+        ccuInitState = getAsBoolean(homematicCommandBuilder.read("CCU_im_Reboot"));
     }
 
     private boolean executeCommands(boolean refresh, HomematicCommand... commands) {
@@ -371,13 +373,15 @@ public class HomematicAPI {
         }
 
         try {
-            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance(); // NOSONAR
             dbFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, Boolean.TRUE);
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-            byte[] responseBytes = responseEntity.getBody().getBytes(StandardCharsets.UTF_8);
+            String resposeString = responseEntity.getBody();
+            Assert.notNull(resposeString, "ccu response is empty!");
+            byte[] responseBytes = resposeString.getBytes(StandardCharsets.UTF_8);
             if (refresh) {
                 String actualHashString =
-                    Hex.encodeHexString(digest.digest(responseEntity.getBody().getBytes(StandardCharsets.UTF_8)));
+                    Hex.encodeHexString(digest.digest(responseBytes));
                 if (StringUtils.equals(refreshHashString, actualHashString)) {
                     return null;
                 } else {

@@ -44,6 +44,15 @@ public class HomematicCommandBuilder {
         return hc;
     }
 
+    public HomematicCommand readTS(Device device, Datapoint datapoint) {
+        HomematicCommand hc = new HomematicCommand();
+        hc.setCommandType(CommandType.GET_DEVICE_VALUE_TS);
+        hc.setDevice(device);
+        hc.setDatapoint(datapoint);
+        hc.setCashedVarName(cacheVarName(hc));
+        return hc;
+    }
+
     public HomematicCommand write(Device device, Datapoint datapoint, boolean stateToSet) {
         HomematicCommand hc = new HomematicCommand();
         if (device.isSysVar()) {

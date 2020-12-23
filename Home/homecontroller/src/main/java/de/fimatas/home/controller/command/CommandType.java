@@ -3,15 +3,18 @@ package de.fimatas.home.controller.command;
 import static de.fimatas.home.controller.command.HomematicCommandConstants.DATAPOINT_METHOD;
 import static de.fimatas.home.controller.command.HomematicCommandConstants.DOM_METHOD;
 import static de.fimatas.home.controller.command.HomematicCommandConstants.EMPTY;
+import static de.fimatas.home.controller.command.HomematicCommandConstants.LAST_TIMESTAMP;
 import static de.fimatas.home.controller.command.HomematicCommandConstants.PREFIX_RC;
 import static de.fimatas.home.controller.command.HomematicCommandConstants.PREFIX_VAR;
 import static de.fimatas.home.controller.command.HomematicCommandConstants.PROGRAM_EXECUTE;
 import static de.fimatas.home.controller.command.HomematicCommandConstants.STATE;
+import static de.fimatas.home.controller.command.HomematicCommandConstants.SUFFIX_TS;
 import static de.fimatas.home.controller.command.HomematicCommandConstants.VALUE;
 
 public enum CommandType {
 
     GET_DEVICE_VALUE(PREFIX_VAR, EMPTY, DATAPOINT_METHOD, VALUE, false), //
+    GET_DEVICE_VALUE_TS(PREFIX_VAR, SUFFIX_TS, DATAPOINT_METHOD, LAST_TIMESTAMP, false), //
     GET_SYSVAR(PREFIX_VAR, EMPTY, DOM_METHOD, VALUE, false), //
     GET_SYSVAR_DEVICEBASE(PREFIX_VAR, EMPTY, DOM_METHOD, VALUE, false), //
     SET_SYSVAR(PREFIX_RC, EMPTY, DOM_METHOD, STATE, true), //

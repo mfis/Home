@@ -604,7 +604,7 @@ public class HouseService {
 
         OutdoorClimate outdoorClimate = new OutdoorClimate();
         outdoorClimate.setDevice(outside);
-        outdoorClimate.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(outside, Datapoint.UNREACH)));
+        outdoorClimate.setUnreach(api.isDeviceUnreachableOrNotSending(outside));
         if (outdoorClimate.isUnreach()) {
             return outdoorClimate;
         }
@@ -630,7 +630,7 @@ public class HouseService {
 
         RoomClimate roomClimate = new RoomClimate();
         roomClimate.setDevice(thermometer);
-        roomClimate.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(thermometer, Datapoint.UNREACH)));
+        roomClimate.setUnreach(api.isDeviceUnreachableOrNotSending(thermometer));
         if (roomClimate.isUnreach()) {
             return roomClimate;
         }
@@ -652,7 +652,7 @@ public class HouseService {
 
         Heating heatingModel = new Heating();
         heatingModel.setDevice(heating);
-        heatingModel.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(heating, Datapoint.UNREACH)));
+        heatingModel.setUnreach(api.isDeviceUnreachableOrNotSending(heating));
         if (heatingModel.isUnreach()) {
             return heatingModel;
         }
@@ -686,7 +686,7 @@ public class HouseService {
     private Shutter readShutter(Device shutterDevice) { // TODO: D_U_M_M_Y // NOSONAR
         Shutter shutter = new Shutter();
         shutter.setDevice(shutterDevice);
-        shutter.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(shutterDevice, Datapoint.UNREACH)));
+        shutter.setUnreach(api.isDeviceUnreachableOrNotSending(shutterDevice));
         if (shutter.isUnreach()) {
             return shutter;
         }
@@ -705,7 +705,7 @@ public class HouseService {
     private Switch readSwitchState(Device device) {
         Switch switchModel = new Switch();
         switchModel.setDevice(device);
-        switchModel.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(device, Datapoint.UNREACH)));
+        switchModel.setUnreach(api.isDeviceUnreachableOrNotSending(device));
         if (switchModel.isUnreach()) {
             return switchModel;
         }
@@ -720,7 +720,7 @@ public class HouseService {
 
         WindowSensor windowSensorModel = new WindowSensor();
         windowSensorModel.setDevice(device);
-        windowSensorModel.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(device, Datapoint.UNREACH)));
+        windowSensorModel.setUnreach(api.isDeviceUnreachableOrNotSending(device));
         if (windowSensorModel.isUnreach()) {
             return windowSensorModel;
         }
@@ -741,7 +741,7 @@ public class HouseService {
 
         Doorbell frontDoor = new Doorbell();
         frontDoor.setDevice(Device.HAUSTUER_KLINGEL);
-        frontDoor.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_KLINGEL, Datapoint.UNREACH)));
+        frontDoor.setUnreach(api.isDeviceUnreachableOrNotSending(Device.HAUSTUER_KLINGEL));
         if (frontDoor.isUnreach()) {
             return frontDoor;
         }
@@ -766,7 +766,7 @@ public class HouseService {
         Doorlock frontDoor = new Doorlock();
 
         frontDoor.setDevice(Device.HAUSTUER_SCHLOSS);
-        frontDoor.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, Datapoint.UNREACH)));
+        frontDoor.setUnreach(api.isDeviceUnreachableOrNotSending(Device.HAUSTUER_SCHLOSS));
         if (frontDoor.isUnreach()) {
             return frontDoor;
         }
@@ -807,7 +807,7 @@ public class HouseService {
 
         PowerMeter model = new PowerMeter();
         model.setDevice(device);
-        model.setUnreach(api.getAsBoolean(homematicCommandBuilder.read(device, Datapoint.UNREACH)));
+        model.setUnreach(api.isDeviceUnreachableOrNotSending(device));
         if (model.isUnreach()) {
             return model;
         }
