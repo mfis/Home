@@ -18,7 +18,7 @@
 			<a>
 				<span th:if="${!#strings.isEmpty(icon)}"><th:block th:replace="basics :: symbol (name=${icon})"/></span>
 				<span th:text="${name}"></span>
-				<span th:if="${#strings.startsWith(unreach, 'true')}" class="text-danger">&nbsp;- Verbindungsfehler!</span>			
+				<span th:if="${#strings.startsWith(unreach, 'true')}" class="text-danger">&nbsp;- Aktualisierung ausstehend!</span>			
 			</a>
 		</div>
 	</div>	
