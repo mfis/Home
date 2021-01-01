@@ -19,6 +19,16 @@
 			<div th:replace="fragments :: generalWarning (model=${warnings})"></div>
 			<div th:replace="fragments :: deviceBatterieWarning (model=${lowBattery})"></div>
 	
+			<!-- Draussen -->
+			<div th:replace="fragments :: title (name='Draußen')"></div>
+			<div th:replace="fragments :: temperature (model=${tempMinHouse})"></div>
+			<div th:replace="fragments :: sunStatus (model=${tempMaxHouse})"></div>
+	
+			<!-- Haustür -->
+			<div th:replace="fragments :: title (name='Haustür')"></div>
+			<div th:replace="fragments :: frontDoor (model=${frontDoor})"></div>
+			<div th:replace="fragments :: doorLock (model=${frontDoorLock})"></div>
+	
 			<!-- Wohnzimmer -->
 			<div th:replace="fragments :: title (name='Wohnzimmer')"></div>
 			<div th:replace="fragments :: temperature (model=${tempLivingroom})"></div>
@@ -53,16 +63,6 @@
 			<!-- Werkstatt -->
 			<div th:replace="fragments :: title (name='Werkstatt')"></div>
 			<div th:replace="fragments :: switch (model=${switchWorkshopVentilation})"></div>
-	
-			<!-- Haustür -->
-			<div th:replace="fragments :: title (name='Haustür')"></div>
-			<div th:replace="fragments :: frontDoor (model=${frontDoor})"></div>
-			<div th:replace="fragments :: doorLock (model=${frontDoorLock})"></div>
-	
-			<!-- Draussen -->
-			<div th:replace="fragments :: title (name='Draußen')"></div>
-			<div th:replace="fragments :: temperature (model=${tempMinHouse})"></div>
-			<div th:replace="fragments :: sunStatus (model=${tempMaxHouse})"></div>
 	
 			<!-- Energie -->
 			<div th:replace="fragments :: title (name='Energie')"></div>

@@ -26,6 +26,8 @@ public abstract class View {
 
     private String colorClass = "secondary";
 
+    private String activeSwitchColorClass = "light";
+
     public String getIcon() {
         return icon;
     }
@@ -120,6 +122,14 @@ public abstract class View {
 
     public void setShortName(String shortName) {
         this.shortName = shortName;
+    }
+
+    public String getActiveSwitchColorClass() {
+        return activeSwitchColorClass;
+    }
+
+    public void setActiveSwitchColorClass(String activeSwitchColorClass) {
+        this.activeSwitchColorClass = activeSwitchColorClass;
     }
 
 }

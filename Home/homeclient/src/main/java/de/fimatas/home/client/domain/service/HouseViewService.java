@@ -160,6 +160,7 @@ public class HouseViewService {
     private void formatFrontDoorBell(Model model, String id, Doorbell doorbell, Camera camera) {
 
         FrontDoorView frontDoorView = new FrontDoorView();
+        frontDoorView.setId(id);
         frontDoorView.setUnreach(Boolean.toString(doorbell.isUnreach()));
         if (doorbell.isUnreach()) {
             model.addAttribute(id, frontDoorView);
@@ -556,6 +557,9 @@ public class HouseViewService {
         view.setStateShort(switchModel.isState() ? "Ein" : "Aus");
         if (switchModel.isState()) {
             view.setColorClass(COLOR_CLASS_ORANGE);
+            view.setActiveSwitchColorClass(COLOR_CLASS_ORANGE);
+        } else {
+            view.setActiveSwitchColorClass("active-primary");
         }
 
         String[] buttonCaptions = StringUtils.substringsBetween(switchModel.getAutomationInfoText(), "{", "}");
@@ -574,6 +578,8 @@ public class HouseViewService {
         view.setLabel(switchModel.isState() ? "ausschalten" : "einschalten");
         if (switchModel.getDevice().getType() == Type.SWITCH_VENTILATION) {
             view.setIcon("fas fa-fan");
+        } else if (isLightSwitch(switchModel.getDevice())) {
+            view.setIcon(switchModel.isState() ? "fas fa-lightbulb" : "far fa-lightbulb");
         } else {
             view.setIcon(switchModel.isState() ? "fas fa-toggle-on" : "fas fa-toggle-off");
         }
@@ -585,7 +591,7 @@ public class HouseViewService {
         model.addAttribute(viewKey, view);
     }
 
-    public void formatSwitchAutomation(Switch switchModel, SwitchView view, String suffixAuto, String suffixManual) {
+    private void formatSwitchAutomation(Switch switchModel, SwitchView view, String suffixAuto, String suffixManual) {
 
         if (switchModel.getAutomation() != null) {
             if (Boolean.TRUE.equals(switchModel.getAutomation())) {
@@ -600,6 +606,12 @@ public class HouseViewService {
             view.setAutoInfoText(
                 StringUtils.trimToEmpty(RegExUtils.removeAll(switchModel.getAutomationInfoText(), "[\\x7b\\x7d]")));
         }
+    }
+
+    private boolean isLightSwitch(Device device) {
+
+        String name = device.getType().getTypeName();
+        return StringUtils.containsIgnoreCase(name, "licht") || StringUtils.containsIgnoreCase(name, "lampe");
     }
 
     @SuppressWarnings("unused")
@@ -654,7 +666,7 @@ public class HouseViewService {
         // -----------------------------------
 
         var light1 = new LightView(); // IS ON
-        light1.setId("light#wohn#l1");
+        light1.setId("light_wohn_l1");
         light1.setName("Spielecke");
         light1.setStateShort("Ein");
         light1.setColorClass(COLOR_CLASS_ORANGE);
@@ -662,28 +674,28 @@ public class HouseViewService {
         light1.setLinkOff("/...");
 
         var light2 = new LightView(); // IS OFF
-        light2.setId("light#wohn#l2");
+        light2.setId("light_wohn_l2");
         light2.setName("Hochregal");
         light2.setStateShort("Aus");
         light2.setColorClass("");
         light2.setLinkOn("/...");
 
         var light3 = new LightView(); // IS ON
-        light3.setId("light#wohn#l3");
+        light3.setId("light_wohn_l3");
         light3.setName("Klavier");
         light3.setStateShort("Ein");
         light3.setColorClass(COLOR_CLASS_ORANGE);
         light3.setLinkOff("/...");
 
         var light4 = new LightView(); // IS OFF
-        light4.setId("light#wohn#l4");
+        light4.setId("light_wohn_l4");
         light4.setName("Terrassentür");
         light4.setStateShort("Aus");
         light4.setColorClass("");
         light4.setLinkOn("/...");
 
         var light5 = new LightView(); // IS OFF BY SWITCH
-        light5.setId("light#wohn#l5");
+        light5.setId("light_wohn_l5");
         light5.setName("Essecke");
         light5.setStateShort("Ein");
         light5.setColorClass("");
@@ -691,9 +703,10 @@ public class HouseViewService {
         // -----------------------------------
 
         var lights = new LightsView();
+        lights.setId("lights_wohn");
         lights.setColorClass(COLOR_CLASS_ORANGE);
-        lights.setName("Lampen");
-        lights.setIcon("far fa-lightbulb");
+        lights.setName("Licht");
+        lights.setIcon(true ? "fas fa-lightbulb" : "far fa-lightbulb");
 
         lights.getLights().add(light1);
         lights.getLights().add(light2);

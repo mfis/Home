@@ -23,7 +23,7 @@
 	<link rel="icon" sizes="180x180" href="apple-touch-icon-180x180.png">
 	<link rel="shortcut icon" href="favicon.ico"></link>
 	
-	<link rel='stylesheet' href='style.v3_1_6.css'/>
+	<link rel='stylesheet' href='style.v3_1_7.css'/>
 	
 	<link rel='stylesheet' href='/webjars/bootstrap/css/bootstrap.min.css'/>
 	
@@ -55,6 +55,13 @@
 					if (httpRequest.readyState == 4) {
 						if(httpRequest.status == 200){
 							var doc = new DOMParser().parseFromString(httpRequest.responseText, "text/html");
+							for (var entry of document.getElementsByClassName('collapse-preserve-state')){
+							    if($(entry).is(':visible')){
+							    //if(entry.classList.contains('show')){
+									doc.getElementById(entry.id).classList.remove("collapse");
+									doc.getElementById(entry.id).classList.add("collapse-show");
+							    }
+							}
 							document.getElementById('idbody').innerHTML = doc.getElementById('idbody').innerHTML;
 							lastRefresh = (new Date).getTime();
 							showCheck();
