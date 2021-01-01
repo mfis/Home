@@ -17,6 +17,8 @@ import org.springframework.ui.Model;
 import de.fimatas.home.client.domain.model.ChartEntry;
 import de.fimatas.home.client.domain.model.ClimateView;
 import de.fimatas.home.client.domain.model.FrontDoorView;
+import de.fimatas.home.client.domain.model.LightView;
+import de.fimatas.home.client.domain.model.LightsView;
 import de.fimatas.home.client.domain.model.LockView;
 import de.fimatas.home.client.domain.model.PowerView;
 import de.fimatas.home.client.domain.model.ShutterView;
@@ -136,6 +138,8 @@ public class HouseViewService {
         formatLowBattery(model, house.getLowBatteryDevices());
 
         formatWarnings(model, house);
+
+        formatLights(model);
     }
 
     public String lookupSunHeating(OutdoorClimate outdoorMaxClimate) {
@@ -643,6 +647,61 @@ public class HouseViewService {
             return MESSAGEPATH + TYPE_IS + MessageType.SHUTTERPOSITION + AND_DEVICE_IS + windowModel.getDevice().name()
                 + AND_VALUE_IS + shutterPosition.getControlPosition();
         }
+    }
+
+    private void formatLights(Model model) {
+
+        // -----------------------------------
+
+        var light1 = new LightView(); // IS ON
+        light1.setId("light#wohn#l1");
+        light1.setName("Spielecke");
+        light1.setStateShort("Ein");
+        light1.setColorClass(COLOR_CLASS_ORANGE);
+        // light1.setLinkOn("#");
+        light1.setLinkOff("/...");
+
+        var light2 = new LightView(); // IS OFF
+        light2.setId("light#wohn#l2");
+        light2.setName("Hochregal");
+        light2.setStateShort("Aus");
+        light2.setColorClass("");
+        light2.setLinkOn("/...");
+
+        var light3 = new LightView(); // IS ON
+        light3.setId("light#wohn#l3");
+        light3.setName("Klavier");
+        light3.setStateShort("Ein");
+        light3.setColorClass(COLOR_CLASS_ORANGE);
+        light3.setLinkOff("/...");
+
+        var light4 = new LightView(); // IS OFF
+        light4.setId("light#wohn#l4");
+        light4.setName("Terrassentür");
+        light4.setStateShort("Aus");
+        light4.setColorClass("");
+        light4.setLinkOn("/...");
+
+        var light5 = new LightView(); // IS OFF BY SWITCH
+        light5.setId("light#wohn#l5");
+        light5.setName("Essecke");
+        light5.setStateShort("Ein");
+        light5.setColorClass("");
+
+        // -----------------------------------
+
+        var lights = new LightsView();
+        lights.setColorClass(COLOR_CLASS_ORANGE);
+        lights.setName("Lampen");
+        lights.setIcon("far fa-lightbulb");
+
+        lights.getLights().add(light1);
+        lights.getLights().add(light2);
+        lights.getLights().add(light3);
+        lights.getLights().add(light4);
+        lights.getLights().add(light5);
+
+        model.addAttribute("lightsWohnzimmer", lights);
     }
 
 }
