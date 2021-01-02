@@ -23,9 +23,9 @@
 	</div>	
 	
 	<!-- Collapsable ElementName -->
-	<div th:fragment="elementnameCollapsable (icon, name, place, unreach, collapseLink)">
+	<div th:fragment="elementnameCollapsable (icon, name, place, unreach, collapseLink)" data-toggle="collapse" th:data-target="'#' + ${collapseLink}" aria-expanded="false" th:aria-controls="${collapseLink}">
 		<th:block th:if="${!#strings.isEmpty(collapseLink)}">
-			<div style="float:right; position:relative; padding-right: 16px; padding-left: 12px; padding-bottom: 0px;" data-toggle="collapse" th:data-target="'#' + ${collapseLink}" aria-expanded="false" th:aria-controls="${collapseLink}">
+			<div style="float:right; position:relative; padding-right: 16px; padding-left: 12px; padding-bottom: 0px;">
 				<a>
 					<span>
 						<th:block th:replace="basics :: symbol (name='fas fa-chevron-circle-down')"/>
@@ -37,8 +37,10 @@
 			<a>
 				<span th:if="${!#strings.isEmpty(icon)}"><th:block th:replace="basics :: symbol (name=${icon})"/></span>		
 				<span th:text="${name}"></span>
+				<span th:id="${collapseLink} + 'ShortState'" th:text="' - lalala'"></span>
 				<span th:if="${#strings.startsWith(unreach, 'true')}" class="text-danger">&nbsp;- Aktualisierung ausstehend!</span>
 			</a>
+			<input type="hidden" th:id="'val_shortState_' + ${collapseLink}" th:value="'lalala'">
 		</div>
 	</div>
 
@@ -261,7 +263,7 @@
 				<h4>
 					<span th:text="${model.lastDoorbells}"></span>
 				</h4>
-			</div>
+			</div>		
 		</div>
 		<th:block th:if="${#strings.equals('x', 'y') and #strings.equals(model.unreach, 'false')}">
 			<div th:class="'alert alert-secondary callout callout-secondary'">

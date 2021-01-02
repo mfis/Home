@@ -184,7 +184,7 @@ public class HomeRequestMapping {
         try {
             if (houseModel == null) {
                 throw new IllegalStateException("State error - " + ModelObjectDAO.getInstance().getLastHouseModelState());
-            } else if (isModelUnchanged(etag, houseModel) && !isNewMessage) {
+            } else if (false && isModelUnchanged(etag, houseModel) && !isNewMessage) {
                 response.setStatus(HttpStatus.NOT_MODIFIED.value());
                 return "empty";
             } else {
