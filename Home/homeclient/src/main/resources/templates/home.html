@@ -38,11 +38,6 @@
 			<div th:replace="fragments :: title (name='Küche')"></div>
 			<div th:replace="fragments :: switch (model=${switchKitchen})"></div>
 	
-			<!-- Badezimmer -->
-			<div th:replace="fragments :: title (name='Badezimmer')"></div>
-			<div th:replace="fragments :: temperature (model=${tempBathroom})"></div>
-			<div th:replace="fragments :: thermostat (model=${tempBathroom})"></div>
-	
 			<!-- Kinderzimmer -->
 			<div th:replace="fragments :: title (name='Kinderzimmer')"></div>
 			<div th:replace="fragments :: temperature (model=${tempKids})"></div>
@@ -51,6 +46,11 @@
 			<div th:replace="fragments :: title (name='Schlafzimmer')"></div>
 			<div th:replace="fragments :: temperature (model=${tempBedroom})"></div>
 			<!-- <div th:replace="fragments :: window (model=${leftWindowBedroom})"></div> //NOSONAR -->
+	
+			<!-- Badezimmer -->
+			<div th:replace="fragments :: title (name='Badezimmer')"></div>
+			<div th:replace="fragments :: temperature (model=${tempBathroom})"></div>
+			<div th:replace="fragments :: thermostat (model=${tempBathroom})"></div>
 	
 			<!-- Waschküche -->
 			<div th:replace="fragments :: title (name='Waschküche')"></div>
