@@ -80,24 +80,32 @@
 			
 		function preserveCollapseStatus(oldDoc, newDoc){
 			for (var entry of oldDoc.getElementsByClassName('collapse-preserve-state')){
-				// console.log(entry.id + ' - ' + entry.classList);
 				if(entry.classList.contains('show')){
-					// console.log('restoring: ' + entry.id);
 			    	newDoc.getElementById(entry.id).classList.remove("collapse");
 			    	newDoc.getElementById(entry.id).classList.add("show");
 			    	newDoc.getElementById(entry.id + 'ElementTitleState').innerHTML = '';
+			    	newDoc.getElementById(entry.id + 'SymbolDown').style.display = 'none';
+			    	newDoc.getElementById(entry.id + 'SymbolUp').style.display = 'inline';
 			    }
 			}				
 		}
 
 		function registerCollapseListener(){
+			// start transitions
+			$('.collapse-preserve-state').on('show.bs.collapse', function (event) {
+				document.getElementById(event.target.id + 'SymbolDown').style.display = 'none';
+				document.getElementById(event.target.id + 'SymbolUp').style.display = 'inline';
+			});
+			$('.collapse-preserve-state').on('hide.bs.collapse', function (event) {
+				document.getElementById(event.target.id + 'SymbolDown').style.display = 'inline';
+				document.getElementById(event.target.id + 'SymbolUp').style.display = 'none';
+			});
+			// end transitions
 			$('.collapse-preserve-state').on('shown.bs.collapse', function (event) {
 				document.getElementById(event.target.id + 'ElementTitleState').innerHTML = '';
-				// console.log(event.target.classList);
 			});
 			$('.collapse-preserve-state').on('hidden.bs.collapse', function (event) {
 				document.getElementById(event.target.id + 'ElementTitleState').innerHTML = document.getElementById('val_ElementTitleState_' + event.target.id).value;
-				// console.log(event.target.classList);
 			});
 		}		
 		

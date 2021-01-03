@@ -27,8 +27,11 @@
 		<th:block th:if="${!#strings.isEmpty(collapseLink)}">
 			<div style="float:right; position:relative; padding-right: 16px; padding-left: 12px; padding-bottom: 0px;">
 				<a>
-					<span>
+					<span style="display:inline;" th:id="${collapseLink} + 'SymbolDown'">
 						<th:block th:replace="basics :: symbol (name='fas fa-chevron-circle-down')"/>
+					</span>
+					<span style="display:none;" th:id="${collapseLink} + 'SymbolUp'">
+						<th:block th:replace="basics :: symbol (name='fas fa-chevron-circle-up')"/>
 					</span>
 				</a>			
 			</div>		
