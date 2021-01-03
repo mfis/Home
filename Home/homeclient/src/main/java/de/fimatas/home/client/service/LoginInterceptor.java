@@ -65,7 +65,7 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 
         boolean loginOK = checkLogin(request, response);
 
-        if (!loginOK) {
+        if (!loginOK && !noLoginDataProvided(request)) {
             log.warn("Request: " + request.getRequestURI() + " NOT ok");
         }
 
@@ -106,12 +106,12 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
         if (isLogoffRequest(request)) {
             logoff(request, response);
             response.sendRedirect(LoginController.LOGIN_URI);
-            return false;
+            return true;
         }
 
         Map<String, String> params = mapRequestParameters(request);
 
-        if (noLoginDataProvided(request, params)) {
+        if (noLoginDataProvided(request)) {
             response.sendRedirect(LoginController.LOGIN_URI);
             return false;
         }
@@ -152,8 +152,9 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
         }
     }
 
-    private boolean noLoginDataProvided(HttpServletRequest request, Map<String, String> params) {
-        return StringUtils.isAllBlank(request.getHeader(APP_USER_TOKEN), params.get(LOGIN_USERNAME), cookieRead(request));
+    private boolean noLoginDataProvided(HttpServletRequest request) {
+        return StringUtils.isAllBlank(request.getHeader(APP_USER_TOKEN), request.getParameter(LOGIN_USERNAME),
+            cookieRead(request));
     }
 
     private boolean controllerLogin(HttpServletRequest request) {
