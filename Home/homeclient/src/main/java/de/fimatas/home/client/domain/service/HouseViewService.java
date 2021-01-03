@@ -447,6 +447,7 @@ public class HouseViewService {
 
         if (!house.getConclusionClimateFacadeMax().isUnreach()) {
             viewMax.setStateTemperature(lookupSunHeating(house.getConclusionClimateFacadeMax()));
+            viewMax.setElementTitleState(lookupSunHeating(house.getConclusionClimateFacadeMax()));
             viewMax.setName(house.getConclusionClimateFacadeMax().getDevice().getPlace().getPlaceName());
 
             switch (Intensity.max(house.getConclusionClimateFacadeMax().getSunBeamIntensity(),

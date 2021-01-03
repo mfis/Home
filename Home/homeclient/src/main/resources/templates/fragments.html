@@ -24,19 +24,17 @@
 	
 	<!-- Collapsable ElementName -->
 	<div th:fragment="elementnameCollapsable (icon, name, place, unreach, collapseLink, elementTitleState)" data-toggle="collapse" th:data-target="'#' + ${collapseLink}" aria-expanded="false" th:aria-controls="${collapseLink}">
-		<th:block th:if="${!#strings.isEmpty(collapseLink)}">
-			<div style="float:right; position:relative; padding-right: 10px; padding-left: 0px; padding-bottom: 0px;">
-				<a>
-					<span th:if="${!#strings.startsWith(unreach, 'true')}" th:id="${collapseLink} + 'ElementTitleState'" th:text="${elementTitleState}" style="padding-right: 8px; "></span>
-					<span style="display:inline;" th:id="${collapseLink} + 'SymbolDown'">
-						<th:block th:replace="basics :: symbol (name='fas fa-chevron-circle-down')"/>
-					</span>
-					<span style="display:none;" th:id="${collapseLink} + 'SymbolUp'">
-						<th:block th:replace="basics :: symbol (name='fas fa-chevron-circle-up')"/>
-					</span>
-				</a>			
-			</div>		
-		</th:block>
+		<div style="float:right; position:relative; padding-right: 10px; padding-left: 0px; padding-bottom: 0px;">
+			<a>
+				<span th:if="${!#strings.startsWith(unreach, 'true')}" th:id="${collapseLink} + 'ElementTitleState'" th:text="${elementTitleState}"></span>
+				<span th:if="${!#strings.isEmpty(collapseLink)}" style="display:inline; padding-left: 8px;" th:id="${collapseLink} + 'SymbolDown'">
+					<th:block th:replace="basics :: symbol (name='fas fa-chevron-circle-down')"/>
+				</span>
+				<span th:if="${!#strings.isEmpty(collapseLink)}" style="display:none; padding-left: 8px;" th:id="${collapseLink} + 'SymbolUp'">
+					<th:block th:replace="basics :: symbol (name='fas fa-chevron-circle-up')"/>
+				</span>
+			</a>			
+		</div>		
 		<div>
 			<a>
 				<span><th:block th:replace="basics :: symbol (name=${icon})"/></span>
@@ -634,10 +632,7 @@
 
 	<!-- Sonne -->
 	<div th:fragment="sunStatus (model)" th:if="${!#strings.isEmpty(model.stateTemperature)}" th:class="'alert alert-' + ${model.colorClass} + ' callout callout-' + ${model.colorClass}">
-		<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='', elementTitleState='')"></div>
-		<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
-			<h4 th:text="${model.stateTemperature}"></h4>
-		</div>
+		<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='', elementTitleState=${model.elementTitleState})"></div>
 	</div>
 
 	<!-- Licht -->
