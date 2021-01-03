@@ -114,16 +114,16 @@ public class AppViewService {
         Set<Place> placesOrder = new LinkedHashSet<>();
         switch (viewTarget) {
         case "watch":
+            placesOrder.add(Place.OUTSIDE);
+            placesOrder.add(Place.FRONTDOOR);
             placesOrder.add(Place.LIVINGROOM);
             placesOrder.add(Place.KITCHEN);
-            placesOrder.add(Place.BATHROOM);
             placesOrder.add(Place.KIDSROOM);
             placesOrder.add(Place.BEDROOM);
+            placesOrder.add(Place.BATHROOM);
             placesOrder.add(Place.LAUNDRY);
             placesOrder.add(Place.GUESTROOM);
             placesOrder.add(Place.WORKSHOP);
-            placesOrder.add(Place.OUTSIDE);
-            placesOrder.add(Place.FRONTDOOR);
             placesOrder.add(Place.HOUSE);
             placesOrder.add(Place.WALLBOX);
             break;
