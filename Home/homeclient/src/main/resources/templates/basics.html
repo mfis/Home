@@ -45,7 +45,6 @@
 	
 		function submitContent(target){
 			if(navigator.onLine){
-				// console.log('START REFRESH');
 				var httpRequest = new XMLHttpRequest();
 				httpRequest.open('GET', target);
 				httpRequest.setRequestHeader('ETag', document.getElementById('modelTimestamp').value);
@@ -54,8 +53,10 @@
 				httpRequest.send();
 				httpRequest.onreadystatechange=(e)=>{
 					if (httpRequest.readyState == 4) {
-						if(httpRequest.status == 200){
-							// console.log('END REFRESH');
+						if(target===window.location.href && document.getElementsByClassName('collapsing').length !== 0){
+							// do not replace content while gui transition is running
+							showCheck();
+						}else if(httpRequest.status == 200){
 							var doc = new DOMParser().parseFromString(httpRequest.responseText, "text/html");
 							preserveCollapseStatus(document, doc);
 							document.getElementById('idbody').innerHTML = doc.getElementById('idbody').innerHTML;
@@ -84,18 +85,18 @@
 					// console.log('restoring: ' + entry.id);
 			    	newDoc.getElementById(entry.id).classList.remove("collapse");
 			    	newDoc.getElementById(entry.id).classList.add("show");
-			    	newDoc.getElementById(entry.id + 'ShortState').innerHTML = '';
+			    	newDoc.getElementById(entry.id + 'ElementTitleState').innerHTML = '';
 			    }
 			}				
 		}
 
 		function registerCollapseListener(){
 			$('.collapse-preserve-state').on('shown.bs.collapse', function (event) {
-				document.getElementById(event.target.id + 'ShortState').innerHTML = '';
+				document.getElementById(event.target.id + 'ElementTitleState').innerHTML = '';
 				// console.log(event.target.classList);
 			});
 			$('.collapse-preserve-state').on('hidden.bs.collapse', function (event) {
-				document.getElementById(event.target.id + 'ShortState').innerHTML = ' - lalala';
+				document.getElementById(event.target.id + 'ElementTitleState').innerHTML = document.getElementById('val_ElementTitleState_' + event.target.id).value;
 				// console.log(event.target.classList);
 			});
 		}		

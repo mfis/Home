@@ -66,8 +66,8 @@
 	
 			<!-- Energie -->
 			<div th:replace="fragments :: title (name='Energie')"></div>
-			<div th:replace="fragments :: actualPowerConsumption (model=${StromverbrauchHaus})"></div>
-			<div th:replace="fragments :: powerMeterWithSwitch (modelMeter=${StromverbrauchWallbox}, modelSwitch=${switchWallbox})"></div>
+			<div th:replace="fragments :: actualPowerConsumption (model=${StromHaus})"></div>
+			<div th:replace="fragments :: powerMeterWithSwitch (modelMeter=${StromWallbox}, modelSwitch=${switchWallbox})"></div>
 			
 			<div style="height: 25px;"></div>
 		</div>

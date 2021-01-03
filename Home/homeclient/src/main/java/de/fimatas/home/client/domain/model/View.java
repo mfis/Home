@@ -6,7 +6,9 @@ public abstract class View {
 
     private String state = "";
 
-    private String stateShort = "";
+    private String stateShort = ""; // watch
+
+    private String elementTitleState = "";
 
     private String stateSuffix = "";
 
@@ -130,6 +132,14 @@ public abstract class View {
 
     public void setActiveSwitchColorClass(String activeSwitchColorClass) {
         this.activeSwitchColorClass = activeSwitchColorClass;
+    }
+
+    public String getElementTitleState() {
+        return elementTitleState;
+    }
+
+    public void setElementTitleState(String elementTitleState) {
+        this.elementTitleState = elementTitleState;
     }
 
 }

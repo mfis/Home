@@ -31,6 +31,8 @@ public class ClimateView extends View {
 
     private String heatericon = "";
 
+    private String heaterElementTitleState = "";
+
     private String absoluteHumidityIcon = "";
 
     private List<String> hints = new LinkedList<>();
@@ -153,6 +155,14 @@ public class ClimateView extends View {
 
     public void setColorClassHumidity(String colorClassHumidity) {
         this.colorClassHumidity = colorClassHumidity;
+    }
+
+    public String getHeaterElementTitleState() {
+        return heaterElementTitleState;
+    }
+
+    public void setHeaterElementTitleState(String heaterElementTitleState) {
+        this.heaterElementTitleState = heaterElementTitleState;
     }
 
 }

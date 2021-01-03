@@ -18,7 +18,7 @@ public enum Type {
     DOORBELL("Türklingel", null, true, true), //
     DOORLOCK("Türschloss", null, true, true), //
     SWITCH_WALLBOX("Schalter", null, false, true), //
-    ELECTRIC_POWER("Stromverbrauch", null, true, false), //
+    ELECTRIC_POWER("Strom", null, true, false), //
     WINDOW_SENSOR("Fenster", "Fenster", true, false), //
     // with sub-types
     THERMOSTAT("Thermostat", null, true, true, Type.THERMOMETER), //

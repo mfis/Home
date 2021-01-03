@@ -23,7 +23,7 @@
 	</div>	
 	
 	<!-- Collapsable ElementName -->
-	<div th:fragment="elementnameCollapsable (icon, name, place, unreach, collapseLink)" data-toggle="collapse" th:data-target="'#' + ${collapseLink}" aria-expanded="false" th:aria-controls="${collapseLink}">
+	<div th:fragment="elementnameCollapsable (icon, name, place, unreach, collapseLink, elementTitleState)" data-toggle="collapse" th:data-target="'#' + ${collapseLink}" aria-expanded="false" th:aria-controls="${collapseLink}">
 		<th:block th:if="${!#strings.isEmpty(collapseLink)}">
 			<div style="float:right; position:relative; padding-right: 16px; padding-left: 12px; padding-bottom: 0px;">
 				<a>
@@ -37,16 +37,16 @@
 			<a>
 				<span th:if="${!#strings.isEmpty(icon)}"><th:block th:replace="basics :: symbol (name=${icon})"/></span>		
 				<span th:text="${name}"></span>
-				<span th:id="${collapseLink} + 'ShortState'" th:text="' - lalala'"></span>
+				<span th:id="${collapseLink} + 'ElementTitleState'" th:text="' - ' + ${elementTitleState}"></span>
 				<span th:if="${#strings.startsWith(unreach, 'true')}" class="text-danger">&nbsp;- Aktualisierung ausstehend!</span>
 			</a>
-			<input type="hidden" th:id="'val_shortState_' + ${collapseLink}" th:value="'lalala'">
+			<input type="hidden" th:id="'val_ElementTitleState_' + ${collapseLink}" th:value="' - ' + ${elementTitleState}">
 		</div>
 	</div>
 
 	<!-- WindowSensor -->
 	<div th:fragment="windowsensor (model)" th:class="'alert alert-secondary callout callout-' + ${model.colorClass}">
-		<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id})"></div>
+		<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState})"></div>
 		<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
 			<h4><span th:text="${model.state}"></span><span th:text="${model.stateSuffix}" style="font-size: 80%;"></span></h4>
 		</div>
@@ -54,7 +54,7 @@
 
 	<!-- Switch -->
 	<div th:fragment="switch (model)" th:class="'alert alert-secondary callout callout-' + ${model.colorClass}">
-		<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id})"></div>
+		<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState})"></div>
 		<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
 			<h4><span th:text="${model.state}"></span><span th:text="${model.stateSuffix}" style="font-size: 80%;"></span></h4>
 			<div th:replace="fragments :: switchControls (model=${model})"></div>
@@ -63,18 +63,18 @@
 
 	<!-- PowerMeter with switch -->
 	<div th:fragment="powerMeterWithSwitch (modelMeter, modelSwitch)" th:class="'alert alert-' + ${modelSwitch.colorClass} + ' callout callout-' + ${modelSwitch.colorClass}">
-		<div th:replace="fragments :: elementnameCollapsable (icon=${modelMeter.icon}, name=${modelMeter.name} + ' ' + ${modelMeter.place}, place='', unreach=${modelMeter.unreach}, collapseLink='collapse' + ${modelSwitch.id})"></div>
-		<h4>
-			<span th:text="${modelMeter.state}"></span>
-			<th:block th:replace="fragments :: tendency (icon=${modelMeter.tendencyIcon})"></th:block>
-			<th:block th:if="${modelMeter.todayConsumption != null}">
-				<span th:utext="'&nbsp;&ndash;&nbsp;'"></span>
-				<span class="mb-1" th:text="${modelMeter.todayConsumption.label}">Gestern</span>
-				<span class="text-muted" style="font-size: 80%;" th:text="${modelMeter.todayConsumption.additionalLabel}">Summe</span>
-				<th:block th:replace="fragments :: historyLink (key=${modelMeter.historyKey}, name=${modelMeter.name} + ' ' + ${modelMeter.place}, place=${modelMeter.place})"></th:block>
-			</th:block>		
-		</h4>
+		<div th:replace="fragments :: elementnameCollapsable (icon=${modelMeter.icon}, name=${modelMeter.name} + ' ' + ${modelMeter.place}, place='', unreach=${modelMeter.unreach}, collapseLink='collapse' + ${modelSwitch.id}, elementTitleState=${modelMeter.elementTitleState})"></div>
 		<div class="collapse collapse-preserve-state" th:id="'collapse' + ${modelSwitch.id}">
+			<h4>
+				<span th:text="${modelMeter.state}"></span>
+				<th:block th:replace="fragments :: tendency (icon=${modelMeter.tendencyIcon})"></th:block>
+				<th:block th:if="${modelMeter.todayConsumption != null}">
+					<span th:utext="'&nbsp;&ndash;&nbsp;'"></span>
+					<span class="mb-1" th:text="${modelMeter.todayConsumption.label}">Gestern</span>
+					<span class="text-muted" style="font-size: 80%;" th:text="${modelMeter.todayConsumption.additionalLabel}">Summe</span>
+					<th:block th:replace="fragments :: historyLink (key=${modelMeter.historyKey}, name=${modelMeter.name} + ' ' + ${modelMeter.place}, place=${modelMeter.place})"></th:block>
+				</th:block>		
+			</h4>
 			<h4><span th:text="${modelSwitch.state}"></span><span th:text="${modelSwitch.stateSuffix}" style="font-size: 80%;"></span></h4>
 			<div th:replace="fragments :: switchControls (model=${modelSwitch})"></div>
 		</div>
@@ -258,7 +258,7 @@
 	<!-- Frontdoor -->
 	<th:block th:fragment="frontDoor (model)">
 		<div th:class="'alert alert-secondary callout callout-secondary'">
-			<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name='Türklingel', place='', unreach=${model.unreach}, collapseLink='collapse' + ${model.id})"></div>
+			<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name='Türklingel', place='', unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState})"></div>
 			<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
 				<h4>
 					<span th:text="${model.lastDoorbells}"></span>
@@ -394,7 +394,7 @@
 	
 	<!-- Front door lock -->
 	<div th:fragment="doorLock (model)" th:class="'alert alert-' + ${model.colorClass} + ' callout callout-' + ${model.colorClass}">
-		<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id})"></div>
+		<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState})"></div>
 		<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
 				<h4 th:unless="${#strings.equals(model.busy,'true')}"><span th:text="${model.state}"></span><span th:text="${model.stateSuffix}" style="font-size: 80%;"></span></h4>
 				<th:block th:unless="${#strings.equals(model.busy,'true') or #strings.equals(model.unreach,'true')}">	
@@ -485,20 +485,18 @@
 	
 	<!-- Actual Power Consumption -->
 	<div th:fragment="actualPowerConsumption (model)" th:class="'alert alert-secondary callout callout-secondary'">
-
-		<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name} + ' Gesamt', place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id})"></div>
-		<h4>
-			<span th:text="${model.state}"></span>
-			<th:block th:replace="fragments :: tendency (icon=${model.tendencyIcon})"></th:block>
-			<th:block th:if="${model.todayConsumption != null}">
-				<span th:utext="'&nbsp;&ndash;&nbsp;'"></span>
-				<span class="mb-1" th:text="${model.todayConsumption.label}">Gestern</span>
-				<span class="text-muted" style="font-size: 80%;" th:text="${model.todayConsumption.additionalLabel}">Summe</span>
-				<th:block th:replace="fragments :: historyLink (key=${model.historyKey}, name=${model.name} + ' Gesamt', place=${model.place})"></th:block>
-			</th:block>		
-		</h4>
-		
+		<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name} + ' Gesamt', place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState})"></div>
 		<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
+			<h4>
+				<span th:text="${model.state}"></span>
+				<th:block th:replace="fragments :: tendency (icon=${model.tendencyIcon})"></th:block>
+				<th:block th:if="${model.todayConsumption != null}">
+					<span th:utext="'&nbsp;&ndash;&nbsp;'"></span>
+					<span class="mb-1" th:text="${model.todayConsumption.label}">Gestern</span>
+					<span class="text-muted" style="font-size: 80%;" th:text="${model.todayConsumption.additionalLabel}">Summe</span>
+					<th:block th:replace="fragments :: historyLink (key=${model.historyKey}, name=${model.name} + ' Gesamt', place=${model.place})"></th:block>
+				</th:block>		
+			</h4>
 			<th:block th:if="${model.todayConsumption != null}">
 				<div style="max-width:80%;">
 					<div style="max-width:400px;">
@@ -552,37 +550,39 @@
 
 	<!-- Temperature -->
 	<div th:fragment="temperature (model)" th:class="'alert alert-' + ${model.colorClass} + ' callout callout-' + ${model.colorClass}">
-		<div th:replace="fragments :: elementname (icon=${model.icon}, name='Temperatur' + ${model.postfix}, place=${model.place}, unreach=${model.unreach})"></div>
-		<h4>
-			<span th:if="${!#strings.isEmpty(model.stateTemperature)}" th:text="${model.stateTemperature}"></span>
-			<th:block th:replace="fragments :: tendency (icon=${model.tendencyIconTemperature})"></th:block>
-			<span th:if="${!#strings.isEmpty(model.statePostfixIconTemperature)}"><th:block th:replace="basics :: symbol (name=${model.statePostfixIconTemperature})"/></span>
-			<span th:if="${!#strings.isEmpty(model.stateHumidity)}" th:utext="'&nbsp;&ndash;&nbsp;'"></span>
-			<span th:if="${!#strings.isEmpty(model.stateHumidity)}" th:text="${model.stateHumidity}"></span>
-			<th:block th:replace="fragments :: tendency (icon=${model.tendencyIconHumidity})"></th:block>
-			<span th:if="${!#strings.isEmpty(model.statePostfixIconHumidity)}"><th:block th:replace="basics :: symbol (name=${model.statePostfixIconHumidity})"/></span>
-			<span th:if="${!#strings.isEmpty(model.absoluteHumidityIcon)}" th:utext="'&hairsp;'"></span>
-			<span onclick="$('#idDropSymbolMessage').modal();" th:if="${!#strings.isEmpty(model.absoluteHumidityIcon)}"><th:block th:replace="fragments :: tendency (icon=${model.absoluteHumidityIcon})"/></span>
-			<th:block th:replace="fragments :: historyLink (key=${model.historyKey}, name='Temperatur' + ${model.postfix}, place=${model.place})"></th:block>
-		</h4>
-			
-		<th:block th:each="hint : ${model.hints}">
-			<div>
-				<a th:class="'font-weight-light'" style="font-size: 85%; margin-right:10px;">
-					<span th:if="${#strings.startsWith(hint,'ggf')}"><th:block th:replace="basics :: symbol (name='far fa-hand-point-right')"/></span>
-					<span th:unless="${#strings.startsWith(hint,'ggf')}"><th:block th:replace="basics :: symbol (name='fas fa-hand-point-right')"/></span>
-					<span th:text="${hint}">hint</span>
-				</a>
-			</div>
-		</th:block>	
+		<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name='Temperatur' + ${model.postfix}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState})"></div>
+		<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
+			<h4>
+				<span th:if="${!#strings.isEmpty(model.stateTemperature)}" th:text="${model.stateTemperature}"></span>
+				<th:block th:replace="fragments :: tendency (icon=${model.tendencyIconTemperature})"></th:block>
+				<span th:if="${!#strings.isEmpty(model.statePostfixIconTemperature)}"><th:block th:replace="basics :: symbol (name=${model.statePostfixIconTemperature})"/></span>
+				<span th:if="${!#strings.isEmpty(model.stateHumidity)}" th:utext="'&nbsp;&ndash;&nbsp;'"></span>
+				<span th:if="${!#strings.isEmpty(model.stateHumidity)}" th:text="${model.stateHumidity}"></span>
+				<th:block th:replace="fragments :: tendency (icon=${model.tendencyIconHumidity})"></th:block>
+				<span th:if="${!#strings.isEmpty(model.statePostfixIconHumidity)}"><th:block th:replace="basics :: symbol (name=${model.statePostfixIconHumidity})"/></span>
+				<span th:if="${!#strings.isEmpty(model.absoluteHumidityIcon)}" th:utext="'&hairsp;'"></span>
+				<span onclick="$('#idDropSymbolMessage').modal();" th:if="${!#strings.isEmpty(model.absoluteHumidityIcon)}"><th:block th:replace="fragments :: tendency (icon=${model.absoluteHumidityIcon})"/></span>
+				<th:block th:replace="fragments :: historyLink (key=${model.historyKey}, name='Temperatur' + ${model.postfix}, place=${model.place})"></th:block>
+			</h4>
+				
+			<th:block th:each="hint : ${model.hints}">
+				<div>
+					<a th:class="'font-weight-light'" style="font-size: 85%; margin-right:10px;">
+						<span th:if="${#strings.startsWith(hint,'ggf')}"><th:block th:replace="basics :: symbol (name='far fa-hand-point-right')"/></span>
+						<span th:unless="${#strings.startsWith(hint,'ggf')}"><th:block th:replace="basics :: symbol (name='fas fa-hand-point-right')"/></span>
+						<span th:text="${hint}">hint</span>
+					</a>
+				</div>
+			</th:block>	
+		</div>
 	</div>
 	
 	<!-- Thermostat -->
 	<div th:fragment="thermostat (model)" th:class="'alert alert-' + ${model.colorClassHeating} + ' callout callout-' + ${model.colorClassHeating}">
-		<div th:replace="fragments :: elementnameCollapsable (icon=${model.heatericon}, name='Heizkörpersteuerung', place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id})"></div>
+		<div th:replace="fragments :: elementnameCollapsable (icon=${model.heatericon}, name='Heizkörpersteuerung', place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id} + 'Thermostat', elementTitleState=${model.heaterElementTitleState})"></div>
 			
 		<th:block th:unless="${#strings.equals(model.busy,'true') or #strings.equals(model.unreach,'true')}">
-			<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
+			<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id} + 'Thermostat'">
 				<h4 th:if="${#strings.startsWith(model.linkBoost,'/')}"><span th:text="'Manuell auf ' + ${model.targetTemp} + '°C'"></span></h4>
 				<h4 th:unless="${#strings.startsWith(model.linkBoost,'/')}"><span th:text="'Aufheizen - noch ' + ${model.linkBoost} + ' Min.'"></span></h4>
 					<div th:if="${#strings.startsWith(model.linkBoost,'/')}" class="btn-group" role="group" aria-label="heating">
@@ -627,7 +627,7 @@
 
 	<!-- Sonne -->
 	<div th:fragment="sunStatus (model)" th:if="${!#strings.isEmpty(model.stateTemperature)}" th:class="'alert alert-' + ${model.colorClass} + ' callout callout-' + ${model.colorClass}">
-		<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='')"></div>
+		<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='', elementTitleState='')"></div>
 		<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
 			<h4 th:text="${model.stateTemperature}"></h4>
 		</div>
@@ -637,7 +637,7 @@
 	<th:block th:fragment="lights (model)">
 		<th:block th:if="${#lists.size(model.lights) &gt; 0}">
 			<div th:class="'alert alert-secondary callout callout-' + ${model.colorClass}">
-				<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place='', unreach=${model.unreach}, collapseLink='collapse' + ${model.id})"></div>
+				<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place='', unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState})"></div>
 				<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
 					<div style="height: 5px;"></div>
 					<div class="d-flex flex-wrap">

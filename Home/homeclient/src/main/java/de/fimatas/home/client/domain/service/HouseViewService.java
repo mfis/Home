@@ -319,6 +319,7 @@ public class HouseViewService {
         if (climate.getTemperature() != null) {
             // Temperature and humidity
             view.setStateTemperature(format(climate.getTemperature().getValue(), false, false) + ViewFormatter.DEGREE + "C");
+            view.setElementTitleState(view.getStateTemperature());
             if (climate.getHumidity() != null) {
                 view.setStateHumidity(format(climate.getHumidity().getValue(), true, true) + "%rH");
             }
@@ -388,6 +389,7 @@ public class HouseViewService {
             }
             view.setLinkManual(MESSAGEPATH + TYPE_IS + MessageType.HEATINGMANUAL + AND_DEVICE_IS + heating.getDevice().name());
             view.setTargetTemp(format(heating.getTargetTemperature(), false, false));
+            view.setHeaterElementTitleState(view.getTargetTemp() + ViewFormatter.DEGREE + "C");
             view.setHeatericon("fab fa-hotjar");
             view.setBusy(Boolean.toString(heating.isBusy()));
         }
@@ -475,11 +477,6 @@ public class HouseViewService {
         power.setState(powerMeter.getActualConsumption().getValue() == null ? UNBEKANNT
             : powerMeter.getActualConsumption().getValue().intValue() + " W");
         power.setName(powerMeter.getDevice().getType().getTypeName());
-        if (powerMeter.getDevice() == Device.STROMZAEHLER_WALLBOX) {
-            power.setIcon("fas fa-charging-station");
-        } else {
-            power.setIcon("fas fa-bolt");
-        }
         if (powerMeter.getActualConsumption().getTendency() != null) {
             power.setTendencyIcon(powerMeter.getActualConsumption().getTendency().getIconCssClass());
         }
@@ -489,6 +486,18 @@ public class HouseViewService {
             if (!dayViewModel.isEmpty()) {
                 power.setTodayConsumption(dayViewModel.get(0));
             }
+        }
+
+        if (power.getTodayConsumption() == null) {
+            power.setElementTitleState("0" + ViewFormatter.K_W_H);
+        } else {
+            power.setElementTitleState(power.getTodayConsumption().getLabel().replace(ViewFormatter.SUM_SIGN, "").trim());
+        }
+
+        if (powerMeter.getDevice() == Device.STROMZAEHLER_WALLBOX) {
+            power.setIcon("fas fa-charging-station");
+        } else {
+            power.setIcon("fas fa-bolt");
         }
 
         model.addAttribute(powerMeter.getDevice().programNamePrefix(), power);
