@@ -12,7 +12,7 @@ public enum Type {
     SUN_SENSOR("Sonnensensor", null, true, false), //
     SHUTTER_LEFT("Rolllade links", null, false, true), //
     SHUTTER_RIGHT("Rolllade rechts", null, false, true), //
-    SWITCH_WINDOWLIGHT("Schalter Fensterlicht", "Licht", false, true), //
+    SWITCH_WINDOWLIGHT("Schalter Fensterlicht", "Fensterlicht", false, true), //
     SWITCH_FRONTDOOR_CAMERA("Schalter Kamera", "Kamera", false, true), //
     SWITCH_VENTILATION("Schalter Lüftung", "Lüftung", false, true), //
     DOORBELL("Türklingel", null, true, true), //

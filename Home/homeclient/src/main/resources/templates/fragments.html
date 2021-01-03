@@ -551,30 +551,33 @@
 	<!-- Temperature -->
 	<div th:fragment="temperature (model)" th:class="'alert alert-' + ${model.colorClass} + ' callout callout-' + ${model.colorClass}">
 		<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name='Temperatur' + ${model.postfix}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState})"></div>
-		<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
-			<h4>
-				<span th:if="${!#strings.isEmpty(model.stateTemperature)}" th:text="${model.stateTemperature}"></span>
-				<th:block th:replace="fragments :: tendency (icon=${model.tendencyIconTemperature})"></th:block>
-				<span th:if="${!#strings.isEmpty(model.statePostfixIconTemperature)}"><th:block th:replace="basics :: symbol (name=${model.statePostfixIconTemperature})"/></span>
-				<span th:if="${!#strings.isEmpty(model.stateHumidity)}" th:utext="'&nbsp;&ndash;&nbsp;'"></span>
-				<span th:if="${!#strings.isEmpty(model.stateHumidity)}" th:text="${model.stateHumidity}"></span>
-				<th:block th:replace="fragments :: tendency (icon=${model.tendencyIconHumidity})"></th:block>
-				<span th:if="${!#strings.isEmpty(model.statePostfixIconHumidity)}"><th:block th:replace="basics :: symbol (name=${model.statePostfixIconHumidity})"/></span>
-				<span th:if="${!#strings.isEmpty(model.absoluteHumidityIcon)}" th:utext="'&hairsp;'"></span>
-				<span onclick="$('#idDropSymbolMessage').modal();" th:if="${!#strings.isEmpty(model.absoluteHumidityIcon)}"><th:block th:replace="fragments :: tendency (icon=${model.absoluteHumidityIcon})"/></span>
-				<th:block th:replace="fragments :: historyLink (key=${model.historyKey}, name='Temperatur' + ${model.postfix}, place=${model.place})"></th:block>
-			</h4>
-				
-			<th:block th:each="hint : ${model.hints}">
-				<div>
-					<a th:class="'font-weight-light'" style="font-size: 85%; margin-right:10px;">
-						<span th:if="${#strings.startsWith(hint,'ggf')}"><th:block th:replace="basics :: symbol (name='far fa-hand-point-right')"/></span>
-						<span th:unless="${#strings.startsWith(hint,'ggf')}"><th:block th:replace="basics :: symbol (name='fas fa-hand-point-right')"/></span>
-						<span th:text="${hint}">hint</span>
-					</a>
-				</div>
-			</th:block>	
-		</div>
+		<th:block th:unless="${#strings.equals(model.unreach,'true')}">
+			<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
+				<h4 th:if="${!#strings.isEmpty(model.stateSecondLine)}" th:utext="${model.stateSecondLine}"></h4>
+				<h4>
+					<span th:if="${!#strings.isEmpty(model.stateTemperature)}" th:text="${model.stateTemperature}"></span>
+					<th:block th:replace="fragments :: tendency (icon=${model.tendencyIconTemperature})"></th:block>
+					<span th:if="${!#strings.isEmpty(model.statePostfixIconTemperature)}"><th:block th:replace="basics :: symbol (name=${model.statePostfixIconTemperature})"/></span>
+					<span th:if="${!#strings.isEmpty(model.stateHumidity)}" th:utext="'&nbsp;&ndash;&nbsp;'"></span>
+					<span th:if="${!#strings.isEmpty(model.stateHumidity)}" th:text="${model.stateHumidity}"></span>
+					<th:block th:replace="fragments :: tendency (icon=${model.tendencyIconHumidity})"></th:block>
+					<span th:if="${!#strings.isEmpty(model.statePostfixIconHumidity)}"><th:block th:replace="basics :: symbol (name=${model.statePostfixIconHumidity})"/></span>
+					<span th:if="${!#strings.isEmpty(model.absoluteHumidityIcon)}" th:utext="'&hairsp;'"></span>
+					<span onclick="$('#idDropSymbolMessage').modal();" th:if="${!#strings.isEmpty(model.absoluteHumidityIcon)}"><th:block th:replace="fragments :: tendency (icon=${model.absoluteHumidityIcon})"/></span>
+					<th:block th:replace="fragments :: historyLink (key=${model.historyKey}, name='Temperatur' + ${model.postfix}, place=${model.place})"></th:block>
+				</h4>
+					
+				<th:block th:each="hint : ${model.hints}">
+					<div>
+						<a th:class="'font-weight-light'" style="font-size: 85%; margin-right:10px;">
+							<span th:if="${#strings.startsWith(hint,'ggf')}"><th:block th:replace="basics :: symbol (name='far fa-hand-point-right')"/></span>
+							<span th:unless="${#strings.startsWith(hint,'ggf')}"><th:block th:replace="basics :: symbol (name='fas fa-hand-point-right')"/></span>
+							<span th:text="${hint}">hint</span>
+						</a>
+					</div>
+				</th:block>
+			</div>
+		</th:block>
 	</div>
 	
 	<!-- Thermostat -->

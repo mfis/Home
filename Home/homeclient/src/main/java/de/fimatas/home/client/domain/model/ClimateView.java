@@ -15,6 +15,8 @@ public class ClimateView extends View {
 
     private String stateHumidity = "";
 
+    private String stateSecondLine = "";
+
     private String statePostfixIconHumidity = "";
 
     private String tendencyIconHumidity = "";
@@ -163,6 +165,14 @@ public class ClimateView extends View {
 
     public void setHeaterElementTitleState(String heaterElementTitleState) {
         this.heaterElementTitleState = heaterElementTitleState;
+    }
+
+    public String getStateSecondLine() {
+        return stateSecondLine;
+    }
+
+    public void setStateSecondLine(String stateSecondLine) {
+        this.stateSecondLine = stateSecondLine;
     }
 
 }

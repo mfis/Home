@@ -235,7 +235,7 @@ public class HouseService {
             newModel.getClimateGarden().setSunBeamIntensity(lookupIntensity(diffGarden));
             newModel.setConclusionClimateFacadeMin(SerializationUtils.clone(minTemperature.get()));
             newModel.getConclusionClimateFacadeMin().setDevice(Device.AUSSENTEMPERATUR);
-            newModel.getConclusionClimateFacadeMin().setBase(newModel.getConclusionClimateFacadeMin().getDevice());
+            newModel.getConclusionClimateFacadeMin().setBase(minTemperature.get().getDevice());
             newModel.getConclusionClimateFacadeMin().setMaxSideSunHeating(newModel.getConclusionClimateFacadeMax());
         } else {
             var empty = new OutdoorClimate();

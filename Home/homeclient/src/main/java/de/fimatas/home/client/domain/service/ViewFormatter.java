@@ -49,9 +49,16 @@ public class ViewFormatter {
     public static final DateTimeFormatter DAY_MONTH_YEAR_FORMATTER =
         DateTimeFormatter.ofPattern("E, dd.MM.yyyy", Locale.GERMAN);
 
+    public static final DateTimeFormatter DAY_MONTH_YEAR_SHORT_FORMATTER =
+        DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMAN);
+
     public static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm", Locale.GERMAN);
 
-    public String formatPastTimestamp(long date, boolean time) {
+    public enum PastTimestampFormat {
+        DATE, DATE_TIME, SHORT;
+    }
+
+    public String formatPastTimestamp(long date, PastTimestampFormat format) { // TODO: write unit tests
 
         if (date == NumberUtils.INTEGER_ZERO) {
             return "unbekannt";
@@ -64,7 +71,10 @@ public class ViewFormatter {
             ChronoUnit.DAYS.between(localDate1.truncatedTo(ChronoUnit.DAYS), localDate2.truncatedTo(ChronoUnit.DAYS));
 
         String dayString;
-        if (between == 0) {
+
+        if (between == 0 && format == PastTimestampFormat.SHORT) {
+            dayString = TIME_FORMATTER.format(localDate1) + " Uhr";
+        } else if (between == 0) {
             dayString = "heute";
         } else if (between == 1) {
             dayString = "gestern";
@@ -73,11 +83,17 @@ public class ViewFormatter {
         } else if (between > -1 && between < 7) {
             dayString = WEEKDAY_FORMATTER.format(localDate1);
         } else {
-            dayString = DAY_MONTH_YEAR_FORMATTER.format(localDate1);
+            if (format == PastTimestampFormat.SHORT) {
+                dayString = DAY_MONTH_YEAR_SHORT_FORMATTER.format(localDate1);
+            } else {
+                dayString = DAY_MONTH_YEAR_FORMATTER.format(localDate1);
+            }
         }
-        if (time) {
+
+        if (format == PastTimestampFormat.DATE_TIME) {
             dayString += ", " + TIME_FORMATTER.format(localDate1) + " Uhr";
         }
+
         return dayString;
     }
 
@@ -144,7 +160,8 @@ public class ViewFormatter {
 
     private void chartEntryLabels(boolean historyView, PowerConsumptionDay pcd, ChartEntry chartEntry, String sumCaption) {
         if (historyView) {
-            chartEntry.setLabel(StringUtils.capitalize(formatPastTimestamp(pcd.getMeasurePointMax(), false)));
+            chartEntry
+                .setLabel(StringUtils.capitalize(formatPastTimestamp(pcd.getMeasurePointMax(), PastTimestampFormat.DATE)));
             chartEntry.setAdditionalLabel(sumCaption);
         } else {
             chartEntry.setLabel(chartEntry.getLabel() + " " + sumCaption + ViewFormatter.K_W_H);

@@ -24,6 +24,7 @@ import de.fimatas.home.client.domain.model.PowerView;
 import de.fimatas.home.client.domain.model.ShutterView;
 import de.fimatas.home.client.domain.model.SwitchView;
 import de.fimatas.home.client.domain.model.WindowSensorView;
+import de.fimatas.home.client.domain.service.ViewFormatter.PastTimestampFormat;
 import de.fimatas.home.client.model.MessageQueue;
 import de.fimatas.home.library.domain.model.AutomationState;
 import de.fimatas.home.library.domain.model.Camera;
@@ -53,11 +54,15 @@ import de.fimatas.home.library.util.HomeAppConstants;
 @Component
 public class HouseViewService {
 
+    private static final String REGEXP_NOT_ALPHANUMERIC = "[^a-zA-Z0-9]";
+
     private static final String UNBEKANNT = "unbekannt";
 
     private static final String EREIGNISGESTEUERT = ", Ereignissteuerung";
 
     private static final String PROGRAMMGESTEUERT = ", Automatik";
+
+    private static final String MANUELL = ", Manuell";
 
     private static final String AND_VALUE_IS = "&value=";
 
@@ -169,8 +174,10 @@ public class HouseViewService {
 
         frontDoorView.setIcon("fas fa-bell");
         if (doorbell.getTimestampLastDoorbell() != null) {
-            frontDoorView.setLastDoorbells(
-                StringUtils.capitalize(viewFormatter.formatPastTimestamp(doorbell.getTimestampLastDoorbell(), true)));
+            frontDoorView.setLastDoorbells(StringUtils.capitalize(
+                viewFormatter.formatPastTimestamp(doorbell.getTimestampLastDoorbell(), PastTimestampFormat.DATE_TIME)));
+            frontDoorView.setElementTitleState(StringUtils
+                .capitalize(viewFormatter.formatPastTimestamp(doorbell.getTimestampLastDoorbell(), PastTimestampFormat.SHORT)));
         } else {
             frontDoorView.setLastDoorbells(UNBEKANNT);
         }
@@ -259,11 +266,13 @@ public class HouseViewService {
 
     public void formatFrontDoorLockLinks(Doorlock doorlock, LockView view) {
 
+        view.setElementTitleState(MANUELL.replaceAll(REGEXP_NOT_ALPHANUMERIC, StringUtils.EMPTY));
         if (Boolean.TRUE.equals(doorlock.getLockAutomationEvent())) {
             view.setLinkManual(TOGGLE_AUTOMATION + doorlock.getDevice().name() + AND_VALUE_IS + AutomationState.MANUAL.name());
             view.setLinkAuto(TOGGLE_AUTOMATION + doorlock.getDevice().name() + AND_VALUE_IS + AutomationState.AUTOMATIC.name());
             if (doorlock.getErrorcode() == 0) {
                 view.setStateSuffix(EREIGNISGESTEUERT);
+                view.setElementTitleState(EREIGNISGESTEUERT.replaceAll(REGEXP_NOT_ALPHANUMERIC, StringUtils.EMPTY));
             }
         } else if (Boolean.TRUE.equals(doorlock.getLockAutomation())) {
             view.setLinkManual(TOGGLE_AUTOMATION + doorlock.getDevice().name() + AND_VALUE_IS + AutomationState.MANUAL.name());
@@ -271,6 +280,7 @@ public class HouseViewService {
                 TOGGLE_AUTOMATION + doorlock.getDevice().name() + AND_VALUE_IS + AutomationState.AUTOMATIC_PLUS_EVENT.name());
             if (doorlock.getErrorcode() == 0) {
                 view.setStateSuffix(PROGRAMMGESTEUERT);
+                view.setElementTitleState(PROGRAMMGESTEUERT.replaceAll(REGEXP_NOT_ALPHANUMERIC, StringUtils.EMPTY));
             }
         } else {
             view.setLinkAuto(TOGGLE_AUTOMATION + doorlock.getDevice().name() + AND_VALUE_IS + AutomationState.AUTOMATIC.name());
@@ -429,7 +439,7 @@ public class HouseViewService {
         viewMax.setId(viewKeyMax);
 
         if (!house.getConclusionClimateFacadeMin().isUnreach()) {
-            viewMin.setPostfix(" (" + house.getConclusionClimateFacadeMin().getBase().getPlace().getPlaceName() + ")");
+            viewMin.setStateSecondLine(house.getConclusionClimateFacadeMin().getBase().getPlace().getPlaceName());
             viewMin.setHistoryKey(house.getConclusionClimateFacadeMin().getDevice().programNamePrefix());
         }
 
@@ -536,7 +546,9 @@ public class HouseViewService {
 
         if (windowSensor.getStateTimestamp() != null) {
             stateDelimiter = ", ";
-            stateSuffix = viewFormatter.formatPastTimestamp(windowSensor.getStateTimestamp(), true);
+            stateSuffix = viewFormatter.formatPastTimestamp(windowSensor.getStateTimestamp(), PastTimestampFormat.DATE_TIME);
+            view.setElementTitleState(
+                "Seit " + viewFormatter.formatPastTimestamp(windowSensor.getStateTimestamp(), PastTimestampFormat.SHORT));
         }
 
         view.setState((windowSensor.isState() ? "Geöffnet" : "Geschlossen") + stateDelimiter);
@@ -553,7 +565,7 @@ public class HouseViewService {
 
         SwitchView view = new SwitchView();
         view.setId(viewKey);
-        view.setName(switchModel.getDevice().getType().getTypeName());
+        view.setName(switchModel.getDevice().getType().getShortName());
         view.setShortName(switchModel.getDevice().getType().getShortName());
         view.setPlace(switchModel.getDevice().getPlace().getPlaceName());
         view.setUnreach(Boolean.toString(switchModel.isUnreach()));
@@ -571,18 +583,7 @@ public class HouseViewService {
             view.setActiveSwitchColorClass("active-primary");
         }
 
-        String[] buttonCaptions = StringUtils.substringsBetween(switchModel.getAutomationInfoText(), "{", "}");
-
-        String suffixAuto = PROGRAMMGESTEUERT;
-        String suffixManual = "";
-        if (ArrayUtils.isNotEmpty(buttonCaptions)) {
-            view.setButtonCaptionAuto(buttonCaptions[0]);
-            view.setButtonCaptionManual(buttonCaptions[1]);
-            suffixAuto += ", " + buttonCaptions[0];
-            suffixManual = PROGRAMMGESTEUERT + ", " + buttonCaptions[1];
-        }
-
-        formatSwitchAutomation(switchModel, view, suffixAuto, suffixManual);
+        formatSwitchAutomation(switchModel, view);
 
         view.setLabel(switchModel.isState() ? "ausschalten" : "einschalten");
         if (switchModel.getDevice().getType() == Type.SWITCH_VENTILATION) {
@@ -600,17 +601,36 @@ public class HouseViewService {
         model.addAttribute(viewKey, view);
     }
 
-    private void formatSwitchAutomation(Switch switchModel, SwitchView view, String suffixAuto, String suffixManual) {
+    private void formatSwitchAutomation(Switch switchModel, SwitchView view) {
+
+        String[] buttonCaptions = StringUtils.substringsBetween(switchModel.getAutomationInfoText(), "{", "}");
+
+        if (ArrayUtils.isNotEmpty(buttonCaptions)) {
+            view.setButtonCaptionAuto(buttonCaptions[0]);
+            view.setButtonCaptionManual(buttonCaptions[1]);
+        }
 
         if (switchModel.getAutomation() != null) {
             if (Boolean.TRUE.equals(switchModel.getAutomation())) {
-                view.setStateSuffix(suffixAuto);
                 view.setLinkManual(
                     TOGGLE_AUTOMATION + switchModel.getDevice().name() + AND_VALUE_IS + AutomationState.MANUAL.name());
+                if (ArrayUtils.isNotEmpty(buttonCaptions)) {
+                    view.setStateSuffix(PROGRAMMGESTEUERT + ", " + buttonCaptions[0]);
+                    view.setElementTitleState(buttonCaptions[0]);
+                } else {
+                    view.setStateSuffix(PROGRAMMGESTEUERT);
+                    view.setElementTitleState(PROGRAMMGESTEUERT.replaceAll(REGEXP_NOT_ALPHANUMERIC, StringUtils.EMPTY));
+                }
             } else {
-                view.setStateSuffix(suffixManual);
                 view.setLinkAuto(
                     TOGGLE_AUTOMATION + switchModel.getDevice().name() + AND_VALUE_IS + AutomationState.AUTOMATIC.name());
+                if (ArrayUtils.isNotEmpty(buttonCaptions)) {
+                    view.setStateSuffix(PROGRAMMGESTEUERT + ", " + buttonCaptions[1]);
+                    view.setElementTitleState(buttonCaptions[1]);
+                } else {
+                    view.setStateSuffix(StringUtils.EMPTY);
+                    view.setElementTitleState(MANUELL.replaceAll(REGEXP_NOT_ALPHANUMERIC, StringUtils.EMPTY));
+                }
             }
             view.setAutoInfoText(
                 StringUtils.trimToEmpty(RegExUtils.removeAll(switchModel.getAutomationInfoText(), "[\\x7b\\x7d]")));
