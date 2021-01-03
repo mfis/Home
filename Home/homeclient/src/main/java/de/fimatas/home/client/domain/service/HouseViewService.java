@@ -332,6 +332,7 @@ public class HouseViewService {
             view.setElementTitleState(view.getStateTemperature());
             if (climate.getHumidity() != null) {
                 view.setStateHumidity(format(climate.getHumidity().getValue(), true, true) + "%rH");
+                view.setElementTitleState(view.getElementTitleState() + ", " + view.getStateHumidity());
             }
             formatClimateIcons(climate, view);
 
@@ -439,7 +440,8 @@ public class HouseViewService {
         viewMax.setId(viewKeyMax);
 
         if (!house.getConclusionClimateFacadeMin().isUnreach()) {
-            viewMin.setStateSecondLine(house.getConclusionClimateFacadeMin().getBase().getPlace().getPlaceName());
+            viewMin
+                .setStateSecondLine("Messpunkt: " + house.getConclusionClimateFacadeMin().getBase().getPlace().getPlaceName());
             viewMin.setHistoryKey(house.getConclusionClimateFacadeMin().getDevice().programNamePrefix());
         }
 
@@ -736,6 +738,7 @@ public class HouseViewService {
         lights.setColorClass(COLOR_CLASS_ORANGE);
         lights.setName("Licht");
         lights.setIcon(true ? "fas fa-lightbulb" : "far fa-lightbulb");
+        lights.setElementTitleState("2/5 eingeschaltet");
 
         lights.getLights().add(light1);
         lights.getLights().add(light2);

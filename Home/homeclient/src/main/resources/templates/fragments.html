@@ -37,10 +37,10 @@
 			<a>
 				<span th:if="${!#strings.isEmpty(icon)}"><th:block th:replace="basics :: symbol (name=${icon})"/></span>		
 				<span th:text="${name}"></span>
-				<span th:id="${collapseLink} + 'ElementTitleState'" th:text="' - ' + ${elementTitleState}"></span>
+				<span th:id="${collapseLink} + 'ElementTitleState'" th:text="' &#8594; ' + ${elementTitleState}"></span>
 				<span th:if="${#strings.startsWith(unreach, 'true')}" class="text-danger">&nbsp;- Aktualisierung ausstehend!</span>
 			</a>
-			<input type="hidden" th:id="'val_ElementTitleState_' + ${collapseLink}" th:value="' - ' + ${elementTitleState}">
+			<input type="hidden" th:id="'val_ElementTitleState_' + ${collapseLink}" th:value="' &#8594; ' + ${elementTitleState}">
 		</div>
 	</div>
 
