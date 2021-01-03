@@ -6,7 +6,7 @@
 	<!-- Titel -->
 	<div th:fragment="title (name)"
 		th:assert="${!#strings.isEmpty(name)}">
-		<h4 style="font-size: 1.3rem; margin-top: 15px; letter-spacing: 2px;">
+		<h4 style="font-size: 1.3rem; margin-top: 10px; letter-spacing: 2px;">
 			<span th:text="${name}">Name</span>
 		</h4>
 	</div>
@@ -25,8 +25,9 @@
 	<!-- Collapsable ElementName -->
 	<div th:fragment="elementnameCollapsable (icon, name, place, unreach, collapseLink, elementTitleState)" data-toggle="collapse" th:data-target="'#' + ${collapseLink}" aria-expanded="false" th:aria-controls="${collapseLink}">
 		<th:block th:if="${!#strings.isEmpty(collapseLink)}">
-			<div style="float:right; position:relative; padding-right: 16px; padding-left: 12px; padding-bottom: 0px;">
+			<div style="float:right; position:relative; padding-right: 10px; padding-left: 0px; padding-bottom: 0px;">
 				<a>
+					<span th:if="${!#strings.startsWith(unreach, 'true')}" th:id="${collapseLink} + 'ElementTitleState'" th:text="${elementTitleState}" style="padding-right: 8px; "></span>
 					<span style="display:inline;" th:id="${collapseLink} + 'SymbolDown'">
 						<th:block th:replace="basics :: symbol (name='fas fa-chevron-circle-down')"/>
 					</span>
@@ -38,12 +39,12 @@
 		</th:block>
 		<div>
 			<a>
-				<span th:if="${!#strings.isEmpty(icon)}"><th:block th:replace="basics :: symbol (name=${icon})"/></span>		
+				<span><th:block th:replace="basics :: symbol (name=${icon})"/></span>
+				<span th:utext="'&hairsp;'"></span>
 				<span th:text="${name}"></span>
-				<span th:id="${collapseLink} + 'ElementTitleState'" th:text="' &#8594; ' + ${elementTitleState}"></span>
 				<span th:if="${#strings.startsWith(unreach, 'true')}" class="text-danger">&nbsp;- Aktualisierung ausstehend!</span>
 			</a>
-			<input type="hidden" th:id="'val_ElementTitleState_' + ${collapseLink}" th:value="' &#8594; ' + ${elementTitleState}">
+			<input type="hidden" th:id="'val_ElementTitleState_' + ${collapseLink}" th:value="${elementTitleState}">
 		</div>
 	</div>
 
@@ -585,7 +586,7 @@
 	
 	<!-- Thermostat -->
 	<div th:fragment="thermostat (model)" th:class="'alert alert-' + ${model.colorClassHeating} + ' callout callout-' + ${model.colorClassHeating}">
-		<div th:replace="fragments :: elementnameCollapsable (icon=${model.heatericon}, name='Heizkörpersteuerung', place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id} + 'Thermostat', elementTitleState=${model.heaterElementTitleState})"></div>
+		<div th:replace="fragments :: elementnameCollapsable (icon=${model.heatericon}, name='Heizkörper', place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id} + 'Thermostat', elementTitleState=${model.heaterElementTitleState})"></div>
 			
 		<th:block th:unless="${#strings.equals(model.busy,'true') or #strings.equals(model.unreach,'true')}">
 			<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id} + 'Thermostat'">
