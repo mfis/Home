@@ -47,7 +47,7 @@ public class HomematicCommandProcessorTest {
     @Test
     public void testBuildCommandReadDeviceSuffix() throws Exception {
         assertThat(processor.buildCommand(homematicCommandBuilder.read(Device.STROMZAEHLER_GESAMT, "SUFFIX")),
-            is("var VAR_STROMVERBRAUCHHAUSSUFFIX = dom.GetObject('StromverbrauchHausSUFFIX').Value();"));
+            is("var VAR_STROMHAUSSUFFIX = dom.GetObject('StromHausSUFFIX').Value();"));
     }
 
     @Test
@@ -85,13 +85,13 @@ public class HomematicCommandProcessorTest {
     @Test
     public void testBuildCommandWriteDeviceSuffixBoolean() throws Exception {
         assertThat(processor.buildCommand(homematicCommandBuilder.write(Device.STROMZAEHLER_GESAMT, "SUFFIX", true)),
-            is("var RC_STROMVERBRAUCHHAUSSUFFIX = dom.GetObject('StromverbrauchHausSUFFIX').State(true);"));
+            is("var RC_STROMHAUSSUFFIX = dom.GetObject('StromHausSUFFIX').State(true);"));
     }
 
     @Test
     public void testBuildCommandWriteDeviceSuffixString() throws Exception {
         assertThat(processor.buildCommand(homematicCommandBuilder.write(Device.STROMZAEHLER_GESAMT, "SUFFIX", "NEWVALUE")),
-            is("var RC_STROMVERBRAUCHHAUSSUFFIX = dom.GetObject('StromverbrauchHausSUFFIX').State('NEWVALUE');"));
+            is("var RC_STROMHAUSSUFFIX = dom.GetObject('StromHausSUFFIX').State('NEWVALUE');"));
     }
 
     @Test
@@ -103,7 +103,7 @@ public class HomematicCommandProcessorTest {
     @Test
     public void testBuildCommandExecDeviceSuffix() throws Exception {
         assertThat(processor.buildCommand(homematicCommandBuilder.exec(Device.STROMZAEHLER_GESAMT, "SUFFIX")),
-            is("var RC_STROMVERBRAUCHHAUSSUFFIX = dom.GetObject('StromverbrauchHausSUFFIX').ProgramExecute();"));
+            is("var RC_STROMHAUSSUFFIX = dom.GetObject('StromHausSUFFIX').ProgramExecute();"));
     }
 
     @Test

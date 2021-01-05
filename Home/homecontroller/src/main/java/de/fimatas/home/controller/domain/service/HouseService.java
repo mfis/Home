@@ -302,7 +302,7 @@ public class HouseService {
 
     private void calculatePowerConsumptionTendencies(long newModelDateTime, PowerMeter oldModel, PowerMeter newModel) {
 
-        if (newModel.isUnreach()) {
+        if (newModel == null || newModel.isUnreach()) {
             return;
         }
 
