@@ -1,18 +1,14 @@
-package de.fimatas.home.controller.service;
+package de.fimatas.home.controller.api;
 
 import static de.fimatas.home.controller.command.HomematicCommandConstants.E_O_F;
 import static de.fimatas.home.controller.command.HomematicCommandConstants.PREFIX_RC;
 import static de.fimatas.home.controller.command.HomematicCommandConstants.PREFIX_VAR;
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -23,8 +19,9 @@ import javax.annotation.PostConstruct;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import org.apache.commons.codec.binary.Hex;
+import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,9 +42,11 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import de.fimatas.home.controller.command.HomematicCommand;
 import de.fimatas.home.controller.command.HomematicCommandBuilder;
+import de.fimatas.home.controller.command.HomematicCommandConstants;
 import de.fimatas.home.controller.command.HomematicCommandProcessor;
 import de.fimatas.home.library.homematic.model.Datapoint;
 import de.fimatas.home.library.homematic.model.Device;
+import de.fimatas.home.library.util.HomeAppConstants;
 
 @Component
 public class HomematicAPI {
@@ -77,28 +76,34 @@ public class HomematicAPI {
 
     private static final String REGA_HTTPS_PORT_AND_URI = ":48181/tclrega.exe";
 
+    private static final String RESPONSE_ROOT_TAG = "xml";
+
+    private static final String VAR_CCU_UPTIME = "CCU_Uptime";
+
+    private static final String VAR_CCU_REBOOT = "CCU_im_Reboot";
+
+    // current response
+
     private LocalDateTime currentValuesTimestamp;
 
     private Map<HomematicCommand, String> currentValues = new HashMap<>();
 
+    private Document currentDocument;
+
+    //
+
     private boolean ccuInitState;
-
-    private String refreshHashString = StringUtils.EMPTY;
-
-    private MessageDigest digest = null;
 
     private long resourceNotAvailableCounter;
 
     private long lastCCUAuthTestTimestamp = 0;
-
-    private static final long ONE_DAY_IN_MILLIS = 1000L * 60L * 60L * 24L;
 
     private Boolean ccuAuthActive;
 
     private static final Log LOG = LogFactory.getLog(HomematicAPI.class);
 
     @PostConstruct
-    public void init() {
+    public void init() throws ParserConfigurationException {
 
         ccuUser = env.getProperty("homematic.authuser");
         ccuPass = env.getProperty("homematic.authpass");
@@ -116,14 +121,13 @@ public class HomematicAPI {
 
         writeToHomematicEnabled = Boolean.parseBoolean(writeEnabled.trim());
 
-        try {
-            digest = MessageDigest.getInstance("SHA-256");
-        } catch (NoSuchAlgorithmException e) {
-            LOG.error(e);
-        }
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance(); // NOSONAR
+        DocumentBuilder builder = dbf.newDocumentBuilder();
+        currentDocument = builder.newDocument();
     }
 
     public boolean isDeviceUnreachableOrNotSending(Device device) {
+
         if (ccuInitState) {
             return true;
         }
@@ -133,10 +137,13 @@ public class HomematicAPI {
             return true;
         }
 
-        Optional<Datapoint> datapointWithTimestamp = device.getDatapoints().stream().filter(Datapoint::isReadTimestamp).findFirst();
-        if(datapointWithTimestamp.isPresent()) {
-            long datapointTimestamp = getTimestamp(homematicCommandBuilder.readTS(device, datapointWithTimestamp.get()));
-            if (datapointTimestamp < ONE_DAY_IN_MILLIS) { // 0 +- timezone
+        Optional<Datapoint> datapointWithTimestamp =
+            device.getDatapoints().stream().filter(Datapoint::isReadTimestamp).findFirst();
+
+        if (datapointWithTimestamp.isPresent()) {
+            LocalDateTime datapointTimestamp =
+                getTimestamp(homematicCommandBuilder.readTS(device, datapointWithTimestamp.get()));
+            if (datapointTimestamp.getYear() <= NumberUtils.INTEGER_ONE) {
                 return true;
             }
         }
@@ -156,10 +163,8 @@ public class HomematicAPI {
         return new BigDecimal(readValue(command));
     }
 
-    private long getTimestamp(HomematicCommand command) {
-        ZonedDateTime zonedDateTime =
-            ZonedDateTime.of(LocalDateTime.parse(readValue(command), UPTIME_FORMATTER), ZoneId.systemDefault());
-        return zonedDateTime.toInstant().toEpochMilli();
+    private LocalDateTime getTimestamp(HomematicCommand command) { // internal use only
+        return LocalDateTime.parse(readValue(command), UPTIME_FORMATTER);
     }
 
     public void executeCommand(HomematicCommand... commands) {
@@ -234,8 +239,8 @@ public class HomematicAPI {
             }
             commands.add(homematicCommandBuilder.read(device, Datapoint.UNREACH));
         }
-        commands.add(homematicCommandBuilder.read("CCU_im_Reboot"));
-        commands.add(homematicCommandBuilder.read("CCU_Uptime"));
+        commands.add(homematicCommandBuilder.read(VAR_CCU_REBOOT));
+        commands.add(homematicCommandBuilder.read(VAR_CCU_UPTIME));
 
         boolean refreshed = executeCommands(true, commands.toArray(new HomematicCommand[commands.size()]));
         if (refreshed) {
@@ -245,7 +250,7 @@ public class HomematicAPI {
     }
 
     private void lookupInitState() {
-        ccuInitState = getAsBoolean(homematicCommandBuilder.read("CCU_im_Reboot"));
+        ccuInitState = getAsBoolean(homematicCommandBuilder.read(VAR_CCU_REBOOT));
     }
 
     private boolean executeCommands(boolean refresh, HomematicCommand... commands) {
@@ -267,7 +272,7 @@ public class HomematicAPI {
         boolean rcsOk = true;
         boolean eofOK = false;
 
-        NodeList childs = responseDocument.getElementsByTagName("xml").item(0).getChildNodes();
+        NodeList childs = responseDocument.getElementsByTagName(RESPONSE_ROOT_TAG).item(0).getChildNodes();
         for (int i = 0; i < childs.getLength(); i++) {
             Element child = (Element) childs.item(i);
             if (child.getTagName().startsWith(PREFIX_VAR)) {
@@ -358,46 +363,92 @@ public class HomematicAPI {
             responseEntity = restTemplateCCU.postForEntity(host + REGA_HTTPS_PORT_AND_URI, requestEntity, String.class);
             resourceNotAvailableCounter = 0;
         } catch (Exception e) {
-            if (!withAuthentication) {
-                throw e;
-            }
-            resourceNotAvailableCounter++;
-            if (resourceNotAvailableCounter > 2) {
+            if (handleRequestException(withAuthentication)) {
                 throw e;
             }
             return null;
         }
+
         HttpStatus statusCode = responseEntity.getStatusCode();
         if (!statusCode.is2xxSuccessful()) {
             LOG.error("Could not successful call ReGa API. RC=" + statusCode.value());
+        }
+        Assert.notNull(responseEntity.getBody(), "ccu response is empty!");
+        if (LOG.isTraceEnabled()) {
+            LOG.trace("REQUEST:\n" + body + "\nRESPONSE:\n" + responseEntity.getBody());
         }
 
         try {
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance(); // NOSONAR
             dbFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, Boolean.TRUE);
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-            String resposeString = responseEntity.getBody();
-            Assert.notNull(resposeString, "ccu response is empty!");
-            byte[] responseBytes = resposeString.getBytes(StandardCharsets.UTF_8);
-            if (refresh) {
-                String actualHashString =
-                    Hex.encodeHexString(digest.digest(responseBytes));
-                if (StringUtils.equals(refreshHashString, actualHashString)) {
-                    return null;
-                } else {
-                    refreshHashString = actualHashString;
-                }
+            Document newDoc =
+                dBuilder.parse(new ByteArrayInputStream(responseEntity.getBody().getBytes(StandardCharsets.UTF_8))); // NOSONAR
+            newDoc.getDocumentElement().normalize();
+            normalizeTimestamps(newDoc);
+
+            if (ignoreEqualResponse(refresh, newDoc)) {
+                return null;
             }
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("REQUEST:\n" + body + "\nRESPONSE:\n" + new String(responseBytes));
-            }
-            InputStream inputStream = new ByteArrayInputStream(responseBytes);
-            Document doc = dBuilder.parse(inputStream);
-            doc.getDocumentElement().normalize();
-            return doc;
+            return newDoc;
         } catch (Exception e) {
             throw new IllegalStateException("Error parsing document", e);
         }
+    }
+
+    private void normalizeTimestamps(Document doc) {
+
+        NodeList childs = doc.getElementsByTagName(RESPONSE_ROOT_TAG).item(0).getChildNodes();
+        for (int i = 0; i < childs.getLength(); i++) {
+            Element child = (Element) childs.item(i);
+            if (child.getTagName().endsWith(HomematicCommandConstants.SUFFIX_TS)) {
+                String ts = child.getTextContent();
+                if (StringUtils.isNotBlank(ts)) {
+                    LocalDateTime localDateTime = LocalDateTime.parse(ts, UPTIME_FORMATTER);
+                    LocalDateTime normalizedLocalDateTime = localDateTime.truncatedTo(ChronoUnit.HOURS);
+                    child.setTextContent(normalizedLocalDateTime.format(UPTIME_FORMATTER));
+                    if (LOG.isTraceEnabled()) {
+                        LOG.trace("Normalized Timestamp: " + localDateTime + " -> " + normalizedLocalDateTime);
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean ignoreEqualResponse(boolean refresh, Document newDocument) {
+
+        if (!refresh) {
+            return false;
+        }
+
+        if (newDocument.isEqualNode(currentDocument)) {
+            if (ChronoUnit.SECONDS.between(currentValuesTimestamp,
+                LocalDateTime.now()) < HomeAppConstants.MODEL_MAX_UPDATE_INTERVAL_SECONDS) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug(
+                        "Response is equal to previous response AND model is still actual. -> NOT returning response.");
+                }
+                return true;
+            }
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Response is equal to previous response BUT model is outdated. -> Returning response.");
+            }
+        } else {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Response is NOT equal to previous response. -> Returning response.");
+            }
+        }
+        currentDocument = newDocument;
+        return false;
+    }
+
+    public boolean handleRequestException(boolean withAuthentication) {
+
+        if (!withAuthentication) {
+            return true;
+        }
+        resourceNotAvailableCounter++;
+        return resourceNotAvailableCounter > 2;
     }
 
     public Map<HomematicCommand, String> getCurrentValues() {
