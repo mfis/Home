@@ -12,6 +12,8 @@ public class HomematicCommandConstants {
 
     public static final String PREFIX_RC = "RC_";
 
+    public static final String SUFFIX_TS = "_TS";
+
     static final String EMPTY = "";
 
     static final String DOM_METHOD = "dom.GetObject";
@@ -29,8 +31,6 @@ public class HomematicCommandConstants {
     static final String LAST_TIMESTAMP = "LastTimestamp";
 
     static final String PROGRAM_EXECUTE = "ProgramExecute";
-
-    static final String SUFFIX_TS = "_TS";
 
     static final String VAR = "var ";
 

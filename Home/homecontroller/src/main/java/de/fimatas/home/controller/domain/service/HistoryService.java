@@ -24,6 +24,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import de.fimatas.home.controller.api.HomematicAPI;
 import de.fimatas.home.controller.command.HomematicCommand;
 import de.fimatas.home.controller.command.HomematicCommandBuilder;
 import de.fimatas.home.controller.dao.HistoryDatabaseDAO;
@@ -32,7 +33,6 @@ import de.fimatas.home.controller.database.mapper.TimestampValuePairComparator;
 import de.fimatas.home.controller.model.History;
 import de.fimatas.home.controller.model.HistoryElement;
 import de.fimatas.home.controller.model.HistoryValueType;
-import de.fimatas.home.controller.service.HomematicAPI;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.HistoryModel;
 import de.fimatas.home.library.domain.model.PowerConsumptionDay;
@@ -41,6 +41,7 @@ import de.fimatas.home.library.domain.model.TemperatureHistory;
 import de.fimatas.home.library.domain.model.TimeRange;
 import de.fimatas.home.library.homematic.model.Datapoint;
 import de.fimatas.home.library.homematic.model.Device;
+import de.fimatas.home.library.util.HomeAppConstants;
 import de.fimatas.home.library.util.HomeUtils;
 
 @Component
@@ -180,7 +181,7 @@ public class HistoryService {
         }
     }
 
-    @Scheduled(fixedDelay = ((1000 * 60 * 5) + 13))
+    @Scheduled(fixedDelay = ((1000 * HomeAppConstants.HISTORY_DEFAULT_INTERVAL_SECONDS) + 13))
     private synchronized void refreshExtremValues() {
         HistoryModel model = ModelObjectDAO.getInstance().readHistoryModel();
         if (model == null) {
