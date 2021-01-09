@@ -3,14 +3,15 @@ package de.fimatas.home.library.dao;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-
 import de.fimatas.home.library.domain.model.CameraMode;
 import de.fimatas.home.library.domain.model.CameraModel;
 import de.fimatas.home.library.domain.model.CameraPicture;
 import de.fimatas.home.library.domain.model.HistoryModel;
 import de.fimatas.home.library.domain.model.HouseModel;
+import de.fimatas.home.library.domain.model.LightsModel;
 import de.fimatas.home.library.domain.model.SettingsModel;
 import de.fimatas.home.library.homematic.model.Device;
+import de.fimatas.home.library.util.HomeAppConstants;
 
 public class ModelObjectDAO {
 
@@ -21,6 +22,8 @@ public class ModelObjectDAO {
     private HistoryModel historyModel;
 
     private CameraModel cameraModel;
+
+    private LightsModel lightsModel;
 
     private Map<String, SettingsModel> settingsModels = new HashMap<>();
 
@@ -53,6 +56,10 @@ public class ModelObjectDAO {
         cameraModel = newModel;
     }
 
+    public void write(LightsModel newModel) {
+        lightsModel = newModel;
+    }
+
     public void write(SettingsModel newModel) {
         settingsModels.put(newModel.getUser(), newModel);
     }
@@ -62,7 +69,7 @@ public class ModelObjectDAO {
         if (houseModel == null) {
             lastHouseModelState = "No data-model set.";
             return null;
-        } else if (new Date().getTime() - newestTimestamp > 1000 * 60 * 3) {
+        } else if (new Date().getTime() - newestTimestamp > 1000 * HomeAppConstants.MODEL_OUTDATED_SECONDS) {
             lastHouseModelState = "Data state is too old: " + ((new Date().getTime() - newestTimestamp) / 1000) + " sec.";
             return null; // Too old. Should never happen
         } else {
@@ -73,11 +80,18 @@ public class ModelObjectDAO {
 
     public HistoryModel readHistoryModel() {
         long newestTimestamp = Math.max(historyModel == null ? 0 : historyModel.getDateTime(), getLastLongPollingTimestamp());
-        if (historyModel == null || new Date().getTime() - newestTimestamp > 1000 * 60 * 15) {
+        if (historyModel == null || new Date().getTime() - newestTimestamp > 1000 * HomeAppConstants.HISTORY_OUTDATED_SECONDS) {
             return null; // Too old. Should never happen
         } else {
             return historyModel;
         }
+    }
+
+    public LightsModel readLightsModel() {
+        if (lightsModel == null) {
+            lightsModel = new LightsModel();
+        }
+        return lightsModel;
     }
 
     public CameraModel readCameraModel() {

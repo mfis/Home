@@ -58,4 +58,13 @@ public enum Place {
         return list;
     }
 
+    public static Place fromName(String groupName) {
+        for (Place place : values()) {
+            if (place.getPlaceName().equalsIgnoreCase(groupName)) {
+                return place;
+            }
+        }
+        return null;
+    }
+
 }
