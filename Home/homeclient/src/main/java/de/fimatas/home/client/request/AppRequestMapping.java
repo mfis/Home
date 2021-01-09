@@ -71,7 +71,8 @@ public class AppRequestMapping {
                 throw new IllegalStateException("State error - " + ModelObjectDAO.getInstance().getLastHouseModelState());
             } else {
                 Model model = new ExtendedModelMap();
-                houseView.fillViewModel(model, houseModel, ModelObjectDAO.getInstance().readHistoryModel());
+                houseView.fillViewModel(model, houseModel, ModelObjectDAO.getInstance().readHistoryModel(),
+                    ModelObjectDAO.getInstance().readLightsModel());
                 return appViewService.mapAppModel(model, viewTarget);
             }
         } catch (Exception e) {

@@ -18,6 +18,7 @@ import de.fimatas.home.library.domain.model.BackupFile;
 import de.fimatas.home.library.domain.model.CameraModel;
 import de.fimatas.home.library.domain.model.HistoryModel;
 import de.fimatas.home.library.domain.model.HouseModel;
+import de.fimatas.home.library.domain.model.LightsModel;
 import de.fimatas.home.library.domain.model.SettingsModel;
 import de.fimatas.home.library.model.Message;
 
@@ -47,6 +48,12 @@ public class ControllerRequestMapping {
     @PostMapping(value = UPLOAD_METHOD_PREFIX + "HistoryModel")
     public ActionModel uploadHistoryModel(@RequestBody HistoryModel historyModel) {
         ModelObjectDAO.getInstance().write(historyModel);
+        return new ActionModel("OK");
+    }
+
+    @PostMapping(value = UPLOAD_METHOD_PREFIX + "LightsModel")
+    public ActionModel uploadLightsModel(@RequestBody LightsModel lightsModel) {
+        ModelObjectDAO.getInstance().write(lightsModel);
         return new ActionModel("OK");
     }
 

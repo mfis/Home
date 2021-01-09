@@ -30,6 +30,7 @@ import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.CameraMode;
 import de.fimatas.home.library.domain.model.CameraPicture;
 import de.fimatas.home.library.domain.model.HouseModel;
+import de.fimatas.home.library.domain.model.LightsModel;
 import de.fimatas.home.library.domain.model.SettingsModel;
 import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.model.Message;
@@ -184,11 +185,12 @@ public class HomeRequestMapping {
         try {
             if (houseModel == null) {
                 throw new IllegalStateException("State error - " + ModelObjectDAO.getInstance().getLastHouseModelState());
-            } else if (isModelUnchanged(etag, houseModel) && !isNewMessage) {
+            } else if (isModelUnchanged(etag, houseModel, ModelObjectDAO.getInstance().readLightsModel()) && !isNewMessage) {
                 response.setStatus(HttpStatus.NOT_MODIFIED.value());
                 return "empty";
             } else {
-                houseView.fillViewModel(model, houseModel, ModelObjectDAO.getInstance().readHistoryModel());
+                houseView.fillViewModel(model, houseModel, ModelObjectDAO.getInstance().readHistoryModel(),
+                    ModelObjectDAO.getInstance().readLightsModel());
                 return Pages.getEntry(Pages.PATH_HOME).getTemplate();
             }
         } catch (Exception e) {
@@ -208,8 +210,9 @@ public class HomeRequestMapping {
         model.addAttribute("exception", exception.getMessage());
     }
 
-    private boolean isModelUnchanged(String etag, HouseModel houseModel) {
-        return StringUtils.isNotBlank(etag) && StringUtils.equals(etag, Long.toString(houseModel.getDateTime()));
+    private boolean isModelUnchanged(String etag, HouseModel houseModel, LightsModel lightsModel) {
+        return StringUtils.isNotBlank(etag)
+            && StringUtils.equals(etag, Long.toString(Long.max(houseModel.getDateTime(), lightsModel.getTimestamp())));
     }
 
     @GetMapping(Pages.PATH_SETTINGS)
