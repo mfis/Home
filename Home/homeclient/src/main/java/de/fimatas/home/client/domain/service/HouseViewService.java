@@ -147,7 +147,7 @@ public class HouseViewService {
 
         formatLowBattery(model, house.getLowBatteryDevices());
 
-        formatWarnings(model, house);
+        formatWarnings(model, house, lightsModel);
 
         formatLights(lightsModel, model);
     }
@@ -525,12 +525,18 @@ public class HouseViewService {
         model.addAttribute("lowBattery", lowBatteryDevices);
     }
 
-    private void formatWarnings(Model model, HouseModel houseModel) {
+    private void formatWarnings(Model model, HouseModel houseModel, LightsModel lightsModel) {
 
         List<String> copy = new ArrayList<>(houseModel.getWarnings());
-        long diff = new Date().getTime() - houseModel.getDateTime();
-        if (diff > 1000 * 60 * 20) {
-            copy.add("Letzte Aktualisierung vor " + (diff / 1000 / 60) + " Min.");
+
+        long diffHm = new Date().getTime() - houseModel.getDateTime();
+        if (diffHm > 1000 * HomeAppConstants.MODEL_UPDATE_WARNING_SECONDS) {
+            copy.add("Letzte Homematic Aktualisierung vor " + (diffHm / 1000 / 60) + " Min.");
+        }
+
+        long diffHue = new Date().getTime() - lightsModel.getTimestamp();
+        if (diffHue > 1000 * HomeAppConstants.MODEL_UPDATE_WARNING_SECONDS) {
+            copy.add("Letzte Hue Aktualisierung vor " + (diffHue / 1000 / 60) + " Min.");
         }
 
         model.addAttribute("warnings", copy);
@@ -700,9 +706,13 @@ public class HouseViewService {
 
     private void formatLights(LightsModel lightsModel, Model model) {
         
-        lightsModel.getLightsMap().forEach((place, lightsInPlace) -> formatLightsInPlace(place, lightsInPlace, model));
+        if (lightsModel != null) {
+            lightsModel.getLightsMap().forEach((place, lightsInPlace) -> formatLightsInPlace(place, lightsInPlace, model));
+        }
+
         // format all other places as unreachable
-        Arrays.asList(Place.values()).stream().filter(p -> !lightsModel.getLightsMap().keySet().contains(p))
+        Arrays.asList(Place.values()).stream()
+            .filter(p -> lightsModel == null || !lightsModel.getLightsMap().keySet().contains(p))
             .forEach(p -> model.addAttribute("lights" + p.getPlaceName(), unreachableLightsView(p)));
     }
 

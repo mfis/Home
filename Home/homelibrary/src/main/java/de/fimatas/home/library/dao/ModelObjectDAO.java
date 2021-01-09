@@ -65,7 +65,8 @@ public class ModelObjectDAO {
     }
 
     public HouseModel readHouseModel() {
-        long newestTimestamp = Math.max(houseModel == null ? 0 : houseModel.getDateTime(), getLastLongPollingTimestamp());
+        // long newestTimestamp = Math.max(houseModel == null ? 0 : houseModel.getDateTime(), getLastLongPollingTimestamp());
+        long newestTimestamp = houseModel == null ? 0 : houseModel.getDateTime();
         if (houseModel == null) {
             lastHouseModelState = "No data-model set.";
             return null;
@@ -79,7 +80,9 @@ public class ModelObjectDAO {
     }
 
     public HistoryModel readHistoryModel() {
-        long newestTimestamp = Math.max(historyModel == null ? 0 : historyModel.getDateTime(), getLastLongPollingTimestamp());
+        // long newestTimestamp = Math.max(historyModel == null ? 0 : historyModel.getDateTime(),
+        // getLastLongPollingTimestamp());
+        long newestTimestamp = historyModel == null ? 0 : historyModel.getDateTime();
         if (historyModel == null || new Date().getTime() - newestTimestamp > 1000 * HomeAppConstants.HISTORY_OUTDATED_SECONDS) {
             return null; // Too old. Should never happen
         } else {
@@ -88,10 +91,12 @@ public class ModelObjectDAO {
     }
 
     public LightsModel readLightsModel() {
-        if (lightsModel == null) {
-            lightsModel = new LightsModel();
+        long newestTimestamp = lightsModel == null ? 0 : historyModel.getDateTime();
+        if (lightsModel == null || new Date().getTime() - newestTimestamp > 1000 * HomeAppConstants.MODEL_OUTDATED_SECONDS) {
+            return null; // Too old. Should never happen
+        } else {
+            return lightsModel;
         }
-        return lightsModel;
     }
 
     public CameraModel readCameraModel() {

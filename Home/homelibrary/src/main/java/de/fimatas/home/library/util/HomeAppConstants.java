@@ -26,11 +26,13 @@ public class HomeAppConstants {
 
     //
 
-    public static final int MODEL_OUTDATED_SECONDS = 60 * 6;
+    public static final int MODEL_OUTDATED_SECONDS = 60 * 10;
 
     public static final int MODEL_DEFAULT_INTERVAL_SECONDS = 10;
 
     public static final int MODEL_MAX_UPDATE_INTERVAL_SECONDS = 60 * 4;
+
+    public static final int MODEL_UPDATE_WARNING_SECONDS = 60 * 6;
 
     //
 
