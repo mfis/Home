@@ -3,7 +3,6 @@ package de.fimatas.home.controller.service;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
-
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -21,7 +20,6 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-
 import de.fimatas.home.controller.domain.service.HistoryService;
 import de.fimatas.home.controller.domain.service.HouseService;
 import de.fimatas.home.controller.domain.service.UploadService;
@@ -46,6 +44,9 @@ public class ClientCommunicationService {
 
     @Autowired
     private CameraService cameraService;
+
+    @Autowired
+    private LightService lightService;
 
     @Autowired
     private SettingsService settingsService;
@@ -149,6 +150,12 @@ public class ClientCommunicationService {
             uploadService.upload(ModelObjectDAO.getInstance().readHistoryModel());
         }
 
+        if (ModelObjectDAO.getInstance().readLightsModel() == null) {
+            lightService.refreshLightsModel();
+        } else {
+            uploadService.upload(ModelObjectDAO.getInstance().readLightsModel());
+        }
+
         uploadService.upload(ModelObjectDAO.getInstance().readCameraModel());
 
         settingsService.refreshSettingsModelsComplete();
@@ -204,7 +211,7 @@ public class ClientCommunicationService {
         String suppressLogEntries = resourceNotAvailableCounter == 5 ? " NO FURTHER LOG ENTRIES WILL BE WRITTEN." : "";
         if (resourceNotAvailableCounter < 4) {
             LOG.warn("Could not connect to client to poll for message (#" + resourceNotAvailableCounter + "). "
-                + e.getMessage().replace('\r', ' ').replace('\n', ' ') + suppressLogEntries);
+                + (e.getMessage() != null ? e.getMessage().replace('\r', ' ').replace('\n', ' ') : "") + suppressLogEntries); // NOSONAR
         }
     }
 
