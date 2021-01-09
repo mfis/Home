@@ -3,6 +3,7 @@ package de.fimatas.home.client.domain.service;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -36,7 +37,11 @@ import de.fimatas.home.library.domain.model.Heating;
 import de.fimatas.home.library.domain.model.HistoryModel;
 import de.fimatas.home.library.domain.model.HouseModel;
 import de.fimatas.home.library.domain.model.Intensity;
+import de.fimatas.home.library.domain.model.Light;
+import de.fimatas.home.library.domain.model.LightState;
+import de.fimatas.home.library.domain.model.LightsModel;
 import de.fimatas.home.library.domain.model.OutdoorClimate;
+import de.fimatas.home.library.domain.model.Place;
 import de.fimatas.home.library.domain.model.PowerConsumptionDay;
 import de.fimatas.home.library.domain.model.PowerMeter;
 import de.fimatas.home.library.domain.model.RoomClimate;
@@ -114,9 +119,9 @@ public class HouseViewService {
         });
     }
 
-    public void fillViewModel(Model model, HouseModel house, HistoryModel historyModel) {
+    public void fillViewModel(Model model, HouseModel house, HistoryModel historyModel, LightsModel lightsModel) {
 
-        model.addAttribute("modelTimestamp", Long.toString(house.getDateTime()));
+        model.addAttribute("modelTimestamp", Long.toString(Long.max(house.getDateTime(), lightsModel.getTimestamp())));
 
         formatClimate(model, "tempBathroom", house.getClimateBathRoom(), house.getHeatingBathRoom(), false);
         formatClimate(model, "tempKids", house.getClimateKidsRoom(), null, true);
@@ -144,7 +149,7 @@ public class HouseViewService {
 
         formatWarnings(model, house);
 
-        formatLights(model);
+        formatLights(lightsModel, model);
     }
 
     public String lookupSunHeating(OutdoorClimate outdoorMaxClimate) {
@@ -693,61 +698,63 @@ public class HouseViewService {
         }
     }
 
-    private void formatLights(Model model) {
+    private void formatLights(LightsModel lightsModel, Model model) {
+        
+        lightsModel.getLightsMap().forEach((place, lightsInPlace) -> formatLightsInPlace(place, lightsInPlace, model));
+        // format all other places as unreachable
+        Arrays.asList(Place.values()).stream().filter(p -> !lightsModel.getLightsMap().keySet().contains(p))
+            .forEach(p -> model.addAttribute("lights" + p.getPlaceName(), unreachableLightsView(p)));
+    }
 
-        // -----------------------------------
-
-        var light1 = new LightView(); // IS ON
-        light1.setId("light_wohn_l1");
-        light1.setName("Spielecke");
-        light1.setStateShort("Ein");
-        light1.setColorClass(COLOR_CLASS_ORANGE);
-        // light1.setLinkOn("#");
-        light1.setLinkOff("/...");
-
-        var light2 = new LightView(); // IS OFF
-        light2.setId("light_wohn_l2");
-        light2.setName("Hochregal");
-        light2.setStateShort("Aus");
-        light2.setColorClass("");
-        light2.setLinkOn("/...");
-
-        var light3 = new LightView(); // IS ON
-        light3.setId("light_wohn_l3");
-        light3.setName("Klavier");
-        light3.setStateShort("Ein");
-        light3.setColorClass(COLOR_CLASS_ORANGE);
-        light3.setLinkOff("/...");
-
-        var light4 = new LightView(); // IS OFF
-        light4.setId("light_wohn_l4");
-        light4.setName("Terrassentür");
-        light4.setStateShort("Aus");
-        light4.setColorClass("");
-        light4.setLinkOn("/...");
-
-        var light5 = new LightView(); // IS OFF BY SWITCH
-        light5.setId("light_wohn_l5");
-        light5.setName("Essecke");
-        light5.setStateShort("Ein");
-        light5.setColorClass("");
-
-        // -----------------------------------
+    private LightsView unreachableLightsView(Place place) {
 
         var lights = new LightsView();
-        lights.setId("lights_wohn");
-        lights.setColorClass(COLOR_CLASS_ORANGE);
+        lights.setPlace(place.getPlaceName());
+        lights.setUnreach(Boolean.TRUE.toString());
+        return lights;
+    }
+
+    private void formatLightsInPlace(Place place, List<Light> lightsInPlace, Model model) {
+
+        var lights = new LightsView();
+        lights.setId("lights_" + place.getPlaceName());
+        lights.setPlace(place.getPlaceName());
+
+        int countLightsOn = 0;
+
+        for (Light light : lightsInPlace) {
+
+            if (light.getState() == LightState.ON) {
+                countLightsOn++;
+            }
+
+            var lightView = new LightView();
+            lightView.setId("light_" + place.getPlaceName() + "_" + light.getId());
+            lightView.setName(light.getName());
+            lightView.setStateShort(light.getState().getCaption());
+            lightView.setColorClass(light.getState() == LightState.ON ? COLOR_CLASS_ORANGE : COLOR_CLASS_GRAY);
+            if (light.getState() == LightState.ON) {
+                lightView.setLinkOff("/...");
+            } else if (light.getState() == LightState.OFF) {
+                lightView.setLinkOn("/...");
+            }
+
+            lights.getLights().add(lightView);
+        }
+
+        lights.setColorClass(countLightsOn > 0 ? COLOR_CLASS_ORANGE : COLOR_CLASS_GRAY);
         lights.setName("Licht");
-        lights.setIcon(true ? "fas fa-lightbulb" : "far fa-lightbulb");
-        lights.setElementTitleState("2/5 eingeschaltet");
+        lights.setIcon(countLightsOn > 0 ? "fas fa-lightbulb" : "far fa-lightbulb");
 
-        lights.getLights().add(light1);
-        lights.getLights().add(light2);
-        lights.getLights().add(light3);
-        lights.getLights().add(light4);
-        lights.getLights().add(light5);
+        if (countLightsOn == lightsInPlace.size()) {
+            lights.setElementTitleState("Alle eingeschaltet");
+        } else if (countLightsOn == 0) {
+            lights.setElementTitleState("Alle ausgeschaltet");
+        } else {
+            lights.setElementTitleState(countLightsOn + "/" + lightsInPlace.size() + " eingeschaltet");
+        }
 
-        model.addAttribute("lightsWohnzimmer", lights);
+        model.addAttribute("lights" + place.getPlaceName(), lights);
     }
 
 }

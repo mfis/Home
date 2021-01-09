@@ -639,7 +639,7 @@
 	<th:block th:fragment="lights (model)">
 		<th:block th:if="${#lists.size(model.lights) &gt; 0}">
 			<div th:class="'alert alert-secondary callout callout-' + ${model.colorClass}">
-				<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place='', unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState})"></div>
+				<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState})"></div>
 				<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
 					<div style="height: 5px;"></div>
 					<div class="d-flex flex-wrap">
