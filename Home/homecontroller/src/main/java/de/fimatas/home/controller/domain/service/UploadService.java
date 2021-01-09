@@ -71,7 +71,7 @@ public class UploadService {
         String suppressLogEntries = resourceNotAvailableCounter == 5 ? " NO FURTHER LOG ENTRIES WILL BE WRITTEN." : "";
         if (resourceNotAvailableCounter < 4) {
             log.warn("Could not upload state (#" + resourceNotAvailableCounter + "). "
-                + e.getMessage().replace('\r', ' ').replace('\n', ' ') + suppressLogEntries);
+                + (e.getMessage() != null ? e.getMessage().replace('\r', ' ').replace('\n', ' ') : "") + suppressLogEntries); // NOSONAR
         }
     }
 
