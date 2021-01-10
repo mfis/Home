@@ -141,4 +141,8 @@ public class LightService {
         }
     }
 
+    public void toggleLight(String deviceId, Boolean value) {
+        hueAPI.toggleLight(deviceId, value);
+    }
+
 }

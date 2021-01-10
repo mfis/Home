@@ -2,7 +2,6 @@ package de.fimatas.home.library.model;
 
 import java.io.Serializable;
 import java.util.UUID;
-
 import de.fimatas.home.library.homematic.model.Device;
 
 public class Message implements Serializable {
@@ -14,6 +13,8 @@ public class Message implements Serializable {
     private MessageType messageType;
 
     private Device device;
+
+    private String hueDeviceId;
 
     private String value;
 
@@ -91,6 +92,14 @@ public class Message implements Serializable {
 
     public void setSecurityPin(String securityPin) {
         this.securityPin = securityPin;
+    }
+
+    public String getHueDeviceId() {
+        return hueDeviceId;
+    }
+
+    public void setHueDeviceId(String hueDeviceId) {
+        this.hueDeviceId = hueDeviceId;
     }
 
 }

@@ -73,6 +73,8 @@ public class HouseViewService {
 
     private static final String AND_DEVICE_IS = "&deviceName=";
 
+    private static final String AND_HUE_DEVICE_ID_IS = "&hueDeviceId=";
+
     public static final String PIN = "securityPin";
 
     private static final String AND_PIN_IS = "&" + PIN + "=";
@@ -96,6 +98,8 @@ public class HouseViewService {
     private static final String TOGGLE_AUTOMATION = MESSAGEPATH + TYPE_IS + MessageType.TOGGLEAUTOMATION + AND_DEVICE_IS;
 
     private static final String OPEN_STATE = MESSAGEPATH + TYPE_IS + MessageType.OPEN + AND_DEVICE_IS;
+
+    private static final String TOGGLE_LIGHT = MESSAGEPATH + TYPE_IS + MessageType.TOGGLELIGHT + AND_HUE_DEVICE_ID_IS;
 
     private static final BigDecimal HIGH_TEMP = new BigDecimal("25");
 
@@ -744,9 +748,9 @@ public class HouseViewService {
             lightView.setStateShort(light.getState().getCaption());
             lightView.setColorClass(light.getState() == LightState.ON ? COLOR_CLASS_ORANGE : COLOR_CLASS_GRAY);
             if (light.getState() == LightState.ON) {
-                lightView.setLinkOff("/...");
+                lightView.setLinkOff(TOGGLE_LIGHT + light.getId() + AND_VALUE_IS + Boolean.FALSE.toString());
             } else if (light.getState() == LightState.OFF) {
-                lightView.setLinkOn("/...");
+                lightView.setLinkOn(TOGGLE_LIGHT + light.getId() + AND_VALUE_IS + Boolean.TRUE.toString());
             }
 
             lights.getLights().add(lightView);

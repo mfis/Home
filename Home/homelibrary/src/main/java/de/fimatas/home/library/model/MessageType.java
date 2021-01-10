@@ -4,6 +4,7 @@ public enum MessageType {
 
     REFRESH_ALL_MODELS(null), //
     TOGGLESTATE(Pages.PATH_HOME), //
+    TOGGLELIGHT(Pages.PATH_HOME), //
     OPEN(Pages.PATH_HOME), //
     TOGGLEAUTOMATION(Pages.PATH_HOME), //
     SHUTTERPOSITION(Pages.PATH_HOME), //

@@ -646,9 +646,9 @@
 						<th:block th:each="entry : ${model.lights}">
 							<div  style="margin-top: 3px; margin-bottom: 2px; margin-right: 12px;">
 								<!-- is ON -->
-							    <button th:if="${#strings.startsWith(entry.linkOn, '#') and #strings.startsWith(entry.linkOff, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'lightOn' + ${model.id} + '()'}"><span th:class="'text-' + ${entry.colorClass}" th:text="${entry.name}"></span></button>
+							    <button th:if="${#strings.startsWith(entry.linkOn, '#') and #strings.startsWith(entry.linkOff, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'lightOff' + ${entry.id} + '()'}"><span th:class="'text-' + ${entry.colorClass}" th:text="${entry.name}"></span></button>
 							    <!-- is OFF (STANDBY) -->
-							    <button th:if="${#strings.startsWith(entry.linkOn, '/') and #strings.startsWith(entry.linkOff, '#')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'lightOff' + ${model.id} + '()'}"><span th:text="${entry.name}"></span></button>
+							    <button th:if="${#strings.startsWith(entry.linkOn, '/') and #strings.startsWith(entry.linkOff, '#')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'lightOn' + ${entry.id} + '()'}"><span th:text="${entry.name}"></span></button>
 							    <!-- is OFF BY SWITCH -->
 							    <button th:if="${#strings.startsWith(entry.linkOn, '#') and #strings.startsWith(entry.linkOff, '#')}" type="button" class="btn btn-outline-secondary btn-sm" disabled><span class="text-light" th:text="${entry.name}"></span></button>
 							    <!-- VARS / SCRIPTS -->

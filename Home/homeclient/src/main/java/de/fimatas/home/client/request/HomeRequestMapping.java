@@ -49,6 +49,8 @@ public class HomeRequestMapping {
 
     private static final String DEVICE_NAME = "deviceName";
 
+    private static final String HUE_DEVICE_ID = "hueDeviceId";
+
     private static final String CAMERA_MODE = "cameraMode";
 
     private static final Log log = LogFactory.getLog(HomeRequestMapping.class);
@@ -69,16 +71,21 @@ public class HomeRequestMapping {
     private UserService userService;
 
     @GetMapping("/message")
-    public String message(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
-            @RequestParam(name = "type") String type, @RequestParam(name = DEVICE_NAME, required = false) String deviceName,
-            @RequestParam("value") String value, @RequestParam(name = "securityPin", required = false) String securityPin,
-            @RequestHeader(name = LoginInterceptor.APP_USER_NAME, required = false) String appUserName,
+    public String message(Model model, //
+            @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, //
+            @RequestParam(name = "type") String type, //
+            @RequestParam(name = DEVICE_NAME, required = false) String deviceName, //
+            @RequestParam(name = HUE_DEVICE_ID, required = false) String hueDeviceId, //
+            @RequestParam(name = "value") String value, //
+            @RequestParam(name = "securityPin", required = false) String securityPin, //
+            @RequestHeader(name = LoginInterceptor.APP_USER_NAME, required = false) String appUserName, //
             HttpServletResponse httpServletResponse) {
 
         boolean isApp = StringUtils.isNotBlank(appUserName);
 
         if (log.isDebugEnabled()) {
-            log.debug("message: type=" + type + ", deviceName=" + deviceName + ", value=" + value + ", isApp=" + isApp);
+            log.debug("message: type=" + type + ", deviceName=" + deviceName + ", hueDeviceId=" + hueDeviceId + ", value="
+                + value + ", isApp=" + isApp);
         }
 
         if (!isPinBlankOrSetAndCorrect(userCookie, securityPin)) {
@@ -86,7 +93,7 @@ public class HomeRequestMapping {
             return lookupMessageReturnValue(isApp, MessageType.valueOf(type).getTargetSite());
         }
 
-        Message responseMessage = request(userCookie, type, deviceName, value, securityPin);
+        Message responseMessage = request(userCookie, type, deviceName, hueDeviceId, value, securityPin);
 
         if (!responseMessage.isSuccessfullExecuted()) {
             prepareErrorMessage(isApp, "Die Anfrage konnte nicht erfolgreich verarbeitet werden.", userCookie,
@@ -164,7 +171,7 @@ public class HomeRequestMapping {
 
         log.info("requesting new camera image " + deviceName);
 
-        Message response = request(userCookie, type, deviceName, value, null);
+        Message response = request(userCookie, type, deviceName, null, value, null);
         return new ResponseEntity<>(response.getResponse(), HttpStatus.OK);
     }
 
@@ -226,7 +233,8 @@ public class HomeRequestMapping {
         return Pages.getEntry(Pages.PATH_SETTINGS).getTemplate();
     }
 
-    private Message request(String userCookie, String type, String deviceName, String value, String securityPin) {
+    private Message request(String userCookie, String type, String deviceName, String hueDeviceId, String value,
+            String securityPin) {
 
         MessageType messageType = MessageType.valueOf(type);
         Device device = StringUtils.isBlank(deviceName) ? null : Device.valueOf(deviceName);
@@ -234,6 +242,7 @@ public class HomeRequestMapping {
         Message message = new Message();
         message.setMessageType(messageType);
         message.setDevice(device);
+        message.setHueDeviceId(hueDeviceId);
         message.setValue(value);
         message.setUser(userService.userNameFromLoginCookie(userCookie));
         message.setSecurityPin(securityPin);

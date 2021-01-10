@@ -85,6 +85,10 @@ public class ClientCommunicationService {
                 houseService.togglestate(message.getDevice(), Boolean.valueOf(message.getValue()));
                 houseService.refreshHouseModel();
                 break;
+            case TOGGLELIGHT:
+                lightService.toggleLight(message.getHueDeviceId(), Boolean.valueOf(message.getValue()));
+                lightService.refreshLightsModel();
+                break;
             case HEATINGBOOST:
                 houseService.heatingBoost(message.getDevice());
                 houseService.refreshHouseModel();

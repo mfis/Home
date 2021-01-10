@@ -1,10 +1,7 @@
 package de.fimatas.home.controller.api;
 
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 import javax.annotation.PostConstruct;
 import org.apache.commons.lang3.StringUtils;
@@ -13,15 +10,14 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.env.Environment;
-import org.springframework.http.CacheControl;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.web.client.RestTemplate;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -79,24 +75,13 @@ public class HueAPI {
         return currentObject;
     }
 
-    private HttpHeaders createHeaders(int contentLength) {
-
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.set(HttpHeaders.CACHE_CONTROL, "no-cache");
-        httpHeaders.setAccept(Arrays.asList(MediaType.ALL));
-        httpHeaders.setAcceptCharset(List.of(StandardCharsets.UTF_8));
-        httpHeaders.setCacheControl(CacheControl.noCache());
-        httpHeaders.setContentLength(contentLength);
-        return httpHeaders;
-    }
-
     private JsonNode callHueAPI(String path, Optional<String> body, boolean refresh) {
 
         ResponseEntity<String> responseEntity = null;
         try {
             if (body.isPresent()) {
-                HttpHeaders headers = createHeaders(body.get().length());
-                responseEntity = restTemplateHue.postForEntity(path, new HttpEntity<>(body, headers), String.class);
+                HttpEntity<String> request = new HttpEntity<>(body.get());
+                responseEntity = restTemplateHue.exchange(path, HttpMethod.PUT, request, String.class);
             } else {
                 responseEntity = restTemplateHue.getForEntity(path, String.class);
             }
@@ -119,7 +104,7 @@ public class HueAPI {
 
         try {
             JsonNode jsonTree = jsonObjectMapper.readTree(responseEntity.getBody());
-            normalizeTimestamps(jsonTree);
+            normalizeTimestamps(jsonTree, refresh);
 
             if (ignoreEqualResponse(refresh, jsonTree)) {
                 return null;
@@ -127,20 +112,28 @@ public class HueAPI {
 
             return jsonTree;
         } catch (Exception e) {
-            throw new IllegalStateException("Error parsing object", e);
+            throw new IllegalStateException("Error parsing object: " + responseEntity.getBody(), e);
         }
     }
 
-    private void normalizeTimestamps(JsonNode jsonTree) {
+    private void normalizeTimestamps(JsonNode jsonTree, boolean refresh) {
 
-        ObjectNode config = (ObjectNode) jsonTree.path("config");
-        config.put("UTC", StringUtils.EMPTY);
-        config.put("localtime", StringUtils.EMPTY);
-        config.put("localtime", StringUtils.EMPTY);
+        if (!refresh) {
+            return;
+        }
 
-        JsonNode whitelist = config.path("whitelist");
-        for (JsonNode user : whitelist) {
-            ((ObjectNode) user).put("last use date", StringUtils.EMPTY);
+        try {
+            ObjectNode config = (ObjectNode) jsonTree.path("config");
+            config.put("UTC", StringUtils.EMPTY);
+            config.put("localtime", StringUtils.EMPTY);
+            config.put("localtime", StringUtils.EMPTY);
+
+            JsonNode whitelist = config.path("whitelist");
+            for (JsonNode user : whitelist) {
+                ((ObjectNode) user).put("last use date", StringUtils.EMPTY);
+            }
+        } catch (RuntimeException e) {
+            LOG.warn("could not normalize timestamps:", e);
         }
     }
 
@@ -175,6 +168,20 @@ public class HueAPI {
     public boolean handleRequestException() {
         resourceNotAvailableCounter++;
         return resourceNotAvailableCounter > 2;
+    }
+
+    public void toggleLight(String deviceId, Boolean value) {
+
+        ObjectNode node = jsonObjectMapper.createObjectNode();
+        node.put("on", value);
+
+        String path = host + PATH_API + hueUser + "/lights/" + deviceId + "/state";
+
+        try {
+            callHueAPI(path, Optional.of(jsonObjectMapper.writeValueAsString(node)), false);
+        } catch (JsonProcessingException jpe) {
+            throw new IllegalStateException("error creating json:", jpe);
+        }
     }
 
 }
