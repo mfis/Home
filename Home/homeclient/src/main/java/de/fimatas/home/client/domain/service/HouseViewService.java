@@ -763,6 +763,7 @@ public class HouseViewService {
         } else {
             lights.setElementTitleState(countLightsOn + "/" + lightsInPlace.size() + " eingeschaltet");
         }
+        lights.setState(lights.getElementTitleState());
 
         model.addAttribute("lights" + place.getPlaceName(), lights);
     }
