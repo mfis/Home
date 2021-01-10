@@ -1,0 +1,5 @@
+{"properties": [{
+  "name": "application.identifier",
+  "type": "java.lang.String",
+  "description": "name of the application"
+}]}

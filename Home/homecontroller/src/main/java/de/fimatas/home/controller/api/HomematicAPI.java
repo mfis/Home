@@ -438,6 +438,7 @@ public class HomematicAPI {
                 LOG.debug("Response is NOT equal to previous response. -> Returning response.");
             }
         }
+        
         currentDocument = newDocument;
         return false;
     }
