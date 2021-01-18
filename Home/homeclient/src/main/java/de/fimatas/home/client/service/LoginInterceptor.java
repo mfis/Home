@@ -35,6 +35,8 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 
     private static final String APP_USER_TOKEN = "appUserToken";
 
+    public static final String APP_PUSH_TOKEN = "appPushToken";
+
     private static final String LOGIN_PASSWORD = "login_password"; // NOSONAR
 
     private static final String LOGIN_USERNAME = "login_username";

@@ -36,6 +36,15 @@
 	<script type="text/javascript" src="/webjars/bootstrap/js/bootstrap.min.js"></script>
 
 	<script>
+		
+		var pushToken = null;
+		function setPushToken(newTokenValue){
+			var oldValue = pushToken;
+			pushToken = newTokenValue;
+			if(newTokenValue !== oldValue){
+				refreshContent();	
+			}
+		}
 	
 		function showUserErrorMessage(){
 			if(document.getElementById('idUserErrorMessage')){
@@ -48,8 +57,9 @@
 				var httpRequest = new XMLHttpRequest();
 				httpRequest.open('GET', target);
 				httpRequest.setRequestHeader('ETag', document.getElementById('modelTimestamp').value);
-				httpRequest.setRequestHeader('appDevice', document.getElementById('SITE_REQUEST_DEVICE').value);
+				httpRequest.setRequestHeader('SITE_REQUEST_IS_APP', document.getElementById('SITE_REQUEST_IS_APP').value);
 				httpRequest.setRequestHeader('isAjaxRequest', 'true');
+				httpRequest.setRequestHeader('appPushToken', pushToken);
 				httpRequest.send();
 				httpRequest.onreadystatechange=(e)=>{
 					if (httpRequest.readyState == 4) {
@@ -162,7 +172,7 @@
 	
 			if(ts != null){
 				if(document.getElementById('SITE_REQUEST_IS_APP').value == 'true'){
-					document.title = ts;
+					document.title = "ts=" + ts;
 				}else{
 					document.getElementById('idHeaderStatusText').innerHTML = ts;
 				}			

@@ -41,6 +41,8 @@ import mfi.files.api.UserService;
 @Controller
 public class HomeRequestMapping {
 
+    private static final String SITE_REQUEST_IS_APP = "SITE_REQUEST_IS_APP";
+
     private static final String SITE_REQUEST_TS = "SITE_REQUEST_TS";
 
     private static final String REDIRECT = "redirect:";
@@ -72,7 +74,7 @@ public class HomeRequestMapping {
 
     @GetMapping("/message")
     public String message(Model model, //
-            @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, //
+            @CookieValue(name = LoginInterceptor.COOKIE_NAME, required = false) String userCookie, //
             @RequestParam(name = "type") String type, //
             @RequestParam(name = DEVICE_NAME, required = false) String deviceName, //
             @RequestParam(name = HUE_DEVICE_ID, required = false) String hueDeviceId, //
@@ -84,16 +86,20 @@ public class HomeRequestMapping {
         boolean isApp = StringUtils.isNotBlank(appUserName);
 
         if (log.isDebugEnabled()) {
-            log.debug("message: type=" + type + ", deviceName=" + deviceName + ", hueDeviceId=" + hueDeviceId + ", value="
+            log.debug("message: userCookie=" + userCookie + ", appUserName=" + appUserName + ", type=" + type + ", deviceName="
+                + deviceName + ", hueDeviceId="
+                + hueDeviceId + ", value="
                 + value + ", isApp=" + isApp);
         }
 
-        if (!isPinBlankOrSetAndCorrect(userCookie, securityPin)) {
+        String userName = userCookie != null ? userService.userNameFromLoginCookie(userCookie) : appUserName;
+
+        if (!isPinBlankOrSetAndCorrect(userName, securityPin)) {
             prepareErrorMessage(isApp, "Die eingegebene PIN ist nicht korrekt.", userCookie, httpServletResponse);
             return lookupMessageReturnValue(isApp, MessageType.valueOf(type).getTargetSite());
         }
 
-        Message responseMessage = request(userCookie, type, deviceName, hueDeviceId, value, securityPin);
+        Message responseMessage = request(userName, type, deviceName, hueDeviceId, value, securityPin);
 
         if (!responseMessage.isSuccessfullExecuted()) {
             prepareErrorMessage(isApp, "Die Anfrage konnte nicht erfolgreich verarbeitet werden.", userCookie,
@@ -123,9 +129,8 @@ public class HomeRequestMapping {
         }
     }
 
-    private boolean isPinBlankOrSetAndCorrect(String userCookie, String securityPin) {
-        String user = userService.userNameFromLoginCookie(userCookie);
-        return StringUtils.isBlank(securityPin) || userService.checkPin(user, securityPin);
+    private boolean isPinBlankOrSetAndCorrect(String userName, String securityPin) {
+        return StringUtils.isBlank(securityPin) || userService.checkPin(userName, securityPin);
     }
 
     @GetMapping("/history")
@@ -171,21 +176,26 @@ public class HomeRequestMapping {
 
         log.info("requesting new camera image " + deviceName);
 
-        Message response = request(userCookie, type, deviceName, null, value, null);
+        Message response = request(userService.userNameFromLoginCookie(userCookie), type, deviceName, null, value, null);
         return new ResponseEntity<>(response.getResponse(), HttpStatus.OK);
     }
 
     @RequestMapping(Pages.PATH_HOME) // NOSONAR
     public String homePage(Model model, HttpServletResponse response,
             @CookieValue(name = LoginInterceptor.COOKIE_NAME, required = false) String userCookie,
+            // @CookieValue(name = "HomeAppPushToken", required = false) String homeAppPushTokenCookie,
             @RequestHeader(name = "ETag", required = false) String etag,
-            @RequestHeader(name = LoginInterceptor.APP_DEVICE, required = false) String appDevice) {
+            @RequestHeader(name = SITE_REQUEST_IS_APP, required = false) Boolean isApp,
+            @RequestHeader(name = LoginInterceptor.APP_PUSH_TOKEN, required = false) String appPushToken) {
 
         if (log.isDebugEnabled()) {
-            log.debug("requesting PATH_HOME");
+            log.debug(
+                "home: isApp=" + isApp + ", appPushToken="
+                    + appPushToken + /* ", homeAppPushTokenCookie=" + homeAppPushTokenCookie + */ ", etag=" + etag);
         }
+
         boolean isNewMessage = ViewAttributesDAO.getInstance().isPresent(userCookie, ViewAttributesDAO.MESSAGE);
-        fillMenu(Pages.PATH_HOME, model, response, appDevice);
+        fillMenu(Pages.PATH_HOME, model, response, isApp != null ? isApp : false);
         fillUserAttributes(model, userCookie);
         HouseModel houseModel = ModelObjectDAO.getInstance().readHouseModel();
 
@@ -225,7 +235,7 @@ public class HomeRequestMapping {
     @GetMapping(Pages.PATH_SETTINGS)
     public String settings(Model model, HttpServletResponse response,
             @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie) {
-        fillMenu(Pages.PATH_SETTINGS, model, response, null);
+        fillMenu(Pages.PATH_SETTINGS, model, response, false);
         fillUserAttributes(model, userCookie);
         String user = userService.userNameFromLoginCookie(userCookie);
         SettingsModel settings = ModelObjectDAO.getInstance().readSettingsModels(user);
@@ -233,7 +243,7 @@ public class HomeRequestMapping {
         return Pages.getEntry(Pages.PATH_SETTINGS).getTemplate();
     }
 
-    private Message request(String userCookie, String type, String deviceName, String hueDeviceId, String value,
+    private Message request(String userName, String type, String deviceName, String hueDeviceId, String value,
             String securityPin) {
 
         MessageType messageType = MessageType.valueOf(type);
@@ -244,7 +254,7 @@ public class HomeRequestMapping {
         message.setDevice(device);
         message.setHueDeviceId(hueDeviceId);
         message.setValue(value);
-        message.setUser(userService.userNameFromLoginCookie(userCookie));
+        message.setUser(userName);
         message.setSecurityPin(securityPin);
 
         return MessageQueue.getInstance().request(message, true);
@@ -267,9 +277,7 @@ public class HomeRequestMapping {
             StringUtils.trimToEmpty(ViewAttributesDAO.getInstance().pull(userCookie, ViewAttributesDAO.MESSAGE)));
     }
 
-    private void fillMenu(String pathHome, Model model, HttpServletResponse response, String appDevice) {
-
-        boolean isApp = StringUtils.isNotEmpty(appDevice);
+    private void fillMenu(String pathHome, Model model, HttpServletResponse response, boolean isApp) {
 
         if (isApp) {
             model.addAttribute("MENU_SELECTED", Pages.getAppHomeEntry());
@@ -279,8 +287,7 @@ public class HomeRequestMapping {
 
         model.addAttribute("MENU_SELECTABLE", Pages.getOtherEntries(pathHome));
 
-        model.addAttribute("SITE_REQUEST_DEVICE", StringUtils.trimToEmpty(appDevice));
-        model.addAttribute("SITE_REQUEST_IS_APP", Boolean.toString(isApp));
+        model.addAttribute(SITE_REQUEST_IS_APP, Boolean.toString(isApp));
 
         model.addAttribute(SITE_REQUEST_TS, TS_FORMATTER.format(LocalDateTime.now()));
         response.setHeader(SITE_REQUEST_TS, TS_FORMATTER.format(LocalDateTime.now()));
