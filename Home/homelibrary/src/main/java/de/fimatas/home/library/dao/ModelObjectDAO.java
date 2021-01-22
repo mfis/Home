@@ -61,11 +61,10 @@ public class ModelObjectDAO {
     }
 
     public void write(SettingsModel newModel) {
-        settingsModels.put(newModel.getUser(), newModel);
+        settingsModels.put(newModel.getToken(), newModel);
     }
 
     public HouseModel readHouseModel() {
-        // long newestTimestamp = Math.max(houseModel == null ? 0 : houseModel.getDateTime(), getLastLongPollingTimestamp());
         long newestTimestamp = houseModel == null ? 0 : houseModel.getDateTime();
         if (houseModel == null) {
             lastHouseModelState = "No data-model set.";
@@ -80,8 +79,6 @@ public class ModelObjectDAO {
     }
 
     public HistoryModel readHistoryModel() {
-        // long newestTimestamp = Math.max(historyModel == null ? 0 : historyModel.getDateTime(),
-        // getLastLongPollingTimestamp());
         long newestTimestamp = historyModel == null ? 0 : historyModel.getDateTime();
         if (historyModel == null || new Date().getTime() - newestTimestamp > 1000 * HomeAppConstants.HISTORY_OUTDATED_SECONDS) {
             return null; // Too old. Should never happen
@@ -129,25 +126,16 @@ public class ModelObjectDAO {
         }
     }
 
+    public boolean isKnownPushToken(String pushToken) {
+        return settingsModels.containsKey(pushToken);
+    }
+
     private boolean isActualEventPicture(long eventTimestamp, CameraPicture cameraPicture) {
         return Math.abs(cameraPicture.getTimestamp() - eventTimestamp) < 1000 * 30;
     }
 
     private boolean isActualLivePicture(long eventTimestamp) {
         return cameraModel.getLivePicture() != null && cameraModel.getLivePicture().getTimestamp() >= eventTimestamp;
-    }
-
-    public SettingsModel readSettingsModels(String user) {
-        if (settingsModels == null) {
-            settingsModels = new HashMap<>();
-        }
-        SettingsModel model = settingsModels.get(user);
-        if (model == null) {
-            model = new SettingsModel();
-            model.setUser(user);
-            model.setClientName("ONLY_LOGGING");
-        }
-        return model;
     }
 
     public String getLastHouseModelState() {

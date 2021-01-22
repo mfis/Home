@@ -26,7 +26,6 @@ import de.fimatas.home.controller.domain.service.UploadService;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.ActionModel;
 import de.fimatas.home.library.domain.model.AutomationState;
-import de.fimatas.home.library.domain.model.SettingsModel;
 import de.fimatas.home.library.model.Message;
 import de.fimatas.home.library.util.HomeAppConstants;
 
@@ -108,25 +107,8 @@ public class ClientCommunicationService {
                 houseService.shutterPosition(message.getDevice(), Integer.parseInt(message.getValue()));
                 houseService.refreshHouseModel();
                 break;
-            case SETTINGS_CLIENTNAME:
-                SettingsModel settingsModelClientName = settingsService.read(message.getUser());
-                settingsModelClientName.setClientName(message.getValue());
-                settingsService.updateSettingsModel(settingsModelClientName);
-                break;
-            case SETTINGS_PUSH_HINTS:
-                SettingsModel settingsModelHints = settingsService.read(message.getUser());
-                settingsModelHints.setPushHints(Boolean.parseBoolean(message.getValue()));
-                settingsService.updateSettingsModel(settingsModelHints);
-                break;
-            case SETTINGS_PUSH_HINTS_HYSTERESIS:
-                SettingsModel settingsModelHintHysteresis = settingsService.read(message.getUser());
-                settingsModelHintHysteresis.setHintsHysteresis(Boolean.parseBoolean(message.getValue()));
-                settingsService.updateSettingsModel(settingsModelHintHysteresis);
-                break;
-            case SETTINGS_PUSH_DOORBELL:
-                SettingsModel settingsModelDoorbell = settingsService.read(message.getUser());
-                settingsModelDoorbell.setPushDoorbell(Boolean.parseBoolean(message.getValue()));
-                settingsService.updateSettingsModel(settingsModelDoorbell);
+            case SETTINGS_NEW:
+                settingsService.createNewSettingsForToken(message.getValue(), message.getUser());
                 break;
             default:
                 throw new IllegalStateException("Unknown MessageType:" + message.getMessageType().name());

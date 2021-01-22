@@ -31,7 +31,6 @@ import de.fimatas.home.library.domain.model.CameraMode;
 import de.fimatas.home.library.domain.model.CameraPicture;
 import de.fimatas.home.library.domain.model.HouseModel;
 import de.fimatas.home.library.domain.model.LightsModel;
-import de.fimatas.home.library.domain.model.SettingsModel;
 import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.model.Message;
 import de.fimatas.home.library.model.MessageType;
@@ -64,10 +63,10 @@ public class HomeRequestMapping {
     private HistoryViewService historyViewService;
 
     @Autowired
-    private SettingsViewService settingsView;
+    private TextQueryService textQueryService;
 
     @Autowired
-    private TextQueryService textQueryService;
+    private SettingsViewService settingsViewService;
 
     @Autowired
     private UserService userService;
@@ -183,7 +182,6 @@ public class HomeRequestMapping {
     @RequestMapping(Pages.PATH_HOME) // NOSONAR
     public String homePage(Model model, HttpServletResponse response,
             @CookieValue(name = LoginInterceptor.COOKIE_NAME, required = false) String userCookie,
-            // @CookieValue(name = "HomeAppPushToken", required = false) String homeAppPushTokenCookie,
             @RequestHeader(name = "ETag", required = false) String etag,
             @RequestHeader(name = SITE_REQUEST_IS_APP, required = false) Boolean isApp,
             @RequestHeader(name = LoginInterceptor.APP_PUSH_TOKEN, required = false) String appPushToken) {
@@ -194,8 +192,12 @@ public class HomeRequestMapping {
                     + appPushToken + /* ", homeAppPushTokenCookie=" + homeAppPushTokenCookie + */ ", etag=" + etag);
         }
 
+        if (isApp != null && isApp) {
+            handlePushToken(appPushToken, userService.userNameFromLoginCookie(userCookie));
+        }
+
         boolean isNewMessage = ViewAttributesDAO.getInstance().isPresent(userCookie, ViewAttributesDAO.MESSAGE);
-        fillMenu(Pages.PATH_HOME, model, response, isApp != null ? isApp : false);
+        fillMenu(Pages.PATH_HOME, model, response, isApp != null && isApp);
         fillUserAttributes(model, userCookie);
         HouseModel houseModel = ModelObjectDAO.getInstance().readHouseModel();
 
@@ -218,6 +220,21 @@ public class HomeRequestMapping {
         }
     }
 
+    private void handlePushToken(String appPushToken, String userName) {
+        
+        if(!settingsViewService.isValidPushToken(appPushToken)) {
+            return;
+        }
+        
+        if (!ModelObjectDAO.getInstance().isKnownPushToken(appPushToken)) {
+            Message message = new Message();
+            message.setMessageType(MessageType.SETTINGS_NEW);
+            message.setValue(appPushToken);
+            message.setUser(userName);
+            MessageQueue.getInstance().request(message, false);
+        }
+    }
+
     public void mappingErrorAttributes(Model model, HttpServletResponse response, String message, Exception exception) {
         model.addAttribute("timestamp", LocalDateTime.now().toString());
         model.addAttribute("status", response.getStatus());
@@ -230,17 +247,6 @@ public class HomeRequestMapping {
     private boolean isModelUnchanged(String etag, HouseModel houseModel, LightsModel lightsModel) {
         return StringUtils.isNotBlank(etag)
             && StringUtils.equals(etag, Long.toString(Long.max(houseModel.getDateTime(), lightsModel.getTimestamp())));
-    }
-
-    @GetMapping(Pages.PATH_SETTINGS)
-    public String settings(Model model, HttpServletResponse response,
-            @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie) {
-        fillMenu(Pages.PATH_SETTINGS, model, response, false);
-        fillUserAttributes(model, userCookie);
-        String user = userService.userNameFromLoginCookie(userCookie);
-        SettingsModel settings = ModelObjectDAO.getInstance().readSettingsModels(user);
-        settingsView.fillSettings(model, settings);
-        return Pages.getEntry(Pages.PATH_SETTINGS).getTemplate();
     }
 
     private Message request(String userName, String type, String deviceName, String hueDeviceId, String value,

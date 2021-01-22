@@ -73,9 +73,9 @@
 			<version>4.4</version>
 		</dependency>
 		<dependency>
-			<groupId>com.github.sps.pushover.net</groupId>
-			<artifactId>pushover-client</artifactId>
-			<version>1.0.1-SNAPSHOT-jdk11</version>
+			<groupId>com.eatthepath</groupId>
+			<artifactId>pushy</artifactId>
+			<version>0.14.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.backblaze.b2</groupId>

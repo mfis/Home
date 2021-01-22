@@ -1,6 +1,7 @@
 package de.fimatas.home.library.domain.model;
 
 import java.io.Serializable;
+import java.util.EnumMap;
 
 public class SettingsModel implements Serializable {
 
@@ -10,34 +11,20 @@ public class SettingsModel implements Serializable {
         super();
     }
 
+    private String token;
+
     private String user;
 
-    private boolean pushHints;
+    private long lastTimestamp;
 
-    private boolean hintsHysteresis;
+    private EnumMap<Setting, Boolean> settings = new EnumMap<>(Setting.class);
 
-    private boolean pushDoorbell;
-
-    private String pushoverApiToken;
-
-    private String pushoverUserId;
-
-    private String clientName;
-
-    public String getPushoverApiToken() {
-        return pushoverApiToken;
+    public String getToken() {
+        return token;
     }
 
-    public void setPushoverApiToken(String pushoverApiToken) {
-        this.pushoverApiToken = pushoverApiToken;
-    }
-
-    public String getPushoverUserId() {
-        return pushoverUserId;
-    }
-
-    public void setPushoverUserId(String pushoverUserId) {
-        this.pushoverUserId = pushoverUserId;
+    public void setToken(String token) {
+        this.token = token;
     }
 
     public String getUser() {
@@ -48,36 +35,20 @@ public class SettingsModel implements Serializable {
         this.user = user;
     }
 
-    public String getClientName() {
-        return clientName;
+    public long getLastTimestamp() {
+        return lastTimestamp;
     }
 
-    public void setClientName(String clientName) {
-        this.clientName = clientName;
+    public void setLastTimestamp(long lastTimestamp) {
+        this.lastTimestamp = lastTimestamp;
     }
 
-    public boolean isPushHints() {
-        return pushHints;
+    public EnumMap<Setting, Boolean> getSettings() { // NOSONAR
+        return settings;
     }
 
-    public void setPushHints(boolean pushHints) {
-        this.pushHints = pushHints;
-    }
-
-    public boolean isHintsHysteresis() {
-        return hintsHysteresis;
-    }
-
-    public void setHintsHysteresis(boolean hintsHysteresis) {
-        this.hintsHysteresis = hintsHysteresis;
-    }
-
-    public boolean isPushDoorbell() {
-        return pushDoorbell;
-    }
-
-    public void setPushDoorbell(boolean pushDoorbell) {
-        this.pushDoorbell = pushDoorbell;
+    public void setSettings(EnumMap<Setting, Boolean> settings) { // NOSONAR
+        this.settings = settings;
     }
 
 }

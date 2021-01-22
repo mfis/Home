@@ -11,10 +11,7 @@ public enum MessageType {
     HEATINGBOOST(Pages.PATH_HOME), //
     HEATINGMANUAL(Pages.PATH_HOME), //
     CAMERAPICTUREREQUEST(null), //
-    SETTINGS_CLIENTNAME(Pages.PATH_SETTINGS), //
-    SETTINGS_PUSH_HINTS(Pages.PATH_SETTINGS), //
-    SETTINGS_PUSH_HINTS_HYSTERESIS(Pages.PATH_SETTINGS), //
-    SETTINGS_PUSH_DOORBELL(Pages.PATH_SETTINGS), //
+    SETTINGS_NEW(null), //
     ;//
 
     private final String targetSite;

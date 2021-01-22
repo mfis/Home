@@ -12,6 +12,8 @@ public class HomeAppConstants {
 
     public static final String CONTROLLER_CLIENT_COMM_TOKEN = "homeAppControllerClientCommunicationToken";
 
+    public static final String PUSH_TOKEN_NOT_AVAILABLE_INDICATOR = "n/a";
+
     //
 
     public static final int CONTROLLER_CLIENT_LONGPOLLING_REQUEST_TIMEOUT_SECONDS = 20;

@@ -1,30 +1,30 @@
 package de.fimatas.home.controller.service;
 
+import java.io.File;
+import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
-
+import java.util.concurrent.ExecutionException;
 import javax.annotation.PostConstruct;
-
-import org.apache.commons.lang3.StringUtils;
+import javax.annotation.PreDestroy;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
+import com.eatthepath.pushy.apns.ApnsClient;
+import com.eatthepath.pushy.apns.ApnsClientBuilder;
+import com.eatthepath.pushy.apns.PushNotificationResponse;
+import com.eatthepath.pushy.apns.util.ApnsPayloadBuilder;
+import com.eatthepath.pushy.apns.util.SimpleApnsPayloadBuilder;
+import com.eatthepath.pushy.apns.util.SimpleApnsPushNotification;
+import com.eatthepath.pushy.apns.util.concurrent.PushNotificationFuture;
 import de.fimatas.home.controller.domain.service.HouseService;
 import de.fimatas.home.library.domain.model.HouseModel;
-import de.fimatas.home.library.domain.model.RoomClimate;
-import de.fimatas.home.library.domain.model.SettingsModel;
-import net.pushover.client.MessagePriority;
-import net.pushover.client.PushoverClient;
-import net.pushover.client.PushoverException;
-import net.pushover.client.PushoverMessage;
-import net.pushover.client.PushoverRestClient;
-import net.pushover.client.Status;
+import de.fimatas.home.library.domain.model.Setting;
+import de.fimatas.home.library.util.HomeAppConstants;
 
 @Component
 public class PushService {
@@ -32,153 +32,105 @@ public class PushService {
     @Autowired
     private SettingsService settingsService;
 
-    private PushoverClient pushClient;
-
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
+
+    private ApnsClient apnsClient;
+
+    @Value("${apns.cert.path}")
+    private String apnsCertPath;
+
+    @Value("${apns.cert.pass}")
+    private String apnsCertPass;
+
+    @Value("${apns.ios.app.identifier}")
+    private String iOsAppIdentifier;
+
+    @Value("${apns.use.production.server}")
+    private boolean apnsUseProductionServer;
 
     private static final Log LOG = LogFactory.getLog(PushService.class);
 
     @PostConstruct
     public void init() {
-        pushClient = new PushoverRestClient();
+        try {
+            apnsClient = new ApnsClientBuilder()
+                .setApnsServer(
+                    apnsUseProductionServer ? ApnsClientBuilder.PRODUCTION_APNS_HOST : ApnsClientBuilder.DEVELOPMENT_APNS_HOST)
+                .setClientCredentials(new File(apnsCertPath), apnsCertPass)
+                .build();
+        } catch (IOException e) {
+            LOG.error("Unable to build apnsClient.", e);
+        }
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        if (apnsClient != null) {
+            CompletableFuture<Void> closeFuture = apnsClient.close();
+            try {
+                closeFuture.get();
+            } catch (InterruptedException | ExecutionException e) {
+                LOG.error("Unable to shutdown apnsClient.", e);
+                Thread.currentThread().interrupt();
+            }
+        }
     }
 
     public synchronized void send(HouseModel oldModel, HouseModel newModel) {
 
         try {
-            List<PushoverMessage> pushMessages = new LinkedList<>();
-
-            pushMessages.addAll(hintMessage(oldModel, newModel));
-            pushMessages.addAll(doorbellMessage(oldModel, newModel));
-
-            for (PushoverMessage pushMessage : pushMessages) {
-                sendMessages(pushMessage);
-            }
+            doorbellMessage(oldModel, newModel);
         } catch (Exception e) {
             LogFactory.getLog(PushService.class).error("Could not send push notifications:", e);
         }
     }
 
-    public List<PushoverMessage> hintMessage(HouseModel oldModel, HouseModel newModel) {
-
-        List<PushoverMessage> pushMessages = new LinkedList<>();
-        List<SettingsModel> settingsModels = settingsService.lookupUserForPushMessage();
-
-        for (SettingsModel settingsModel : settingsModels) {
-            hintMessagePerUser(oldModel, newModel, pushMessages, settingsModel);
-        }
-        return pushMessages;
-    }
-
-    private void hintMessagePerUser(HouseModel oldModel, HouseModel newModel, List<PushoverMessage> pushMessages,
-            SettingsModel settingsModel) {
-
-        List<String> oldHints = hintList(oldModel, settingsModel);
-        List<String> newHints = hintList(newModel, settingsModel);
-
-        StringBuilder messages = new StringBuilder(300);
-
-        formatNewHints(oldHints, newHints, messages);
-        formatCanceledHints(oldHints, newHints, messages);
-
-        String msgString = messages.toString().trim();
-        if (StringUtils.isNotBlank(msgString)) {
-            pushMessages.add(PushoverMessage.builderWithApiToken(settingsModel.getPushoverApiToken()) //
-                .setUserId(settingsModel.getPushoverUserId()) //
-                .setDevice(settingsModel.getClientName()) //
-                .setMessage(msgString) //
-                .setPriority(MessagePriority.NORMAL) //
-                .setTitle("Zuhause - Empfehlungen") //
-                .build());
-        }
-    }
-
-    private void formatCanceledHints(List<String> oldHints, List<String> newHints, StringBuilder messages) {
-
-        int cancelcounter = 0;
-        for (String oldHint : oldHints) {
-            if (!newHints.contains(oldHint)) {
-                messages.append("\n");
-                if (cancelcounter == 0) {
-                    messages.append("Aufgehoben:");
-                }
-                messages.append("\n- " + oldHint);
-                cancelcounter++;
-            }
-        }
-    }
-
-    private void formatNewHints(List<String> oldHints, List<String> newHints, StringBuilder messages) {
-
-        for (String newHint : newHints) {
-            if (!oldHints.contains(newHint)) {
-                messages.append("\n");
-                messages.append("- " + newHint);
-            }
-        }
-    }
-
-    private List<PushoverMessage> doorbellMessage(HouseModel oldModel, HouseModel newModel) {
-
-        List<PushoverMessage> pushMessages = new LinkedList<>();
+    private void doorbellMessage(HouseModel oldModel, HouseModel newModel) {
 
         if (!HouseService.doorbellTimestampChanged(oldModel, newModel)) {
-            return pushMessages;
+            return;
         }
 
-        List<SettingsModel> settingsModels = settingsService.lookupUserForPushMessage();
-        for (SettingsModel settingsModel : settingsModels) {
-            if (settingsModel.isPushDoorbell()) {
-                String time = TIME_FORMATTER.format(Instant.ofEpochMilli(newModel.getFrontDoorBell().getTimestampLastDoorbell())
-                    .atZone(ZoneId.systemDefault()).toLocalDateTime());
-                String message = "Türklingelbetätigung um " + time + " Uhr";
-                if (StringUtils.equals(settingsModel.getClientName(), "ONLY_LOGGING")) {
-                    LOG.info("MESSAGE: " + message);
-                } else {
-                    pushMessages.add(PushoverMessage.builderWithApiToken(settingsModel.getPushoverApiToken()) //
-                        .setUserId(settingsModel.getPushoverUserId()) //
-                        .setDevice(settingsModel.getClientName()) //
-                        .setMessage(message) //
-                        .setPriority(MessagePriority.HIGH) //
-                        .setTitle("Zuhause - Türklingel") //
-                        .build());
-                }
-            }
-        }
-        return pushMessages;
-    }
-
-    private List<String> hintList(HouseModel model, SettingsModel settingsModel) {
-
-        List<String> hintStrings = new LinkedList<>();
-        if (!settingsModel.isPushHints()) {
-            return hintStrings;
-        }
-
-        HouseModel m = model != null ? model : new HouseModel();
-
-        for (RoomClimate room : m.lookupFields(RoomClimate.class).values()) {
-            for (String text : room.getHints().formatAsText(settingsModel.isHintsHysteresis(), true, room)) {
-                hintStrings.add(text);
-            }
-        }
-        return hintStrings;
-    }
-
-    private void sendMessages(PushoverMessage message) {
-
-        CompletableFuture.runAsync(() -> {
-            try {
-                Status result = pushClient.pushMessage(message); //
-
-                if (result.getStatus() != 1) {
-                    LOG.error("Could not send push message (#1):" + result.toString());
-                }
-
-            } catch (PushoverException pe) {
-                LOG.error("Could not send push message (#2):" + pe.getMessage());
-            }
+        settingsService.listTokensWithEnabledSetting(Setting.DOORBELL).forEach(pushToken -> {
+            final String time =
+                TIME_FORMATTER.format(Instant.ofEpochMilli(newModel.getFrontDoorBell().getTimestampLastDoorbell())
+                .atZone(ZoneId.systemDefault()).toLocalDateTime());
+            handleMessage(pushToken, "Türklingelbetätigung", "Zeitpunkt: " + time + " Uhr.");
         });
+    }
+
+    private void handleMessage(String pushToken, String title, String message) {
+
+        if (HomeAppConstants.PUSH_TOKEN_NOT_AVAILABLE_INDICATOR.equals(pushToken)) {
+            LOG.info("Push Message to dummy token: " + title + " - " + message);
+        } else {
+            sendToApns(pushToken, title, message);
+        }
+    }
+
+    private void sendToApns(String pushToken, String title, String message) {
+
+        final ApnsPayloadBuilder payloadBuilder = new SimpleApnsPayloadBuilder();
+        payloadBuilder.setAlertTitle(title);
+        payloadBuilder.setAlertBody(message);
+
+        PushNotificationFuture<SimpleApnsPushNotification, PushNotificationResponse<SimpleApnsPushNotification>> sendNotificationFuture =
+            apnsClient.sendNotification(new SimpleApnsPushNotification(pushToken, iOsAppIdentifier, payloadBuilder.build()));
+
+        sendNotificationFuture.whenComplete((response, cause) -> handleApnsResponse(response, cause, pushToken));
+    }
+
+    public void handleApnsResponse(PushNotificationResponse<SimpleApnsPushNotification> response, Throwable cause,
+            String pushToken) {
+
+        if (response != null) {
+            if (!response.isAccepted()) {
+                LOG.warn("Push Notification rejected by the apns gateway: " + response.getRejectionReason());
+                settingsService.deleteSettingsForToken(pushToken);
+            }
+        } else {
+            LOG.error("Failed to send push notification to apns.", cause);
+        }
     }
 
 }
