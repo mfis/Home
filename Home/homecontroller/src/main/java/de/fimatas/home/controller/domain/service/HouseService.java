@@ -139,10 +139,10 @@ public class HouseService {
 
         calculateHints(oldModel, newModel);
 
-        pushService.sendAfterModelRefresh(oldModel, newModel); // async
+        pushService.sendAfterModelRefresh(oldModel, newModel);
         uploadService.upload(newModel);
 
-        updateCameraPictures(oldModel, newModel); // async
+        // updateCameraPictures(oldModel, newModel); // async
         updateHomematicSystemVariables(oldModel, newModel);
         cameraService.cleanUp();
     }
@@ -577,6 +577,7 @@ public class HouseService {
         return newVal != null && (oldVal == null || oldVal.compareTo(newVal) != 0);
     }
 
+    @SuppressWarnings("unused")
     private void updateCameraPictures(HouseModel oldModel, HouseModel newModel) {
 
         // FrontDoor

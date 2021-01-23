@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import de.fimatas.home.controller.dao.SettingsDAO;
 import de.fimatas.home.controller.domain.service.HistoryService;
 import de.fimatas.home.controller.domain.service.UploadService;
-import de.fimatas.home.library.domain.model.Setting;
+import de.fimatas.home.library.domain.model.PushNotifications;
 import de.fimatas.home.library.domain.model.SettingsModel;
 
 @Component
@@ -38,7 +38,8 @@ public class SettingsService {
         model.setToken(token);
         model.setLastTimestamp(System.currentTimeMillis());
         model.setUser(user);
-        List.of(Setting.values()).forEach(setting -> model.getSettings().put(setting, setting.getDefaultValue()));
+        List.of(PushNotifications.values())
+            .forEach(notification -> model.getPushNotifications().put(notification, notification.getDefaultSetting()));
         SettingsDAO.getInstance().write(model);
         uploadService.upload(model);
     }
@@ -48,8 +49,8 @@ public class SettingsService {
             .ifPresent(SettingsDAO.getInstance()::delete);
     }
 
-    public List<String> listTokensWithEnabledSetting(Setting setting) {
-        return SettingsDAO.getInstance().read().stream().filter(model -> model.getSettings().get(setting).booleanValue())
+    public List<String> listTokensWithEnabledSetting(PushNotifications pushNotifications) {
+        return SettingsDAO.getInstance().read().stream().filter(model -> model.getPushNotifications().get(pushNotifications).booleanValue())
             .map(SettingsModel::getToken)
             .collect(Collectors.toList());
     }

@@ -24,7 +24,7 @@ import com.eatthepath.pushy.apns.util.concurrent.PushNotificationFuture;
 import de.fimatas.home.controller.domain.service.HouseService;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.HouseModel;
-import de.fimatas.home.library.domain.model.Setting;
+import de.fimatas.home.library.domain.model.PushNotifications;
 import de.fimatas.home.library.domain.model.WindowSensor;
 import de.fimatas.home.library.util.HomeAppConstants;
 
@@ -118,7 +118,7 @@ public class PushService {
             return;
         }
 
-        settingsService.listTokensWithEnabledSetting(Setting.DOORBELL).forEach(pushToken -> {
+        settingsService.listTokensWithEnabledSetting(PushNotifications.DOORBELL).forEach(pushToken -> {
             final String time =
                 TIME_FORMATTER.format(Instant.ofEpochMilli(newModel.getFrontDoorBell().getTimestampLastDoorbell())
                 .atZone(ZoneId.systemDefault()).toLocalDateTime());
