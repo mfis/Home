@@ -84,6 +84,8 @@ public class HouseService {
 
     private static final Log LOG = LogFactory.getLog(HouseService.class);
 
+    private int logMeasureCounter = 0;
+
     @Autowired
     private HomematicAPI hmApi;
 
@@ -127,17 +129,31 @@ public class HouseService {
     public synchronized void refreshHouseModel() {
 
         HouseModel oldModel = ModelObjectDAO.getInstance().readHouseModel();
+        long l1 = System.nanoTime();
         HouseModel newModel = refreshModel(oldModel);
         if (newModel == null) {
             return;
         }
-
+        long l2 = System.nanoTime();
         historyService.saveNewValues();
-
+        long l3 = System.nanoTime();
         calculateConclusion(oldModel, newModel);
+        long l4 = System.nanoTime();
         ModelObjectDAO.getInstance().write(newModel);
-
+        long l5 = System.nanoTime();
         calculateHints(oldModel, newModel);
+        long l6 = System.nanoTime();
+
+        if (logMeasureCounter < 20) {
+            var refresh = diff("refresh", l2, l1);
+            var histSave = diff("histSave", l3, l2);
+            var conclusion = diff("conclusion", l4, l3);
+            var write = diff("write", l5, l4);
+            var hints = diff("hints", l6, l5);
+            var sum = diff("SUM", l6, l1);
+            LOG.info(sum + hints + write + conclusion + histSave + refresh);
+            logMeasureCounter++;
+        }
 
         pushService.send(oldModel, newModel); // async
         uploadService.upload(newModel);
@@ -147,10 +163,19 @@ public class HouseService {
         cameraService.cleanUp();
     }
 
+    private String diff(String cpt, long b, long a) {
+        return cpt + "=" + ((b - a) / 1000000) + ", ";
+    }
+
     private HouseModel refreshModel(HouseModel oldModel) {
 
+        long a = System.nanoTime();
         if (!hmApi.refresh()) {
             return null;
+        }
+        long b = System.nanoTime();
+        if (logMeasureCounter < 20) {
+            LOG.info(diff("hm_api", b, a));
         }
 
         HouseModel newModel = new HouseModel();
@@ -563,11 +588,10 @@ public class HouseService {
 
     private boolean newValueForOutdoorTemperature(HouseModel oldModel, HouseModel newModel) {
 
-        BigDecimal oldVal =
-            oldModel != null && oldModel.getConclusionClimateFacadeMin() != null
-                && !oldModel.getConclusionClimateFacadeMin().isUnreach()
-                && oldModel.getConclusionClimateFacadeMin().getTemperature() != null
-                    ? oldModel.getConclusionClimateFacadeMin().getTemperature().getValue() : null;
+        BigDecimal oldVal = oldModel != null && oldModel.getConclusionClimateFacadeMin() != null
+            && !oldModel.getConclusionClimateFacadeMin().isUnreach()
+            && oldModel.getConclusionClimateFacadeMin().getTemperature() != null
+                ? oldModel.getConclusionClimateFacadeMin().getTemperature().getValue() : null;
 
         BigDecimal newVal =
             newModel.getConclusionClimateFacadeMin() != null && !newModel.getConclusionClimateFacadeMin().isUnreach()
@@ -786,8 +810,8 @@ public class HouseService {
         frontDoor.setErrorcode(errorCode == null ? 0 : errorCode.intValue());
 
         frontDoor.setLockAutomation(hmApi.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, AUTOMATIC)));
-        frontDoor
-            .setLockAutomationEvent(hmApi.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, AUTOMATIC + EVENT)));
+        frontDoor.setLockAutomationEvent(
+            hmApi.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, AUTOMATIC + EVENT)));
         frontDoor.setLockAutomationInfoText(
             hmApi.getAsString(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, AUTOMATIC + "InfoText")));
 
