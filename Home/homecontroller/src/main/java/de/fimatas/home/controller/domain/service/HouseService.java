@@ -139,7 +139,7 @@ public class HouseService {
 
         calculateHints(oldModel, newModel);
 
-        pushService.send(oldModel, newModel); // async
+        pushService.sendAfterModelRefresh(oldModel, newModel); // async
         uploadService.upload(newModel);
 
         updateCameraPictures(oldModel, newModel); // async

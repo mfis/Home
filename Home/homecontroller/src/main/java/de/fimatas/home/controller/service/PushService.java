@@ -22,8 +22,10 @@ import com.eatthepath.pushy.apns.util.SimpleApnsPayloadBuilder;
 import com.eatthepath.pushy.apns.util.SimpleApnsPushNotification;
 import com.eatthepath.pushy.apns.util.concurrent.PushNotificationFuture;
 import de.fimatas.home.controller.domain.service.HouseService;
+import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.HouseModel;
 import de.fimatas.home.library.domain.model.Setting;
+import de.fimatas.home.library.domain.model.WindowSensor;
 import de.fimatas.home.library.util.HomeAppConstants;
 
 @Component
@@ -76,13 +78,38 @@ public class PushService {
         }
     }
 
-    public synchronized void send(HouseModel oldModel, HouseModel newModel) {
+    public void sendAtLateEvening() {
+
+        try {
+            windowOpenMessage(ModelObjectDAO.getInstance().readHouseModel());
+        } catch (Exception e) {
+            LogFactory.getLog(PushService.class).error("Could not (sendAtLateEvening) push notifications:", e);
+        }
+    }
+
+    public synchronized void sendAfterModelRefresh(HouseModel oldModel, HouseModel newModel) {
 
         try {
             doorbellMessage(oldModel, newModel);
         } catch (Exception e) {
-            LogFactory.getLog(PushService.class).error("Could not send push notifications:", e);
+            LogFactory.getLog(PushService.class).error("Could not (sendAfterModelRefresh) push notifications:", e);
         }
+    }
+
+    private void windowOpenMessage(HouseModel newModel) {
+
+        newModel.lookupFields(WindowSensor.class).forEach((fieldname, newValue) -> {
+            if (newValue.isState()) {
+
+            }
+        });
+
+        /*
+         * settingsService.listTokensWithEnabledSetting(Setting.DOORBELL).forEach(pushToken -> { final String time =
+         * TIME_FORMATTER.format(Instant.ofEpochMilli(newModel.getFrontDoorBell().getTimestampLastDoorbell())
+         * .atZone(ZoneId.systemDefault()).toLocalDateTime()); handleMessage(pushToken, "Türklingelbetätigung", "Zeitpunkt: " +
+         * time + " Uhr."); });
+         */
     }
 
     private void doorbellMessage(HouseModel oldModel, HouseModel newModel) {

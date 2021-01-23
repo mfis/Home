@@ -1,6 +1,7 @@
 package de.fimatas.home.library.util;
 
 import java.math.BigDecimal;
+import java.time.LocalTime;
 
 public class HomeAppConstants {
 
