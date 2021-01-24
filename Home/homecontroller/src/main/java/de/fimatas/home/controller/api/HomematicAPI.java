@@ -19,6 +19,7 @@ import javax.annotation.PostConstruct;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.logging.Log;
@@ -102,10 +103,12 @@ public class HomematicAPI {
 
     private Boolean ccuAuthActive;
 
+    private DocumentBuilder documentBuilder;
+
     private static final Log LOG = LogFactory.getLog(HomematicAPI.class);
 
     @PostConstruct
-    public void init() {
+    public void init() throws ParserConfigurationException {
 
         ccuUser = env.getProperty("homematic.authuser");
         ccuPass = env.getProperty("homematic.authpass");
@@ -122,6 +125,10 @@ public class HomematicAPI {
         }
 
         writeToHomematicEnabled = Boolean.parseBoolean(writeEnabled.trim());
+
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance(); // NOSONAR
+        dbFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, Boolean.TRUE);
+        documentBuilder = dbFactory.newDocumentBuilder();
     }
 
     public boolean isDeviceUnreachableOrNotSending(Device device) {
@@ -204,7 +211,7 @@ public class HomematicAPI {
 
             String body = buildReGaRequestBody(homematicCommandBuilder.eof());
             try {
-                callReGaAPI(body, false);
+                callReGaAPI(body, callType, false);
                 ccuAuthActive = false;
             } catch (HttpClientErrorException e) {
                 if (e.getRawStatusCode() == 401) {
@@ -262,8 +269,7 @@ public class HomematicAPI {
             if (ChronoUnit.SECONDS.between(currentValuesTimestamp,
                 LocalDateTime.now()) < HomeAppConstants.MODEL_MAX_UPDATE_INTERVAL_SECONDS) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug(
-                        "Response is equal to previous response AND model is still actual. -> NOT returning response.");
+                    LOG.debug("Response is equal to previous response AND model is still actual. -> NOT returning response.");
                 }
                 return false;
             }
@@ -315,7 +321,7 @@ public class HomematicAPI {
         testCcuAuthIsActive(callType);
 
         String body = buildReGaRequestBody(commands);
-        return extractCommandResults(callType, callReGaAPI(body, true), commands);
+        return extractCommandResults(callType, callReGaAPI(body, callType, true), commands);
     }
 
     private boolean extractCommandResults(CallType callType, Document responseDocument, HomematicCommand... commands) {
@@ -412,7 +418,7 @@ public class HomematicAPI {
         return httpHeaders;
     }
 
-    private Document callReGaAPI(String body, boolean withAuthentication) {
+    private Document callReGaAPI(String body, CallType callType, boolean withAuthentication) {
 
         HttpHeaders headers = createHeaders(body.length(), withAuthentication);
         HttpEntity<String> requestEntity = new HttpEntity<>(body, headers);
@@ -437,13 +443,13 @@ public class HomematicAPI {
         }
 
         try {
-            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance(); // NOSONAR
-            dbFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, Boolean.TRUE);
-            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-            Document newDoc =
-                dBuilder.parse(new ByteArrayInputStream(responseEntity.getBody().getBytes(StandardCharsets.UTF_8))); // NOSONAR
+            Document newDoc = null;
+            synchronized (documentBuilder) {
+                newDoc =
+                    documentBuilder.parse(new ByteArrayInputStream(responseEntity.getBody().getBytes(StandardCharsets.UTF_8))); // NOSONAR
+            }
             newDoc.getDocumentElement().normalize();
-            normalizeTimestamps(newDoc);
+            normalizeTimestamps(newDoc, callType);
 
             return newDoc;
         } catch (Exception e) {
@@ -451,7 +457,11 @@ public class HomematicAPI {
         }
     }
 
-    private void normalizeTimestamps(Document doc) {
+    private void normalizeTimestamps(Document doc, CallType callType) {
+
+        if (callType != CallType.DEVICE_STATE) {
+            return;
+        }
 
         NodeList childs = doc.getElementsByTagName(RESPONSE_ROOT_TAG).item(0).getChildNodes();
         for (int i = 0; i < childs.getLength(); i++) {
