@@ -33,6 +33,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.web.client.HttpClientErrorException;
@@ -124,6 +125,8 @@ public class HomematicAPI {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance(); // NOSONAR
         DocumentBuilder builder = dbf.newDocumentBuilder();
         currentDocument = builder.newDocument();
+
+        readDeviceState();
     }
 
     public boolean isDeviceUnreachableOrNotSending(Device device) {
@@ -220,17 +223,34 @@ public class HomematicAPI {
 
     public synchronized boolean refresh() {
 
+        long timeStart = System.nanoTime();
         List<HomematicCommand> commands = new LinkedList<>();
+
         for (Device device : Device.values()) {
             for (Datapoint datapoint : device.getDatapoints()) {
                 commands.add(homematicCommandBuilder.read(device, datapoint));
-                if (datapoint.isReadTimestamp()) {
-                    commands.add(homematicCommandBuilder.readTS(device, datapoint));
-                }
             }
             if (device.getSysVars() != null) {
                 for (String suffix : device.getSysVars()) {
                     commands.add(homematicCommandBuilder.read(device, suffix));
+                }
+            }
+        }
+
+        boolean refreshed = executeCommands(true, commands.toArray(new HomematicCommand[commands.size()]));
+        logRuntime("refresh", timeStart);
+        return refreshed;
+    }
+
+    @Scheduled(fixedDelay = (1000 * HomeAppConstants.DEVICE_STATE_INTERVAL_SECONDS))
+    public synchronized void readDeviceState() {
+
+        long timeStart = System.nanoTime();
+        List<HomematicCommand> commands = new LinkedList<>();
+        for (Device device : Device.values()) {
+            for (Datapoint datapoint : device.getDatapoints()) {
+                if (datapoint.isReadTimestamp()) {
+                    commands.add(homematicCommandBuilder.readTS(device, datapoint));
                 }
             }
             Datapoint lowBatDatapoint = device.lowBatDatapoint();
@@ -242,11 +262,9 @@ public class HomematicAPI {
         commands.add(homematicCommandBuilder.read(VAR_CCU_REBOOT));
         commands.add(homematicCommandBuilder.read(VAR_CCU_UPTIME));
 
-        boolean refreshed = executeCommands(true, commands.toArray(new HomematicCommand[commands.size()]));
-        if (refreshed) {
-            lookupInitState();
-        }
-        return refreshed;
+        executeCommands(false, commands.toArray(new HomematicCommand[commands.size()]));
+        lookupInitState();
+        logRuntime("readDeviceState", timeStart);
     }
 
     private void lookupInitState() {
@@ -425,8 +443,7 @@ public class HomematicAPI {
             if (ChronoUnit.SECONDS.between(currentValuesTimestamp,
                 LocalDateTime.now()) < HomeAppConstants.MODEL_MAX_UPDATE_INTERVAL_SECONDS) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug(
-                        "Response is equal to previous response AND model is still actual. -> NOT returning response.");
+                    LOG.debug("Response is equal to previous response AND model is still actual. -> NOT returning response.");
                 }
                 return true;
             }
@@ -438,7 +455,7 @@ public class HomematicAPI {
                 LOG.debug("Response is NOT equal to previous response. -> Returning response.");
             }
         }
-        
+
         currentDocument = newDocument;
         return false;
     }
@@ -462,6 +479,12 @@ public class HomematicAPI {
 
     public Boolean getCcuAuthActive() {
         return ccuAuthActive;
+    }
+
+    private void logRuntime(String cpt, long start) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(cpt + "=" + ((System.nanoTime() - start) / 1000000) + " ms");
+        }
     }
 
 }
