@@ -6,13 +6,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -82,8 +79,6 @@ public class HouseService {
 
     private static final String TIMESTAMP = "Timestamp";
 
-    private static final Log LOG = LogFactory.getLog(HouseService.class);
-
     @Autowired
     private HomematicAPI hmApi;
 
@@ -108,18 +103,7 @@ public class HouseService {
     @Autowired
     private UserService userService;
 
-    @PostConstruct
-    public void init() {
-        CompletableFuture.runAsync(() -> {
-            try {
-                refreshHouseModel();
-            } catch (Exception e) {
-                LOG.error("Could not initialize HouseService completly.", e);
-            }
-        });
-    }
-
-    @Scheduled(fixedDelay = (1000 * HomeAppConstants.MODEL_DEFAULT_INTERVAL_SECONDS))
+    @Scheduled(initialDelay = (1000 * 3), fixedDelay = (1000 * HomeAppConstants.MODEL_DEFAULT_INTERVAL_SECONDS))
     private void scheduledRefreshHouseModel() {
         refreshHouseModel();
     }

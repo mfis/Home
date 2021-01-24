@@ -19,7 +19,6 @@ import javax.annotation.PostConstruct;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.logging.Log;
@@ -87,13 +86,15 @@ public class HomematicAPI {
 
     private LocalDateTime currentValuesTimestamp;
 
-    private Map<HomematicCommand, String> currentValues = new HashMap<>();
+    private String currentValuesCompareString;
 
-    private Document currentDocument;
+    private Map<HomematicCommand, String> currentValues = new HashMap<>();
 
     //
 
     private boolean ccuInitState;
+
+    private boolean isInitialDeviceStateSet = false;
 
     private long resourceNotAvailableCounter;
 
@@ -104,7 +105,7 @@ public class HomematicAPI {
     private static final Log LOG = LogFactory.getLog(HomematicAPI.class);
 
     @PostConstruct
-    public void init() throws ParserConfigurationException {
+    public void init() {
 
         ccuUser = env.getProperty("homematic.authuser");
         ccuPass = env.getProperty("homematic.authpass");
@@ -121,12 +122,6 @@ public class HomematicAPI {
         }
 
         writeToHomematicEnabled = Boolean.parseBoolean(writeEnabled.trim());
-
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance(); // NOSONAR
-        DocumentBuilder builder = dbf.newDocumentBuilder();
-        currentDocument = builder.newDocument();
-
-        readDeviceState();
     }
 
     public boolean isDeviceUnreachableOrNotSending(Device device) {
@@ -172,7 +167,7 @@ public class HomematicAPI {
 
     public void executeCommand(HomematicCommand... commands) {
         if (writeToHomematicEnabled) {
-            executeCommands(false, commands);
+            executeCommands(CallType.WRITE, commands);
         } else {
             for (HomematicCommand command : commands) {
                 LOG.info("Write to homematic is not enabled! - " + homematicCommandProcessor.buildCommand(command));
@@ -197,14 +192,19 @@ public class HomematicAPI {
         }
     }
 
-    private Boolean testCcuAuthIsActive() {
+    private Boolean testCcuAuthIsActive(CallType callType) {
+
+        if (callType == CallType.REFRESH && ccuAuthActive != null) {
+            // no check when calling for refresh (should be as short as possible) except when no auth state is present
+            return ccuAuthActive;
+        }
 
         long now = System.currentTimeMillis();
         if (ccuAuthActive == null || (now - lastCCUAuthTestTimestamp) > 1000 * 60 * 60) { // 1h
 
             String body = buildReGaRequestBody(homematicCommandBuilder.eof());
             try {
-                callReGaAPI(body, false, false);
+                callReGaAPI(body, false);
                 ccuAuthActive = false;
             } catch (HttpClientErrorException e) {
                 if (e.getRawStatusCode() == 401) {
@@ -224,8 +224,16 @@ public class HomematicAPI {
     public synchronized boolean refresh() {
 
         long timeStart = System.nanoTime();
-        List<HomematicCommand> commands = new LinkedList<>();
 
+        if (!isInitialDeviceStateSet) {
+            readDeviceState();
+            if (!isInitialDeviceStateSet) {
+                LOG.debug("skipped refresh due to unsuccsessful initial read of device state");
+                return false;
+            }
+        }
+
+        List<HomematicCommand> commands = new LinkedList<>();
         for (Device device : Device.values()) {
             for (Datapoint datapoint : device.getDatapoints()) {
                 commands.add(homematicCommandBuilder.read(device, datapoint));
@@ -237,9 +245,38 @@ public class HomematicAPI {
             }
         }
 
-        boolean refreshed = executeCommands(true, commands.toArray(new HomematicCommand[commands.size()]));
+        boolean refreshed = executeCommands(CallType.REFRESH, commands.toArray(new HomematicCommand[commands.size()]));
+
+        if (refreshed) {
+            refreshed = hasChangedValues();
+        }
+
         logRuntime("refresh", timeStart);
         return refreshed;
+    }
+
+    private boolean hasChangedValues() {
+
+        String newCompareString = currentValues.toString();
+        if (currentValuesCompareString != null && currentValuesCompareString.equals(newCompareString)) {
+            if (ChronoUnit.SECONDS.between(currentValuesTimestamp,
+                LocalDateTime.now()) < HomeAppConstants.MODEL_MAX_UPDATE_INTERVAL_SECONDS) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug(
+                        "Response is equal to previous response AND model is still actual. -> NOT returning response.");
+                }
+                return false;
+            }
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Response is equal to previous response BUT model is outdated. -> Returning response.");
+            }
+        } else {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Response is NOT equal to previous response. -> Returning response.");
+            }
+        }
+        currentValuesCompareString = newCompareString;
+        return true;
     }
 
     @Scheduled(fixedDelay = (1000 * HomeAppConstants.DEVICE_STATE_INTERVAL_SECONDS))
@@ -262,31 +299,33 @@ public class HomematicAPI {
         commands.add(homematicCommandBuilder.read(VAR_CCU_REBOOT));
         commands.add(homematicCommandBuilder.read(VAR_CCU_UPTIME));
 
-        executeCommands(false, commands.toArray(new HomematicCommand[commands.size()]));
-        lookupInitState();
-        logRuntime("readDeviceState", timeStart);
+        if (executeCommands(CallType.DEVICE_STATE, commands.toArray(new HomematicCommand[commands.size()]))) {
+            lookupInitState();
+            logRuntime("readDeviceState", timeStart);
+            isInitialDeviceStateSet = true;
+        }
     }
 
     private void lookupInitState() {
         ccuInitState = getAsBoolean(homematicCommandBuilder.read(VAR_CCU_REBOOT));
     }
 
-    private boolean executeCommands(boolean refresh, HomematicCommand... commands) {
+    private boolean executeCommands(CallType callType, HomematicCommand... commands) {
 
-        testCcuAuthIsActive();
+        testCcuAuthIsActive(callType);
 
         String body = buildReGaRequestBody(commands);
-        return extractCommandResults(refresh, callReGaAPI(body, refresh, true), commands);
+        return extractCommandResults(callType, callReGaAPI(body, true), commands);
     }
 
-    private boolean extractCommandResults(boolean refresh, Document responseDocument, HomematicCommand... commands) {
+    private boolean extractCommandResults(CallType callType, Document responseDocument, HomematicCommand... commands) {
 
         if (responseDocument == null) {
+            LOG.debug("extractCommandResults recieved null for " + callType);
             return false;
         }
 
         Map<String, String> newStringToValues = new HashMap<>();
-        Map<HomematicCommand, String> newCommandToValues = new HashMap<>();
         boolean rcsOk = true;
         boolean eofOK = false;
 
@@ -302,12 +341,13 @@ public class HomematicAPI {
             }
         }
 
-        if (rcsOk && eofOK && refresh) {
+        if (rcsOk && eofOK && (callType == CallType.REFRESH || callType == CallType.DEVICE_STATE)) {
             for (HomematicCommand command : commands) {
-                newCommandToValues.put(command, newStringToValues.get(command.getCashedVarName()));
+                currentValues.put(command, newStringToValues.get(command.getCashedVarName()));
             }
-            currentValues = newCommandToValues;
-            currentValuesTimestamp = LocalDateTime.now();
+            if (callType == CallType.REFRESH) {
+                currentValuesTimestamp = LocalDateTime.now();
+            }
         }
         return rcsOk && eofOK;
     }
@@ -372,7 +412,7 @@ public class HomematicAPI {
         return httpHeaders;
     }
 
-    private Document callReGaAPI(String body, boolean refresh, boolean withAuthentication) {
+    private Document callReGaAPI(String body, boolean withAuthentication) {
 
         HttpHeaders headers = createHeaders(body.length(), withAuthentication);
         HttpEntity<String> requestEntity = new HttpEntity<>(body, headers);
@@ -405,9 +445,6 @@ public class HomematicAPI {
             newDoc.getDocumentElement().normalize();
             normalizeTimestamps(newDoc);
 
-            if (ignoreEqualResponse(refresh, newDoc)) {
-                return null;
-            }
             return newDoc;
         } catch (Exception e) {
             throw new IllegalStateException("Error parsing document", e);
@@ -433,33 +470,6 @@ public class HomematicAPI {
         }
     }
 
-    private boolean ignoreEqualResponse(boolean refresh, Document newDocument) {
-
-        if (!refresh) {
-            return false;
-        }
-
-        if (newDocument.isEqualNode(currentDocument)) {
-            if (ChronoUnit.SECONDS.between(currentValuesTimestamp,
-                LocalDateTime.now()) < HomeAppConstants.MODEL_MAX_UPDATE_INTERVAL_SECONDS) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Response is equal to previous response AND model is still actual. -> NOT returning response.");
-                }
-                return true;
-            }
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Response is equal to previous response BUT model is outdated. -> Returning response.");
-            }
-        } else {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Response is NOT equal to previous response. -> Returning response.");
-            }
-        }
-
-        currentDocument = newDocument;
-        return false;
-    }
-
     public boolean handleRequestException(boolean withAuthentication) {
 
         if (!withAuthentication) {
@@ -467,10 +477,6 @@ public class HomematicAPI {
         }
         resourceNotAvailableCounter++;
         return resourceNotAvailableCounter > 2;
-    }
-
-    public Map<HomematicCommand, String> getCurrentValues() {
-        return currentValues;
     }
 
     public LocalDateTime getCurrentValuesTimestamp() {
@@ -487,4 +493,7 @@ public class HomematicAPI {
         }
     }
 
+    private enum CallType {
+        REFRESH, DEVICE_STATE, INDIVIDUAL_READ, WRITE
+    }
 }
