@@ -2,7 +2,8 @@ package de.fimatas.home.library.domain.model;
 
 public enum PushNotifications {
 
-    DOORBELL("Türklingel", true), //
+    DOORBELL("Türklingelbetätigung:", true), //
+    WINDOW_OPEN("Fenster noch geöffnet:", true), //
     ;
 
     private final String text;

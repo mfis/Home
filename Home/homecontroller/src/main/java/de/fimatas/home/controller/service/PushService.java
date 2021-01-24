@@ -5,14 +5,17 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.LinkedList;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import com.eatthepath.pushy.apns.ApnsClient;
 import com.eatthepath.pushy.apns.ApnsClientBuilder;
@@ -78,12 +81,13 @@ public class PushService {
         }
     }
 
+    @Scheduled(cron = "0 00 22 * * *")
     public void sendAtLateEvening() {
 
         try {
             windowOpenMessage(ModelObjectDAO.getInstance().readHouseModel());
         } catch (Exception e) {
-            LogFactory.getLog(PushService.class).error("Could not (sendAtLateEvening) push notifications:", e);
+            LogFactory.getLog(PushService.class).error("Could not [sendAtLateEvening] push notifications:", e);
         }
     }
 
@@ -92,24 +96,24 @@ public class PushService {
         try {
             doorbellMessage(oldModel, newModel);
         } catch (Exception e) {
-            LogFactory.getLog(PushService.class).error("Could not (sendAfterModelRefresh) push notifications:", e);
+            LogFactory.getLog(PushService.class).error("Could not [sendAfterModelRefresh] push notifications:", e);
         }
     }
 
     private void windowOpenMessage(HouseModel newModel) {
 
+        var roomNames = new LinkedList<String>();
         newModel.lookupFields(WindowSensor.class).forEach((fieldname, newValue) -> {
             if (newValue.isState()) {
-
+                roomNames.add(newValue.getDevice().getPlace().getPlaceName());
             }
         });
 
-        /*
-         * settingsService.listTokensWithEnabledSetting(Setting.DOORBELL).forEach(pushToken -> { final String time =
-         * TIME_FORMATTER.format(Instant.ofEpochMilli(newModel.getFrontDoorBell().getTimestampLastDoorbell())
-         * .atZone(ZoneId.systemDefault()).toLocalDateTime()); handleMessage(pushToken, "Türklingelbetätigung", "Zeitpunkt: " +
-         * time + " Uhr."); });
-         */
+        if(!roomNames.isEmpty()) {
+            settingsService.listTokensWithEnabledSetting(PushNotifications.WINDOW_OPEN).forEach(pushToken -> 
+            handleMessage(pushToken, PushNotifications.WINDOW_OPEN.getText(), StringUtils.join(roomNames, ", "))
+            );
+        }
     }
 
     private void doorbellMessage(HouseModel oldModel, HouseModel newModel) {
@@ -122,7 +126,7 @@ public class PushService {
             final String time =
                 TIME_FORMATTER.format(Instant.ofEpochMilli(newModel.getFrontDoorBell().getTimestampLastDoorbell())
                 .atZone(ZoneId.systemDefault()).toLocalDateTime());
-            handleMessage(pushToken, "Türklingelbetätigung", "Zeitpunkt: " + time + " Uhr.");
+            handleMessage(pushToken, PushNotifications.DOORBELL.getText(), "Zeitpunkt: " + time + " Uhr.");
         });
     }
 
