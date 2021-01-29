@@ -15,6 +15,8 @@ public class SettingsModel implements Serializable {
 
     private String user;
 
+    private String client;
+
     private long lastTimestamp;
 
     private EnumMap<PushNotifications, Boolean> pushNotifications = new EnumMap<>(PushNotifications.class);
@@ -49,6 +51,14 @@ public class SettingsModel implements Serializable {
 
     public void setPushNotifications(EnumMap<PushNotifications, Boolean> pushNotifications) { // NOSONAR
         this.pushNotifications = pushNotifications;
+    }
+
+    public String getClient() {
+        return client;
+    }
+
+    public void setClient(String client) {
+        this.client = client;
     }
 
 }

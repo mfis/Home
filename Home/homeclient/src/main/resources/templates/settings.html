@@ -1,0 +1,19 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" lang="de">
+
+	<head th:replace="basics :: head (name='Home - Einstellungen')"><title></title></head>
+	
+	<body>
+	
+		<div class="container">
+			<div style="height: 20px;"></div>
+				<h4>Push-Token</h4>
+				<br/>
+				<pre style="color: #808B96" th:text="${pushsettings}"></pre>
+		</div>
+		
+	</body>
+	
+	<div th:replace="basics :: scriptresources"></div>
+
+</html>

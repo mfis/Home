@@ -10,6 +10,8 @@ public class Message implements Serializable {
 
     private String uid;
 
+    private String client;
+
     private MessageType messageType;
 
     private Device device;
@@ -100,6 +102,14 @@ public class Message implements Serializable {
 
     public void setHueDeviceId(String hueDeviceId) {
         this.hueDeviceId = hueDeviceId;
+    }
+
+    public String getClient() {
+        return client;
+    }
+
+    public void setClient(String client) {
+        this.client = client;
     }
 
 }

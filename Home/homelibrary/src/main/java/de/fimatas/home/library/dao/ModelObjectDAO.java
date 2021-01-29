@@ -1,5 +1,7 @@
 package de.fimatas.home.library.dao;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -124,6 +126,10 @@ public class ModelObjectDAO {
         default:
             throw new IllegalArgumentException("Unknown CameraMode: " + cameraMode);
         }
+    }
+
+    public Collection<SettingsModel> readAllSettings() {
+        return Collections.unmodifiableCollection(settingsModels.values());
     }
 
     public boolean isKnownPushToken(String pushToken) {

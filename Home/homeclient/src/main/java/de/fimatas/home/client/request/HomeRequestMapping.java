@@ -148,6 +148,13 @@ public class HomeRequestMapping {
         return "textquery";
     }
 
+    @GetMapping("/settings")
+    public String settings(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie) {
+        fillUserAttributes(model, userCookie);
+        model.addAttribute("pushsettings", settingsViewService.allSettingsAsString());
+        return "settings";
+    }
+
     @GetMapping(value = "/cameraPicture", produces = "image/jpeg")
     public ResponseEntity<byte[]> cameraPicture(@RequestParam(DEVICE_NAME) String deviceName,
             @RequestParam(CAMERA_MODE) String cameraMode, @RequestParam("ts") String timestamp,
@@ -184,6 +191,7 @@ public class HomeRequestMapping {
             @CookieValue(name = LoginInterceptor.COOKIE_NAME, required = false) String userCookie,
             @RequestHeader(name = "ETag", required = false) String etag,
             @RequestHeader(name = SITE_REQUEST_IS_APP, required = false) Boolean isApp,
+            @RequestHeader(name = "CLIENT_NAME", required = false) String clientName,
             @RequestHeader(name = LoginInterceptor.APP_PUSH_TOKEN, required = false) String appPushToken) {
 
         if (log.isDebugEnabled()) {
@@ -193,7 +201,7 @@ public class HomeRequestMapping {
         }
 
         if (isApp != null && isApp) {
-            handlePushToken(appPushToken, userService.userNameFromLoginCookie(userCookie));
+            handlePushToken(appPushToken, userService.userNameFromLoginCookie(userCookie), clientName);
         }
 
         boolean isNewMessage = ViewAttributesDAO.getInstance().isPresent(userCookie, ViewAttributesDAO.MESSAGE);
@@ -220,7 +228,7 @@ public class HomeRequestMapping {
         }
     }
 
-    private void handlePushToken(String appPushToken, String userName) {
+    private void handlePushToken(String appPushToken, String userName, String client) {
         
         if(!settingsViewService.isValidPushToken(appPushToken)) {
             return;
@@ -231,6 +239,7 @@ public class HomeRequestMapping {
             message.setMessageType(MessageType.SETTINGS_NEW);
             message.setValue(appPushToken);
             message.setUser(userName);
+            message.setClient(client);
             MessageQueue.getInstance().request(message, false);
         }
     }

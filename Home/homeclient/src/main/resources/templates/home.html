@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org" lang="de">
 
-	<head th:replace="basics :: head (name=${MENU_SELECTED.name})"><title>Zuhause</title></head>
+	<head th:replace="basics :: head (name='Zuhause - Laden...')"><title></title></head>
 	
 	<body id="idbody">
 	
@@ -9,6 +9,7 @@
 		<input type="hidden" th:id="'modelTimestamp'" th:value="${modelTimestamp}"></input>	
 		<input type="hidden" id="SITE_REQUEST_TS" th:value="${SITE_REQUEST_TS}" />
 		<input type="hidden" id="SITE_REQUEST_IS_APP" th:value="${SITE_REQUEST_IS_APP}" />
+		<input type="hidden" id="CLIENT_NAME" th:value="CLIENT_NAME" />
 	
 		<div class="container">
 		

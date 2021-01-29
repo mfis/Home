@@ -32,12 +32,13 @@ public class SettingsService {
         SettingsDAO.getInstance().read().forEach(model -> uploadService.upload(model));
     }
 
-    public void createNewSettingsForToken(String token, String user) {
+    public void createNewSettingsForToken(String token, String user, String client) {
 
         final var model = new SettingsModel();
         model.setToken(token);
         model.setLastTimestamp(System.currentTimeMillis());
         model.setUser(user);
+        model.setClient(client);
         List.of(PushNotifications.values())
             .forEach(notification -> model.getPushNotifications().put(notification, notification.getDefaultSetting()));
         SettingsDAO.getInstance().write(model);
