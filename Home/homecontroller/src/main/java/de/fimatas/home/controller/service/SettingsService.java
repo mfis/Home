@@ -1,6 +1,7 @@
 package de.fimatas.home.controller.service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import org.apache.commons.logging.LogFactory;
@@ -18,6 +19,9 @@ public class SettingsService {
     @Autowired
     private UploadService uploadService;
 
+    @Autowired
+    private PushService pushService;
+
     @PostConstruct
     public void init() {
 
@@ -29,20 +33,47 @@ public class SettingsService {
     }
 
     public void refreshSettingsModelsComplete() {
-        SettingsDAO.getInstance().read().forEach(model -> uploadService.upload(model));
+
+        SettingsDAO.getInstance().read().forEach(model -> {
+            // migrate up to new version if available
+            List.of(PushNotifications.values()).forEach(notification -> {
+                if (!model.getPushNotifications().containsKey(notification)) {
+                    model.getPushNotifications().put(notification, notification.getDefaultSetting());
+                    SettingsDAO.getInstance().write(model);
+                }
+            });
+            uploadService.upload(model);
+        });
     }
 
     public void createNewSettingsForToken(String token, String user, String client) {
+
+        if (SettingsDAO.getInstance().read().stream().anyMatch(model -> model.getToken().equals(token))) {
+            return;
+        }
+
+        Optional<SettingsModel> oldToken = SettingsDAO.getInstance().read().stream()
+            .filter(model -> model.getUser().equals(user) && model.getClient().equals(client)).findFirst();
 
         final var model = new SettingsModel();
         model.setToken(token);
         model.setLastTimestamp(System.currentTimeMillis());
         model.setUser(user);
         model.setClient(client);
-        List.of(PushNotifications.values())
-            .forEach(notification -> model.getPushNotifications().put(notification, notification.getDefaultSetting()));
+        if (oldToken.isPresent()) {
+            // after apns token switch adopt settings from old token
+            List.of(PushNotifications.values()).forEach(notification -> model.getPushNotifications().put(notification,
+                oldToken.get().getPushNotifications().get(notification)));
+        } else {
+            List.of(PushNotifications.values())
+                .forEach(notification -> model.getPushNotifications().put(notification, notification.getDefaultSetting()));
+        }
         SettingsDAO.getInstance().write(model);
         uploadService.upload(model);
+
+        if (oldToken.isEmpty()) {
+            pushService.sendRegistrationConfirmation(token, client);
+        }
     }
 
     public void deleteSettingsForToken(String token) {
@@ -51,8 +82,8 @@ public class SettingsService {
     }
 
     public List<String> listTokensWithEnabledSetting(PushNotifications pushNotifications) {
-        return SettingsDAO.getInstance().read().stream().filter(model -> model.getPushNotifications().get(pushNotifications).booleanValue())
-            .map(SettingsModel::getToken)
+        return SettingsDAO.getInstance().read().stream()
+            .filter(model -> model.getPushNotifications().get(pushNotifications).booleanValue()).map(SettingsModel::getToken)
             .collect(Collectors.toList());
     }
 

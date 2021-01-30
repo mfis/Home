@@ -91,6 +91,12 @@ public class PushService {
         }
     }
 
+    public void sendRegistrationConfirmation(String token, String client) {
+
+        handleMessage(token, "Registrierung erfolgreich",
+            "Auf dem Gerät '" + client + "' können nun Benachrichtigungen empfangen werden.");
+    }
+
     public synchronized void sendAfterModelRefresh(HouseModel oldModel, HouseModel newModel) {
 
         try {
