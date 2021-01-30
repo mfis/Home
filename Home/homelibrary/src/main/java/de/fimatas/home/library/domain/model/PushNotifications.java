@@ -4,6 +4,7 @@ public enum PushNotifications {
 
     DOORBELL("Türklingelbetätigung:", true), //
     WINDOW_OPEN("Fenster noch geöffnet:", true), //
+    LOW_BATTERY("Batterie fast leer:", true), //
     ;
 
     private final String text;

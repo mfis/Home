@@ -91,6 +91,16 @@ public class PushService {
         }
     }
 
+    @Scheduled(cron = "0 00 4 * * *")
+    public void sendAtEarlyMorning() {
+
+        try {
+            lowBatteryMessage(ModelObjectDAO.getInstance().readHouseModel());
+        } catch (Exception e) {
+            LogFactory.getLog(PushService.class).error("Could not [sendAtEarlyMorning] push notifications:", e);
+        }
+    }
+
     public void sendRegistrationConfirmation(String token, String client) {
 
         handleMessage(token, "Registrierung erfolgreich",
@@ -119,6 +129,15 @@ public class PushService {
             settingsService.listTokensWithEnabledSetting(PushNotifications.WINDOW_OPEN).forEach(pushToken -> 
             handleMessage(pushToken, PushNotifications.WINDOW_OPEN.getText(), StringUtils.join(roomNames, ", "))
             );
+        }
+    }
+
+    private void lowBatteryMessage(HouseModel newModel) {
+
+        if (!newModel.getLowBatteryDevices().isEmpty()) {
+            settingsService.listTokensWithEnabledSetting(PushNotifications.LOW_BATTERY)
+                .forEach(pushToken -> handleMessage(pushToken, PushNotifications.LOW_BATTERY.getText(),
+                    StringUtils.join(newModel.getLowBatteryDevices(), ", ")));
         }
     }
 
