@@ -147,6 +147,8 @@ public class HouseService {
         newModel.setClimateLaundry(readRoomClimate(Device.THERMOMETER_WASCHKUECHE));
 
         newModel.setGuestRoomWindowSensor(readWindowSensorState(Device.FENSTERSENSOR_GAESTEZIMMER));
+        newModel.setWorkshopWindowSensor(readWindowSensorState(Device.FENSTERSENSOR_WERKSTATT));
+        newModel.setLaundryWindowSensor(readWindowSensorState(Device.FENSTERSENSOR_WASCHKUECHE));
 
         // newModel.setLeftWindowBedRoom(readWindow(Device.ROLLLADE_SCHLAFZIMMER_LINKS)); // NOSONAR
 

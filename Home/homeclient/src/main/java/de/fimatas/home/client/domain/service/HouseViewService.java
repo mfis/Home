@@ -139,6 +139,8 @@ public class HouseViewService {
         formatFacadeTemperatures(model, "tempMinHouse", "tempMaxHouse", house);
 
         formatWindowSensor(model, "windowSensorGuestroom", house.getGuestRoomWindowSensor());
+        formatWindowSensor(model, "windowSensorWorkshop", house.getWorkshopWindowSensor());
+        formatWindowSensor(model, "windowSensorLaundry", house.getLaundryWindowSensor());
 
         formatSwitch(model, "switchKitchen", house.getKitchenWindowLightSwitch());
         formatSwitch(model, "switchWallbox", house.getWallboxSwitch());

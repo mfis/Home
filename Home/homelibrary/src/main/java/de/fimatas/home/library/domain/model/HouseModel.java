@@ -42,6 +42,10 @@ public class HouseModel implements Serializable {
 
     private WindowSensor guestRoomWindowSensor;
 
+    private WindowSensor workshopWindowSensor;
+
+    private WindowSensor laundryWindowSensor;
+
     private PowerMeter totalElectricalPowerConsumption;
 
     private PowerMeter wallboxElectricalPowerConsumption;
@@ -290,6 +294,22 @@ public class HouseModel implements Serializable {
 
     public void setGuestRoomWindowSensor(WindowSensor guestRoomWindowSensor) {
         this.guestRoomWindowSensor = guestRoomWindowSensor;
+    }
+
+    public WindowSensor getWorkshopWindowSensor() {
+        return workshopWindowSensor;
+    }
+
+    public void setWorkshopWindowSensor(WindowSensor workshopWindowSensor) {
+        this.workshopWindowSensor = workshopWindowSensor;
+    }
+
+    public WindowSensor getLaundryWindowSensor() {
+        return laundryWindowSensor;
+    }
+
+    public void setLaundryWindowSensor(WindowSensor laundryWindowSensor) {
+        this.laundryWindowSensor = laundryWindowSensor;
     }
 
 }

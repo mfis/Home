@@ -55,6 +55,7 @@
 			<!-- Waschküche -->
 			<div th:replace="fragments :: title (name='Waschküche')"></div>
 			<div th:replace="fragments :: temperature (model=${tempLaundry})"></div>
+			<div th:replace="fragments :: windowsensor (model=${windowSensorLaundry})"></div>
 
 			<!-- Gästezimmer -->
 			<div th:replace="fragments :: title (name='Gästezimmer')"></div>
@@ -63,6 +64,7 @@
 			<!-- Werkstatt -->
 			<div th:replace="fragments :: title (name='Werkstatt')"></div>
 			<div th:replace="fragments :: switch (model=${switchWorkshopVentilation})"></div>
+			<div th:replace="fragments :: windowsensor (model=${windowSensorWorkshop})"></div>
 	
 			<!-- Energie -->
 			<div th:replace="fragments :: title (name='Energie')"></div>

@@ -63,6 +63,12 @@ public enum Device {
     FENSTERSENSOR_GAESTEZIMMER(HomematicProtocol.HMIP, Type.WINDOW_SENSOR, Place.GUESTROOM, false, Datapoint.LIST_WINDOW_SENSOR,
         Type.VAR_PREFIXES_TIMESTAMP),
 
+    FENSTERSENSOR_WERKSTATT(HomematicProtocol.HMIP, Type.WINDOW_SENSOR, Place.WORKSHOP, false, Datapoint.LIST_WINDOW_SENSOR,
+        Type.VAR_PREFIXES_TIMESTAMP),
+
+    FENSTERSENSOR_WASCHKUECHE(HomematicProtocol.HMIP, Type.WINDOW_SENSOR, Place.LAUNDRY, false, Datapoint.LIST_WINDOW_SENSOR,
+        Type.VAR_PREFIXES_TIMESTAMP),
+
     // ROLLLADE_SCHLAFZIMMER_LINKS(HomematicProtocol.HM, "D_U_M_M_Y", 1,
     // Type.SHUTTER_LEFT, Place.BEDROOM, false,
     // Integer.class, ShutterPosition.class), //
