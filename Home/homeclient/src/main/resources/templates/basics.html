@@ -296,7 +296,7 @@
 	<div th:fragment="navigation (selected, selectable, status, isApp)">
 	
 		<input type="hidden" id="browserTitle" th:value="${selected.name}" />
-		<th:block th:if="${#strings.equals(isApp, 'false')}">	
+		<th:block th:if="${!#strings.equals(isApp, 'true')}">	
 			<div id="divNavigation">
 				<nav id="navbar" class="navbar fixed-top navbar-expand-lg navbar-light py-1" style="border-bottom: 2px solid rgb(119,119,119);">
 					
