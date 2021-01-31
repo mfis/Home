@@ -160,6 +160,7 @@ public class PushService {
         if (HomeAppConstants.PUSH_TOKEN_NOT_AVAILABLE_INDICATOR.equals(pushToken)) {
             LOG.info("Push Message to dummy token: " + title + " - " + message);
         } else {
+            LOG.debug("Push Message apns: " + pushToken);
             sendToApns(pushToken, title, message);
         }
     }
@@ -183,6 +184,8 @@ public class PushService {
             if (!response.isAccepted()) {
                 LOG.warn("Push Notification rejected by the apns gateway: " + response.getRejectionReason());
                 settingsService.deleteSettingsForToken(pushToken);
+            } else {
+                LOG.debug("Push Message accepted: " + response.getPushNotification().getToken());
             }
         } else {
             LOG.error("Failed to send push notification to apns.", cause);
