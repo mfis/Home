@@ -40,7 +40,9 @@ import mfi.files.api.UserService;
 @Controller
 public class HomeRequestMapping {
 
-    private static final String SITE_REQUEST_IS_APP = "SITE_REQUEST_IS_APP";
+    private static final String CLIENT_NAME = "clientName";
+
+    private static final String SITE_REQUEST_IS_APP = "isApp";
 
     private static final String SITE_REQUEST_TS = "SITE_REQUEST_TS";
 
@@ -190,22 +192,22 @@ public class HomeRequestMapping {
     public String homePage(Model model, HttpServletResponse response,
             @CookieValue(name = LoginInterceptor.COOKIE_NAME, required = false) String userCookie,
             @RequestHeader(name = "ETag", required = false) String etag,
-            @RequestHeader(name = SITE_REQUEST_IS_APP, required = false) Boolean isApp,
-            @RequestHeader(name = "CLIENT_NAME", required = false) String clientName,
+            @RequestHeader(name = SITE_REQUEST_IS_APP, required = false) String isApp,
+            @RequestHeader(name = CLIENT_NAME, required = false) String clientName,
             @RequestHeader(name = LoginInterceptor.APP_PUSH_TOKEN, required = false) String appPushToken) {
 
         if (log.isDebugEnabled()) {
             log.debug(
-                "home: isApp=" + isApp + ", appPushToken="
-                    + appPushToken + /* ", homeAppPushTokenCookie=" + homeAppPushTokenCookie + */ ", etag=" + etag);
+                "home: isApp=" + isApp + ", clientName=" + clientName + ", appPushToken="
+                    + appPushToken + ", etag=" + etag);
         }
 
-        if (isApp != null && isApp) {
+        if (StringUtils.equalsAnyIgnoreCase(isApp, "true")) {
             handlePushToken(appPushToken, userService.userNameFromLoginCookie(userCookie), clientName);
         }
 
         boolean isNewMessage = ViewAttributesDAO.getInstance().isPresent(userCookie, ViewAttributesDAO.MESSAGE);
-        fillMenu(Pages.PATH_HOME, model, response, isApp != null && isApp);
+        fillMenu(Pages.PATH_HOME, model, response, isApp);
         fillUserAttributes(model, userCookie);
         HouseModel houseModel = ModelObjectDAO.getInstance().readHouseModel();
 
@@ -234,6 +236,10 @@ public class HomeRequestMapping {
             return;
         }
         
+        if (StringUtils.isBlank(client)) {
+            return;
+        }
+
         if (!ModelObjectDAO.getInstance().isKnownPushToken(appPushToken)) {
             Message message = new Message();
             message.setMessageType(MessageType.SETTINGS_NEW);
@@ -292,9 +298,9 @@ public class HomeRequestMapping {
             StringUtils.trimToEmpty(ViewAttributesDAO.getInstance().pull(userCookie, ViewAttributesDAO.MESSAGE)));
     }
 
-    private void fillMenu(String pathHome, Model model, HttpServletResponse response, boolean isApp) {
+    private void fillMenu(String pathHome, Model model, HttpServletResponse response, String isApp) {
 
-        if (isApp) {
+        if (StringUtils.equalsAnyIgnoreCase(isApp, "true")) {
             model.addAttribute("MENU_SELECTED", Pages.getAppHomeEntry());
         } else {
             model.addAttribute("MENU_SELECTED", Pages.getEntry(pathHome));
@@ -302,7 +308,7 @@ public class HomeRequestMapping {
 
         model.addAttribute("MENU_SELECTABLE", Pages.getOtherEntries(pathHome));
 
-        model.addAttribute(SITE_REQUEST_IS_APP, Boolean.toString(isApp));
+        model.addAttribute(SITE_REQUEST_IS_APP, isApp);
 
         model.addAttribute(SITE_REQUEST_TS, TS_FORMATTER.format(LocalDateTime.now()));
         response.setHeader(SITE_REQUEST_TS, TS_FORMATTER.format(LocalDateTime.now()));

@@ -37,16 +37,19 @@
 
 	<script>
 		
-		var pushToken = null;
-		function setPushToken(newTokenValue, clientName){
-			document.getElementById('SITE_REQUEST_IS_APP').value='true'; 
+		var pushToken = '';
+		var isApp = 'false';
+		var clientName = '';
+		
+		function setPushToken(newTokenValue, newClientName){
+			isApp = 'true'; 
+			clientName = newClientName;
 			var oldValue = pushToken;
 			pushToken = newTokenValue;
 			if(newTokenValue !== oldValue){
 				if(document.getElementById('divNavigation') !== null){
 					document.getElementById('divNavigation').style.display = "none";
 				}
-				document.getElementById('CLIENT_NAME').value=clientName; 
 				refreshContent();	
 			}
 		}
@@ -61,9 +64,10 @@
 			if(navigator.onLine){
 				var httpRequest = new XMLHttpRequest();
 				httpRequest.open('GET', target);
+				httpRequest.setRequestHeader('Cache-Control', 'no-cache');
 				httpRequest.setRequestHeader('ETag', document.getElementById('modelTimestamp').value);
-				httpRequest.setRequestHeader('SITE_REQUEST_IS_APP', document.getElementById('SITE_REQUEST_IS_APP').value);
-				httpRequest.setRequestHeader('CLIENT_NAME', document.getElementById('CLIENT_NAME').value);
+				httpRequest.setRequestHeader('isApp', isApp);
+				httpRequest.setRequestHeader('clientName', clientName);
 				httpRequest.setRequestHeader('isAjaxRequest', 'true');
 				httpRequest.setRequestHeader('appPushToken', pushToken);
 				httpRequest.send();
@@ -177,7 +181,7 @@
 			}
 	
 			if(ts != null){
-				if(document.getElementById('SITE_REQUEST_IS_APP').value == 'true'){
+				if(isApp === 'true'){
 					document.title = "ts=" + ts;
 				}else{
 					document.getElementById('idHeaderStatusText').innerHTML = ts;
@@ -187,6 +191,12 @@
 				document.title = document.getElementById('browserTitle').value;
 			}
 		}	
+		
+		if(document.getElementById('isApp') !== null){
+			if(document.getElementById('isApp').value === 'true'){
+				isApp = 'true';
+			}
+		}
 		
 		setAppTitle(null);
 		registerCollapseListener();
@@ -211,7 +221,7 @@
 		}	
 		function doAutoRefresh(){
 			
-			var isApp = document.getElementById('SITE_REQUEST_IS_APP').value == 'true'
+			var isApp = document.getElementById('isApp').value == 'true'
 			var transitions = document.getElementsByClassName('collapsing');
 			
 			if((document.hasFocus() || isApp) && $('.modal.fade.show').length === 0 && ((new Date).getTime() - lastRefresh > (1000)) && transitions.length === 0){
@@ -238,7 +248,7 @@
 		var lastRefresh = (new Date).getTime();
 		setAutoRefresh();
 		
-		if (element !== null && element.value !== '' && document.getElementById('SITE_REQUEST_IS_APP').value == 'false') {
+		if (element !== null && element.value !== '' && document.getElementById('isApp').value == 'false') {
 			// onfocus
 			document.getElementById('idbody').onfocus = function(){
 				doAutoRefresh(); 
