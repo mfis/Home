@@ -107,19 +107,27 @@
 		function registerCollapseListener(){
 			// start transitions
 			$('.collapse-preserve-state').on('show.bs.collapse', function (event) {
-				document.getElementById(event.target.id + 'SymbolDown').style.display = 'none';
-				document.getElementById(event.target.id + 'SymbolUp').style.display = 'inline';
+				if(document.getElementById(event.target.id + 'SymbolDown') !== null){
+					document.getElementById(event.target.id + 'SymbolDown').style.display = 'none';
+					document.getElementById(event.target.id + 'SymbolUp').style.display = 'inline';
+				}
 			});
 			$('.collapse-preserve-state').on('hide.bs.collapse', function (event) {
-				document.getElementById(event.target.id + 'SymbolDown').style.display = 'inline';
-				document.getElementById(event.target.id + 'SymbolUp').style.display = 'none';
+				if(document.getElementById(event.target.id + 'SymbolDown') !== null){
+					document.getElementById(event.target.id + 'SymbolDown').style.display = 'inline';
+					document.getElementById(event.target.id + 'SymbolUp').style.display = 'none';
+				}
 			});
 			// end transitions
 			$('.collapse-preserve-state').on('shown.bs.collapse', function (event) {
-				document.getElementById(event.target.id + 'ElementTitleState').innerHTML = '';
+				if(document.getElementById(event.target.id + 'ElementTitleState') !== null){
+					document.getElementById(event.target.id + 'ElementTitleState').innerHTML = '';
+				}
 			});
 			$('.collapse-preserve-state').on('hidden.bs.collapse', function (event) {
-				document.getElementById(event.target.id + 'ElementTitleState').innerHTML = document.getElementById('val_ElementTitleState_' + event.target.id).value;
+				if(document.getElementById(event.target.id + 'ElementTitleState') !== null){
+					document.getElementById(event.target.id + 'ElementTitleState').innerHTML = document.getElementById('val_ElementTitleState_' + event.target.id).value;
+				}
 			});
 		}		
 		
