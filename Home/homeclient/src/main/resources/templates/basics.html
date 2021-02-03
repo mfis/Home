@@ -131,20 +131,6 @@
 			});
 		}		
 		
-		function submitSetting(target){
-			var httpRequest = new XMLHttpRequest();
-			httpRequest.open('GET', target);
-			httpRequest.send();
-			httpRequest.onreadystatechange=(e)=>{
-				if (httpRequest.readyState == 4) {
-					if(httpRequest.status == 200){
-						var doc = new DOMParser().parseFromString(httpRequest.responseText, "text/html");
-						document.getElementById('idbody').innerHTML = doc.getElementById('idbody').innerHTML;
-					}
-				}
-			}	
-		}		
-	
 		function refreshContent(){
 			submitContent(window.location.href);
 		}

@@ -165,21 +165,6 @@
 		</th:block>
 	</th:block>
 	
-	<!-- Switch Settings-->
-	<div th:fragment="switchSetting (model)" th:class="'alert alert-secondary callout callout-secondary'">
-		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach='')"></div>
-		<h4 th:text="${model.state}"></h4>
-		
-		<button type="button" th:onclick="@{'toggleSwitch' + ${model.id} + '()'}"
-			class="btn btn-secondary btn-sm" th:text="${model.label}"></button>
-		<input type="hidden" th:id="'val_model_link_' + ${model.id}" th:value="${model.link}">	
-		<script type="text/javascript">
-			function toggleSwitch[[${model.id}]](){
-				submitSetting(document.getElementById('val_model_link_[[${model.id}]]').value);
-			}		
-		</script>	
-	</div>	
-	
 	<!-- Window -->
 	<div th:fragment="window (model)" th:class="'alert alert-secondary callout callout-secondary'">
 		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach})"></div>
@@ -336,6 +321,8 @@
 						console.log('New request');
 						var httpRequest = new XMLHttpRequest();
 						httpRequest.open("GET", "[(${linkRequest})]");
+						httpRequest.setRequestHeader('Cache-Control', 'no-cache');
+						httpRequest.setRequestHeader('isAjaxRequest', 'true');
 						httpRequest.send();
 						httpRequest.onreadystatechange=(e)=>{
 							if (httpRequest.readyState == 4 && httpRequest.status == 200) {
@@ -534,6 +521,8 @@
 					$("#modalHistory[[${key}]]").modal();
 					var httpRequest = new XMLHttpRequest();
 					httpRequest.open("GET", "/history?key=[[${key}]]");
+					httpRequest.setRequestHeader('Cache-Control', 'no-cache');
+					httpRequest.setRequestHeader('isAjaxRequest', 'true');
 					httpRequest.send();
 					httpRequest.onreadystatechange=(e)=>{
 						if (httpRequest.readyState == 4 && httpRequest.status == 200) {
