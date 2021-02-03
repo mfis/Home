@@ -11,7 +11,8 @@ import de.fimatas.home.controller.dao.SettingsDAO;
 import de.fimatas.home.controller.domain.service.HistoryService;
 import de.fimatas.home.controller.domain.service.UploadService;
 import de.fimatas.home.library.domain.model.PushNotifications;
-import de.fimatas.home.library.domain.model.SettingsModel;
+import de.fimatas.home.library.model.SettingsContainer;
+import de.fimatas.home.library.model.SettingsModel;
 
 @Component
 public class SettingsService {
@@ -34,6 +35,8 @@ public class SettingsService {
 
     public void refreshSettingsModelsComplete() {
 
+        SettingsContainer container = new SettingsContainer();
+        // SettingsContainer
         SettingsDAO.getInstance().read().forEach(model -> {
             // migrate up to new version if available
             List.of(PushNotifications.values()).forEach(notification -> {
@@ -42,8 +45,9 @@ public class SettingsService {
                     SettingsDAO.getInstance().write(model);
                 }
             });
-            uploadService.upload(model);
+            container.getSettings().add(model);
         });
+        uploadService.upload(container);
     }
 
     public void createNewSettingsForToken(String token, String user, String client) {
@@ -69,16 +73,18 @@ public class SettingsService {
                 .forEach(notification -> model.getPushNotifications().put(notification, notification.getDefaultSetting()));
         }
         SettingsDAO.getInstance().write(model);
-        uploadService.upload(model);
 
         if (oldToken.isEmpty()) {
             pushService.sendRegistrationConfirmation(token, client);
         }
+
+        refreshSettingsModelsComplete();
     }
 
     public void deleteSettingsForToken(String token) {
         SettingsDAO.getInstance().read().stream().filter(model -> model.getToken().equals(token)).findFirst()
             .ifPresent(SettingsDAO.getInstance()::delete);
+        refreshSettingsModelsComplete();
     }
 
     public List<String> listTokensWithEnabledSetting(PushNotifications pushNotifications) {

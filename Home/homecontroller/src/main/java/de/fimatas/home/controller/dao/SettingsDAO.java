@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Properties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.fimatas.home.library.domain.model.SettingsModel;
+import de.fimatas.home.library.model.SettingsModel;
 
 public class SettingsDAO {
 

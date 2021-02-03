@@ -19,8 +19,8 @@ import de.fimatas.home.library.domain.model.CameraModel;
 import de.fimatas.home.library.domain.model.HistoryModel;
 import de.fimatas.home.library.domain.model.HouseModel;
 import de.fimatas.home.library.domain.model.LightsModel;
-import de.fimatas.home.library.domain.model.SettingsModel;
 import de.fimatas.home.library.model.Message;
+import de.fimatas.home.library.model.SettingsContainer;
 
 @RestController
 public class ControllerRequestMapping {
@@ -57,9 +57,9 @@ public class ControllerRequestMapping {
         return new ActionModel("OK");
     }
 
-    @PostMapping(value = UPLOAD_METHOD_PREFIX + "SettingsModel")
-    public ActionModel uploadSettingsModel(@RequestBody SettingsModel settingsModel) {
-        ModelObjectDAO.getInstance().write(settingsModel);
+    @PostMapping(value = UPLOAD_METHOD_PREFIX + "SettingsContainer")
+    public ActionModel uploadSettingsContainer(@RequestBody SettingsContainer settingsContainer) {
+        ModelObjectDAO.getInstance().write(settingsContainer);
         return new ActionModel("OK");
     }
 

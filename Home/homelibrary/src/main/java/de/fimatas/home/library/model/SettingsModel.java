@@ -1,7 +1,8 @@
-package de.fimatas.home.library.domain.model;
+package de.fimatas.home.library.model;
 
 import java.io.Serializable;
 import java.util.EnumMap;
+import de.fimatas.home.library.domain.model.PushNotifications;
 
 public class SettingsModel implements Serializable {
 

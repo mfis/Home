@@ -1,18 +1,16 @@
 package de.fimatas.home.library.dao;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import de.fimatas.home.library.domain.model.CameraMode;
 import de.fimatas.home.library.domain.model.CameraModel;
 import de.fimatas.home.library.domain.model.CameraPicture;
 import de.fimatas.home.library.domain.model.HistoryModel;
 import de.fimatas.home.library.domain.model.HouseModel;
 import de.fimatas.home.library.domain.model.LightsModel;
-import de.fimatas.home.library.domain.model.SettingsModel;
 import de.fimatas.home.library.homematic.model.Device;
+import de.fimatas.home.library.model.SettingsContainer;
+import de.fimatas.home.library.model.SettingsModel;
 import de.fimatas.home.library.util.HomeAppConstants;
 
 public class ModelObjectDAO {
@@ -27,7 +25,7 @@ public class ModelObjectDAO {
 
     private LightsModel lightsModel;
 
-    private Map<String, SettingsModel> settingsModels = new HashMap<>();
+    private SettingsContainer settingsContainer;
 
     private String lastHouseModelState;
 
@@ -62,8 +60,8 @@ public class ModelObjectDAO {
         lightsModel = newModel;
     }
 
-    public void write(SettingsModel newModel) {
-        settingsModels.put(newModel.getToken(), newModel);
+    public void write(SettingsContainer newSettingsContainer) {
+        settingsContainer = newSettingsContainer;
     }
 
     public HouseModel readHouseModel() {
@@ -129,11 +127,11 @@ public class ModelObjectDAO {
     }
 
     public Collection<SettingsModel> readAllSettings() {
-        return Collections.unmodifiableCollection(settingsModels.values());
+        return settingsContainer.getSettings();
     }
 
     public boolean isKnownPushToken(String pushToken) {
-        return settingsModels.containsKey(pushToken);
+        return settingsContainer.getSettings().stream().anyMatch(model -> model.getToken().equals(pushToken));
     }
 
     private boolean isActualEventPicture(long eventTimestamp, CameraPicture cameraPicture) {
