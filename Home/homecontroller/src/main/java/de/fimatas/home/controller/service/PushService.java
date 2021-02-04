@@ -170,6 +170,8 @@ public class PushService {
         final ApnsPayloadBuilder payloadBuilder = new SimpleApnsPayloadBuilder();
         payloadBuilder.setAlertTitle(title);
         payloadBuilder.setAlertBody(message);
+        payloadBuilder.setSound("default");
+        payloadBuilder.setBadgeNumber(1);
 
         PushNotificationFuture<SimpleApnsPushNotification, PushNotificationResponse<SimpleApnsPushNotification>> sendNotificationFuture =
             apnsClient.sendNotification(new SimpleApnsPushNotification(pushToken, iOsAppIdentifier, payloadBuilder.build()));
