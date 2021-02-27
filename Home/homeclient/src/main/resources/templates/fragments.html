@@ -244,7 +244,7 @@
 
 	<!-- Frontdoor -->
 	<th:block th:fragment="frontDoor (model)">
-		<div th:class="'alert alert-secondary callout callout-secondary'">
+		<div th:class="'alert alert-' + ${model.colorClass} + ' callout callout-' + ${model.colorClass}">
 			<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name='Türklingel', place='', unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState})"></div>
 			<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
 				<h4>

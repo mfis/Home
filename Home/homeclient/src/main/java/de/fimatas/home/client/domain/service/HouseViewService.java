@@ -2,6 +2,10 @@ package de.fimatas.home.client.domain.service;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -192,18 +196,39 @@ public class HouseViewService {
         } else {
             frontDoorView.setLastDoorbells(UNBEKANNT);
         }
-        if (camera != null && camera.getDevice() != null) {
-            frontDoorView.setIdLive("frontdoorcameralive");
-            frontDoorView.setIdBell("frontdoorcamerabell");
-            frontDoorView
-                .setLinkLive("/cameraPicture?deviceName=" + camera.getDevice() + "&cameraMode=" + CameraMode.LIVE + "&ts=");
-            frontDoorView.setLinkLiveRequest("/cameraPictureRequest?type=" + MessageType.CAMERAPICTUREREQUEST + AND_DEVICE_IS
-                + camera.getDevice() + "&value=null");
-            frontDoorView.setLinkBell("/cameraPicture?deviceName=" + camera.getDevice() + "&cameraMode=" + CameraMode.EVENT
-                + "&ts=" + doorbell.getTimestampLastDoorbell());
+
+        long minutesSinceLastDoorbellRing = Duration
+            .between(Instant.ofEpochMilli(doorbell.getTimestampLastDoorbell() != null ? doorbell.getTimestampLastDoorbell() : 0)
+                .atZone(ZoneId.systemDefault()).toLocalDateTime(), LocalDateTime.now())
+            .toMinutes();
+        if(minutesSinceLastDoorbellRing<5) {
+            frontDoorView.setColorClass(COLOR_CLASS_RED);
+        } else if (minutesSinceLastDoorbellRing < 60) {
+            frontDoorView.setColorClass(COLOR_CLASS_ORANGE);
+        }else {
+            frontDoorView.setColorClass(COLOR_CLASS_GRAY);
         }
 
+
+        formatCamera(doorbell, camera, frontDoorView);
+
         model.addAttribute(id, frontDoorView);
+    }
+
+    private void formatCamera(Doorbell doorbell, Camera camera, FrontDoorView frontDoorView) {
+
+        if (camera == null || camera.getDevice() == null) {
+            return;
+        }
+
+        frontDoorView.setIdLive("frontdoorcameralive");
+        frontDoorView.setIdBell("frontdoorcamerabell");
+        frontDoorView
+            .setLinkLive("/cameraPicture?deviceName=" + camera.getDevice() + "&cameraMode=" + CameraMode.LIVE + "&ts=");
+        frontDoorView.setLinkLiveRequest("/cameraPictureRequest?type=" + MessageType.CAMERAPICTUREREQUEST + AND_DEVICE_IS
+            + camera.getDevice() + "&value=null");
+        frontDoorView.setLinkBell("/cameraPicture?deviceName=" + camera.getDevice() + "&cameraMode=" + CameraMode.EVENT + "&ts="
+            + doorbell.getTimestampLastDoorbell());
     }
 
     private void formatFrontDoorLock(Model model, String id, Doorlock doorlock) {
@@ -727,7 +752,7 @@ public class HouseViewService {
     }
 
     private void formatLights(LightsModel lightsModel, Model model) {
-        
+
         if (lightsModel != null) {
             lightsModel.getLightsMap().forEach((place, lightsInPlace) -> formatLightsInPlace(place, lightsInPlace, model));
         }
