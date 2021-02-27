@@ -1,6 +1,11 @@
 package de.fimatas.home.controller.domain.service;
 
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -102,6 +107,28 @@ public class HouseService {
 
     @Autowired
     private UserService userService;
+
+    private BigDecimal start = null;
+
+    // @Scheduled(initialDelay = (1000 * 12), fixedDelay = (1000 * 60 * 2))
+    private void debugWallbox() {
+
+        Device device = Device.STROMZAEHLER_WALLBOX;
+
+        String power = new DecimalFormat("00000")
+            .format(hmApi.getAsBigDecimal(homematicCommandBuilder.read(device, Datapoint.POWER)));
+
+        BigDecimal cnt =
+            hmApi.getAsBigDecimal(homematicCommandBuilder.read(device, Datapoint.ENERGY_COUNTER))
+                .divide(new BigDecimal(1000));
+        if (start == null) {
+            start = cnt;
+        }
+        String counter = new DecimalFormat("000.0")
+            .format(cnt.subtract(start));
+
+        LogFactory.getLog(device.name()).info(power + " - " + counter);
+    }
 
     @Scheduled(initialDelay = (1000 * 3), fixedDelay = (1000 * HomeAppConstants.MODEL_DEFAULT_INTERVAL_SECONDS))
     private void scheduledRefreshHouseModel() {
@@ -455,7 +482,7 @@ public class HouseService {
 
         if (ModelObjectDAO.getInstance().readHistoryModel() == null
             || ModelObjectDAO.getInstance().readHistoryModel().getHighestOutsideTemperatureInLast24Hours() == null) {
-            LogFactory.getLog(HouseService.class).info("HighestOutsideTemperatureInLast24Hours == null");
+            LogFactory.getLog(HouseService.class).debug("HighestOutsideTemperatureInLast24Hours == null");
             return true;
         }
 
@@ -799,9 +826,28 @@ public class HouseService {
             return model;
         }
 
-        model.setActualConsumption(
-            new ValueWithTendency<>(hmApi.getAsBigDecimal(homematicCommandBuilder.read(device, Datapoint.POWER))));
+        if (isPowerConsumptionOutdated(device)) {
+            model.setActualConsumption(new ValueWithTendency<>(BigDecimal.ZERO));
+        } else {
+            model.setActualConsumption(
+                new ValueWithTendency<>(hmApi.getAsBigDecimal(homematicCommandBuilder.read(device, Datapoint.POWER))));
+        }
+
         return model;
+    }
+
+    private boolean isPowerConsumptionOutdated(Device device) {
+
+        String ts = hmApi.getAsString(homematicCommandBuilder.read(device, TIMESTAMP));
+        if (!StringUtils.isNumeric(ts)) {
+            return false;
+        }
+
+        long tsLong = Long.parseLong(ts) * 1000;
+        LocalDateTime lastValueChange = Instant.ofEpochMilli(tsLong).atZone(ZoneId.systemDefault()).toLocalDateTime();
+
+        return Duration.between(lastValueChange, LocalDateTime.now())
+            .toSeconds() > HomeAppConstants.POWER_CONSUMPTION_OUTDATED_DECONDS;
     }
 
     private void checkLowBattery(HouseModel model, Device device) {

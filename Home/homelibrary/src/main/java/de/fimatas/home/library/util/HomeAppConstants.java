@@ -42,6 +42,10 @@ public class HomeAppConstants {
 
     //
 
+    public static final int POWER_CONSUMPTION_OUTDATED_DECONDS = 60 * 7;
+
+    //
+
     public static final int HISTORY_OUTDATED_SECONDS = 60 * 15;
 
     public static final int HISTORY_DEFAULT_INTERVAL_SECONDS = 60 * 5;

@@ -39,9 +39,11 @@ public enum Device {
     SCHALTER_KUECHE_LICHT(HomematicProtocol.HM, Type.SWITCH_WINDOWLIGHT, Place.KITCHEN, true, Datapoint.LIST_SWITCH_HM,
         Type.VAR_PREFIXES_SWITCH_AUTO, Boolean.class, AutomationState.class), //
 
-    STROMZAEHLER_GESAMT(HomematicProtocol.HM, Type.ELECTRIC_POWER, Place.HOUSE, true, Datapoint.LIST_POWERMETER_HM, null),
+    STROMZAEHLER_GESAMT(HomematicProtocol.HM, Type.ELECTRIC_POWER, Place.HOUSE, true, Datapoint.LIST_POWERMETER_HM,
+        Type.VAR_PREFIXES_TIMESTAMP),
 
-    STROMZAEHLER_WALLBOX(HomematicProtocol.HM, Type.ELECTRIC_POWER, Place.WALLBOX, true, Datapoint.LIST_POWERMETER_HM, null),
+    STROMZAEHLER_WALLBOX(HomematicProtocol.HM, Type.ELECTRIC_POWER, Place.WALLBOX, true, Datapoint.LIST_POWERMETER_HM,
+        Type.VAR_PREFIXES_TIMESTAMP),
 
     SCHALTER_WALLBOX(HomematicProtocol.HM, Type.SWITCH_WALLBOX, Place.WALLBOX, true, Datapoint.LIST_SWITCH_HM,
         Type.VAR_PREFIXES_SWITCH_AUTO, Boolean.class, AutomationState.class),
