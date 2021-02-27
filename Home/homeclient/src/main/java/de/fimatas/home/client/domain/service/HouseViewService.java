@@ -596,16 +596,38 @@ public class HouseViewService {
 
         view.setState(switchModel.isState() ? "Eingeschaltet" : "Ausgeschaltet");
         view.setStateShort(switchModel.isState() ? "Ein" : "Aus");
-        if (switchModel.isState()) {
-            view.setColorClass(COLOR_CLASS_ORANGE);
-            view.setActiveSwitchColorClass(COLOR_CLASS_ORANGE);
-        } else {
-            view.setActiveSwitchColorClass("active-primary");
-        }
+        formatSwitchColors(switchModel, view);
 
         formatSwitchAutomation(switchModel, view);
 
         view.setLabel(switchModel.isState() ? "ausschalten" : "einschalten");
+        formatSwitchIcon(switchModel, view);
+        if (switchModel.isState()) {
+            view.setLinkOff(TOGGLE_STATE + switchModel.getDevice().name() + AND_VALUE_IS + !switchModel.isState());
+        } else {
+            view.setLinkOn(TOGGLE_STATE + switchModel.getDevice().name() + AND_VALUE_IS + !switchModel.isState());
+        }
+        model.addAttribute(viewKey, view);
+    }
+
+    private void formatSwitchColors(Switch switchModel, SwitchView view) {
+
+        if (switchModel.isState()) {
+            String stateColor = null;
+            if (switchModel.getAutomation() != null && Boolean.TRUE.equals(switchModel.getAutomation())) {
+                stateColor = COLOR_CLASS_GREEN;
+            } else {
+                stateColor = COLOR_CLASS_ORANGE;
+            }
+            view.setColorClass(stateColor);
+            view.setActiveSwitchColorClass(stateColor);
+        } else {
+            view.setActiveSwitchColorClass("active-primary");
+        }
+    }
+
+    private void formatSwitchIcon(Switch switchModel, SwitchView view) {
+
         if (switchModel.getDevice().getType() == Type.SWITCH_VENTILATION) {
             view.setIcon("fas fa-fan");
         } else if (isLightSwitch(switchModel.getDevice())) {
@@ -613,12 +635,6 @@ public class HouseViewService {
         } else {
             view.setIcon(switchModel.isState() ? "fas fa-toggle-on" : "fas fa-toggle-off");
         }
-        if (switchModel.isState()) {
-            view.setLinkOff(TOGGLE_STATE + switchModel.getDevice().name() + AND_VALUE_IS + !switchModel.isState());
-        } else {
-            view.setLinkOn(TOGGLE_STATE + switchModel.getDevice().name() + AND_VALUE_IS + !switchModel.isState());
-        }
-        model.addAttribute(viewKey, view);
     }
 
     private void formatSwitchAutomation(Switch switchModel, SwitchView view) {
