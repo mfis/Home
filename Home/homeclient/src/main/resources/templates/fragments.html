@@ -17,7 +17,7 @@
 			<a>
 				<span th:if="${!#strings.isEmpty(icon)}"><th:block th:replace="basics :: symbol (name=${icon})"/></span>		
 				<span th:text="${name}"></span>
-				<span th:if="${#strings.startsWith(unreach, 'true')}" class="text-danger">&nbsp;- Aktualisierung ausstehend!</span>
+				<span th:if="${#strings.startsWith(unreach, 'true')}" class="text-danger">&nbsp;- Aktualisierung ausstehend</span>
 			</a>
 		</div>
 	</div>	
@@ -40,7 +40,7 @@
 				<span><th:block th:replace="basics :: symbol (name=${icon})"/></span>
 				<span th:utext="'&hairsp;'"></span>
 				<span th:text="${name}"></span>
-				<span th:if="${#strings.startsWith(unreach, 'true')}" class="text-danger">&nbsp;- Aktualisierung ausstehend!</span>
+				<span th:if="${#strings.startsWith(unreach, 'true')}" class="text-danger">&nbsp;- Aktualisierung ausstehend</span>
 			</a>
 			<input type="hidden" th:id="'val_ElementTitleState_' + ${collapseLink}" th:value="${elementTitleState}">
 		</div>
@@ -386,7 +386,7 @@
 		<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState})"></div>
 		<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
 				<h4 th:unless="${#strings.equals(model.busy,'true')}"><span th:text="${model.state}"></span><span th:text="${model.stateSuffix}" style="font-size: 80%;"></span></h4>
-				<th:block th:unless="${#strings.equals(model.busy,'true') or #strings.equals(model.unreach,'true')}">	
+				<th:block th:unless="${#strings.equals(model.busy,'true')}">	
 					<div class="btn-group" role="group" aria-label="lockcontrol">
 			  			<button th:if="${#strings.startsWith(model.linkLock, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${model.colorClass}"><th:block th:replace="basics :: symbol (name='fas fa-lock')"/></span><span>&nbsp;</span></button>
 			  			<button th:if="${#strings.startsWith(model.linkLock, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'openPin' + ${model.id} + '(lockModalLabel' + ${model.id} + ', lock' + ${model.id} + ')'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-lock')"/></span><span>&nbsp;</span></button>
@@ -579,11 +579,11 @@
 			<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id} + 'Thermostat'">
 				<h4 th:if="${#strings.startsWith(model.linkBoost,'/')}"><span th:text="'Manuell auf ' + ${model.targetTemp} + '°C'"></span></h4>
 				<h4 th:unless="${#strings.startsWith(model.linkBoost,'/')}"><span th:text="'Aufheizen - noch ' + ${model.linkBoost} + ' Min.'"></span></h4>
-					<div th:if="${#strings.startsWith(model.linkBoost,'/')}" class="btn-group" role="group" aria-label="heating">
-			  			<button type="button" th:id="'idHeatMinus' + ${model.id}" class="btn btn-secondary btn-sm" th:onclick="@{'adjustHeating' + ${model.id} + '(-0.5)'}">&nbsp;-&nbsp;</button>
-			  			<button type="button" th:id="'idHeatTarget' + ${model.id}" class="btn btn-outline-secondary btn-sm text-light" disabled><span th:id="'idHeatTargetLabel' + ${model.id}" th:text="${model.targetTemp}"></span><span>°C</span></button>
-			  			<button type="button" th:id="'idHeatPlus' + ${model.id}" class="btn btn-secondary btn-sm" th:onclick="@{'adjustHeating' + ${model.id} + '(+0.5)'}">&nbsp;+&nbsp;</button>
-					</div>
+				<div th:if="${#strings.startsWith(model.linkBoost,'/')}" class="btn-group" role="group" aria-label="heating">
+		  			<button type="button" th:id="'idHeatMinus' + ${model.id}" class="btn btn-secondary btn-sm" th:onclick="@{'adjustHeating' + ${model.id} + '(-0.5)'}">&nbsp;-&nbsp;</button>
+		  			<button type="button" th:id="'idHeatTarget' + ${model.id}" class="btn btn-outline-secondary btn-sm text-light" disabled><span th:id="'idHeatTargetLabel' + ${model.id}" th:text="${model.targetTemp}"></span><span>°C</span></button>
+		  			<button type="button" th:id="'idHeatPlus' + ${model.id}" class="btn btn-secondary btn-sm" th:onclick="@{'adjustHeating' + ${model.id} + '(+0.5)'}">&nbsp;+&nbsp;</button>
+				</div>
 				<span th:if="${#strings.startsWith(model.linkBoost,'/')}">&nbsp;</span>
 				
 				<button th:if="${#strings.startsWith(model.linkBoost,'/')}"

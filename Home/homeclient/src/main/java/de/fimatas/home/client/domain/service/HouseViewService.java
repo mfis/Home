@@ -239,17 +239,17 @@ public class HouseViewService {
         view.setCaption(doorlock.getDevice().getPlace().getPlaceName());
         view.setPlace(doorlock.getDevice().getPlace().getPlaceName());
         view.setUnreach(Boolean.toString(doorlock.isUnreach()));
-        if (doorlock.isUnreach()) {
-            model.addAttribute(id, view);
-            return;
-        }
 
         view.setBusy(Boolean.toString(doorlock.isBusy()));
         boolean setButtonLock = false;
         boolean setButtonUnlock = false;
         boolean setButtonOpen = false;
 
-        if (doorlock.getErrorcode() != 0) {
+        if (doorlock.isUnreach()) {
+            setButtonOpen = true;
+            setButtonLock = true;
+            setButtonUnlock = true;
+        } else if (doorlock.getErrorcode() != 0) {
             view.setState("Mechanischer Fehler!");
             view.setIcon("fas fa-bug");
             view.setColorClass(COLOR_CLASS_RED);
