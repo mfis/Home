@@ -14,6 +14,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
@@ -57,6 +58,9 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 
     @Autowired
     private Environment env;
+
+    @Value("${server.servlet.session.cookie.secure}")
+    private String cookieSecure;
 
     private int controllerFalseLoginCounter = 0;
 
@@ -122,6 +126,10 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
         if (StringUtils.isNotBlank(request.getHeader(APP_USER_TOKEN))) {
             return checkUser(tokenLogin(request, response));
         }
+
+        // if (StringUtils.isNotBlank(request.getHeader("x"))) {
+            // log.info("x: " + request.getHeader("x"));
+        // }
 
         if (params.containsKey(LOGIN_USERNAME)) {
             if (userHasNotAcceptedCookies(params)) {
@@ -295,11 +303,12 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
         response.addCookie(cookie);
     }
 
-    private static void cookieWrite(HttpServletResponse response, String value) {
+    private void cookieWrite(HttpServletResponse response, String value) {
 
         Cookie cookie = new Cookie(COOKIE_NAME, value);
         cookie.setHttpOnly(true);
         cookie.setMaxAge(60 * 60 * 24 * 92);
+        cookie.setSecure(Boolean.parseBoolean(cookieSecure));
         response.addCookie(cookie);
     }
 

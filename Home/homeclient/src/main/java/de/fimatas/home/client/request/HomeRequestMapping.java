@@ -82,9 +82,14 @@ public class HomeRequestMapping {
             @RequestParam(name = DEVICE_NAME, required = false) String deviceName, //
             @RequestParam(name = HUE_DEVICE_ID, required = false) String hueDeviceId, //
             @RequestParam(name = "value") String value, //
-            @RequestParam(name = "securityPin", required = false) String securityPin, //
             @RequestHeader(name = LoginInterceptor.APP_USER_NAME, required = false) String appUserName, //
+            @RequestHeader(name = "CSRF", required = true) String csrf, //
+            @RequestHeader(name = "pin", required = false) String securityPin, //
             HttpServletResponse httpServletResponse) {
+
+        if (!Boolean.parseBoolean(csrf)) {
+            throw new IllegalStateException("CSRF Header not set properly");
+        }
 
         boolean isNativeApp = StringUtils.isNotBlank(appUserName);
 
@@ -92,7 +97,7 @@ public class HomeRequestMapping {
             log.debug("message: userCookie=" + userCookie + ", appUserName=" + appUserName + ", type=" + type + ", deviceName="
                 + deviceName + ", hueDeviceId="
                 + hueDeviceId + ", value="
-                + value + ", isApp=" + isNativeApp);
+                + value + ", isApp=" + isNativeApp + ", pinLength=" + StringUtils.trimToEmpty(securityPin).length());
         }
 
         String userName = userCookie != null ? userService.userNameFromLoginCookie(userCookie) : appUserName;
@@ -316,6 +321,10 @@ public class HomeRequestMapping {
 
         model.addAttribute(SITE_REQUEST_TS, TS_FORMATTER.format(LocalDateTime.now()));
         response.setHeader(SITE_REQUEST_TS, TS_FORMATTER.format(LocalDateTime.now()));
+        response.setHeader("Referrer-Policy", "no-referrer");
+        response.setHeader("content-security-policy", "frame-ancestors 'none';");
+        response.setHeader("X-Frame-Options", "deny");
+        response.setHeader("X-Content-Type-Options", "nosniff");
     }
 
 }
