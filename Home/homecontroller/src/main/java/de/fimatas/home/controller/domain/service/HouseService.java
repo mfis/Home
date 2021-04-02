@@ -243,9 +243,6 @@ public class HouseService {
 
         // compensating absent difference temperature value
         if (minTemperature.isPresent()) {
-            BigDecimal diffGarden = newModel.getClimateGarden().getTemperature().getValue()
-                .subtract(minTemperature.get().getTemperature().getValue()).abs();
-            newModel.getClimateGarden().setSunBeamIntensity(lookupIntensity(diffGarden));
             newModel.setConclusionClimateFacadeMin(SerializationUtils.clone(minTemperature.get()));
             newModel.getConclusionClimateFacadeMin().setDevice(Device.AUSSENTEMPERATUR);
             newModel.getConclusionClimateFacadeMin().setBase(minTemperature.get().getDevice());
@@ -258,6 +255,11 @@ public class HouseService {
         }
 
         if (maxTemperature.isPresent()) {
+            if (minTemperature.isPresent()) {
+                BigDecimal diffOutside = maxTemperature.get().getTemperature().getValue()
+                    .subtract(minTemperature.get().getTemperature().getValue()).abs();
+                maxTemperature.get().setSunBeamIntensity(lookupIntensity(diffOutside));
+            }
             newModel.setConclusionClimateFacadeMax(SerializationUtils.clone(maxTemperature.get()));
             BigDecimal sunShadeDiff = newModel.getConclusionClimateFacadeMax().getTemperature().getValue()
                 .subtract(newModel.getConclusionClimateFacadeMin().getTemperature().getValue()).abs();
@@ -440,7 +442,7 @@ public class HouseService {
             // using sun heating in the winter for warming up rooms
         } else if (isTooColdOutsideSoNoNeedToCoolingDownRoom(room.getTemperature().getValue())) {
             // no hint
-        } else if (emperatureOutsideColderThanInside(room, outdoor, temperatureLimit)) {
+        } else if (temperatureOutsideColderThanInside(room, outdoor, temperatureLimit)) {
             if (isHeatingIsCauseForHighRoomTemperature(heating, temperatureLimit)) {
                 // no hint
             } else {
@@ -460,7 +462,7 @@ public class HouseService {
             && outdoor.getSunBeamIntensity().ordinal() > Intensity.LOW.ordinal();
     }
 
-    private boolean emperatureOutsideColderThanInside(RoomClimate room, OutdoorClimate outdoor, BigDecimal temperatureLimit) {
+    private boolean temperatureOutsideColderThanInside(RoomClimate room, OutdoorClimate outdoor, BigDecimal temperatureLimit) {
         return room.getTemperature().getValue().compareTo(temperatureLimit) > 0
             && outdoor.getTemperature().getValue().compareTo(room.getTemperature().getValue()) < 0
             && outdoor.getSunBeamIntensity().ordinal() <= Intensity.LOW.ordinal();
