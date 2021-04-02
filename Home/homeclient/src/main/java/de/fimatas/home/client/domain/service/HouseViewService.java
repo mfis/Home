@@ -79,10 +79,8 @@ public class HouseViewService {
 
     private static final String AND_HUE_DEVICE_ID_IS = "&hueDeviceId=";
 
-    public static final String PIN = "securityPin";
-
-    private static final String AND_PIN_IS = "&" + PIN + "=";
-
+    private static final String NEEDS_PIN = "&needsPin";
+    
     private static final String TYPE_IS = "type=";
 
     public static final String COLOR_CLASS_RED = "danger";
@@ -285,13 +283,13 @@ public class HouseViewService {
         }
 
         if (setButtonLock) {
-            view.setLinkLock(OPEN_STATE + doorlock.getDevice().name() + AND_VALUE_IS + StateValue.LOCK.name() + AND_PIN_IS);
+            view.setLinkLock(OPEN_STATE + doorlock.getDevice().name() + AND_VALUE_IS + StateValue.LOCK.name() + NEEDS_PIN);
         }
         if (setButtonUnlock) {
-            view.setLinkUnlock(OPEN_STATE + doorlock.getDevice().name() + AND_VALUE_IS + StateValue.UNLOCK.name() + AND_PIN_IS);
+            view.setLinkUnlock(OPEN_STATE + doorlock.getDevice().name() + AND_VALUE_IS + StateValue.UNLOCK.name() + NEEDS_PIN);
         }
         if (setButtonOpen) {
-            view.setLinkOpen(OPEN_STATE + doorlock.getDevice().name() + AND_VALUE_IS + StateValue.OPEN.name() + AND_PIN_IS);
+            view.setLinkOpen(OPEN_STATE + doorlock.getDevice().name() + AND_VALUE_IS + StateValue.OPEN.name() + NEEDS_PIN);
         }
 
         formatFrontDoorLockLinks(doorlock, view);
