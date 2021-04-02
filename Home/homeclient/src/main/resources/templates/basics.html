@@ -54,8 +54,8 @@
 				$('#idUserErrorMessage').modal('show');
 			}
 		}	
-	
-		function submitContent(target){
+
+		function submitContentWithPin(target, pin){
 			if(navigator.onLine){
 				var httpRequest = new XMLHttpRequest();
 				httpRequest.open('GET', target);
@@ -63,7 +63,9 @@
 				httpRequest.setRequestHeader('ETag', document.getElementById('modelTimestamp').value);
 				httpRequest.setRequestHeader('clientName', clientName);
 				httpRequest.setRequestHeader('isAjaxRequest', 'true');
+				httpRequest.setRequestHeader('CSRF', 'true');
 				httpRequest.setRequestHeader('appPushToken', pushToken);
+				httpRequest.setRequestHeader('pin', pin.replace(/[^a-zA-Z0-9]/g, ''));
 				httpRequest.send();
 				httpRequest.onreadystatechange=(e)=>{
 					if (httpRequest.readyState == 4) {
@@ -89,17 +91,23 @@
 				}	
 			}else{
 				showOffline();
-			}
+			}			
+		}
+		
+		function submitContent(target){
+			submitContentWithPin(target, '');
 		}
 			
 		function preserveCollapseStatus(oldDoc, newDoc){
 			for (var entry of oldDoc.getElementsByClassName('collapse-preserve-state')){
 				if(entry.classList.contains('show')){
-			    	newDoc.getElementById(entry.id).classList.remove("collapse");
-			    	newDoc.getElementById(entry.id).classList.add("show");
-			    	newDoc.getElementById(entry.id + 'ElementTitleState').innerHTML = '';
-			    	newDoc.getElementById(entry.id + 'SymbolDown').style.display = 'none';
-			    	newDoc.getElementById(entry.id + 'SymbolUp').style.display = 'inline';
+			    	if(newDoc.getElementById(entry.id)!==null){
+						newDoc.getElementById(entry.id).classList.remove("collapse");
+				    	newDoc.getElementById(entry.id).classList.add("show");
+				    	newDoc.getElementById(entry.id + 'ElementTitleState').innerHTML = '';
+				    	newDoc.getElementById(entry.id + 'SymbolDown').style.display = 'none';
+				    	newDoc.getElementById(entry.id + 'SymbolUp').style.display = 'inline';
+			    	}
 			    }
 			}				
 		}
