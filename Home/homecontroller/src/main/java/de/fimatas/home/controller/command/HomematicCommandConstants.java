@@ -28,7 +28,7 @@ public class HomematicCommandConstants {
     // write: devices and sysvar's
     static final String STATE = "State";
 
-    static final String LAST_TIMESTAMP = "LastTimestamp";
+    static final String SEND_TIMESTAMP = "Timestamp";
 
     static final String PROGRAM_EXECUTE = "ProgramExecute";
 

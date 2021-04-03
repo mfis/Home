@@ -21,7 +21,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,6 +81,8 @@ public class HomematicAPI {
     private static final String VAR_CCU_UPTIME = "CCU_Uptime";
 
     private static final String VAR_CCU_REBOOT = "CCU_im_Reboot";
+
+    private static final int YEAR_OF_UNIX_TIMESTAMP_START = 1970;
 
     // current response
 
@@ -148,7 +149,7 @@ public class HomematicAPI {
         if (datapointWithTimestamp.isPresent()) {
             LocalDateTime datapointTimestamp =
                 getTimestamp(homematicCommandBuilder.readTS(device, datapointWithTimestamp.get()));
-            if (datapointTimestamp.getYear() <= NumberUtils.INTEGER_ONE) {
+            if (datapointTimestamp.getYear() <= YEAR_OF_UNIX_TIMESTAMP_START) {
                 return true;
             }
         }
