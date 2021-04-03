@@ -195,7 +195,7 @@ public class HomeRequestMapping {
         return new ResponseEntity<>(response.getResponse(), HttpStatus.OK);
     }
 
-    @RequestMapping(Pages.PATH_HOME) // NOSONAR
+    @RequestMapping(Pages.PATH_HOME) // NOSONAR: POST after login, all other GET
     public String homePage(Model model, HttpServletResponse response,
             @CookieValue(name = LoginInterceptor.COOKIE_NAME, required = false) String userCookie,
             @RequestHeader(name = "ETag", required = false) String etag,
@@ -321,10 +321,7 @@ public class HomeRequestMapping {
 
         model.addAttribute(SITE_REQUEST_TS, TS_FORMATTER.format(LocalDateTime.now()));
         response.setHeader(SITE_REQUEST_TS, TS_FORMATTER.format(LocalDateTime.now()));
-        response.setHeader("Referrer-Policy", "no-referrer");
-        response.setHeader("content-security-policy", "frame-ancestors 'none';");
-        response.setHeader("X-Frame-Options", "deny");
-        response.setHeader("X-Content-Type-Options", "nosniff");
+        ControllerUtil.setEssentialHeader(response);
     }
 
 }

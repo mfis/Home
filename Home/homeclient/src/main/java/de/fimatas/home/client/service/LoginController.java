@@ -1,9 +1,11 @@
 package de.fimatas.home.client.service;
 
+import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import de.fimatas.home.client.request.ControllerUtil;
 
 @Controller
 public class LoginController {
@@ -30,14 +32,16 @@ public class LoginController {
     String lawLink;
 
     @GetMapping(LOGIN_URI)
-    public String login(Model model) {
+    public String login(Model model, HttpServletResponse response) {
+        ControllerUtil.setEssentialHeader(response);
         model.addAttribute(LAW_LINK, lawLink);
         model.addAttribute(LOGIN_MESSAGE, "");
         return LOGIN_TEMPLATE;
     }
 
     @GetMapping(LOGIN_COOKIECHECK_URI)
-    public String loginCookieCheck(Model model) {
+    public String loginCookieCheck(Model model, HttpServletResponse response) {
+        ControllerUtil.setEssentialHeader(response);
         model.addAttribute(LAW_LINK, lawLink);
         model.addAttribute(LOGIN_MESSAGE,
             "Sie müssen den Datenschutzbestimmungen zustimmen, um die Anwendung nutzen zu können.");
@@ -45,19 +49,22 @@ public class LoginController {
     }
 
     @GetMapping(LOGIN_FAILED_URI)
-    public String loginFailed(Model model) {
+    public String loginFailed(Model model, HttpServletResponse response) {
+        ControllerUtil.setEssentialHeader(response);
         model.addAttribute(LAW_LINK, lawLink);
         model.addAttribute(LOGIN_MESSAGE, "Name und/oder Passwort nicht korrekt.");
         return LOGIN_TEMPLATE;
     }
 
     @GetMapping(LOGIN_VIA_APP_FAILED_URI)
-    public String loginViaAppFailed(Model model) {
+    public String loginViaAppFailed(Model model, HttpServletResponse response) {
+        ControllerUtil.setEssentialHeader(response);
         return LOGIN_VIA_APP_TEMPLATE;
     }
 
     @GetMapping(path = LOGOFF_URI)
-    public String logoff(Model model) {
+    public String logoff(Model model, HttpServletResponse response) {
+        ControllerUtil.setEssentialHeader(response);
         model.addAttribute(LAW_LINK, lawLink);
         model.addAttribute(LOGIN_MESSAGE, "Sie wurden erfolgreich abgemeldet.");
         return LOGIN_TEMPLATE;
