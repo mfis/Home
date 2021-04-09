@@ -1,6 +1,8 @@
 package de.fimatas.home.client.service;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,6 +38,8 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 
     private static final String APP_USER_TOKEN = "appUserToken";
 
+    private static final String APP_ADDITIONAL_COOKIE_HEADER = "appAdditionalCookieHeader";
+
     public static final String APP_PUSH_TOKEN = "appPushToken";
 
     private static final String LOGIN_PASSWORD = "login_password"; // NOSONAR
@@ -64,7 +68,7 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 
     private int controllerFalseLoginCounter = 0;
 
-    private Log log = LogFactory.getLog(LoginInterceptor.class);
+    private final Log log = LogFactory.getLog(LoginInterceptor.class);
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -88,11 +92,7 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
             return true;
         }
 
-        if (WHITELIST_EXTENSIONS.contains(FilenameUtils.getExtension(request.getRequestURI()))) { // NOSONAR
-            return true;
-        }
-
-        return false;
+        return WHITELIST_EXTENSIONS.contains(FilenameUtils.getExtension(request.getRequestURI()));
     }
 
     private boolean checkLogin(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -126,10 +126,6 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
         if (StringUtils.isNotBlank(request.getHeader(APP_USER_TOKEN))) {
             return checkUser(tokenLogin(request, response));
         }
-
-        // if (StringUtils.isNotBlank(request.getHeader("x"))) {
-            // log.info("x: " + request.getHeader("x"));
-        // }
 
         if (params.containsKey(LOGIN_USERNAME)) {
             if (userHasNotAcceptedCookies(params)) {
@@ -178,8 +174,6 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 
     private String tokenLogin(HttpServletRequest request, HttpServletResponse response) {
 
-        log.debug("REQUESTED TOKEN: " + StringUtils.substring(request.getHeader(APP_USER_TOKEN), 0, 50));
-
         boolean refreshToken = BooleanUtils.toBoolean(request.getHeader("refreshToken"));
         TokenResult tokenResult = userService.checkToken(request.getHeader(APP_USER_NAME), request.getHeader(APP_USER_TOKEN),
             request.getHeader(APP_DEVICE), DeviceType.APP, refreshToken);
@@ -187,7 +181,9 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
         if (tokenResult.isCheckOk()) {
             if (refreshToken) {
                 response.addHeader(APP_USER_TOKEN, tokenResult.getNewToken());
-                log.debug("REFRESHED TOKEN: " + StringUtils.substring(tokenResult.getNewToken(), 0, 50));
+                if(log.isDebugEnabled()){
+                    log.debug("REFRESHED TOKEN: " + StringUtils.substring(tokenResult.getNewToken(), 0, 50));
+                }
                 return userService.userNameFromLoginCookie(tokenResult.getNewToken());
             } else {
                 return userService.userNameFromLoginCookie(request.getHeader(APP_USER_TOKEN));
@@ -216,18 +212,28 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 
     private String cookieBrowserLogin(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
-        String cookie = cookieRead(request);
-        if (StringUtils.isBlank(cookie)) {
+        String token = cookieRead(request);
+        if (StringUtils.isBlank(token)) {
             return null;
         }
 
+        // Start Workaround
+        String workaroundHeaderForWebViewCookieRefreshProblem = request.getHeader(APP_ADDITIONAL_COOKIE_HEADER);
+        if (StringUtils.isNotBlank(workaroundHeaderForWebViewCookieRefreshProblem)) {
+            if(getTokenCreationDate(workaroundHeaderForWebViewCookieRefreshProblem).isAfter(getTokenCreationDate(token))){
+                log.warn("USING workaroundHeaderForWebViewCookieRefreshProblem");
+                token = workaroundHeaderForWebViewCookieRefreshProblem;
+            }
+        }
+        // End Workaround
+
         boolean isAjaxRequest = BooleanUtils.toBoolean(request.getHeader("isAjaxRequest"));
-        TokenResult tokenResult = userService.checkToken(userService.userNameFromLoginCookie(cookie), cookie,
+        TokenResult tokenResult = userService.checkToken(userService.userNameFromLoginCookie(token), token,
             request.getHeader(USER_AGENT), DeviceType.BROWSER, !isAjaxRequest);
 
         if (tokenResult.isCheckOk()) {
             if (isAjaxRequest) {
-                return userService.userNameFromLoginCookie(cookie);
+                return userService.userNameFromLoginCookie(token);
             } else {
                 cookieWrite(response, tokenResult.getNewToken());
                 return userService.userNameFromLoginCookie(tokenResult.getNewToken());
@@ -237,6 +243,10 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
             logoff(request, response);
             return null;
         }
+    }
+
+    private LocalDateTime getTokenCreationDate(String token){
+        return LocalDateTime.parse(StringUtils.split(token, '*')[1], DateTimeFormatter.ISO_LOCAL_DATE_TIME);
     }
 
     private boolean userHasNotAcceptedCookies(Map<String, String> params) {
