@@ -13,8 +13,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @PropertySource(value = "classpath:application.properties", encoding = "UTF-8")
 @PropertySource(value = "file:/Users/mfi/documents/config/homecontroller.properties", encoding = "UTF-8", ignoreResourceNotFound = true)
 @PropertySource(value = "file:/home/homecontroller/homecontroller.properties", encoding = "UTF-8", ignoreResourceNotFound = true)
-public class Application { // NOSONAR
+public class HomeControllerApplication { // NOSONAR
     public static void main(String[] args) {
-        SpringApplication.run(Application.class, args);
+        SpringApplication.run(HomeControllerApplication.class, args);
     }
 }
