@@ -100,10 +100,14 @@ public class HomeRequestMapping {
                 + value + ", isApp=" + isNativeApp + ", pinLength=" + StringUtils.trimToEmpty(securityPin).length());
         }
 
-        String userName = userCookie != null ? userService.userNameFromLoginCookie(userCookie) : appUserName;
+        String userName = isNativeApp ? appUserName : userService.userNameFromLoginCookie(userCookie);
 
         if (!isPinBlankOrSetAndCorrect(userName, securityPin)) {
             prepareErrorMessage(isNativeApp, "Die eingegebene PIN ist nicht korrekt.", userCookie, httpServletResponse);
+            log.warn("message for previous error: userCookie length=" + userCookie.length() + ", appUserName=" + appUserName + ", type=" + type + ", deviceName="
+                    + deviceName + ", hueDeviceId="
+                    + hueDeviceId + ", value="
+                    + value + ", isApp=" + isNativeApp + ", pin length=" + StringUtils.trimToEmpty(securityPin).length());
             return lookupMessageReturnValue(isNativeApp, MessageType.valueOf(type).getTargetSite());
         }
 
