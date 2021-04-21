@@ -2,20 +2,16 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+
 	<parent>
 		<groupId>de.fimatas.home</groupId>
 		<artifactId>Home</artifactId>
-		<version>${home.version}</version>
+		<version>DEV</version>
 	</parent>
+
 	<artifactId>homeclient</artifactId>
 	<name>homeclient</name>
 	<packaging>jar</packaging>
-
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<java.version>11</java.version>
-		<jdk.version>11</jdk.version>
-	</properties>
 
 	<dependencies>
 		<dependency>
@@ -26,7 +22,6 @@
 		<dependency>
 			<groupId>de.fimatas.files</groupId>
 			<artifactId>files-api</artifactId>
-			<version>1.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -47,32 +42,26 @@
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
-			<version>2.8.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-text</artifactId>
-			<version>1.9</version>
 		</dependency>
 		<dependency>
 			<groupId>org.webjars</groupId>
 			<artifactId>bootstrap</artifactId>
-			<version>4.5.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.webjars</groupId>
 			<artifactId>jquery</artifactId>
-			<version>3.5.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.webjars</groupId>
 			<artifactId>font-awesome</artifactId>
-			<version>5.14.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.webjars</groupId>
 			<artifactId>webjars-locator</artifactId>
-			<version>0.40</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
@@ -93,12 +82,12 @@
 			<plugin>
 				<groupId>StaticResourceProcessing</groupId>
 				<artifactId>StaticResourceProcessing</artifactId>
-				<version>1.4.0</version>
+				<version>${StaticResourceProcessing.version}</version>
 				<configuration>
 					<webContentSourceDir>src/main/resources/orig</webContentSourceDir>
 					<webContentDestDir>src/main/resources/static</webContentDestDir>
 					<webContentTempDir>src/main/resources/static/temp</webContentTempDir>
-					<versionsMapFile></versionsMapFile>
+					<versionsMapFile/>
 				</configuration>
 				<executions>
 					<execution>
@@ -112,12 +101,12 @@
 		</plugins>
 		<pluginManagement>
 			<plugins>
-				<!--This plugin's configuration is used to store Eclipse m2e settings 
+				<!--This plugin's configuration is used to store Eclipse m2e settings
 					only. It has no influence on the Maven build itself. -->
 				<plugin>
 					<groupId>org.eclipse.m2e</groupId>
 					<artifactId>lifecycle-mapping</artifactId>
-					<version>1.0.0</version>
+					<version>${lifecycle-mapping.version}</version>
 					<configuration>
 						<lifecycleMappingMetadata>
 							<pluginExecutions>
@@ -130,7 +119,7 @@
 											StaticResourceProcessing
 										</artifactId>
 										<versionRange>
-											[1.4.0,)
+											[${StaticResourceProcessing.version},)
 										</versionRange>
 										<goals>
 											<goal>
@@ -139,7 +128,7 @@
 										</goals>
 									</pluginExecutionFilter>
 									<action>
-										<ignore></ignore>
+										<ignore/>
 									</action>
 								</pluginExecution>
 							</pluginExecutions>
