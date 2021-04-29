@@ -2,7 +2,7 @@
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
 
     <suppress>
-        <notes>backblaze api false-positive (controller only)</notes>
+        <notes>backblaze api false-positive</notes>
         <cve>CVE-2020-8289</cve>
         <cve>CVE-2020-8290</cve>
     </suppress>
@@ -11,6 +11,11 @@
         <notes>netty via pushy (controller only, re-check for new versions)</notes>
         <cve>CVE-2021-21295</cve>
         <cve>CVE-2021-21409</cve>
+    </suppress>
+
+    <suppress>
+        <notes>false-positive 'fast-uuid' found for 'fast_ber'</notes>
+        <cve>CVE-2020-23921</cve>
     </suppress>
 
 </suppressions>
