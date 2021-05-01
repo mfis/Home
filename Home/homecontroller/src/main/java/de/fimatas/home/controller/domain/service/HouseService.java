@@ -110,26 +110,6 @@ public class HouseService {
 
     private BigDecimal start = null;
 
-    // @Scheduled(initialDelay = (1000 * 12), fixedDelay = (1000 * 60 * 2))
-    private void debugWallbox() {
-
-        Device device = Device.STROMZAEHLER_WALLBOX;
-
-        String power = new DecimalFormat("00000")
-            .format(hmApi.getAsBigDecimal(homematicCommandBuilder.read(device, Datapoint.POWER)));
-
-        BigDecimal cnt =
-            hmApi.getAsBigDecimal(homematicCommandBuilder.read(device, Datapoint.ENERGY_COUNTER))
-                .divide(new BigDecimal(1000));
-        if (start == null) {
-            start = cnt;
-        }
-        String counter = new DecimalFormat("000.0")
-            .format(cnt.subtract(start));
-
-        LogFactory.getLog(device.name()).info(power + " - " + counter);
-    }
-
     @Scheduled(initialDelay = (1000 * 3), fixedDelay = (1000 * HomeAppConstants.MODEL_DEFAULT_INTERVAL_SECONDS))
     private void scheduledRefreshHouseModel() {
         refreshHouseModel();
@@ -675,6 +655,9 @@ public class HouseService {
 
         heatingModel.setBoostActive(hmApi.getAsBigDecimal(homematicCommandBuilder.read(heating, Datapoint.CONTROL_MODE))
             .compareTo(HomematicConstants.HEATING_CONTROL_MODE_BOOST) == 0);
+        heatingModel.setAutoActive(hmApi.getAsBigDecimal(homematicCommandBuilder.read(heating, Datapoint.CONTROL_MODE))
+                .compareTo(HomematicConstants.HEATING_CONTROL_MODE_AUTO) == 0);
+
         BigDecimal boostLeft = hmApi.getAsBigDecimal(homematicCommandBuilder.read(heating, Datapoint.BOOST_STATE));
         heatingModel.setBoostMinutesLeft(boostLeft == null ? 0 : boostLeft.intValue());
         heatingModel

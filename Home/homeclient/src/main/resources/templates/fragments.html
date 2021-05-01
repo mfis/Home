@@ -573,30 +573,43 @@
 	
 	<!-- Thermostat -->
 	<div th:fragment="thermostat (model)" th:class="'alert alert-' + ${model.colorClassHeating} + ' callout callout-' + ${model.colorClassHeating}">
+
 		<div th:replace="fragments :: elementnameCollapsable (icon=${model.heatericon}, name='Heizkörper', place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id} + 'Thermostat', elementTitleState=${model.heaterElementTitleState})"></div>
-			
-		<th:block th:unless="${#strings.equals(model.busy,'true') or #strings.equals(model.unreach,'true')}">
-			<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id} + 'Thermostat'">
-				<h4 th:if="${#strings.startsWith(model.linkBoost,'/')}"><span th:text="'Manuell auf ' + ${model.targetTemp} + '°C'"></span></h4>
-				<h4 th:unless="${#strings.startsWith(model.linkBoost,'/')}"><span th:text="'Aufheizen - noch ' + ${model.linkBoost} + ' Min.'"></span></h4>
-				<div th:if="${#strings.startsWith(model.linkBoost,'/')}" class="btn-group" role="group" aria-label="heating">
-		  			<button type="button" th:id="'idHeatMinus' + ${model.id}" class="btn btn-secondary btn-sm" th:onclick="@{'adjustHeating' + ${model.id} + '(-0.5)'}">&nbsp;-&nbsp;</button>
-		  			<button type="button" th:id="'idHeatTarget' + ${model.id}" class="btn btn-outline-secondary btn-sm text-light" disabled><span th:id="'idHeatTargetLabel' + ${model.id}" th:text="${model.targetTemp}"></span><span>°C</span></button>
-		  			<button type="button" th:id="'idHeatPlus' + ${model.id}" class="btn btn-secondary btn-sm" th:onclick="@{'adjustHeating' + ${model.id} + '(+0.5)'}">&nbsp;+&nbsp;</button>
-				</div>
-				<span th:if="${#strings.startsWith(model.linkBoost,'/')}">&nbsp;</span>
-				
-				<button th:if="${#strings.startsWith(model.linkBoost,'/')}"
-					type="button" th:onclick="@{'setBoost' + ${model.id} + '()'}" class="btn btn-secondary btn-sm">Schnell aufheizen</button>
-				<button th:unless="${#strings.startsWith(model.linkBoost,'/')}" type="button"
-					class="btn btn-secondary btn-sm" th:onclick="@{'setHeating' + ${model.id} + '()'}" th:text="'abbrechen'">Boost ist eingeschaltet</button>
-				<input type="hidden" th:id="'val_model_targetTemp_' + ${model.id}" th:value="${model.targetTemp}">
-				<input type="hidden" th:id="'val_model_linkManual_' + ${model.id}" th:value="${model.linkManual}">
-				<input type="hidden" th:id="'val_model_linkBoost_' + ${model.id}" th:value="${model.linkBoost}">
-			</div>
-		</th:block>
+
 		<th:block th:if="${#strings.equals(model.busy,'true')}">
 			<h4><span><th:block th:replace="basics :: symbol (name='fa fa-spinner fa-spin')"/></span></h4>
+		</th:block>
+
+		<th:block th:unless="${#strings.equals(model.busy,'true') or #strings.equals(model.unreach,'true')}">
+			<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id} + 'Thermostat'">
+
+				<h4 th:if="${#strings.isEmpty(model.linkManual)}"><span th:text="'Manuell auf ' + ${model.targetTemp} + '°C'"></span></h4>
+				<h4 th:if="${#strings.isEmpty(model.linkAuto)}"><span th:text="'Automatisch auf ' + ${model.targetTemp} + '°C'"></span></h4>
+				<h4 th:if="${#strings.isEmpty(model.linkBoost)}"><span th:text="'Aufheizen - noch ' + ${model.boostTimeLeft} + ' Min.'"></span></h4>
+
+				<div class="btn-group" role="group" aria-label="thermostat">
+					<button th:if="${#strings.isEmpty(model.linkManual)}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${model.activeSwitchColorClass}"><th:block th:replace="basics :: symbol (name='fas fa-hand-paper')"/></span><span>&nbsp;</span></button>
+					<button th:if="${#strings.startsWith(model.linkManual, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToManual' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-hand-paper')"/></span><span>&nbsp;</span></button>
+					<button th:if="${#strings.isEmpty(model.linkAuto)}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${model.activeSwitchColorClass}"><th:block th:replace="basics :: symbol (name='fas fa-cogs')"/></span><span>&nbsp;</span></button>
+					<button th:if="${#strings.startsWith(model.linkAuto, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToAuto' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-cogs')"/></span><span>&nbsp;</span></button>
+					<button th:if="${#strings.isEmpty(model.linkBoost)}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${model.activeSwitchColorClass}"><th:block th:replace="basics :: symbol (name='fas fa-thermometer-full')"/></span><span>&nbsp;</span></button>
+					<button th:if="${#strings.startsWith(model.linkBoost, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToBoost' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-thermometer-full')"/></span><span>&nbsp;</span></button>
+				</div>
+
+				<input type="hidden" th:id="'val_model_targetTemp_' + ${model.id}" th:value="${model.targetTemp}">
+				<input type="hidden" th:id="'val_model_linkManual_' + ${model.id}" th:value="${model.linkManual}">
+				<input type="hidden" th:id="'val_model_linkAuto_' + ${model.id}" th:value="${model.linkAuto}">
+				<input type="hidden" th:id="'val_model_linkBoost_' + ${model.id}" th:value="${model.linkBoost}">
+
+				<th:block th:if="${#strings.isEmpty(model.linkManual)}">
+					<span>&nbsp;</span>
+					<div class="btn-group" role="group" aria-label="heating">
+						<button type="button" th:id="'idHeatMinus' + ${model.id}" class="btn btn-secondary btn-sm" th:onclick="@{'adjustHeating' + ${model.id} + '(-0.5)'}">&nbsp;-&nbsp;</button>
+						<button type="button" th:id="'idHeatTarget' + ${model.id}" class="btn btn-outline-secondary btn-sm text-light" disabled><span th:id="'idHeatTargetLabel' + ${model.id}" th:text="${model.targetTemp}"></span><span>°C</span></button>
+						<button type="button" th:id="'idHeatPlus' + ${model.id}" class="btn btn-secondary btn-sm" th:onclick="@{'adjustHeating' + ${model.id} + '(+0.5)'}">&nbsp;+&nbsp;</button>
+					</div>
+				</th:block>
+			</div>
 		</th:block>
 		<script type="text/javascript" th:unless="${#strings.equals(model.unreach,'true')}">
 			var timeout[[${model.id}]] = null;
@@ -610,12 +623,16 @@
 				document.getElementById("idHeatTargetLabel[[${model.id}]]").innerHTML = newTargetTemp[[${model.id}]].toFixed(1).replace('.', ',');
 				timeout[[${model.id}]] = setTimeout(setHeating[[${model.id}]], 1000 * 1.5);
 			}
-			function setHeating[[${model.id}]](){
+
+			function toggleToManual[[${model.id}]](){
 				submitContent(document.getElementById('val_model_linkManual_[[${model.id}]]').value + "&value=" + newTargetTemp[[${model.id}]]);
 			}
-			function setBoost[[${model.id}]](){
+			function toggleToAuto[[${model.id}]](){
+				submitContent(document.getElementById('val_model_linkAuto_[[${model.id}]]').value);
+			}
+			function toggleToBoost[[${model.id}]](){
 				submitContent(document.getElementById('val_model_linkBoost_[[${model.id}]]').value);
-			}			
+			}
 		</script>
 	</div>	
 

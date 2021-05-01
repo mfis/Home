@@ -425,18 +425,36 @@ public class HouseViewService {
     private void formatClimateHeating(Heating heating, ClimateView view) {
 
         if (heating != null) {
-            if (heating.isBoostActive()) {
-                view.setLinkBoost(String.valueOf(heating.getBoostMinutesLeft()));
-                view.setColorClassHeating(COLOR_CLASS_RED);
-            } else {
-                view.setLinkBoost(MESSAGEPATH + TYPE_IS + MessageType.HEATINGBOOST + AND_DEVICE_IS + heating.getDevice().name()
-                    + "&value=null");
-            }
-            view.setLinkManual(MESSAGEPATH + TYPE_IS + MessageType.HEATINGMANUAL + AND_DEVICE_IS + heating.getDevice().name());
+
             view.setTargetTemp(format(heating.getTargetTemperature(), false, false));
-            view.setHeaterElementTitleState(view.getTargetTemp() + ViewFormatter.DEGREE + "C");
             view.setHeatericon("fab fa-hotjar");
             view.setBusy(Boolean.toString(heating.isBusy()));
+
+            view.setLinkManual(MESSAGEPATH + TYPE_IS + MessageType.HEATINGMANUAL + AND_DEVICE_IS + heating.getDevice().name());
+            view.setLinkAuto(MESSAGEPATH + TYPE_IS + MessageType.HEATINGAUTO + AND_DEVICE_IS + heating.getDevice().name()
+                    + "&value=null");
+            view.setLinkBoost(MESSAGEPATH + TYPE_IS + MessageType.HEATINGBOOST + AND_DEVICE_IS + heating.getDevice().name()
+                    + "&value=null");
+
+            // TODO: temperature >= heating -> color class green, else yellow!?
+            // TODO: ccu auto program
+            // TODO: test links!
+
+            if (heating.isBoostActive()) {
+                view.setLinkBoost(StringUtils.EMPTY);
+                view.setBoostTimeLeft(String.valueOf(heating.getBoostMinutesLeft()));
+                view.setColorClassHeating(COLOR_CLASS_RED);
+                view.setActiveSwitchColorClass(COLOR_CLASS_RED);
+                view.setHeaterElementTitleState("Aufheizen");
+            } else if (heating.isAutoActive()){
+                view.setLinkAuto(StringUtils.EMPTY);
+                view.setActiveSwitchColorClass("active-primary");
+                view.setHeaterElementTitleState("Automatik, " + view.getTargetTemp() + ViewFormatter.DEGREE + "C");
+            } else{
+                view.setLinkManual(StringUtils.EMPTY);
+                view.setActiveSwitchColorClass("active-primary");
+                view.setHeaterElementTitleState(view.getTargetTemp() + ViewFormatter.DEGREE + "C");
+            }
         }
     }
 

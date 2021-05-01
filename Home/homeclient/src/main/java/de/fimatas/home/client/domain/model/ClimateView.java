@@ -29,7 +29,11 @@ public class ClimateView extends View {
 
     private String linkManual = "";
 
+    private String linkAuto = "";
+
     private String targetTemp = "";
+
+    private String boostTimeLeft = "";
 
     private String heatericon = "";
 
@@ -175,4 +179,19 @@ public class ClimateView extends View {
         this.stateSecondLine = stateSecondLine;
     }
 
+    public String getLinkAuto() {
+        return linkAuto;
+    }
+
+    public void setLinkAuto(String linkAuto) {
+        this.linkAuto = linkAuto;
+    }
+
+    public String getBoostTimeLeft() {
+        return boostTimeLeft;
+    }
+
+    public void setBoostTimeLeft(String boostTimeLeft) {
+        this.boostTimeLeft = boostTimeLeft;
+    }
 }

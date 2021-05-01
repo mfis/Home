@@ -10,6 +10,7 @@ public enum MessageType {
     SHUTTERPOSITION(Pages.PATH_HOME), //
     HEATINGBOOST(Pages.PATH_HOME), //
     HEATINGMANUAL(Pages.PATH_HOME), //
+    HEATINGAUTO(Pages.PATH_HOME), //
     CAMERAPICTUREREQUEST(null), //
     SETTINGS_NEW(null), //
     ;//

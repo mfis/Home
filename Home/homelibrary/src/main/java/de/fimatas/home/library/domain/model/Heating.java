@@ -9,6 +9,8 @@ public class Heating extends AbstractDeviceModel implements Serializable {
 
     private boolean boostActive;
 
+    private boolean autoActive;
+
     private int boostMinutesLeft;
 
     private BigDecimal targetTemperature;
@@ -41,4 +43,11 @@ public class Heating extends AbstractDeviceModel implements Serializable {
         this.targetTemperature = targetTemperature;
     }
 
+    public boolean isAutoActive() {
+        return autoActive;
+    }
+
+    public void setAutoActive(boolean autoActive) {
+        this.autoActive = autoActive;
+    }
 }

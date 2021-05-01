@@ -9,4 +9,6 @@ public final class HomematicConstants {
     }
 
     public static final BigDecimal HEATING_CONTROL_MODE_BOOST = new BigDecimal(3);
+
+    public static final BigDecimal HEATING_CONTROL_MODE_AUTO = new BigDecimal(0);
 }
