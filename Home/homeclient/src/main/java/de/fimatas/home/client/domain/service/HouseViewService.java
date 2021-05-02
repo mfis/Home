@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import javax.annotation.PostConstruct;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -80,7 +81,7 @@ public class HouseViewService {
     private static final String AND_HUE_DEVICE_ID_IS = "&hueDeviceId=";
 
     private static final String NEEDS_PIN = "&needsPin";
-    
+
     private static final String TYPE_IS = "type=";
 
     public static final String COLOR_CLASS_RED = "danger";
@@ -92,6 +93,8 @@ public class HouseViewService {
     public static final String COLOR_CLASS_BLUE = "info";
 
     public static final String COLOR_CLASS_GRAY = "secondary";
+
+    public static final String COLOR_CLASS_ACTIVE_BUTTON = "active-primary";
 
     public static final String MESSAGEPATH = "/message?"; // NOSONAR
 
@@ -135,7 +138,7 @@ public class HouseViewService {
         formatClimate(model, "tempBedroom", house.getClimateBedRoom(), null, true);
         formatClimate(model, "tempLaundry", house.getClimateLaundry(), null, true);
 
-        // formatWindow(model, "leftWindowBedroom",
+        // formatWindow(model, "leftWindowBedroom", // NOSONAR
         // house.getLeftWindowBedRoom()); // NOSONAR
 
         formatFacadeTemperatures(model, "tempMinHouse", "tempMaxHouse", house);
@@ -163,12 +166,12 @@ public class HouseViewService {
     public String lookupSunHeating(OutdoorClimate outdoorMaxClimate) {
 
         if (outdoorMaxClimate == null || outdoorMaxClimate.getSunBeamIntensity() == null
-            || outdoorMaxClimate.getSunHeatingInContrastToShadeIntensity() == null) {
+                || outdoorMaxClimate.getSunHeatingInContrastToShadeIntensity() == null) {
             return StringUtils.EMPTY;
         }
 
         if (outdoorMaxClimate.getSunBeamIntensity().ordinal() >= outdoorMaxClimate.getSunHeatingInContrastToShadeIntensity()
-            .ordinal()) {
+                .ordinal()) {
             return outdoorMaxClimate.getSunBeamIntensity().getSun();
         } else {
             return outdoorMaxClimate.getSunHeatingInContrastToShadeIntensity().getHeating();
@@ -188,22 +191,22 @@ public class HouseViewService {
         frontDoorView.setIcon("fas fa-bell");
         if (doorbell.getTimestampLastDoorbell() != null) {
             frontDoorView.setLastDoorbells(StringUtils.capitalize(
-                viewFormatter.formatPastTimestamp(doorbell.getTimestampLastDoorbell(), PastTimestampFormat.DATE_TIME)));
+                    viewFormatter.formatPastTimestamp(doorbell.getTimestampLastDoorbell(), PastTimestampFormat.DATE_TIME)));
             frontDoorView.setElementTitleState(StringUtils
-                .capitalize(viewFormatter.formatPastTimestamp(doorbell.getTimestampLastDoorbell(), PastTimestampFormat.SHORT)));
+                    .capitalize(viewFormatter.formatPastTimestamp(doorbell.getTimestampLastDoorbell(), PastTimestampFormat.SHORT)));
         } else {
             frontDoorView.setLastDoorbells(UNBEKANNT);
         }
 
         long minutesSinceLastDoorbellRing = Duration
-            .between(Instant.ofEpochMilli(doorbell.getTimestampLastDoorbell() != null ? doorbell.getTimestampLastDoorbell() : 0)
-                .atZone(ZoneId.systemDefault()).toLocalDateTime(), LocalDateTime.now())
-            .toMinutes();
-        if(minutesSinceLastDoorbellRing<5) {
+                .between(Instant.ofEpochMilli(doorbell.getTimestampLastDoorbell() != null ? doorbell.getTimestampLastDoorbell() : 0)
+                        .atZone(ZoneId.systemDefault()).toLocalDateTime(), LocalDateTime.now())
+                .toMinutes();
+        if (minutesSinceLastDoorbellRing < 5) {
             frontDoorView.setColorClass(COLOR_CLASS_RED);
         } else if (minutesSinceLastDoorbellRing < 60) {
             frontDoorView.setColorClass(COLOR_CLASS_ORANGE);
-        }else {
+        } else {
             frontDoorView.setColorClass(COLOR_CLASS_GRAY);
         }
 
@@ -222,11 +225,11 @@ public class HouseViewService {
         frontDoorView.setIdLive("frontdoorcameralive");
         frontDoorView.setIdBell("frontdoorcamerabell");
         frontDoorView
-            .setLinkLive("/cameraPicture?deviceName=" + camera.getDevice() + "&cameraMode=" + CameraMode.LIVE + "&ts=");
+                .setLinkLive("/cameraPicture?deviceName=" + camera.getDevice() + "&cameraMode=" + CameraMode.LIVE + "&ts=");
         frontDoorView.setLinkLiveRequest("/cameraPictureRequest?type=" + MessageType.CAMERAPICTUREREQUEST + AND_DEVICE_IS
-            + camera.getDevice() + "&value=null");
+                + camera.getDevice() + "&value=null");
         frontDoorView.setLinkBell("/cameraPicture?deviceName=" + camera.getDevice() + "&cameraMode=" + CameraMode.EVENT + "&ts="
-            + doorbell.getTimestampLastDoorbell());
+                + doorbell.getTimestampLastDoorbell());
     }
 
     private void formatFrontDoorLock(Model model, String id, Doorlock doorlock) {
@@ -311,7 +314,7 @@ public class HouseViewService {
         } else if (Boolean.TRUE.equals(doorlock.getLockAutomation())) {
             view.setLinkManual(TOGGLE_AUTOMATION + doorlock.getDevice().name() + AND_VALUE_IS + AutomationState.MANUAL.name());
             view.setLinkAutoEvent(
-                TOGGLE_AUTOMATION + doorlock.getDevice().name() + AND_VALUE_IS + AutomationState.AUTOMATIC_PLUS_EVENT.name());
+                    TOGGLE_AUTOMATION + doorlock.getDevice().name() + AND_VALUE_IS + AutomationState.AUTOMATIC_PLUS_EVENT.name());
             if (doorlock.getErrorcode() == 0) {
                 view.setStateSuffix(PROGRAMMGESTEUERT);
                 view.setElementTitleState(PROGRAMMGESTEUERT.replaceAll(REGEXP_NOT_ALPHANUMERIC, StringUtils.EMPTY));
@@ -319,7 +322,7 @@ public class HouseViewService {
         } else {
             view.setLinkAuto(TOGGLE_AUTOMATION + doorlock.getDevice().name() + AND_VALUE_IS + AutomationState.AUTOMATIC.name());
             view.setLinkAutoEvent(
-                TOGGLE_AUTOMATION + doorlock.getDevice().name() + AND_VALUE_IS + AutomationState.AUTOMATIC_PLUS_EVENT.name());
+                    TOGGLE_AUTOMATION + doorlock.getDevice().name() + AND_VALUE_IS + AutomationState.AUTOMATIC_PLUS_EVENT.name());
         }
     }
 
@@ -377,7 +380,7 @@ public class HouseViewService {
             formatClimateTendency(climate, view);
 
             // Heating
-            formatClimateHeating(heating, view);
+            formatClimateHeating(heating, climate, view);
 
         } else {
             view.setStateTemperature("?");
@@ -392,7 +395,7 @@ public class HouseViewService {
 
         if (climate instanceof RoomClimate && ((RoomClimate) climate).getHumidityWetterThanOutdoor() != null) {
             view.setAbsoluteHumidityIcon(
-                ((RoomClimate) climate).getHumidityWetterThanOutdoor().booleanValue() ? "fas fa-tint" : "fas fa-tint-slash");
+                    ((RoomClimate) climate).getHumidityWetterThanOutdoor().booleanValue() ? "fas fa-tint" : "fas fa-tint-slash");
         }
         if (climate.getTemperature().getValue().compareTo(FROST_TEMP) < 0) {
             view.setStatePostfixIconTemperature("far fa-snowflake");
@@ -409,7 +412,7 @@ public class HouseViewService {
 
     public boolean climateStateUnknown(Climate climate) {
         return (climate == null || climate.getTemperature() == null || climate.getTemperature().getValue() == null)
-            && (climate == null || climate.getHumidity() == null || climate.getHumidity().getValue() == null);
+                && (climate == null || climate.getHumidity() == null || climate.getHumidity().getValue() == null);
     }
 
     private void formatClimateTendency(Climate climate, ClimateView view) {
@@ -422,7 +425,7 @@ public class HouseViewService {
         }
     }
 
-    private void formatClimateHeating(Heating heating, ClimateView view) {
+    private void formatClimateHeating(Heating heating, Climate climate, ClimateView view) {
 
         if (heating != null) {
 
@@ -431,29 +434,50 @@ public class HouseViewService {
             view.setBusy(Boolean.toString(heating.isBusy()));
 
             view.setLinkManual(MESSAGEPATH + TYPE_IS + MessageType.HEATINGMANUAL + AND_DEVICE_IS + heating.getDevice().name());
+            view.setLinkAdjustTemperature(MESSAGEPATH + TYPE_IS + MessageType.HEATINGMANUAL + AND_DEVICE_IS + heating.getDevice().name());
             view.setLinkAuto(MESSAGEPATH + TYPE_IS + MessageType.HEATINGAUTO + AND_DEVICE_IS + heating.getDevice().name()
                     + "&value=null");
             view.setLinkBoost(MESSAGEPATH + TYPE_IS + MessageType.HEATINGBOOST + AND_DEVICE_IS + heating.getDevice().name()
                     + "&value=null");
 
-            // TODO: temperature >= heating -> color class green, else yellow!?
+            lookupHeaterColorClass(heating, climate, view);
 
             if (heating.isBoostActive()) {
                 view.setLinkBoost(StringUtils.EMPTY);
                 view.setBoostTimeLeft(String.valueOf(heating.getBoostMinutesLeft()));
-                view.setColorClassHeating(COLOR_CLASS_RED);
-                view.setActiveSwitchColorClass(COLOR_CLASS_RED);
                 view.setHeaterElementTitleState("Aufheizen");
-            } else if (heating.isAutoActive()){
+            } else if (heating.isAutoActive()) {
                 view.setLinkAuto(StringUtils.EMPTY);
-                view.setActiveSwitchColorClass("active-primary");
                 view.setHeaterElementTitleState("Automatik, " + view.getTargetTemp() + ViewFormatter.DEGREE + "C");
-            } else{
+            } else {
                 view.setLinkManual(StringUtils.EMPTY);
-                view.setActiveSwitchColorClass("active-primary");
                 view.setHeaterElementTitleState(view.getTargetTemp() + ViewFormatter.DEGREE + "C");
             }
         }
+    }
+
+    private void lookupHeaterColorClass(Heating heating, Climate climate, ClimateView view) {
+
+        var switchColorClass = COLOR_CLASS_ACTIVE_BUTTON;
+        var elementColorClass = COLOR_CLASS_GRAY;
+
+        if (heating.isBoostActive()) {
+            switchColorClass = COLOR_CLASS_RED;
+            elementColorClass = COLOR_CLASS_RED;
+        }else if (heating.getTargetTemperature() != null && climate.getTemperature() != null &&
+                climate.getTemperature().getValue() != null) {
+            BigDecimal diffTemp = climate.getTemperature().getValue().subtract(heating.getTargetTemperature());
+            if (diffTemp.compareTo(HomeAppConstants.MAX_DIFF_HEATING_TEMPERATURE) < 0) {
+                switchColorClass = COLOR_CLASS_ORANGE;
+                elementColorClass = COLOR_CLASS_ORANGE;
+            }else{
+                switchColorClass = COLOR_CLASS_GREEN;
+                elementColorClass = COLOR_CLASS_GREEN;
+            }
+        }
+
+        view.setColorClassHeating(elementColorClass);
+        view.setActiveSwitchColorClass(switchColorClass);
     }
 
     private void formatClimateBackground(Climate climate, ClimateView view) {
@@ -491,7 +515,7 @@ public class HouseViewService {
 
         if (!house.getConclusionClimateFacadeMin().isUnreach()) {
             viewMin
-                .setStateSecondLine("Messpunkt: " + house.getConclusionClimateFacadeMin().getBase().getPlace().getPlaceName());
+                    .setStateSecondLine("Messpunkt: " + house.getConclusionClimateFacadeMin().getBase().getPlace().getPlaceName());
             viewMin.setHistoryKey(house.getConclusionClimateFacadeMin().getDevice().programNamePrefix());
         }
 
@@ -501,22 +525,22 @@ public class HouseViewService {
             viewMax.setName(house.getConclusionClimateFacadeMax().getDevice().getPlace().getPlaceName());
 
             switch (Intensity.max(house.getConclusionClimateFacadeMax().getSunBeamIntensity(),
-                house.getConclusionClimateFacadeMax().getSunHeatingInContrastToShadeIntensity())) {
-            case NO:
-                viewMax.setIcon("fas fa-cloud");
-                viewMax.setColorClass(COLOR_CLASS_GRAY);
-                break;
-            case LOW:
-                viewMax.setColorClass(COLOR_CLASS_GREEN);
-                viewMax.setIcon("fas fa-cloud-sun");
-                break;
-            case MEDIUM:
-                viewMax.setColorClass(COLOR_CLASS_ORANGE);
-                viewMax.setIcon("far fa-sun");
-                break;
-            case HIGH:
-                viewMax.setColorClass(COLOR_CLASS_RED);
-                viewMax.setIcon("fas fa-sun");
+                    house.getConclusionClimateFacadeMax().getSunHeatingInContrastToShadeIntensity())) {
+                case NO:
+                    viewMax.setIcon("fas fa-cloud");
+                    viewMax.setColorClass(COLOR_CLASS_GRAY);
+                    break;
+                case LOW:
+                    viewMax.setColorClass(COLOR_CLASS_GREEN);
+                    viewMax.setIcon("fas fa-cloud-sun");
+                    break;
+                case MEDIUM:
+                    viewMax.setColorClass(COLOR_CLASS_ORANGE);
+                    viewMax.setIcon("far fa-sun");
+                    break;
+                case HIGH:
+                    viewMax.setColorClass(COLOR_CLASS_RED);
+                    viewMax.setIcon("fas fa-sun");
             }
         }
 
@@ -538,7 +562,7 @@ public class HouseViewService {
 
         power.setHistoryKey(powerMeter.getDevice().programNamePrefix());
         power.setState(powerMeter.getActualConsumption().getValue() == null ? UNBEKANNT
-            : powerMeter.getActualConsumption().getValue().intValue() + " W");
+                : powerMeter.getActualConsumption().getValue().intValue() + " W");
         power.setName(powerMeter.getDevice().getType().getTypeName());
         if (powerMeter.getActualConsumption().getTendency() != null) {
             power.setTendencyIcon(powerMeter.getActualConsumption().getTendency().getIconCssClass());
@@ -607,7 +631,7 @@ public class HouseViewService {
             stateDelimiter = ", ";
             stateSuffix = viewFormatter.formatPastTimestamp(windowSensor.getStateTimestamp(), PastTimestampFormat.DATE_TIME);
             view.setElementTitleState(
-                "Seit " + viewFormatter.formatPastTimestamp(windowSensor.getStateTimestamp(), PastTimestampFormat.SHORT));
+                    "Seit " + viewFormatter.formatPastTimestamp(windowSensor.getStateTimestamp(), PastTimestampFormat.SHORT));
         }
 
         view.setState((windowSensor.isState() ? "Geöffnet" : "Geschlossen") + stateDelimiter);
@@ -661,7 +685,7 @@ public class HouseViewService {
             view.setColorClass(stateColor);
             view.setActiveSwitchColorClass(stateColor);
         } else {
-            view.setActiveSwitchColorClass("active-primary");
+            view.setActiveSwitchColorClass(COLOR_CLASS_ACTIVE_BUTTON);
         }
     }
 
@@ -688,7 +712,7 @@ public class HouseViewService {
         if (switchModel.getAutomation() != null) {
             if (Boolean.TRUE.equals(switchModel.getAutomation())) {
                 view.setLinkManual(
-                    TOGGLE_AUTOMATION + switchModel.getDevice().name() + AND_VALUE_IS + AutomationState.MANUAL.name());
+                        TOGGLE_AUTOMATION + switchModel.getDevice().name() + AND_VALUE_IS + AutomationState.MANUAL.name());
                 if (ArrayUtils.isNotEmpty(buttonCaptions)) {
                     view.setStateSuffix(PROGRAMMGESTEUERT + ", " + buttonCaptions[0]);
                     view.setElementTitleState(buttonCaptions[0]);
@@ -698,7 +722,7 @@ public class HouseViewService {
                 }
             } else {
                 view.setLinkAuto(
-                    TOGGLE_AUTOMATION + switchModel.getDevice().name() + AND_VALUE_IS + AutomationState.AUTOMATIC.name());
+                        TOGGLE_AUTOMATION + switchModel.getDevice().name() + AND_VALUE_IS + AutomationState.AUTOMATIC.name());
                 if (ArrayUtils.isNotEmpty(buttonCaptions)) {
                     view.setStateSuffix(PROGRAMMGESTEUERT + ", " + buttonCaptions[1]);
                     view.setElementTitleState(buttonCaptions[1]);
@@ -708,7 +732,7 @@ public class HouseViewService {
                 }
             }
             view.setAutoInfoText(
-                StringUtils.trimToEmpty(RegExUtils.removeAll(switchModel.getAutomationInfoText(), "[\\x7b\\x7d]")));
+                    StringUtils.trimToEmpty(RegExUtils.removeAll(switchModel.getAutomationInfoText(), "[\\x7b\\x7d]")));
         }
     }
 
@@ -761,7 +785,7 @@ public class HouseViewService {
             return "#";
         } else {
             return MESSAGEPATH + TYPE_IS + MessageType.SHUTTERPOSITION + AND_DEVICE_IS + windowModel.getDevice().name()
-                + AND_VALUE_IS + shutterPosition.getControlPosition();
+                    + AND_VALUE_IS + shutterPosition.getControlPosition();
         }
     }
 
@@ -773,8 +797,8 @@ public class HouseViewService {
 
         // format all other places as unreachable
         Arrays.asList(Place.values()).stream()
-            .filter(p -> lightsModel == null || !lightsModel.getLightsMap().keySet().contains(p))
-            .forEach(p -> model.addAttribute("lights" + p.getPlaceName(), unreachableLightsView(p)));
+                .filter(p -> lightsModel == null || !lightsModel.getLightsMap().keySet().contains(p))
+                .forEach(p -> model.addAttribute("lights" + p.getPlaceName(), unreachableLightsView(p)));
     }
 
     private LightsView unreachableLightsView(Place place) {

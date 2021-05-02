@@ -26,6 +26,8 @@ public class HomeAppConstants {
 
     public static final BigDecimal TARGET_HUMIDITY_MAX_INSIDE = new BigDecimal("70");
 
+    public static final BigDecimal MAX_DIFF_HEATING_TEMPERATURE = new BigDecimal("-0.5");
+
     //
 
     public static final int MODEL_OUTDATED_SECONDS = 60 * 10;

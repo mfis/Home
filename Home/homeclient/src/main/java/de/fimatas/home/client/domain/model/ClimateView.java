@@ -29,6 +29,8 @@ public class ClimateView extends View {
 
     private String linkManual = "";
 
+    private String linkAdjustTemperature = "";
+
     private String linkAuto = "";
 
     private String targetTemp = "";
@@ -193,5 +195,13 @@ public class ClimateView extends View {
 
     public void setBoostTimeLeft(String boostTimeLeft) {
         this.boostTimeLeft = boostTimeLeft;
+    }
+
+    public String getLinkAdjustTemperature() {
+        return linkAdjustTemperature;
+    }
+
+    public void setLinkAdjustTemperature(String linkAdjustTemperature) {
+        this.linkAdjustTemperature = linkAdjustTemperature;
     }
 }

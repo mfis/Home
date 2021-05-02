@@ -600,6 +600,7 @@
 				<input type="hidden" th:id="'val_model_linkManual_' + ${model.id}" th:value="${model.linkManual}">
 				<input type="hidden" th:id="'val_model_linkAuto_' + ${model.id}" th:value="${model.linkAuto}">
 				<input type="hidden" th:id="'val_model_linkBoost_' + ${model.id}" th:value="${model.linkBoost}">
+				<input type="hidden" th:id="'val_model_linkAdjustTemperature_' + ${model.id}" th:value="${model.linkAdjustTemperature}">
 
 				<th:block th:if="${#strings.isEmpty(model.linkManual)}">
 					<span>&nbsp;</span>
@@ -621,9 +622,12 @@
 				newTargetTemp[[${model.id}]] = newTargetTemp[[${model.id}]] + diff;
 				document.getElementById("idHeatTarget[[${model.id}]]").className = "btn btn-danger btn-sm";
 				document.getElementById("idHeatTargetLabel[[${model.id}]]").innerHTML = newTargetTemp[[${model.id}]].toFixed(1).replace('.', ',');
-				timeout[[${model.id}]] = setTimeout(setHeating[[${model.id}]], 1000 * 1.5);
+				timeout[[${model.id}]] = setTimeout(adjustTemperature[[${model.id}]], 1000 * 1.5);
 			}
 
+			function adjustTemperature[[${model.id}]](){
+				submitContent(document.getElementById('val_model_linkAdjustTemperature_[[${model.id}]]').value + "&value=" + newTargetTemp[[${model.id}]]);
+			}
 			function toggleToManual[[${model.id}]](){
 				submitContent(document.getElementById('val_model_linkManual_[[${model.id}]]').value + "&value=" + newTargetTemp[[${model.id}]]);
 			}
