@@ -513,7 +513,7 @@ public class HouseService {
         }
     }
 
-    public synchronized void heatingBoost(Device device) {
+    public void heatingBoost(Device device) {
         runProgram(device, "Boost");
     }
 
@@ -522,6 +522,10 @@ public class HouseService {
     public synchronized void heatingManual(Device device, BigDecimal temperature) {
         hmApi.executeCommand(homematicCommandBuilder.write(device, "Temperature", temperature.toString()));
         runProgram(device, "Manual");
+    }
+
+    public synchronized void heatingAuto(Device device) {
+        runProgram(device, "Auto");
     }
 
     public void doorState(Message message) {

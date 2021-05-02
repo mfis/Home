@@ -437,8 +437,6 @@ public class HouseViewService {
                     + "&value=null");
 
             // TODO: temperature >= heating -> color class green, else yellow!?
-            // TODO: ccu auto program
-            // TODO: test links!
 
             if (heating.isBoostActive()) {
                 view.setLinkBoost(StringUtils.EMPTY);

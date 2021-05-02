@@ -96,6 +96,10 @@ public class ClientCommunicationService {
                 houseService.heatingManual(message.getDevice(), new BigDecimal(message.getValue()));
                 houseService.refreshHouseModel();
                 break;
+            case HEATINGAUTO:
+                    houseService.heatingAuto(message.getDevice());
+                    houseService.refreshHouseModel();
+                    break;
             case OPEN:
                 houseService.doorState(message);
                 houseService.refreshHouseModel();
