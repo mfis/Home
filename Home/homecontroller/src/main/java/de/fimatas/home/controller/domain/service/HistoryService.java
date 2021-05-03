@@ -283,13 +283,13 @@ public class HistoryService {
         }
 
         BigDecimal dayMin = readExtremValueBetweenWithCache(homematicCommandBuilder.read(device, datapoint),
-            HistoryValueType.MIN, monthStart, monthEnd, TimeRange.DAY);
+            HistoryValueType.MIN, monthStart, monthEnd, TimeRange.MORGING, TimeRange.DAY, TimeRange.EVENING);
         if (dayMin == null) {
             dayMin = nightMin;
         }
 
         BigDecimal dayMax = readExtremValueBetweenWithCache(homematicCommandBuilder.read(device, datapoint),
-            HistoryValueType.MAX, monthStart, monthEnd, TimeRange.DAY);
+            HistoryValueType.MAX, monthStart, monthEnd, TimeRange.MORGING, TimeRange.DAY, TimeRange.EVENING);
         if (dayMax == null) {
             dayMax = nightMax;
         }
@@ -497,14 +497,14 @@ public class HistoryService {
     }
 
     protected BigDecimal readExtremValueBetweenWithCache(HomematicCommand command, HistoryValueType historyValueType,
-            LocalDateTime fromDateTime, LocalDateTime untilDateTime, TimeRange timerange) {
+            LocalDateTime fromDateTime, LocalDateTime untilDateTime, TimeRange... timeranges) {
 
         List<TimestampValuePair> cacheCopy = new LinkedList<>();
         cacheCopy.addAll(entryCache.get(command));
 
         TimestampValuePair dbPair;
-        if (timerange != null) {
-            dbPair = historyDAO.readExtremValueInTimeRange(command, historyValueType, timerange, fromDateTime, untilDateTime);
+        if (timeranges != null) {
+            dbPair = historyDAO.readExtremValueInTimeRange(command, historyValueType, fromDateTime, untilDateTime, timeranges);
         } else {
             dbPair = historyDAO.readExtremValueBetween(command, historyValueType, fromDateTime, untilDateTime);
         }
@@ -514,7 +514,7 @@ public class HistoryService {
             combined.add(dbPair);
         }
         for (TimestampValuePair pair : cacheCopy) {
-            if (lookupIsTimeBetween(fromDateTime, untilDateTime, timerange, pair)) {
+            if (lookupIsTimeBetween(fromDateTime, untilDateTime, pair, timeranges)) {
                 combined.add(pair);
             }
         }
@@ -540,8 +540,8 @@ public class HistoryService {
         }
     }
 
-    private boolean lookupIsTimeBetween(LocalDateTime fromDateTime, LocalDateTime untilDateTime, TimeRange timerange,
-            TimestampValuePair pair) {
+    private boolean lookupIsTimeBetween(LocalDateTime fromDateTime, LocalDateTime untilDateTime,
+            TimestampValuePair pair, TimeRange... timeranges) {
 
         boolean isBetween = true;
         if (fromDateTime != null && pair.getTimestamp().isBefore(fromDateTime)) {
@@ -550,7 +550,7 @@ public class HistoryService {
         if (isBetween && untilDateTime != null && pair.getTimestamp().isAfter(untilDateTime)) {
             isBetween = false;
         }
-        if (isBetween && timerange != null && !timerange.getHoursIntList().contains(pair.getTimestamp().getHour())) {
+        if (isBetween && timeranges != null && !TimeRange.hoursIntList(timeranges).contains(pair.getTimestamp().getHour())) {
             isBetween = false;
         }
         return isBetween;

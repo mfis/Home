@@ -3,46 +3,49 @@ package de.fimatas.home.library.domain.model;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public enum TimeRange {
 
-    NIGHT("in (0,1,2,3,4,5)", //
-        Arrays.asList(0, 1, 2, 3, 4, 5)), //
+    NIGHT(Arrays.asList(0, 1, 2, 3, 4, 5)), //
 
-    MORGING("in (6,7,8,9,10,11)", //
-        Arrays.asList(6, 7, 8, 9, 10, 11)), //
+    MORGING(Arrays.asList(6, 7, 8, 9, 10, 11)), //
 
-    DAY("in (12,13,14,15,16,17)", //
-        Arrays.asList(12, 13, 14, 15, 16, 17)), //
+    DAY(Arrays.asList(12, 13, 14, 15, 16, 17)), //
 
-    EVENING("in (18,19,20,21,22,23)", //
-        Arrays.asList(18, 19, 20, 21, 22, 23)), //
+    EVENING(Arrays.asList(18, 19, 20, 21, 22, 23)), //
     ;
-
-    private final String hoursSqlQueryString;
 
     private final List<Integer> hoursIntList;
 
-    private TimeRange(String hoursSqlQueryString, List<Integer> hoursIntList) {
-        this.hoursSqlQueryString = hoursSqlQueryString;
+    TimeRange(List<Integer> hoursIntList) {
         this.hoursIntList = hoursIntList;
     }
 
     public static TimeRange fromDateTime(LocalDateTime localDateTime) {
         int hours = localDateTime.getHour();
         for (TimeRange range : values()) {
-            if (range.getHoursIntList().contains(hours)) {
+            if (range.hoursIntList.contains(hours)) {
                 return range;
             }
         }
         throw new IllegalStateException("fromDateTime: unexpected hour: " + hours);
     }
 
-    public String getHoursSqlQueryString() {
-        return hoursSqlQueryString;
+    public static String hoursSqlQueryString(TimeRange... ranges) {
+        return "in (" +
+                Stream.of(ranges).map(tr -> tr.hoursIntList).
+                flatMap(List::stream).map(Object::toString).collect(Collectors.joining(","))
+                + ")";
     }
 
-    public List<Integer> getHoursIntList() {
-        return hoursIntList;
+    public static void main(String[] args) {
+        System.out.print(hoursSqlQueryString(MORGING, DAY));
+    }
+
+    public static List<Integer> hoursIntList(TimeRange... ranges) {
+        return Stream.of(ranges).map(tr -> tr.hoursIntList).
+                flatMap(List::stream).collect(Collectors.toList());
     }
 }

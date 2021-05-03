@@ -201,11 +201,11 @@ public class HistoryDatabaseDAO {
 
     @Transactional(readOnly = true)
     public TimestampValuePair readExtremValueInTimeRange(HomematicCommand command, HistoryValueType historyValueType,
-            TimeRange timerange, LocalDateTime fromDateTime, LocalDateTime untilDateTime) {
+            LocalDateTime fromDateTime, LocalDateTime untilDateTime, TimeRange... timeranges) {
 
         String query = "select " + (historyValueType == HistoryValueType.MIN ? "min" : "max") + "(val) as val FROM "
             + command.getCashedVarName() + " where ts >= '" + formatTimestamp(fromDateTime) + "' and ts < '"
-            + formatTimestamp(untilDateTime) + "'" + " and hour(ts) " + timerange.getHoursSqlQueryString() + ";";
+            + formatTimestamp(untilDateTime) + "'" + " and hour(ts) " + TimeRange.hoursSqlQueryString(timeranges) + ";";
 
         BigDecimal result = jdbcTemplateHistory.queryForObject(query, new Object[] {}, new BigDecimalRowMapper(VALUE));
         if (result == null) {
