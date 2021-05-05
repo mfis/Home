@@ -201,7 +201,7 @@ public class HistoryDatabaseDAO {
 
     @Transactional(readOnly = true)
     public TimestampValuePair readExtremValueInTimeRange(HomematicCommand command, HistoryValueType historyValueType,
-            LocalDateTime fromDateTime, LocalDateTime untilDateTime, TimeRange... timeranges) {
+            LocalDateTime fromDateTime, LocalDateTime untilDateTime, List<TimeRange> timeranges) {
 
         String query = "select " + (historyValueType == HistoryValueType.MIN ? "min" : "max") + "(val) as val FROM "
             + command.getCashedVarName() + " where ts >= '" + formatTimestamp(fromDateTime) + "' and ts < '"

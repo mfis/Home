@@ -122,7 +122,7 @@ public class HistoryServiceTest {
             {new BigDecimal(400), HistoryValueType.MAX, null, Integer.valueOf(400)}, //
             {new BigDecimal(80), HistoryValueType.MIN, null, Integer.valueOf(80)}, //
             {new BigDecimal(80), HistoryValueType.MAX, null, Integer.valueOf(200)}, //
-            {new BigDecimal(80), HistoryValueType.MIN, TimeRange.EVENING, Integer.valueOf(100)}, //
+            {new BigDecimal(80), HistoryValueType.MIN, List.of(TimeRange.EVENING), Integer.valueOf(100)}, //
         };
 
         for (Object[] testcase : input) {
@@ -139,7 +139,7 @@ public class HistoryServiceTest {
             when(dao.readExtremValueBetween(cmd, (HistoryValueType) testcase[1], start, end)).thenReturn(dbPair);
 
             BigDecimal result = historyService.readExtremValueBetweenWithCache(cmd, (HistoryValueType) testcase[1], start, end,
-                (TimeRange) testcase[2]);
+                    (List<TimeRange>) testcase[2]);
             assertThat(result.intValue()).isEqualTo(testcase[3]);
         }
 

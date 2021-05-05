@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public enum TimeRange {
 
@@ -33,19 +32,15 @@ public enum TimeRange {
         throw new IllegalStateException("fromDateTime: unexpected hour: " + hours);
     }
 
-    public static String hoursSqlQueryString(TimeRange... ranges) {
+    public static String hoursSqlQueryString(List<TimeRange> ranges) {
         return "in (" +
-                Stream.of(ranges).map(tr -> tr.hoursIntList).
+                ranges.stream().map(tr -> tr.hoursIntList).
                 flatMap(List::stream).map(Object::toString).collect(Collectors.joining(","))
                 + ")";
     }
 
-    public static void main(String[] args) {
-        System.out.print(hoursSqlQueryString(MORGING, DAY));
-    }
-
-    public static List<Integer> hoursIntList(TimeRange... ranges) {
-        return Stream.of(ranges).map(tr -> tr.hoursIntList).
+    public static List<Integer> hoursIntList(List<TimeRange> ranges) {
+        return ranges.stream().map(tr -> tr.hoursIntList).
                 flatMap(List::stream).collect(Collectors.toList());
     }
 }

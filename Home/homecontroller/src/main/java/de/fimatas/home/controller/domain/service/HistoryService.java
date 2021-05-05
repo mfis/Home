@@ -62,7 +62,7 @@ public class HistoryService {
     @Autowired
     private History history;
 
-    private Map<HomematicCommand, List<TimestampValuePair>> entryCache = new HashMap<>();
+    private final Map<HomematicCommand, List<TimestampValuePair>> entryCache = new HashMap<>();
 
     private static final int HOURS_IN_DAY = 24;
 
@@ -271,25 +271,25 @@ public class HistoryService {
             LocalDateTime monthEnd, Device device, Datapoint datapoint) {
 
         BigDecimal nightMin = readExtremValueBetweenWithCache(homematicCommandBuilder.read(device, datapoint),
-            HistoryValueType.MIN, monthStart, monthEnd, TimeRange.NIGHT);
+            HistoryValueType.MIN, monthStart, monthEnd, List.of(TimeRange.NIGHT));
         if (nightMin == null) { // special case directly after month change
             nightMin = readFirstValueBeforeWithCache(homematicCommandBuilder.read(device, datapoint), monthStart, 48);
         }
 
         BigDecimal nightMax = readExtremValueBetweenWithCache(homematicCommandBuilder.read(device, datapoint),
-            HistoryValueType.MAX, monthStart, monthEnd, TimeRange.NIGHT);
+            HistoryValueType.MAX, monthStart, monthEnd, List.of(TimeRange.NIGHT));
         if (nightMax == null) {
             nightMax = nightMin;
         }
 
         BigDecimal dayMin = readExtremValueBetweenWithCache(homematicCommandBuilder.read(device, datapoint),
-            HistoryValueType.MIN, monthStart, monthEnd, TimeRange.MORGING, TimeRange.DAY, TimeRange.EVENING);
+            HistoryValueType.MIN, monthStart, monthEnd, List.of(TimeRange.MORGING, TimeRange.DAY, TimeRange.EVENING));
         if (dayMin == null) {
             dayMin = nightMin;
         }
 
         BigDecimal dayMax = readExtremValueBetweenWithCache(homematicCommandBuilder.read(device, datapoint),
-            HistoryValueType.MAX, monthStart, monthEnd, TimeRange.MORGING, TimeRange.DAY, TimeRange.EVENING);
+            HistoryValueType.MAX, monthStart, monthEnd, List.of(TimeRange.MORGING, TimeRange.DAY, TimeRange.EVENING));
         if (dayMax == null) {
             dayMax = nightMax;
         }
@@ -497,10 +497,9 @@ public class HistoryService {
     }
 
     protected BigDecimal readExtremValueBetweenWithCache(HomematicCommand command, HistoryValueType historyValueType,
-            LocalDateTime fromDateTime, LocalDateTime untilDateTime, TimeRange... timeranges) {
+            LocalDateTime fromDateTime, LocalDateTime untilDateTime, List<TimeRange> timeranges) {
 
-        List<TimestampValuePair> cacheCopy = new LinkedList<>();
-        cacheCopy.addAll(entryCache.get(command));
+        List<TimestampValuePair> cacheCopy = new LinkedList<>(entryCache.get(command));
 
         TimestampValuePair dbPair;
         if (timeranges != null) {
@@ -519,7 +518,7 @@ public class HistoryService {
             }
         }
 
-        TimestampValuePair result = null;
+        TimestampValuePair result;
         switch (historyValueType) {
         case MIN:
             result = min(combined);
@@ -531,7 +530,7 @@ public class HistoryService {
             result = avg(combined);
             break;
         default:
-            throw new IllegalArgumentException("HistoryValueType not expected:" + historyValueType.toString());
+            throw new IllegalArgumentException("HistoryValueType not expected:" + historyValueType);
         }
         if (result == null) {
             return null;
@@ -541,7 +540,7 @@ public class HistoryService {
     }
 
     private boolean lookupIsTimeBetween(LocalDateTime fromDateTime, LocalDateTime untilDateTime,
-            TimestampValuePair pair, TimeRange... timeranges) {
+            TimestampValuePair pair, List<TimeRange> timeranges) {
 
         boolean isBetween = true;
         if (fromDateTime != null && pair.getTimestamp().isBefore(fromDateTime)) {
@@ -559,8 +558,7 @@ public class HistoryService {
     protected BigDecimal readFirstValueBeforeWithCache(HomematicCommand command, LocalDateTime localDateTime,
             int maxHoursReverse) {
 
-        List<TimestampValuePair> cacheCopy = new LinkedList<>();
-        cacheCopy.addAll(entryCache.get(command));
+        List<TimestampValuePair> cacheCopy = new LinkedList<>(entryCache.get(command));
         Collections.reverse(cacheCopy);
 
         TimestampValuePair dbPair = historyDAO.readFirstValueBefore(command, localDateTime, maxHoursReverse);
@@ -584,25 +582,23 @@ public class HistoryService {
         if (combined.isEmpty()) {
             return null;
         }
-        Collections.sort(combined, new TimestampValuePairComparator());
+        combined.sort(new TimestampValuePairComparator());
         return combined.get(combined.size() - 1).getValue();
     }
 
     protected List<TimestampValuePair> readValuesWithCache(HomematicCommand command, LocalDateTime optionalFromDateTime) {
 
-        List<TimestampValuePair> cacheCopy = new LinkedList<>();
-        cacheCopy.addAll(entryCache.get(command));
+        List<TimestampValuePair> cacheCopy = new LinkedList<>(entryCache.get(command));
 
         List<TimestampValuePair> db = historyDAO.readValues(command, optionalFromDateTime);
-        List<TimestampValuePair> combined = new LinkedList<>();
-        combined.addAll(db);
+        List<TimestampValuePair> combined = new LinkedList<>(db);
 
         for (TimestampValuePair cachePair : cacheCopy) {
             if (optionalFromDateTime == null || optionalFromDateTime.isBefore(cachePair.getTimestamp())) {
                 combined.add(cachePair);
             }
         }
-        Collections.sort(combined, new TimestampValuePairComparator());
+        combined.sort(new TimestampValuePairComparator());
 
         return combined;
     }
