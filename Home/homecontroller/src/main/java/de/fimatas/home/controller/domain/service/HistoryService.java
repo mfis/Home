@@ -66,6 +66,8 @@ public class HistoryService {
 
     private static final int HOURS_IN_DAY = 24;
 
+    public static final int MAX_HOURS_REVERSE_FOR_TIMERANGE = 48;
+
     private static final long HIGHEST_OUTSIDE_TEMPERATURE_PERIOD_HOURS = HOURS_IN_DAY;
 
     private static final Log LOG = LogFactory.getLog(HistoryService.class);
@@ -273,7 +275,7 @@ public class HistoryService {
         BigDecimal nightMin = readExtremValueBetweenWithCache(homematicCommandBuilder.read(device, datapoint),
             HistoryValueType.MIN, monthStart, monthEnd, List.of(TimeRange.NIGHT));
         if (nightMin == null) { // special case directly after month change
-            nightMin = readFirstValueBeforeWithCache(homematicCommandBuilder.read(device, datapoint), monthStart, 48);
+            nightMin = readFirstValueBeforeWithCache(homematicCommandBuilder.read(device, datapoint), monthStart);
         }
 
         BigDecimal nightMax = readExtremValueBetweenWithCache(homematicCommandBuilder.read(device, datapoint),
@@ -555,16 +557,15 @@ public class HistoryService {
         return isBetween;
     }
 
-    protected BigDecimal readFirstValueBeforeWithCache(HomematicCommand command, LocalDateTime localDateTime,
-            int maxHoursReverse) {
+    protected BigDecimal readFirstValueBeforeWithCache(HomematicCommand command, LocalDateTime localDateTime) {
 
         List<TimestampValuePair> cacheCopy = new LinkedList<>(entryCache.get(command));
         Collections.reverse(cacheCopy);
 
-        TimestampValuePair dbPair = historyDAO.readFirstValueBefore(command, localDateTime, maxHoursReverse);
+        TimestampValuePair dbPair = historyDAO.readFirstValueBefore(command, localDateTime, MAX_HOURS_REVERSE_FOR_TIMERANGE);
 
         TimestampValuePair cachedPair = null;
-        LocalDateTime compareDateTime = localDateTime.minusHours(maxHoursReverse);
+        LocalDateTime compareDateTime = localDateTime.minusHours(MAX_HOURS_REVERSE_FOR_TIMERANGE);
         for (TimestampValuePair pair : cacheCopy) {
             if (pair.getTimestamp().isBefore(localDateTime) && pair.getTimestamp().isAfter(compareDateTime)) {
                 cachedPair = pair;
