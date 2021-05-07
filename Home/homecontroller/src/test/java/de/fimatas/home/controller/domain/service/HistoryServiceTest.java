@@ -165,7 +165,7 @@ public class HistoryServiceTest {
                 new TimestampValuePair((LocalDateTime) testcase[0], (BigDecimal) testcase[1], HistoryValueType.SINGLE);
             when(dao.readFirstValueBefore(cmd, start, 48)).thenReturn(dbPair);
 
-            BigDecimal result = historyService.readFirstValueBeforeWithCache(cmd, start, 48);
+            BigDecimal result = historyService.readFirstValueBeforeWithCache(cmd, start);
             assertThat(result.intValue()).isEqualTo(testcase[2]);
         }
     }
