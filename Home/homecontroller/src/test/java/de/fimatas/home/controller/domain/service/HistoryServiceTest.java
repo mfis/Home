@@ -1,19 +1,5 @@
 package de.fimatas.home.controller.domain.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 import de.fimatas.home.controller.command.HomematicCommand;
 import de.fimatas.home.controller.command.HomematicCommandBuilder;
 import de.fimatas.home.controller.command.HomematicCommandProcessor;
@@ -26,6 +12,21 @@ import de.fimatas.home.library.domain.model.TimeRange;
 import de.fimatas.home.library.homematic.model.Datapoint;
 import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.homematic.model.HistoryStrategy;
+import org.assertj.core.api.AutoCloseableSoftAssertions;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.*;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HistoryServiceTest {
@@ -52,7 +53,7 @@ public class HistoryServiceTest {
     }
 
     @Test
-    public void testMin() throws Exception {
+    public void testMin() {
         TimestampValuePair result = historyService.min(createList());
         assertThat(result.getTimestamp()).isEqualTo(LocalDateTime.of(2019, 12, 7, 21, 0));
         assertThat(result.getValue()).isEqualTo(new BigDecimal(100));
@@ -60,7 +61,7 @@ public class HistoryServiceTest {
     }
 
     @Test
-    public void testMax() throws Exception {
+    public void testMax()  {
         TimestampValuePair result = historyService.max(createList());
         assertThat(result.getTimestamp()).isEqualTo(LocalDateTime.of(2019, 12, 7, 22, 0));
         assertThat(result.getValue()).isEqualTo(new BigDecimal(200));
@@ -68,7 +69,7 @@ public class HistoryServiceTest {
     }
 
     @Test
-    public void testAvg() throws Exception {
+    public void testAvg() {
         TimestampValuePair result = historyService.avg(createList());
         assertThat(result.getTimestamp()).isEqualTo(LocalDateTime.of(2019, 12, 7, 21, 30));
         assertThat(result.getValue()).isEqualTo(new BigDecimal(160));
@@ -76,7 +77,7 @@ public class HistoryServiceTest {
     }
 
     @Test
-    public void testMinEmptyNull() throws Exception {
+    public void testMinEmptyNull() {
         TimestampValuePair resultEmpty = historyService.min(new LinkedList<>());
         TimestampValuePair resultNull = historyService.min(new LinkedList<>());
         assertThat(resultEmpty).isNull();
@@ -84,7 +85,7 @@ public class HistoryServiceTest {
     }
 
     @Test
-    public void testMaxEmptyNull() throws Exception {
+    public void testMaxEmptyNull()  {
         TimestampValuePair resultEmpty = historyService.max(new LinkedList<>());
         TimestampValuePair resultNull = historyService.max(new LinkedList<>());
         assertThat(resultEmpty).isNull();
@@ -92,7 +93,7 @@ public class HistoryServiceTest {
     }
 
     @Test
-    public void testAvgEmptyNull() throws Exception {
+    public void testAvgEmptyNull(){
         TimestampValuePair resultEmpty = historyService.avg(new LinkedList<>());
         TimestampValuePair resultNull = historyService.avg(new LinkedList<>());
         assertThat(resultEmpty).isNull();
@@ -115,14 +116,14 @@ public class HistoryServiceTest {
     }
 
     @Test
-    public void testReadExtremValueBetweenWithCache() throws Exception {
+    public void testReadExtremValueBetweenWithCache()  {
 
         Object[][] input = new Object[][] { //
-            {new BigDecimal(400), HistoryValueType.MIN, null, Integer.valueOf(100)}, //
-            {new BigDecimal(400), HistoryValueType.MAX, null, Integer.valueOf(400)}, //
-            {new BigDecimal(80), HistoryValueType.MIN, null, Integer.valueOf(80)}, //
-            {new BigDecimal(80), HistoryValueType.MAX, null, Integer.valueOf(200)}, //
-            {new BigDecimal(80), HistoryValueType.MIN, List.of(TimeRange.EVENING), Integer.valueOf(100)}, //
+            {new BigDecimal(400), HistoryValueType.MIN, null, 100}, //
+            {new BigDecimal(400), HistoryValueType.MAX, null, 400}, //
+            {new BigDecimal(80), HistoryValueType.MIN, null, 80}, //
+            {new BigDecimal(80), HistoryValueType.MAX, null, 200}, //
+            {new BigDecimal(80), HistoryValueType.MIN, List.of(TimeRange.EVENING), 100}, //
         };
 
         for (Object[] testcase : input) {
@@ -146,10 +147,10 @@ public class HistoryServiceTest {
     }
 
     @Test
-    public void testReadFirstValueBeforeWithCache() throws Exception {
+    public void testReadFirstValueBeforeWithCache() {
 
         Object[][] input = new Object[][] { //
-            {LocalDateTime.of(2019, 12, 7, 19, 00), new BigDecimal(400), 180}, //
+            {LocalDateTime.of(2019, 12, 7, 19, 0), new BigDecimal(400), 180}, //
             {LocalDateTime.of(2019, 12, 7, 21, 59), new BigDecimal(400), 400}, //
         };
 
@@ -171,11 +172,11 @@ public class HistoryServiceTest {
     }
 
     @Test
-    public void testReadValuesWithCache() throws Exception {
+    public void testReadValuesWithCache() {
 
         Object[][] input = new Object[][] { //
-            {LocalDateTime.of(2019, 12, 7, 19, 00), new BigDecimal(400), null, 4}, //
-            {LocalDateTime.of(2019, 12, 7, 19, 00), new BigDecimal(400), LocalDateTime.of(2019, 12, 7, 21, 30), 3}, //
+            {LocalDateTime.of(2019, 12, 7, 19, 0), new BigDecimal(400), null, 4}, //
+            {LocalDateTime.of(2019, 12, 7, 19, 0), new BigDecimal(400), LocalDateTime.of(2019, 12, 7, 21, 30), 3}, //
         };
 
         for (Object[] testcase : input) {
@@ -185,7 +186,7 @@ public class HistoryServiceTest {
 
             TimestampValuePair dbPair =
                 new TimestampValuePair((LocalDateTime) testcase[0], (BigDecimal) testcase[1], HistoryValueType.SINGLE);
-            when(dao.readValues(cmd, (LocalDateTime) testcase[2])).thenReturn(Arrays.asList(dbPair));
+            when(dao.readValues(cmd, (LocalDateTime) testcase[2])).thenReturn(Collections.singletonList(dbPair));
 
             List<TimestampValuePair> result = historyService.readValuesWithCache(cmd, (LocalDateTime) testcase[2]);
             assertThat(result.size()).isEqualTo(testcase[3]);
@@ -193,29 +194,43 @@ public class HistoryServiceTest {
     }
 
     @Test
-    public void testDiffValueCheckedAdd() throws Exception {
+    public void testDiffValueCheckedAdd()  {
 
-        HistoryElement historyElement = new HistoryElement(
-            homematicCommandBuilder.read(Device.STROMZAEHLER_GESAMT, Datapoint.ENERGY_COUNTER), HistoryStrategy.MAX, 1000);
+        final LocalDateTime baseTime = LocalDateTime.of(2019, 12, 7, 21, 30);
+        final HistoryElement historyElement = new HistoryElement(
+                homematicCommandBuilder.read(Device.AUSSENTEMPERATUR, Datapoint.TEMPERATURE), HistoryStrategy.AVG, 1);
 
-        LocalDateTime dbTs = LocalDateTime.of(2019, 12, 7, 21, 30);
-        Object[][] input = new Object[][] { //
-            {new TimestampValuePair(dbTs, new BigDecimal(100), HistoryValueType.SINGLE), 1}, //
-            {new TimestampValuePair(dbTs, new BigDecimal(9999), HistoryValueType.SINGLE), 0}, //
-            {new TimestampValuePair(dbTs.minusHours(14), new BigDecimal(9999), HistoryValueType.SINGLE), 1}, //
-        };
-
-        for (Object[] testcase : input) {
-
-            when(dao.readLatestValue(historyElement.getCommand())).thenReturn((TimestampValuePair) testcase[0]);
-
-            TimestampValuePair newPair =
-                new TimestampValuePair(LocalDateTime.of(2019, 12, 7, 21, 40), new BigDecimal(10000), HistoryValueType.SINGLE);
-
-            List<TimestampValuePair> result = new LinkedList<>();
-            historyService.diffValueCheckedAdd(historyElement, newPair, result);
-            assertThat(result.size()).isEqualTo(testcase[1]);
+        class TestParams {
+            final TimestampValuePair pair;
+            final int expectation;
+            final String description;
+            TestParams(int plusMinutes, String value, boolean expectation, String description){
+                this.pair = new TimestampValuePair(baseTime.plusMinutes(plusMinutes), new BigDecimal(value), HistoryValueType.SINGLE);
+                this.expectation = expectation?1:0;
+                this.description = description;
+            }
         }
+
+        List<TestParams> testValueMap = new LinkedList<>();
+
+        testValueMap.add(new TestParams(1,"1", true, "always add first entry"));
+        testValueMap.add(new TestParams(1, "4", true, "add diff > +1"));
+        testValueMap.add(new TestParams(1, "4.2", false, "not add diff < +1"));
+        testValueMap.add(new TestParams(1, "4.5", true, "add diff < +1 if rounded value is not equal"));
+        testValueMap.add(new TestParams(1, "3.4", true, "add diff > -1"));
+        testValueMap.add(new TestParams(1, "2.8", false, "not add diff < -1"));
+        testValueMap.add(new TestParams(1, "2.4", true, "add diff < -1 if rounded value is not equal"));
+
+        final AutoCloseableSoftAssertions softAssert = new AutoCloseableSoftAssertions();
+        TimestampValuePair lastPair = null;
+        for (TestParams params: testValueMap) {
+            when(dao.readLatestValue(historyElement.getCommand())).thenReturn(lastPair);
+            var result = new LinkedList<TimestampValuePair>();
+            historyService.diffValueCheckedAdd(historyElement, params.pair, result);
+            softAssert.assertThat(result.size()).describedAs(params.description).isEqualTo(params.expectation);
+            lastPair = params.pair;
+        }
+        softAssert.assertAll();
     }
 
 }

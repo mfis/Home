@@ -5,9 +5,9 @@ import de.fimatas.home.library.homematic.model.HistoryStrategy;
 
 public class HistoryElement {
 
-    private HomematicCommand command;
+    private final HomematicCommand command;
 
-    private HistoryStrategy strategy;
+    private final HistoryStrategy strategy;
 
     private int valueDifferenceToSave;
 
@@ -28,17 +28,4 @@ public class HistoryElement {
     public int getValueDifferenceToSave() {
         return valueDifferenceToSave;
     }
-
-    void setCommand(HomematicCommand command) {
-        this.command = command;
-    }
-
-    void setStrategy(HistoryStrategy strategy) {
-        this.strategy = strategy;
-    }
-
-    void setValueDifferenceToSave(int valueDifferenceToSave) {
-        this.valueDifferenceToSave = valueDifferenceToSave;
-    }
-
 }

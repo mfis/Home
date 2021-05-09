@@ -113,16 +113,13 @@ public class HistoryService {
             case MAX:
                 diffValueCheckedAdd(historyElement, max(entryCache.get(historyElement.getCommand())), pairs);
                 break;
-            case MIN_MAX:
-                diffValueCheckedAdd(historyElement, min(entryCache.get(historyElement.getCommand())), pairs);
-                diffValueCheckedAdd(historyElement, max(entryCache.get(historyElement.getCommand())), pairs);
-                break;
             case AVG:
                 diffValueCheckedAdd(historyElement, avg(entryCache.get(historyElement.getCommand())), pairs);
                 break;
             }
             toInsert.put(historyElement.getCommand(), pairs);
         }
+
         try {
             historyDAO.persistEntries(toInsert);
         } catch (Exception e) {
@@ -544,10 +541,8 @@ public class HistoryService {
     private boolean lookupIsTimeBetween(LocalDateTime fromDateTime, LocalDateTime untilDateTime,
             TimestampValuePair pair, List<TimeRange> timeranges) {
 
-        boolean isBetween = true;
-        if (fromDateTime != null && pair.getTimestamp().isBefore(fromDateTime)) {
-            isBetween = false;
-        }
+        boolean isBetween = fromDateTime == null || !pair.getTimestamp().isBefore(fromDateTime);
+
         if (isBetween && untilDateTime != null && pair.getTimestamp().isAfter(untilDateTime)) {
             isBetween = false;
         }
@@ -613,9 +608,14 @@ public class HistoryService {
             return;
         }
 
+        if(lastValue.getValue().subtract(pair.getValue()).abs().compareTo(new BigDecimal(history.getValueDifferenceToSave())) >= 0){
+            dest.add(pair);
+            return;
+        }
+
         long lastValueRounded = lastValue.getValue().setScale(0, RoundingMode.HALF_UP).longValue();
         long actualValueRounded = pair.getValue().setScale(0, RoundingMode.HALF_UP).longValue();
-        if ((actualValueRounded - lastValueRounded) >= history.getValueDifferenceToSave()) {
+        if (Math.abs(actualValueRounded - lastValueRounded) >= history.getValueDifferenceToSave()) {
             dest.add(pair);
             return;
         }

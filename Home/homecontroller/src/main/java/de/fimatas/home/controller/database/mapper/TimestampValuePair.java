@@ -9,9 +9,9 @@ public class TimestampValuePair {
 
     private LocalDateTime timestamp;
 
-    private BigDecimal value;
+    private final BigDecimal value;
 
-    private HistoryValueType type;
+    private final HistoryValueType type;
 
     public TimestampValuePair(LocalDateTime timestamp, BigDecimal value, HistoryValueType type) {
         super();
