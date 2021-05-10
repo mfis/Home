@@ -108,6 +108,8 @@ public class HouseViewService {
 
     private static final BigDecimal HIGH_TEMP = new BigDecimal("25");
 
+    private static final BigDecimal MEDIUM_HIGH_TEMP = new BigDecimal("23.0");
+
     private static final BigDecimal LOW_TEMP = new BigDecimal("18");
 
     private static final BigDecimal FROST_TEMP = new BigDecimal("3");
@@ -485,6 +487,9 @@ public class HouseViewService {
         if (climate.getTemperature().getValue().compareTo(HIGH_TEMP) > 0) {
             view.setColorClass(COLOR_CLASS_RED);
             view.setIcon("fas fa-thermometer-full");
+        } else if (climate.getTemperature().getValue().compareTo(MEDIUM_HIGH_TEMP) > 0) {
+            view.setColorClass(COLOR_CLASS_ORANGE);
+            view.setIcon("fas fa-thermometer-half");
         } else if (climate.getTemperature().getValue().compareTo(LOW_TEMP) < 0) {
             view.setColorClass(COLOR_CLASS_BLUE);
             view.setIcon("fas fa-thermometer-empty");
