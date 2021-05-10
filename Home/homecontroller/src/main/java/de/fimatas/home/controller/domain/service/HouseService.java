@@ -1,7 +1,29 @@
 package de.fimatas.home.controller.domain.service;
 
+import de.fimatas.home.controller.api.HomematicAPI;
+import de.fimatas.home.controller.command.HomematicCommand;
+import de.fimatas.home.controller.command.HomematicCommandBuilder;
+import de.fimatas.home.controller.service.CameraService;
+import de.fimatas.home.controller.service.HumidityCalculator;
+import de.fimatas.home.controller.service.PushService;
+import de.fimatas.home.library.dao.ModelObjectDAO;
+import de.fimatas.home.library.domain.model.*;
+import de.fimatas.home.library.homematic.model.Datapoint;
+import de.fimatas.home.library.homematic.model.Device;
+import de.fimatas.home.library.homematic.model.HomematicConstants;
+import de.fimatas.home.library.homematic.model.Type;
+import de.fimatas.home.library.model.Message;
+import de.fimatas.home.library.util.HomeAppConstants;
+import mfi.files.api.UserService;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.SerializationUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
 import java.math.BigDecimal;
-import java.text.DecimalFormat;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -12,46 +34,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.SerializationUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
-import de.fimatas.home.controller.api.HomematicAPI;
-import de.fimatas.home.controller.command.HomematicCommand;
-import de.fimatas.home.controller.command.HomematicCommandBuilder;
-import de.fimatas.home.controller.service.CameraService;
-import de.fimatas.home.controller.service.HumidityCalculator;
-import de.fimatas.home.controller.service.PushService;
-import de.fimatas.home.library.dao.ModelObjectDAO;
-import de.fimatas.home.library.domain.model.AutomationState;
-import de.fimatas.home.library.domain.model.Camera;
-import de.fimatas.home.library.domain.model.Climate;
-import de.fimatas.home.library.domain.model.Doorbell;
-import de.fimatas.home.library.domain.model.Doorlock;
-import de.fimatas.home.library.domain.model.Heating;
-import de.fimatas.home.library.domain.model.Hint;
-import de.fimatas.home.library.domain.model.HouseModel;
-import de.fimatas.home.library.domain.model.Intensity;
-import de.fimatas.home.library.domain.model.OutdoorClimate;
-import de.fimatas.home.library.domain.model.PowerMeter;
-import de.fimatas.home.library.domain.model.RoomClimate;
-import de.fimatas.home.library.domain.model.Shutter;
-import de.fimatas.home.library.domain.model.ShutterPosition;
-import de.fimatas.home.library.domain.model.StateValue;
-import de.fimatas.home.library.domain.model.Switch;
-import de.fimatas.home.library.domain.model.Tendency;
-import de.fimatas.home.library.domain.model.ValueWithTendency;
-import de.fimatas.home.library.domain.model.WindowSensor;
-import de.fimatas.home.library.homematic.model.Datapoint;
-import de.fimatas.home.library.homematic.model.Device;
-import de.fimatas.home.library.homematic.model.HomematicConstants;
-import de.fimatas.home.library.homematic.model.Type;
-import de.fimatas.home.library.model.Message;
-import de.fimatas.home.library.util.HomeAppConstants;
-import mfi.files.api.UserService;
 
 @Component
 public class HouseService {
@@ -108,8 +90,6 @@ public class HouseService {
     @Autowired
     private UserService userService;
 
-    private BigDecimal start = null;
-
     @Scheduled(initialDelay = (1000 * 3), fixedDelay = (1000 * HomeAppConstants.MODEL_DEFAULT_INTERVAL_SECONDS))
     private void scheduledRefreshHouseModel() {
         refreshHouseModel();
@@ -163,7 +143,9 @@ public class HouseService {
             readOutdoorClimate(Device.DIFF_TEMPERATUR_TERRASSE_AUSSEN, Device.DIFF_TEMPERATUR_TERRASSE_DIFF));
         newModel.setClimateEntrance(
             readOutdoorClimate(Device.DIFF_TEMPERATUR_EINFAHRT_AUSSEN, Device.DIFF_TEMPERATUR_EINFAHRT_DIFF));
-        newModel.setClimateGarden(readOutdoorClimate(Device.THERMOMETER_GARTEN, null));
+        // DIFF_TEMPERATUR_TERRASSE_DIFF is still high because of sun movement, so
+        // we still can use it for the garden thermometer with a single sensor
+        newModel.setClimateGarden(readOutdoorClimate(Device.THERMOMETER_GARTEN, Device.DIFF_TEMPERATUR_TERRASSE_DIFF));
 
         newModel.setKitchenWindowLightSwitch(readSwitchState(Device.SCHALTER_KUECHE_LICHT));
         newModel.setWallboxSwitch(readSwitchState(Device.SCHALTER_WALLBOX));
@@ -217,7 +199,7 @@ public class HouseService {
     private void calculateOutdoorMinMax(HouseModel newModel, List<OutdoorClimate> outdoor) {
 
         Comparator<OutdoorClimate> comparator =
-            Comparator.comparing(OutdoorClimate::getTemperature, (t1, t2) -> t1.getValue().compareTo(t2.getValue()));
+            Comparator.comparing(OutdoorClimate::getTemperature, Comparator.comparing(ValueWithTendency::getValue));
         Optional<OutdoorClimate> minTemperature = outdoor.stream().min(comparator);
         Optional<OutdoorClimate> maxTemperature = outdoor.stream().max(comparator);
 
@@ -391,7 +373,7 @@ public class HouseService {
         if (old != null && old.getHints() != null) {
             room.getHints().overtakeOldHints(old.getHints(), dateTime);
         }
-        if (outdoor != null) {
+        if (outdoor != null && !room.isUnreach() && !outdoor.isUnreach() && (heating==null || !heating.isUnreach())) {
             lookupTemperatureHint(room, heating, outdoor, dateTime);
         }
         lookupHumidityHint(room, dateTime);
@@ -618,9 +600,11 @@ public class HouseService {
             outdoorClimate.setHumidity(new ValueWithTendency<>(humidity));
         }
 
-        if (diff != null) {
+        if (diff != null && !hmApi.isDeviceUnreachableOrNotSending(diff)) {
             outdoorClimate.setSunBeamIntensity(
                 lookupIntensity(hmApi.getAsBigDecimal(homematicCommandBuilder.read(diff, Datapoint.TEMPERATURE))));
+        }else{
+            outdoorClimate.setSunBeamIntensity(Intensity.NO);
         }
 
         return outdoorClimate;
