@@ -149,13 +149,8 @@ public class HistoryDatabaseDAO {
 
         StringTokenizer tokenizer = new StringTokenizer(sb.toString(), ";");
         while (tokenizer.hasMoreTokens()) {
-            insertFromStatement(tokenizer.nextToken().trim() + ";");
+            jdbcTemplateHistory.update(tokenizer.nextToken().trim() + ";");
         }
-    }
-
-    @Transactional(propagation = Propagation.REQUIRED)
-    public void insertFromStatement(String statement) {
-        jdbcTemplateHistory.update(statement);
     }
 
     @Transactional
