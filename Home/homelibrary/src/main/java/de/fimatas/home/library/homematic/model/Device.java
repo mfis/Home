@@ -10,8 +10,11 @@ public enum Device {
     THERMOSTAT_BAD(HomematicProtocol.HM, Type.THERMOSTAT, Place.BATHROOM, true, Datapoint.LIST_THERMOSTAT_HM,
         Type.VAR_PREFIXES_PROG_CONTROL, Boolean.class, Integer.class), //
 
-    THERMOMETER_KINDERZIMMER(HomematicProtocol.HMIP, Type.THERMOMETER, Place.KIDSROOM, true, Datapoint.LIST_THERMOMETER_HMIP,
+    THERMOMETER_KINDERZIMMER_1(HomematicProtocol.HMIP, Type.THERMOMETER, Place.KIDSROOM_1, true, Datapoint.LIST_THERMOMETER_HMIP,
         null), //
+
+    THERMOMETER_KINDERZIMMER_2(HomematicProtocol.HMIP, Type.THERMOMETER, Place.KIDSROOM_2, true, Datapoint.LIST_THERMOMETER_HMIP,
+            null), //
 
     THERMOMETER_WOHNZIMMER(HomematicProtocol.HMIP, Type.THERMOMETER, Place.LIVINGROOM, true, Datapoint.LIST_THERMOMETER_HMIP,
         null), //

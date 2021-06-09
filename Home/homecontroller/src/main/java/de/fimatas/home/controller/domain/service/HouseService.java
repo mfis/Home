@@ -20,6 +20,7 @@ import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -90,6 +91,9 @@ public class HouseService {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private Environment env;
+
     @Scheduled(initialDelay = (1000 * 3), fixedDelay = (1000 * HomeAppConstants.MODEL_DEFAULT_INTERVAL_SECONDS))
     private void scheduledRefreshHouseModel() {
         refreshHouseModel();
@@ -128,7 +132,8 @@ public class HouseService {
 
         newModel.setClimateBathRoom(readRoomClimate(Device.THERMOSTAT_BAD));
         newModel.setHeatingBathRoom(readHeating(Device.THERMOSTAT_BAD));
-        newModel.setClimateKidsRoom(readRoomClimate(Device.THERMOMETER_KINDERZIMMER));
+        newModel.setClimateKidsRoom1(readRoomClimate(Device.THERMOMETER_KINDERZIMMER_1));
+        newModel.setClimateKidsRoom2(readRoomClimate(Device.THERMOMETER_KINDERZIMMER_2));
         newModel.setClimateLivingRoom(readRoomClimate(Device.THERMOMETER_WOHNZIMMER));
         newModel.setClimateBedRoom(readRoomClimate(Device.THERMOMETER_SCHLAFZIMMER));
         newModel.setClimateLaundry(readRoomClimate(Device.THERMOMETER_WASCHKUECHE));
@@ -163,6 +168,7 @@ public class HouseService {
         }
 
         ckeckWarnings(newModel);
+        readSubtitles(newModel);
 
         return newModel;
     }
@@ -354,8 +360,10 @@ public class HouseService {
     public void calculateHints(HouseModel oldModel, HouseModel newModel) {
 
         try {
-            lookupHint(oldModel != null ? oldModel.getClimateKidsRoom() : null, newModel.getClimateKidsRoom(), null,
+            lookupHint(oldModel != null ? oldModel.getClimateKidsRoom1() : null, newModel.getClimateKidsRoom1(), null,
                 newModel.getClimateEntrance(), newModel.getDateTime());
+            lookupHint(oldModel != null ? oldModel.getClimateKidsRoom2() : null, newModel.getClimateKidsRoom2(), null,
+                    newModel.getClimateEntrance(), newModel.getDateTime());
             lookupHint(oldModel != null ? oldModel.getClimateBathRoom() : null, newModel.getClimateBathRoom(),
                 newModel.getHeatingBathRoom(), newModel.getClimateGarden(), newModel.getDateTime());
             lookupHint(oldModel != null ? oldModel.getClimateBedRoom() : null, newModel.getClimateBedRoom(), null,
@@ -630,6 +638,23 @@ public class HouseService {
             roomClimate.setSubType(Type.THERMOMETER);
         }
         return roomClimate;
+    }
+
+    private void readSubtitles(HouseModel houseModel) {
+        for (Place place : Place.values()) {
+            Optional<String> subtitle = readSubtitleFor(place);
+            if(subtitle.isPresent()){
+                houseModel.getPlaceSubtitles().put(place, subtitle.get());
+            }
+        }
+    }
+
+    public Optional<String> readSubtitleFor(Place place){
+        var key = "place." + place.name() + ".subtitle";
+        if(env.containsProperty(key)){
+            return Optional.of(env.getProperty(key));
+        }
+        return Optional.empty();
     }
 
     private Heating readHeating(Device heating) {

@@ -25,7 +25,6 @@ public class SynonymeRepository {
             SYNONYMES.add(new Synonym<Type>(type.getTypeName(), type));
         }
 
-        SYNONYMES.add(new Synonym<Place>("Bastian|Bastians", Place.KIDSROOM));
         SYNONYMES.add(new Synonym<Place>("Badezimmer", Place.BATHROOM));
         SYNONYMES.add(new Synonym<Place>("Küchen", Place.KITCHEN));
         SYNONYMES.add(new Synonym<Place>("Außen|Draußen|Garten", Place.OUTSIDE));

@@ -28,7 +28,9 @@ public class HistoryModel implements Serializable {
 
     private LinkedList<TemperatureHistory> bedRoomTemperature;
 
-    private LinkedList<TemperatureHistory> kidsRoomTemperature;
+    private LinkedList<TemperatureHistory> kidsRoom1Temperature;
+
+    private LinkedList<TemperatureHistory> kidsRoom2Temperature;
 
     private LinkedList<TemperatureHistory> laundryTemperature;
 
@@ -63,7 +65,8 @@ public class HistoryModel implements Serializable {
         wallboxElectricPowerConsumptionDay = new LinkedList<>();
         outsideTemperature = new LinkedList<>();
         bedRoomTemperature = new LinkedList<>();
-        kidsRoomTemperature = new LinkedList<>();
+        kidsRoom1Temperature = new LinkedList<>();
+        kidsRoom2Temperature = new LinkedList<>();
         laundryTemperature = new LinkedList<>();
     }
 
@@ -91,12 +94,20 @@ public class HistoryModel implements Serializable {
         this.bedRoomTemperature = bedRoomTemperature;
     }
 
-    public LinkedList<TemperatureHistory> getKidsRoomTemperature() {// NOSONAR
-        return kidsRoomTemperature;
+    public LinkedList<TemperatureHistory> getKidsRoom1Temperature() {// NOSONAR
+        return kidsRoom1Temperature;
     }
 
-    public void setKidsRoomTemperature(LinkedList<TemperatureHistory> kidsRoomTemperature) {// NOSONAR
-        this.kidsRoomTemperature = kidsRoomTemperature;
+    public void setKidsRoom1Temperature(LinkedList<TemperatureHistory> kidsRoom1Temperature) {// NOSONAR
+        this.kidsRoom1Temperature = kidsRoom1Temperature;
+    }
+
+    public LinkedList<TemperatureHistory> getKidsRoom2Temperature() {
+        return kidsRoom2Temperature;
+    }
+
+    public void setKidsRoom2Temperature(LinkedList<TemperatureHistory> kidsRoom2Temperature) {
+        this.kidsRoom2Temperature = kidsRoom2Temperature;
     }
 
     public LinkedList<TemperatureHistory> getLaundryTemperature() {// NOSONAR

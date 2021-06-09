@@ -34,7 +34,7 @@ public class AppViewService {
         for (Place placeInOrder : placesOrder) {
             for (Object value : model.asMap().values()) {
                 if (value instanceof View) {
-                    mapView(appModel, placeInOrder, value);
+                    mapView(appModel, placeInOrder, value, model);
                 }
             }
         }
@@ -50,11 +50,11 @@ public class AppViewService {
         return appModel;
     }
 
-    private void mapView(HomeViewModel appModel, Place placeInOrder, Object value) {
+    private void mapView(HomeViewModel appModel, Place placeInOrder, Object value, Model completeModel) {
 
         View view = (View) value;
-        if (view.getPlace().equals(placeInOrder.getPlaceName())) {
-            HomeViewPlaceModel placeModel = lookupPlaceModel(appModel, placeInOrder);
+        if (view.getPlaceID().equals(placeInOrder.name())) {
+            HomeViewPlaceModel placeModel = lookupPlaceModel(appModel, placeInOrder, completeModel);
             if (view instanceof ClimateView) {
                 mapClimateView(placeInOrder, (ClimateView) view, placeModel);
             } else if (view instanceof PowerView) {
@@ -71,14 +71,12 @@ public class AppViewService {
 
     private void mapSwitchView(Place placeInOrder, SwitchView view, HomeViewPlaceModel placeModel) {
 
-        placeModel.setName(placeInOrder.getPlaceName());
         placeModel.getValues().add(mapSwitchStatus(placeInOrder, view));
         placeModel.getActions().addAll(mapSwitchActions(placeInOrder, view));
     }
 
     private void mapWindowView(Place placeInOrder, WindowSensorView view, HomeViewPlaceModel placeModel) {
 
-        placeModel.setName(placeInOrder.getPlaceName());
         placeModel.getValues().add(mapWindowStatus(placeInOrder, view));
 
     }
@@ -93,8 +91,6 @@ public class AppViewService {
 
         if (placeInOrder == Place.HOUSE) {
             placeModel.setName("Strom Gesamt");
-        } else {
-            placeModel.setName(placeInOrder.getPlaceName());
         }
         placeModel.getValues().add(mapActualPower(placeInOrder, view));
         placeModel.getValues().add(mapTodayPower(placeInOrder, view));
@@ -102,7 +98,6 @@ public class AppViewService {
 
     private void mapClimateView(Place placeInOrder, ClimateView view, HomeViewPlaceModel placeModel) {
 
-        placeModel.setName(placeInOrder.getPlaceName());
         placeModel.getValues().add(mapTemperature(placeInOrder, view));
         if (StringUtils.isNotBlank(view.getStateHumidity())) {
             placeModel.getValues().add(mapHumidity(placeInOrder, view));
@@ -118,7 +113,8 @@ public class AppViewService {
             placesOrder.add(Place.FRONTDOOR);
             placesOrder.add(Place.LIVINGROOM);
             placesOrder.add(Place.KITCHEN);
-            placesOrder.add(Place.KIDSROOM);
+            placesOrder.add(Place.KIDSROOM_1);
+            placesOrder.add(Place.KIDSROOM_2);
             placesOrder.add(Place.BEDROOM);
             placesOrder.add(Place.BATHROOM);
             placesOrder.add(Place.LAUNDRY);
@@ -135,7 +131,7 @@ public class AppViewService {
         return placesOrder;
     }
 
-    private HomeViewPlaceModel lookupPlaceModel(HomeViewModel appModel, Place placeInOrder) {
+    private HomeViewPlaceModel lookupPlaceModel(HomeViewModel appModel, Place placeInOrder, Model completeModel) {
 
         HomeViewPlaceModel placeModel = null;
         // search for existing place model in target root model
@@ -149,6 +145,12 @@ public class AppViewService {
         if (placeModel == null) {
             placeModel = appModel.new HomeViewPlaceModel();
             placeModel.setId(placeInOrder.name());
+            var subtitleKey = HouseViewService.PLACE_SUBTITLE_PREFIX + placeInOrder.name();
+            if(completeModel.getAttribute(subtitleKey)!=null){
+                placeModel.setName((String) completeModel.getAttribute(subtitleKey));
+            }else{
+                placeModel.setName(placeInOrder.getPlaceName());
+            }
             // name is set in mapper
             appModel.getPlaces().add(placeModel);
         }

@@ -158,8 +158,10 @@ public class HistoryService {
             newModel.getWallboxElectricPowerConsumptionMonth(), Device.STROMZAEHLER_WALLBOX, null);
 
         calculateTemperatureHistory(newModel.getOutsideTemperature(), Device.AUSSENTEMPERATUR, Datapoint.VALUE);
-        calculateTemperatureHistory(newModel.getKidsRoomTemperature(), Device.THERMOMETER_KINDERZIMMER,
+        calculateTemperatureHistory(newModel.getKidsRoom1Temperature(), Device.THERMOMETER_KINDERZIMMER_1,
             Datapoint.ACTUAL_TEMPERATURE);
+        calculateTemperatureHistory(newModel.getKidsRoom2Temperature(), Device.THERMOMETER_KINDERZIMMER_2,
+                Datapoint.ACTUAL_TEMPERATURE);
         calculateTemperatureHistory(newModel.getBedRoomTemperature(), Device.THERMOMETER_SCHLAFZIMMER,
             Datapoint.ACTUAL_TEMPERATURE);
         calculateTemperatureHistory(newModel.getLaundryTemperature(), Device.THERMOMETER_WASCHKUECHE,
@@ -211,7 +213,8 @@ public class HistoryService {
                 .get(model.getWallboxElectricPowerConsumptionMonth().size() - 1).measurePointMaxDateTime());
 
         updateTemperatureHistory(model.getOutsideTemperature(), Device.AUSSENTEMPERATUR, Datapoint.VALUE);
-        updateTemperatureHistory(model.getKidsRoomTemperature(), Device.THERMOMETER_KINDERZIMMER, Datapoint.ACTUAL_TEMPERATURE);
+        updateTemperatureHistory(model.getKidsRoom1Temperature(), Device.THERMOMETER_KINDERZIMMER_1, Datapoint.ACTUAL_TEMPERATURE);
+        updateTemperatureHistory(model.getKidsRoom2Temperature(), Device.THERMOMETER_KINDERZIMMER_2, Datapoint.ACTUAL_TEMPERATURE);
         updateTemperatureHistory(model.getBedRoomTemperature(), Device.THERMOMETER_SCHLAFZIMMER, Datapoint.ACTUAL_TEMPERATURE);
         updateTemperatureHistory(model.getLaundryTemperature(), Device.THERMOMETER_WASCHKUECHE, Datapoint.ACTUAL_TEMPERATURE);
 

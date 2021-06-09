@@ -25,11 +25,18 @@ public class History {
         elements = new LinkedList<>();
 
         elements
-            .add(new HistoryElement(homematicCommandBuilder.read(Device.THERMOMETER_KINDERZIMMER, Datapoint.ACTUAL_TEMPERATURE),
+            .add(new HistoryElement(homematicCommandBuilder.read(Device.THERMOMETER_KINDERZIMMER_1, Datapoint.ACTUAL_TEMPERATURE),
                 HistoryStrategy.AVG, 1));
 
-        elements.add(new HistoryElement(homematicCommandBuilder.read(Device.THERMOMETER_KINDERZIMMER, Datapoint.HUMIDITY),
+        elements.add(new HistoryElement(homematicCommandBuilder.read(Device.THERMOMETER_KINDERZIMMER_1, Datapoint.HUMIDITY),
             HistoryStrategy.AVG, 2));
+
+        elements
+                .add(new HistoryElement(homematicCommandBuilder.read(Device.THERMOMETER_KINDERZIMMER_2, Datapoint.ACTUAL_TEMPERATURE),
+                        HistoryStrategy.AVG, 1));
+
+        elements.add(new HistoryElement(homematicCommandBuilder.read(Device.THERMOMETER_KINDERZIMMER_2, Datapoint.HUMIDITY),
+                HistoryStrategy.AVG, 2));
 
         elements
             .add(new HistoryElement(homematicCommandBuilder.read(Device.THERMOMETER_SCHLAFZIMMER, Datapoint.ACTUAL_TEMPERATURE),

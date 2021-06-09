@@ -6,10 +6,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import javax.annotation.PostConstruct;
 
@@ -72,6 +69,10 @@ public class HouseViewService {
 
     private static final String PROGRAMMGESTEUERT = ", Automatik";
 
+    private static final String EINGESCHALTET = "eingeschaltet";
+
+    private static final String AUSGESCHALTET = "ausgeschaltet";
+
     private static final String MANUELL = ", Manuell";
 
     private static final String AND_VALUE_IS = "&value=";
@@ -114,6 +115,8 @@ public class HouseViewService {
 
     private static final BigDecimal FROST_TEMP = new BigDecimal("3");
 
+    public static final String PLACE_SUBTITLE_PREFIX = "place_subtitle_";
+
     @Autowired
     private ViewFormatter viewFormatter;
 
@@ -135,7 +138,8 @@ public class HouseViewService {
         model.addAttribute("modelTimestamp", Long.toString(Long.max(house.getDateTime(), lightsModel.getTimestamp())));
 
         formatClimate(model, "tempBathroom", house.getClimateBathRoom(), house.getHeatingBathRoom(), false);
-        formatClimate(model, "tempKids", house.getClimateKidsRoom(), null, true);
+        formatClimate(model, "tempKids1", house.getClimateKidsRoom1(), null, true);
+        formatClimate(model, "tempKids2", house.getClimateKidsRoom2(), null, true);
         formatClimate(model, "tempLivingroom", house.getClimateLivingRoom(), null, false);
         formatClimate(model, "tempBedroom", house.getClimateBedRoom(), null, true);
         formatClimate(model, "tempLaundry", house.getClimateLaundry(), null, true);
@@ -161,6 +165,8 @@ public class HouseViewService {
         formatLowBattery(model, house.getLowBatteryDevices());
 
         formatWarnings(model, house, lightsModel);
+
+        formatPlaceSubtitles(model, house);
 
         formatLights(lightsModel, model);
     }
@@ -240,7 +246,7 @@ public class HouseViewService {
         view.setId(id);
         view.setName(doorlock.getDevice().getType().getTypeName());
         view.setCaption(doorlock.getDevice().getPlace().getPlaceName());
-        view.setPlace(doorlock.getDevice().getPlace().getPlaceName());
+        view.setPlaceEnum(doorlock.getDevice().getPlace());
         view.setUnreach(Boolean.toString(doorlock.isUnreach()));
 
         view.setBusy(Boolean.toString(doorlock.isBusy()));
@@ -350,7 +356,7 @@ public class HouseViewService {
 
         ClimateView view = new ClimateView();
         view.setId(viewKey);
-        view.setPlace(climate.getDevice().getPlace().getPlaceName());
+        view.setPlaceEnum(climate.getDevice().getPlace());
         view.setUnreach(Boolean.toString(climate.isUnreach() || (heating != null && heating.isUnreach())));
         if (climate.isUnreach() || (heating != null && heating.isUnreach())) {
             return view;
@@ -397,7 +403,7 @@ public class HouseViewService {
 
         if (climate instanceof RoomClimate && ((RoomClimate) climate).getHumidityWetterThanOutdoor() != null) {
             view.setAbsoluteHumidityIcon(
-                    ((RoomClimate) climate).getHumidityWetterThanOutdoor().booleanValue() ? "fas fa-tint" : "fas fa-tint-slash");
+                    ((RoomClimate) climate).getHumidityWetterThanOutdoor() ? "fas fa-tint" : "fas fa-tint-slash");
         }
         if (climate.getTemperature().getValue().compareTo(FROST_TEMP) < 0) {
             view.setStatePostfixIconTemperature("far fa-snowflake");
@@ -557,7 +563,7 @@ public class HouseViewService {
 
         PowerView power = new PowerView();
         power.setId(powerMeter.getDevice().programNamePrefix());
-        power.setPlace(powerMeter.getDevice().getPlace().getPlaceName());
+        power.setPlaceEnum(powerMeter.getDevice().getPlace());
         power.setDescription(powerMeter.getDevice().getDescription());
         power.setUnreach(Boolean.toString(powerMeter.isUnreach()));
         if (powerMeter.isUnreach()) {
@@ -616,13 +622,19 @@ public class HouseViewService {
         model.addAttribute("warnings", copy);
     }
 
+    private void formatPlaceSubtitles(Model model, HouseModel house) {
+        for (Map.Entry<Place, String> entry : house.getPlaceSubtitles().entrySet()) {
+            model.addAttribute(PLACE_SUBTITLE_PREFIX + entry.getKey().name(), entry.getValue());
+        }
+    }
+
     private void formatWindowSensor(Model model, String viewKey, WindowSensor windowSensor) {
 
         WindowSensorView view = new WindowSensorView();
         view.setId(viewKey);
         view.setName(windowSensor.getDevice().getType().getTypeName());
         view.setShortName(windowSensor.getDevice().getType().getShortName());
-        view.setPlace(windowSensor.getDevice().getPlace().getPlaceName());
+        view.setPlaceEnum(windowSensor.getDevice().getPlace());
         view.setUnreach(Boolean.toString(windowSensor.isUnreach()));
         if (windowSensor.isUnreach()) {
             model.addAttribute(viewKey, view);
@@ -655,7 +667,7 @@ public class HouseViewService {
         view.setId(viewKey);
         view.setName(switchModel.getDevice().getType().getShortName());
         view.setShortName(switchModel.getDevice().getType().getShortName());
-        view.setPlace(switchModel.getDevice().getPlace().getPlaceName());
+        view.setPlaceEnum(switchModel.getDevice().getPlace());
         view.setUnreach(Boolean.toString(switchModel.isUnreach()));
         if (switchModel.isUnreach()) {
             model.addAttribute(viewKey, view);
@@ -681,7 +693,7 @@ public class HouseViewService {
     private void formatSwitchColors(Switch switchModel, SwitchView view) {
 
         if (switchModel.isState()) {
-            String stateColor = null;
+            String stateColor;
             if (switchModel.getAutomation() != null && Boolean.TRUE.equals(switchModel.getAutomation())) {
                 stateColor = COLOR_CLASS_GREEN;
             } else {
@@ -801,15 +813,15 @@ public class HouseViewService {
         }
 
         // format all other places as unreachable
-        Arrays.asList(Place.values()).stream()
-                .filter(p -> lightsModel == null || !lightsModel.getLightsMap().keySet().contains(p))
-                .forEach(p -> model.addAttribute("lights" + p.getPlaceName(), unreachableLightsView(p)));
+        Arrays.stream(Place.values())
+                .filter(p -> lightsModel == null || !lightsModel.getLightsMap().containsKey(p))
+                .forEach(p -> model.addAttribute("lights" + p.name(), unreachableLightsView(p)));
     }
 
     private LightsView unreachableLightsView(Place place) {
 
         var lights = new LightsView();
-        lights.setPlace(place.getPlaceName());
+        lights.setPlaceEnum(place);
         lights.setUnreach(Boolean.TRUE.toString());
         return lights;
     }
@@ -817,8 +829,8 @@ public class HouseViewService {
     private void formatLightsInPlace(Place place, List<Light> lightsInPlace, Model model) {
 
         var lights = new LightsView();
-        lights.setId("lights_" + place.getPlaceName());
-        lights.setPlace(place.getPlaceName());
+        lights.setId("lights_" + place.name());
+        lights.setPlaceEnum(place);
 
         int countLightsOn = 0;
 
@@ -829,14 +841,14 @@ public class HouseViewService {
             }
 
             var lightView = new LightView();
-            lightView.setId("light_" + place.getPlaceName() + "_" + light.getId());
+            lightView.setId("light_" + place.name() + "_" + light.getId());
             lightView.setName(light.getName());
             lightView.setStateShort(light.getState().getCaption());
             lightView.setColorClass(light.getState() == LightState.ON ? COLOR_CLASS_ORANGE : COLOR_CLASS_GRAY);
             if (light.getState() == LightState.ON) {
-                lightView.setLinkOff(TOGGLE_LIGHT + light.getId() + AND_VALUE_IS + Boolean.FALSE.toString());
+                lightView.setLinkOff(TOGGLE_LIGHT + light.getId() + AND_VALUE_IS + Boolean.FALSE);
             } else if (light.getState() == LightState.OFF) {
-                lightView.setLinkOn(TOGGLE_LIGHT + light.getId() + AND_VALUE_IS + Boolean.TRUE.toString());
+                lightView.setLinkOn(TOGGLE_LIGHT + light.getId() + AND_VALUE_IS + Boolean.TRUE);
             }
 
             lights.getLights().add(lightView);
@@ -847,15 +859,15 @@ public class HouseViewService {
         lights.setIcon(countLightsOn > 0 ? "fas fa-lightbulb" : "far fa-lightbulb");
 
         if (countLightsOn == lightsInPlace.size()) {
-            lights.setElementTitleState("Alle eingeschaltet");
+            lights.setElementTitleState(lightsInPlace.size()==1?StringUtils.capitalize(EINGESCHALTET):"Alle " + EINGESCHALTET);
         } else if (countLightsOn == 0) {
-            lights.setElementTitleState("Alle ausgeschaltet");
+            lights.setElementTitleState(lightsInPlace.size()==1?StringUtils.capitalize(AUSGESCHALTET):"Alle " + AUSGESCHALTET);
         } else {
-            lights.setElementTitleState(countLightsOn + "/" + lightsInPlace.size() + " eingeschaltet");
+            lights.setElementTitleState(countLightsOn + "/" + lightsInPlace.size() + " " + EINGESCHALTET);
         }
         lights.setState(lights.getElementTitleState());
 
-        model.addAttribute("lights" + place.getPlaceName(), lights);
+        model.addAttribute("lights" + place.name(), lights);
     }
 
 }

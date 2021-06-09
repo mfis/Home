@@ -54,8 +54,10 @@ public class HistoryViewService {
             fillTemperatureHistoryViewModel(model, history.getOutsideTemperature());
         } else if (key.equals(house.getClimateBedRoom().getDevice().programNamePrefix())) {
             fillTemperatureHistoryViewModel(model, history.getBedRoomTemperature());
-        } else if (key.equals(house.getClimateKidsRoom().getDevice().programNamePrefix())) {
-            fillTemperatureHistoryViewModel(model, history.getKidsRoomTemperature());
+        } else if (key.equals(house.getClimateKidsRoom1().getDevice().programNamePrefix())) {
+            fillTemperatureHistoryViewModel(model, history.getKidsRoom1Temperature());
+        } else if (key.equals(house.getClimateKidsRoom2().getDevice().programNamePrefix())) {
+            fillTemperatureHistoryViewModel(model, history.getKidsRoom2Temperature());
         } else if (key.equals(house.getClimateLaundry().getDevice().programNamePrefix())) {
             fillTemperatureHistoryViewModel(model, history.getLaundryTemperature());
         }

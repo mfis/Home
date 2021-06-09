@@ -1,5 +1,7 @@
 package de.fimatas.home.client.domain.model;
 
+import de.fimatas.home.library.domain.model.Place;
+
 public abstract class View {
 
     private String id = "";
@@ -19,6 +21,8 @@ public abstract class View {
     private String shortName = "";
 
     private String place = "";
+
+    private String placeID = "";
 
     private String historyKey = "";
 
@@ -66,8 +70,13 @@ public abstract class View {
         return place;
     }
 
-    public void setPlace(String place) {
-        this.place = place;
+    public void setPlaceEnum(Place p) {
+        this.place = p.getPlaceName();
+        this.placeID = p.name();
+    }
+
+    public String getPlaceID() {
+        return placeID;
     }
 
     public String getState() {

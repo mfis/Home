@@ -2,11 +2,7 @@ package de.fimatas.home.library.domain.model;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class HouseModel implements Serializable {
 
@@ -14,7 +10,9 @@ public class HouseModel implements Serializable {
 
     private long dateTime;
 
-    private RoomClimate climateKidsRoom;
+    private RoomClimate climateKidsRoom1;
+
+    private RoomClimate climateKidsRoom2;
 
     private RoomClimate climateBathRoom;
 
@@ -60,6 +58,8 @@ public class HouseModel implements Serializable {
 
     private List<String> warnings;
 
+    private Map<Place, String> placeSubtitles;
+
     // ----------
 
     private OutdoorClimate conclusionClimateFacadeMin;
@@ -73,6 +73,7 @@ public class HouseModel implements Serializable {
         dateTime = new Date().getTime();
         lowBatteryDevices = new LinkedList<>();
         warnings = new LinkedList<>();
+        placeSubtitles = new LinkedHashMap<>();
     }
 
     @SuppressWarnings("unchecked")
@@ -124,12 +125,12 @@ public class HouseModel implements Serializable {
         this.lowBatteryDevices = lowBatteryDevices;
     }
 
-    public RoomClimate getClimateKidsRoom() {
-        return climateKidsRoom;
+    public RoomClimate getClimateKidsRoom1() {
+        return climateKidsRoom1;
     }
 
-    public void setClimateKidsRoom(RoomClimate climateKidsRoom) {
-        this.climateKidsRoom = climateKidsRoom;
+    public void setClimateKidsRoom1(RoomClimate climateKidsRoom1) {
+        this.climateKidsRoom1 = climateKidsRoom1;
     }
 
     public RoomClimate getClimateBathRoom() {
@@ -194,6 +195,14 @@ public class HouseModel implements Serializable {
 
     public void setLeftWindowBedRoom(Shutter leftWindowBedRoom) {
         this.leftWindowBedRoom = leftWindowBedRoom;
+    }
+
+    public RoomClimate getClimateKidsRoom2() {
+        return climateKidsRoom2;
+    }
+
+    public void setClimateKidsRoom2(RoomClimate climateKidsRoom2) {
+        this.climateKidsRoom2 = climateKidsRoom2;
     }
 
     public Heating getHeatingBathRoom() {
@@ -310,6 +319,14 @@ public class HouseModel implements Serializable {
 
     public void setLaundryWindowSensor(WindowSensor laundryWindowSensor) {
         this.laundryWindowSensor = laundryWindowSensor;
+    }
+
+    public Map<Place, String> getPlaceSubtitles() {
+        return placeSubtitles;
+    }
+
+    public void setPlaceSubtitles(Map<Place, String> placeSubtitles) {
+        this.placeSubtitles = placeSubtitles;
     }
 
 }
