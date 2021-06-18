@@ -29,6 +29,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -790,9 +791,16 @@ public class HouseService {
 
         boolean newBusy = checkBusyState(Device.HAUSTUER_SCHLOSS);
         if (oldModel != null && oldModel.getFrontDoorLock().isBusy() && !newBusy) {
-            frontDoor.setBusy(doorLockHash(oldModel.getFrontDoorLock()) == doorLockHash(frontDoor));
+            boolean isUnChanged = doorLockHash(oldModel.getFrontDoorLock()) == doorLockHash(frontDoor);
+            boolean busyTimeout = oldModel.getFrontDoorLock().getBusyTimestamp()!=null &&
+                    ChronoUnit.MINUTES.between(oldModel.getFrontDoorLock().getBusyTimestamp(), LocalDateTime.now()) > 60;
+            frontDoor.setBusy(isUnChanged && !busyTimeout);
         } else {
-            frontDoor.setBusy(checkBusyState(Device.HAUSTUER_SCHLOSS));
+            frontDoor.setBusy(newBusy);
+            if(newBusy){
+                // doorlock busy state workaround for uncalibrated devices
+                frontDoor.setBusyTimestamp(LocalDateTime.now());
+            }
         }
         BigDecimal errorCode = hmApi.getAsBigDecimal(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, Datapoint.ERROR));
         frontDoor.setErrorcode(errorCode == null ? 0 : errorCode.intValue());

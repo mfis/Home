@@ -1,6 +1,7 @@
 package de.fimatas.home.library.domain.model;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 public class Doorlock extends AbstractDeviceModel implements Serializable {
 
@@ -21,6 +22,8 @@ public class Doorlock extends AbstractDeviceModel implements Serializable {
     private Boolean lockAutomationEvent;
 
     private String lockAutomationInfoText;
+
+    private LocalDateTime busyTimestamp;
 
     public boolean isLockState() {
         return lockState;
@@ -70,4 +73,11 @@ public class Doorlock extends AbstractDeviceModel implements Serializable {
         this.lockAutomationEvent = lockAutomationEvent;
     }
 
+    public LocalDateTime getBusyTimestamp() {
+        return busyTimestamp;
+    }
+
+    public void setBusyTimestamp(LocalDateTime busyTimestamp) {
+        this.busyTimestamp = busyTimestamp;
+    }
 }
