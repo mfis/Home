@@ -40,25 +40,25 @@ public class HistoryViewService {
 
     public void fillHistoryViewModel(Model model, HistoryModel history, HouseModel house, String key) {
 
-        if (key.equals(house.getTotalElectricalPowerConsumption().getDevice().programNamePrefix())) {
+        if (key.equals(house.getTotalElectricalPowerConsumption().getDevice().historyKeyPrefix())) {
             fillPowerHistoryMonthViewModel(model, history.getTotalElectricPowerConsumptionMonth());
             List<ChartEntry> dayViewModel =
                 viewFormatter.fillPowerHistoryDayViewModel(history.getTotalElectricPowerConsumptionDay(), true);
             model.addAttribute("chartEntries", dayViewModel);
-        } else if (key.equals(house.getWallboxElectricalPowerConsumption().getDevice().programNamePrefix())) {
+        } else if (key.equals(house.getWallboxElectricalPowerConsumption().getDevice().historyKeyPrefix())) {
             fillPowerHistoryMonthViewModel(model, history.getWallboxElectricPowerConsumptionMonth());
             List<ChartEntry> dayViewModel =
                 viewFormatter.fillPowerHistoryDayViewModel(history.getWallboxElectricPowerConsumptionDay(), true);
             model.addAttribute("chartEntries", dayViewModel);
-        } else if (key.equals(house.getConclusionClimateFacadeMin().getDevice().programNamePrefix())) {
+        } else if (key.equals(house.getConclusionClimateFacadeMin().getDevice().historyKeyPrefix())) {
             fillTemperatureHistoryViewModel(model, history.getOutsideTemperature());
-        } else if (key.equals(house.getClimateBedRoom().getDevice().programNamePrefix())) {
+        } else if (key.equals(house.getClimateBedRoom().getDevice().historyKeyPrefix())) {
             fillTemperatureHistoryViewModel(model, history.getBedRoomTemperature());
-        } else if (key.equals(house.getClimateKidsRoom1().getDevice().programNamePrefix())) {
+        } else if (key.equals(house.getClimateKidsRoom1().getDevice().historyKeyPrefix())) {
             fillTemperatureHistoryViewModel(model, history.getKidsRoom1Temperature());
-        } else if (key.equals(house.getClimateKidsRoom2().getDevice().programNamePrefix())) {
+        } else if (key.equals(house.getClimateKidsRoom2().getDevice().historyKeyPrefix())) {
             fillTemperatureHistoryViewModel(model, history.getKidsRoom2Temperature());
-        } else if (key.equals(house.getClimateLaundry().getDevice().programNamePrefix())) {
+        } else if (key.equals(house.getClimateLaundry().getDevice().historyKeyPrefix())) {
             fillTemperatureHistoryViewModel(model, history.getLaundryTemperature());
         }
     }

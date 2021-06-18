@@ -368,7 +368,7 @@ public class HouseViewService {
         }
 
         if (history) {
-            view.setHistoryKey(climate.getDevice().programNamePrefix());
+            view.setHistoryKey(climate.getDevice().historyKeyPrefix());
         }
 
         if (climate.getTemperature() != null) {
@@ -527,7 +527,7 @@ public class HouseViewService {
         if (!house.getConclusionClimateFacadeMin().isUnreach()) {
             viewMin
                     .setStateSecondLine("Messpunkt: " + house.getConclusionClimateFacadeMin().getBase().getPlace().getPlaceName());
-            viewMin.setHistoryKey(house.getConclusionClimateFacadeMin().getDevice().programNamePrefix());
+            viewMin.setHistoryKey(house.getConclusionClimateFacadeMin().getDevice().historyKeyPrefix());
         }
 
         if (!house.getConclusionClimateFacadeMax().isUnreach()) {

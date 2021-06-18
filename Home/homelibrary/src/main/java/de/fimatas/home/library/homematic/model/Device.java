@@ -114,6 +114,10 @@ public enum Device {
         return HomeUtils.escape(getDescription());
     }
 
+    public String historyKeyPrefix() {
+        return HomeUtils.escape(getHistoryKey());
+    }
+
     public Datapoint lowBatDatapoint() {
         if (!getType().isHasBattery()) {
             return null;
@@ -140,6 +144,10 @@ public enum Device {
 
     public String getDescription() {
         return type.getTypeName() + " " + place.getPlaceName();
+    }
+
+    public String getHistoryKey() {
+        return type.getTypeName() + " " + place.name();
     }
 
     public Type getType() {
