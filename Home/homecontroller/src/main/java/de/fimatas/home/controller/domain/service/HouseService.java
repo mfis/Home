@@ -784,24 +784,18 @@ public class HouseService {
             return frontDoor;
         }
 
+        boolean newBusy = checkBusyState(Device.HAUSTUER_SCHLOSS);
+        frontDoor.setBusy(newBusy);
         frontDoor.setLockState(!hmApi.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, Datapoint.STATE))); // false=verriegelt
         frontDoor.setLockStateUncertain(
             hmApi.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, Datapoint.STATE_UNCERTAIN)));
         frontDoor.setOpen(hmApi.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, IS_OPENED)));
 
-        boolean newBusy = checkBusyState(Device.HAUSTUER_SCHLOSS);
-        if (oldModel != null && oldModel.getFrontDoorLock().isBusy() && !newBusy) {
-            boolean isUnChanged = doorLockHash(oldModel.getFrontDoorLock()) == doorLockHash(frontDoor);
-            boolean busyTimeout = oldModel.getFrontDoorLock().getBusyTimestamp()!=null &&
-                    ChronoUnit.MINUTES.between(oldModel.getFrontDoorLock().getBusyTimestamp(), LocalDateTime.now()) > 60;
-            frontDoor.setBusy(isUnChanged && !busyTimeout);
-        } else {
-            frontDoor.setBusy(newBusy);
-            if(newBusy){
-                // doorlock busy state workaround for uncalibrated devices
-                frontDoor.setBusyTimestamp(LocalDateTime.now());
-            }
+        if (oldModel != null && oldModel.getFrontDoorLock().isBusy() && !newBusy &&
+                doorLockHash(oldModel.getFrontDoorLock()) == doorLockHash(frontDoor)) {
+            frontDoor.setLockStateUncertain(true);
         }
+
         BigDecimal errorCode = hmApi.getAsBigDecimal(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, Datapoint.ERROR));
         frontDoor.setErrorcode(errorCode == null ? 0 : errorCode.intValue());
 

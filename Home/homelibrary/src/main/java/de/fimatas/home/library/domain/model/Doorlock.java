@@ -23,8 +23,6 @@ public class Doorlock extends AbstractDeviceModel implements Serializable {
 
     private String lockAutomationInfoText;
 
-    private LocalDateTime busyTimestamp;
-
     public boolean isLockState() {
         return lockState;
     }
@@ -71,13 +69,5 @@ public class Doorlock extends AbstractDeviceModel implements Serializable {
 
     public void setLockAutomationEvent(Boolean lockAutomationEvent) {
         this.lockAutomationEvent = lockAutomationEvent;
-    }
-
-    public LocalDateTime getBusyTimestamp() {
-        return busyTimestamp;
-    }
-
-    public void setBusyTimestamp(LocalDateTime busyTimestamp) {
-        this.busyTimestamp = busyTimestamp;
     }
 }

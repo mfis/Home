@@ -74,7 +74,7 @@
 					<span th:utext="'&nbsp;&ndash;&nbsp;'"></span>
 					<span class="mb-1" th:text="${modelMeter.todayConsumption.label}">Gestern</span>
 					<span class="text-muted" style="font-size: 80%;" th:text="${modelMeter.todayConsumption.additionalLabel}">Summe</span>
-					<th:block th:replace="fragments :: historyLink (key=${modelMeter.historyKey}, name=${modelMeter.name} + ' ' + ${modelMeter.place}, place=${modelMeter.place})"></th:block>
+					<th:block th:replace="fragments :: historyLink (key=${modelMeter.historyKey}, name=${modelMeter.name}, place=${modelMeter.place})"></th:block>
 				</th:block>		
 			</h4>
 			<h4><span th:text="${modelSwitch.state}"></span><span th:text="${modelSwitch.stateSuffix}" style="font-size: 80%;"></span></h4>

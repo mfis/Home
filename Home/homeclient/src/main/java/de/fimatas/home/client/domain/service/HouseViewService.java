@@ -273,8 +273,8 @@ public class HouseViewService {
         } else {
             setButtonOpen = true;
             if (doorlock.isLockStateUncertain()) {
-                view.setState("Manuell betätigt");
-                view.setIcon("fas fa-door-open");
+                view.setState("Unbestimmt");
+                view.setIcon("fas fa-question-circle");
                 view.setColorClass(COLOR_CLASS_ORANGE);
                 setButtonLock = true;
                 setButtonUnlock = true;
@@ -571,7 +571,7 @@ public class HouseViewService {
             return;
         }
 
-        power.setHistoryKey(powerMeter.getDevice().programNamePrefix());
+        power.setHistoryKey(powerMeter.getDevice().historyKeyPrefix());
         power.setState(powerMeter.getActualConsumption().getValue() == null ? UNBEKANNT
                 : powerMeter.getActualConsumption().getValue().intValue() + " W");
         power.setName(powerMeter.getDevice().getType().getTypeName());
