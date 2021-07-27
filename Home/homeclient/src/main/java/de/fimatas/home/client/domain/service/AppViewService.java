@@ -124,6 +124,7 @@ public class AppViewService {
             placesOrder.add(Place.WALLBOX);
             break;
         case "widget":
+            placesOrder.add(Place.OUTSIDE);
             break;
         default:
             // none
