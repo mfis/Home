@@ -37,7 +37,7 @@
 		<jquery.version>3.5.1</jquery.version>
 		<font-awesome.version>5.14.0</font-awesome.version>
 		<!-- Plugin versions -->
-		<StaticResourceProcessing.version>1.5.1</StaticResourceProcessing.version>
+		<StaticResourceProcessing.version>1.5.2</StaticResourceProcessing.version>
 		<lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
 		<dependency-check-maven.version>6.1.5</dependency-check-maven.version>
 		<maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
