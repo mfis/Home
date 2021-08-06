@@ -8,8 +8,10 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 
+import de.fimatas.home.library.domain.model.*;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -29,29 +31,6 @@ import de.fimatas.home.client.domain.model.SwitchView;
 import de.fimatas.home.client.domain.model.WindowSensorView;
 import de.fimatas.home.client.domain.service.ViewFormatter.PastTimestampFormat;
 import de.fimatas.home.client.model.MessageQueue;
-import de.fimatas.home.library.domain.model.AutomationState;
-import de.fimatas.home.library.domain.model.Camera;
-import de.fimatas.home.library.domain.model.CameraMode;
-import de.fimatas.home.library.domain.model.Climate;
-import de.fimatas.home.library.domain.model.Doorbell;
-import de.fimatas.home.library.domain.model.Doorlock;
-import de.fimatas.home.library.domain.model.Heating;
-import de.fimatas.home.library.domain.model.HistoryModel;
-import de.fimatas.home.library.domain.model.HouseModel;
-import de.fimatas.home.library.domain.model.Intensity;
-import de.fimatas.home.library.domain.model.Light;
-import de.fimatas.home.library.domain.model.LightState;
-import de.fimatas.home.library.domain.model.LightsModel;
-import de.fimatas.home.library.domain.model.OutdoorClimate;
-import de.fimatas.home.library.domain.model.Place;
-import de.fimatas.home.library.domain.model.PowerConsumptionDay;
-import de.fimatas.home.library.domain.model.PowerMeter;
-import de.fimatas.home.library.domain.model.RoomClimate;
-import de.fimatas.home.library.domain.model.Shutter;
-import de.fimatas.home.library.domain.model.ShutterPosition;
-import de.fimatas.home.library.domain.model.StateValue;
-import de.fimatas.home.library.domain.model.Switch;
-import de.fimatas.home.library.domain.model.WindowSensor;
 import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.homematic.model.Type;
 import de.fimatas.home.library.model.Message;
@@ -144,6 +123,8 @@ public class HouseViewService {
         formatClimate(model, "tempBedroom", house.getClimateBedRoom(), null, true);
         formatClimate(model, "tempLaundry", house.getClimateLaundry(), null, true);
 
+        formatClimateGroup(model, "upperFloor", Place.UPPER_FLOOR, house);
+
         // formatWindow(model, "leftWindowBedroom", // NOSONAR
         // house.getLeftWindowBedRoom()); // NOSONAR
 
@@ -184,6 +165,42 @@ public class HouseViewService {
         } else {
             return outdoorMaxClimate.getSunHeatingInContrastToShadeIntensity().getHeating();
         }
+    }
+
+    private void formatClimateGroup(Model model, String viewKey, Place place, HouseModel house) {
+
+        var subPlaces = house.lookupFields(RoomClimate.class).values().stream()
+                .filter(c -> place.getSubPlaces().contains(c.getDevice().getPlace())).collect(Collectors.toList());
+        var unreach = subPlaces.stream().anyMatch(AbstractDeviceModel::isUnreach);
+
+        ClimateView view = new ClimateView();
+        model.addAttribute(viewKey, view);
+
+        view.setId(viewKey);
+        view.setPlaceEnum(place);
+        view.setUnreach(Boolean.toString(unreach));
+        if (unreach || subPlaces.size()==0) {
+            return;
+        }
+
+        Comparator<RoomClimate> comparator =
+                Comparator.comparing(Climate::getTemperature, Comparator.comparing(ValueWithTendency::getValue));
+        Optional<RoomClimate> minTemperature = subPlaces.stream().min(comparator);
+        Optional<RoomClimate> maxTemperature = subPlaces.stream().max(comparator);
+
+        var from = format(minTemperature.get().getTemperature().getValue(), false, false);
+        var to = format(maxTemperature.get().getTemperature().getValue(), false, false);
+
+        StringBuilder combinedTemperatures = new StringBuilder(20);
+        combinedTemperatures.append(from);
+        if(!from.equals(to)) {
+            combinedTemperatures.append(" bis ");
+            combinedTemperatures.append(to);
+        }
+        combinedTemperatures.append(ViewFormatter.DEGREE + "C");
+        view.setStateTemperature(combinedTemperatures.toString());
+
+        formatClimateBackground(maxTemperature.get(), view);
     }
 
     private void formatFrontDoorBell(Model model, String id, Doorbell doorbell, Camera camera) {

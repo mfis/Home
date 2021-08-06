@@ -125,6 +125,7 @@ public class AppViewService {
             break;
         case "widget":
             placesOrder.add(Place.OUTSIDE);
+            placesOrder.add(Place.UPPER_FLOOR);
             break;
         default:
             // none
