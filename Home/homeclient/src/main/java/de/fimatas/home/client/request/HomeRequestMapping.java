@@ -2,11 +2,17 @@ package de.fimatas.home.client.request;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Enumeration;
+import java.util.List;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import de.fimatas.home.library.model.PageEntry;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -74,6 +80,10 @@ public class HomeRequestMapping {
 
     @Autowired
     private UserService userService;
+
+    @Value("${appdistribution.web.url}")
+    private String appdistributionWebUrl;
+
 
     @GetMapping("/message")
     public String message(Model model, //
@@ -167,6 +177,18 @@ public class HomeRequestMapping {
         model.addAttribute("pushsettings", settingsViewService.allSettingsAsString());
         return "settings";
     }
+
+    @GetMapping("/appInstallation")
+    public String appInstallation(Model model, HttpServletRequest servletRequest,
+                                  @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, HttpServletResponse response) {
+
+        fillMenu(Pages.PATH_APP, model, response, false);
+        fillUserAttributes(model, userCookie);
+        String itmsLink = "itms-services://?action=download-manifest&url=" + appdistributionWebUrl + "manifest.plist";
+        model.addAttribute("itmsLink", itmsLink);
+        return "appInstallation";
+    }
+
 
     @GetMapping(value = "/cameraPicture", produces = "image/jpeg")
     public ResponseEntity<byte[]> cameraPicture(@RequestParam(DEVICE_NAME) String deviceName,

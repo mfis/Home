@@ -312,18 +312,10 @@
 				<div class="collapse navbar-collapse" id="navbarSupportedContent">
 					<ul class="navbar-nav ml-auto">
 						<th:block th:each="entry : ${selectable}">
-							<li class="nav-item" style="cursor:pointer"><a class="nav-link" th:onclick="@{'menu_' + ${entry.name} + '()'}"
-								th:text="${entry.name}">name</a></li>
+							<li class="nav-item" style="cursor:pointer;"><a style="text-decoration:none;" class="nav-link" th:href="@{${entry.path}}" th:text="${entry.name}">name</a></li>
 						</th:block>
 					</ul>
 				</div>
-				<th:block th:each="entry : ${selectable}">
-					<script type="text/javascript">
-						function menu_[[${entry.name}]](){
-							window.location.href = "[[${entry.path}]]";
-						}		
-					</script>		
-				</th:block>
 			</nav>
 			<div style="height: 50px;"></div>
 		</th:block>

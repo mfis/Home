@@ -1,0 +1,23 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" lang="de">
+
+	<head th:replace="basics :: head (name='Home - App-Installation')"><title></title></head>
+
+	<body id="idbody">
+
+		<div th:replace="basics :: navigation (selected=${MENU_SELECTED}, selectable=${MENU_SELECTABLE}, status=${SITE_REQUEST_TS}, isApp=${isApp})"></div>
+
+		<div class="container">
+			<div style="height: 20px;"></div>
+			<h4>Installation / Aktualisierung</h4>
+			<div th:class="'alert alert-secondary callout callout-secondary'">
+				<a style="text-decoration:none;" class="btn btn-info" th:href="@{${itmsLink}}" th:text="starten">name</a>
+			</div>
+
+		</div>
+
+	</body>
+	
+	<div th:replace="basics :: scriptresources"></div>
+
+</html>

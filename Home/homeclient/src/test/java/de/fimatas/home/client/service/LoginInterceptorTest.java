@@ -10,16 +10,16 @@ public class LoginInterceptorTest {
 
     @Test
     public void testIsAssetRequestTrue() {
-        assertTrue(LoginInterceptor.isAssetRequest(uri("/a.js")));
-        assertTrue(LoginInterceptor.isAssetRequest(uri("/a.css")));
-        assertTrue(LoginInterceptor.isAssetRequest(uri("/robots.txt")));
+        assertTrue(new LoginInterceptor().isAssetRequest(uri("/a.js")));
+        assertTrue(new LoginInterceptor().isAssetRequest(uri("/a.css")));
+        assertTrue(new LoginInterceptor().isAssetRequest(uri("/robots.txt")));
     }
 
     @Test
     public void testIsAssetRequestFalse() {
-        assertFalse(LoginInterceptor.isAssetRequest(uri("/")));
-        assertFalse(LoginInterceptor.isAssetRequest(uri("/settings")));
-        assertFalse(LoginInterceptor.isAssetRequest(uri("/js")));
+        assertFalse(new LoginInterceptor().isAssetRequest(uri("/")));
+        assertFalse(new LoginInterceptor().isAssetRequest(uri("/settings")));
+        assertFalse(new LoginInterceptor().isAssetRequest(uri("/js")));
     }
 
     private HttpServletRequest uri(String uri) {

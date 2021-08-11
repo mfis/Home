@@ -1,20 +1,32 @@
 package de.fimatas.home.client.service;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
+
+    @Value("${appdistribution.file.path}")
+    private String appdistributionFilePath;
+
+    @Value("${appdistribution.web.url}")
+    private String appdistributionWebUrl;
+
 
     @Bean
     public ByteArrayHttpMessageConverter byteArrayHttpMessageConverter() {
@@ -29,6 +41,21 @@ public class WebMvcConfig implements WebMvcConfigurer {
         list.add(MediaType.IMAGE_PNG);
         list.add(MediaType.APPLICATION_OCTET_STREAM);
         return list;
+    }
+
+   @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+
+        URL appdistributionUrl;
+        try {
+            appdistributionUrl = new URL(appdistributionWebUrl);
+        } catch (MalformedURLException e) {
+           throw new IllegalArgumentException("Malformed 'appdistribution.web.url' URL!");
+        }
+
+        registry.addResourceHandler(appdistributionUrl.getPath() + "**")
+                .addResourceLocations("file:" + appdistributionFilePath)
+                .setCacheControl(CacheControl.noCache());
     }
 
     @Bean

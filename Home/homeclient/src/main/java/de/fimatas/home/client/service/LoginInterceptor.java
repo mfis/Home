@@ -1,12 +1,15 @@
 package de.fimatas.home.client.service;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.PostConstruct;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -52,7 +55,8 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
         Set.of(LoginController.LOGIN_URI, LoginController.LOGIN_COOKIECHECK_URI, LoginController.LOGIN_FAILED_URI,
             LoginController.LOGIN_VIA_APP_FAILED_URI, AppRequestMapping.URI_WHOAMI, AppRequestMapping.URI_CREATE_AUTH_TOKEN);
 
-    private static final Set<String> WHITELIST_URIS = Set.of("/error", "/robots.txt");
+    private Set<String> WHITELIST_URIS = Set.of("/error", "/robots.txt");
+    private Set<String> WHITELIST_URIS_DYNAMIC;
 
     private static final Set<String> WHITELIST_EXTENSIONS =
         Set.of("png", "css", "js", "ico", "svg", "eot", "ttf", "woff", "woff2", "map");
@@ -66,9 +70,18 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
     @Value("${server.servlet.session.cookie.secure}")
     private String cookieSecure;
 
+    @Value("${appdistribution.web.url}")
+    private String appdistributionWebUrl;
+
     private int controllerFalseLoginCounter = 0;
 
     private final Log log = LogFactory.getLog(LoginInterceptor.class);
+
+    @PostConstruct
+    public void postConstruct() throws MalformedURLException {
+        URL appdistributionUrl = new URL(appdistributionWebUrl);
+        WHITELIST_URIS_DYNAMIC = Set.of(appdistributionUrl.getPath() + "homeClient.ipa", appdistributionUrl.getPath() + "manifest.plist");
+    }
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -82,13 +95,17 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
         return loginOK;
     }
 
-    static boolean isAssetRequest(HttpServletRequest request) {
+    boolean isAssetRequest(HttpServletRequest request) {
 
         if (Pages.getEntry(request.getRequestURI()) != null) {
             return false;
         }
 
         if (WHITELIST_URIS.contains(request.getRequestURI())) {
+            return true;
+        }
+
+        if (WHITELIST_URIS_DYNAMIC!=null && WHITELIST_URIS_DYNAMIC.contains(request.getRequestURI())) {
             return true;
         }
 
