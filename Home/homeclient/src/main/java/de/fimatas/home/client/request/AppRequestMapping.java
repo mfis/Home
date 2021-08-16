@@ -73,7 +73,7 @@ public class AppRequestMapping {
                 Model model = new ExtendedModelMap();
                 houseView.fillViewModel(model, houseModel, ModelObjectDAO.getInstance().readHistoryModel(),
                     ModelObjectDAO.getInstance().readLightsModel());
-                return appViewService.mapAppModel(model, viewTarget);
+                return appViewService.mapAppModel(model, AppViewService.AppViewTarget.valueOf(viewTarget.toUpperCase()));
             }
         } catch (Exception e) {
             log.error("sending empty app model due to exception while mapping.", e);

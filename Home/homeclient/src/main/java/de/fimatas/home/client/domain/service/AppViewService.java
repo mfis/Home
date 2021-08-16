@@ -1,10 +1,9 @@
 package de.fimatas.home.client.domain.service;
 
 import java.time.LocalDateTime;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -23,18 +22,49 @@ import de.fimatas.home.client.request.HomeRequestMapping;
 import de.fimatas.home.library.domain.model.Place;
 import de.fimatas.home.library.domain.model.Tendency;
 
+import javax.annotation.PostConstruct;
+
 @Component
 public class AppViewService {
 
-    public HomeViewModel mapAppModel(Model model, String viewTarget) {
+    private final Map<AppViewTarget, Set<PlaceDirectives>> targetPlaceDirectives = new HashMap<>();
 
-        Set<Place> placesOrder = lookupPlacesOrder(viewTarget);
+    @PostConstruct
+    void placesDirectives() {
+
+        Set<PlaceDirectives> watch = new LinkedHashSet<>();
+        targetPlaceDirectives.put(AppViewTarget.WATCH, watch);
+
+        watch.add(new PlaceDirectives(Place.OUTSIDE, PlaceDirective.WATCH_LABEL, PlaceDirective.WATCH_SYMBOL));
+        watch.add(new PlaceDirectives(Place.FRONTDOOR, PlaceDirective.WATCH_LABEL));
+        watch.add(new PlaceDirectives(Place.LIVINGROOM, PlaceDirective.WATCH_LABEL));
+        watch.add(new PlaceDirectives(Place.KITCHEN, PlaceDirective.WATCH_LABEL));
+        watch.add(new PlaceDirectives(Place.KIDSROOM_1, PlaceDirective.WATCH_LABEL));
+        watch.add(new PlaceDirectives(Place.KIDSROOM_2, PlaceDirective.WATCH_LABEL));
+        watch.add(new PlaceDirectives(Place.BEDROOM, PlaceDirective.WATCH_LABEL));
+        watch.add(new PlaceDirectives(Place.BATHROOM, PlaceDirective.WATCH_LABEL));
+        watch.add(new PlaceDirectives(Place.LAUNDRY, PlaceDirective.WATCH_LABEL));
+        watch.add(new PlaceDirectives(Place.GUESTROOM, PlaceDirective.WATCH_LABEL));
+        watch.add(new PlaceDirectives(Place.WORKSHOP, PlaceDirective.WATCH_LABEL));
+        watch.add(new PlaceDirectives(Place.HOUSE, PlaceDirective.WATCH_LABEL));
+        watch.add(new PlaceDirectives(Place.WALLBOX, PlaceDirective.WATCH_LABEL));
+
+        Set<PlaceDirectives> widget = new LinkedHashSet<>();
+        targetPlaceDirectives.put(AppViewTarget.WIDGET, widget);
+
+        widget.add(new PlaceDirectives(Place.OUTSIDE, PlaceDirective.WIDGET_LABEL_SMALL, PlaceDirective.WIDGET_LABEL_MEDIUM, PlaceDirective.WIDGET_LABEL_LARGE));
+        widget.add(new PlaceDirectives(Place.UPPER_FLOOR_TEMPERATURE, PlaceDirective.WIDGET_LABEL_SMALL, PlaceDirective.WIDGET_LABEL_MEDIUM, PlaceDirective.WIDGET_LABEL_LARGE));
+        // widget.add(new PlaceDirectives(Place.DOORS_AND_WINDOWS, PlaceDirective.WIDGET_SYMBOL));
+    }
+
+    public HomeViewModel mapAppModel(Model model, AppViewTarget viewTarget) {
+
         HomeViewModel appModel = newEmptyModel();
 
-        for (Place placeInOrder : placesOrder) {
+        for (PlaceDirectives placeDirectives : targetPlaceDirectives.get(viewTarget)) {
             for (Object value : model.asMap().values()) {
                 if (value instanceof View) {
-                    mapView(appModel, placeInOrder, value, model);
+                    mapView(appModel, placeDirectives, value, model);
                 }
             }
         }
@@ -50,95 +80,65 @@ public class AppViewService {
         return appModel;
     }
 
-    private void mapView(HomeViewModel appModel, Place placeInOrder, Object value, Model completeModel) {
+    private void mapView(HomeViewModel appModel, PlaceDirectives placeDirectives, Object value, Model completeModel) {
 
         View view = (View) value;
-        if (view.getPlaceID().equals(placeInOrder.name())) {
-            HomeViewPlaceModel placeModel = lookupPlaceModel(appModel, placeInOrder, completeModel);
+        if (view.getPlaceID().equals(placeDirectives.place.name())) {
+            HomeViewPlaceModel placeModel = lookupPlaceModel(appModel, placeDirectives, completeModel);
             if (view instanceof ClimateView) {
-                mapClimateView(placeInOrder, (ClimateView) view, placeModel);
+                mapClimateView(placeDirectives, (ClimateView) view, placeModel);
             } else if (view instanceof PowerView) {
-                mapPowerView(placeInOrder, (PowerView) view, placeModel);
+                mapPowerView(placeDirectives, (PowerView) view, placeModel);
             } else if (view instanceof LockView) {
-                mapLockView(placeInOrder, (LockView) view, placeModel);
+                mapLockView(placeDirectives, (LockView) view, placeModel);
             } else if (view instanceof SwitchView) {
-                mapSwitchView(placeInOrder, (SwitchView) view, placeModel);
+                mapSwitchView(placeDirectives, (SwitchView) view, placeModel);
             } else if (view instanceof WindowSensorView) {
-                mapWindowView(placeInOrder, (WindowSensorView) view, placeModel);
+                mapWindowView(placeDirectives, (WindowSensorView) view, placeModel);
             }
         }
     }
 
-    private void mapSwitchView(Place placeInOrder, SwitchView view, HomeViewPlaceModel placeModel) {
+    private void mapSwitchView(PlaceDirectives placeDirectives, SwitchView view, HomeViewPlaceModel placeModel) {
 
-        placeModel.getValues().add(mapSwitchStatus(placeInOrder, view));
-        placeModel.getActions().addAll(mapSwitchActions(placeInOrder, view));
+        placeModel.getValues().add(mapSwitchStatus(placeDirectives, view));
+        placeModel.getActions().addAll(mapSwitchActions(placeDirectives, view));
     }
 
-    private void mapWindowView(Place placeInOrder, WindowSensorView view, HomeViewPlaceModel placeModel) {
+    private void mapWindowView(PlaceDirectives placeDirectives, WindowSensorView view, HomeViewPlaceModel placeModel) {
 
-        placeModel.getValues().add(mapWindowStatus(placeInOrder, view));
-
+        placeModel.getValues().add(mapWindowStatus(placeDirectives, view));
     }
 
-    private void mapLockView(Place placeInOrder, LockView view, HomeViewPlaceModel placeModel) {
+    private void mapLockView(PlaceDirectives placeDirectives, LockView view, HomeViewPlaceModel placeModel) {
         placeModel.setName("Haustür");
-        placeModel.getValues().add(mapLockStatus(placeInOrder, view));
-        placeModel.getActions().addAll(mapLockActions(placeInOrder, view));
+        placeModel.getValues().add(mapLockStatus(placeDirectives, view));
+        placeModel.getActions().addAll(mapLockActions(placeDirectives, view));
     }
 
-    private void mapPowerView(Place placeInOrder, PowerView view, HomeViewPlaceModel placeModel) {
+    private void mapPowerView(PlaceDirectives placeDirectives, PowerView view, HomeViewPlaceModel placeModel) {
 
-        if (placeInOrder == Place.HOUSE) {
+        if (placeDirectives.place == Place.HOUSE) {
             placeModel.setName("Strom Gesamt");
         }
-        placeModel.getValues().add(mapActualPower(placeInOrder, view));
-        placeModel.getValues().add(mapTodayPower(placeInOrder, view));
+        placeModel.getValues().add(mapActualPower(placeDirectives, view));
+        placeModel.getValues().add(mapTodayPower(placeDirectives, view));
     }
 
-    private void mapClimateView(Place placeInOrder, ClimateView view, HomeViewPlaceModel placeModel) {
+    private void mapClimateView(PlaceDirectives placeDirectives, ClimateView view, HomeViewPlaceModel placeModel) {
 
-        placeModel.getValues().add(mapTemperature(placeInOrder, view));
+        placeModel.getValues().add(mapTemperature(placeDirectives, view));
         if (StringUtils.isNotBlank(view.getStateHumidity())) {
-            placeModel.getValues().add(mapHumidity(placeInOrder, view));
+            placeModel.getValues().add(mapHumidity(placeDirectives, view));
         }
     }
 
-    private Set<Place> lookupPlacesOrder(String viewTarget) {
-
-        Set<Place> placesOrder = new LinkedHashSet<>();
-        switch (viewTarget) {
-        case "watch":
-            placesOrder.add(Place.OUTSIDE);
-            placesOrder.add(Place.FRONTDOOR);
-            placesOrder.add(Place.LIVINGROOM);
-            placesOrder.add(Place.KITCHEN);
-            placesOrder.add(Place.KIDSROOM_1);
-            placesOrder.add(Place.KIDSROOM_2);
-            placesOrder.add(Place.BEDROOM);
-            placesOrder.add(Place.BATHROOM);
-            placesOrder.add(Place.LAUNDRY);
-            placesOrder.add(Place.GUESTROOM);
-            placesOrder.add(Place.WORKSHOP);
-            placesOrder.add(Place.HOUSE);
-            placesOrder.add(Place.WALLBOX);
-            break;
-        case "widget":
-            placesOrder.add(Place.OUTSIDE);
-            placesOrder.add(Place.UPPER_FLOOR);
-            break;
-        default:
-            // none
-        }
-        return placesOrder;
-    }
-
-    private HomeViewPlaceModel lookupPlaceModel(HomeViewModel appModel, Place placeInOrder, Model completeModel) {
+    private HomeViewPlaceModel lookupPlaceModel(HomeViewModel appModel, PlaceDirectives placeDirectives, Model completeModel) {
 
         HomeViewPlaceModel placeModel = null;
         // search for existing place model in target root model
         for (HomeViewPlaceModel placeModelSearch : appModel.getPlaces()) {
-            if (placeModelSearch.getId().equals(placeInOrder.name())) {
+            if (placeModelSearch.getId().equals(placeDirectives.place.name())) {
                 placeModel = placeModelSearch;
                 break;
             }
@@ -146,12 +146,13 @@ public class AppViewService {
         // if no existing place model is found, create a new one
         if (placeModel == null) {
             placeModel = appModel.new HomeViewPlaceModel();
-            placeModel.setId(placeInOrder.name());
-            var subtitleKey = HouseViewService.PLACE_SUBTITLE_PREFIX + placeInOrder.name();
+            placeModel.setId(placeDirectives.place.name());
+            placeModel.setPlaceDirectives(placeDirectives.directives.stream().map(Enum::name).collect(Collectors.toList()));
+            var subtitleKey = HouseViewService.PLACE_SUBTITLE_PREFIX + placeDirectives.place.name();
             if(completeModel.getAttribute(subtitleKey)!=null){
                 placeModel.setName((String) completeModel.getAttribute(subtitleKey));
             }else{
-                placeModel.setName(placeInOrder.getPlaceName());
+                placeModel.setName(placeDirectives.place.getPlaceName());
             }
             // name is set in mapper
             appModel.getPlaces().add(placeModel);
@@ -159,9 +160,9 @@ public class AppViewService {
         return placeModel;
     }
 
-    private HomeViewValueModel mapTemperature(Place place, ClimateView view) {
+    private HomeViewValueModel mapTemperature(PlaceDirectives placeDirectives, ClimateView view) {
         HomeViewValueModel hvm = new HomeViewModel().new HomeViewValueModel();
-        hvm.setId(place.getPlaceName() + "#temp");
+        hvm.setId(placeDirectives.place.getPlaceName() + "#temp");
         hvm.setKey("Wärme");
         hvm.setValue(view.getStateTemperature());
         hvm.setAccent(mapAccent(view.getColorClass()));
@@ -169,9 +170,10 @@ public class AppViewService {
         return hvm;
     }
 
-    private HomeViewValueModel mapHumidity(Place place, ClimateView view) {
+    private HomeViewValueModel mapHumidity(PlaceDirectives placeDirectives, ClimateView view) {
         HomeViewValueModel hvm = new HomeViewModel().new HomeViewValueModel();
-        hvm.setId(place.getPlaceName() + "#humi");
+        hvm.setId(placeDirectives.place.getPlaceName() + "#humi");
+        hvm.setValueDirectives(List.of(ValueDirective.SYMBOL_SKIP).stream().map(Enum::name).collect(Collectors.toList()));
         hvm.setKey("Feuchte");
         hvm.setValue(view.getStateHumidity());
         hvm.setAccent(mapAccent(view.getColorClassHumidity()));
@@ -179,9 +181,9 @@ public class AppViewService {
         return hvm;
     }
 
-    private HomeViewValueModel mapActualPower(Place place, PowerView view) {
+    private HomeViewValueModel mapActualPower(PlaceDirectives placeDirectives, PowerView view) {
         HomeViewValueModel hvm = new HomeViewModel().new HomeViewValueModel();
-        hvm.setId(place.getPlaceName() + "#actPowerSum");
+        hvm.setId(placeDirectives.place.getPlaceName() + "#actPowerSum");
         hvm.setKey("Aktuell");
         hvm.setValue(view.getState().replace("Watt", "W"));
         hvm.setAccent(mapAccent(view.getColorClass()));
@@ -189,9 +191,9 @@ public class AppViewService {
         return hvm;
     }
 
-    private HomeViewValueModel mapTodayPower(Place place, PowerView view) {
+    private HomeViewValueModel mapTodayPower(PlaceDirectives placeDirectives, PowerView view) {
         HomeViewValueModel hvm = new HomeViewModel().new HomeViewValueModel();
-        hvm.setId(place.getPlaceName() + "#todayPowerSum");
+        hvm.setId(placeDirectives.place.getPlaceName() + "#todayPowerSum");
         hvm.setKey("Heute");
         if (BooleanUtils.toBoolean(view.getUnreach())) {
             hvm.setValue(StringUtils.EMPTY);
@@ -204,16 +206,16 @@ public class AppViewService {
         return hvm;
     }
 
-    private HomeViewValueModel mapLockStatus(Place place, LockView view) {
+    private HomeViewValueModel mapLockStatus(PlaceDirectives placeDirectives, LockView view) {
         HomeViewValueModel hvm = new HomeViewModel().new HomeViewValueModel();
-        hvm.setId(place.getPlaceName() + "#lockStatus");
+        hvm.setId(placeDirectives.place.getPlaceName() + "#lockStatus");
         hvm.setKey("Zustand");
         hvm.setValue(Boolean.TRUE.toString().equalsIgnoreCase(view.getBusy()) ? ". . ." : view.getState());
         hvm.setAccent(mapAccent(view.getColorClass()));
         return hvm;
     }
 
-    private List<List<HomeViewActionModel>> mapLockActions(Place place, LockView view) {
+    private List<List<HomeViewActionModel>> mapLockActions(PlaceDirectives placeDirectives, LockView view) {
 
         if (BooleanUtils.toBoolean(view.getUnreach())) {
             return new LinkedList<>();
@@ -221,33 +223,33 @@ public class AppViewService {
 
         List<HomeViewActionModel> actionsState = new LinkedList<>();
         HomeViewActionModel actionLock = new HomeViewModel().new HomeViewActionModel();
-        actionLock.setId(place.getPlaceName() + "#lockActionLock");
+        actionLock.setId(placeDirectives.place.getPlaceName() + "#lockActionLock");
         actionLock.setName("Verriegeln");
         actionLock.setLink(view.getLinkLock());
         actionsState.add(actionLock);
         HomeViewActionModel actionUnlock = new HomeViewModel().new HomeViewActionModel();
-        actionUnlock.setId(place.getPlaceName() + "#lockActionUnlock");
+        actionUnlock.setId(placeDirectives.place.getPlaceName() + "#lockActionUnlock");
         actionUnlock.setName("Entriegeln");
         actionUnlock.setLink(view.getLinkUnlock());
         actionsState.add(actionUnlock);
         HomeViewActionModel actionOpen = new HomeViewModel().new HomeViewActionModel();
-        actionOpen.setId(place.getPlaceName() + "#lockActionOpen");
+        actionOpen.setId(placeDirectives.place.getPlaceName() + "#lockActionOpen");
         actionOpen.setName("Öffnen");
         actionOpen.setLink(view.getLinkOpen());
         actionsState.add(actionOpen);
         List<HomeViewActionModel> actionsControl = new LinkedList<>();
         HomeViewActionModel actionAuto = new HomeViewModel().new HomeViewActionModel();
-        actionAuto.setId(place.getPlaceName() + "#lockActionAuto");
+        actionAuto.setId(placeDirectives.place.getPlaceName() + "#lockActionAuto");
         actionAuto.setName("Automatisch");
         actionAuto.setLink(view.getLinkAuto());
         actionsControl.add(actionAuto);
         HomeViewActionModel actionManu = new HomeViewModel().new HomeViewActionModel();
-        actionManu.setId(place.getPlaceName() + "#lockActionManu");
+        actionManu.setId(placeDirectives.place.getPlaceName() + "#lockActionManu");
         actionManu.setName("Manuell");
         actionManu.setLink(view.getLinkManual());
         actionsControl.add(actionManu);
         HomeViewActionModel actionEvent = new HomeViewModel().new HomeViewActionModel();
-        actionEvent.setId(place.getPlaceName() + "#lockActionEvent");
+        actionEvent.setId(placeDirectives.place.getPlaceName() + "#lockActionEvent");
         actionEvent.setName("Ereignis");
         actionEvent.setLink(view.getLinkAutoEvent());
         actionsControl.add(actionEvent);
@@ -257,25 +259,25 @@ public class AppViewService {
         return actions;
     }
 
-    private HomeViewValueModel mapSwitchStatus(Place place, SwitchView view) {
+    private HomeViewValueModel mapSwitchStatus(PlaceDirectives placeDirectives, SwitchView view) {
         HomeViewValueModel hvm = new HomeViewModel().new HomeViewValueModel();
-        hvm.setId(place.getPlaceName() + "#switchStatus");
+        hvm.setId(placeDirectives.place.getPlaceName() + "#switchStatus");
         hvm.setKey(view.getShortName());
         hvm.setValue(view.getStateShort());
         hvm.setAccent(mapAccent(view.getColorClass()));
         return hvm;
     }
 
-    private HomeViewValueModel mapWindowStatus(Place place, WindowSensorView view) {
+    private HomeViewValueModel mapWindowStatus(PlaceDirectives placeDirectives, WindowSensorView view) {
         HomeViewValueModel hvm = new HomeViewModel().new HomeViewValueModel();
-        hvm.setId(place.getPlaceName() + "#windowStatus");
+        hvm.setId(placeDirectives.place.getPlaceName() + "#windowStatus");
         hvm.setKey(view.getShortName());
         hvm.setValue(view.getStateShort());
         hvm.setAccent(mapAccent(view.getColorClass()));
         return hvm;
     }
 
-    private List<List<HomeViewActionModel>> mapSwitchActions(Place place, SwitchView view) {
+    private List<List<HomeViewActionModel>> mapSwitchActions(PlaceDirectives placeDirectives, SwitchView view) {
 
         if (BooleanUtils.toBoolean(view.getUnreach())) {
             return new LinkedList<>();
@@ -283,23 +285,23 @@ public class AppViewService {
 
         List<HomeViewActionModel> actionsOnOff = new LinkedList<>();
         HomeViewActionModel actionOn = new HomeViewModel().new HomeViewActionModel();
-        actionOn.setId(place.getPlaceName() + "#switchActionOn");
+        actionOn.setId(placeDirectives.place.getPlaceName() + "#switchActionOn");
         actionOn.setName("Ein");
         actionOn.setLink(view.getLinkOn());
         actionsOnOff.add(actionOn);
         HomeViewActionModel actionOff = new HomeViewModel().new HomeViewActionModel();
-        actionOff.setId(place.getPlaceName() + "#switchActionOff");
+        actionOff.setId(placeDirectives.place.getPlaceName() + "#switchActionOff");
         actionOff.setName("Aus");
         actionOff.setLink(view.getLinkOff());
         actionsOnOff.add(actionOff);
         List<HomeViewActionModel> actionsControl = new LinkedList<>();
         HomeViewActionModel actionAuto = new HomeViewModel().new HomeViewActionModel();
-        actionAuto.setId(place.getPlaceName() + "#switchActionAuto");
+        actionAuto.setId(placeDirectives.place.getPlaceName() + "#switchActionAuto");
         actionAuto.setName("Automatisch");
         actionAuto.setLink(view.getLinkAuto());
         actionsControl.add(actionAuto);
         HomeViewActionModel actionManu = new HomeViewModel().new HomeViewActionModel();
-        actionManu.setId(place.getPlaceName() + "#switchActionManu");
+        actionManu.setId(placeDirectives.place.getPlaceName() + "#switchActionManu");
         actionManu.setName("Manuell");
         actionManu.setLink(view.getLinkManual());
         actionsControl.add(actionManu);
@@ -322,6 +324,31 @@ public class AppViewService {
             return "66b3ff";
         default:
             return "bebebe";
+        }
+    }
+
+    public enum AppViewTarget{
+        WATCH, WIDGET
+    }
+
+    private enum PlaceDirective {
+        // Watch
+        WATCH_LABEL, WATCH_SYMBOL,
+        // Widget
+        WIDGET_LABEL_SMALL, WIDGET_LABEL_MEDIUM, WIDGET_LABEL_LARGE, WIDGET_SYMBOL,
+        //
+    }
+
+    private enum ValueDirective {
+        SYMBOL_SKIP
+    }
+
+    private static class PlaceDirectives{
+        public Place place;
+        public List<PlaceDirective> directives;
+        public PlaceDirectives(Place place, PlaceDirective... directives){
+            this.place = place;
+            this.directives = List.of(directives);
         }
     }
 }

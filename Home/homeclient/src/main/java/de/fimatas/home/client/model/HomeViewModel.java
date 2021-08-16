@@ -22,6 +22,8 @@ public class HomeViewModel implements Serializable {
 
         private String name;
 
+        private List<String> placeDirectives = new LinkedList<>();
+
         private List<HomeViewValueModel> values = new LinkedList<>();
 
         private List<List<HomeViewActionModel>> actions = new LinkedList<>();
@@ -58,6 +60,13 @@ public class HomeViewModel implements Serializable {
             this.actions = actions;
         }
 
+        public List<String> getPlaceDirectives() {
+            return placeDirectives;
+        }
+
+        public void setPlaceDirectives(List<String> placeDirectives) {
+            this.placeDirectives = placeDirectives;
+        }
     }
 
     public class HomeViewValueModel implements Serializable {
@@ -68,11 +77,15 @@ public class HomeViewModel implements Serializable {
 
         private String key;
 
+        private String symbol = "";
+
         private String value;
 
         private String accent;
 
         private String tendency = "";
+
+        private List<String> valueDirectives = new LinkedList<>();
 
         public String getId() {
             return id;
@@ -112,6 +125,22 @@ public class HomeViewModel implements Serializable {
 
         public void setTendency(String tendency) {
             this.tendency = tendency;
+        }
+
+        public String getSymbol() {
+            return symbol;
+        }
+
+        public void setSymbol(String symbol) {
+            this.symbol = symbol;
+        }
+
+        public List<String> getValueDirectives() {
+            return valueDirectives;
+        }
+
+        public void setValueDirectives(List<String> valueDirectives) {
+            this.valueDirectives = valueDirectives;
         }
     }
 

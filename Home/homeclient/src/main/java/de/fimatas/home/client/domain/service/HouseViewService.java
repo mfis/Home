@@ -123,7 +123,7 @@ public class HouseViewService {
         formatClimate(model, "tempBedroom", house.getClimateBedRoom(), null, true);
         formatClimate(model, "tempLaundry", house.getClimateLaundry(), null, true);
 
-        formatClimateGroup(model, "upperFloor", Place.UPPER_FLOOR, house);
+        formatClimateGroup(model, "upperFloor", Place.UPPER_FLOOR_TEMPERATURE, house);
 
         // formatWindow(model, "leftWindowBedroom", // NOSONAR
         // house.getLeftWindowBedRoom()); // NOSONAR
