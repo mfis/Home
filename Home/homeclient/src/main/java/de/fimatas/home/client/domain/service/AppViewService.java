@@ -315,15 +315,15 @@ public class AppViewService {
 
         switch (colorClass) {
         case HouseViewService.COLOR_CLASS_GREEN:
-            return "66ff66";
+            return ".green";
         case HouseViewService.COLOR_CLASS_ORANGE:
-            return "ffb84d";
+            return ".orange";
         case HouseViewService.COLOR_CLASS_RED:
-            return "ff6666";
+            return ".red";
         case HouseViewService.COLOR_CLASS_BLUE:
-            return "66b3ff";
+            return ".blue";
         default:
-            return "bebebe";
+            return StringUtils.EMPTY;
         }
     }
 
