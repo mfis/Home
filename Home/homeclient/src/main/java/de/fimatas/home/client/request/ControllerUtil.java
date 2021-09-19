@@ -8,6 +8,8 @@ public class ControllerUtil {
         super();
     }
 
+    public static final String USER_AGENT_APP_WEB_VIEW = "HomeClientAppWebView";
+
     public static void setEssentialHeader(HttpServletResponse response) {
 
         response.setHeader("Referrer-Policy", "no-referrer");

@@ -52,8 +52,6 @@ public class HomeRequestMapping {
 
     private static final String SITE_REQUEST_TS = "SITE_REQUEST_TS";
 
-    private static final String USER_AGENT_APP_WEB_VIEW = "HomeClientAppWebView";
-
     private static final String REDIRECT = "redirect:";
 
     public static final DateTimeFormatter TS_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
@@ -229,7 +227,7 @@ public class HomeRequestMapping {
             @RequestHeader(name = CLIENT_NAME, required = false) String clientName,
             @RequestHeader(name = LoginInterceptor.APP_PUSH_TOKEN, required = false) String appPushToken) {
 
-        boolean isWebViewApp = StringUtils.equals(userAgent, USER_AGENT_APP_WEB_VIEW);
+        boolean isWebViewApp = StringUtils.equals(userAgent, ControllerUtil.USER_AGENT_APP_WEB_VIEW);
 
         if (log.isDebugEnabled()) {
             log.debug(

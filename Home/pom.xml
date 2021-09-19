@@ -39,7 +39,7 @@
 		<!-- Plugin versions -->
 		<StaticResourceProcessing.version>1.5.2</StaticResourceProcessing.version>
 		<lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
-		<dependency-check-maven.version>6.1.5</dependency-check-maven.version>
+		<dependency-check-maven.version>6.2.2</dependency-check-maven.version>
 		<maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
 		<bcpkix-jdk15on.version>1.68</bcpkix-jdk15on.version>
 		<commons-net.version>3.7</commons-net.version>

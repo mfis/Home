@@ -3,8 +3,6 @@ package de.fimatas.home.client.service;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,6 +11,8 @@ import javax.annotation.PostConstruct;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import de.fimatas.home.client.request.ControllerUtil;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -22,7 +22,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+import org.springframework.lang.NonNull;
+import org.springframework.web.servlet.HandlerInterceptor;
 import de.fimatas.home.client.request.AppRequestMapping;
 import de.fimatas.home.client.request.ControllerRequestMapping;
 import de.fimatas.home.library.model.Pages;
@@ -31,7 +32,7 @@ import mfi.files.api.DeviceType;
 import mfi.files.api.TokenResult;
 import mfi.files.api.UserService;
 
-public class LoginInterceptor extends HandlerInterceptorAdapter {
+public class LoginInterceptor implements HandlerInterceptor {
 
     public static final String COOKIE_NAME = "HomeLoginCookie";
 
@@ -40,8 +41,6 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
     public static final String APP_USER_NAME = "appUserName";
 
     private static final String APP_USER_TOKEN = "appUserToken";
-
-    private static final String APP_ADDITIONAL_COOKIE_HEADER = "appAdditionalCookieHeader";
 
     public static final String APP_PUSH_TOKEN = "appPushToken";
 
@@ -55,7 +54,7 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
         Set.of(LoginController.LOGIN_URI, LoginController.LOGIN_COOKIECHECK_URI, LoginController.LOGIN_FAILED_URI,
             LoginController.LOGIN_VIA_APP_FAILED_URI, AppRequestMapping.URI_WHOAMI, AppRequestMapping.URI_CREATE_AUTH_TOKEN);
 
-    private Set<String> WHITELIST_URIS = Set.of("/error", "/robots.txt");
+    private final Set<String> WHITELIST_URIS = Set.of("/error", "/robots.txt");
     private Set<String> WHITELIST_URIS_DYNAMIC;
 
     private static final Set<String> WHITELIST_EXTENSIONS =
@@ -73,6 +72,9 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
     @Value("${appdistribution.web.url}")
     private String appdistributionWebUrl;
 
+    @Value("${doLoginTokenRefreshForNativeApps:false}")
+    private boolean doLoginTokenRefreshForNativeApps;
+
     private int controllerFalseLoginCounter = 0;
 
     private final Log log = LogFactory.getLog(LoginInterceptor.class);
@@ -84,7 +86,7 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
     }
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+    public boolean preHandle(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler) throws Exception {
 
         boolean loginOK = checkLogin(request, response);
 
@@ -191,7 +193,8 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 
     private String tokenLogin(HttpServletRequest request, HttpServletResponse response) {
 
-        boolean refreshToken = BooleanUtils.toBoolean(request.getHeader("refreshToken"));
+        boolean refreshToken = BooleanUtils.toBoolean(request.getHeader("refreshToken")) && doLoginTokenRefreshForNativeApps;
+
         TokenResult tokenResult = userService.checkToken(request.getHeader(APP_USER_NAME), request.getHeader(APP_USER_TOKEN),
             request.getHeader(APP_DEVICE), DeviceType.APP, refreshToken);
 
@@ -234,36 +237,25 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
             return null;
         }
 
-        // Start Workaround
-        String workaroundHeaderForWebViewCookieRefreshProblem = request.getHeader(APP_ADDITIONAL_COOKIE_HEADER);
-        if (StringUtils.isNotBlank(workaroundHeaderForWebViewCookieRefreshProblem)) {
-            if(getTokenCreationDate(workaroundHeaderForWebViewCookieRefreshProblem).isAfter(getTokenCreationDate(token))){
-                log.warn("USING workaroundHeaderForWebViewCookieRefreshProblem");
-                token = workaroundHeaderForWebViewCookieRefreshProblem;
-            }
-        }
-        // End Workaround
-
         boolean isAjaxRequest = BooleanUtils.toBoolean(request.getHeader("isAjaxRequest"));
+        boolean isWebViewApp = StringUtils.equals(request.getHeader(USER_AGENT), ControllerUtil.USER_AGENT_APP_WEB_VIEW);
+        boolean loginTokenRefresh = !isAjaxRequest && (!isWebViewApp || doLoginTokenRefreshForNativeApps);
+
         TokenResult tokenResult = userService.checkToken(userService.userNameFromLoginCookie(token), token,
-            request.getHeader(USER_AGENT), DeviceType.BROWSER, !isAjaxRequest);
+            request.getHeader(USER_AGENT), DeviceType.BROWSER, loginTokenRefresh);
 
         if (tokenResult.isCheckOk()) {
-            if (isAjaxRequest) {
-                return userService.userNameFromLoginCookie(token);
-            } else {
+            if (loginTokenRefresh) {
                 cookieWrite(response, tokenResult.getNewToken());
                 return userService.userNameFromLoginCookie(tokenResult.getNewToken());
+            } else {
+                return userService.userNameFromLoginCookie(token);
             }
         } else {
             response.sendRedirect(LoginController.LOGIN_FAILED_URI);
             logoff(request, response);
             return null;
         }
-    }
-
-    private LocalDateTime getTokenCreationDate(String token){
-        return LocalDateTime.parse(StringUtils.split(token, '*')[1], DateTimeFormatter.ISO_LOCAL_DATE_TIME);
     }
 
     private boolean userHasNotAcceptedCookies(Map<String, String> params) {

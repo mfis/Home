@@ -3,6 +3,7 @@ package de.fimatas.home.client.domain.service;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -173,7 +174,7 @@ public class AppViewService {
     private HomeViewValueModel mapHumidity(PlaceDirectives placeDirectives, ClimateView view) {
         HomeViewValueModel hvm = new HomeViewValueModel();
         hvm.setId(placeDirectives.place.getPlaceName() + "#humi");
-        hvm.getValueDirectives().addAll(List.of(ValueDirective.SYMBOL_SKIP).stream().map(Enum::name).collect(Collectors.toList()));
+        hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP).map(Enum::name).collect(Collectors.toList()));
         hvm.setKey("Feuchte");
         hvm.setValue(view.getStateHumidity());
         hvm.setAccent(mapAccent(view.getColorClassHumidity()));
