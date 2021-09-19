@@ -18,6 +18,7 @@ import mfi.files.api.UserService;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -139,7 +140,10 @@ public class HouseService {
         newModel.setClimateBedRoom(readRoomClimate(Device.THERMOMETER_SCHLAFZIMMER));
         newModel.setClimateLaundry(readRoomClimate(Device.THERMOMETER_WASCHKUECHE));
 
+        newModel.setClimateGuestRoom(readRoomClimate(Device.THERMOSTAT_GAESTEZIMMER));
+        newModel.setHeatingGuestRoom(readHeating(Device.THERMOSTAT_GAESTEZIMMER));
         newModel.setGuestRoomWindowSensor(readWindowSensorState(Device.FENSTERSENSOR_GAESTEZIMMER));
+
         newModel.setWorkshopWindowSensor(readWindowSensorState(Device.FENSTERSENSOR_WERKSTATT));
         newModel.setLaundryWindowSensor(readWindowSensorState(Device.FENSTERSENSOR_WASCHKUECHE));
 
@@ -666,17 +670,38 @@ public class HouseService {
         if (heatingModel.isUnreach()) {
             return heatingModel;
         }
-
-        heatingModel.setBoostActive(hmApi.getAsBigDecimal(homematicCommandBuilder.read(heating, Datapoint.CONTROL_MODE))
-            .compareTo(HomematicConstants.HEATING_CONTROL_MODE_BOOST) == 0);
-        heatingModel.setAutoActive(hmApi.getAsBigDecimal(homematicCommandBuilder.read(heating, Datapoint.CONTROL_MODE))
-                .compareTo(HomematicConstants.HEATING_CONTROL_MODE_AUTO) == 0);
-
-        BigDecimal boostLeft = hmApi.getAsBigDecimal(homematicCommandBuilder.read(heating, Datapoint.BOOST_STATE));
-        heatingModel.setBoostMinutesLeft(boostLeft == null ? 0 : boostLeft.intValue());
-        heatingModel
-            .setTargetTemperature(hmApi.getAsBigDecimal(homematicCommandBuilder.read(heating, Datapoint.SET_TEMPERATURE)));
         heatingModel.setBusy(checkBusyState(heating));
+
+        boolean boost;
+        boolean auto;
+        boolean manual;
+        int boostMinutesLeft;
+        BigDecimal targetTemperature;
+
+        if(heating.isHomematicIP()){
+            boost = hmApi.getAsBoolean(homematicCommandBuilder.read(heating, Datapoint.BOOST_MODE));
+            auto = !boost && hmApi.getAsBigDecimal(homematicCommandBuilder.read(heating, Datapoint.SET_POINT_MODE))
+                    .compareTo(HomematicConstants.HEATING_CONTROL_MODE_AUTO) == 0;
+            manual = !boost && hmApi.getAsBigDecimal(homematicCommandBuilder.read(heating, Datapoint.SET_POINT_MODE))
+                    .compareTo(HomematicConstants.HEATING_CONTROL_MODE_MANUAL) == 0;
+            boostMinutesLeft = NumberUtils.toInt(hmApi.getAsString(homematicCommandBuilder.read(heating, Datapoint.BOOST_TIME)), 0) / 60;
+            targetTemperature = hmApi.getAsBigDecimal(homematicCommandBuilder.read(heating, Datapoint.SET_POINT_TEMPERATURE));
+        }else{
+            boost = hmApi.getAsBigDecimal(homematicCommandBuilder.read(heating, Datapoint.CONTROL_MODE))
+                    .compareTo(HomematicConstants.HEATING_CONTROL_MODE_BOOST) == 0;
+            auto = hmApi.getAsBigDecimal(homematicCommandBuilder.read(heating, Datapoint.CONTROL_MODE))
+                    .compareTo(HomematicConstants.HEATING_CONTROL_MODE_AUTO) == 0;
+            manual = hmApi.getAsBigDecimal(homematicCommandBuilder.read(heating, Datapoint.CONTROL_MODE))
+                    .compareTo(HomematicConstants.HEATING_CONTROL_MODE_MANUAL) == 0;
+            boostMinutesLeft = NumberUtils.toInt(hmApi.getAsString(homematicCommandBuilder.read(heating, Datapoint.BOOST_STATE)), 0);
+            targetTemperature = hmApi.getAsBigDecimal(homematicCommandBuilder.read(heating, Datapoint.SET_TEMPERATURE));
+        }
+
+        heatingModel.setBoostActive(boost);
+        heatingModel.setAutoActive(auto);
+        heatingModel.setManualActive(manual);
+        heatingModel.setBoostMinutesLeft(boostMinutesLeft);
+        heatingModel.setTargetTemperature(targetTemperature);
 
         return heatingModel;
     }

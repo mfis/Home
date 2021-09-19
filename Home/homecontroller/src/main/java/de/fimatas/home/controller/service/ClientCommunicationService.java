@@ -97,9 +97,9 @@ public class ClientCommunicationService {
                 houseService.refreshHouseModel();
                 break;
             case HEATINGAUTO:
-                    houseService.heatingAuto(message.getDevice());
-                    houseService.refreshHouseModel();
-                    break;
+                houseService.heatingAuto(message.getDevice());
+                houseService.refreshHouseModel();
+                break;
             case OPEN:
                 houseService.doorState(message);
                 houseService.refreshHouseModel();

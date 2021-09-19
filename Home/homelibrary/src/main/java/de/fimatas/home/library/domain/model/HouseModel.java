@@ -38,6 +38,10 @@ public class HouseModel implements Serializable {
 
     private Switch workshopVentilationSwitch;
 
+    private RoomClimate climateGuestRoom;
+
+    private Heating heatingGuestRoom;
+
     private WindowSensor guestRoomWindowSensor;
 
     private WindowSensor workshopWindowSensor;
@@ -329,4 +333,20 @@ public class HouseModel implements Serializable {
         this.placeSubtitles = placeSubtitles;
     }
 
+
+    public Heating getHeatingGuestRoom() {
+        return heatingGuestRoom;
+    }
+
+    public void setHeatingGuestRoom(Heating heatingGuestRoom) {
+        this.heatingGuestRoom = heatingGuestRoom;
+    }
+
+    public RoomClimate getClimateGuestRoom() {
+        return climateGuestRoom;
+    }
+
+    public void setClimateGuestRoom(RoomClimate climateGuestRoom) {
+        this.climateGuestRoom = climateGuestRoom;
+    }
 }

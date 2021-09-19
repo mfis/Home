@@ -122,6 +122,7 @@ public class HouseViewService {
         formatClimate(model, "tempLivingroom", house.getClimateLivingRoom(), null, false);
         formatClimate(model, "tempBedroom", house.getClimateBedRoom(), null, true);
         formatClimate(model, "tempLaundry", house.getClimateLaundry(), null, true);
+        formatClimate(model, "tempGuestroom", house.getClimateGuestRoom(), house.getHeatingGuestRoom(), false);
 
         formatClimateGroup(model, "upperFloor", Place.UPPER_FLOOR_TEMPERATURE, house);
 
@@ -474,8 +475,10 @@ public class HouseViewService {
             } else if (heating.isAutoActive()) {
                 view.setLinkAuto(StringUtils.EMPTY);
                 view.setHeaterElementTitleState("Automatik, " + view.getTargetTemp() + ViewFormatter.DEGREE + "C");
-            } else {
+            }else if(heating.isManualActive()){
                 view.setLinkManual(StringUtils.EMPTY);
+                view.setHeaterElementTitleState("Manuell, " + view.getTargetTemp() + ViewFormatter.DEGREE + "C");
+            } else {
                 view.setHeaterElementTitleState(view.getTargetTemp() + ViewFormatter.DEGREE + "C");
             }
         }

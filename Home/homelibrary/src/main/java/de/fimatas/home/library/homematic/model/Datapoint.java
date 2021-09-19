@@ -9,8 +9,12 @@ public enum Datapoint {
     ACTUAL_TEMPERATURE(HomematicValueFormat.DEC, null, true), //
     HUMIDITY(HomematicValueFormat.DEC, null, false), //
     CONTROL_MODE(HomematicValueFormat.DEC, null, true), //
+    SET_POINT_MODE(HomematicValueFormat.DEC, null, true), //
     BOOST_STATE(HomematicValueFormat.DEC, null, false), //
+    BOOST_TIME(HomematicValueFormat.DEC, null, false), //
+    BOOST_MODE(HomematicValueFormat.DEC, null, false), //
     SET_TEMPERATURE(HomematicValueFormat.DEC, null, false), //
+    SET_POINT_TEMPERATURE(HomematicValueFormat.DEC, null, false), //
     STATE(HomematicValueFormat.DEC, null, true), //
     STATE_UNCERTAIN(HomematicValueFormat.DEC, null, false), //
     POWER(HomematicValueFormat.DEC, null, true), //
@@ -26,6 +30,9 @@ public enum Datapoint {
 
     protected static final List<Datapoint> LIST_THERMOSTAT_HM =
         Arrays.asList(Datapoint.ACTUAL_TEMPERATURE, Datapoint.BOOST_STATE, Datapoint.CONTROL_MODE, Datapoint.SET_TEMPERATURE);
+
+    protected static final List<Datapoint> LIST_THERMOSTAT_HMIP =
+            Arrays.asList(Datapoint.ACTUAL_TEMPERATURE, Datapoint.BOOST_TIME, Datapoint.SET_POINT_MODE, Datapoint.SET_POINT_TEMPERATURE, Datapoint.BOOST_MODE);
 
     protected static final List<Datapoint> LIST_THERMOMETER_HMIP =
         Arrays.asList(Datapoint.ACTUAL_TEMPERATURE, Datapoint.HUMIDITY);

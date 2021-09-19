@@ -63,6 +63,8 @@
 			<!-- Gästezimmer -->
 			<div th:replace="fragments :: title (name='Gästezimmer')"></div>
 			<div th:replace="fragments :: windowsensor (model=${windowSensorGuestroom})"></div>
+			<div th:replace="fragments :: temperature (model=${tempGuestroom})"></div>
+			<div th:replace="fragments :: thermostat (model=${tempGuestroom})"></div>
 
 			<!-- Werkstatt -->
 			<div th:replace="fragments :: title (name='Werkstatt')"></div>
