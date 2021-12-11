@@ -72,6 +72,8 @@ public class HouseViewService {
 
     public static final String COLOR_CLASS_BLUE = "info";
 
+    public static final String COLOR_CLASS_LIGHT = "light";
+
     public static final String COLOR_CLASS_GRAY = "secondary";
 
     public static final String COLOR_CLASS_ACTIVE_BUTTON = "active-primary";
@@ -219,7 +221,7 @@ public class HouseViewService {
             frontDoorView.setLastDoorbells(StringUtils.capitalize(
                     viewFormatter.formatPastTimestamp(doorbell.getTimestampLastDoorbell(), PastTimestampFormat.DATE_TIME)));
             frontDoorView.setElementTitleState(StringUtils
-                    .capitalize(viewFormatter.formatPastTimestamp(doorbell.getTimestampLastDoorbell(), PastTimestampFormat.SHORT)));
+                    .capitalize(viewFormatter.formatPastTimestamp(doorbell.getTimestampLastDoorbell(), PastTimestampFormat.SHORT_WITH_TIME)));
         } else {
             frontDoorView.setLastDoorbells(UNBEKANNT);
         }
@@ -352,11 +354,15 @@ public class HouseViewService {
         }
     }
 
-    private String format(BigDecimal val, boolean rounded, boolean onlyInteger) {
+    protected String format(BigDecimal val, boolean rounded, boolean onlyInteger) {
 
         if (val != null) {
             if (onlyInteger) {
-                return new DecimalFormat(rounded ? "#" : "0").format(val);
+                var formatted = new DecimalFormat(rounded ? "#" : "0").format(val);
+                if(formatted.equals("-0")){
+                    formatted = "0";
+                }
+                return formatted;
             } else {
                 return new DecimalFormat("0." + (rounded ? "#" : "0")).format(val);
             }
@@ -382,6 +388,7 @@ public class HouseViewService {
 
         if (climateStateUnknown(climate)) {
             view.setStateTemperature(UNBEKANNT);
+            view.setStateShort("?");
             return view;
         }
 
@@ -392,6 +399,7 @@ public class HouseViewService {
         if (climate.getTemperature() != null) {
             // Temperature and humidity
             view.setStateTemperature(format(climate.getTemperature().getValue(), false, false) + ViewFormatter.DEGREE + "C");
+            view.setStateShort(format(climate.getTemperature().getValue(), true, true) + ViewFormatter.DEGREE);
             view.setElementTitleState(view.getStateTemperature());
             if (climate.getHumidity() != null) {
                 view.setStateHumidity(format(climate.getHumidity().getValue(), true, true) + "%rH");
@@ -410,6 +418,7 @@ public class HouseViewService {
 
         } else {
             view.setStateTemperature("?");
+            view.setStateShort("?");
         }
 
         formatClimateHints(climate, view);
@@ -516,6 +525,9 @@ public class HouseViewService {
         } else if (climate.getTemperature().getValue().compareTo(MEDIUM_HIGH_TEMP) > 0) {
             view.setColorClass(COLOR_CLASS_ORANGE);
             view.setIcon("fas fa-thermometer-half");
+        } else if (climate.getTemperature().getValue().compareTo(FROST_TEMP) < 0) {
+            view.setColorClass(COLOR_CLASS_LIGHT);
+            view.setIcon("fas fa-thermometer-empty");
         } else if (climate.getTemperature().getValue().compareTo(LOW_TEMP) < 0) {
             view.setColorClass(COLOR_CLASS_BLUE);
             view.setIcon("fas fa-thermometer-empty");
@@ -668,7 +680,7 @@ public class HouseViewService {
             stateDelimiter = ", ";
             stateSuffix = viewFormatter.formatPastTimestamp(windowSensor.getStateTimestamp(), PastTimestampFormat.DATE_TIME);
             view.setElementTitleState(
-                    "Seit " + viewFormatter.formatPastTimestamp(windowSensor.getStateTimestamp(), PastTimestampFormat.SHORT));
+                    "Seit " + viewFormatter.formatPastTimestamp(windowSensor.getStateTimestamp(), PastTimestampFormat.SHORT_WITH_TIME));
         }
 
         view.setState((windowSensor.isState() ? "Geöffnet" : "Geschlossen") + stateDelimiter);

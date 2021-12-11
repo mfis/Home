@@ -33,6 +33,11 @@ public class AppViewService {
     @PostConstruct
     void placesDirectives() {
 
+        Set<PlaceDirectives> compliaction = new LinkedHashSet<>();
+        targetPlaceDirectives.put(AppViewTarget.COMPLICATION, compliaction);
+
+        compliaction.add(new PlaceDirectives(Place.OUTSIDE, PlaceDirective.WATCH_SYMBOL));
+
         Set<PlaceDirectives> watch = new LinkedHashSet<>();
         targetPlaceDirectives.put(AppViewTarget.WATCH, watch);
 
@@ -166,6 +171,7 @@ public class AppViewService {
         hvm.setId(placeDirectives.place.getPlaceName() + "#temp");
         hvm.setKey("Wärme");
         hvm.setValue(view.getStateTemperature());
+        hvm.setValueShort(view.getStateShort());
         hvm.setAccent(mapAccent(view.getColorClass()));
         hvm.setTendency(Tendency.nameFromCssClass(view.getTendencyIconTemperature()));
         return hvm;
@@ -323,13 +329,15 @@ public class AppViewService {
             return ".red";
         case HouseViewService.COLOR_CLASS_BLUE:
             return ".blue";
+            case HouseViewService.COLOR_CLASS_LIGHT:
+                return ".purple";
         default:
             return StringUtils.EMPTY;
         }
     }
 
     public enum AppViewTarget{
-        WATCH, WIDGET
+        WATCH, COMPLICATION, WIDGET
     }
 
     private enum PlaceDirective {
