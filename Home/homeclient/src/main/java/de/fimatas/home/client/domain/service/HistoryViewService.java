@@ -12,6 +12,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.Model;
@@ -31,9 +33,9 @@ public class HistoryViewService {
 
     private static final int COMPARE_PERCENTAGE_GREEN_UNTIL = -1;
 
-    private static final int COMPARE_PERCENTAGE_GRAY_UNTIL = +2;
+    private static final int COMPARE_PERCENTAGE_GRAY_UNTIL = 2;
 
-    private static final int COMPARE_PERCENTAGE_ORANGE_UNTIL = +15;
+    private static final int COMPARE_PERCENTAGE_ORANGE_UNTIL = 15;
 
     @Autowired
     private ViewFormatter viewFormatter;
@@ -164,24 +166,16 @@ public class HistoryViewService {
         int index = 0;
         for (TemperatureHistory th : historyList) {
             HistoryEntry entry = new HistoryEntry();
-            entry.setLineOneValueIcon("fas fa-moon");
-            entry.setLineTwoValueIcon("fas fa-sun");
             LocalDate date = Instant.ofEpochMilli(th.getDate()).atZone(ZoneId.systemDefault()).toLocalDate();
             if (th.isSingleDay()) {
-                if (date.compareTo(LocalDate.now()) == 0) {
-                    entry.setLineOneLabel("Heute");
-                } else if (date.compareTo(LocalDate.now().minusDays(1)) == 0) {
-                    entry.setLineOneLabel("Gestern");
-                } else {
-                    entry.setLineOneLabel(ViewFormatter.DAY_MONTH_YEAR_FORMATTER.format(date));
-                }
+                entry.setLineOneLabel(StringUtils
+                        .capitalize(viewFormatter.formatPastTimestamp(th.getDate(), ViewFormatter.PastTimestampFormat.SHORT)));
                 entry.setColorClass(" list-group-item-secondary");
             } else {
                 entry.setLineOneLabel(MONTH_YEAR_FORMATTER.format(date));
             }
-            entry.setLineOneValue(viewFormatter.formatTemperatures(th.getNightMin(), th.getNightMax()));
-            entry.setLineTwoValue(viewFormatter.formatTemperatures(th.getDayMin(), th.getDayMax()));
-            if (index > 2) {
+            entry.setLineOneValue(viewFormatter.formatTemperatures(th.getMin(), th.getMax()));
+            if (index > 3) {
                 entry.setCollapse(" collapse multi-collapse historyTarget");
             }
             list.add(entry);

@@ -55,7 +55,7 @@ public class ViewFormatter {
     public static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm", Locale.GERMAN);
 
     public enum PastTimestampFormat {
-        DATE, DATE_TIME, SHORT;
+        DATE, DATE_TIME, SHORT, SHORT_WITH_TIME
     }
 
     public String formatPastTimestamp(long date, PastTimestampFormat format) { // TODO: write unit tests
@@ -72,7 +72,7 @@ public class ViewFormatter {
 
         String dayString;
 
-        if (between == 0 && format == PastTimestampFormat.SHORT) {
+        if (between == 0 && format == PastTimestampFormat.SHORT_WITH_TIME) {
             dayString = TIME_FORMATTER.format(localDate1) + " Uhr";
         } else if (between == 0) {
             dayString = "heute";
@@ -83,7 +83,7 @@ public class ViewFormatter {
         } else if (between > -1 && between < 7) {
             dayString = WEEKDAY_FORMATTER.format(localDate1);
         } else {
-            if (format == PastTimestampFormat.SHORT) {
+            if (format == PastTimestampFormat.SHORT || format == PastTimestampFormat.SHORT_WITH_TIME) {
                 dayString = DAY_MONTH_YEAR_SHORT_FORMATTER.format(localDate1);
             } else {
                 dayString = DAY_MONTH_YEAR_FORMATTER.format(localDate1);

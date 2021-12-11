@@ -11,16 +11,12 @@ public class TemperatureHistory implements Serializable {
 
     private boolean singleDay;
 
-    private BigDecimal nightMin;
+    private BigDecimal min;
 
-    private BigDecimal nightMax;
-
-    private BigDecimal dayMin;
-
-    private BigDecimal dayMax;
+    private BigDecimal max;
 
     public boolean empty() {
-        return nightMin == null && nightMax == null && dayMin == null && dayMax == null;
+        return min == null && max == null;
     }
 
     public long getDate() {
@@ -39,35 +35,19 @@ public class TemperatureHistory implements Serializable {
         this.singleDay = singleDay;
     }
 
-    public BigDecimal getNightMin() {
-        return nightMin;
+    public BigDecimal getMin() {
+        return min;
     }
 
-    public void setNightMin(BigDecimal nightMin) {
-        this.nightMin = nightMin;
+    public void setMin(BigDecimal nightMin) {
+        this.min = nightMin;
     }
 
-    public BigDecimal getNightMax() {
-        return nightMax;
+    public BigDecimal getMax() {
+        return max;
     }
 
-    public void setNightMax(BigDecimal nightMax) {
-        this.nightMax = nightMax;
-    }
-
-    public BigDecimal getDayMin() {
-        return dayMin;
-    }
-
-    public void setDayMin(BigDecimal dayMin) {
-        this.dayMin = dayMin;
-    }
-
-    public BigDecimal getDayMax() {
-        return dayMax;
-    }
-
-    public void setDayMax(BigDecimal dayMax) {
-        this.dayMax = dayMax;
+    public void setMax(BigDecimal nightMax) {
+        this.max = nightMax;
     }
 }

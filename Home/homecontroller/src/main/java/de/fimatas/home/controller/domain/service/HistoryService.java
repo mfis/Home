@@ -237,11 +237,16 @@ public class HistoryService {
         LocalDateTime base = LocalDateTime.now();
 
         TemperatureHistory today = readDayTemperatureHistory(base, device, datapoint);
-
         history.add(today);
+
         TemperatureHistory yesterday = readDayTemperatureHistory(base.minusHours(HOURS_IN_DAY), device, datapoint);
         if (!yesterday.empty()) {
             history.add(yesterday);
+        }
+
+        TemperatureHistory beforeYesterday = readDayTemperatureHistory(base.minusHours(HOURS_IN_DAY * 2), device, datapoint);
+        if (!beforeYesterday.empty()) {
+            history.add(beforeYesterday);
         }
 
         TemperatureHistory monthHistory;
@@ -272,38 +277,24 @@ public class HistoryService {
     private TemperatureHistory readTemperatureHistory(LocalDate base, boolean singleDay, LocalDateTime monthStart,
             LocalDateTime monthEnd, Device device, Datapoint datapoint) {
 
-        BigDecimal nightMin = readExtremValueBetweenWithCache(homematicCommandBuilder.read(device, datapoint),
-            HistoryValueType.MIN, monthStart, monthEnd, List.of(TimeRange.NIGHT));
-        if (nightMin == null) { // special case directly after month change
-            nightMin = readFirstValueBeforeWithCache(homematicCommandBuilder.read(device, datapoint), monthStart);
+        BigDecimal min = readExtremValueBetweenWithCache(homematicCommandBuilder.read(device, datapoint),
+            HistoryValueType.MIN, monthStart, monthEnd, null);
+        if (min == null) { // special case directly after month change
+            min = readFirstValueBeforeWithCache(homematicCommandBuilder.read(device, datapoint), monthStart);
         }
 
-        BigDecimal nightMax = readExtremValueBetweenWithCache(homematicCommandBuilder.read(device, datapoint),
-            HistoryValueType.MAX, monthStart, monthEnd, List.of(TimeRange.NIGHT));
-        if (nightMax == null) {
-            nightMax = nightMin;
-        }
-
-        BigDecimal dayMin = readExtremValueBetweenWithCache(homematicCommandBuilder.read(device, datapoint),
-            HistoryValueType.MIN, monthStart, monthEnd, List.of(TimeRange.MORGING, TimeRange.DAY, TimeRange.EVENING));
-        if (dayMin == null) {
-            dayMin = nightMin;
-        }
-
-        BigDecimal dayMax = readExtremValueBetweenWithCache(homematicCommandBuilder.read(device, datapoint),
-            HistoryValueType.MAX, monthStart, monthEnd, List.of(TimeRange.MORGING, TimeRange.DAY, TimeRange.EVENING));
-        if (dayMax == null) {
-            dayMax = nightMax;
+        BigDecimal max = readExtremValueBetweenWithCache(homematicCommandBuilder.read(device, datapoint),
+            HistoryValueType.MAX, monthStart, monthEnd, null);
+        if (max == null) {
+            max = min;
         }
 
         TemperatureHistory temperatureHistory = new TemperatureHistory();
-        if (nightMin != null || nightMax != null || dayMin != null || dayMax != null) {
+        if (min != null || max != null) {
             temperatureHistory.setDate(Date.from(base.atStartOfDay(ZoneId.systemDefault()).toInstant()).getTime());
             temperatureHistory.setSingleDay(singleDay);
-            temperatureHistory.setNightMin(nightMin);
-            temperatureHistory.setNightMax(nightMax);
-            temperatureHistory.setDayMin(dayMin);
-            temperatureHistory.setDayMax(dayMax);
+            temperatureHistory.setMin(min);
+            temperatureHistory.setMax(max);
         }
 
         return temperatureHistory;
