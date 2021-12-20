@@ -40,15 +40,17 @@ public class LoginInterceptor implements HandlerInterceptor {
 
     public static final String APP_USER_NAME = "appUserName";
 
-    private static final String APP_USER_TOKEN = "appUserToken";
+    static final String APP_USER_TOKEN = "appUserToken";
 
     public static final String APP_PUSH_TOKEN = "appPushToken";
 
-    private static final String LOGIN_PASSWORD = "login_password"; // NOSONAR
+    static final String LOGIN_PASSWORD = "login_password"; // NOSONAR
 
-    private static final String LOGIN_USERNAME = "login_username";
+    static final String LOGIN_USERNAME = "login_username";
 
-    private static final String USER_AGENT = "user-agent";
+    static final String LOGIN_COOKIEOK = "login_cookieok";
+
+    static final String USER_AGENT = "user-agent";
 
     private static final Set<String> LOGIN_URIS =
         Set.of(LoginController.LOGIN_URI, LoginController.LOGIN_COOKIECHECK_URI, LoginController.LOGIN_FAILED_URI,
@@ -259,7 +261,7 @@ public class LoginInterceptor implements HandlerInterceptor {
     }
 
     private boolean userHasNotAcceptedCookies(Map<String, String> params) {
-        return !StringUtils.trimToEmpty(params.get("login_cookieok")).equals("true");
+        return !StringUtils.trimToEmpty(params.get(LOGIN_COOKIEOK)).equals("true");
     }
 
     private Map<String, String> mapRequestParameters(HttpServletRequest request) {

@@ -2,15 +2,13 @@ package de.fimatas.home.client.request;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Enumeration;
-import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import de.fimatas.home.library.model.PageEntry;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -91,7 +89,7 @@ public class HomeRequestMapping {
             @RequestParam(name = HUE_DEVICE_ID, required = false) String hueDeviceId, //
             @RequestParam(name = "value") String value, //
             @RequestHeader(name = LoginInterceptor.APP_USER_NAME, required = false) String appUserName, //
-            @RequestHeader(name = "CSRF", required = true) String csrf, //
+            @RequestHeader(name = "CSRF") String csrf, //
             @RequestHeader(name = "pin", required = false) String securityPin, //
             HttpServletResponse httpServletResponse) {
 
@@ -193,7 +191,7 @@ public class HomeRequestMapping {
             @RequestParam(CAMERA_MODE) String cameraMode, @RequestParam("ts") String timestamp,
             @RequestParam(name = "onlyheader", required = false) String onlyheader) {
 
-        boolean onlyHeaderFlag = onlyheader != null && Boolean.parseBoolean(onlyheader);
+        boolean onlyHeaderFlag = Boolean.parseBoolean(onlyheader);
         log.info("poll for camera image - " + timestamp + (onlyHeaderFlag ? " onlyHeader" : ""));
         byte[] bytes = cameraPicture(Device.valueOf(deviceName), CameraMode.valueOf(cameraMode), Long.parseLong(timestamp));
 
@@ -246,7 +244,8 @@ public class HomeRequestMapping {
 
         try {
             if (houseModel == null) {
-                throw new IllegalStateException("State error - " + ModelObjectDAO.getInstance().getLastHouseModelState());
+                mappingErrorAttributes(model, response, "Keine aktuellen Daten vorhanden - " + ModelObjectDAO.getInstance().getLastHouseModelState(), null);
+                return "error";
             } else if (isModelUnchanged(etag, houseModel, ModelObjectDAO.getInstance().readLightsModel()) && !isNewMessage) {
                 response.setStatus(HttpStatus.NOT_MODIFIED.value());
                 return "empty";
@@ -289,7 +288,7 @@ public class HomeRequestMapping {
         model.addAttribute("error", "n/a");
         model.addAttribute("path", Pages.PATH_HOME);
         model.addAttribute("message", message);
-        model.addAttribute("exception", exception.getMessage());
+        model.addAttribute("exception", exception!=null ? exception.getMessage(): Strings.EMPTY);
     }
 
     private boolean isModelUnchanged(String etag, HouseModel houseModel, LightsModel lightsModel) {
