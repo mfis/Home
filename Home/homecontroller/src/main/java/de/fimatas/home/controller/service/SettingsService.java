@@ -20,9 +20,6 @@ public class SettingsService {
     @Autowired
     private UploadService uploadService;
 
-    @Autowired
-    private PushService pushService;
-
     @PostConstruct
     public void init() {
 
@@ -50,10 +47,10 @@ public class SettingsService {
         uploadService.upload(container);
     }
 
-    public void createNewSettingsForToken(String token, String user, String client) {
+    public boolean createNewSettingsForToken(String token, String user, String client) {
 
         if (SettingsDAO.getInstance().read().stream().anyMatch(model -> model.getToken().equals(token))) {
-            return;
+            return false;
         }
 
         Optional<SettingsModel> oldToken = SettingsDAO.getInstance().read().stream()
@@ -74,11 +71,9 @@ public class SettingsService {
         }
         SettingsDAO.getInstance().write(model);
 
-        if (oldToken.isEmpty()) {
-            pushService.sendRegistrationConfirmation(token, client);
-        }
-
         refreshSettingsModelsComplete();
+
+        return oldToken.isEmpty();
     }
 
     public void deleteSettingsForToken(String token) {

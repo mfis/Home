@@ -54,6 +54,9 @@ public class ClientCommunicationService {
     private UploadService uploadService;
 
     @Autowired
+    private PushService pushService;
+
+    @Autowired
     @Qualifier("restTemplateLongPolling")
     private RestTemplate restTemplateLongPolling;
 
@@ -81,7 +84,7 @@ public class ClientCommunicationService {
                 houseService.refreshHouseModel();
                 break;
             case TOGGLESTATE:
-                houseService.togglestate(message.getDevice(), Boolean.valueOf(message.getValue()));
+                houseService.togglestate(message.getDevice(), Boolean.parseBoolean(message.getValue()));
                 houseService.refreshHouseModel();
                 break;
             case TOGGLELIGHT:
@@ -112,7 +115,9 @@ public class ClientCommunicationService {
                 houseService.refreshHouseModel();
                 break;
             case SETTINGS_NEW:
-                settingsService.createNewSettingsForToken(message.getValue(), message.getUser(), message.getClient());
+                if(settingsService.createNewSettingsForToken(message.getValue(), message.getUser(), message.getClient())){
+                    pushService.sendRegistrationConfirmation(message.getValue(), message.getClient());
+                }
                 break;
             default:
                 throw new IllegalStateException("Unknown MessageType:" + message.getMessageType().name());

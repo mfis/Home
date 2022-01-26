@@ -60,7 +60,7 @@ public class AppViewService {
 
         widget.add(new PlaceDirectives(Place.OUTSIDE, PlaceDirective.WIDGET_LABEL_SMALL, PlaceDirective.WIDGET_LABEL_MEDIUM, PlaceDirective.WIDGET_LABEL_LARGE));
         widget.add(new PlaceDirectives(Place.UPPER_FLOOR_TEMPERATURE, PlaceDirective.WIDGET_LABEL_SMALL, PlaceDirective.WIDGET_LABEL_MEDIUM, PlaceDirective.WIDGET_LABEL_LARGE));
-        // widget.add(new PlaceDirectives(Place.DOORS_AND_WINDOWS, PlaceDirective.WIDGET_SYMBOL));
+        widget.add(new PlaceDirectives(Place.FRONTDOOR, PlaceDirective.WIDGET_SYMBOL));
     }
 
     public HomeViewModel mapAppModel(Model model, AppViewTarget viewTarget) {
@@ -117,9 +117,14 @@ public class AppViewService {
     }
 
     private void mapLockView(PlaceDirectives placeDirectives, LockView view, HomeViewPlaceModel placeModel) {
-        placeModel.setName("Haustür");
-        placeModel.getValues().add(mapLockStatus(placeDirectives, view));
-        placeModel.getActions().addAll(mapLockActions(placeDirectives, view));
+        if(directiveContainsOnly(placeDirectives, PlaceDirective.WIDGET_SYMBOL) && isColorClassOrangeOrRed(view)){
+            placeModel.setName("HaustuerOrangeOrRed");
+            placeModel.getValues().add(mapLockStatus(placeDirectives, view));
+        }else{
+            placeModel.setName("Haustür");
+            placeModel.getValues().add(mapLockStatus(placeDirectives, view));
+            placeModel.getActions().addAll(mapLockActions(placeDirectives, view));
+        }
     }
 
     private void mapPowerView(PlaceDirectives placeDirectives, PowerView view, HomeViewPlaceModel placeModel) {
@@ -316,6 +321,15 @@ public class AppViewService {
         actions.add(actionsOnOff);
         actions.add(actionsControl);
         return actions;
+    }
+
+    private boolean directiveContainsOnly(PlaceDirectives placeDirectives, @SuppressWarnings("SameParameterValue") PlaceDirective directive){
+        return placeDirectives.directives.size()==1 && placeDirectives.directives.contains(directive);
+    }
+
+    private boolean isColorClassOrangeOrRed(View view){
+        return view.getColorClass().equalsIgnoreCase(HouseViewService.COLOR_CLASS_ORANGE)
+                || view.getColorClass().equalsIgnoreCase(HouseViewService.COLOR_CLASS_RED);
     }
 
     private String mapAccent(String colorClass) {
