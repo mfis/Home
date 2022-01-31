@@ -295,7 +295,7 @@ public class HouseService {
         }
 
         ValueWithTendency<BigDecimal> referencePower;
-        if (oldModel == null) {
+        if (oldModel == null || oldModel.isUnreach()) {
             referencePower = newModel.getActualConsumption();
             referencePower.setReferenceValue(referencePower.getValue());
         } else {
@@ -313,7 +313,7 @@ public class HouseService {
         // Temperature
         if (climateNew.getTemperature() != null) {
             ValueWithTendency<BigDecimal> referenceTemperature;
-            if (climateOld == null) {
+            if (climateOld == null || climateOld.isUnreach()) {
                 referenceTemperature = climateNew.getTemperature();
                 referenceTemperature.setReferenceValue(referenceTemperature.getValue());
             } else {
@@ -326,7 +326,7 @@ public class HouseService {
         // Humidity
         if (climateNew.getHumidity() != null) {
             ValueWithTendency<BigDecimal> referenceHumidity;
-            if (climateOld == null) {
+            if (climateOld == null || climateOld.isUnreach()) {
                 referenceHumidity = climateNew.getHumidity();
                 referenceHumidity.setReferenceValue(referenceHumidity.getValue());
             } else {
