@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Component
 public class HouseService {
@@ -180,9 +181,9 @@ public class HouseService {
 
     private void calculateConclusion(HouseModel oldModel, HouseModel newModel) {
 
-        List<OutdoorClimate> outdoor = List.of(//
+        List<OutdoorClimate> outdoor = Stream.of(//
             newModel.getClimateEntrance(), newModel.getClimateTerrace(), newModel.getClimateGarden() //
-        ).stream().filter(c -> !c.isUnreach()).collect(Collectors.toList());
+        ).filter(c -> !c.isUnreach()).collect(Collectors.toList());
 
         calculateOutdoorMinMax(newModel, outdoor);
         calculateOutdoorHumidity(newModel);
@@ -648,9 +649,7 @@ public class HouseService {
     private void readSubtitles(HouseModel houseModel) {
         for (Place place : Place.values()) {
             Optional<String> subtitle = readSubtitleFor(place);
-            if(subtitle.isPresent()){
-                houseModel.getPlaceSubtitles().put(place, subtitle.get());
-            }
+            subtitle.ifPresent(s -> houseModel.getPlaceSubtitles().put(place, s));
         }
     }
 
