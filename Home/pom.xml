@@ -38,16 +38,18 @@
 		<lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
 		<dependency-check-maven.version>6.5.3</dependency-check-maven.version>
 		<maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
-		<bcpkix-jdk15on.version>1.68</bcpkix-jdk15on.version>
+		<bouncycastle.version>1.70</bouncycastle.version>
 		<commons-net.version>3.7</commons-net.version>
 		<assertj.version>3.19.0</assertj.version>
-
+		<hap-java.version>2.0.0</hap-java.version>
+		<zxing.version>3.4.1</zxing.version>
 	</properties>
 
 	<modules>
 		<module>homelibrary</module>
 		<module>homecontroller</module>
 		<module>homeclient</module>
+		<module>homeadapter</module>
 	</modules>
 
 	<dependencyManagement>
@@ -90,11 +92,6 @@
 				<scope>compile</scope>
 			</dependency>
 			<dependency>
-				<groupId>org.bouncycastle</groupId>
-				<artifactId>bcpkix-jdk15on</artifactId>
-				<version>${bcpkix-jdk15on.version}</version>
-			</dependency>
-			<dependency>
 				<groupId>commons-net</groupId>
 				<artifactId>commons-net</artifactId>
 				<version>${commons-net.version}</version>
@@ -124,7 +121,6 @@
 				<artifactId>assertj-core</artifactId>
 				<version>${assertj.version}</version>
 			</dependency>
-
 		</dependencies>
 	</dependencyManagement>
 
