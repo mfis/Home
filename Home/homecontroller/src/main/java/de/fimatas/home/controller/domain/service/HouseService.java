@@ -30,7 +30,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -118,7 +117,8 @@ public class HouseService {
         calculateHints(oldModel, newModel);
 
         pushService.sendAfterModelRefresh(oldModel, newModel);
-        uploadService.upload(newModel);
+        uploadService.uploadToAdapter(newModel);
+        uploadService.uploadToClient(newModel);
 
         // updateCameraPictures(oldModel, newModel); // async
         updateHomematicSystemVariables(oldModel, newModel);

@@ -72,7 +72,7 @@ public class CameraService {
         CameraModel cameraModel = ModelObjectDAO.getInstance().readCameraModel();
         if (cameraModel.cleanUp()) {
             LOG.info("Cleaned up camera pictures");
-            uploadService.upload(cameraModel);
+            uploadService.uploadToClient(cameraModel);
         }
     }
 
@@ -129,7 +129,7 @@ public class CameraService {
                                                                // DELETE
                                                                // OLDEST
         }
-        uploadService.upload(cameraModel);
+        uploadService.uploadToClient(cameraModel);
     }
 
     private void turnOnCamera(Device deviceSwitch) {

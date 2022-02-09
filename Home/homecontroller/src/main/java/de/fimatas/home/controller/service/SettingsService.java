@@ -44,7 +44,7 @@ public class SettingsService {
             });
             container.getSettings().add(model);
         });
-        uploadService.upload(container);
+        uploadService.uploadToClient(container);
     }
 
     public boolean createNewSettingsForToken(String token, String user, String client) {

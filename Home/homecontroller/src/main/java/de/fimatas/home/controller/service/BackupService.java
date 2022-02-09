@@ -71,7 +71,7 @@ public class BackupService {
                 BackupFile backupFile = new BackupFile();
                 backupFile.setFilename(path.toFile().getName());
                 backupFile.setBytes(FileUtils.readFileToByteArray(path.toFile()));
-                uploadService.upload(backupFile);
+                uploadService.uploadToClient(backupFile);
             }
         } catch (Exception e) {
             LOG.error("Exception upload backup file to client:", e);

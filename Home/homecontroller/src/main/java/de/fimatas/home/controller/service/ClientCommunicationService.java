@@ -128,7 +128,7 @@ public class ClientCommunicationService {
             LOG.error("Error executing message:", e);
             message.setSuccessfullExecuted(false);
         }
-        uploadService.upload(message);
+        uploadService.uploadToClient(message);
     }
 
     private void refreshAll() {
@@ -136,22 +136,22 @@ public class ClientCommunicationService {
         if (ModelObjectDAO.getInstance().readHouseModel() == null) {
             houseService.refreshHouseModel();
         } else {
-            uploadService.upload(ModelObjectDAO.getInstance().readHouseModel());
+            uploadService.uploadToClient(ModelObjectDAO.getInstance().readHouseModel());
         }
 
         if (ModelObjectDAO.getInstance().readHistoryModel() == null) {
             historyService.refreshHistoryModelComplete();
         } else {
-            uploadService.upload(ModelObjectDAO.getInstance().readHistoryModel());
+            uploadService.uploadToClient(ModelObjectDAO.getInstance().readHistoryModel());
         }
 
         if (ModelObjectDAO.getInstance().readLightsModel() == null) {
             lightService.refreshLightsModel();
         } else {
-            uploadService.upload(ModelObjectDAO.getInstance().readLightsModel());
+            uploadService.uploadToClient(ModelObjectDAO.getInstance().readLightsModel());
         }
 
-        uploadService.upload(ModelObjectDAO.getInstance().readCameraModel());
+        uploadService.uploadToClient(ModelObjectDAO.getInstance().readCameraModel());
 
         settingsService.refreshSettingsModelsComplete();
     }

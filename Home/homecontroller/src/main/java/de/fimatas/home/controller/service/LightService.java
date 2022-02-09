@@ -84,7 +84,7 @@ public class LightService {
         }
 
         ModelObjectDAO.getInstance().write(newModel);
-        uploadService.upload(newModel);
+        uploadService.uploadToClient(newModel);
     }
 
     private LightsModel refreshModel() {

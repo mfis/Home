@@ -219,7 +219,7 @@ public class HistoryService {
         updateTemperatureHistory(model.getLaundryTemperature(), Device.THERMOMETER_WASCHKUECHE, Datapoint.ACTUAL_TEMPERATURE);
 
         model.updateDateTime();
-        uploadService.upload(model);
+        uploadService.uploadToClient(model);
     }
 
     private void updateTemperatureHistory(List<TemperatureHistory> history, Device device, Datapoint datapoint) {
