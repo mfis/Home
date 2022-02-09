@@ -6,9 +6,17 @@ import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import de.fimatas.home.adapter.auth.HomekitAuthentication;
+import de.fimatas.home.adapter.service.HomekitService;
+import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.ActionModel;
+import de.fimatas.home.library.domain.model.HouseModel;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.imageio.ImageIO;
@@ -17,6 +25,22 @@ import java.io.IOException;
 
 @RestController
 public class RequestMapping {
+
+    @Autowired
+    private HomekitService homekitService;
+
+    private static final Log LOG = LogFactory.getLog(RequestMapping.class);
+
+    @PostMapping(value = "/uploadHouseModel")
+    public ActionModel uploadHouseModel(@RequestBody HouseModel houseModel) {
+        ModelObjectDAO.getInstance().write(houseModel);
+        try {
+            homekitService.update();
+        }catch (Exception e){
+            LOG.error("Exception updating HomekitService", e);
+        }
+        return new ActionModel("OK");
+    }
 
     @GetMapping("adapter/memoryInfo")
     public ActionModel memoryInfo() {
