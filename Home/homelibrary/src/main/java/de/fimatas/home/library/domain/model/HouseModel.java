@@ -1,5 +1,7 @@
 package de.fimatas.home.library.domain.model;
 
+import de.fimatas.home.library.annotation.EnableHomekit;
+
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.*;
@@ -10,20 +12,26 @@ public class HouseModel implements Serializable {
 
     private long dateTime;
 
+    @EnableHomekit(accessoryId = 1001)
     private RoomClimate climateKidsRoom1;
 
+    @EnableHomekit(accessoryId = 1002)
     private RoomClimate climateKidsRoom2;
 
+    @EnableHomekit(accessoryId = 1003)
     private RoomClimate climateBathRoom;
 
     private Heating heatingBathRoom;
 
+    @EnableHomekit(accessoryId = 1004)
     private RoomClimate climateBedRoom;
 
     private Shutter leftWindowBedRoom;
 
+    @EnableHomekit(accessoryId = 1005)
     private RoomClimate climateLivingRoom;
 
+    @EnableHomekit(accessoryId = 1006)
     private RoomClimate climateLaundry;
 
     private OutdoorClimate climateGarden;
@@ -38,6 +46,7 @@ public class HouseModel implements Serializable {
 
     private Switch workshopVentilationSwitch;
 
+    @EnableHomekit(accessoryId = 1007)
     private RoomClimate climateGuestRoom;
 
     private Heating heatingGuestRoom;
@@ -66,6 +75,7 @@ public class HouseModel implements Serializable {
 
     // ----------
 
+    @EnableHomekit(accessoryId = 1008)
     private OutdoorClimate conclusionClimateFacadeMin;
 
     private OutdoorClimate conclusionClimateFacadeMax;
