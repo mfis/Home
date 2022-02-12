@@ -78,6 +78,10 @@ public class ModelObjectDAO {
         }
     }
 
+    public HouseModel readHouseModelIgnoringAge(){
+        return houseModel;
+    }
+
     public HistoryModel readHistoryModel() {
         long newestTimestamp = historyModel == null ? 0 : historyModel.getDateTime();
         if (historyModel == null || new Date().getTime() - newestTimestamp > 1000 * HomeAppConstants.HISTORY_OUTDATED_SECONDS) {
