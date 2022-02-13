@@ -34,7 +34,7 @@ public abstract class HomekitAccessoryWithModelField implements HomekitAccessory
 
     @Override
     public CompletableFuture<String> getManufacturer() {
-        return CompletableFuture.completedFuture("homeadapter");
+        return CompletableFuture.completedFuture("fimatas.de");
     }
 
     @Override
@@ -53,24 +53,24 @@ public abstract class HomekitAccessoryWithModelField implements HomekitAccessory
         callback = null;
     }
 
-    protected abstract <T> T actualValue(Class<T> type);
+    protected abstract Object actualValue();
 
     public void checkValueUpdate(){
-        if (!Objects.equals(updateCheckCompareValue, actualValue(Object.class))) {
+        if (!Objects.equals(updateCheckCompareValue, actualValue())) {
             if(callback != null){
                 callback.changed();
             }
         }
-        updateCheckCompareValue = actualValue(Object.class);
+        updateCheckCompareValue = actualValue();
     }
 
-    protected <T extends AbstractDeviceModel> T lookupDeviceModel(boolean ignoringAge){
+    protected AbstractDeviceModel lookupDeviceModel(boolean ignoringAge){
         HouseModel model = ignoringAge?
                 ModelObjectDAO.getInstance().readHouseModelIgnoringAge():ModelObjectDAO.getInstance().readHouseModel();
         if(model==null){
             return null;
         }else{
-            return (T) model.lookupField(modelFieldName, AbstractDeviceModel.class);
+            return model.lookupField(modelFieldName, AbstractDeviceModel.class);
         }
     }
 

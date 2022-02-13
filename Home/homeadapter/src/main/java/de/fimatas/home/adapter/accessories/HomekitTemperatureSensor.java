@@ -20,10 +20,10 @@ public class HomekitTemperatureSensor extends HomekitAccessoryWithModelField imp
     }
 
     @Override
-    protected <T> T actualValue(Class<T> type) {
-        final Climate climate = lookupDeviceModel(false);
-        if(climate != null && climate.getTemperature() != null && type.isAssignableFrom(Double.class)){
-            return (T) Double.valueOf(climate.getTemperature().getValue().doubleValue());
+    protected Object actualValue() {
+        final Climate climate = (Climate) lookupDeviceModel(false);
+        if(climate != null && climate.getTemperature() != null){
+            return climate.getTemperature().getValue().doubleValue();
         }else{
             return null;
         }
@@ -41,7 +41,7 @@ public class HomekitTemperatureSensor extends HomekitAccessoryWithModelField imp
 
     @Override
     public CompletableFuture<Double> getCurrentTemperature() {
-        return CompletableFuture.completedFuture(actualValue(Double.class));
+        return CompletableFuture.completedFuture((Double) actualValue());
     }
 
     @Override
