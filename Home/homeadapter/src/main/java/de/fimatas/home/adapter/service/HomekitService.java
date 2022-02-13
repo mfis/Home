@@ -9,6 +9,7 @@ import de.fimatas.home.library.domain.model.AbstractDeviceModel;
 import de.fimatas.home.library.domain.model.Climate;
 import de.fimatas.home.library.domain.model.HouseModel;
 import io.github.hapjava.accessories.TemperatureSensorAccessory;
+import io.github.hapjava.server.HomekitAccessoryCategories;
 import io.github.hapjava.server.impl.HomekitRoot;
 import io.github.hapjava.server.impl.HomekitServer;
 import lombok.SneakyThrows;
@@ -46,6 +47,7 @@ public class HomekitService {
             homekitServer = new HomekitServer(Integer.parseInt(Objects.requireNonNull(env.getProperty("homekit.bridge.port"))));
             homekitBridge = homekitServer.createBridge(HomekitAuthentication.getInstance(),
                     env.getProperty("homekit.bridge.label"),
+                    HomekitAccessoryCategories.BRIDGES,
                     env.getProperty("homekit.bridge.manufacturer"),
                     env.getProperty("homekit.bridge.model"),
                     env.getProperty("homekit.bridge.serialNumber"),
