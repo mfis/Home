@@ -5,6 +5,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Async;
@@ -14,6 +15,7 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,9 +29,17 @@ public class UploadService {
     @Autowired
     private Environment env;
 
+    @Value("${application.homeAdapterEnabled:false}")
+    private boolean homeAdapterEnabled;
+
     private final static Log log = LogFactory.getLog(UploadService.class);
 
     private final Map<String, Long> resourceNotAvailableCounter = new HashMap<>();
+
+    @PostConstruct
+    public void init() {
+        log.info("homeAdapterEnabled=" + homeAdapterEnabled);
+    }
 
     public void uploadToClient(Object object) {
         String host = env.getProperty("client.hostName");
@@ -38,7 +48,9 @@ public class UploadService {
 
     @Async
     public void uploadToAdapter(Object object) {
-        uploadBinaryToClient("http://localhost:8097/upload" + object.getClass().getSimpleName(), object, false);
+        if(homeAdapterEnabled){
+            uploadBinaryToClient("http://localhost:8097/upload" + object.getClass().getSimpleName(), object, false);
+        }
     }
 
     private <T> void uploadBinaryToClient(String url, Object instance, boolean credentials) {
