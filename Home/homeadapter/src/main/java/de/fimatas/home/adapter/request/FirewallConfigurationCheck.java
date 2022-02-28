@@ -57,6 +57,8 @@ public class FirewallConfigurationCheck {
             } catch(RuntimeException re){
                 log.info("Firewall configutation check ok: Outgoing internet traffic is blocked.");
             }
+        }else{
+            log.warn("FirewallConfigurationCheck is DISABLED!");
         }
     }
 
