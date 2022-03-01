@@ -307,7 +307,7 @@ public class HouseService {
 
     private void calculateClimateTendencies(HouseModel newModel, Climate climateNew, Climate climateOld) {
 
-        if (climateNew == null) {
+        if (climateNew == null || climateNew.isUnreach()) {
             return;
         }
 
