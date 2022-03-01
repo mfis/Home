@@ -5,6 +5,7 @@ import de.fimatas.home.library.domain.model.AbstractDeviceModel;
 import de.fimatas.home.library.domain.model.HouseModel;
 import io.github.hapjava.accessories.HomekitAccessory;
 import io.github.hapjava.characteristics.HomekitCharacteristicChangeCallback;
+import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.apachecommons.CommonsLog;
 
@@ -18,6 +19,7 @@ public abstract class HomekitAccessoryWithModelField implements HomekitAccessory
     @Setter protected int accessoryId;
     private HomekitCharacteristicChangeCallback callback = null;
     private Object updateCheckCompareValue = null;
+    @Getter @Setter private boolean isAddedToBridge = false;
 
     @Override
     public int getId() {

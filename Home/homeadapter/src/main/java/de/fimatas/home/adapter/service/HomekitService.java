@@ -15,6 +15,7 @@ import io.github.hapjava.server.impl.HomekitServer;
 import lombok.SneakyThrows;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -34,44 +35,22 @@ public class HomekitService {
     private Environment env;
 
     private HomekitServer homekitServer;
-
     private HomekitRoot homekitBridge;
     private boolean bridgeStarted;
 
     private final Map<Integer, HomekitAccessoryWithModelField> accessories = new HashMap<>();
 
+    @Value("${homekit.doLoggingOnly}")
+    private boolean doLoggingOnly;
+
     @PostConstruct
     public void init() {
-        try {
-            HomekitAuthentication.getInstance().setPin(env.getProperty("homekit.auth.pin"));
-            homekitServer = new HomekitServer(Integer.parseInt(Objects.requireNonNull(env.getProperty("homekit.bridge.port"))));
-            homekitBridge = homekitServer.createBridge(HomekitAuthentication.getInstance(),
-                    env.getProperty("homekit.bridge.label"),
-                    HomekitAccessoryCategories.BRIDGES,
-                    env.getProperty("homekit.bridge.manufacturer"),
-                    env.getProperty("homekit.bridge.model"),
-                    env.getProperty("homekit.bridge.serialNumber"),
-                    env.getProperty("homekit.bridge.firmwareRevision"),
-                    env.getProperty("homekit.bridge.hardwareRevision"));
-
-        } catch (Exception e) {
-            log.error("Unable to start Homekit server.", e);
-        }
+        HomekitAuthentication.getInstance().setPin(env.getProperty("homekit.auth.pin"));
     }
 
     @PreDestroy
     public void shutdown() {
-       try {
-           if(homekitBridge != null){
-               homekitBridge.stop();
-           }
-           if(homekitServer != null){
-                homekitServer.stop();
-           }
-           accessories.clear();
-        } catch (Exception e) {
-            log.error("Unable to shutdown Homekit server.", e);
-        }
+        stopServer();
     }
 
     @SneakyThrows
@@ -79,7 +58,8 @@ public class HomekitService {
     public synchronized void update()  {
 
         HouseModel model = ModelObjectDAO.getInstance().readHouseModel();
-        if(model == null || homekitBridge == null){
+        if(model == null){
+            log.warn("Update interrupted.");
             return;
         }
 
@@ -92,12 +72,14 @@ public class HomekitService {
             }
         }
 
-        if(!bridgeStarted && !accessories.isEmpty()){
-            if(Boolean.parseBoolean(env.getProperty("homekit.doLoggingOnly"))){
+        if(accessories.values().stream().anyMatch(a -> !a.isAddedToBridge())){
+            if(doLoggingOnly){
                 logging();
             }else{
-                homekitBridge.start();
-                bridgeStarted = true;
+                if(bridgeStarted){
+                    stopServer();
+                }
+                startServer();
             }
         }
 
@@ -119,7 +101,46 @@ public class HomekitService {
         accessory.setModelFieldName(field.getName());
         accessory.setAccessoryId(enableHomekit.accessoryId());
         accessories.put(enableHomekit.accessoryId(), accessory);
-        homekitBridge.addAccessory(accessory);
+    }
+
+    private void startServer() {
+        log.info("Starting server...");
+        try {
+            homekitServer = new HomekitServer(Integer.parseInt(Objects.requireNonNull(env.getProperty("homekit.bridge.port"))));
+            homekitBridge = homekitServer.createBridge(HomekitAuthentication.getInstance(),
+                    env.getProperty("homekit.bridge.label"),
+                    HomekitAccessoryCategories.BRIDGES,
+                    env.getProperty("homekit.bridge.manufacturer"),
+                    env.getProperty("homekit.bridge.model"),
+                    env.getProperty("homekit.bridge.serialNumber"),
+                    env.getProperty("homekit.bridge.firmwareRevision"),
+                    env.getProperty("homekit.bridge.hardwareRevision"));
+
+        } catch (Exception e) {
+            log.error("Unable to start Homekit server.", e);
+        }
+        accessories.values().forEach(a -> {
+            homekitBridge.addAccessory(a);
+            a.setAddedToBridge(true);
+        });
+        log.info("Starting bridge...");
+        homekitBridge.start();
+        bridgeStarted = true;
+    }
+
+    private void stopServer() {
+        try {
+            if(homekitBridge != null){
+                homekitBridge.stop();
+            }
+            if(homekitServer != null){
+                homekitServer.stop();
+            }
+            accessories.values().forEach(a -> a.setAddedToBridge(false));
+            bridgeStarted = false;
+        } catch (Exception e) {
+            log.error("Unable to shutdown Homekit server.", e);
+        }
     }
 
     @SneakyThrows
