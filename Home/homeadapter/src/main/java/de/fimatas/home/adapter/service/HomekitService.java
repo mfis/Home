@@ -40,7 +40,7 @@ public class HomekitService {
 
     private final Map<Integer, HomekitAccessoryWithModelField> accessories = new HashMap<>();
 
-    @Value("${homekit.doLoggingOnly}")
+    @Value("${homekit.doLoggingOnly:false}")
     private boolean doLoggingOnly;
 
     @PostConstruct
