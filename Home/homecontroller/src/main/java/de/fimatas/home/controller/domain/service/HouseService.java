@@ -109,20 +109,20 @@ public class HouseService {
             return;
         }
 
-        historyService.saveNewValues();
-
         calculateConclusion(oldModel, newModel);
         ModelObjectDAO.getInstance().write(newModel);
 
         calculateHints(oldModel, newModel);
 
         pushService.sendAfterModelRefresh(oldModel, newModel);
-        uploadService.uploadToAdapter(newModel);
         uploadService.uploadToClient(newModel);
+        uploadService.uploadToAdapter(newModel);
 
         // updateCameraPictures(oldModel, newModel); // async
         updateHomematicSystemVariables(oldModel, newModel);
         cameraService.cleanUp();
+
+        historyService.saveNewValues();
     }
 
     private HouseModel refreshModel(HouseModel oldModel) {

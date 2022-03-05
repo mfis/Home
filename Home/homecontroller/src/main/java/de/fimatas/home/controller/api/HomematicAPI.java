@@ -242,6 +242,7 @@ public class HomematicAPI {
         }
 
         List<HomematicCommand> commands = new LinkedList<>();
+        commands.add(homematicCommandBuilder.read(VAR_CCU_REBOOT));
         for (Device device : Device.values()) {
             for (Datapoint datapoint : device.getDatapoints()) {
                 commands.add(homematicCommandBuilder.read(device, datapoint));
@@ -259,6 +260,7 @@ public class HomematicAPI {
             refreshed = hasChangedValues();
         }
 
+        lookupInitState();
         logRuntime("refresh", timeStart);
         return refreshed;
     }

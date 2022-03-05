@@ -22,6 +22,7 @@ import javax.annotation.PreDestroy;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import de.fimatas.home.controller.api.HomematicAPI;
@@ -92,8 +93,10 @@ public class HistoryService {
 
     public void saveNewValues() {
         for (HistoryElement historyElement : history.list()) {
-            addEntry(historyElement.getCommand(), new TimestampValuePair(api.getCurrentValuesTimestamp(),
-                api.getAsBigDecimal(historyElement.getCommand()), de.fimatas.home.controller.model.HistoryValueType.SINGLE));
+            if(!api.isDeviceUnreachableOrNotSending(historyElement.getCommand().getDevice())){
+                addEntry(historyElement.getCommand(), new TimestampValuePair(api.getCurrentValuesTimestamp(),
+                        api.getAsBigDecimal(historyElement.getCommand()), de.fimatas.home.controller.model.HistoryValueType.SINGLE));
+            }
         }
     }
 
