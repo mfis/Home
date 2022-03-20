@@ -600,7 +600,11 @@ public class HistoryService {
 
         TimestampValuePair lastValue = historyDAO.readLatestValue(history.getCommand());
 
-        if (lastValue == null) {
+        if (pair == null || pair.getValue() == null) {
+            return;
+        }
+
+        if (lastValue == null || lastValue.getValue() == null) {
             dest.add(pair);
             return;
         }
