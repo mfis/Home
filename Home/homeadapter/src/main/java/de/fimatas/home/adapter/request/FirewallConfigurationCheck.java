@@ -22,20 +22,29 @@ import javax.naming.ConfigurationException;
   Application has to be started by a user with group 'noAccessToInternet'.
   The IP range for local network has to be adjusted.
 
+  iptables -A OUTPUT -m owner --gid-owner noAccessToInternet -d 255.255.255.255 -j ACCEPT
+  iptables -A OUTPUT -m owner --gid-owner noAccessToInternet -d 224.0.0.251 -j ACCEPT
   iptables -A OUTPUT -m owner --gid-owner noAccessToInternet -d 192.168.2.0/24 -j ACCEPT
   iptables -A OUTPUT -m owner --gid-owner noAccessToInternet -d 127.0.0.0/8 -j ACCEPT
+  (iptables -A OUTPUT -m owner --gid-owner noAccessToInternet -j LOG)
   iptables -A OUTPUT -m owner --gid-owner noAccessToInternet -j DROP
   ip6tables -A OUTPUT -m owner --gid-owner noAccessToInternet -d fc80::/8 -j ACCEPT
   ip6tables -A OUTPUT -m owner --gid-owner noAccessToInternet -d fd80::/8 -j ACCEPT
   ip6tables -A OUTPUT -m owner --gid-owner noAccessToInternet -d fe80::/8 -j ACCEPT
+  ip6tables -A OUTPUT -m owner --gid-owner noAccessToInternet -d ff02::fb -j ACCEPT
   ip6tables -A OUTPUT -m owner --gid-owner noAccessToInternet -d ::1 -j ACCEPT
   ip6tables -A OUTPUT -m owner --gid-owner noAccessToInternet -j DROP
+  iptables -A INPUT -d 255.255.255.255 -j ACCEPT
+  iptables -A INPUT -d 224.0.0.1 -j ACCEPT
+  iptables -A INPUT -d 224.0.0.2 -j ACCEPT
+  iptables -A INPUT -d 224.0.0.251 -j ACCEPT
   iptables -A INPUT -d 192.168.2.0/24 -j ACCEPT
   iptables -A INPUT -d 127.0.0.0/8 -j ACCEPT
   iptables -A INPUT -j DROP
   ip6tables -A INPUT -d fc80::/8 -j ACCEPT
   ip6tables -A INPUT -d fd80::/8 -j ACCEPT
   ip6tables -A INPUT -d fe80::/8 -j ACCEPT
+  ip6tables -A INPUT -d ff02::/8 -j ACCEPT
   ip6tables -A INPUT -d ::1 -j ACCEPT
   ip6tables -A INPUT -j DROP
  */

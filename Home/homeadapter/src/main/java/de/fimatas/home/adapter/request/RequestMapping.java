@@ -10,6 +10,7 @@ import de.fimatas.home.adapter.service.HomekitService;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.ActionModel;
 import de.fimatas.home.library.domain.model.HouseModel;
+import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 @RestController
+@CommonsLog
 public class RequestMapping {
 
     @Autowired
@@ -57,6 +59,8 @@ public class RequestMapping {
 
     @GetMapping(value = "/adapter/pairing", produces = "image/png")
     public ResponseEntity<byte[]> homekit() throws WriterException, IOException {
+
+        log.info("Setup URL: " + HomekitAuthentication.getInstance().getSetupURI());
 
         BitMatrix matrix = new MultiFormatWriter().encode(
                 HomekitAuthentication.getInstance().getSetupURI(), BarcodeFormat.QR_CODE, 300,
