@@ -155,21 +155,6 @@ public class HouseViewService {
         formatLights(lightsModel, model);
     }
 
-    public String lookupSunHeating(OutdoorClimate outdoorMaxClimate) {
-
-        if (outdoorMaxClimate == null || outdoorMaxClimate.getSunBeamIntensity() == null
-                || outdoorMaxClimate.getSunHeatingInContrastToShadeIntensity() == null) {
-            return StringUtils.EMPTY;
-        }
-
-        if (outdoorMaxClimate.getSunBeamIntensity().ordinal() >= outdoorMaxClimate.getSunHeatingInContrastToShadeIntensity()
-                .ordinal()) {
-            return outdoorMaxClimate.getSunBeamIntensity().getSun();
-        } else {
-            return outdoorMaxClimate.getSunHeatingInContrastToShadeIntensity().getHeating();
-        }
-    }
-
     private void formatClimateGroup(Model model, String viewKey, Place place, HouseModel house) {
 
         var subPlaces = house.lookupFields(RoomClimate.class).values().stream()
@@ -563,12 +548,11 @@ public class HouseViewService {
         }
 
         if (!house.getConclusionClimateFacadeMax().isUnreach()) {
-            viewMax.setStateTemperature(lookupSunHeating(house.getConclusionClimateFacadeMax()));
-            viewMax.setElementTitleState(lookupSunHeating(house.getConclusionClimateFacadeMax()));
+            viewMax.setStateTemperature(house.getConclusionClimateFacadeMax().getSunBeamIntensity().getHeating());
+            viewMax.setElementTitleState(house.getConclusionClimateFacadeMax().getSunBeamIntensity().getHeating());
             viewMax.setName(house.getConclusionClimateFacadeMax().getDevice().getPlace().getPlaceName());
 
-            switch (Intensity.max(house.getConclusionClimateFacadeMax().getSunBeamIntensity(),
-                    house.getConclusionClimateFacadeMax().getSunHeatingInContrastToShadeIntensity())) {
+            switch (house.getConclusionClimateFacadeMax().getSunBeamIntensity()) {
                 case NO:
                     viewMax.setIcon("fas fa-cloud");
                     viewMax.setColorClass(COLOR_CLASS_GRAY);
