@@ -28,7 +28,6 @@ import de.fimatas.home.client.domain.service.HouseViewService;
 import de.fimatas.home.client.model.MessageQueue;
 import de.fimatas.home.client.service.LoginInterceptor;
 import de.fimatas.home.client.service.SettingsViewService;
-import de.fimatas.home.client.service.TextQueryService;
 import de.fimatas.home.client.service.ViewAttributesDAO;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.CameraMode;
@@ -67,9 +66,6 @@ public class HomeRequestMapping {
 
     @Autowired
     private HistoryViewService historyViewService;
-
-    @Autowired
-    private TextQueryService textQueryService;
 
     @Autowired
     private SettingsViewService settingsViewService;
@@ -158,13 +154,6 @@ public class HomeRequestMapping {
         historyViewService.fillHistoryViewModel(model, ModelObjectDAO.getInstance().readHistoryModel(),
             ModelObjectDAO.getInstance().readHouseModel(), key);
         return "history";
-    }
-
-    @PostMapping("/textquery")
-    public String textquery(Model model, @RequestParam("text") String text, @RequestParam("user") String user,
-            @RequestParam("pass") String pass) {
-        model.addAttribute("responsetext", textQueryService.execute(ModelObjectDAO.getInstance().readHouseModel(), text));
-        return "textquery";
     }
 
     @GetMapping("/settings")
