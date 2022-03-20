@@ -2,18 +2,15 @@ package de.fimatas.home.library.domain.model;
 
 public enum Intensity {
 
-    NO("", ""), //
-    LOW("Leicht sonnig", "Leicht aufgeheizt"), //
-    MEDIUM("Sonnig", "Aufgeheizt"), //
-    HIGH("Stark sonnig", "Stark aufgeheizt"), //
+    NO(""), //
+    LOW( "Leicht aufgeheizt"), //
+    MEDIUM( "Aufgeheizt"), //
+    HIGH( "Stark aufgeheizt"), //
     ;
 
-    private String sun;
+    private final String heating;
 
-    private String heating;
-
-    private Intensity(String sun, String heating) {
-        this.sun = sun;
+    Intensity(String heating) {
         this.heating = heating;
     }
 
@@ -25,10 +22,6 @@ public enum Intensity {
             }
         }
         throw new IllegalStateException();
-    }
-
-    public String getSun() {
-        return sun;
     }
 
     public String getHeating() {

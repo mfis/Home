@@ -4,7 +4,6 @@ import de.fimatas.home.controller.api.HomematicAPI;
 import de.fimatas.home.controller.command.HomematicCommand;
 import de.fimatas.home.controller.command.HomematicCommandBuilder;
 import de.fimatas.home.controller.service.CameraService;
-import de.fimatas.home.controller.service.HumidityCalculator;
 import de.fimatas.home.controller.service.PushService;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
@@ -71,9 +70,6 @@ public class HouseService {
 
     @Autowired
     private HomematicAPI hmApi;
-
-    @Autowired
-    private HumidityCalculator humidityCalculator;
 
     @Autowired
     private CameraService cameraService;
@@ -150,13 +146,9 @@ public class HouseService {
 
         // newModel.setLeftWindowBedRoom(readWindow(Device.ROLLLADE_SCHLAFZIMMER_LINKS)); // NOSONAR
 
-        newModel.setClimateTerrace(
-            readOutdoorClimate(Device.DIFF_TEMPERATUR_TERRASSE_AUSSEN, Device.DIFF_TEMPERATUR_TERRASSE_DIFF));
         newModel.setClimateEntrance(
-            readOutdoorClimate(Device.DIFF_TEMPERATUR_EINFAHRT_AUSSEN, Device.DIFF_TEMPERATUR_EINFAHRT_DIFF));
-        // DIFF_TEMPERATUR_TERRASSE_DIFF is still high because of sun movement, so
-        // we still can use it for the garden thermometer with a single sensor
-        newModel.setClimateGarden(readOutdoorClimate(Device.THERMOMETER_GARTEN, Device.DIFF_TEMPERATUR_TERRASSE_DIFF));
+            readOutdoorClimate(Device.THERMOMETER_EINFAHRT, Device.THERMOMETER_GARTEN));
+        newModel.setClimateGarden(readOutdoorClimate(Device.THERMOMETER_GARTEN, Device.THERMOMETER_EINFAHRT));
 
         newModel.setKitchenWindowLightSwitch(readSwitchState(Device.SCHALTER_KUECHE_LICHT));
         newModel.setWallboxSwitch(readSwitchState(Device.SCHALTER_WALLBOX));
@@ -182,30 +174,11 @@ public class HouseService {
     private void calculateConclusion(HouseModel oldModel, HouseModel newModel) {
 
         List<OutdoorClimate> outdoor = Stream.of(//
-            newModel.getClimateEntrance(), newModel.getClimateTerrace(), newModel.getClimateGarden() //
+            newModel.getClimateEntrance(), newModel.getClimateGarden() //
         ).filter(c -> !c.isUnreach()).collect(Collectors.toList());
 
         calculateOutdoorMinMax(newModel, outdoor);
-        calculateOutdoorHumidity(newModel);
         calculateTendencies(oldModel, newModel);
-        calculateHumidityComparison(newModel);
-    }
-
-    private void calculateOutdoorHumidity(HouseModel newModel) {
-
-        if (newModel.getConclusionClimateFacadeMin() == null) {
-            return;
-        }
-
-        if (newModel.getConclusionClimateFacadeMin().getHumidity() == null && newModel.getClimateGarden() != null
-            && newModel.getClimateGarden().getHumidity() != null) {
-            double absoluteHumidity =
-                humidityCalculator.relToAbs(newModel.getClimateGarden().getTemperature().getValue().doubleValue(),
-                    newModel.getClimateGarden().getHumidity().getValue().doubleValue());
-            newModel.getConclusionClimateFacadeMin()
-                .setHumidity(new ValueWithTendency<>(BigDecimal.valueOf(humidityCalculator.absToRel(
-                    newModel.getConclusionClimateFacadeMin().getTemperature().getValue().doubleValue(), absoluteHumidity))));
-        }
     }
 
     private void calculateOutdoorMinMax(HouseModel newModel, List<OutdoorClimate> outdoor) {
@@ -220,7 +193,6 @@ public class HouseService {
             newModel.setConclusionClimateFacadeMin(SerializationUtils.clone(minTemperature.get()));
             newModel.getConclusionClimateFacadeMin().setDevice(Device.AUSSENTEMPERATUR);
             newModel.getConclusionClimateFacadeMin().setBase(minTemperature.get().getDevice());
-            newModel.getConclusionClimateFacadeMin().setMaxSideSunHeating(newModel.getConclusionClimateFacadeMax());
         } else {
             var empty = new OutdoorClimate();
             empty.setDevice(Device.AUSSENTEMPERATUR);
@@ -235,9 +207,6 @@ public class HouseService {
                 maxTemperature.get().setSunBeamIntensity(lookupIntensity(diffOutside));
             }
             newModel.setConclusionClimateFacadeMax(SerializationUtils.clone(maxTemperature.get()));
-            BigDecimal sunShadeDiff = newModel.getConclusionClimateFacadeMax().getTemperature().getValue()
-                .subtract(newModel.getConclusionClimateFacadeMin().getTemperature().getValue()).abs();
-            newModel.getConclusionClimateFacadeMax().setSunHeatingInContrastToShadeIntensity(lookupIntensity(sunShadeDiff));
         } else {
             var empty = new OutdoorClimate();
             empty.setUnreach(true);
@@ -263,30 +232,6 @@ public class HouseService {
         calculatePowerConsumptionTendencies(newModel.getDateTime(),
             oldModel == null ? null : oldModel.getWallboxElectricalPowerConsumption(),
             newModel.getWallboxElectricalPowerConsumption());
-    }
-
-    void calculateHumidityComparison(HouseModel newModel) {
-
-        if (newModel.getClimateGarden() == null || newModel.getClimateGarden().isUnreach()
-            || newModel.getClimateGarden().getHumidity() == null) {
-            return;
-        }
-
-        double absoluteHumidityGarden =
-            humidityCalculator.relToAbs(newModel.getClimateGarden().getTemperature().getValue().doubleValue(),
-                newModel.getClimateGarden().getHumidity().getValue().doubleValue());
-
-        Map<String, RoomClimate> places = newModel.lookupFields(RoomClimate.class);
-
-        for (Entry<String, RoomClimate> entry : places.entrySet()) {
-            RoomClimate roomClimate = entry.getValue();
-            if (roomClimate.getHumidity() != null) {
-                double absoluteHumidityRoom = humidityCalculator.relToAbs(roomClimate.getTemperature().getValue().doubleValue(),
-                    roomClimate.getHumidity().getValue().doubleValue());
-                roomClimate.setHumidityWetterThanOutdoor(absoluteHumidityRoom > absoluteHumidityGarden);
-            }
-        }
-
     }
 
     private void calculatePowerConsumptionTendencies(long newModelDateTime, PowerMeter oldModel, PowerMeter newModel) {
@@ -373,9 +318,9 @@ public class HouseService {
             lookupHint(oldModel != null ? oldModel.getClimateBathRoom() : null, newModel.getClimateBathRoom(),
                 newModel.getHeatingBathRoom(), newModel.getClimateGarden(), newModel.getDateTime());
             lookupHint(oldModel != null ? oldModel.getClimateBedRoom() : null, newModel.getClimateBedRoom(), null,
-                newModel.getClimateTerrace(), newModel.getDateTime());
+                newModel.getClimateGarden(), newModel.getDateTime());
             lookupHint(oldModel != null ? oldModel.getClimateLivingRoom() : null, newModel.getClimateLivingRoom(), null,
-                newModel.getClimateTerrace(), newModel.getDateTime());
+                newModel.getClimateGarden(), newModel.getDateTime());
             lookupHint(oldModel != null ? oldModel.getClimateLaundry() : null, newModel.getClimateLaundry(), null, null,
                 newModel.getDateTime());
         } catch (RuntimeException re) {
@@ -616,7 +561,9 @@ public class HouseService {
 
         if (diff != null && !hmApi.isDeviceUnreachableOrNotSending(diff)) {
             outdoorClimate.setSunBeamIntensity(
-                lookupIntensity(hmApi.getAsBigDecimal(homematicCommandBuilder.read(diff, Datapoint.TEMPERATURE))));
+                lookupIntensity(outdoorClimate.getTemperature().getValue()
+                        .subtract(hmApi.getAsBigDecimal(homematicCommandBuilder
+                                .read(diff, diff.isHomematicIP() ? Datapoint.ACTUAL_TEMPERATURE : Datapoint.TEMPERATURE)))));
         }else{
             outdoorClimate.setSunBeamIntensity(Intensity.NO);
         }

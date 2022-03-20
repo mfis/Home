@@ -36,8 +36,6 @@ public class HouseModel implements Serializable {
 
     private OutdoorClimate climateGarden;
 
-    private OutdoorClimate climateTerrace;
-
     private OutdoorClimate climateEntrance;
 
     private Switch kitchenWindowLightSwitch;
@@ -169,14 +167,6 @@ public class HouseModel implements Serializable {
 
     public void setClimateLivingRoom(RoomClimate climateLivingRoom) {
         this.climateLivingRoom = climateLivingRoom;
-    }
-
-    public OutdoorClimate getClimateTerrace() {
-        return climateTerrace;
-    }
-
-    public void setClimateTerrace(OutdoorClimate climateTerrace) {
-        this.climateTerrace = climateTerrace;
     }
 
     public OutdoorClimate getClimateEntrance() {

@@ -27,17 +27,7 @@ public enum Device {
 
     THERMOMETER_GARTEN(HomematicProtocol.HMIP, Type.THERMOMETER, Place.GARDEN, true, Datapoint.LIST_THERMOMETER_HMIP, null), //
 
-    DIFF_TEMPERATUR_TERRASSE_AUSSEN(HomematicProtocol.HM, Type.THERMOMETER, Place.TERRACE, false,
-        Datapoint.LIST_DIFFTHERMOMETER_HM, null), //
-
-    DIFF_TEMPERATUR_TERRASSE_DIFF(HomematicProtocol.HM, Type.SUN_SENSOR, Place.TERRACE, false,
-        Datapoint.LIST_DIFFTHERMOMETER_HM, null), //
-
-    DIFF_TEMPERATUR_EINFAHRT_AUSSEN(HomematicProtocol.HM, Type.THERMOMETER, Place.ENTRANCE, false,
-        Datapoint.LIST_DIFFTHERMOMETER_HM, null), //
-
-    DIFF_TEMPERATUR_EINFAHRT_DIFF(HomematicProtocol.HM, Type.SUN_SENSOR, Place.ENTRANCE, false,
-        Datapoint.LIST_DIFFTHERMOMETER_HM, null), //
+    THERMOMETER_EINFAHRT(HomematicProtocol.HMIP, Type.THERMOMETER, Place.ENTRANCE, true, Datapoint.LIST_THERMOMETER_HMIP, null), //
 
     SCHALTER_KUECHE_LICHT(HomematicProtocol.HM, Type.SWITCH_WINDOWLIGHT, Place.KITCHEN, true, Datapoint.LIST_SWITCH_HM,
         Type.VAR_PREFIXES_SWITCH_AUTO, Boolean.class, AutomationState.class), //
@@ -83,22 +73,22 @@ public enum Device {
 
     ;
 
-    private HomematicProtocol homematicProtocol;
+    private final HomematicProtocol homematicProtocol;
 
-    private Type type;
+    private final Type type;
 
-    private Place place;
+    private final Place place;
 
-    private boolean textQueryEnabled;
+    private final boolean textQueryEnabled;
 
-    private List<Datapoint> datapoints;
+    private final List<Datapoint> datapoints;
 
-    private List<String> sysVars;
+    private final List<String> sysVars;
 
-    private Class<?>[] valueTypes;
+    private final Class<?>[] valueTypes;
 
-    private Device(HomematicProtocol homematicProtocol, Type type, Place place, // NOSONAR
-            boolean textQueryEnabled, List<Datapoint> datapoints, List<String> sysVars, Class<?>... valueTypes) {
+    Device(HomematicProtocol homematicProtocol, Type type, Place place, // NOSONAR
+           boolean textQueryEnabled, List<Datapoint> datapoints, List<String> sysVars, Class<?>... valueTypes) {
 
         this.homematicProtocol = homematicProtocol;
         this.type = type;

@@ -90,7 +90,7 @@ public class HomematicAPI {
 
     private String currentValuesCompareString;
 
-    private Map<HomematicCommand, String> currentValues = new HashMap<>();
+    private final Map<HomematicCommand, String> currentValues = new HashMap<>();
 
     //
 
