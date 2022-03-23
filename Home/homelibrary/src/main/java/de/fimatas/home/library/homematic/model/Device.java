@@ -61,8 +61,14 @@ public enum Device {
     THERMOSTAT_GAESTEZIMMER(HomematicProtocol.HMIP, Type.THERMOSTAT, Place.GUESTROOM, true, Datapoint.LIST_THERMOSTAT_HMIP,
             Type.VAR_PREFIXES_PROG_CONTROL, Boolean.class, Integer.class), //
 
+    THERMOMETER_GAESTEZIMMER(HomematicProtocol.HMIP, Type.THERMOMETER, Place.GUESTROOM, true, Datapoint.LIST_THERMOMETER_HMIP,
+            null), //
+
     FENSTERSENSOR_WERKSTATT(HomematicProtocol.HMIP, Type.WINDOW_SENSOR, Place.WORKSHOP, false, Datapoint.LIST_WINDOW_SENSOR,
         Type.VAR_PREFIXES_TIMESTAMP),
+
+    THERMOMETER_WERKSTATT(HomematicProtocol.HMIP, Type.THERMOMETER, Place.WORKSHOP, true, Datapoint.LIST_THERMOMETER_HMIP,
+            null), //
 
     FENSTERSENSOR_WASCHKUECHE(HomematicProtocol.HMIP, Type.WINDOW_SENSOR, Place.LAUNDRY, false, Datapoint.LIST_WINDOW_SENSOR,
         Type.VAR_PREFIXES_TIMESTAMP),

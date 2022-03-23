@@ -137,10 +137,11 @@ public class HouseService {
         newModel.setClimateBedRoom(readRoomClimate(Device.THERMOMETER_SCHLAFZIMMER));
         newModel.setClimateLaundry(readRoomClimate(Device.THERMOMETER_WASCHKUECHE));
 
-        newModel.setClimateGuestRoom(readRoomClimate(Device.THERMOSTAT_GAESTEZIMMER));
+        newModel.setClimateGuestRoom(readRoomClimate(Device.THERMOMETER_GAESTEZIMMER));
         newModel.setHeatingGuestRoom(readHeating(Device.THERMOSTAT_GAESTEZIMMER));
         newModel.setGuestRoomWindowSensor(readWindowSensorState(Device.FENSTERSENSOR_GAESTEZIMMER));
 
+        newModel.setClimateWorkshop(readRoomClimate(Device.THERMOMETER_WERKSTATT));
         newModel.setWorkshopWindowSensor(readWindowSensorState(Device.FENSTERSENSOR_WERKSTATT));
         newModel.setLaundryWindowSensor(readWindowSensorState(Device.FENSTERSENSOR_WASCHKUECHE));
 

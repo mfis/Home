@@ -53,6 +53,9 @@ public class HouseModel implements Serializable {
 
     private WindowSensor workshopWindowSensor;
 
+    @EnableHomekit(accessoryId = 1009)
+    private RoomClimate climateWorkshop;
+
     private WindowSensor laundryWindowSensor;
 
     private PowerMeter totalElectricalPowerConsumption;
@@ -348,5 +351,13 @@ public class HouseModel implements Serializable {
 
     public void setClimateGuestRoom(RoomClimate climateGuestRoom) {
         this.climateGuestRoom = climateGuestRoom;
+    }
+
+    public RoomClimate getClimateWorkshop() {
+        return climateWorkshop;
+    }
+
+    public void setClimateWorkshop(RoomClimate climateWorkshop) {
+        this.climateWorkshop = climateWorkshop;
     }
 }
