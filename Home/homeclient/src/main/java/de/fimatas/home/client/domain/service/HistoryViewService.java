@@ -91,8 +91,7 @@ public class HistoryViewService {
                     entry.setLineOneLabel(entry.getLineOneLabel() + " bisher");
                 }
                 if (calculateDifference) {
-                    calculatePreviousYearDifference(entry, pcm, pcms,
-                        pcm.getPowerConsumption(), calculated);
+                    calculatePreviousYearDifference(entry, pcm, pcms, calculated);
                 }
                 list.add(entry);
             }
@@ -120,12 +119,12 @@ public class HistoryViewService {
         return null;
     }
 
-    private void calculatePreviousYearDifference(HistoryEntry entry, PowerConsumptionMonth pcm,
-            List<PowerConsumptionMonth> history, Long actual, Long calculated) {
+    void calculatePreviousYearDifference(HistoryEntry entry, PowerConsumptionMonth pcm,
+            List<PowerConsumptionMonth> history, Long calculated) {
 
         DecimalFormat decimalFormat = new DecimalFormat("+0;-0");
         LocalDateTime baseDateTime = pcm.measurePointMaxDateTime();
-        Long baseValue = calculated != null ? calculated : actual;
+        Long baseValue = calculated != null ? calculated : (pcm.getPowerConsumption() != null? pcm.getPowerConsumption() : 0L);
         Long compareValue = null;
 
         for (PowerConsumptionMonth historyEntry : history) {
@@ -137,11 +136,14 @@ public class HistoryViewService {
             }
         }
 
-        if (baseValue != null && compareValue != null) {
-            long diff = baseValue - compareValue;
+        if (baseValue != null && compareValue != null && compareValue != 0L) {
             BigDecimal percentage =
-                new BigDecimal(diff).divide(new BigDecimal(baseValue), 4, RoundingMode.HALF_UP).multiply(BD100);
-            entry.setBadgeValue(decimalFormat.format(percentage) + "%");
+                    new BigDecimal(baseValue).divide(new BigDecimal(compareValue), 4, RoundingMode.HALF_UP).multiply(BD100).subtract(BD100);
+            if(percentage.compareTo(BigDecimal.ZERO) == 0){
+                entry.setBadgeValue("≈");
+            }else{
+                entry.setBadgeValue(decimalFormat.format(percentage) + "%");
+            }
             if (percentage.intValue() <= COMPARE_PERCENTAGE_GREEN_UNTIL) {
                 entry.setBadgeClass("badge-success");
             } else if (percentage.intValue() <= COMPARE_PERCENTAGE_GRAY_UNTIL) {
