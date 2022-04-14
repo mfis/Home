@@ -3,7 +3,6 @@ package de.fimatas.home.controller.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import de.fimatas.home.controller.api.HueAPI;
 import de.fimatas.home.controller.domain.service.HouseService;
-import de.fimatas.home.controller.domain.service.UploadService;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.Light;
 import de.fimatas.home.library.domain.model.LightState;

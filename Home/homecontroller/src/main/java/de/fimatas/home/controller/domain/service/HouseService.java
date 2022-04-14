@@ -5,6 +5,7 @@ import de.fimatas.home.controller.command.HomematicCommand;
 import de.fimatas.home.controller.command.HomematicCommandBuilder;
 import de.fimatas.home.controller.service.CameraService;
 import de.fimatas.home.controller.service.PushService;
+import de.fimatas.home.controller.service.UploadService;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.homematic.model.Datapoint;

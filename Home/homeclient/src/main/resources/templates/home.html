@@ -21,6 +21,7 @@
 			<div th:replace="fragments :: title (name='Draußen')"></div>
 			<div th:replace="fragments :: temperature (model=${tempMinHouse})"></div>
 			<div th:replace="fragments :: sunStatus (model=${tempMaxHouse})"></div>
+			<div th:replace="fragments :: weatherForecast (model=${weatherForecasts})"></div>
 	
 			<!-- Haustür -->
 			<div th:replace="fragments :: title (name='Haustür')"></div>

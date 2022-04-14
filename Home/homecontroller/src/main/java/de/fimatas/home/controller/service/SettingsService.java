@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import de.fimatas.home.controller.dao.SettingsDAO;
 import de.fimatas.home.controller.domain.service.HistoryService;
-import de.fimatas.home.controller.domain.service.UploadService;
 import de.fimatas.home.library.domain.model.PushNotifications;
 import de.fimatas.home.library.model.SettingsContainer;
 import de.fimatas.home.library.model.SettingsModel;

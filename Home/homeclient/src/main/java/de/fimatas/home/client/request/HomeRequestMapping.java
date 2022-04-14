@@ -2,9 +2,11 @@ package de.fimatas.home.client.request;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.stream.Stream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import de.fimatas.home.library.domain.model.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -30,10 +32,6 @@ import de.fimatas.home.client.service.LoginInterceptor;
 import de.fimatas.home.client.service.SettingsViewService;
 import de.fimatas.home.client.service.ViewAttributesDAO;
 import de.fimatas.home.library.dao.ModelObjectDAO;
-import de.fimatas.home.library.domain.model.CameraMode;
-import de.fimatas.home.library.domain.model.CameraPicture;
-import de.fimatas.home.library.domain.model.HouseModel;
-import de.fimatas.home.library.domain.model.LightsModel;
 import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.model.Message;
 import de.fimatas.home.library.model.MessageType;
@@ -235,12 +233,12 @@ public class HomeRequestMapping {
             if (houseModel == null) {
                 mappingErrorAttributes(model, response, "Keine aktuellen Daten vorhanden - " + ModelObjectDAO.getInstance().getLastHouseModelState(), null);
                 return "error";
-            } else if (isModelUnchanged(etag, houseModel, ModelObjectDAO.getInstance().readLightsModel()) && !isNewMessage) {
+            } else if (isModelUnchanged(etag, houseModel, ModelObjectDAO.getInstance().readLightsModel(), ModelObjectDAO.getInstance().readWeatherForecastModel()) && !isNewMessage) {
                 response.setStatus(HttpStatus.NOT_MODIFIED.value());
                 return "empty";
             } else {
                 houseView.fillViewModel(model, houseModel, ModelObjectDAO.getInstance().readHistoryModel(),
-                    ModelObjectDAO.getInstance().readLightsModel());
+                    ModelObjectDAO.getInstance().readLightsModel(), ModelObjectDAO.getInstance().readWeatherForecastModel());
                 return Pages.getEntry(Pages.PATH_HOME).getTemplate();
             }
         } catch (Exception e) {
@@ -280,9 +278,10 @@ public class HomeRequestMapping {
         model.addAttribute("exception", exception!=null ? exception.getMessage(): Strings.EMPTY);
     }
 
-    private boolean isModelUnchanged(String etag, HouseModel houseModel, LightsModel lightsModel) {
+    private boolean isModelUnchanged(String etag, HouseModel houseModel, LightsModel lightsModel, WeatherForecastModel weatherForecastModel) {
+        long max = Stream.of(houseModel.getDateTime(), lightsModel.getTimestamp(), weatherForecastModel.getDateTime()).max(Long::compare).get();
         return StringUtils.isNotBlank(etag)
-            && StringUtils.equals(etag, Long.toString(Long.max(houseModel.getDateTime(), lightsModel.getTimestamp())));
+            && StringUtils.equals(etag, Long.toString(max));
     }
 
     private Message request(String userName, String type, String deviceName, String hueDeviceId, String value,

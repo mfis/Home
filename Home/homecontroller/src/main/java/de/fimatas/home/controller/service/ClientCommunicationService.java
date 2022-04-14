@@ -3,6 +3,8 @@ package de.fimatas.home.controller.service;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
+
+import de.fimatas.home.library.domain.model.WeatherForecastModel;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -22,7 +24,6 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import de.fimatas.home.controller.domain.service.HistoryService;
 import de.fimatas.home.controller.domain.service.HouseService;
-import de.fimatas.home.controller.domain.service.UploadService;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.ActionModel;
 import de.fimatas.home.library.domain.model.AutomationState;
@@ -46,6 +47,9 @@ public class ClientCommunicationService {
 
     @Autowired
     private LightService lightService;
+
+    @Autowired
+    private WeatherService weatherService;
 
     @Autowired
     private SettingsService settingsService;
@@ -149,6 +153,12 @@ public class ClientCommunicationService {
             lightService.refreshLightsModel();
         } else {
             uploadService.uploadToClient(ModelObjectDAO.getInstance().readLightsModel());
+        }
+
+        if (ModelObjectDAO.getInstance().readWeatherForecastModel() == null) {
+            weatherService.refreshWeatherForecastModel();
+        } else {
+            uploadService.uploadToClient(ModelObjectDAO.getInstance().readWeatherForecastModel());
         }
 
         uploadService.uploadToClient(ModelObjectDAO.getInstance().readCameraModel());

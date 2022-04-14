@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.concurrent.CompletableFuture;
+
+import de.fimatas.home.library.domain.model.*;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -13,12 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
 import de.fimatas.home.client.model.MessageQueue;
 import de.fimatas.home.library.dao.ModelObjectDAO;
-import de.fimatas.home.library.domain.model.ActionModel;
-import de.fimatas.home.library.domain.model.BackupFile;
-import de.fimatas.home.library.domain.model.CameraModel;
-import de.fimatas.home.library.domain.model.HistoryModel;
-import de.fimatas.home.library.domain.model.HouseModel;
-import de.fimatas.home.library.domain.model.LightsModel;
 import de.fimatas.home.library.model.Message;
 import de.fimatas.home.library.model.SettingsContainer;
 
@@ -54,6 +50,12 @@ public class ControllerRequestMapping {
     @PostMapping(value = UPLOAD_METHOD_PREFIX + "LightsModel")
     public ActionModel uploadLightsModel(@RequestBody LightsModel lightsModel) {
         ModelObjectDAO.getInstance().write(lightsModel);
+        return new ActionModel("OK");
+    }
+
+    @PostMapping(value = UPLOAD_METHOD_PREFIX + "WeatherForecastModel")
+    public ActionModel uploadWeatherForecastModel(@RequestBody WeatherForecastModel weatherForecastModel) {
+        ModelObjectDAO.getInstance().write(weatherForecastModel);
         return new ActionModel("OK");
     }
 

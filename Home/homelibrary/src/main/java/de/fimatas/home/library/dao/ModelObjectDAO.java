@@ -2,12 +2,8 @@ package de.fimatas.home.library.dao;
 
 import java.util.Collection;
 import java.util.Date;
-import de.fimatas.home.library.domain.model.CameraMode;
-import de.fimatas.home.library.domain.model.CameraModel;
-import de.fimatas.home.library.domain.model.CameraPicture;
-import de.fimatas.home.library.domain.model.HistoryModel;
-import de.fimatas.home.library.domain.model.HouseModel;
-import de.fimatas.home.library.domain.model.LightsModel;
+
+import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.model.SettingsContainer;
 import de.fimatas.home.library.model.SettingsModel;
@@ -24,6 +20,8 @@ public class ModelObjectDAO {
     private CameraModel cameraModel;
 
     private LightsModel lightsModel;
+
+    private WeatherForecastModel weatherForecastModel;
 
     private SettingsContainer settingsContainer;
 
@@ -60,6 +58,10 @@ public class ModelObjectDAO {
         lightsModel = newModel;
     }
 
+    public void write(WeatherForecastModel newModel) {
+        weatherForecastModel = newModel;
+    }
+
     public void write(SettingsContainer newSettingsContainer) {
         settingsContainer = newSettingsContainer;
     }
@@ -92,11 +94,20 @@ public class ModelObjectDAO {
     }
 
     public LightsModel readLightsModel() {
-        long newestTimestamp = lightsModel == null ? 0 : historyModel.getDateTime();
+        long newestTimestamp = lightsModel == null ? 0 : lightsModel.getTimestamp();
         if (lightsModel == null || new Date().getTime() - newestTimestamp > 1000 * HomeAppConstants.MODEL_OUTDATED_SECONDS) {
             return null; // Too old. Should never happen
         } else {
             return lightsModel;
+        }
+    }
+
+    public WeatherForecastModel readWeatherForecastModel() {
+        long newestTimestamp = weatherForecastModel == null ? 0 : weatherForecastModel.getDateTime();
+        if (weatherForecastModel == null || new Date().getTime() - newestTimestamp > 1000 * 60 * 70) {
+            return null; // Too old. Should never happen
+        } else {
+            return weatherForecastModel;
         }
     }
 

@@ -1,16 +1,16 @@
 package de.fimatas.home.client.domain.service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 
+import de.fimatas.home.client.domain.model.*;
 import de.fimatas.home.library.domain.model.*;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.RegExUtils;
@@ -19,16 +19,6 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.Model;
-import de.fimatas.home.client.domain.model.ChartEntry;
-import de.fimatas.home.client.domain.model.ClimateView;
-import de.fimatas.home.client.domain.model.FrontDoorView;
-import de.fimatas.home.client.domain.model.LightView;
-import de.fimatas.home.client.domain.model.LightsView;
-import de.fimatas.home.client.domain.model.LockView;
-import de.fimatas.home.client.domain.model.PowerView;
-import de.fimatas.home.client.domain.model.ShutterView;
-import de.fimatas.home.client.domain.model.SwitchView;
-import de.fimatas.home.client.domain.model.WindowSensorView;
 import de.fimatas.home.client.domain.service.ViewFormatter.PastTimestampFormat;
 import de.fimatas.home.client.model.MessageQueue;
 import de.fimatas.home.library.homematic.model.Device;
@@ -114,7 +104,7 @@ public class HouseViewService {
         });
     }
 
-    public void fillViewModel(Model model, HouseModel house, HistoryModel historyModel, LightsModel lightsModel) {
+    public void fillViewModel(Model model, HouseModel house, HistoryModel historyModel, LightsModel lightsModel, WeatherForecastModel weatherForecastModel) {
 
         model.addAttribute("modelTimestamp", Long.toString(Long.max(house.getDateTime(), lightsModel.getTimestamp())));
 
@@ -154,6 +144,8 @@ public class HouseViewService {
         formatPlaceSubtitles(model, house);
 
         formatLights(lightsModel, model);
+
+        formatWeatherForecast(weatherForecastModel, model);
     }
 
     private void formatClimateGroup(Model model, String viewKey, Place place, HouseModel house) {
@@ -821,6 +813,76 @@ public class HouseViewService {
             return MESSAGEPATH + TYPE_IS + MessageType.SHUTTERPOSITION + AND_DEVICE_IS + windowModel.getDevice().name()
                     + AND_VALUE_IS + shutterPosition.getControlPosition();
         }
+    }
+
+
+    private void formatWeatherForecast(WeatherForecastModel weatherForecastModel, Model model) {
+
+        var df = new DecimalFormat("0");
+        df.setRoundingMode(RoundingMode.HALF_UP);
+        var unreach = weatherForecastModel == null || weatherForecastModel.getForecasts().isEmpty();
+
+        var forecasts = new WeatherForecastsView();
+        model.addAttribute("weatherForecasts", forecasts);
+
+        forecasts.setName("Wetter");
+        forecasts.setId("weatherForecasts");
+        forecasts.setColorClass(COLOR_CLASS_GRAY);
+        forecasts.setIcon("fa-solid fa-cloud-sun");
+        forecasts.setUnreach(Boolean.toString(unreach));
+
+        if(unreach){
+            return;
+        }
+
+        Optional<Integer> minTemp = weatherForecastModel.getForecasts().stream().filter(fc -> fc.getTemperature()!=null).map(fc -> fc.getTemperature().setScale(0, RoundingMode.HALF_UP).intValue()).min(Integer::compare);
+        Optional<Integer> maxTemp = weatherForecastModel.getForecasts().stream().filter(fc -> fc.getTemperature()!=null).map(fc -> fc.getTemperature().setScale(0, RoundingMode.HALF_UP).intValue()).max(Integer::compare);
+        Optional<Integer> maxWind = weatherForecastModel.getForecasts().stream().filter(fc -> fc.getWind()!=null).map(fc -> fc.getWind().setScale(0, RoundingMode.HALF_UP).intValue()).max(Integer::compare);
+
+        if(minTemp.isEmpty() || maxTemp.isEmpty() || maxWind.isEmpty()){
+            forecasts.setUnreach(Boolean.toString(true));
+            return;
+        }
+
+        forecasts.setSource(weatherForecastModel.getSourceText());
+
+        forecasts.setColorClass(COLOR_CLASS_GRAY);
+        List<String> titleStates = new LinkedList<>();
+
+        if(weatherForecastModel.getForecasts().stream().anyMatch(fc -> fc.getIcons().contains(WeatherIcons.SNOW))){
+            titleStates.add("Schnee");
+        }
+        if(weatherForecastModel.getForecasts().stream().anyMatch(fc -> fc.getIcons().contains(WeatherIcons.WIND))){
+            titleStates.add("Sturm");
+        }
+        if(!titleStates.isEmpty()){
+            forecasts.setColorClass(COLOR_CLASS_ORANGE);
+        }
+        if(weatherForecastModel.getForecasts().stream().anyMatch(
+                fc -> fc.getIcons().contains(WeatherIcons.CLOUD_RAIN)
+                        || fc.getIcons().contains(WeatherIcons.RAIN)
+                        || fc.getIcons().contains(WeatherIcons.THUNDERSTORM)
+                        || fc.getIcons().contains(WeatherIcons.HAIL))){
+            titleStates.add("Regen");
+        }
+        if(titleStates.size() < 2){
+            titleStates.add(minTemp.get() + ".." + maxTemp.get() + "°C, " + maxWind.get() + " km/h");
+        }
+        forecasts.setElementTitleState(String.join(", ", titleStates));
+        forecasts.setState(String.join(", ", titleStates));
+
+        weatherForecastModel.getForecasts().forEach( fc -> {
+            var view = new WeatherForecastView();
+            if(fc.getTime().toLocalDate().equals(LocalDate.now())){
+                view.setTime(fc.getTime().format(DateTimeFormatter.ofPattern("HH")) + " Uhr");
+            }else{
+                view.setTime(fc.getTime().format(DateTimeFormatter.ofPattern("EEE HH")) + " Uhr");
+            }
+            view.setTemperature(fc.getTemperature()==null?"":df.format(fc.getTemperature()) + "°C");
+            view.setWind(fc.getWind()==null?"":df.format(fc.getWind()) + " km/h");
+            fc.getIcons().forEach(i -> view.getIcons().add(i.getFontAwesomeID()));
+            forecasts.getForecasts().add(view);
+        });
     }
 
     private void formatLights(LightsModel lightsModel, Model model) {

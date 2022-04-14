@@ -1,24 +1,24 @@
 @media only screen and (max-width: 550px) {
-  .container {
-    padding-left: 5px;
-    padding-right: 7px;
-  }
+	.container {
+		padding-left: 5px;
+		padding-right: 7px;
+	}
 }
-a{
+a, th, td{
 	font-weight:330 !important;
 }
 h4, h5{
-	font-weight:300 !important; 
+	font-weight:300 !important;
 }
 button{
-	font-weight:300 !important; 
+	font-weight:300 !important;
 }
 .fa-rotate-45 {
-    -webkit-transform: rotate(45deg);
-    -moz-transform: rotate(45deg);
-    -ms-transform: rotate(45deg);
-    -o-transform: rotate(45deg);
-    transform: rotate(45deg);
+	-webkit-transform: rotate(45deg);
+	-moz-transform: rotate(45deg);
+	-ms-transform: rotate(45deg);
+	-o-transform: rotate(45deg);
+	transform: rotate(45deg);
 }
 .hint {
 	opacity: 0.8 !important;
@@ -28,7 +28,7 @@ button{
 }
 .callout {
 	border-left-width: 5px !important;
-	margin-left: 15px !important;	
+	margin-left: 15px !important;
 	padding-top: 6px !important;
 	padding-bottom: 6px !important;
 	padding-left: 12px !important;
@@ -115,7 +115,7 @@ h4{
 .callout-primary h4, .callout-primary a{
 	color: rgb(66,139,202) !important;
 }
-.callout-secondary h4, .callout-secondary a{
+.callout-secondary h4, .callout-secondary a, .direct-secondary {
 	color: rgb(238,238,238,0.8) !important;
 }
 .callout-success h4, .callout-success a{

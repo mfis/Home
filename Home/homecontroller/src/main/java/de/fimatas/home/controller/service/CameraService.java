@@ -29,7 +29,6 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import de.fimatas.home.controller.api.HomematicAPI;
 import de.fimatas.home.controller.command.HomematicCommandBuilder;
-import de.fimatas.home.controller.domain.service.UploadService;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.Camera;
 import de.fimatas.home.library.domain.model.CameraMode;
