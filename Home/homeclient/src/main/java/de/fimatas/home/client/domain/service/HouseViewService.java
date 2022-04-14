@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 
 import de.fimatas.home.client.domain.model.*;
+import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.RegExUtils;
@@ -106,7 +107,7 @@ public class HouseViewService {
 
     public void fillViewModel(Model model, HouseModel house, HistoryModel historyModel, LightsModel lightsModel, WeatherForecastModel weatherForecastModel) {
 
-        model.addAttribute("modelTimestamp", Long.toString(Long.max(house.getDateTime(), lightsModel.getTimestamp())));
+        model.addAttribute("modelTimestamp", ModelObjectDAO.getInstance().calculateModelTimestamp());
 
         formatClimate(model, "tempBathroom", house.getClimateBathRoom(), house.getHeatingBathRoom(), false);
         formatClimate(model, "tempKids1", house.getClimateKidsRoom1(), null, true);
@@ -134,12 +135,12 @@ public class HouseViewService {
 
         formatFrontDoorBell(model, "frontDoor", house.getFrontDoorBell(), house.getFrontDoorCamera());
         formatFrontDoorLock(model, "frontDoorLock", house.getFrontDoorLock());
-        formatPower(model, house.getTotalElectricalPowerConsumption(), historyModel.getTotalElectricPowerConsumptionDay());
-        formatPower(model, house.getWallboxElectricalPowerConsumption(), historyModel.getWallboxElectricPowerConsumptionDay());
+        formatPower(model, house.getTotalElectricalPowerConsumption(), historyModel==null?null:historyModel.getTotalElectricPowerConsumptionDay());
+        formatPower(model, house.getWallboxElectricalPowerConsumption(), historyModel==null?null:historyModel.getWallboxElectricPowerConsumptionDay());
 
         formatLowBattery(model, house.getLowBatteryDevices());
 
-        formatWarnings(model, house, lightsModel);
+        formatWarnings(model, house, lightsModel, weatherForecastModel, historyModel);
 
         formatPlaceSubtitles(model, house);
 
@@ -614,7 +615,7 @@ public class HouseViewService {
         model.addAttribute("lowBattery", lowBatteryDevices);
     }
 
-    private void formatWarnings(Model model, HouseModel houseModel, LightsModel lightsModel) {
+    private void formatWarnings(Model model, HouseModel houseModel, LightsModel lightsModel, WeatherForecastModel weatherForecastModel, HistoryModel historyModel) {
 
         List<String> copy = new ArrayList<>(houseModel.getWarnings());
 
@@ -623,9 +624,21 @@ public class HouseViewService {
             copy.add("Letzte Homematic Aktualisierung vor " + (diffHm / 1000 / 60) + " Min.");
         }
 
-        long diffHue = new Date().getTime() - lightsModel.getTimestamp();
-        if (diffHue > 1000 * HomeAppConstants.MODEL_UPDATE_WARNING_SECONDS) {
-            copy.add("Letzte Hue Aktualisierung vor " + (diffHue / 1000 / 60) + " Min.");
+        if(lightsModel==null){
+            copy.add("Hue Status unbekannt!");
+        }else{
+            long diffHue = new Date().getTime() - lightsModel.getTimestamp();
+            if (diffHue > 1000 * HomeAppConstants.MODEL_UPDATE_WARNING_SECONDS) {
+                copy.add("Letzte Hue Aktualisierung vor " + (diffHue / 1000 / 60) + " Min.");
+            }
+        }
+
+        if(weatherForecastModel==null){
+            copy.add("Wettervorhersage Status unbekannt!");
+        }
+
+        if(weatherForecastModel==null){
+            copy.add("Historiendaten unbekannt!");
         }
 
         model.addAttribute("warnings", copy);

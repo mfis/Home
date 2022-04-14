@@ -2,6 +2,7 @@ package de.fimatas.home.library.dao;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.stream.Stream;
 
 import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.homematic.model.Device;
@@ -139,6 +140,19 @@ public class ModelObjectDAO {
         default:
             throw new IllegalArgumentException("Unknown CameraMode: " + cameraMode);
         }
+    }
+
+    public long calculateModelTimestamp(){
+
+        HouseModel hm = readHouseModel();
+        LightsModel lm = readLightsModel();
+        WeatherForecastModel wfm = readWeatherForecastModel();
+
+        return  Stream.of(
+                hm==null?0:hm.getDateTime(),
+                lm==null?0:lm.getTimestamp(),
+                wfm==null?0:wfm.getDateTime()
+        ).max(Long::compare).get();
     }
 
     public Collection<SettingsModel> readAllSettings() {

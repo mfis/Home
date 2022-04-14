@@ -233,7 +233,7 @@ public class HomeRequestMapping {
             if (houseModel == null) {
                 mappingErrorAttributes(model, response, "Keine aktuellen Daten vorhanden - " + ModelObjectDAO.getInstance().getLastHouseModelState(), null);
                 return "error";
-            } else if (isModelUnchanged(etag, houseModel, ModelObjectDAO.getInstance().readLightsModel(), ModelObjectDAO.getInstance().readWeatherForecastModel()) && !isNewMessage) {
+            } else if (isModelUnchanged(etag) && !isNewMessage) {
                 response.setStatus(HttpStatus.NOT_MODIFIED.value());
                 return "empty";
             } else {
@@ -278,10 +278,9 @@ public class HomeRequestMapping {
         model.addAttribute("exception", exception!=null ? exception.getMessage(): Strings.EMPTY);
     }
 
-    private boolean isModelUnchanged(String etag, HouseModel houseModel, LightsModel lightsModel, WeatherForecastModel weatherForecastModel) {
-        long max = Stream.of(houseModel.getDateTime(), lightsModel.getTimestamp(), weatherForecastModel.getDateTime()).max(Long::compare).get();
+    private boolean isModelUnchanged(String etag) {
         return StringUtils.isNotBlank(etag)
-            && StringUtils.equals(etag, Long.toString(max));
+            && StringUtils.equals(etag, Long.toString(ModelObjectDAO.getInstance().calculateModelTimestamp()));
     }
 
     private Message request(String userName, String type, String deviceName, String hueDeviceId, String value,
