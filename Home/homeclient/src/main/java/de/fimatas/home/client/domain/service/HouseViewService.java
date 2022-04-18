@@ -637,7 +637,7 @@ public class HouseViewService {
             copy.add("Wettervorhersage Status unbekannt!");
         }
 
-        if(weatherForecastModel==null){
+        if(historyModel==null){
             copy.add("Historiendaten unbekannt!");
         }
 
@@ -839,9 +839,9 @@ public class HouseViewService {
         model.addAttribute("weatherForecasts", forecasts);
 
         forecasts.setName("Wetter");
+        forecasts.setPlaceEnum(Place.OUTSIDE);
         forecasts.setId("weatherForecasts");
         forecasts.setColorClass(COLOR_CLASS_GRAY);
-        forecasts.setIcon("fa-solid fa-cloud-sun");
         forecasts.setUnreach(Boolean.toString(unreach));
 
         if(unreach){
@@ -862,25 +862,12 @@ public class HouseViewService {
         forecasts.setColorClass(COLOR_CLASS_GRAY);
         List<String> titleStates = new LinkedList<>();
 
-        if(weatherForecastModel.getForecasts().stream().anyMatch(fc -> fc.getIcons().contains(WeatherIcons.SNOW))){
-            titleStates.add("Schnee");
-        }
-        if(weatherForecastModel.getForecasts().stream().anyMatch(fc -> fc.getIcons().contains(WeatherIcons.WIND))){
-            titleStates.add("Sturm");
-        }
-        if(!titleStates.isEmpty()){
-            forecasts.setColorClass(COLOR_CLASS_ORANGE);
-        }
-        if(weatherForecastModel.getForecasts().stream().anyMatch(
-                fc -> fc.getIcons().contains(WeatherIcons.CLOUD_RAIN)
-                        || fc.getIcons().contains(WeatherIcons.RAIN)
-                        || fc.getIcons().contains(WeatherIcons.THUNDERSTORM)
-                        || fc.getIcons().contains(WeatherIcons.HAIL))){
-            titleStates.add("Regen");
-        }
+        mapWeatherForecastIconsAndColorCodes(weatherForecastModel, forecasts, maxTemp, titleStates);
+
         if(titleStates.size() < 2){
             titleStates.add(minTemp.get() + ".." + maxTemp.get() + "°C, " + maxWind.get() + " km/h");
         }
+        forecasts.setStateShort(minTemp.get() + ".." + maxTemp.get() + "°C");
         forecasts.setElementTitleState(String.join(", ", titleStates));
         forecasts.setState(String.join(", ", titleStates));
 
@@ -896,6 +883,71 @@ public class HouseViewService {
             fc.getIcons().forEach(i -> view.getIcons().add(i.getFontAwesomeID()));
             forecasts.getForecasts().add(view);
         });
+    }
+
+    private void mapWeatherForecastIconsAndColorCodes(WeatherForecastModel weatherForecastModel, WeatherForecastsView forecasts, Optional<Integer> maxTemp, List<String> titleStates) {
+
+        if(weatherForecastModel.getForecasts().stream().anyMatch(fc -> fc.getIcons().contains(WeatherIcons.SNOW))){
+            titleStates.add(WeatherIcons.SNOW.getCaption());
+            setIconsAndEventCaption(forecasts, WeatherIcons.SNOW);
+            forecasts.setColorClass(COLOR_CLASS_LIGHT);
+        }
+
+        if(weatherForecastModel.getForecasts().stream().anyMatch(fc -> fc.getIcons().contains(WeatherIcons.WIND))){
+            titleStates.add(WeatherIcons.WIND.getCaption());
+            if(StringUtils.isBlank(forecasts.getIcon())){
+                setIconsAndEventCaption(forecasts, WeatherIcons.WIND);
+                forecasts.setColorClass(COLOR_CLASS_RED);
+            }
+        }
+
+        if(weatherForecastModel.getForecasts().stream().anyMatch(
+                fc -> fc.getIcons().contains(WeatherIcons.HAIL))){
+            titleStates.add(WeatherIcons.HAIL.getCaption());
+            if(StringUtils.isBlank(forecasts.getIcon())){
+                setIconsAndEventCaption(forecasts, WeatherIcons.HAIL);
+            }
+        }
+
+        if(weatherForecastModel.getForecasts().stream().anyMatch(
+                fc -> fc.getIcons().contains(WeatherIcons.CLOUD_RAIN)
+                        || fc.getIcons().contains(WeatherIcons.RAIN)
+                        || fc.getIcons().contains(WeatherIcons.THUNDERSTORM))){
+            if(!titleStates.contains(WeatherIcons.HAIL.getCaption())){
+                titleStates.add(WeatherIcons.RAIN.getCaption());
+                if(StringUtils.isBlank(forecasts.getIcon())){
+                    setIconsAndEventCaption(forecasts, WeatherIcons.RAIN);
+                }
+            }
+        }
+
+        if(weatherForecastModel.getForecasts().stream().filter(
+                fc -> fc.getIcons().contains(WeatherIcons.SUN)).count()>3){
+            if(StringUtils.isBlank(forecasts.getIcon())){
+                setIconsAndEventCaption(forecasts, WeatherIcons.SUN);
+            }
+        }
+
+        if(StringUtils.isBlank(forecasts.getIcon())){
+            forecasts.setIcon("fa-solid fa-clock");
+        }
+
+        if(maxTemp.isPresent() && forecasts.getColorClass().equals(COLOR_CLASS_GRAY)){
+            if (maxTemp.get() > HIGH_TEMP.longValue()) {
+                forecasts.setColorClass(COLOR_CLASS_RED);
+            } else if (maxTemp.get() > MEDIUM_HIGH_TEMP.longValue()) {
+                forecasts.setColorClass(COLOR_CLASS_ORANGE);
+            } else if (maxTemp.get() >= LOW_TEMP.longValue() && !titleStates.contains(WeatherIcons.RAIN.getCaption())) {
+                forecasts.setColorClass(COLOR_CLASS_GREEN);
+            }
+        }
+    }
+
+    private void setIconsAndEventCaption(WeatherForecastsView forecasts, WeatherIcons icon) {
+
+        forecasts.setIcon(icon.getFontAwesomeID());
+        forecasts.setIconNativeClient(icon.getSfSymbolsID());
+        forecasts.setStateShort2(icon.getCaption());
     }
 
     private void formatLights(LightsModel lightsModel, Model model) {

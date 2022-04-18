@@ -16,6 +16,8 @@ public abstract class View {
 
     private String icon = "";
 
+    private String iconNativeClient = "";
+
     private String name = "";
 
     private String shortName = "";
@@ -40,6 +42,14 @@ public abstract class View {
 
     public void setIcon(String icon) {
         this.icon = icon;
+    }
+
+    public String getIconNativeClient() {
+        return iconNativeClient;
+    }
+
+    public void setIconNativeClient(String iconNativeClient) {
+        this.iconNativeClient = iconNativeClient;
     }
 
     public String getId() {

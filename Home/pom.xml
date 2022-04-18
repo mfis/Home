@@ -151,7 +151,7 @@
 					<artifactId>dependency-check-maven</artifactId>
 					<version>${dependency-check-maven.version}</version>
 					<configuration>
-						<failBuildOnCVSS>0</failBuildOnCVSS>
+						<failBuildOnCVSS>7</failBuildOnCVSS>
 						<suppressionFile>/Users/mfi/Code/IntelliJ/Home/Home/owasp-suppressions.xml</suppressionFile>
 					</configuration>
 					<executions>

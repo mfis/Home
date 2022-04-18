@@ -5,16 +5,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import de.fimatas.home.client.domain.model.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.Model;
-import de.fimatas.home.client.domain.model.ClimateView;
-import de.fimatas.home.client.domain.model.LockView;
-import de.fimatas.home.client.domain.model.PowerView;
-import de.fimatas.home.client.domain.model.SwitchView;
-import de.fimatas.home.client.domain.model.View;
-import de.fimatas.home.client.domain.model.WindowSensorView;
 import de.fimatas.home.client.model.HomeViewModel;
 import de.fimatas.home.client.model.HomeViewModel.HomeViewActionModel;
 import de.fimatas.home.client.model.HomeViewModel.HomeViewPlaceModel;
@@ -58,7 +53,7 @@ public class AppViewService {
         Set<PlaceDirectives> widget = new LinkedHashSet<>();
         targetPlaceDirectives.put(AppViewTarget.WIDGET, widget);
 
-        widget.add(new PlaceDirectives(Place.OUTSIDE, PlaceDirective.WIDGET_LABEL_SMALL, PlaceDirective.WIDGET_LABEL_MEDIUM, PlaceDirective.WIDGET_LABEL_LARGE));
+        widget.add(new PlaceDirectives(Place.OUTSIDE, PlaceDirective.WIDGET_LABEL_SMALL, PlaceDirective.WIDGET_LABEL_MEDIUM, PlaceDirective.WIDGET_LABEL_LARGE, PlaceDirective.WIDGET_SYMBOL));
         widget.add(new PlaceDirectives(Place.UPPER_FLOOR_TEMPERATURE, PlaceDirective.WIDGET_LABEL_SMALL, PlaceDirective.WIDGET_LABEL_MEDIUM, PlaceDirective.WIDGET_LABEL_LARGE));
         widget.add(new PlaceDirectives(Place.FRONTDOOR, PlaceDirective.WIDGET_SYMBOL));
     }
@@ -101,6 +96,8 @@ public class AppViewService {
                 mapSwitchView(placeDirectives, (SwitchView) view, placeModel);
             } else if (view instanceof WindowSensorView) {
                 mapWindowView(placeDirectives, (WindowSensorView) view, placeModel);
+            } else if (view instanceof WeatherForecastsView) {
+                mapWeatherForecastsView(placeDirectives, (WeatherForecastsView) view, placeModel);
             }
         }
     }
@@ -144,6 +141,14 @@ public class AppViewService {
         }
     }
 
+    private void mapWeatherForecastsView(PlaceDirectives placeDirectives, WeatherForecastsView view, HomeViewPlaceModel placeModel) {
+
+        placeModel.getValues().add(mapForecastTemperature(placeDirectives, view));
+        if (StringUtils.isNotBlank(view.getStateShort2())) {
+            placeModel.getValues().add(mapForecastEvent(placeDirectives, view));
+        }
+    }
+
     private HomeViewPlaceModel lookupPlaceModel(HomeViewModel appModel, PlaceDirectives placeDirectives, Model completeModel) {
 
         HomeViewPlaceModel placeModel = null;
@@ -174,6 +179,7 @@ public class AppViewService {
     private HomeViewValueModel mapTemperature(PlaceDirectives placeDirectives, ClimateView view) {
         HomeViewValueModel hvm = new HomeViewValueModel();
         hvm.setId(placeDirectives.place.getPlaceName() + "#temp");
+        hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP).map(Enum::name).collect(Collectors.toList()));
         hvm.setKey("Wärme");
         hvm.setValue(view.getStateTemperature());
         hvm.setValueShort(view.getStateShort());
@@ -185,11 +191,32 @@ public class AppViewService {
     private HomeViewValueModel mapHumidity(PlaceDirectives placeDirectives, ClimateView view) {
         HomeViewValueModel hvm = new HomeViewValueModel();
         hvm.setId(placeDirectives.place.getPlaceName() + "#humi");
-        hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP).map(Enum::name).collect(Collectors.toList()));
+        hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP, ValueDirective.WIDGET_SKIP).map(Enum::name).collect(Collectors.toList()));
         hvm.setKey("Feuchte");
         hvm.setValue(view.getStateHumidity());
         hvm.setAccent(mapAccent(view.getColorClassHumidity()));
         hvm.setTendency(Tendency.nameFromCssClass(view.getTendencyIconHumidity()));
+        return hvm;
+    }
+
+    private HomeViewValueModel mapForecastTemperature(PlaceDirectives placeDirectives, WeatherForecastsView view) {
+        HomeViewValueModel hvm = new HomeViewValueModel();
+        hvm.setId(placeDirectives.place.getPlaceName() + "#fcTemp");
+        hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP).map(Enum::name).collect(Collectors.toList()));
+        hvm.setKey("Wetter");
+        hvm.setValue(view.getStateShort());
+        hvm.setAccent(mapAccent(view.getColorClass()));
+        return hvm;
+    }
+
+    private HomeViewValueModel mapForecastEvent(PlaceDirectives placeDirectives, WeatherForecastsView view) {
+        HomeViewValueModel hvm = new HomeViewValueModel();
+        hvm.setId(placeDirectives.place.getPlaceName() + "#fcEvent");
+        hvm.getValueDirectives().addAll(Stream.of(ValueDirective.WIDGET_SKIP).map(Enum::name).collect(Collectors.toList()));
+        hvm.setKey("Ereignis");
+        hvm.setValue(view.getStateShort2());
+        hvm.setAccent(mapAccent(view.getColorClass()));
+        hvm.setSymbol(view.getIconNativeClient());
         return hvm;
     }
 
@@ -363,7 +390,7 @@ public class AppViewService {
     }
 
     private enum ValueDirective {
-        SYMBOL_SKIP
+        SYMBOL_SKIP, WIDGET_SKIP
     }
 
     private static class PlaceDirectives{
