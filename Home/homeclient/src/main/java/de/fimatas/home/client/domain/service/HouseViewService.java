@@ -928,6 +928,13 @@ public class HouseViewService {
             }
         }
 
+        if(weatherForecastModel.getForecasts().stream().filter(
+                fc -> fc.getIcons().contains(WeatherIcons.SUN) || fc.getIcons().contains(WeatherIcons.SUN_CLOUD)).count()>3){
+            if(StringUtils.isBlank(forecasts.getIcon())){
+                setIconsAndEventCaption(forecasts, WeatherIcons.SUN_CLOUD);
+            }
+        }
+
         if(StringUtils.isBlank(forecasts.getIcon())){
             forecasts.setIcon("fa-solid fa-clock");
         }
