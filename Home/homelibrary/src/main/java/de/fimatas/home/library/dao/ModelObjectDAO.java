@@ -156,7 +156,7 @@ public class ModelObjectDAO {
     }
 
     public Collection<SettingsModel> readAllSettings() {
-        return settingsContainer.getSettings();
+        return settingsContainer == null ? null : settingsContainer.getSettings();
     }
 
     public boolean isKnownPushToken(String pushToken) {

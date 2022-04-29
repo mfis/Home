@@ -119,9 +119,12 @@ public class ClientCommunicationService {
                 houseService.refreshHouseModel();
                 break;
             case SETTINGS_NEW:
-                if(settingsService.createNewSettingsForToken(message.getValue(), message.getUser(), message.getClient())){
-                    pushService.sendRegistrationConfirmation(message.getValue(), message.getClient());
+                if(settingsService.createNewSettingsForToken(message.getToken(), message.getUser(), message.getClient())){
+                    pushService.sendRegistrationConfirmation(message.getToken(), message.getClient());
                 }
+                break;
+            case SETTINGS_EDIT:
+                settingsService.editSetting(message.getToken(), message.getKey(), Boolean.valueOf(message.getValue()));
                 break;
             default:
                 throw new IllegalStateException("Unknown MessageType:" + message.getMessageType().name());

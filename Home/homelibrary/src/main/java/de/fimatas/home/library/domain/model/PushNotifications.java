@@ -2,22 +2,30 @@ package de.fimatas.home.library.domain.model;
 
 public enum PushNotifications {
 
-    DOORBELL("Türklingelbetätigung:", true), //
-    WINDOW_OPEN("Fenster noch geöffnet:", true), //
-    LOW_BATTERY("Batterie fast leer:", true), //
+    DOORBELL("Türklingel", "Türklingel",true), //
+    WINDOW_OPEN("Fenster noch geöffnet", "Geöffnete Fenster",true), //
+    LOW_BATTERY("Batterie fast leer", "Leere Batterien",true), //
+    // WEATHER_TODAY("Das Wetter heute", "Tageswetter",true), //
     ;
 
-    private final String text;
+    private final String pushText;
+
+    private final String settingsText;
 
     private final boolean defaultSetting;
 
-    private PushNotifications(String text, boolean defaultSetting) {
-        this.text = text;
+    PushNotifications(String pushText, String settingsText, boolean defaultSetting) {
+        this.pushText = pushText;
+        this.settingsText = settingsText;
         this.defaultSetting = defaultSetting;
     }
 
-    public String getText() {
-        return text;
+    public String getPushText() {
+        return pushText;
+    }
+
+    public String getSettingsText() {
+        return settingsText;
     }
 
     public boolean getDefaultSetting() {

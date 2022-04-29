@@ -10,9 +10,13 @@ import java.util.Properties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fimatas.home.library.model.SettingsModel;
+import org.springframework.scheduling.annotation.Scheduled;
+
+import javax.annotation.PreDestroy;
 
 public class SettingsDAO {
 
+    public static final String PATH = System.getProperty("user.home") + "/documents/config/homecontrolleruser.properties";
     private static SettingsDAO instance;
 
     private Properties properties = null;
@@ -36,9 +40,14 @@ public class SettingsDAO {
 
     public synchronized void write(SettingsModel settingsModel) {
         properties.setProperty(PUSHTOKEN_PREFIX + settingsModel.getToken(), mapToJson(settingsModel));
+    }
+
+    @PreDestroy
+    @Scheduled(cron = "30 1 0,12 * * *")
+    public void persist() {
         try {
             FileOutputStream fos = new FileOutputStream(
-                new File(System.getProperty("user.home") + "/documents/config/homecontrolleruser.properties"));
+                new File(PATH));
             properties.store(fos, "");
             fos.flush();
             fos.close();
@@ -61,7 +70,7 @@ public class SettingsDAO {
 
     private Properties getApplicationProperties() {
         properties = new Properties();
-        File file = new File(System.getProperty("user.home") + "/documents/config/homecontrolleruser.properties");
+        File file = new File(PATH);
         try (var stream = new FileInputStream(file)) {
             properties.load(stream);
         } catch (Exception e) {

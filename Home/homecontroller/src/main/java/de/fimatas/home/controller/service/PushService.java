@@ -127,7 +127,7 @@ public class PushService {
 
         if(!roomNames.isEmpty()) {
             settingsService.listTokensWithEnabledSetting(PushNotifications.WINDOW_OPEN).forEach(pushToken -> 
-            handleMessage(pushToken, PushNotifications.WINDOW_OPEN.getText(), StringUtils.join(roomNames, ", "))
+            handleMessage(pushToken, PushNotifications.WINDOW_OPEN.getPushText() + ":", StringUtils.join(roomNames, ", "))
             );
         }
     }
@@ -136,7 +136,7 @@ public class PushService {
 
         if (!newModel.getLowBatteryDevices().isEmpty()) {
             settingsService.listTokensWithEnabledSetting(PushNotifications.LOW_BATTERY)
-                .forEach(pushToken -> handleMessage(pushToken, PushNotifications.LOW_BATTERY.getText(),
+                .forEach(pushToken -> handleMessage(pushToken, PushNotifications.LOW_BATTERY.getPushText() + ":",
                     StringUtils.join(newModel.getLowBatteryDevices(), ", ")));
         }
     }
@@ -151,7 +151,7 @@ public class PushService {
             final String time =
                 TIME_FORMATTER.format(Instant.ofEpochMilli(newModel.getFrontDoorBell().getTimestampLastDoorbell())
                 .atZone(ZoneId.systemDefault()).toLocalDateTime());
-            handleMessage(pushToken, PushNotifications.DOORBELL.getText(), "Zeitpunkt: " + time + " Uhr.");
+            handleMessage(pushToken, PushNotifications.DOORBELL.getPushText(), "Zeitpunkt: " + time + " Uhr.");
         });
     }
 

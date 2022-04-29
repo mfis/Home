@@ -262,7 +262,7 @@ public class HomeRequestMapping {
         if (!ModelObjectDAO.getInstance().isKnownPushToken(appPushToken)) {
             Message message = new Message();
             message.setMessageType(MessageType.SETTINGS_NEW);
-            message.setValue(appPushToken);
+            message.setToken(appPushToken);
             message.setUser(userName);
             message.setClient(client);
             MessageQueue.getInstance().request(message, false);

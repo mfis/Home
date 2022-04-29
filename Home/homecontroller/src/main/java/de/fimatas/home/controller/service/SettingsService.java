@@ -87,4 +87,13 @@ public class SettingsService {
             .collect(Collectors.toList());
     }
 
+    public void editSetting(String token, String key, boolean value){
+        SettingsDAO.getInstance().read().stream().filter(sm -> sm.getToken().equals(token)).findFirst().ifPresent(
+                        sm -> {
+                            sm.getPushNotifications().put(PushNotifications.valueOf(key), value);
+                            SettingsDAO.getInstance().write(sm);
+                        });
+        refreshSettingsModelsComplete();
+    }
+
 }

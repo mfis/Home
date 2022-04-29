@@ -13,6 +13,7 @@ public enum MessageType {
     HEATINGAUTO(Pages.PATH_HOME), //
     CAMERAPICTUREREQUEST(null), //
     SETTINGS_NEW(null), //
+    SETTINGS_EDIT(null), //
     ;//
 
     private final String targetSite;

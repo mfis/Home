@@ -1,5 +1,14 @@
 package de.fimatas.home.client.request;
 
+import de.fimatas.home.client.domain.model.View;
+import de.fimatas.home.client.model.AppPushSettingsModel;
+import de.fimatas.home.client.model.MessageQueue;
+import de.fimatas.home.client.service.LoginInterceptor;
+import de.fimatas.home.library.domain.model.PushNotifications;
+import de.fimatas.home.library.homematic.model.Device;
+import de.fimatas.home.library.model.Message;
+import de.fimatas.home.library.model.MessageType;
+import de.fimatas.home.library.model.SettingsModel;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -9,10 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.ExtendedModelMap;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import de.fimatas.home.client.domain.service.AppViewService;
 import de.fimatas.home.client.domain.service.HouseViewService;
 import de.fimatas.home.client.model.AppTokenCreationModel;
@@ -22,6 +28,8 @@ import de.fimatas.home.library.domain.model.HouseModel;
 import mfi.files.api.DeviceType;
 import mfi.files.api.TokenResult;
 import mfi.files.api.UserService;
+
+import java.util.*;
 
 @RestController
 public class AppRequestMapping {
@@ -79,6 +87,39 @@ public class AppRequestMapping {
             log.error("sending empty app model due to exception while mapping.", e);
             return appViewService.newEmptyModel();
         }
+    }
+
+    @GetMapping(value = "/getPushSettings")
+    public List<AppPushSettingsModel> getPushSettings(@RequestParam("token") String token) {
+
+        final Collection<SettingsModel> settingsModels = ModelObjectDAO.getInstance().readAllSettings();
+        if(settingsModels == null){
+            return null;
+        }
+
+        final Optional<SettingsModel> settingsModel = settingsModels.stream()
+                .filter(settings -> settings.getToken().equals(token)).findFirst();
+        if(settingsModel.isPresent()){
+            var list = new LinkedList<AppPushSettingsModel>();
+            settingsModel.get().getPushNotifications().forEach((k, v) -> list.add(new AppPushSettingsModel(k.name(), k.getSettingsText(), v)));
+            return list;
+        }else{
+            return null;
+        }
+    }
+
+    @PostMapping(value = "/setPushSetting")
+    public List<AppPushSettingsModel> setPushSetting(@RequestParam("token") String token, @RequestParam("key")String key, @RequestParam("value") String value) {
+
+        Message message = new Message();
+        message.setMessageType(MessageType.SETTINGS_EDIT);
+        message.setToken(token);
+        message.setKey(key);
+        message.setValue(value);
+
+        MessageQueue.getInstance().request(message, true);
+
+        return getPushSettings(token);
     }
 
 }
