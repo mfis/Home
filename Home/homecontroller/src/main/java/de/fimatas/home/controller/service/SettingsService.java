@@ -83,7 +83,7 @@ public class SettingsService {
 
     public List<String> listTokensWithEnabledSetting(PushNotifications pushNotifications) {
         return SettingsDAO.getInstance().read().stream()
-            .filter(model -> model.getPushNotifications().get(pushNotifications).booleanValue()).map(SettingsModel::getToken)
+            .filter(model -> model.getPushNotifications().get(pushNotifications)).map(SettingsModel::getToken)
             .collect(Collectors.toList());
     }
 
@@ -92,6 +92,11 @@ public class SettingsService {
                         sm -> {
                             sm.getPushNotifications().put(PushNotifications.valueOf(key), value);
                             SettingsDAO.getInstance().write(sm);
+                            // Edit other settings for same user (=e.g. old tokens) too
+                            SettingsDAO.getInstance().read().stream().filter(othersm -> othersm.getUser().equals(sm.getUser())).forEach(othersm -> {
+                                othersm.getPushNotifications().put(PushNotifications.valueOf(key), value);
+                                SettingsDAO.getInstance().write(othersm);
+                            });
                         });
         refreshSettingsModelsComplete();
     }
