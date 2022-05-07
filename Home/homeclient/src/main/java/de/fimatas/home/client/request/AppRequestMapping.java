@@ -1,8 +1,7 @@
 package de.fimatas.home.client.request;
 
 import de.fimatas.home.client.domain.model.View;
-import de.fimatas.home.client.model.AppPushSettingsModel;
-import de.fimatas.home.client.model.MessageQueue;
+import de.fimatas.home.client.model.*;
 import de.fimatas.home.client.service.LoginInterceptor;
 import de.fimatas.home.library.domain.model.PushNotifications;
 import de.fimatas.home.library.homematic.model.Device;
@@ -21,8 +20,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import de.fimatas.home.client.domain.service.AppViewService;
 import de.fimatas.home.client.domain.service.HouseViewService;
-import de.fimatas.home.client.model.AppTokenCreationModel;
-import de.fimatas.home.client.model.HomeViewModel;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.HouseModel;
 import mfi.files.api.DeviceType;
@@ -49,6 +46,9 @@ public class AppRequestMapping {
 
     @Value("${application.identifier}")
     private String applicationIdentifier;
+
+    @Value("${pushtoken.acceptNotAvailableToken}")
+    private boolean acceptNotAvailableToken;
 
     private static final Log log = LogFactory.getLog(AppRequestMapping.class);
 
@@ -90,7 +90,7 @@ public class AppRequestMapping {
     }
 
     @GetMapping(value = "/getPushSettings")
-    public List<AppPushSettingsModel> getPushSettings(@RequestParam("token") String token) {
+    public AppPushSettingsModels getPushSettings(@RequestParam("token") String token) {
 
         final Collection<SettingsModel> settingsModels = ModelObjectDAO.getInstance().readAllSettings();
         if(settingsModels == null){
@@ -98,28 +98,35 @@ public class AppRequestMapping {
         }
 
         final Optional<SettingsModel> settingsModel = settingsModels.stream()
-                .filter(settings -> settings.getToken().equals(token)).findFirst();
+                .filter(settings -> settings.getToken().equals(lookupToken(token))).findFirst();
         if(settingsModel.isPresent()){
             var list = new LinkedList<AppPushSettingsModel>();
             settingsModel.get().getPushNotifications().forEach((k, v) -> list.add(new AppPushSettingsModel(k.name(), k.getSettingsText(), v)));
-            return list;
+            return new AppPushSettingsModels(list);
         }else{
             return null;
         }
     }
 
     @PostMapping(value = "/setPushSetting")
-    public List<AppPushSettingsModel> setPushSetting(@RequestParam("token") String token, @RequestParam("key")String key, @RequestParam("value") String value) {
+    public AppPushSettingsModels setPushSetting(@RequestParam("token") String token, @RequestParam("key")String key, @RequestParam("value") String value) {
 
         Message message = new Message();
         message.setMessageType(MessageType.SETTINGS_EDIT);
-        message.setToken(token);
+        message.setToken(lookupToken(token));
         message.setKey(key);
         message.setValue(value);
 
         MessageQueue.getInstance().request(message, true);
 
         return getPushSettings(token);
+    }
+
+    private String lookupToken(String tokenRequestParameter){
+        if(StringUtils.isBlank(tokenRequestParameter) && acceptNotAvailableToken){
+            return "localTestDefaultToken";
+        }
+        return tokenRequestParameter;
     }
 
 }
