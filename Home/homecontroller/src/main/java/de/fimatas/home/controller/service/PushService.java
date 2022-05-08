@@ -6,10 +6,13 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedList;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+
+import de.fimatas.home.library.domain.model.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -26,9 +29,6 @@ import com.eatthepath.pushy.apns.util.SimpleApnsPushNotification;
 import com.eatthepath.pushy.apns.util.concurrent.PushNotificationFuture;
 import de.fimatas.home.controller.domain.service.HouseService;
 import de.fimatas.home.library.dao.ModelObjectDAO;
-import de.fimatas.home.library.domain.model.HouseModel;
-import de.fimatas.home.library.domain.model.PushNotifications;
-import de.fimatas.home.library.domain.model.WindowSensor;
 import de.fimatas.home.library.util.HomeAppConstants;
 
 @Component
@@ -82,22 +82,32 @@ public class PushService {
     }
 
     @Scheduled(cron = "0 00 22 * * *")
-    public void sendAtLateEvening() {
+    public void sendOpenWindowAtLateEvening() {
 
         try {
             windowOpenMessage(ModelObjectDAO.getInstance().readHouseModel());
         } catch (Exception e) {
-            LogFactory.getLog(PushService.class).error("Could not [sendAtLateEvening] push notifications:", e);
+            LogFactory.getLog(PushService.class).error("Could not [sendOpenWindowAtLateEvening] push notifications:", e);
         }
     }
 
     @Scheduled(cron = "0 00 4 * * *")
-    public void sendAtEarlyMorning() {
+    public void sendLowBatteryAtEarlyMorning() {
 
         try {
             lowBatteryMessage(ModelObjectDAO.getInstance().readHouseModel());
         } catch (Exception e) {
-            LogFactory.getLog(PushService.class).error("Could not [sendAtEarlyMorning] push notifications:", e);
+            LogFactory.getLog(PushService.class).error("Could not [sendLowBatteryAtEarlyMorning] push notifications:", e);
+        }
+    }
+
+    @Scheduled(cron = "0 2 5 * * *")
+    public void sendWeatherAtMorning() {
+
+        try {
+            todayWeatherMessage(ModelObjectDAO.getInstance().readWeatherForecastModel());
+        } catch (Exception e) {
+            LogFactory.getLog(PushService.class).error("Could not [sendWeatherAtMorning] push notifications:", e);
         }
     }
 
@@ -152,6 +162,34 @@ public class PushService {
                 TIME_FORMATTER.format(Instant.ofEpochMilli(newModel.getFrontDoorBell().getTimestampLastDoorbell())
                 .atZone(ZoneId.systemDefault()).toLocalDateTime());
             handleMessage(pushToken, PushNotifications.DOORBELL.getPushText(), "Zeitpunkt: " + time + " Uhr.");
+        });
+    }
+
+    private void todayWeatherMessage(WeatherForecastModel model) {
+
+        if(model==null || model.getConclusionToday()==null){
+            return;
+        }
+
+        settingsService.listTokensWithEnabledSetting(PushNotifications.WEATHER_TODAY).forEach(pushToken -> {
+
+            final WeatherForecastConclusion conclusionToday = model.getConclusionToday();
+            WeatherConditions condition = null;
+            if(!conclusionToday.getConditions().isEmpty()) {
+                Optional<WeatherConditions> firstSignificantCondition =
+                        conclusionToday.getConditions().stream().filter(WeatherConditions::isSignificant).findFirst();
+                condition = firstSignificantCondition.orElseGet(() -> conclusionToday.getConditions().get(0));
+            }
+
+            var text = "Temperatur " + conclusionToday.getMinTemp() + " bis " + conclusionToday.getMaxTemp() + "°C";
+            if(conclusionToday.getConditions().contains(WeatherConditions.WIND)){
+                text += ", Wind bis " + conclusionToday.getMaxWind() + " km/h";
+            }
+            if(condition!=null && condition!= WeatherConditions.WIND){
+                text += ", Sonne";
+            }
+
+            handleMessage(pushToken, PushNotifications.WEATHER_TODAY.getPushText() + ":", text);
         });
     }
 

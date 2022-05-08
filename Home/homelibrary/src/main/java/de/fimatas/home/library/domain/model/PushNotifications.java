@@ -5,7 +5,7 @@ public enum PushNotifications {
     DOORBELL("Türklingel", "Türklingel",true), //
     WINDOW_OPEN("Fenster noch geöffnet", "Geöffnete Fenster",true), //
     LOW_BATTERY("Batterie fast leer", "Leere Batterien",true), //
-    // WEATHER_TODAY("Das Wetter heute", "Tageswetter",true), //
+    WEATHER_TODAY("Das Wetter heute", "Tageswetter",false), //
     ;
 
     private final String pushText;

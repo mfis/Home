@@ -29,6 +29,8 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Optional;
 
+import static de.fimatas.home.library.util.HomeAppConstants.PUSH_TOKEN_NOT_AVAILABLE_INDICATOR;
+
 @RestController
 public class AppRequestMapping {
 
@@ -125,7 +127,7 @@ public class AppRequestMapping {
 
     private String lookupToken(String tokenRequestParameter){
         if(StringUtils.isBlank(tokenRequestParameter) && acceptNotAvailableToken){
-            return "localTestDefaultToken";
+            return PUSH_TOKEN_NOT_AVAILABLE_INDICATOR;
         }
         return tokenRequestParameter;
     }

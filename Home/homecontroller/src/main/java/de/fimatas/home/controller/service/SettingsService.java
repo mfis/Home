@@ -39,6 +39,7 @@ public class SettingsService {
                 if (!model.getPushNotifications().containsKey(notification)) {
                     model.getPushNotifications().put(notification, notification.getDefaultSetting());
                     SettingsDAO.getInstance().write(model);
+                    SettingsDAO.getInstance().persist();
                 }
             });
             container.getSettings().add(model);
