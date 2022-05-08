@@ -204,7 +204,7 @@ public class AppViewService {
         HomeViewValueModel hvm = new HomeViewValueModel();
         hvm.setId(placeDirectives.place.getPlaceName() + "#fcTemp");
         hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP).map(Enum::name).collect(Collectors.toList()));
-        hvm.setKey("2-Tg Wetter");
+        hvm.setKey("2-Tage");
         hvm.setValue(view.getStateShort());
         hvm.setAccent(mapAccent(view.getColorClass()));
         return hvm;
