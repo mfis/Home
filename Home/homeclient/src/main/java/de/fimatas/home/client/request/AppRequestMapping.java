@@ -1,13 +1,16 @@
 package de.fimatas.home.client.request;
 
-import de.fimatas.home.client.domain.model.View;
+import de.fimatas.home.client.domain.service.AppViewService;
+import de.fimatas.home.client.domain.service.HouseViewService;
 import de.fimatas.home.client.model.*;
-import de.fimatas.home.client.service.LoginInterceptor;
-import de.fimatas.home.library.domain.model.PushNotifications;
-import de.fimatas.home.library.homematic.model.Device;
+import de.fimatas.home.library.dao.ModelObjectDAO;
+import de.fimatas.home.library.domain.model.HouseModel;
 import de.fimatas.home.library.model.Message;
 import de.fimatas.home.library.model.MessageType;
 import de.fimatas.home.library.model.SettingsModel;
+import mfi.files.api.DeviceType;
+import mfi.files.api.TokenResult;
+import mfi.files.api.UserService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -17,16 +20,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.ExtendedModelMap;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
-import de.fimatas.home.client.domain.service.AppViewService;
-import de.fimatas.home.client.domain.service.HouseViewService;
-import de.fimatas.home.library.dao.ModelObjectDAO;
-import de.fimatas.home.library.domain.model.HouseModel;
-import mfi.files.api.DeviceType;
-import mfi.files.api.TokenResult;
-import mfi.files.api.UserService;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.Optional;
 
 @RestController
 public class AppRequestMapping {

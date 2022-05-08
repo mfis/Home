@@ -8,12 +8,12 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
 
 import de.fimatas.home.client.domain.model.*;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
+import de.fimatas.home.library.model.ConditionColor;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -55,20 +55,6 @@ public class HouseViewService {
     private static final String NEEDS_PIN = "&needsPin";
 
     private static final String TYPE_IS = "type=";
-
-    public static final String COLOR_CLASS_RED = "danger";
-
-    public static final String COLOR_CLASS_ORANGE = "warning";
-
-    public static final String COLOR_CLASS_GREEN = "success";
-
-    public static final String COLOR_CLASS_BLUE = "info";
-
-    public static final String COLOR_CLASS_LIGHT = "light";
-
-    public static final String COLOR_CLASS_GRAY = "secondary";
-
-    public static final String COLOR_CLASS_ACTIVE_BUTTON = "active-primary";
 
     public static final String MESSAGEPATH = "/message?"; // NOSONAR
 
@@ -211,11 +197,11 @@ public class HouseViewService {
                         .atZone(ZoneId.systemDefault()).toLocalDateTime(), LocalDateTime.now())
                 .toMinutes();
         if (minutesSinceLastDoorbellRing < 5) {
-            frontDoorView.setColorClass(COLOR_CLASS_RED);
+            frontDoorView.setColorClass(ConditionColor.RED.getUiClass());
         } else if (minutesSinceLastDoorbellRing < 60) {
-            frontDoorView.setColorClass(COLOR_CLASS_ORANGE);
+            frontDoorView.setColorClass(ConditionColor.ORANGE.getUiClass());
         } else {
-            frontDoorView.setColorClass(COLOR_CLASS_GRAY);
+            frontDoorView.setColorClass(ConditionColor.GRAY.getUiClass());
         }
 
 
@@ -261,33 +247,33 @@ public class HouseViewService {
         } else if (doorlock.getErrorcode() != 0) {
             view.setState("Mechanischer Fehler!");
             view.setIcon("fas fa-bug");
-            view.setColorClass(COLOR_CLASS_RED);
+            view.setColorClass(ConditionColor.RED.getUiClass());
             setButtonOpen = true;
             setButtonLock = true;
             setButtonUnlock = true;
         } else if (doorlock.isOpen()) {
             view.setState("Öffner aktiv");
             view.setIcon("fas fa-door-open");
-            view.setColorClass(COLOR_CLASS_RED);
+            view.setColorClass(ConditionColor.RED.getUiClass());
             setButtonLock = true;
         } else {
             setButtonOpen = true;
             if (doorlock.isLockStateUncertain()) {
                 view.setState("Unbestimmt");
                 view.setIcon("fas fa-question-circle");
-                view.setColorClass(COLOR_CLASS_ORANGE);
+                view.setColorClass(ConditionColor.ORANGE.getUiClass());
                 setButtonLock = true;
                 setButtonUnlock = true;
             } else {
                 if (doorlock.isLockState()) {
                     view.setState("Verriegelt");
                     view.setIcon("fas fa-lock");
-                    view.setColorClass(COLOR_CLASS_GREEN);
+                    view.setColorClass(ConditionColor.GREEN.getUiClass());
                     setButtonUnlock = true;
                 } else {
                     view.setState("Entriegelt");
                     view.setIcon("fas fa-lock-open");
-                    view.setColorClass(COLOR_CLASS_ORANGE);
+                    view.setColorClass(ConditionColor.ORANGE.getUiClass());
                     setButtonLock = true;
                 }
             }
@@ -475,21 +461,21 @@ public class HouseViewService {
 
     private void lookupHeaterColorClass(Heating heating, Climate climate, ClimateView view) {
 
-        var switchColorClass = COLOR_CLASS_ACTIVE_BUTTON;
-        var elementColorClass = COLOR_CLASS_GRAY;
+        var switchColorClass = ConditionColor.ACTIVE_BUTTON.getUiClass();
+        var elementColorClass = ConditionColor.GRAY.getUiClass();
 
         if (heating.isBoostActive()) {
-            switchColorClass = COLOR_CLASS_RED;
-            elementColorClass = COLOR_CLASS_RED;
+            switchColorClass = ConditionColor.RED.getUiClass();
+            elementColorClass = ConditionColor.RED.getUiClass();
         }else if (heating.getTargetTemperature() != null && climate.getTemperature() != null &&
                 climate.getTemperature().getValue() != null) {
             BigDecimal diffTemp = climate.getTemperature().getValue().subtract(heating.getTargetTemperature());
             if (diffTemp.compareTo(HomeAppConstants.MAX_DIFF_HEATING_TEMPERATURE) < 0) {
-                switchColorClass = COLOR_CLASS_ORANGE;
-                elementColorClass = COLOR_CLASS_ORANGE;
+                switchColorClass = ConditionColor.ORANGE.getUiClass();
+                elementColorClass = ConditionColor.ORANGE.getUiClass();
             }else{
-                switchColorClass = COLOR_CLASS_GREEN;
-                elementColorClass = COLOR_CLASS_GREEN;
+                switchColorClass = ConditionColor.GREEN.getUiClass();
+                elementColorClass = ConditionColor.GREEN.getUiClass();
             }
         }
 
@@ -500,33 +486,33 @@ public class HouseViewService {
     private void formatClimateBackground(Climate climate, ClimateView view) {
 
         if (climate.getTemperature().getValue().compareTo(HIGH_TEMP) > 0) {
-            view.setColorClass(COLOR_CLASS_RED);
+            view.setColorClass(ConditionColor.RED.getUiClass());
             view.setIcon("fas fa-thermometer-full");
         } else if (climate.getTemperature().getValue().compareTo(MEDIUM_HIGH_TEMP) > 0) {
-            view.setColorClass(COLOR_CLASS_ORANGE);
+            view.setColorClass(ConditionColor.ORANGE.getUiClass());
             view.setIcon("fas fa-thermometer-half");
         } else if (climate.getTemperature().getValue().compareTo(FROST_TEMP) < 0) {
-            view.setColorClass(COLOR_CLASS_LIGHT);
+            view.setColorClass(ConditionColor.LIGHT.getUiClass());
             view.setIcon("fas fa-thermometer-empty");
         } else if (climate.getTemperature().getValue().compareTo(LOW_TEMP) < 0) {
-            view.setColorClass(COLOR_CLASS_BLUE);
+            view.setColorClass(ConditionColor.BLUE.getUiClass());
             view.setIcon("fas fa-thermometer-empty");
         } else {
-            view.setColorClass(COLOR_CLASS_GREEN);
+            view.setColorClass(ConditionColor.GREEN.getUiClass());
             view.setIcon("fas fa-thermometer-half");
         }
 
         // for now only used in app
         if (climate instanceof RoomClimate && climate.getHumidity() != null) {
             if (climate.getHumidity().getValue().compareTo(HomeAppConstants.TARGET_HUMIDITY_MAX_INSIDE) > 0) {
-                view.setColorClassHumidity(COLOR_CLASS_ORANGE);
+                view.setColorClassHumidity(ConditionColor.ORANGE.getUiClass());
             } else if (climate.getHumidity().getValue().compareTo(HomeAppConstants.TARGET_HUMIDITY_MIN_INSIDE) < 0) {
-                view.setColorClassHumidity(COLOR_CLASS_ORANGE);
+                view.setColorClassHumidity(ConditionColor.ORANGE.getUiClass());
             } else {
-                view.setColorClassHumidity(COLOR_CLASS_GREEN);
+                view.setColorClassHumidity(ConditionColor.GREEN.getUiClass());
             }
         } else {
-            view.setColorClassHumidity(COLOR_CLASS_GRAY);
+            view.setColorClassHumidity(ConditionColor.GRAY.getUiClass());
         }
     }
 
@@ -550,18 +536,18 @@ public class HouseViewService {
             switch (house.getConclusionClimateFacadeMax().getSunBeamIntensity()) {
                 case NO:
                     viewMax.setIcon("fas fa-cloud");
-                    viewMax.setColorClass(COLOR_CLASS_GRAY);
+                    viewMax.setColorClass(ConditionColor.GRAY.getUiClass());
                     break;
                 case LOW:
-                    viewMax.setColorClass(COLOR_CLASS_GREEN);
+                    viewMax.setColorClass(ConditionColor.GREEN.getUiClass());
                     viewMax.setIcon("fas fa-cloud-sun");
                     break;
                 case MEDIUM:
-                    viewMax.setColorClass(COLOR_CLASS_ORANGE);
+                    viewMax.setColorClass(ConditionColor.ORANGE.getUiClass());
                     viewMax.setIcon("far fa-sun");
                     break;
                 case HIGH:
-                    viewMax.setColorClass(COLOR_CLASS_RED);
+                    viewMax.setColorClass(ConditionColor.RED.getUiClass());
                     viewMax.setIcon("fas fa-sun");
             }
         }
@@ -678,7 +664,7 @@ public class HouseViewService {
         view.setStateSuffix(stateSuffix);
         view.setStateShort((windowSensor.isState() ? "Geöffnet" : "Geschlossen"));
         if (windowSensor.isState()) {
-            view.setColorClass(COLOR_CLASS_ORANGE);
+            view.setColorClass(ConditionColor.ORANGE.getUiClass());
         }
         view.setIcon(windowSensor.isState() ? "fas fa-folder-open" : "fas fa-folder");
         model.addAttribute(viewKey, view);
@@ -718,14 +704,14 @@ public class HouseViewService {
         if (switchModel.isState()) {
             String stateColor;
             if (switchModel.getAutomation() != null && Boolean.TRUE.equals(switchModel.getAutomation())) {
-                stateColor = COLOR_CLASS_GREEN;
+                stateColor = ConditionColor.GREEN.getUiClass();
             } else {
-                stateColor = COLOR_CLASS_ORANGE;
+                stateColor = ConditionColor.ORANGE.getUiClass();
             }
             view.setColorClass(stateColor);
             view.setActiveSwitchColorClass(stateColor);
         } else {
-            view.setActiveSwitchColorClass(COLOR_CLASS_ACTIVE_BUTTON);
+            view.setActiveSwitchColorClass(ConditionColor.ACTIVE_BUTTON.getUiClass());
         }
     }
 
@@ -839,10 +825,10 @@ public class HouseViewService {
         var forecasts = new WeatherForecastsView();
         model.addAttribute("weatherForecasts", forecasts);
 
-        forecasts.setName("Wetter");
+        forecasts.setName("2-Tage Wetter");
         forecasts.setPlaceEnum(Place.OUTSIDE);
         forecasts.setId("weatherForecasts");
-        forecasts.setColorClass(COLOR_CLASS_GRAY);
+        forecasts.setColorClass(ConditionColor.GRAY.getUiClass());
         forecasts.setUnreach(Boolean.toString(unreach));
 
         if(unreach){
@@ -859,14 +845,16 @@ public class HouseViewService {
         }
 
         forecasts.setSource(weatherForecastModel.getSourceText());
+        forecasts.setColorClass(ConditionColor.GRAY.getUiClass());
 
-        forecasts.setColorClass(COLOR_CLASS_GRAY);
-        List<String> titleStates = new LinkedList<>();
-
-        mapWeatherForecastIconsAndColorCodes(weatherForecastModel, forecasts, maxTemp, titleStates);
+        var titleStates = mapWeatherConditions(weatherForecastModel.getConclusion24to48hours(), forecasts, maxTemp);
 
         if(titleStates.size() < 2){
-            titleStates.add(minTemp.get() + ".." + maxTemp.get() + "°C, " + maxWind.get() + " km/h");
+            String values = minTemp.get() + ".." + maxTemp.get() + "°C";
+            if(weatherForecastModel.getConclusion24to48hours().getConditions().contains(WeatherConditions.WIND)){
+                values += ", " + maxWind.get() + " km/h";
+            }
+            titleStates.add(values);
         }
         forecasts.setStateShort(minTemp.get() + ".." + maxTemp.get() + "°C");
         forecasts.setElementTitleState(String.join(", ", titleStates));
@@ -886,74 +874,44 @@ public class HouseViewService {
         });
     }
 
-    void mapWeatherForecastIconsAndColorCodes(WeatherForecastModel weatherForecastModel, WeatherForecastsView forecasts, Optional<Integer> maxTemp, List<String> titleStates) {
+    private List<String> mapWeatherConditions(WeatherForecastConclusion conclusion, WeatherForecastsView view, Optional<Integer> maxTemp) {
 
-        if(weatherForecastModel.getForecasts().stream().anyMatch(fc -> fc.getIcons().contains(WeatherIcons.SNOW))){
-            titleStates.add(WeatherIcons.SNOW.getCaption());
-            setIconsAndEventCaption(forecasts, WeatherIcons.SNOW, false, COLOR_CLASS_LIGHT);
-            forecasts.setColorClass(COLOR_CLASS_LIGHT);
-        }
+        final var titleStates = new LinkedList<String>();
 
-        if(weatherForecastModel.getForecasts().stream().anyMatch(fc -> fc.getIcons().contains(WeatherIcons.WIND))){
-            titleStates.add(WeatherIcons.WIND.getCaption());
-                setIconsAndEventCaption(forecasts, WeatherIcons.WIND, false, COLOR_CLASS_RED);
-        }
+        if(!conclusion.getConditions().isEmpty()){
 
-        if(weatherForecastModel.getForecasts().stream().anyMatch(
-                fc -> fc.getIcons().contains(WeatherIcons.HAIL))){
-            titleStates.add(WeatherIcons.HAIL.getCaption());
-                setIconsAndEventCaption(forecasts, WeatherIcons.HAIL, false, null);
-        }
+            titleStates.addAll(conclusion.getConditions().stream()
+                    .filter(WeatherConditions::isSignificant).map(WeatherConditions::getCaption).collect(Collectors.toList()));
 
-        if(weatherForecastModel.getForecasts().stream().anyMatch(
-                fc -> fc.getIcons().contains(WeatherIcons.CLOUD_RAIN)
-                        || fc.getIcons().contains(WeatherIcons.RAIN)
-                        || fc.getIcons().contains(WeatherIcons.THUNDERSTORM))){
-            if(!titleStates.contains(WeatherIcons.HAIL.getCaption())){
-                titleStates.add(WeatherIcons.RAIN.getCaption());
-                    setIconsAndEventCaption(forecasts, WeatherIcons.RAIN, false, null);
+            final Optional<WeatherConditions> firstSignificantCondition =
+                    conclusion.getConditions().stream().filter(WeatherConditions::isSignificant).findFirst();
+
+            WeatherConditions condition = firstSignificantCondition.orElseGet(() -> conclusion.getConditions().get(0));
+            view.setIcon(condition.getFontAwesomeID());
+            view.setIconNativeClient(condition.getSfSymbolsID());
+            if(condition.isSignificant()){
+                view.setStateShort2(condition.getCaption()); // Watch App 'Ereignis'
+            }
+            if(condition.getColor() != null){
+                view.setColorClass(condition.getColor().getUiClass());
             }
         }
 
-        if(weatherForecastModel.getForecasts().stream().filter(
-                fc -> fc.getIcons().contains(WeatherIcons.SUN)).count() > 3){
-                setIconsAndEventCaption(forecasts, WeatherIcons.SUN, false, null);
+        if(StringUtils.isBlank(view.getIcon())){
+            view.setIcon("fa-solid fa-clock");
         }
 
-        if(weatherForecastModel.getForecasts().stream().filter(
-                fc -> fc.getIcons().contains(WeatherIcons.SUN) || fc.getIcons().contains(WeatherIcons.SUN_CLOUD)).count()>3){
-                setIconsAndEventCaption(forecasts, WeatherIcons.SUN_CLOUD, true, null);
-        }
-
-        if(StringUtils.isBlank(forecasts.getIcon())){
-            forecasts.setIcon("fa-solid fa-clock");
-        }
-
-        if(maxTemp.isPresent() && forecasts.getColorClass().equals(COLOR_CLASS_GRAY)){
+        if(maxTemp.isPresent() && view.getColorClass().equals(ConditionColor.GRAY.getUiClass())){
             if (maxTemp.get() > HIGH_TEMP.longValue()) {
-                forecasts.setColorClass(COLOR_CLASS_RED);
+                view.setColorClass(ConditionColor.RED.getUiClass());
             } else if (maxTemp.get() > MEDIUM_HIGH_TEMP.longValue()) {
-                forecasts.setColorClass(COLOR_CLASS_ORANGE);
-            } else if (maxTemp.get() >= LOW_TEMP.longValue() && !titleStates.contains(WeatherIcons.RAIN.getCaption())) {
-                forecasts.setColorClass(COLOR_CLASS_GREEN);
+                view.setColorClass(ConditionColor.ORANGE.getUiClass());
+            } else if (maxTemp.get() >= LOW_TEMP.longValue() && !titleStates.contains(WeatherConditions.RAIN.getCaption())) {
+                view.setColorClass(ConditionColor.GREEN.getUiClass());
             }
         }
-    }
 
-    private void setIconsAndEventCaption(WeatherForecastsView forecasts, WeatherIcons icon, boolean iconOnly, String colorCode) {
-
-        if(StringUtils.isNotBlank(forecasts.getIcon())){
-            return;
-        }
-
-        forecasts.setIcon(icon.getFontAwesomeID());
-        forecasts.setIconNativeClient(icon.getSfSymbolsID());
-        if(!iconOnly){
-            forecasts.setStateShort2(icon.getCaption());
-        }
-        if(colorCode != null){
-            forecasts.setColorClass(COLOR_CLASS_RED);
-        }
+        return titleStates;
     }
 
     private void formatLights(LightsModel lightsModel, Model model) {
@@ -994,7 +952,7 @@ public class HouseViewService {
             lightView.setId("light_" + place.name() + "_" + light.getId());
             lightView.setName(light.getName());
             lightView.setStateShort(light.getState().getCaption());
-            lightView.setColorClass(light.getState() == LightState.ON ? COLOR_CLASS_ORANGE : COLOR_CLASS_GRAY);
+            lightView.setColorClass(light.getState() == LightState.ON ? ConditionColor.ORANGE.getUiClass() : ConditionColor.GRAY.getUiClass());
             if (light.getState() == LightState.ON) {
                 lightView.setLinkOff(TOGGLE_LIGHT + light.getId() + AND_VALUE_IS + Boolean.FALSE);
             } else if (light.getState() == LightState.OFF) {
@@ -1004,7 +962,7 @@ public class HouseViewService {
             lights.getLights().add(lightView);
         }
 
-        lights.setColorClass(countLightsOn > 0 ? COLOR_CLASS_ORANGE : COLOR_CLASS_GRAY);
+        lights.setColorClass(countLightsOn > 0 ? ConditionColor.ORANGE.getUiClass() : ConditionColor.GRAY.getUiClass());
         lights.setName("Licht");
         lights.setIcon(countLightsOn > 0 ? "fas fa-lightbulb" : "far fa-lightbulb");
 

@@ -287,7 +287,7 @@
 
 	<!-- Navigation -->
 	<div th:fragment="navigation (selected, selectable, status, isApp)">
-	
+
 		<input type="hidden" id="isApp" th:value="${isApp}" />
 		<input type="hidden" id="browserTitle" th:value="${selected.name}" />
 		<th:block th:if="${!#strings.equals(isApp, 'true')}">	

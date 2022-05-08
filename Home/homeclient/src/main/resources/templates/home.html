@@ -8,7 +8,7 @@
 		<div th:replace="basics :: navigation (selected=${MENU_SELECTED}, selectable=${MENU_SELECTABLE}, status=${SITE_REQUEST_TS}, isApp=${isApp})"></div>
 		<input type="hidden" th:id="'modelTimestamp'" th:value="${modelTimestamp}"></input>	
 		<input type="hidden" id="SITE_REQUEST_TS" th:value="${SITE_REQUEST_TS}" />
-	
+
 		<div class="container">
 		
 			<th:block th:if="${!#strings.isEmpty(userErrorMessageText)}"><th:block th:replace="basics :: userErrorMessage (text=${userErrorMessageText})"></th:block></th:block>

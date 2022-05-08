@@ -254,11 +254,7 @@ public class LoginInterceptor implements HandlerInterceptor {
                 return userService.userNameFromLoginCookie(token);
             }
         } else {
-            if(BooleanUtils.toBoolean(request.getHeader("noRedirect"))){
-                response.setStatus(HttpStatus.UNAUTHORIZED.value()); // 401
-            }else{
-                response.sendRedirect(LoginController.LOGIN_FAILED_URI);
-            }
+            response.sendRedirect(LoginController.LOGIN_FAILED_URI);
             logoff(request, response);
             return null;
         }

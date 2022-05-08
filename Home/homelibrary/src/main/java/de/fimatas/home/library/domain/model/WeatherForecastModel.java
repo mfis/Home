@@ -16,4 +16,8 @@ public class WeatherForecastModel implements Serializable {
     private String sourceText;
 
     private List<WeatherForecast> forecasts = new LinkedList<>();
+
+    private WeatherForecastConclusion conclusionToday;
+
+    private WeatherForecastConclusion conclusion24to48hours;
 }

@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import de.fimatas.home.client.domain.model.*;
+import de.fimatas.home.library.model.ConditionColor;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -203,7 +204,7 @@ public class AppViewService {
         HomeViewValueModel hvm = new HomeViewValueModel();
         hvm.setId(placeDirectives.place.getPlaceName() + "#fcTemp");
         hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP).map(Enum::name).collect(Collectors.toList()));
-        hvm.setKey("Wetter");
+        hvm.setKey("2-Tg Wetter");
         hvm.setValue(view.getStateShort());
         hvm.setAccent(mapAccent(view.getColorClass()));
         return hvm;
@@ -355,23 +356,28 @@ public class AppViewService {
     }
 
     private boolean isColorClassOrangeOrRed(View view){
-        return view.getColorClass().equalsIgnoreCase(HouseViewService.COLOR_CLASS_ORANGE)
-                || view.getColorClass().equalsIgnoreCase(HouseViewService.COLOR_CLASS_RED);
+        return view.getColorClass().equalsIgnoreCase(ConditionColor.ORANGE.getUiClass())
+                || view.getColorClass().equalsIgnoreCase(ConditionColor.RED.getUiClass());
     }
 
     private String mapAccent(String colorClass) {
 
-        switch (colorClass) {
-        case HouseViewService.COLOR_CLASS_GREEN:
+        final ConditionColor conditionColor = ConditionColor.fromUiName(colorClass);
+        if(conditionColor==null){
+            return StringUtils.EMPTY;
+        }
+
+        switch (conditionColor) {
+        case GREEN:
             return ".green";
-        case HouseViewService.COLOR_CLASS_ORANGE:
+        case ORANGE:
             return ".orange";
-        case HouseViewService.COLOR_CLASS_RED:
+        case RED:
             return ".red";
-        case HouseViewService.COLOR_CLASS_BLUE:
+        case BLUE:
             return ".blue";
-            case HouseViewService.COLOR_CLASS_LIGHT:
-                return ".purple";
+        case LIGHT:
+            return ".purple";
         default:
             return StringUtils.EMPTY;
         }
