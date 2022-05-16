@@ -186,7 +186,7 @@ public class PushService {
                 text += ", Wind bis " + conclusionToday.getMaxWind() + " km/h";
             }
             if(condition!=null && condition!= WeatherConditions.WIND){
-                text += ", Sonne";
+                text += ", " + condition.getCaption();
             }
 
             handleMessage(pushToken, PushNotifications.WEATHER_TODAY.getPushText() + ":", text);
