@@ -70,6 +70,7 @@ public class SettingsService {
                 .forEach(notification -> model.getPushNotifications().put(notification, notification.getDefaultSetting()));
         }
         SettingsDAO.getInstance().write(model);
+        SettingsDAO.getInstance().persist();
 
         refreshSettingsModelsComplete();
 
@@ -99,6 +100,7 @@ public class SettingsService {
                                 SettingsDAO.getInstance().write(othersm);
                             });
                         });
+        SettingsDAO.getInstance().persist();
         refreshSettingsModelsComplete();
     }
 

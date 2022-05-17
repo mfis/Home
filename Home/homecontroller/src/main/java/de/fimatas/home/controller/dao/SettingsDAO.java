@@ -1,6 +1,5 @@
 package de.fimatas.home.controller.dao;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -10,7 +9,7 @@ import java.util.Properties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fimatas.home.library.model.SettingsModel;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.annotation.Async;
 
 import javax.annotation.PreDestroy;
 
@@ -19,9 +18,9 @@ public class SettingsDAO {
     public static final String PATH = System.getProperty("user.home") + "/documents/config/homecontrolleruser.properties";
     private static SettingsDAO instance;
 
-    private Properties properties = null;
+    private Properties properties;
 
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
 
     private static final String PUSHTOKEN_PREFIX = "pushToken.";
 
@@ -43,11 +42,10 @@ public class SettingsDAO {
     }
 
     @PreDestroy
-    @Scheduled(cron = "30 1 0,12 * * *")
-    public void persist() {
+    @Async
+    public synchronized void persist() {
         try {
-            FileOutputStream fos = new FileOutputStream(
-                new File(PATH));
+            FileOutputStream fos = new FileOutputStream(PATH);
             properties.store(fos, "");
             fos.flush();
             fos.close();
@@ -70,8 +68,7 @@ public class SettingsDAO {
 
     private Properties getApplicationProperties() {
         properties = new Properties();
-        File file = new File(PATH);
-        try (var stream = new FileInputStream(file)) {
+        try (var stream = new FileInputStream(PATH)) {
             properties.load(stream);
         } catch (Exception e) {
             throw new IllegalStateException("Properties could not be loaded", e);
