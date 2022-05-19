@@ -485,22 +485,7 @@ public class HouseViewService {
 
     private void formatClimateBackground(Climate climate, ClimateView view) {
 
-        if (climate.getTemperature().getValue().compareTo(HIGH_TEMP) > 0) {
-            view.setColorClass(ConditionColor.RED.getUiClass());
-            view.setIcon("fas fa-thermometer-full");
-        } else if (climate.getTemperature().getValue().compareTo(MEDIUM_HIGH_TEMP) > 0) {
-            view.setColorClass(ConditionColor.ORANGE.getUiClass());
-            view.setIcon("fas fa-thermometer-half");
-        } else if (climate.getTemperature().getValue().compareTo(FROST_TEMP) < 0) {
-            view.setColorClass(ConditionColor.COLD.getUiClass());
-            view.setIcon("fas fa-thermometer-empty");
-        } else if (climate.getTemperature().getValue().compareTo(LOW_TEMP) < 0) {
-            view.setColorClass(ConditionColor.BLUE.getUiClass());
-            view.setIcon("fas fa-thermometer-empty");
-        } else {
-            view.setColorClass(ConditionColor.GREEN.getUiClass());
-            view.setIcon("fas fa-thermometer-half");
-        }
+        formatTemperatureConditionColor(view, List.of(), climate.getTemperature().getValue(), climate.getTemperature().getValue());
 
         // for now only used in app
         if (climate instanceof RoomClimate && climate.getHumidity() != null) {
@@ -513,6 +498,35 @@ public class HouseViewService {
             }
         } else {
             view.setColorClassHumidity(ConditionColor.GRAY.getUiClass());
+        }
+    }
+
+    private void formatTemperatureConditionColor(View view, List<WeatherConditions> conditions, BigDecimal temperatureMin, BigDecimal temperatureMax) {
+
+        if(temperatureMin == null || temperatureMax == null){
+            return;
+        }
+
+        if (temperatureMax.compareTo(HIGH_TEMP) > 0) {
+            view.setColorClass(ConditionColor.RED.getUiClass());
+            view.setIcon("fas fa-thermometer-full");
+        } else if (temperatureMax.compareTo(MEDIUM_HIGH_TEMP) > 0) {
+            view.setColorClass(ConditionColor.ORANGE.getUiClass());
+            view.setIcon("fas fa-thermometer-half");
+        } else if (temperatureMin.compareTo(FROST_TEMP) < 0 && temperatureMax.compareTo(MEDIUM_HIGH_TEMP) < 0) {
+            view.setColorClass(ConditionColor.COLD.getUiClass());
+            view.setIcon("fas fa-thermometer-empty");
+        } else if (temperatureMax.compareTo(LOW_TEMP) < 0) {
+            view.setColorClass(ConditionColor.BLUE.getUiClass());
+            view.setIcon("fas fa-thermometer-empty");
+        } else {
+            if(!conditions.stream()
+                    .filter(WeatherConditions::isSignificant).anyMatch(c -> c.isKindOfRain())){
+                view.setColorClass(ConditionColor.GREEN.getUiClass());
+            }else if(view instanceof WeatherForecastView){
+                view.setColorClass(ConditionColor.DEFAULT.getUiClass());
+            }
+            view.setIcon("fas fa-thermometer-half");
         }
     }
 
@@ -841,15 +855,17 @@ public class HouseViewService {
         forecasts.setColorClass(ConditionColor.GRAY.getUiClass());
 
         var titleStates = mapWeatherConditions(conclusion24to48hours.getConditions(), forecasts, conclusion24to48hours.getMaxTemp(), conclusion24to48hours.getMinTemp());
+        var fromToString = WeatherForecastConclusion.formatTemperature(conclusion24to48hours.getMinTemp())
+                + ".." + WeatherForecastConclusion.formatTemperature(conclusion24to48hours.getMaxTemp()) + "°C";
 
         if(titleStates.size() < 2){
-            String values = conclusion24to48hours.getMinTemp() + ".." + conclusion24to48hours.getMaxTemp() + "°C";
             if(conclusion24to48hours.getConditions().contains(WeatherConditions.WIND)){
-                values += ", " + conclusion24to48hours.getMaxWind() + " km/h";
+                titleStates.add(fromToString +  ", " + conclusion24to48hours.getMaxWind() + " km/h");
+            }else{
+                titleStates.add(fromToString);
             }
-            titleStates.add(values);
         }
-        forecasts.setStateShort(conclusion24to48hours.getMinTemp() + ".." + conclusion24to48hours.getMaxTemp() + "°C");
+        forecasts.setStateShort(fromToString);
         forecasts.setElementTitleState(String.join(", ", titleStates));
         forecasts.setState(String.join(", ", titleStates));
 
@@ -868,15 +884,14 @@ public class HouseViewService {
             view.setTime(fc.getTime().format(DateTimeFormatter.ofPattern("HH")) + " Uhr");
             view.setTemperature(fc.getTemperature()==null?"":df.format(fc.getTemperature()) + "°C");
             view.setWind(fc.getWind()==null?"":df.format(fc.getWind()) + " km/h");
-            final int tempInt = fc.getTemperature()==null?null:fc.getTemperature().setScale(0, RoundingMode.HALF_UP).intValue();
-            mapWeatherConditions(fc.getIcons(), view, tempInt, tempInt);
+            mapWeatherConditions(fc.getIcons(), view, fc.getTemperature(), fc.getTemperature());
             fc.getIcons().forEach(i -> view.getIcons().add(i.getFontAwesomeID()));
             forecasts.getForecasts().add(view);
             isAccent[0] = !isAccent[0];
         });
     }
 
-    private List<String> mapWeatherConditions(List<WeatherConditions> conditions, View view, Integer maxTemp, Integer minTemp) {
+    private List<String> mapWeatherConditions(List<WeatherConditions> conditions, View view, BigDecimal maxTemp, BigDecimal minTemp) {
 
         final var titleStates = new LinkedList<String>();
 
@@ -904,23 +919,7 @@ public class HouseViewService {
         }
 
         if(view.getColorClass().equals(ConditionColor.GRAY.getUiClass())){
-
-            if (maxTemp!=null && maxTemp > HIGH_TEMP.longValue()) {
-                view.setColorClass(ConditionColor.RED.getUiClass());
-            } else if (maxTemp!=null && maxTemp > MEDIUM_HIGH_TEMP.longValue()) {
-                view.setColorClass(ConditionColor.ORANGE.getUiClass());
-            } else if (minTemp<FROST_TEMP.longValue() && maxTemp<MEDIUM_HIGH_TEMP.longValue()) {
-                view.setColorClass(ConditionColor.COLD.getUiClass());
-            } else if (maxTemp<LOW_TEMP.longValue()) {
-                view.setColorClass(ConditionColor.BLUE.getUiClass());
-            } else {
-                if(!conditions.stream()
-                        .filter(WeatherConditions::isSignificant).anyMatch(c -> c.isKindOfRain())){
-                    view.setColorClass(ConditionColor.GREEN.getUiClass());
-                }else if(view instanceof WeatherForecastView){
-                    view.setColorClass(ConditionColor.DEFAULT.getUiClass());
-                }
-            }
+            formatTemperatureConditionColor(view, conditions, minTemp, maxTemp);
         }
 
         return titleStates;

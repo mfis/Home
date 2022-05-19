@@ -175,8 +175,8 @@ public class WeatherService {
         var conclusion = new WeatherForecastConclusion();
         conclusion.setConditions(new LinkedList<>());
 
-        conclusion.setMinTemp(items.stream().filter(fc -> fc.getTemperature()!=null).map(fc -> fc.getTemperature().setScale(0, RoundingMode.HALF_UP).intValue()).min(Integer::compare).orElse(null));
-        conclusion.setMaxTemp(items.stream().filter(fc -> fc.getTemperature()!=null).map(fc -> fc.getTemperature().setScale(0, RoundingMode.HALF_UP).intValue()).max(Integer::compare).orElse(null));
+        conclusion.setMinTemp(items.stream().filter(fc -> fc.getTemperature()!=null).map(fc -> fc.getTemperature()).min(BigDecimal::compareTo).orElse(null));
+        conclusion.setMaxTemp(items.stream().filter(fc -> fc.getTemperature()!=null).map(fc -> fc.getTemperature()).max(BigDecimal::compareTo).orElse(null));
         conclusion.setMaxWind(items.stream().filter(fc -> fc.getWind()!=null).map(fc -> fc.getWind().setScale(0, RoundingMode.HALF_UP).intValue()).max(Integer::compare).orElse(null));
 
         if(items.stream().anyMatch(fc -> fc.getIcons().contains(WeatherConditions.SNOW))){

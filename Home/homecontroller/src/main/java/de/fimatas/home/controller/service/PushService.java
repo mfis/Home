@@ -181,7 +181,8 @@ public class PushService {
                 condition = firstSignificantCondition.orElseGet(() -> conclusionToday.getConditions().get(0));
             }
 
-            var text = "Temperatur " + conclusionToday.getMinTemp() + " bis " + conclusionToday.getMaxTemp() + "°C";
+            var text = "Temperatur " + WeatherForecastConclusion.formatTemperature(conclusionToday.getMinTemp())
+                    + " bis " + WeatherForecastConclusion.formatTemperature(conclusionToday.getMaxTemp()) + "°C";
             if(conclusionToday.getConditions().contains(WeatherConditions.WIND)){
                 text += ", Wind bis " + conclusionToday.getMaxWind() + " km/h";
             }
