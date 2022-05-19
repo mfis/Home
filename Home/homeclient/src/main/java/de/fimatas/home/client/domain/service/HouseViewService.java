@@ -21,7 +21,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.Model;
-import de.fimatas.home.client.domain.service.ViewFormatter.PastTimestampFormat;
+import de.fimatas.home.client.domain.service.ViewFormatter.TimestampFormat;
 import de.fimatas.home.client.model.MessageQueue;
 import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.homematic.model.Type;
@@ -185,9 +185,9 @@ public class HouseViewService {
         frontDoorView.setIcon("fas fa-bell");
         if (doorbell.getTimestampLastDoorbell() != null) {
             frontDoorView.setLastDoorbells(StringUtils.capitalize(
-                    viewFormatter.formatPastTimestamp(doorbell.getTimestampLastDoorbell(), PastTimestampFormat.DATE_TIME)));
+                    viewFormatter.formatTimestamp(doorbell.getTimestampLastDoorbell(), TimestampFormat.DATE_TIME)));
             frontDoorView.setElementTitleState(StringUtils
-                    .capitalize(viewFormatter.formatPastTimestamp(doorbell.getTimestampLastDoorbell(), PastTimestampFormat.SHORT_WITH_TIME)));
+                    .capitalize(viewFormatter.formatTimestamp(doorbell.getTimestampLastDoorbell(), TimestampFormat.SHORT_WITH_TIME)));
         } else {
             frontDoorView.setLastDoorbells(UNBEKANNT);
         }
@@ -492,7 +492,7 @@ public class HouseViewService {
             view.setColorClass(ConditionColor.ORANGE.getUiClass());
             view.setIcon("fas fa-thermometer-half");
         } else if (climate.getTemperature().getValue().compareTo(FROST_TEMP) < 0) {
-            view.setColorClass(ConditionColor.LIGHT.getUiClass());
+            view.setColorClass(ConditionColor.COLD.getUiClass());
             view.setIcon("fas fa-thermometer-empty");
         } else if (climate.getTemperature().getValue().compareTo(LOW_TEMP) < 0) {
             view.setColorClass(ConditionColor.BLUE.getUiClass());
@@ -655,9 +655,9 @@ public class HouseViewService {
 
         if (windowSensor.getStateTimestamp() != null) {
             stateDelimiter = ", ";
-            stateSuffix = viewFormatter.formatPastTimestamp(windowSensor.getStateTimestamp(), PastTimestampFormat.DATE_TIME);
+            stateSuffix = viewFormatter.formatTimestamp(windowSensor.getStateTimestamp(), TimestampFormat.DATE_TIME);
             view.setElementTitleState(
-                    "Seit " + viewFormatter.formatPastTimestamp(windowSensor.getStateTimestamp(), PastTimestampFormat.SHORT_WITH_TIME));
+                    "Seit " + viewFormatter.formatTimestamp(windowSensor.getStateTimestamp(), TimestampFormat.SHORT_WITH_TIME));
         }
 
         view.setState((windowSensor.isState() ? "Geöffnet" : "Geschlossen") + stateDelimiter);
@@ -840,7 +840,7 @@ public class HouseViewService {
         forecasts.setSource(weatherForecastModel.getSourceText());
         forecasts.setColorClass(ConditionColor.GRAY.getUiClass());
 
-        var titleStates = mapWeatherConditions(conclusion24to48hours, forecasts, conclusion24to48hours.getMaxTemp());
+        var titleStates = mapWeatherConditions(conclusion24to48hours.getConditions(), forecasts, conclusion24to48hours.getMaxTemp(), conclusion24to48hours.getMinTemp());
 
         if(titleStates.size() < 2){
             String values = conclusion24to48hours.getMinTemp() + ".." + conclusion24to48hours.getMaxTemp() + "°C";
@@ -853,37 +853,46 @@ public class HouseViewService {
         forecasts.setElementTitleState(String.join(", ", titleStates));
         forecasts.setState(String.join(", ", titleStates));
 
+        final LocalDate[] lastDateAdded = {null};
+        final boolean[] isAccent = {false};
         weatherForecastModel.getForecasts().forEach( fc -> {
-            var view = new WeatherForecastView();
-            if(fc.getTime().toLocalDate().equals(LocalDate.now())){
-                view.setTime(fc.getTime().format(DateTimeFormatter.ofPattern("HH")) + " Uhr");
-            }else{
-                view.setTime(fc.getTime().format(DateTimeFormatter.ofPattern("EEE HH")) + " Uhr");
+            if(lastDateAdded[0] ==null || !lastDateAdded[0].equals(fc.getTime().toLocalDate())){
+                var view = new WeatherForecastView();
+                view.setHeader(viewFormatter.formatTimestamp(fc.getTime(), TimestampFormat.DATE));
+                lastDateAdded[0] = fc.getTime().toLocalDate();
+                forecasts.getForecasts().add(view);
+                isAccent[0] = false;
             }
+            var view = new WeatherForecastView();
+            view.setStripeColorClass(isAccent[0]?ConditionColor.ROW_STRIPE_ACCENT.getUiClass():ConditionColor.ROW_STRIPE_DEFAULT.getUiClass());
+            view.setTime(fc.getTime().format(DateTimeFormatter.ofPattern("HH")) + " Uhr");
             view.setTemperature(fc.getTemperature()==null?"":df.format(fc.getTemperature()) + "°C");
             view.setWind(fc.getWind()==null?"":df.format(fc.getWind()) + " km/h");
+            final int tempInt = fc.getTemperature()==null?null:fc.getTemperature().setScale(0, RoundingMode.HALF_UP).intValue();
+            mapWeatherConditions(fc.getIcons(), view, tempInt, tempInt);
             fc.getIcons().forEach(i -> view.getIcons().add(i.getFontAwesomeID()));
             forecasts.getForecasts().add(view);
+            isAccent[0] = !isAccent[0];
         });
     }
 
-    private List<String> mapWeatherConditions(WeatherForecastConclusion conclusion, WeatherForecastsView view, Integer maxTemp) {
+    private List<String> mapWeatherConditions(List<WeatherConditions> conditions, View view, Integer maxTemp, Integer minTemp) {
 
         final var titleStates = new LinkedList<String>();
 
-        if(!conclusion.getConditions().isEmpty()){
+        if(!conditions.isEmpty()){
 
-            titleStates.addAll(conclusion.getConditions().stream()
+            titleStates.addAll(conditions.stream()
                     .filter(WeatherConditions::isSignificant).map(WeatherConditions::getCaption).collect(Collectors.toList()));
 
             final Optional<WeatherConditions> firstSignificantCondition =
-                    conclusion.getConditions().stream().filter(WeatherConditions::isSignificant).findFirst();
+                    conditions.stream().filter(WeatherConditions::isSignificant).findFirst();
 
-            WeatherConditions condition = firstSignificantCondition.orElseGet(() -> conclusion.getConditions().get(0));
+            WeatherConditions condition = firstSignificantCondition.orElseGet(() -> conditions.get(0));
             view.setIcon(condition.getFontAwesomeID());
             view.setIconNativeClient(condition.getSfSymbolsID());
-            if(condition.isSignificant()){
-                view.setStateShort2(condition.getCaption()); // Watch App 'Ereignis'
+            if(condition.isSignificant() && view instanceof WeatherForecastsView){
+                ((WeatherForecastsView)view).setStateShort2(condition.getCaption()); // Watch App 'Ereignis'
             }
             if(condition.getColor() != null){
                 view.setColorClass(condition.getColor().getUiClass());
@@ -895,12 +904,22 @@ public class HouseViewService {
         }
 
         if(view.getColorClass().equals(ConditionColor.GRAY.getUiClass())){
-            if (maxTemp > HIGH_TEMP.longValue()) {
+
+            if (maxTemp!=null && maxTemp > HIGH_TEMP.longValue()) {
                 view.setColorClass(ConditionColor.RED.getUiClass());
-            } else if (maxTemp > MEDIUM_HIGH_TEMP.longValue()) {
+            } else if (maxTemp!=null && maxTemp > MEDIUM_HIGH_TEMP.longValue()) {
                 view.setColorClass(ConditionColor.ORANGE.getUiClass());
-            } else if (maxTemp >= LOW_TEMP.longValue() && !titleStates.contains(WeatherConditions.RAIN.getCaption())) {
-                view.setColorClass(ConditionColor.GREEN.getUiClass());
+            } else if (minTemp<FROST_TEMP.longValue() && maxTemp<MEDIUM_HIGH_TEMP.longValue()) {
+                view.setColorClass(ConditionColor.COLD.getUiClass());
+            } else if (maxTemp<LOW_TEMP.longValue()) {
+                view.setColorClass(ConditionColor.BLUE.getUiClass());
+            } else {
+                if(!conditions.stream()
+                        .filter(WeatherConditions::isSignificant).anyMatch(c -> c.isKindOfRain())){
+                    view.setColorClass(ConditionColor.GREEN.getUiClass());
+                }else if(view instanceof WeatherForecastView){
+                    view.setColorClass(ConditionColor.DEFAULT.getUiClass());
+                }
             }
         }
 

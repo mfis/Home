@@ -687,27 +687,26 @@
 				<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState})"></div>
 				<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
 					<h4 th:text="${model.state}"></h4>
-					<table class="table table-dark" style="background-color: #000 !important;">
-						<thead>
-							<tr>
-								<th class="direct-secondary" style="border-top: 0px;" scope="col"><th:block th:replace="basics :: symbol (name='fa-solid fa-clock')"/></th>
-								<th class="direct-secondary" style="border-top: 0px;" scope="col"><th:block th:replace="basics :: symbol (name='fa-solid fa-temperature-high')"/></th>
-								<th class="direct-secondary" style="border-top: 0px;" scope="col"><th:block th:replace="basics :: symbol (name='fa-solid fa-location-arrow')"/></th>
-								<th class="direct-secondary" style="border-top: 0px;" scope="col"><th:block th:replace="basics :: symbol (name='fa-solid fa-circle-info')"/></th>
-							</tr>
-						</thead>
+					<table class="table table-dark" style="background-color: #000 !important; border: 0px;">
 						<tbody>
 							<th:block th:each="entry : ${model.forecasts}">
-								<tr>
-									<th class="direct-secondary" style="padding: .25rem" th:text="${entry.time}"></th>
-									<td class="direct-secondary" style="padding: .25rem" th:text="${entry.temperature}"></td>
-									<td class="direct-secondary" style="padding: .25rem" th:text="${entry.wind}"></td>
-									<td class="direct-secondary" style="padding: .25rem" >
-										<th:block th:each="icon : ${entry.icons}">
-											<th:block th:replace="basics :: symbol (name=${icon})"/>
-										</th:block>
-									</td>
-								</tr>
+								<th:block th:if="${#strings.equals(entry.header,'')}">
+									<tr th:class="'tr-dark-stripe-' + ${entry.stripeColorClass}">
+										<td th:class="'td-no-border text-' + ${entry.colorClass}" style="padding: .25rem;" th:text="${entry.time}"></td>
+										<td th:class="'td-no-border text-' + ${entry.colorClass}" style="padding: .25rem" th:text="${entry.temperature}"></td>
+										<td th:class="'td-no-border text-' + ${entry.colorClass}" style="padding: .25rem" th:text="${entry.wind}"></td>
+										<td th:class="'td-no-border text-' + ${entry.colorClass}" style="padding: .25rem" >
+											<th:block th:each="icon : ${entry.icons}">
+												<th:block th:replace="basics :: symbol (name=${icon})"/>
+											</th:block>
+										</td>
+									</tr>
+								</th:block>
+								<th:block th:unless="${#strings.equals(entry.header,'')}">
+									<tr>
+										<td colspan='4' class="td-no-border text-default" style="padding: .25rem; text-align: center; font-size: 1.3rem; margin-top: 10px;" th:text="${entry.header}"></td>
+									</tr>
+								</th:block>
 							</th:block>
 						</tbody>
 					</table>

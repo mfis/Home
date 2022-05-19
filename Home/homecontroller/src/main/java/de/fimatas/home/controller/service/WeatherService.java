@@ -192,10 +192,7 @@ public class WeatherService {
             conclusion.getConditions().add(WeatherConditions.HAIL);
         }
 
-        if(items.stream().anyMatch(
-                fc -> fc.getIcons().contains(WeatherConditions.CLOUD_RAIN)
-                        || fc.getIcons().contains(WeatherConditions.RAIN)
-                        || fc.getIcons().contains(WeatherConditions.THUNDERSTORM))){
+        if(items.stream().anyMatch(fc -> fc.getIcons().stream().anyMatch(WeatherConditions::isKindOfRain))){
             if(!conclusion.getConditions().contains(WeatherConditions.HAIL)){
                 conclusion.getConditions().add(WeatherConditions.RAIN);
             }

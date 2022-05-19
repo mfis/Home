@@ -171,7 +171,7 @@ public class HistoryViewService {
             LocalDate date = Instant.ofEpochMilli(th.getDate()).atZone(ZoneId.systemDefault()).toLocalDate();
             if (th.isSingleDay()) {
                 entry.setLineOneLabel(StringUtils
-                        .capitalize(viewFormatter.formatPastTimestamp(th.getDate(), ViewFormatter.PastTimestampFormat.SHORT)));
+                        .capitalize(viewFormatter.formatTimestamp(th.getDate(), ViewFormatter.TimestampFormat.SHORT)));
                 entry.setColorClass(" list-group-item-secondary");
             } else {
                 entry.setLineOneLabel(MONTH_YEAR_FORMATTER.format(date));

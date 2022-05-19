@@ -54,26 +54,39 @@ public class ViewFormatter {
 
     public static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm", Locale.GERMAN);
 
-    public enum PastTimestampFormat {
+    public enum TimestampFormat {
         DATE, DATE_TIME, SHORT, SHORT_WITH_TIME
     }
 
-    public String formatPastTimestamp(long date, PastTimestampFormat format) { // TODO: write unit tests
 
+    public String formatTimestamp(long date, TimestampFormat format) {
+
+        LocalDateTime ldt;
         if (date == NumberUtils.INTEGER_ZERO) {
+            ldt = null;
+        }else{
+            ldt = Instant.ofEpochMilli(date).atZone(ZoneId.systemDefault()).toLocalDateTime();
+        }
+        return formatTimestamp(ldt, format);
+    }
+
+    public String formatTimestamp(LocalDateTime date, TimestampFormat format) { // TODO: write unit tests
+
+        if (date == null) {
             return "unbekannt";
         }
 
-        LocalDateTime localDate1 = Instant.ofEpochMilli(date).atZone(ZoneId.systemDefault()).toLocalDateTime();
         LocalDateTime localDate2 = LocalDateTime.now();
 
         long between =
-            ChronoUnit.DAYS.between(localDate1.truncatedTo(ChronoUnit.DAYS), localDate2.truncatedTo(ChronoUnit.DAYS));
+            ChronoUnit.DAYS.between(date.truncatedTo(ChronoUnit.DAYS), localDate2.truncatedTo(ChronoUnit.DAYS));
 
         String dayString;
 
-        if (between == 0 && format == PastTimestampFormat.SHORT_WITH_TIME) {
-            dayString = TIME_FORMATTER.format(localDate1) + " Uhr";
+        if(between == -1) {
+            dayString = "morgen";
+        } else if (between == 0 && format == TimestampFormat.SHORT_WITH_TIME) {
+            dayString = TIME_FORMATTER.format(date) + " Uhr";
         } else if (between == 0) {
             dayString = "heute";
         } else if (between == 1) {
@@ -81,17 +94,17 @@ public class ViewFormatter {
         } else if (between == 2) {
             dayString = "vorgestern";
         } else if (between > -1 && between < 7) {
-            dayString = WEEKDAY_FORMATTER.format(localDate1);
+            dayString = WEEKDAY_FORMATTER.format(date);
         } else {
-            if (format == PastTimestampFormat.SHORT || format == PastTimestampFormat.SHORT_WITH_TIME) {
-                dayString = DAY_MONTH_YEAR_SHORT_FORMATTER.format(localDate1);
+            if (format == TimestampFormat.SHORT || format == TimestampFormat.SHORT_WITH_TIME) {
+                dayString = DAY_MONTH_YEAR_SHORT_FORMATTER.format(date);
             } else {
-                dayString = DAY_MONTH_YEAR_FORMATTER.format(localDate1);
+                dayString = DAY_MONTH_YEAR_FORMATTER.format(date);
             }
         }
 
-        if (format == PastTimestampFormat.DATE_TIME) {
-            dayString += ", " + TIME_FORMATTER.format(localDate1) + " Uhr";
+        if (format == TimestampFormat.DATE_TIME) {
+            dayString += ", " + TIME_FORMATTER.format(date) + " Uhr";
         }
 
         return dayString;
@@ -161,7 +174,7 @@ public class ViewFormatter {
     private void chartEntryLabels(boolean historyView, PowerConsumptionDay pcd, ChartEntry chartEntry, String sumCaption) {
         if (historyView) {
             chartEntry
-                .setLabel(StringUtils.capitalize(formatPastTimestamp(pcd.getMeasurePointMax(), PastTimestampFormat.DATE)));
+                .setLabel(StringUtils.capitalize(formatTimestamp(pcd.getMeasurePointMax(), TimestampFormat.DATE)));
             chartEntry.setAdditionalLabel(sumCaption);
         } else {
             chartEntry.setLabel(chartEntry.getLabel() + " " + sumCaption + ViewFormatter.K_W_H);

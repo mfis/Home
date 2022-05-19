@@ -377,6 +377,7 @@ public class AppViewService {
         case BLUE:
             return ".blue";
         case LIGHT:
+        case COLD:
             return ".purple";
         default:
             return StringUtils.EMPTY;

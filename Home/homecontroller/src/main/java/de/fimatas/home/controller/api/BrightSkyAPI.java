@@ -12,12 +12,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
+import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
 
 @Component
 @CommonsLog
@@ -62,7 +64,11 @@ public class BrightSkyAPI {
             log.error("RC=" + responseEntity.getStatusCode());
         }
 
-        jsonTree.path("weather").forEach(forecasts::add);
+        jsonTree.path("weather").forEach(node -> {
+            if(localDate.equals(LocalDateTime.parse(node.get("timestamp").asText(), ISO_OFFSET_DATE_TIME).toLocalDate())){
+                forecasts.add(node);
+            }
+        });
     }
 
 }

@@ -13,7 +13,7 @@ public enum WeatherConditions {
     RAIN("fa-solid fa-cloud-showers-heavy", "cloud.heavyrain.fill", "Regen", true, null),
     FOG("fa-solid fa-smog", "cloud.fog.fill", "Nebel", false, null),
     WIND("fa-solid fa-wind",  "wind","Sturm", true, ConditionColor.RED),
-    SNOW("fa-solid fa-snowflake", "snowflake.circle.fill", "Schnee", true, ConditionColor.LIGHT),
+    SNOW("fa-solid fa-snowflake", "snowflake.circle.fill", "Schnee", true, ConditionColor.COLD),
     HAIL("fa-solid fa-cloud-meatball", "cloud.hail.fill", "Hagel", true, null),
     THUNDERSTORM("fa-solid fa-cloud-bolt", "bolt.fill", "Gewitter", true, null),
     UNKNOWN("fa-solid fa-circle-question", "", "Unbekannt", false, null)
@@ -49,5 +49,9 @@ public enum WeatherConditions {
 
     public ConditionColor getColor() {
         return color;
+    }
+
+    public boolean isKindOfRain(){
+        return this == RAIN || this == CLOUD_RAIN || this == THUNDERSTORM || this == HAIL;
     }
 }

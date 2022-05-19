@@ -70,6 +70,10 @@ button{
 	border-color: rgb(244,190,238) !important;
 }
 
+.callout-cold {
+	border-color: rgb(244,190,238) !important;
+}
+
 body{
 	background-color:#000 !important;
 }
@@ -112,6 +116,9 @@ h4{
 .callout-light {
 	background: #000 !important;
 }
+.callout-cold {
+	background: #000 !important;
+}
 .callout-primary h4, .callout-primary a{
 	color: rgb(66,139,202) !important;
 }
@@ -131,6 +138,9 @@ h4{
 	color: rgb(91,192,222) !important;
 }
 .callout-light h4, .callout-light a{
+	color: rgb(244,190,238) !important;
+}
+.callout-cold h4, .callout-cold a{
 	color: rgb(244,190,238) !important;
 }
 .historybackground{
@@ -163,4 +173,20 @@ label, legend{
 }
 .text-active-primary {
 	color: #FFDB94!important;
+}
+.tr-dark-stripe-accent {
+	background-color: #111 !important;
+	border: 0px !important;
+}
+.tr-dark-stripe-default {
+	border: 0px !important;
+}
+.td-no-border {
+	border: 0px !important;
+}
+.text-default{
+	color: rgb(238,238,238,0.8) !important
+}
+.text-cold{
+	color: rgb(244,190,238) !important
 }
