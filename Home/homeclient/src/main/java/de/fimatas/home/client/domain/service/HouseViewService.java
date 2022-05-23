@@ -14,6 +14,7 @@ import de.fimatas.home.client.domain.model.*;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.model.ConditionColor;
+import de.fimatas.home.library.util.WeatherForecastConclusionTextFormatter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -850,79 +851,51 @@ public class HouseViewService {
         }
 
         final WeatherForecastConclusion conclusion24to48hours = weatherForecastModel.getConclusion24to48hours();
+        final Map<Integer, String> textMap = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion24to48hours);
 
         forecasts.setSource(weatherForecastModel.getSourceText());
-        forecasts.setColorClass(ConditionColor.GRAY.getUiClass());
-
-        var titleStates = mapWeatherConditions(conclusion24to48hours.getConditions(), forecasts, conclusion24to48hours.getMaxTemp(), conclusion24to48hours.getMinTemp());
-        var fromToString = WeatherForecastConclusion.formatTemperature(conclusion24to48hours.getMinTemp())
-                + ".." + WeatherForecastConclusion.formatTemperature(conclusion24to48hours.getMaxTemp()) + "°C";
-
-        if(titleStates.size() < 2){
-            if(conclusion24to48hours.getConditions().contains(WeatherConditions.WIND)){
-                titleStates.add(fromToString +  ", " + conclusion24to48hours.getMaxWind() + " km/h");
-            }else{
-                titleStates.add(fromToString);
-            }
-        }
-        forecasts.setStateShort(fromToString);
-        forecasts.setElementTitleState(String.join(", ", titleStates));
-        forecasts.setState(String.join(", ", titleStates));
+        forecasts.setColorClass(StringUtils.isNotBlank(textMap.get(WeatherForecastConclusionTextFormatter.SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS)) ? textMap.get(WeatherForecastConclusionTextFormatter.SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS) : ConditionColor.GRAY.getUiClass());
+        mapWeatherForecastConditionsAfterSettingColorClass(conclusion24to48hours.getConditions(), forecasts, conclusion24to48hours.getMaxTemp(), conclusion24to48hours.getMinTemp());
+        forecasts.setStateShort(textMap.get(WeatherForecastConclusionTextFormatter.FORMAT_FROM_TO_ONLY));
+        forecasts.setStateTemperatureWatch(textMap.get(WeatherForecastConclusionTextFormatter.FORMAT_FROM_TO_ONLY));
+        forecasts.setElementTitleState(textMap.get(WeatherForecastConclusionTextFormatter.FORMAT_FROM_TO_PLUS_1_MAX));
+        forecasts.setIcon(StringUtils.isNotBlank(textMap.get(WeatherForecastConclusionTextFormatter.SIGNIFICANT_CONDITION_WEB_ICON)) ? textMap.get(WeatherForecastConclusionTextFormatter.SIGNIFICANT_CONDITION_WEB_ICON) : "fa-solid fa-clock");
+        forecasts.setIconNativeClient(textMap.get(WeatherForecastConclusionTextFormatter.SIGNIFICANT_CONDITION_NATIVE_ICON));
+        forecasts.setStateEventWatch(textMap.get(WeatherForecastConclusionTextFormatter.FORMAT_CONDITIONS_1_MAX)); // Watch App 'Ereignis'
+        forecasts.setState(StringUtils.EMPTY); // setting state for every day instead
 
         final LocalDate[] lastDateAdded = {null};
-        final boolean[] isAccent = {false};
         weatherForecastModel.getForecasts().forEach( fc -> {
             if(lastDateAdded[0] ==null || !lastDateAdded[0].equals(fc.getTime().toLocalDate())){
                 var view = new WeatherForecastView();
-                view.setHeader(viewFormatter.formatTimestamp(fc.getTime(), TimestampFormat.DATE));
+                final WeatherForecastConclusion conclusionForHeader = weatherForecastModel.getConclusionForDate().get(fc.getTime().toLocalDate());
+                final Map<Integer, String> textMapHeader = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusionForHeader);
+                view.setHeader(viewFormatter.formatTimestamp(fc.getTime(), TimestampFormat.DATE) + " " + textMapHeader.get(WeatherForecastConclusionTextFormatter.FORMAT_FROM_TO_ALL_SIGNIFICANT_CONDITIONS));
+                view.setColorClass(StringUtils.isNotBlank(textMap.get(WeatherForecastConclusionTextFormatter.SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS)) ? textMap.get(WeatherForecastConclusionTextFormatter.SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS) : ConditionColor.DEFAULT.getUiClass());
+                mapWeatherForecastConditionsAfterSettingColorClass(conclusionForHeader.getConditions(), view, conclusionForHeader.getMaxTemp(), conclusionForHeader.getMinTemp());
                 lastDateAdded[0] = fc.getTime().toLocalDate();
                 forecasts.getForecasts().add(view);
-                isAccent[0] = false;
             }
             var view = new WeatherForecastView();
-            view.setStripeColorClass(isAccent[0]?ConditionColor.ROW_STRIPE_ACCENT.getUiClass():ConditionColor.ROW_STRIPE_DEFAULT.getUiClass());
+            view.setStripeColorClass(fc.isDay() ? ConditionColor.ROW_STRIPE_ACCENT.getUiClass():ConditionColor.ROW_STRIPE_DEFAULT.getUiClass());
             view.setTime(fc.getTime().format(DateTimeFormatter.ofPattern("HH")) + " Uhr");
             view.setTemperature(fc.getTemperature()==null?"":df.format(fc.getTemperature()) + "°C");
             view.setWind(fc.getWind()==null?"":df.format(fc.getWind()) + " km/h");
-            mapWeatherConditions(fc.getIcons(), view, fc.getTemperature(), fc.getTemperature());
+            final Optional<WeatherConditions> firstSignificantCondition =
+                    fc.getIcons().stream().filter(WeatherConditions::isSignificant).findFirst();
+            if(firstSignificantCondition.isPresent() && firstSignificantCondition.get().getColor() != null){
+                view.setColorClass(firstSignificantCondition.get().getColor().getUiClass());
+            }
+            mapWeatherForecastConditionsAfterSettingColorClass(fc.getIcons(), view, fc.getTemperature(), fc.getTemperature());
             fc.getIcons().forEach(i -> view.getIcons().add(i.getFontAwesomeID()));
             forecasts.getForecasts().add(view);
-            isAccent[0] = !isAccent[0];
         });
     }
 
-    private List<String> mapWeatherConditions(List<WeatherConditions> conditions, View view, BigDecimal maxTemp, BigDecimal minTemp) {
-
-        final var titleStates = new LinkedList<String>();
-
-        if(!conditions.isEmpty()){
-
-            titleStates.addAll(conditions.stream()
-                    .filter(WeatherConditions::isSignificant).map(WeatherConditions::getCaption).collect(Collectors.toList()));
-
-            final Optional<WeatherConditions> firstSignificantCondition =
-                    conditions.stream().filter(WeatherConditions::isSignificant).findFirst();
-
-            WeatherConditions condition = firstSignificantCondition.orElseGet(() -> conditions.get(0));
-            view.setIcon(condition.getFontAwesomeID());
-            view.setIconNativeClient(condition.getSfSymbolsID());
-            if(condition.isSignificant() && view instanceof WeatherForecastsView){
-                ((WeatherForecastsView)view).setStateShort2(condition.getCaption()); // Watch App 'Ereignis'
-            }
-            if(condition.getColor() != null){
-                view.setColorClass(condition.getColor().getUiClass());
-            }
-        }
-
-        if(StringUtils.isBlank(view.getIcon())){
-            view.setIcon("fa-solid fa-clock");
-        }
-
-        if(view.getColorClass().equals(ConditionColor.GRAY.getUiClass())){
+    private void mapWeatherForecastConditionsAfterSettingColorClass(List<WeatherConditions> conditions, View view, BigDecimal maxTemp, BigDecimal minTemp) {
+        if(view.getColorClass().equals(ConditionColor.GRAY.getUiClass()) || view.getColorClass().equals(ConditionColor.DEFAULT.getUiClass())){
             formatTemperatureConditionColor(view, conditions, minTemp, maxTemp);
         }
-
-        return titleStates;
     }
 
     private void formatLights(LightsModel lightsModel, Model model) {

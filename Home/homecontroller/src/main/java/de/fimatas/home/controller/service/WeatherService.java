@@ -1,6 +1,8 @@
 package de.fimatas.home.controller.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
+import com.luckycatlabs.sunrisesunset.dto.Location;
 import de.fimatas.home.controller.api.BrightSkyAPI;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.WeatherConditions;
@@ -18,9 +20,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
@@ -48,6 +50,7 @@ public class WeatherService {
         model.setDateTime(System.currentTimeMillis());
         model.setSourceText(env.getProperty("weatherForecast.sourcetext"));
 
+        calculateSunriseSunset(model.getForecasts());
         calculateConclusions(model);
 
         ModelObjectDAO.getInstance().write(model);
@@ -76,13 +79,13 @@ public class WeatherService {
             forecast.setTime(dateTime);
             forecast.setTemperature(new BigDecimal(entry.get("temperature").asText()));
             forecast.setWind(new BigDecimal(entry.get("wind_speed").asText()));
-            forecast.setIcons(internalIconNames(condition, icon, forecast.getWind()));
+            forecast.setIcons(addConditions(condition, icon, forecast.getWind()));
             forecasts.add(forecast);
         });
         return forecasts;
     }
 
-    private List<WeatherConditions> internalIconNames(BrightSkyCondition condition, BrightSkyIcon icon, BigDecimal windSpeed) {
+    private List<WeatherConditions> addConditions(BrightSkyCondition condition, BrightSkyIcon icon, BigDecimal windSpeed) {
 
         var icons = new LinkedList<WeatherConditions>();
         if (condition == null || icon == null) {
@@ -168,47 +171,77 @@ public class WeatherService {
 
         model.setConclusion24to48hours(calculateConclusionForTimerange(model.getForecasts()));
         model.setConclusionToday(calculateConclusionForTimerange(model.getForecasts().stream().filter(fc -> fc.getTime().toLocalDate().isEqual(LocalDate.now())).collect(Collectors.toList())));
+        model.setConclusionTomorrow(calculateConclusionForTimerange(model.getForecasts().stream().filter(fc -> fc.getTime().toLocalDate().isEqual(LocalDate.now().plusDays(1))).collect(Collectors.toList())));
+
+        model.getConclusionForDate().put(LocalDate.now(), model.getConclusionToday());
+        model.getConclusionForDate().put(LocalDate.now().plusDays(1), model.getConclusionTomorrow());
     }
 
-    private WeatherForecastConclusion calculateConclusionForTimerange(List<WeatherForecast> items) {
+    static WeatherForecastConclusion calculateConclusionForTimerange(List<WeatherForecast> items) {
 
         var conclusion = new WeatherForecastConclusion();
         conclusion.setConditions(new LinkedList<>());
 
-        conclusion.setMinTemp(items.stream().filter(fc -> fc.getTemperature()!=null).map(fc -> fc.getTemperature()).min(BigDecimal::compareTo).orElse(null));
-        conclusion.setMaxTemp(items.stream().filter(fc -> fc.getTemperature()!=null).map(fc -> fc.getTemperature()).max(BigDecimal::compareTo).orElse(null));
+        conclusion.setMinTemp(items.stream().map(WeatherForecast::getTemperature).filter(Objects::nonNull).min(BigDecimal::compareTo).orElse(null));
+        conclusion.setMaxTemp(items.stream().map(WeatherForecast::getTemperature).filter(Objects::nonNull).max(BigDecimal::compareTo).orElse(null));
         conclusion.setMaxWind(items.stream().filter(fc -> fc.getWind()!=null).map(fc -> fc.getWind().setScale(0, RoundingMode.HALF_UP).intValue()).max(Integer::compare).orElse(null));
 
-        if(items.stream().anyMatch(fc -> fc.getIcons().contains(WeatherConditions.SNOW))){
-            conclusion.getConditions().add(WeatherConditions.SNOW);
-        }
+        final Optional<WeatherForecast> firstSnow = items.stream().filter(fc -> fc.getIcons().contains(WeatherConditions.SNOW)).findFirst();
+        firstSnow.ifPresent(weatherForecast -> addConclusionWeatherContition(conclusion, weatherForecast, WeatherConditions.SNOW));
 
-        if(items.stream().anyMatch(fc -> fc.getIcons().contains(WeatherConditions.WIND))){
-            conclusion.getConditions().add(WeatherConditions.WIND);
-        }
+        final Optional<WeatherForecast> firstWind = items.stream().filter(fc -> fc.getIcons().contains(WeatherConditions.WIND)).findFirst();
+        firstWind.ifPresent(weatherForecast -> addConclusionWeatherContition(conclusion, weatherForecast, WeatherConditions.WIND));
 
-        if(items.stream().anyMatch(
-                fc -> fc.getIcons().contains(WeatherConditions.HAIL))){
-            conclusion.getConditions().add(WeatherConditions.HAIL);
-        }
+        final Optional<WeatherForecast> firstHail = items.stream().filter(fc -> fc.getIcons().contains(WeatherConditions.HAIL)).findFirst();
+        firstHail.ifPresent(weatherForecast -> addConclusionWeatherContition(conclusion, weatherForecast, WeatherConditions.HAIL));
 
+        final Optional<WeatherForecast> firstThunderstorm = items.stream().filter(fc -> fc.getIcons().contains(WeatherConditions.THUNDERSTORM)).findFirst();
+        firstThunderstorm.ifPresent(weatherForecast -> addConclusionWeatherContition(conclusion, weatherForecast, WeatherConditions.THUNDERSTORM));
+
+        final Optional<WeatherForecast> firstKindOfRain = items.stream().filter(fc -> fc.getIcons().stream().anyMatch(WeatherConditions::isKindOfRain)).findFirst();
         if(items.stream().anyMatch(fc -> fc.getIcons().stream().anyMatch(WeatherConditions::isKindOfRain))){
-            if(!conclusion.getConditions().contains(WeatherConditions.HAIL)){
-                conclusion.getConditions().add(WeatherConditions.RAIN);
+            if(!conclusion.getConditions().contains(WeatherConditions.HAIL) && !conclusion.getConditions().contains(WeatherConditions.THUNDERSTORM)){
+                addConclusionWeatherContition(conclusion, firstKindOfRain.orElse(null), WeatherConditions.RAIN);
             }
         }
 
-        if(items.stream().filter(
-                fc -> fc.getIcons().contains(WeatherConditions.SUN)).count() > 3){
-            conclusion.getConditions().add(WeatherConditions.SUN);
+        if(items.stream().filter(fc -> fc.getIcons().contains(WeatherConditions.SUN)).count() > 2){
+            addConclusionWeatherContition(conclusion, items.stream().filter(fc -> fc.getIcons().contains(WeatherConditions.SUN)).findFirst().orElse(null), WeatherConditions.SUN);
         }
 
-        if(items.stream().filter(
-                fc -> fc.getIcons().contains(WeatherConditions.SUN) || fc.getIcons().contains(WeatherConditions.SUN_CLOUD)).count()>3){
-            conclusion.getConditions().add(WeatherConditions.SUN_CLOUD);
+        if(items.stream().filter(fc -> fc.getIcons().contains(WeatherConditions.SUN) || fc.getIcons().contains(WeatherConditions.SUN_CLOUD)).count()>3){
+            addConclusionWeatherContition(conclusion, items.stream().filter(fc -> fc.getIcons().contains(WeatherConditions.SUN) || fc.getIcons().contains(WeatherConditions.SUN_CLOUD)).findFirst().orElse(null), WeatherConditions.SUN_CLOUD);
         }
 
         return conclusion;
+    }
+
+    private static void addConclusionWeatherContition(WeatherForecastConclusion conclusion, WeatherForecast forecast, WeatherConditions newCondition){
+        conclusion.getConditions().add(newCondition);
+        if(!conclusion.getFirstOccurences().containsKey(newCondition) && forecast != null){
+            conclusion.getFirstOccurences().put(newCondition, forecast.getTime());
+        }
+    }
+
+    private void calculateSunriseSunset(List<WeatherForecast> forecasts) {
+
+        LocalDate lastDateProcessed = null;
+        LocalDateTime actualSunrise = null;
+        LocalDateTime actualSunset = null;
+
+        for(var forecast: forecasts){
+            if(lastDateProcessed == null || !forecast.getTime().toLocalDate().isEqual(lastDateProcessed)){
+                Location location = new Location(Objects.requireNonNull(env.getProperty("weatherForecast.lat")), Objects.requireNonNull(env.getProperty("weatherForecast.lon")));
+                SunriseSunsetCalculator calculator = new SunriseSunsetCalculator(location, env.getProperty("weatherForecast.timezone"));
+                Calendar targetCalendar = GregorianCalendar.from(forecast.getTime().toLocalDate().atStartOfDay(ZoneId.systemDefault()));
+                Calendar actualSunriseCalendar = calculator.getOfficialSunriseCalendarForDate(targetCalendar);
+                Calendar actualSunsetCalendar = calculator.getOfficialSunsetCalendarForDate(targetCalendar);
+                actualSunrise = LocalDateTime.ofInstant(actualSunriseCalendar.toInstant(), actualSunriseCalendar.getTimeZone().toZoneId());
+                actualSunset = LocalDateTime.ofInstant(actualSunsetCalendar.toInstant(), actualSunsetCalendar.getTimeZone().toZoneId());
+                lastDateProcessed = forecast.getTime().toLocalDate();
+            }
+            forecast.setDay(forecast.getTime().getHour()>actualSunrise.getHour() && forecast.getTime().getHour()<actualSunset.getHour());
+        }
     }
 
     enum BrightSkyCondition {

@@ -13,6 +13,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import de.fimatas.home.library.domain.model.*;
+import de.fimatas.home.library.util.WeatherForecastConclusionTextFormatter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -172,25 +173,10 @@ public class PushService {
         }
 
         settingsService.listTokensWithEnabledSetting(PushNotifications.WEATHER_TODAY).forEach(pushToken -> {
-
-            final WeatherForecastConclusion conclusionToday = model.getConclusionToday();
-            WeatherConditions condition = null;
-            if(!conclusionToday.getConditions().isEmpty()) {
-                Optional<WeatherConditions> firstSignificantCondition =
-                        conclusionToday.getConditions().stream().filter(WeatherConditions::isSignificant).findFirst();
-                condition = firstSignificantCondition.orElseGet(() -> conclusionToday.getConditions().get(0));
+            var text = WeatherForecastConclusionTextFormatter.formatConclusionText(model.getConclusionToday()).get(WeatherForecastConclusionTextFormatter.FORMAT_LONGEST);
+            if(StringUtils.isNotBlank(text)){
+                handleMessage(pushToken, PushNotifications.WEATHER_TODAY.getPushText() + ":", text);
             }
-
-            var text = "Temperatur " + WeatherForecastConclusion.formatTemperature(conclusionToday.getMinTemp())
-                    + " bis " + WeatherForecastConclusion.formatTemperature(conclusionToday.getMaxTemp()) + "°C";
-            if(conclusionToday.getConditions().contains(WeatherConditions.WIND)){
-                text += ", Wind bis " + conclusionToday.getMaxWind() + " km/h";
-            }
-            if(condition!=null && condition!= WeatherConditions.WIND){
-                text += ", " + condition.getCaption();
-            }
-
-            handleMessage(pushToken, PushNotifications.WEATHER_TODAY.getPushText() + ":", text);
         });
     }
 

@@ -11,7 +11,7 @@ public class HomeUtils {
     public static String escape(String string) {
 
         if (string == null) {
-            return string;
+            return null;
         }
         string = string.replace(" ", "");
         string = string.replace(".", "_");

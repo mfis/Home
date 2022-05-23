@@ -145,7 +145,7 @@ public class AppViewService {
     private void mapWeatherForecastsView(PlaceDirectives placeDirectives, WeatherForecastsView view, HomeViewPlaceModel placeModel) {
 
         placeModel.getValues().add(mapForecastTemperature(placeDirectives, view));
-        if (StringUtils.isNotBlank(view.getStateShort2())) {
+        if (StringUtils.isNotBlank(view.getStateEventWatch())) {
             placeModel.getValues().add(mapForecastEvent(placeDirectives, view));
         }
     }
@@ -205,7 +205,7 @@ public class AppViewService {
         hvm.setId(placeDirectives.place.getPlaceName() + "#fcTemp");
         hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP).map(Enum::name).collect(Collectors.toList()));
         hvm.setKey("2-Tage");
-        hvm.setValue(view.getStateShort());
+        hvm.setValue(view.getStateTemperatureWatch());
         hvm.setAccent(mapAccent(view.getColorClass()));
         return hvm;
     }
@@ -215,7 +215,7 @@ public class AppViewService {
         hvm.setId(placeDirectives.place.getPlaceName() + "#fcEvent");
         hvm.getValueDirectives().addAll(Stream.of(ValueDirective.WIDGET_SKIP).map(Enum::name).collect(Collectors.toList()));
         hvm.setKey("Ereignis");
-        hvm.setValue(view.getStateShort2());
+        hvm.setValue(view.getStateEventWatch());
         hvm.setAccent(mapAccent(view.getColorClass()));
         hvm.setSymbol(view.getIconNativeClient());
         return hvm;

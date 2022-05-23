@@ -15,7 +15,7 @@ public class WeatherServiceScheduler {
     private WeatherService weatherService;
 
     @PostConstruct
-    @Scheduled(cron = "0 00 * * * *")
+    @Scheduled(cron = "2 00 * * * *") // two seconds after full hour
     private void scheduledRefreshHouseModel() {
         try {
             weatherService.refreshWeatherForecastModel();

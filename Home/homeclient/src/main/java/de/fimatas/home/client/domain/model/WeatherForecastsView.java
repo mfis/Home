@@ -12,5 +12,7 @@ public class WeatherForecastsView extends View {
 
     private String source;
 
-    private String stateShort2 = ""; // watch
+    private String stateTemperatureWatch = "";
+
+    private String stateEventWatch = "";
 }
