@@ -28,8 +28,10 @@ public class WeatherForecastConclusionTextFormatter {
 
         final var conditionsSortedBySignificance = conclusion.getConditions().stream()
                 .filter(WeatherConditions::isSignificant).sorted(Comparator.comparingInt(WeatherConditions::ordinal)).collect(Collectors.toList());
-        final var conditionqqsSortedByTime = conclusion.getConditions().stream()
+        final var conditionsSortedByTime = conclusion.getConditions().stream()
                 .filter(WeatherConditions::isSignificant).collect(Collectors.toList());
+        final var usignificanceConditionWithHighestOrdinal = conclusion.getConditions().stream()
+                .filter(c -> !c.isSignificant()).min(Comparator.comparingInt(WeatherConditions::ordinal));
 
         final var fromToString = formatTemperature(conclusion.getMinTemp())
                 + ".." + formatTemperature(conclusion.getMaxTemp()) + "°C";
@@ -39,7 +41,11 @@ public class WeatherForecastConclusionTextFormatter {
 
         StringBuilder fromUntilToWithCaptionAndTime = new StringBuilder("Temperatur " + fromUntilToString);
 
-        for(WeatherConditions c : conditionqqsSortedByTime){
+        if(conditionsSortedByTime.isEmpty() && usignificanceConditionWithHighestOrdinal.isPresent()){
+            conditionsSortedByTime.add(usignificanceConditionWithHighestOrdinal.get());
+        }
+
+        for(WeatherConditions c : conditionsSortedByTime){
             fromUntilToWithCaptionAndTime.append(", ").append(text(c, conclusion, true));
             if(conclusion.getFirstOccurences().containsKey(c)){
                 fromUntilToWithCaptionAndTime.append(" ab ").append(conclusion.getFirstOccurences().get(c).getHour()).append(" Uhr");
@@ -47,7 +53,7 @@ public class WeatherForecastConclusionTextFormatter {
         }
 
         final var condOneMax = conditionsSortedBySignificance.isEmpty()? "" : text(conditionsSortedBySignificance.get(0), conclusion, false) + plusIfMoreThenOne(conditionsSortedBySignificance);
-        final var allSignificantConditions = conditionqqsSortedByTime.stream().map(c -> text(c, conclusion, false)).collect(Collectors.joining(", "));
+        final var allSignificantConditions = conditionsSortedByTime.stream().map(c -> text(c, conclusion, false)).collect(Collectors.joining(", "));
 
         texts.put(FORMAT_FROM_TO_ONLY, fromToString);
         texts.put(FORMAT_CONDITIONS_1_MAX, condOneMax);
@@ -55,8 +61,8 @@ public class WeatherForecastConclusionTextFormatter {
         texts.put(FORMAT_FROM_TO_ALL_SIGNIFICANT_CONDITIONS, fromUntilToString + (allSignificantConditions.length() > 0 ? ", " + allSignificantConditions : ""));
         texts.put(FORMAT_LONGEST, fromUntilToWithCaptionAndTime.toString());
         texts.put(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS, conditionsSortedBySignificance.isEmpty() || conditionsSortedBySignificance.get(0).getColor() == null ? "" : conditionsSortedBySignificance.get(0).getColor().getUiClass());
-        texts.put(SIGNIFICANT_CONDITION_NATIVE_ICON, conditionsSortedBySignificance.isEmpty() ? "" : conditionsSortedBySignificance.get(0).getSfSymbolsID());
-        texts.put(SIGNIFICANT_CONDITION_WEB_ICON, conditionsSortedBySignificance.isEmpty() ? "" : conditionsSortedBySignificance.get(0).getFontAwesomeID());
+        texts.put(SIGNIFICANT_CONDITION_NATIVE_ICON, conditionsSortedBySignificance.isEmpty() ? (usignificanceConditionWithHighestOrdinal.isPresent()?usignificanceConditionWithHighestOrdinal.get().getSfSymbolsID():"") : conditionsSortedBySignificance.get(0).getSfSymbolsID());
+        texts.put(SIGNIFICANT_CONDITION_WEB_ICON, conditionsSortedBySignificance.isEmpty() ? (usignificanceConditionWithHighestOrdinal.isPresent()?usignificanceConditionWithHighestOrdinal.get().getFontAwesomeID():"") : conditionsSortedBySignificance.get(0).getFontAwesomeID());
 
         return texts;
     }
