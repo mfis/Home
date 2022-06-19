@@ -14,6 +14,8 @@ public enum MessageType {
     CAMERAPICTUREREQUEST(null), //
     SETTINGS_NEW(null), //
     SETTINGS_EDIT(null), //
+
+    PRESENCE_EDIT(null), //
     ;//
 
     private final String targetSite;

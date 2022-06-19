@@ -49,7 +49,7 @@ public class HistoryDatabaseDAO {
     private static final DateTimeFormatter SQL_TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
     @Autowired
-    private JdbcTemplate jdbcTemplateHistory;
+    private JdbcTemplate jdbcTemplate;
 
     @Autowired
     private Environment env;
@@ -85,13 +85,13 @@ public class HistoryDatabaseDAO {
         long completeCount = 0;
         for (HistoryElement history : history.list()) {
             var varName = history.getCommand().getCashedVarName();
-            jdbcTemplateHistory.update("CREATE CACHED TABLE IF NOT EXISTS " + varName
+            jdbcTemplate.update("CREATE CACHED TABLE IF NOT EXISTS " + varName
                 + " (TS DATETIME NOT NULL, TYP CHAR(1) NOT NULL, VAL DOUBLE NOT NULL, PRIMARY KEY (TS));");
-            jdbcTemplateHistory
+            jdbcTemplate
                 .update("CREATE UNIQUE INDEX IF NOT EXISTS " + "IDX1_" + varName + " ON " + varName + " (TS, TYP);");
 
             String countQuery = "SELECT COUNT(TS) AS CNT FROM " + varName + ";";
-            long result = jdbcTemplateHistory.queryForObject(countQuery, new Object[] {}, new LongRowMapper("CNT"));
+            long result = jdbcTemplate.queryForObject(countQuery, new Object[] {}, new LongRowMapper("CNT"));
             completeCount += result;
         }
         LOG.info("database row count: " + completeCount);
@@ -101,7 +101,7 @@ public class HistoryDatabaseDAO {
     @Transactional
     public void backupDatabase(String filename) {
 
-        List<String> scriptQueries = jdbcTemplateHistory.query("SCRIPT;", new Object[] {}, new StringRowMapper("SCRIPT"));
+        List<String> scriptQueries = jdbcTemplate.query("SCRIPT;", new Object[] {}, new StringRowMapper("SCRIPT"));
 
         try (FileOutputStream fos = new FileOutputStream(filename); ZipOutputStream zipOut = new ZipOutputStream(fos);) {
 
@@ -149,7 +149,7 @@ public class HistoryDatabaseDAO {
 
         StringTokenizer tokenizer = new StringTokenizer(sb.toString(), ";");
         while (tokenizer.hasMoreTokens()) {
-            jdbcTemplateHistory.update(tokenizer.nextToken().trim() + ";");
+            jdbcTemplate.update(tokenizer.nextToken().trim() + ";");
         }
     }
 
@@ -168,7 +168,7 @@ public class HistoryDatabaseDAO {
                     String val = pair.getValue().toString();
                     String sql = "insert into " + table + " (TS, TYP, VAL) values ('" + ts + "', '"
                         + pair.getType().getDatabaseKey() + "', " + val + ");";
-                    jdbcTemplateHistory.update(sql);
+                    jdbcTemplate.update(sql);
                 }
             }
         }
@@ -186,7 +186,7 @@ public class HistoryDatabaseDAO {
             + (fromDateTime != null ? ("ts >= '" + formatTimestamp(fromDateTime) + "'") : "") + and
             + (untilDateTime != null ? ("ts < '" + formatTimestamp(untilDateTime) + "'") : "") + ";";
 
-        BigDecimal result = jdbcTemplateHistory.queryForObject(query, new Object[] {}, new BigDecimalRowMapper(VALUE));
+        BigDecimal result = jdbcTemplate.queryForObject(query, new Object[] {}, new BigDecimalRowMapper(VALUE));
         if (result == null) {
             return null;
         } else {
@@ -202,7 +202,7 @@ public class HistoryDatabaseDAO {
             + command.getCashedVarName() + " where ts >= '" + formatTimestamp(fromDateTime) + "' and ts < '"
             + formatTimestamp(untilDateTime) + "'" + " and hour(ts) " + TimeRange.hoursSqlQueryString(timeranges) + ";";
 
-        BigDecimal result = jdbcTemplateHistory.queryForObject(query, new Object[] {}, new BigDecimalRowMapper(VALUE));
+        BigDecimal result = jdbcTemplate.queryForObject(query, new Object[] {}, new BigDecimalRowMapper(VALUE));
         if (result == null) {
             return null;
         } else {
@@ -217,7 +217,7 @@ public class HistoryDatabaseDAO {
             "select val FROM " + command.getCashedVarName() + " where ts <= '" + formatTimestamp(localDateTime) + "' and ts > '"
                 + formatTimestamp(localDateTime.minusHours(maxHoursReverse)) + "' order by ts desc fetch first row only;";
 
-        List<BigDecimal> result = jdbcTemplateHistory.query(query, new Object[] {}, new BigDecimalRowMapper(VALUE));
+        List<BigDecimal> result = jdbcTemplate.query(query, new Object[] {}, new BigDecimalRowMapper(VALUE));
         if (result.isEmpty()) {
             return null;
         } else {
@@ -231,7 +231,7 @@ public class HistoryDatabaseDAO {
         var varName = command.getCashedVarName();
         String query = "SELECT * FROM " + varName + " where ts = (select max(ts) from " + varName + ");";
 
-        List<TimestampValuePair> result = jdbcTemplateHistory.query(query, new Object[] {}, new TimestampValueRowMapper());
+        List<TimestampValuePair> result = jdbcTemplate.query(query, new Object[] {}, new TimestampValueRowMapper());
         if (result.isEmpty()) {
             return null;
         } else {
@@ -247,7 +247,7 @@ public class HistoryDatabaseDAO {
             String startTs = formatTimestamp(optionalFromDateTime);
             whereClause = " where ts > '" + startTs + "'";
         }
-        return jdbcTemplateHistory.query("select * FROM " + command.getCashedVarName() + whereClause + " order by ts asc;",
+        return jdbcTemplate.query("select * FROM " + command.getCashedVarName() + whereClause + " order by ts asc;",
             new Object[] {}, new TimestampValueRowMapper());
     }
 

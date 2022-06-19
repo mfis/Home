@@ -13,7 +13,7 @@ import javax.annotation.PostConstruct;
 import de.fimatas.home.client.domain.model.*;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
-import de.fimatas.home.library.model.ConditionColor;
+import de.fimatas.home.library.model.*;
 import de.fimatas.home.library.util.WeatherForecastConclusionTextFormatter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.RegExUtils;
@@ -26,8 +26,6 @@ import de.fimatas.home.client.domain.service.ViewFormatter.TimestampFormat;
 import de.fimatas.home.client.model.MessageQueue;
 import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.homematic.model.Type;
-import de.fimatas.home.library.model.Message;
-import de.fimatas.home.library.model.MessageType;
 import de.fimatas.home.library.util.HomeAppConstants;
 
 @Component
@@ -93,7 +91,7 @@ public class HouseViewService {
         });
     }
 
-    public void fillViewModel(Model model, HouseModel house, HistoryModel historyModel, LightsModel lightsModel, WeatherForecastModel weatherForecastModel) {
+    public void fillViewModel(Model model, HouseModel house, HistoryModel historyModel, LightsModel lightsModel, WeatherForecastModel weatherForecastModel, PresenceModel presenceModel) {
 
         model.addAttribute("modelTimestamp", ModelObjectDAO.getInstance().calculateModelTimestamp());
 
@@ -134,7 +132,9 @@ public class HouseViewService {
 
         formatLights(lightsModel, model);
 
-        formatWeatherForecast(weatherForecastModel, model);
+        formatWeatherForecast(model, weatherForecastModel);
+
+        formatPresence(model, presenceModel);
     }
 
     private void formatClimateGroup(Model model, String viewKey, Place place, HouseModel house) {
@@ -831,7 +831,7 @@ public class HouseViewService {
     }
 
 
-    private void formatWeatherForecast(WeatherForecastModel weatherForecastModel, Model model) {
+    private void formatWeatherForecast(Model model, WeatherForecastModel weatherForecastModel) {
 
         var df = new DecimalFormat("0");
         df.setRoundingMode(RoundingMode.HALF_UP);
@@ -960,6 +960,39 @@ public class HouseViewService {
         lights.setState(lights.getElementTitleState());
 
         model.addAttribute("lights" + place.name(), lights);
+    }
+
+    private void formatPresence(Model model, PresenceModel presenceModel) {
+
+        var view = new PresenceView();
+        model.addAttribute("presence", view);
+
+        view.setName("Anwesenheit");
+        view.setId("presence");
+        view.setPlaceEnum(Place.HOUSE);
+        view.setIcon("fa-solid fa-house-user");
+        view.setUnreach(Boolean.toString(presenceModel == null));
+        if(presenceModel == null){
+            return;
+        }
+
+        var countKnownState = presenceModel.getPresenceStates().values().stream().filter(s -> s != PresenceState.UNKNOWN).count();
+        var namesPresent = presenceModel.getPresenceStates().entrySet().stream().filter(e -> e.getValue() == PresenceState.PRESENT).map(e -> e.getKey()).collect(Collectors.toList());
+        var shortText = namesPresent.size() + " / " + countKnownState;
+
+        String longText;
+        if(countKnownState == 0){
+            longText = "Unbekannt";
+        }else if(namesPresent.size() == 0){
+            longText = "Keiner zu Hause";
+        }else{
+            longText = StringUtils.join(namesPresent, ",");
+        }
+
+        view.setColorClass(namesPresent.size() > 0 ? ConditionColor.GREEN.getUiClass() : ConditionColor.GRAY.getUiClass());
+        view.setStateShort(shortText);
+        view.setElementTitleState(shortText);
+        view.setState(shortText + " - " + longText);
     }
 
 }

@@ -23,10 +23,11 @@
 			<div th:replace="fragments :: sunStatus (model=${tempMaxHouse})"></div>
 			<div th:replace="fragments :: weatherForecast (model=${weatherForecasts})"></div>
 	
-			<!-- Haustür -->
-			<div th:replace="fragments :: title (name='Haustür')"></div>
+			<!-- Haus -->
+			<div th:replace="fragments :: title (name='Haus')"></div>
 			<div th:replace="fragments :: frontDoor (model=${frontDoor})"></div>
 			<div th:replace="fragments :: doorLock (model=${frontDoorLock})"></div>
+			<div th:replace="fragments :: presence (model=${presence})"></div>
 	
 			<!-- Wohnzimmer -->
 			<div th:replace="fragments :: title (name='Wohnzimmer')"></div>

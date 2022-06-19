@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 import de.fimatas.home.library.domain.model.WeatherForecastModel;
+import de.fimatas.home.library.model.PresenceModel;
+import de.fimatas.home.library.model.PresenceState;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -51,6 +53,8 @@ public class ClientCommunicationService {
     @Autowired
     private WeatherService weatherService;
 
+    @Autowired
+    private PresenceService presenceService;
     @Autowired
     private SettingsService settingsService;
 
@@ -126,6 +130,9 @@ public class ClientCommunicationService {
             case SETTINGS_EDIT:
                 settingsService.editSetting(message.getToken(), message.getKey(), Boolean.valueOf(message.getValue()));
                 break;
+            case PRESENCE_EDIT:
+                presenceService.update(message.getKey(), PresenceState.valueOf(message.getValue()));
+                break;
             default:
                 throw new IllegalStateException("Unknown MessageType:" + message.getMessageType().name());
             }
@@ -162,6 +169,12 @@ public class ClientCommunicationService {
             weatherService.refreshWeatherForecastModel();
         } else {
             uploadService.uploadToClient(ModelObjectDAO.getInstance().readWeatherForecastModel());
+        }
+
+        if (ModelObjectDAO.getInstance().readPresenceModel() == null) {
+            presenceService.refresh();
+        } else {
+            uploadService.uploadToClient(ModelObjectDAO.getInstance().readPresenceModel());
         }
 
         uploadService.uploadToClient(ModelObjectDAO.getInstance().readCameraModel());

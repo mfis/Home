@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.concurrent.CompletableFuture;
 
 import de.fimatas.home.library.domain.model.*;
+import de.fimatas.home.library.model.PresenceModel;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -56,6 +57,12 @@ public class ControllerRequestMapping {
     @PostMapping(value = UPLOAD_METHOD_PREFIX + "WeatherForecastModel")
     public ActionModel uploadWeatherForecastModel(@RequestBody WeatherForecastModel weatherForecastModel) {
         ModelObjectDAO.getInstance().write(weatherForecastModel);
+        return new ActionModel("OK");
+    }
+
+    @PostMapping(value = UPLOAD_METHOD_PREFIX + "PresenceModel")
+    public ActionModel uploadPresenceModel(@RequestBody PresenceModel presenceModel) {
+        ModelObjectDAO.getInstance().write(presenceModel);
         return new ActionModel("OK");
     }
 

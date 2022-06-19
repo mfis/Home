@@ -3,6 +3,7 @@ package de.fimatas.home.client.request;
 import de.fimatas.home.client.domain.service.AppViewService;
 import de.fimatas.home.client.domain.service.HouseViewService;
 import de.fimatas.home.client.model.*;
+import de.fimatas.home.client.service.LoginInterceptor;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.HouseModel;
 import de.fimatas.home.library.model.Message;
@@ -20,10 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.ExtendedModelMap;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -83,7 +81,7 @@ public class AppRequestMapping {
             } else {
                 Model model = new ExtendedModelMap();
                 houseView.fillViewModel(model, houseModel, ModelObjectDAO.getInstance().readHistoryModel(),
-                    ModelObjectDAO.getInstance().readLightsModel(), ModelObjectDAO.getInstance().readWeatherForecastModel());
+                    ModelObjectDAO.getInstance().readLightsModel(), ModelObjectDAO.getInstance().readWeatherForecastModel(), ModelObjectDAO.getInstance().readPresenceModel());
                 return appViewService.mapAppModel(model, AppViewService.AppViewTarget.valueOf(viewTarget.toUpperCase()));
             }
         } catch (Exception e) {
@@ -103,9 +101,11 @@ public class AppRequestMapping {
         final Optional<SettingsModel> settingsModel = settingsModels.stream()
                 .filter(settings -> settings.getToken().equals(lookupToken(token))).findFirst();
         if(settingsModel.isPresent()){
-            var list = new LinkedList<AppPushSettingsModel>();
-            settingsModel.get().getPushNotifications().forEach((k, v) -> list.add(new AppPushSettingsModel(k.name(), k.getSettingsText(), v)));
-            return new AppPushSettingsModels(list);
+            var listPushSettings = new LinkedList<AppPushSettingsModel>();
+            var listAttributes = new LinkedList<AppAttributeModel>();
+            settingsModel.get().getPushNotifications().forEach((k, v) -> listPushSettings.add(new AppPushSettingsModel(k.name(), k.getSettingsText(), v)));
+            settingsModel.get().getAttributes().forEach((k, v) -> listAttributes.add(new AppAttributeModel(k, v)));
+            return new AppPushSettingsModels(listPushSettings, listAttributes);
         }else{
             return null;
         }
@@ -123,6 +123,17 @@ public class AppRequestMapping {
         MessageQueue.getInstance().request(message, true);
 
         return getPushSettings(token);
+    }
+
+    @PostMapping(value = "/setPresence")
+    public void setPushSetting(@RequestHeader(name = LoginInterceptor.APP_USER_NAME) String appUserName, @RequestParam("value") String value) {
+
+        Message message = new Message();
+        message.setMessageType(MessageType.PRESENCE_EDIT);
+        message.setKey(appUserName);
+        message.setValue(value);
+
+        MessageQueue.getInstance().request(message, true);
     }
 
     private String lookupToken(String tokenRequestParameter){

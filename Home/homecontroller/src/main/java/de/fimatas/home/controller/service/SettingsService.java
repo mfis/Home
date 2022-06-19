@@ -1,11 +1,14 @@
 package de.fimatas.home.controller.service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import de.fimatas.home.controller.dao.SettingsDAO;
 import de.fimatas.home.controller.domain.service.HistoryService;
@@ -18,6 +21,9 @@ public class SettingsService {
 
     @Autowired
     private UploadService uploadService;
+
+    @Autowired
+    private Environment env;
 
     @PostConstruct
     public void init() {
@@ -35,13 +41,29 @@ public class SettingsService {
         // SettingsContainer
         SettingsDAO.getInstance().read().forEach(model -> {
             // migrate up to new version if available
+            AtomicBoolean changed = new AtomicBoolean(false);
             List.of(PushNotifications.values()).forEach(notification -> {
                 if (!model.getPushNotifications().containsKey(notification)) {
                     model.getPushNotifications().put(notification, notification.getDefaultSetting());
-                    SettingsDAO.getInstance().write(model);
-                    SettingsDAO.getInstance().persist();
+                    changed.set(true);
                 }
             });
+            if(!model.getAttributes().containsKey("LON") || !model.getAttributes().get("LON").equals(env.getProperty("weatherForecast.lon"))){
+                model.getAttributes().put("LON", Objects.requireNonNull(env.getProperty("weatherForecast.lon")));
+                changed.set(true);
+            }
+            if(!model.getAttributes().containsKey("LAT") || !model.getAttributes().get("LAT").equals(env.getProperty("weatherForecast.lat"))){
+                model.getAttributes().put("LAT", Objects.requireNonNull(env.getProperty("weatherForecast.lat")));
+                changed.set(true);
+            }
+            if(!model.getAttributes().containsKey("RADIUS") || !model.getAttributes().get("RADIUS").equals(env.getProperty("presence.radius.meter"))){
+                model.getAttributes().put("RADIUS", Objects.requireNonNull(env.getProperty("presence.radius.meter")));
+                changed.set(true);
+            }
+            if(changed.get()){
+                SettingsDAO.getInstance().write(model);
+                SettingsDAO.getInstance().persist();
+            }
             container.getSettings().add(model);
         });
         uploadService.uploadToClient(container);

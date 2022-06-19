@@ -238,7 +238,7 @@ public class HomeRequestMapping {
                 return "empty";
             } else {
                 houseView.fillViewModel(model, houseModel, ModelObjectDAO.getInstance().readHistoryModel(),
-                    ModelObjectDAO.getInstance().readLightsModel(), ModelObjectDAO.getInstance().readWeatherForecastModel());
+                    ModelObjectDAO.getInstance().readLightsModel(), ModelObjectDAO.getInstance().readWeatherForecastModel(), ModelObjectDAO.getInstance().readPresenceModel());
                 return Pages.getEntry(Pages.PATH_HOME).getTemplate();
             }
         } catch (Exception e) {

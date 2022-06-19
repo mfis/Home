@@ -761,5 +761,15 @@
 		</div>	
 	</th:block>
 
+	<!-- Presence -->
+	<div th:fragment="presence (model)" th:class="'alert alert-' + ${model.colorClass} + ' callout callout-' + ${model.colorClass}">
+		<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState})"></div>
+		<th:block th:unless="${#strings.equals(model.unreach,'true')}">
+			<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
+				<h4 th:text="${model.state}"></h4>
+			</div>
+		</th:block>
+	</div>
+
 </body>
 </html>

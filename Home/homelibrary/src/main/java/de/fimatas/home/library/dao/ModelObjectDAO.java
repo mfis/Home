@@ -6,6 +6,7 @@ import java.util.stream.Stream;
 
 import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.homematic.model.Device;
+import de.fimatas.home.library.model.PresenceModel;
 import de.fimatas.home.library.model.SettingsContainer;
 import de.fimatas.home.library.model.SettingsModel;
 import de.fimatas.home.library.util.HomeAppConstants;
@@ -21,6 +22,8 @@ public class ModelObjectDAO {
     private CameraModel cameraModel;
 
     private LightsModel lightsModel;
+
+    private PresenceModel presenceModel;
 
     private WeatherForecastModel weatherForecastModel;
 
@@ -49,6 +52,11 @@ public class ModelObjectDAO {
     public void write(HistoryModel newModel) {
         historyModel = newModel;
         historyModel.setDateTime(new Date().getTime());
+    }
+
+    public void write(PresenceModel newModel) {
+        presenceModel = newModel;
+        presenceModel.setDateTime(new Date().getTime());
     }
 
     public void write(CameraModel newModel) {
@@ -103,6 +111,15 @@ public class ModelObjectDAO {
         }
     }
 
+    public PresenceModel readPresenceModel() {
+        long newestTimestamp = presenceModel == null ? 0 : presenceModel.getDateTime();
+        if (presenceModel == null || new Date().getTime() - newestTimestamp > 1000 * HomeAppConstants.MODEL_PRESENCE_OUTDATED_SECONDS) {
+            return null; // Too old. Should never happen
+        } else {
+            return presenceModel;
+        }
+    }
+
     public WeatherForecastModel readWeatherForecastModel() {
         long newestTimestamp = weatherForecastModel == null ? 0 : weatherForecastModel.getDateTime();
         if (weatherForecastModel == null || new Date().getTime() - newestTimestamp > 1000 * 60 * 70) {
@@ -147,11 +164,13 @@ public class ModelObjectDAO {
         HouseModel hm = readHouseModel();
         LightsModel lm = readLightsModel();
         WeatherForecastModel wfm = readWeatherForecastModel();
+        PresenceModel pm = readPresenceModel();
 
         return  Stream.of(
                 hm==null?0:hm.getDateTime(),
                 lm==null?0:lm.getTimestamp(),
-                wfm==null?0:wfm.getDateTime()
+                wfm==null?0:wfm.getDateTime(),
+                pm==null?0:pm.getDateTime()
         ).max(Long::compare).get();
     }
 

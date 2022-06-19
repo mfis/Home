@@ -40,6 +40,12 @@ public class HomeAppConstants {
 
     //
 
+    public static final int MODEL_PRESENCE_INTERVAL_SECONDS = 60 * 10;
+
+    public static final int MODEL_PRESENCE_OUTDATED_SECONDS = 60 * 15;
+
+    //
+
     public static final int DEVICE_STATE_INTERVAL_SECONDS = 60 * 3;
 
     //

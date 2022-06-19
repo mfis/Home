@@ -128,7 +128,7 @@ public class SpringConfiguration implements WebMvcConfigurer {
 
     @Bean
     @Primary
-    public JdbcTemplate jdbcTemplateHistory(DataSource ds) {
+    public JdbcTemplate jdbcTemplate(DataSource ds) {
         return new JdbcTemplate(ds);
     }
 
