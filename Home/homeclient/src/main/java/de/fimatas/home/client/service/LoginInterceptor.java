@@ -119,7 +119,7 @@ public class LoginInterceptor implements HandlerInterceptor {
     private boolean checkLogin(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
         if (isControllerRequest(request)) {
-            return controllerLogin(request);
+            return controllerLogin(request, response);
         }
 
         if (isAssetRequest(request)) {
@@ -184,13 +184,17 @@ public class LoginInterceptor implements HandlerInterceptor {
             cookieRead(request));
     }
 
-    private boolean controllerLogin(HttpServletRequest request) {
+    private boolean controllerLogin(HttpServletRequest request, HttpServletResponse response) {
 
         String controllerToken = env.getProperty(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN);
         String controllerTokenSent = request.getHeader(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN);
 
-        return controllerSuccessResponse(
-            checkUser(controllerTokenSent) && StringUtils.equals(controllerToken, controllerTokenSent));
+        if(StringUtils.isBlank(controllerTokenSent)){
+            response.setStatus(HttpStatus.BAD_REQUEST.value()); // 400
+            return false;
+        }
+
+        return controllerSuccessResponse(StringUtils.equals(controllerToken, controllerTokenSent), response);
     }
 
     private String tokenLogin(HttpServletRequest request, HttpServletResponse response) {
@@ -279,16 +283,17 @@ public class LoginInterceptor implements HandlerInterceptor {
         return StringUtils.equals(request.getRequestURI(), LoginController.LOGOFF_URI);
     }
 
-    private boolean controllerSuccessResponse(boolean success) {
+    private boolean controllerSuccessResponse(boolean success, HttpServletResponse response) {
 
-        if (controllerFalseLoginCounter > 2) { // controller token brute force
-                                               // attack?
-            log.error("controllerFalseLoginCounter=" + controllerFalseLoginCounter);
+        if (controllerFalseLoginCounter > 2) { // controller token brute force attack?
+            log.error("controllerFalseLoginCounter reached maximum");
+            response.setStatus(HttpStatus.UNAUTHORIZED.value()); // 401
             return false;
         } else if (success) {
             return true;
         } else {
             controllerFalseLoginCounter++;
+            response.setStatus(HttpStatus.UNAUTHORIZED.value()); // 401
             return false;
         }
     }
