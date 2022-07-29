@@ -17,9 +17,6 @@
 			<div th:replace="fragments :: generalWarning (model=${warnings})"></div>
 			<div th:replace="fragments :: deviceBatterieWarning (model=${lowBattery})"></div>
 
-			<div th:replace="fragments :: title (name='DUMMY')"></div>
-			<div th:replace="fragments :: heatpump (model=${dummy})"></div>
-
 			<!-- Draussen -->
 			<div th:replace="fragments :: title (name='Draußen')"></div>
 			<div th:replace="fragments :: temperature (model=${tempMinHouse})"></div>
@@ -53,6 +50,7 @@
 			<!-- Schlafzimmer -->
 			<div th:replace="fragments :: title (name='Schlafzimmer')"></div>
 			<div th:replace="fragments :: temperature (model=${tempBedroom})"></div>
+			<div th:replace="fragments :: heatpump (model=${heatpumpBedroom})"></div>
 			<!-- <div th:replace="fragments :: window (model=${leftWindowBedroom})"></div> //NOSONAR -->
 	
 			<!-- Badezimmer -->

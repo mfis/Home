@@ -94,7 +94,6 @@ public class HouseViewService {
     public void fillViewModel(Model model, HouseModel house, HistoryModel historyModel, LightsModel lightsModel, WeatherForecastModel weatherForecastModel, PresenceModel presenceModel) {
 
         model.addAttribute("modelTimestamp", ModelObjectDAO.getInstance().calculateModelTimestamp());
-        formatDummy(model);
 
         formatClimate(model, "tempBathroom", house.getClimateBathRoom(), house.getHeatingBathRoom(), false);
         formatClimate(model, "tempKids1", house.getClimateKidsRoom1(), null, true);
@@ -124,6 +123,8 @@ public class HouseViewService {
         formatFrontDoorLock(model, "frontDoorLock", house.getFrontDoorLock());
         formatPower(model, house.getTotalElectricalPowerConsumption(), historyModel==null?null:historyModel.getTotalElectricPowerConsumptionDay());
         formatPower(model, house.getWallboxElectricalPowerConsumption(), historyModel==null?null:historyModel.getWallboxElectricPowerConsumptionDay());
+
+        formatHeatpump(model);
 
         formatLowBattery(model, house.getLowBatteryDevices());
 
@@ -997,15 +998,15 @@ public class HouseViewService {
     }
 
 
-    private void formatDummy(Model model) {
+    private void formatHeatpump(Model model) {
 
-        var view = new SwitchView();
-        model.addAttribute("dummy", view);
+        var view = new HeatpumpView();
+        model.addAttribute("heatpumpBedroom", view);
 
         view.setName("Wärmepumpe");
         view.setId("dummy");
         view.setPlaceEnum(Place.HOUSE);
-        view.setIcon("fa-solid fa-asterisk");
+        view.setIcon("aircon.png");
         view.setUnreach(Boolean.toString(false));
 
         view.setColorClass(ConditionColor.ORANGE.getUiClass());
@@ -1013,5 +1014,17 @@ public class HouseViewService {
         view.setStateShort("Kühlen");
         view.setElementTitleState("Kühlen");
         view.setState("Kühlen");
+        view.setStateSuffix(", Leise");
+
+        view.setLinkCoolAuto("...");
+        view.setLinkCoolMin("#"); // active
+        view.setLinkHeatAuto("...");
+        view.setLinkHeatMin("...");
+        view.setLinkFanAuto("...");
+        view.setLinkFanMin("...");
+        view.setLinkTimer("...");
+        view.setLinkOff("...");
+
+        view.setBusy(Boolean.FALSE.toString());
     }
 }
