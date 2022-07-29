@@ -94,6 +94,7 @@ public class HouseViewService {
     public void fillViewModel(Model model, HouseModel house, HistoryModel historyModel, LightsModel lightsModel, WeatherForecastModel weatherForecastModel, PresenceModel presenceModel) {
 
         model.addAttribute("modelTimestamp", ModelObjectDAO.getInstance().calculateModelTimestamp());
+        formatDummy(model);
 
         formatClimate(model, "tempBathroom", house.getClimateBathRoom(), house.getHeatingBathRoom(), false);
         formatClimate(model, "tempKids1", house.getClimateKidsRoom1(), null, true);
@@ -995,4 +996,22 @@ public class HouseViewService {
         view.setState(shortText + " - " + longText);
     }
 
+
+    private void formatDummy(Model model) {
+
+        var view = new SwitchView();
+        model.addAttribute("dummy", view);
+
+        view.setName("Wärmepumpe");
+        view.setId("dummy");
+        view.setPlaceEnum(Place.HOUSE);
+        view.setIcon("fa-solid fa-asterisk");
+        view.setUnreach(Boolean.toString(false));
+
+        view.setColorClass(ConditionColor.ORANGE.getUiClass());
+        view.setActiveSwitchColorClass(ConditionColor.ORANGE.getUiClass());
+        view.setStateShort("Kühlen");
+        view.setElementTitleState("Kühlen");
+        view.setState("Kühlen");
+    }
 }

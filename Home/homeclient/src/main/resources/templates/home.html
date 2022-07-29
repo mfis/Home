@@ -16,7 +16,10 @@
 			<!-- Warnungen -->
 			<div th:replace="fragments :: generalWarning (model=${warnings})"></div>
 			<div th:replace="fragments :: deviceBatterieWarning (model=${lowBattery})"></div>
-	
+
+			<div th:replace="fragments :: title (name='DUMMY')"></div>
+			<div th:replace="fragments :: heatpump (model=${dummy})"></div>
+
 			<!-- Draussen -->
 			<div th:replace="fragments :: title (name='Draußen')"></div>
 			<div th:replace="fragments :: temperature (model=${tempMinHouse})"></div>

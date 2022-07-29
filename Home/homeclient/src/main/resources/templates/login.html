@@ -24,26 +24,57 @@
 							<label for="username">Benutzername</label> 
 							<br/>
 							<input class="form-control" type="text" id="username" name="login_username" autocorrect="off" autocomplete="off" />
-							<br/>
 						</div>
 						<div style="margin-right: 20px;">
 							<label for="password">Passwort</label>
 							<br/>
 							<input class="form-control" type="password" id="password" name="login_password" autocorrect="off" autocomplete="off" />
-							<br/>
 						</div>
-						
+
+						<br/>
 						<a><strong>Cookie-Information:</strong><br/>Diese Internetseite verwendet so genannte Cookies. <br/>Um mehr zu erfahren, klicken Sie bitte hier:</a>
 						<p/>
-						<a th:href="${lawLink}" target="_blank">Impressum und Datenschutzerkl&auml;rung</a><br/><br/>
-						<input type="checkbox" id="cookiecheck" name="login_cookieok" value="true"></input>
-						<label for="cookiecheck">Ich bin mit der Verwendung von Cookies einverstanden</label>
+						<a th:href="${lawLink}" target="_blank">Impressum und Datenschutzerkl&auml;rung</a><br/>
+
+						<div class="form-check form-check-inline">
+							<input class="form-check-input" type="checkbox" id="cookiecheck" value="true" name="login_cookieok">
+							<label class="btn btn-sm pl-0" for="cookiecheck">
+								<i class="fa-solid fa-square fa-2x check-false"></i><i class="fa-solid fa-square-check fa-2x check-true"></i>
+								<a style="font-size: 1rem; horizontal-align: left; vertical-align: top;"> Ich bin mit der Verwendung von Cookies einverstanden</a>
+							</label>
+						</div>
+
 						<br/>
 										
-						<div class="form-actions">
+						<div class="form-actions pt-1">
 							<button type="submit" class="btn btn-secondary">anmelden</button>
 						</div>
-						
+
+						<br/>
+
+						<a href="#" data-toggle="modal" data-target="#licenseAttributionModal">
+							License Attribution
+						</a>
+
+						<div class="modal fade" id="licenseAttributionModal" tabindex="-1" role="dialog" aria-labelledby="licenseAttribution" aria-hidden="true">
+							<div class="modal-dialog" role="document">
+								<div class="modal-content">
+									<div class="modal-header">
+										<h5 class="modal-title" id="exampleModalLabel">License Attribution</h5>
+										<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+											<span aria-hidden="true">&times;</span>
+										</button>
+									</div>
+									<div class="modal-body">
+										<a href="https://www.flaticon.com/free-icons/air-conditioning" title="air conditioning icons">Air conditioning icons created by Freepik - Flaticon</a>
+									</div>
+									<div class="modal-footer">
+										<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+									</div>
+								</div>
+							</div>
+						</div>
+
 					</fieldset>
 				</div>
 			</form>

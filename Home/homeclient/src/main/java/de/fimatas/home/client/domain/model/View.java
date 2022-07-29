@@ -2,7 +2,7 @@ package de.fimatas.home.client.domain.model;
 
 import de.fimatas.home.library.domain.model.Place;
 
-public abstract class View {
+public class View {
 
     private String id = "";
 

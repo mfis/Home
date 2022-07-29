@@ -190,3 +190,26 @@ label, legend{
 .text-cold{
 	color: rgb(244,190,238) !important
 }
+.widebutton {
+	width: 100px !important;
+	padding-bottom: 5px !important;
+}
+input[type="checkbox"] {
+	display: none;
+}
+input[type="checkbox"] ~ label span{
+	font-size: 1rem;
+	vertical-align: top;
+}
+input[type="checkbox"] ~ label .check-false{
+	display: inline;
+}
+input[type="checkbox"] ~ label .check-true{
+	display: none;
+}
+input[type="checkbox"]:checked ~ label .check-false{
+	display: none;
+}
+input[type="checkbox"]:checked ~ label .check-true{
+	display: inline;
+}
