@@ -152,22 +152,6 @@
 		<pluginManagement>
 			<plugins>
 				<plugin>
-					<groupId>org.owasp</groupId>
-					<artifactId>dependency-check-maven</artifactId>
-					<version>${dependency-check-maven.version}</version>
-					<configuration>
-						<failBuildOnCVSS>7</failBuildOnCVSS>
-						<suppressionFile>/Users/mfi/Code/IntelliJ/Home/Home/owasp-suppressions.xml</suppressionFile>
-					</configuration>
-					<executions>
-						<execution>
-							<goals>
-								<goal>check</goal>
-							</goals>
-						</execution>
-					</executions>
-				</plugin>
-				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
 					<version>${maven-compiler-plugin.version}</version>
