@@ -20,10 +20,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.ResourceAccessException;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.*;
 import de.fimatas.home.controller.domain.service.HistoryService;
 import de.fimatas.home.controller.domain.service.HouseService;
 import de.fimatas.home.library.dao.ModelObjectDAO;
@@ -210,7 +207,7 @@ public class ClientCommunicationService {
             }
             return response.getBody();
 
-        } catch (ResourceAccessException | HttpServerErrorException e) {
+        } catch (ResourceAccessException | HttpServerErrorException | HttpClientErrorException e) {
             connectionNotEstablishedLogging(e);
             waitAMoment();
             return null;
@@ -222,7 +219,7 @@ public class ClientCommunicationService {
 
     private void waitAMoment() {
         try {
-            TimeUnit.SECONDS.sleep(1);
+            TimeUnit.SECONDS.sleep(3);
         } catch (InterruptedException e) { // NOSONAR
         }
     }
