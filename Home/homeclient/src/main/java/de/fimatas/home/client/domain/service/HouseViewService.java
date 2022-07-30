@@ -19,6 +19,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.Model;
@@ -49,6 +50,12 @@ public class HouseViewService {
 
     private static final String AND_DEVICE_IS = "&deviceName=";
 
+    private static final String AND_PLACE_IS = "&placeName=";
+
+    private static final String AND_PRESET_IS = "&preset=";
+
+    private static final String AND_ADDPLACES_IS = "&addPlace=";
+
     private static final String AND_HUE_DEVICE_ID_IS = "&hueDeviceId=";
 
     private static final String NEEDS_PIN = "&needsPin";
@@ -64,6 +71,8 @@ public class HouseViewService {
     private static final String OPEN_STATE = MESSAGEPATH + TYPE_IS + MessageType.OPEN + AND_DEVICE_IS;
 
     private static final String TOGGLE_LIGHT = MESSAGEPATH + TYPE_IS + MessageType.TOGGLELIGHT + AND_HUE_DEVICE_ID_IS;
+
+    private static final String SET_HEATPUMP = MESSAGEPATH + TYPE_IS + MessageType.CONTROL_HEATPUMP + AND_PLACE_IS;
 
     private static final BigDecimal HIGH_TEMP = new BigDecimal("25");
 
@@ -124,7 +133,7 @@ public class HouseViewService {
         formatPower(model, house.getTotalElectricalPowerConsumption(), historyModel==null?null:historyModel.getTotalElectricPowerConsumptionDay());
         formatPower(model, house.getWallboxElectricalPowerConsumption(), historyModel==null?null:historyModel.getWallboxElectricPowerConsumptionDay());
 
-        formatHeatpump(model);
+        formatHeatpump(model, house);
 
         formatLowBattery(model, house.getLowBatteryDevices());
 
@@ -998,33 +1007,50 @@ public class HouseViewService {
     }
 
 
-    private void formatHeatpump(Model model) {
+    private void formatHeatpump(Model model, HouseModel house) {
+
+        Place place = Place.BEDROOM;
+        HeatpumpPreset actualPreset = HeatpumpPreset.DRY_TIMER;
+
+        // ---------
 
         var view = new HeatpumpView();
         model.addAttribute("heatpumpBedroom", view);
 
         view.setName("Wärmepumpe");
-        view.setId("dummy");
-        view.setPlaceEnum(Place.HOUSE);
+        view.setId("heatpump" + place.name());
+        view.setPlaceEnum(place);
         view.setIcon("aircon.png");
         view.setUnreach(Boolean.toString(false));
+        view.setBusy(Boolean.FALSE.toString());
 
         view.setColorClass(ConditionColor.ORANGE.getUiClass());
         view.setActiveSwitchColorClass(ConditionColor.ORANGE.getUiClass());
-        view.setStateShort("Kühlen");
-        view.setElementTitleState("Kühlen, Leise");
-        view.setState("Kühlen");
-        view.setStateSuffix(", Leise");
+        view.setStateShort(actualPreset.getMode());
+        view.setElementTitleState(actualPreset.getMode() + (actualPreset.getIntensity()!=null ? ", " + actualPreset.getIntensity() : ""));
+        view.setState(actualPreset.getMode());
+        view.setStateSuffix(actualPreset.getIntensity()!=null ? ", " + actualPreset.getIntensity() : "");
 
-        view.setLinkCoolAuto("...");
-        view.setLinkCoolMin("#"); // active
-        view.setLinkHeatAuto("...");
-        view.setLinkHeatMin("...");
-        view.setLinkFanAuto("...");
-        view.setLinkFanMin("...");
-        view.setLinkTimer("...");
-        view.setLinkOff("...");
+        view.setLinkCoolAuto(buildHeatpumpPresetLink(place, HeatpumpPreset.COOL_AUTO, actualPreset));
+        view.setLinkCoolMin(buildHeatpumpPresetLink(place, HeatpumpPreset.COOL_MIN, actualPreset));
+        view.setLinkHeatAuto(buildHeatpumpPresetLink(place, HeatpumpPreset.HEAT_AUTO, actualPreset));
+        view.setLinkHeatMin(buildHeatpumpPresetLink(place, HeatpumpPreset.HEAT_MIN, actualPreset));
+        view.setLinkFanAuto(buildHeatpumpPresetLink(place, HeatpumpPreset.FAN_AUTO, actualPreset));
+        view.setLinkFanMin(buildHeatpumpPresetLink(place, HeatpumpPreset.FAN_MIN, actualPreset));
+        view.setLinkTimer(buildHeatpumpPresetLink(place, HeatpumpPreset.DRY_TIMER, actualPreset));
+        view.setLinkOff(buildHeatpumpPresetLink(place, HeatpumpPreset.OFF, actualPreset));
 
-        view.setBusy(Boolean.FALSE.toString());
+        List.of(Place.BEDROOM, Place.KIDSROOM_1, Place.KIDSROOM_2).stream().filter(p -> p != place).forEach(a -> {
+                    String subtitle = house.getPlaceSubtitles().containsKey(a) ? " " + house.getPlaceSubtitles().get(a) : "";
+                    view.getOtherPlaces().add(new ValueWithCaption(a.name(), a.getPlaceName() + subtitle, Strings.EMPTY));
+        });
+    }
+
+    private String buildHeatpumpPresetLink(Place place, HeatpumpPreset targetPreset, HeatpumpPreset actualPreset){
+        if(targetPreset==actualPreset){
+            return "#";
+        }else{
+            return SET_HEATPUMP + place.name() + AND_PRESET_IS + targetPreset + AND_ADDPLACES_IS;
+        }
     }
 }

@@ -1,7 +1,14 @@
 package de.fimatas.home.client.domain.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.io.Serializable;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ValueWithCaption implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -11,29 +18,5 @@ public class ValueWithCaption implements Serializable {
     private String caption = "";
 
     private String cssClass = "";
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    public String getCaption() {
-        return caption;
-    }
-
-    public void setCaption(String caption) {
-        this.caption = caption;
-    }
-
-    public String getCssClass() {
-        return cssClass;
-    }
-
-    public void setCssClass(String cssClass) {
-        this.cssClass = cssClass;
-    }
 
 }

@@ -2,6 +2,9 @@ package de.fimatas.home.client.domain.model;
 
 import lombok.Data;
 
+import java.util.LinkedList;
+import java.util.List;
+
 @Data
 public class HeatpumpView extends View {
 
@@ -22,5 +25,7 @@ public class HeatpumpView extends View {
     private String linkTimer = "#";
 
     private String linkOff = "#";
+
+    private List<ValueWithCaption> otherPlaces = new LinkedList<>();
 
 }
