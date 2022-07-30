@@ -789,21 +789,21 @@
 				<div class="pt-1"></div>
 
 				<div class="form-check pl-0" style="opacity: 0.6;">
-					<input class="form-check-input" type="checkbox" id="inlineCheckbox1" value="true" checked disabled>
+					<input class="form-check-input checkbox-preserve-state" type="checkbox" id="inlineCheckbox1" value="true" checked disabled>
 					<label class="btn btn-sm p-0 mb-0" for="inlineCheckbox1">
 						<i class="fa-solid fa-square fa-2x text-secondary check-false"></i><i class="fa-solid fa-square-check fa-2x text-warning check-true"></i><span> Schlafzimmer</span>
 					</label>
 				</div>
 
 				<div class="form-check pl-0">
-					<input class="form-check-input" type="checkbox" id="inlineCheckbox2" value="true">
+					<input class="form-check-input checkbox-preserve-state" type="checkbox" id="inlineCheckbox2" value="true">
 					<label class="btn btn-sm p-0 mb-0" for="inlineCheckbox2">
 						<i class="fa-solid fa-square fa-2x text-secondary check-false"></i><i class="fa-solid fa-square-plus fa-2x text-warning check-true"></i><span> Bastian</span>
 					</label>
 				</div>
 
 				<div class="form-check pl-0">
-					<input class="form-check-input" type="checkbox" id="inlineCheckbox3" value="true">
+					<input class="form-check-input checkbox-preserve-state" type="checkbox" id="inlineCheckbox3" value="true">
 					<label class="btn btn-sm p-0 mb-0" for="inlineCheckbox3">
 						<i class="fa-solid fa-square fa-2x text-secondary check-false"></i><i class="fa-solid fa-square-plus fa-2x text-warning check-true"></i><span> Nora</span>
 					</label>
@@ -906,7 +906,7 @@
 								<th:block th:replace="basics :: symbol (name='fa-solid fa-fan')"/>
 							</span>
 							<span th:class="${#strings.startsWith(model.linkTimer, '#')} ? 'text-' + ${model.activeSwitchColorClass}">
-								<th:block th:replace="basics :: symbol (name='fa-solid fa-arrow-right')"/>
+								<th:block th:replace="basics :: symbol (name='fa-solid fa-clock')"/>
 							</span>
 							<span th:class="${#strings.startsWith(model.linkTimer, '#')} ? 'text-' + ${model.activeSwitchColorClass}">
 								<th:block th:replace="basics :: symbol (name='fas fa-power-off')"/>

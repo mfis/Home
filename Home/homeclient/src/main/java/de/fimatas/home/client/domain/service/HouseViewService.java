@@ -1012,7 +1012,7 @@ public class HouseViewService {
         view.setColorClass(ConditionColor.ORANGE.getUiClass());
         view.setActiveSwitchColorClass(ConditionColor.ORANGE.getUiClass());
         view.setStateShort("Kühlen");
-        view.setElementTitleState("Kühlen");
+        view.setElementTitleState("Kühlen, Leise");
         view.setState("Kühlen");
         view.setStateSuffix(", Leise");
 

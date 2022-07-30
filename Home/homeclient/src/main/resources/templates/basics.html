@@ -74,7 +74,7 @@
 							showCheck();
 						}else if(httpRequest.status == 200){
 							var doc = new DOMParser().parseFromString(httpRequest.responseText, "text/html");
-							preserveCollapseStatus(document, doc);
+							preserveStatus(document, doc);
 							document.getElementById('idbody').innerHTML = doc.getElementById('idbody').innerHTML;
 							lastRefresh = (new Date).getTime();
 							registerCollapseListener();
@@ -98,8 +98,8 @@
 			submitContentWithPin(target, '');
 		}
 			
-		function preserveCollapseStatus(oldDoc, newDoc){
-			for (var entry of oldDoc.getElementsByClassName('collapse-preserve-state')){
+		function preserveStatus(oldDoc, newDoc){
+			for (let entry of oldDoc.getElementsByClassName('collapse-preserve-state')){
 				if(entry.classList.contains('show')){
 			    	if(newDoc.getElementById(entry.id)!==null){
 						newDoc.getElementById(entry.id).classList.remove("collapse");
@@ -109,7 +109,14 @@
 				    	newDoc.getElementById(entry.id + 'SymbolUp').style.display = 'inline';
 			    	}
 			    }
-			}				
+			}
+			for (let entry of oldDoc.getElementsByClassName('checkbox-preserve-state')){
+				if(entry.checked){
+					if(newDoc.getElementById(entry.id)!==null && newDoc.getElementById(entry.id).checked === false){
+						newDoc.getElementById(entry.id).setAttribute("checked", "checked");
+					}
+				}
+			}
 		}
 
 		function registerCollapseListener(){

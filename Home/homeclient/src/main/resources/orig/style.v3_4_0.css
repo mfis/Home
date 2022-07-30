@@ -213,3 +213,13 @@ input[type="checkbox"]:checked ~ label .check-false{
 input[type="checkbox"]:checked ~ label .check-true{
 	display: inline;
 }
+.img-icon {
+	width: 20px;
+	height: 20px;
+	float:left;
+	position:relative;
+	margin-top: 2px;
+}
+.img-warning {
+	background: rgb(240,173,78);
+}
