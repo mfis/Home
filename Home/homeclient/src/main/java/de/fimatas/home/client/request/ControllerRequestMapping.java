@@ -66,6 +66,12 @@ public class ControllerRequestMapping {
         return new ActionModel("OK");
     }
 
+    @PostMapping(value = UPLOAD_METHOD_PREFIX + "HeatpumpModel")
+    public ActionModel uploadHeatpumpModel(@RequestBody HeatpumpModel heatpumpModel) {
+        ModelObjectDAO.getInstance().write(heatpumpModel);
+        return new ActionModel("OK");
+    }
+
     @PostMapping(value = UPLOAD_METHOD_PREFIX + "SettingsContainer")
     public ActionModel uploadSettingsContainer(@RequestBody SettingsContainer settingsContainer) {
         ModelObjectDAO.getInstance().write(settingsContainer);

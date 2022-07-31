@@ -102,6 +102,10 @@
 			<artifactId>assertj-core</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>de.fimatas</groupId>
+			<artifactId>HeatpumpDriverInterface</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>

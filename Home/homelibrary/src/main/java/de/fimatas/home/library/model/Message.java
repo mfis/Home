@@ -2,6 +2,8 @@ package de.fimatas.home.library.model;
 
 import java.io.Serializable;
 import java.util.UUID;
+
+import de.fimatas.home.library.domain.model.Place;
 import de.fimatas.home.library.homematic.model.Device;
 import lombok.Data;
 
@@ -18,11 +20,15 @@ public class Message implements Serializable {
 
     private Device device;
 
+    private Place place;
+
     private String hueDeviceId;
 
     private String key;
 
     private String value;
+
+    private String additionalData;
 
     private String token;
 

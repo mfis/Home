@@ -930,7 +930,7 @@
 			<script type="text/javascript">
 				function heatpump[[${model.id}]](id, place, link){
 					if(link.startsWith('#')){
-						alert('nothing to do');
+						// alert('nothing to do');
 						return;
 					}
 					var linkComplete = link;
@@ -939,8 +939,8 @@
 							linkComplete += addPlace.getAttribute('alt') + ",";
 						}
 					}
-					alert('LINK=' + linkComplete);
-					// submitContent(document.getElementById('val_model_linkOn_[[${model.id}]]').value);
+					// alert('LINK=' + linkComplete);
+					submitContent(linkComplete);
 				}
 			</script>
 		</div>

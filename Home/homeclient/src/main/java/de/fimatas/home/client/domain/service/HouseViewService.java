@@ -52,9 +52,7 @@ public class HouseViewService {
 
     private static final String AND_PLACE_IS = "&placeName=";
 
-    private static final String AND_PRESET_IS = "&preset=";
-
-    private static final String AND_ADDPLACES_IS = "&addPlace=";
+    private static final String AND_ADD_DATA_ARE = "&additionalData=";
 
     private static final String AND_HUE_DEVICE_ID_IS = "&hueDeviceId=";
 
@@ -100,7 +98,7 @@ public class HouseViewService {
         });
     }
 
-    public void fillViewModel(Model model, HouseModel house, HistoryModel historyModel, LightsModel lightsModel, WeatherForecastModel weatherForecastModel, PresenceModel presenceModel) {
+    public void fillViewModel(Model model, HouseModel house, HistoryModel historyModel, LightsModel lightsModel, WeatherForecastModel weatherForecastModel, PresenceModel presenceModel, HeatpumpModel heatpumpModel) {
 
         model.addAttribute("modelTimestamp", ModelObjectDAO.getInstance().calculateModelTimestamp());
 
@@ -133,7 +131,9 @@ public class HouseViewService {
         formatPower(model, house.getTotalElectricalPowerConsumption(), historyModel==null?null:historyModel.getTotalElectricPowerConsumptionDay());
         formatPower(model, house.getWallboxElectricalPowerConsumption(), historyModel==null?null:historyModel.getWallboxElectricPowerConsumptionDay());
 
-        formatHeatpump(model, house);
+        formatHeatpump(model, house, heatpumpModel, Place.BEDROOM);
+        formatHeatpump(model, house, heatpumpModel, Place.KIDSROOM_1);
+        formatHeatpump(model, house, heatpumpModel, Place.KIDSROOM_2);
 
         formatLowBattery(model, house.getLowBatteryDevices());
 
@@ -1007,12 +1007,10 @@ public class HouseViewService {
     }
 
 
-    private void formatHeatpump(Model model, HouseModel house) {
+    private void formatHeatpump(Model model, HouseModel house, HeatpumpModel heatpumpModel, Place place) {
 
-        Place place = Place.BEDROOM;
-        HeatpumpPreset actualPreset = HeatpumpPreset.DRY_TIMER;
-
-        // ---------
+        Heatpump heatpump = heatpumpModel.getHeatpumpMap().get(place);
+        HeatpumpPreset actualPreset = heatpump.getHeatpumpPreset();
 
         var view = new HeatpumpView();
         model.addAttribute("heatpumpBedroom", view);
@@ -1022,11 +1020,13 @@ public class HouseViewService {
         view.setPlaceEnum(place);
         view.setIcon("aircon.png");
         view.setUnreach(Boolean.toString(false));
-        view.setBusy(Boolean.FALSE.toString());
+        view.setBusy(Boolean.toString(heatpumpModel.isBusy()));
 
-        view.setColorClass(ConditionColor.ORANGE.getUiClass());
-        view.setActiveSwitchColorClass(ConditionColor.ORANGE.getUiClass());
+        ConditionColor color = actualPreset == null ? ConditionColor.RED: actualPreset.getConditionColor();
+        view.setColorClass(color.getUiClass());
+        view.setActiveSwitchColorClass(color.getUiClass());
         view.setStateShort(actualPreset.getMode());
+        // FIXME: Intensity vs Timer for suffix view
         view.setElementTitleState(actualPreset.getMode() + (actualPreset.getIntensity()!=null ? ", " + actualPreset.getIntensity() : ""));
         view.setState(actualPreset.getMode());
         view.setStateSuffix(actualPreset.getIntensity()!=null ? ", " + actualPreset.getIntensity() : "");
@@ -1050,7 +1050,7 @@ public class HouseViewService {
         if(targetPreset==actualPreset){
             return "#";
         }else{
-            return SET_HEATPUMP + place.name() + AND_PRESET_IS + targetPreset + AND_ADDPLACES_IS;
+            return SET_HEATPUMP + place.name() + AND_VALUE_IS + targetPreset.name() + AND_ADD_DATA_ARE;
         }
     }
 }

@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
-import de.fimatas.home.library.domain.model.WeatherForecastModel;
+import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.model.PresenceModel;
 import de.fimatas.home.library.model.PresenceState;
 import org.apache.commons.codec.binary.Base64;
@@ -24,8 +24,6 @@ import org.springframework.web.client.*;
 import de.fimatas.home.controller.domain.service.HistoryService;
 import de.fimatas.home.controller.domain.service.HouseService;
 import de.fimatas.home.library.dao.ModelObjectDAO;
-import de.fimatas.home.library.domain.model.ActionModel;
-import de.fimatas.home.library.domain.model.AutomationState;
 import de.fimatas.home.library.model.Message;
 import de.fimatas.home.library.util.HomeAppConstants;
 
@@ -52,6 +50,9 @@ public class ClientCommunicationService {
 
     @Autowired
     private PresenceService presenceService;
+
+    @Autowired
+    private HeatpumpService heatpumpService;
     @Autowired
     private SettingsService settingsService;
 
@@ -130,6 +131,9 @@ public class ClientCommunicationService {
             case PRESENCE_EDIT:
                 presenceService.update(message.getKey(), PresenceState.valueOf(message.getValue()));
                 break;
+            case CONTROL_HEATPUMP:
+                heatpumpService.preset(message.getPlace(), HeatpumpPreset.valueOf(message.getValue()), message.getAdditionalData());
+                break;
             default:
                 throw new IllegalStateException("Unknown MessageType:" + message.getMessageType().name());
             }
@@ -172,6 +176,12 @@ public class ClientCommunicationService {
             presenceService.refresh();
         } else {
             uploadService.uploadToClient(ModelObjectDAO.getInstance().readPresenceModel());
+        }
+
+        if (ModelObjectDAO.getInstance().readHeatpumpModel() == null) {
+            heatpumpService.scheduledRefreshFromDriverCache();
+        } else {
+            uploadService.uploadToClient(ModelObjectDAO.getInstance().readHeatpumpModel());
         }
 
         uploadService.uploadToClient(ModelObjectDAO.getInstance().readCameraModel());

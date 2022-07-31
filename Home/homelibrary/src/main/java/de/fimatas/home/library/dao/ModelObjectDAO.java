@@ -25,6 +25,8 @@ public class ModelObjectDAO {
 
     private PresenceModel presenceModel;
 
+    private HeatpumpModel heatpumpModel;
+
     private WeatherForecastModel weatherForecastModel;
 
     private SettingsContainer settingsContainer;
@@ -57,6 +59,11 @@ public class ModelObjectDAO {
     public void write(PresenceModel newModel) {
         presenceModel = newModel;
         presenceModel.setDateTime(new Date().getTime());
+    }
+
+    public void write(HeatpumpModel newModel) {
+        heatpumpModel = newModel;
+        heatpumpModel.setTimestamp(new Date().getTime());
     }
 
     public void write(CameraModel newModel) {
@@ -120,6 +127,15 @@ public class ModelObjectDAO {
         }
     }
 
+    public HeatpumpModel readHeatpumpModel() {
+        long newestTimestamp = heatpumpModel == null ? 0 : heatpumpModel.getTimestamp();
+        if (heatpumpModel == null || new Date().getTime() - newestTimestamp > 1000 * HomeAppConstants.MODEL_OUTDATED_SECONDS) {
+            return null; // Too old. Should never happen
+        } else {
+            return heatpumpModel;
+        }
+    }
+
     public WeatherForecastModel readWeatherForecastModel() {
         long newestTimestamp = weatherForecastModel == null ? 0 : weatherForecastModel.getDateTime();
         if (weatherForecastModel == null || new Date().getTime() - newestTimestamp > 1000 * 60 * 70) {
@@ -165,12 +181,14 @@ public class ModelObjectDAO {
         LightsModel lm = readLightsModel();
         WeatherForecastModel wfm = readWeatherForecastModel();
         PresenceModel pm = readPresenceModel();
+        HeatpumpModel hpm = readHeatpumpModel();
 
         return  Stream.of(
                 hm==null?0:hm.getDateTime(),
                 lm==null?0:lm.getTimestamp(),
                 wfm==null?0:wfm.getDateTime(),
-                pm==null?0:pm.getDateTime()
+                pm==null?0:pm.getDateTime(),
+                hpm==null?0:pm.getDateTime()
         ).max(Long::compare).get();
     }
 

@@ -2,8 +2,6 @@ package de.fimatas.home.client.request;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.stream.Stream;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import de.fimatas.home.library.domain.model.*;
@@ -13,15 +11,11 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -55,7 +49,7 @@ public class HomeRequestMapping {
 
     private static final String HUE_DEVICE_ID = "hueDeviceId";
 
-    private static final String CAMERA_MODE = "cameraMode";
+    // private static final String CAMERA_MODE = "cameraMode";
 
     private static final Log log = LogFactory.getLog(HomeRequestMapping.class);
 
@@ -76,11 +70,13 @@ public class HomeRequestMapping {
 
 
     @GetMapping("/message")
-    public String message(Model model, //
+    public String message(
             @CookieValue(name = LoginInterceptor.COOKIE_NAME, required = false) String userCookie, //
             @RequestParam(name = "type") String type, //
             @RequestParam(name = DEVICE_NAME, required = false) String deviceName, //
             @RequestParam(name = HUE_DEVICE_ID, required = false) String hueDeviceId, //
+            @RequestParam(name = "placeName", required = false) String placeName, //
+            @RequestParam(name = "additionalData", required = false) String additionalData, //
             @RequestParam(name = "value") String value, //
             @RequestHeader(name = LoginInterceptor.APP_USER_NAME, required = false) String appUserName, //
             @RequestHeader(name = "CSRF") String csrf, //
@@ -95,7 +91,7 @@ public class HomeRequestMapping {
 
         if (log.isDebugEnabled()) {
             log.debug("message: userCookie=" + userCookie + ", appUserName=" + appUserName + ", type=" + type + ", deviceName="
-                + deviceName + ", hueDeviceId="
+                + deviceName + ", placeName=" + placeName + ", additionalData=" + additionalData + ", hueDeviceId=" + ", hueDeviceId="
                 + hueDeviceId + ", value="
                 + value + ", isApp=" + isNativeApp + ", pinLength=" + StringUtils.trimToEmpty(securityPin).length());
         }
@@ -111,7 +107,7 @@ public class HomeRequestMapping {
             return lookupMessageReturnValue(isNativeApp, MessageType.valueOf(type).getTargetSite());
         }
 
-        Message responseMessage = request(userName, type, deviceName, hueDeviceId, value, securityPin);
+        Message responseMessage = request(userName, type, deviceName, placeName, additionalData, hueDeviceId, value, securityPin);
 
         if (!responseMessage.isSuccessfullExecuted()) {
             prepareErrorMessage(isNativeApp, "Die Anfrage konnte nicht erfolgreich verarbeitet werden.", userCookie,
@@ -162,7 +158,7 @@ public class HomeRequestMapping {
     }
 
     @GetMapping("/appInstallation")
-    public String appInstallation(Model model, HttpServletRequest servletRequest,
+    public String appInstallation(Model model,
                                   @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, HttpServletResponse response) {
 
         fillMenu(Pages.PATH_APP, model, response, false);
@@ -173,7 +169,7 @@ public class HomeRequestMapping {
     }
 
 
-    @GetMapping(value = "/cameraPicture", produces = "image/jpeg")
+    /* @GetMapping(value = "/cameraPicture", produces = "image/jpeg")
     public ResponseEntity<byte[]> cameraPicture(@RequestParam(DEVICE_NAME) String deviceName,
             @RequestParam(CAMERA_MODE) String cameraMode, @RequestParam("ts") String timestamp,
             @RequestParam(name = "onlyheader", required = false) String onlyheader) {
@@ -200,9 +196,9 @@ public class HomeRequestMapping {
 
         log.info("requesting new camera image " + deviceName);
 
-        Message response = request(userService.userNameFromLoginCookie(userCookie), type, deviceName, null, value, null);
+        Message response = request(userService.userNameFromLoginCookie(userCookie), type, deviceName, null, null, null, value, null);
         return new ResponseEntity<>(response.getResponse(), HttpStatus.OK);
-    }
+    }  */
 
     @RequestMapping(Pages.PATH_HOME) // NOSONAR: POST after login, all other GET
     public String homePage(Model model, HttpServletResponse response,
@@ -238,7 +234,7 @@ public class HomeRequestMapping {
                 return "empty";
             } else {
                 houseView.fillViewModel(model, houseModel, ModelObjectDAO.getInstance().readHistoryModel(),
-                    ModelObjectDAO.getInstance().readLightsModel(), ModelObjectDAO.getInstance().readWeatherForecastModel(), ModelObjectDAO.getInstance().readPresenceModel());
+                    ModelObjectDAO.getInstance().readLightsModel(), ModelObjectDAO.getInstance().readWeatherForecastModel(), ModelObjectDAO.getInstance().readPresenceModel(), ModelObjectDAO.getInstance().readHeatpumpModel());
                 return Pages.getEntry(Pages.PATH_HOME).getTemplate();
             }
         } catch (Exception e) {
@@ -283,15 +279,18 @@ public class HomeRequestMapping {
             && StringUtils.equals(etag, Long.toString(ModelObjectDAO.getInstance().calculateModelTimestamp()));
     }
 
-    private Message request(String userName, String type, String deviceName, String hueDeviceId, String value,
+    private Message request(String userName, String type, String deviceName, String placeName, String additionalData, String hueDeviceId, String value,
             String securityPin) {
 
         MessageType messageType = MessageType.valueOf(type);
         Device device = StringUtils.isBlank(deviceName) ? null : Device.valueOf(deviceName);
+        Place place = StringUtils.isBlank(placeName) ? null : Place.valueOf(placeName);
 
         Message message = new Message();
         message.setMessageType(messageType);
         message.setDevice(device);
+        message.setPlace(place);
+        message.setAdditionalData(additionalData);
         message.setHueDeviceId(hueDeviceId);
         message.setValue(value);
         message.setUser(userName);
@@ -300,13 +299,13 @@ public class HomeRequestMapping {
         return MessageQueue.getInstance().request(message, true);
     }
 
-    private byte[] cameraPicture(Device device, CameraMode mode, long timestamp) {
+    /* private byte[] cameraPicture(Device device, CameraMode mode, long timestamp) {
         CameraPicture cameraPicture = ModelObjectDAO.getInstance().readCameraPicture(device, mode, timestamp);
         if (cameraPicture != null) {
             return cameraPicture.getBytes();
         }
         return new byte[0];
-    }
+    } */
 
     private void fillUserAttributes(Model model, String userCookie) {
         String user = userService.userNameFromLoginCookie(userCookie);
