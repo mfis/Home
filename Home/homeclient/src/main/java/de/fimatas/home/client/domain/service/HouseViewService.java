@@ -1009,17 +1009,21 @@ public class HouseViewService {
 
     private void formatHeatpump(Model model, HouseModel house, HeatpumpModel heatpumpModel, Place place) {
 
+        var view = new HeatpumpView();
+        model.addAttribute("heatpump" + place.name(), view);
+        view.setName("Wärmepumpe");
+        view.setIcon("aircon.png");
+        view.setUnreach(Boolean.toString(heatpumpModel==null));
+
+        if(heatpumpModel==null){
+            return;
+        }
+
         Heatpump heatpump = heatpumpModel.getHeatpumpMap().get(place);
         HeatpumpPreset actualPreset = heatpump.getHeatpumpPreset();
 
-        var view = new HeatpumpView();
-        model.addAttribute("heatpumpBedroom", view);
-
-        view.setName("Wärmepumpe");
         view.setId("heatpump" + place.name());
         view.setPlaceEnum(place);
-        view.setIcon("aircon.png");
-        view.setUnreach(Boolean.toString(false));
         view.setBusy(Boolean.toString(heatpumpModel.isBusy()));
 
         ConditionColor color = actualPreset == null ? ConditionColor.RED: actualPreset.getConditionColor();

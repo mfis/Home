@@ -188,7 +188,7 @@ public class ModelObjectDAO {
                 lm==null?0:lm.getTimestamp(),
                 wfm==null?0:wfm.getDateTime(),
                 pm==null?0:pm.getDateTime(),
-                hpm==null?0:pm.getDateTime()
+                hpm==null?0:hpm.getTimestamp()
         ).max(Long::compare).get();
     }
 

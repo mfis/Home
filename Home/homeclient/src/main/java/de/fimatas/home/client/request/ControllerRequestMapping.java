@@ -7,6 +7,7 @@ import java.util.concurrent.CompletableFuture;
 
 import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.model.PresenceModel;
+import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -20,6 +21,7 @@ import de.fimatas.home.library.model.Message;
 import de.fimatas.home.library.model.SettingsContainer;
 
 @RestController
+@CommonsLog
 public class ControllerRequestMapping {
 
     public static final String CONTROLLER_LONG_POLLING_FOR_AWAIT_MESSAGE_REQUEST =
@@ -68,6 +70,7 @@ public class ControllerRequestMapping {
 
     @PostMapping(value = UPLOAD_METHOD_PREFIX + "HeatpumpModel")
     public ActionModel uploadHeatpumpModel(@RequestBody HeatpumpModel heatpumpModel) {
+        //log.info("NEW HEATPUMP MODEL. BUSY=" + heatpumpModel.isBusy() + ", PRESET=" + heatpumpModel.getHeatpumpMap().get(Place.BEDROOM));
         ModelObjectDAO.getInstance().write(heatpumpModel);
         return new ActionModel("OK");
     }

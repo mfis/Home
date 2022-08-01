@@ -181,6 +181,7 @@ public class HeatpumpService {
 
         final HeatpumpModel busyHeatpumpModel = ModelObjectDAO.getInstance().readHeatpumpModel();
         busyHeatpumpModel.setBusy(true);
+        busyHeatpumpModel.setTimestamp(System.currentTimeMillis());
         ModelObjectDAO.getInstance().write(busyHeatpumpModel);
         uploadService.uploadToClient(busyHeatpumpModel);
     }
