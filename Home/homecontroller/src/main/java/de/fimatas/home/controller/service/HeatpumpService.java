@@ -4,6 +4,8 @@ import de.fimatas.heatpumpdriver.api.*;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.util.HomeAppConstants;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -12,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -19,8 +22,11 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ScheduledFuture;
 
 @Component
 @CommonsLog
@@ -33,11 +39,16 @@ public class HeatpumpService {
     private RestTemplate restTemplate;
 
     @Autowired
+    private ThreadPoolTaskScheduler threadPoolTaskSchedulerHeatpumpTimer;
+
+    @Autowired
     private Environment env;
 
     private boolean isCallError = false; // prevent continous error calls
 
     private Map<Place, String> dictPlaceToRoomNameInDriver;
+
+    private Map<Place, Optional<SchedulerData>> placeScheduler;
 
     private static final Log LOG = LogFactory.getLog(HeatpumpService.class);
 
@@ -49,6 +60,9 @@ public class HeatpumpService {
                 Place.KIDSROOM_1, Objects.requireNonNull(env.getProperty("place.KIDSROOM_1.subtitle")), //
                 Place.KIDSROOM_2, Objects.requireNonNull(env.getProperty("place.KIDSROOM_2.subtitle")) //
         );
+
+        placeScheduler = new EnumMap<>(Place.class);
+        dictPlaceToRoomNameInDriver.keySet().forEach(place -> placeScheduler.put(place, Optional.empty()));
 
         CompletableFuture.runAsync(() -> {
             try {
@@ -114,7 +128,9 @@ public class HeatpumpService {
             Heatpump heatpump = new Heatpump();
             heatpump.setPlace(place);
 
-            if(!s.getOnOffSwitch()){
+            if(placeScheduler.get(place).isPresent()){
+                heatpump.setHeatpumpPreset(placeScheduler.get(place).get().getHeatpumpPreset());
+            }else if(!s.getOnOffSwitch()){
                 heatpump.setHeatpumpPreset(HeatpumpPreset.OFF);
             }else if(s.getMode() == HeatpumpMode.COOLING){
                 if(s.getFanSpeed() == HeatpumpFanSpeed.AUTO){
@@ -129,7 +145,6 @@ public class HeatpumpService {
                     heatpump.setHeatpumpPreset(HeatpumpPreset.HEAT_MIN);
                 }
             }else if(s.getMode() == HeatpumpMode.FAN){
-                // FIXME: HANDLE DRY-TIMER
                 if(s.getFanSpeed() == HeatpumpFanSpeed.AUTO){
                     heatpump.setHeatpumpPreset(HeatpumpPreset.FAN_AUTO);
                 }else{
@@ -138,7 +153,6 @@ public class HeatpumpService {
             }else{
                 heatpump.setHeatpumpPreset(HeatpumpPreset.UNKNOWN);
             }
-
             newModel.getHeatpumpMap().put(place, heatpump);
         });
 
@@ -154,11 +168,16 @@ public class HeatpumpService {
 
         switchModelToBusy();
 
+        List<Place> allPlaces = new LinkedList<>();
+        allPlaces.add(place);
+        List.of(StringUtils.split(additionalData, ',')).forEach(ap ->allPlaces.add(Place.valueOf(ap)));
+
+        cancelOldTimers(allPlaces);
+        scheduleNewTimers(place, preset, additionalData, allPlaces);
+
         CompletableFuture.runAsync(() -> {
             Map<String, HeatpumpProgram> programs = new HashMap<>();
-            programs.put(dictPlaceToRoomNameInDriver.get(place), presetToProgram(preset));
-            List.of(StringUtils.split(additionalData, ',')).
-                    forEach(ap -> programs.put(dictPlaceToRoomNameInDriver.get(Place.valueOf(ap)), presetToProgram(preset)));
+            allPlaces.forEach(p -> programs.put(dictPlaceToRoomNameInDriver.get(p), presetToProgram(preset)));
 
             HeatpumpRequest request = HeatpumpRequest.builder()
                     .writeWithRoomnameAndProgram(programs)
@@ -170,6 +189,27 @@ public class HeatpumpService {
 
             handleResponse(callDriver(request));
         });
+    }
+
+    private void cancelOldTimers(List<Place> allPlaces) {
+
+        allPlaces.forEach(p -> {
+            if(placeScheduler.get(p).isPresent()){
+                if(!placeScheduler.get(p).get().getScheduledFuture().isCancelled() && !placeScheduler.get(p).get().getScheduledFuture().isDone()){
+                    placeScheduler.get(p).get().getScheduledFuture().cancel(false);
+                }
+                placeScheduler.put(p, Optional.empty());
+            }
+        });
+    }
+
+    private void scheduleNewTimers(Place place, HeatpumpPreset preset, String additionalData, List<Place> allPlaces) {
+
+        if(preset == HeatpumpPreset.DRY_TIMER){
+            final ScheduledFuture<?> scheduledFuture = threadPoolTaskSchedulerHeatpumpTimer.schedule(() ->
+                    preset(place, HeatpumpPreset.OFF, additionalData), Instant.now().plus(1, ChronoUnit.MINUTES));
+            allPlaces.forEach(p -> placeScheduler.put(p, Optional.of(new SchedulerData(scheduledFuture, preset))));
+        }
     }
 
     private void switchModelToBusy() {
@@ -194,9 +234,7 @@ public class HeatpumpService {
             case FAN_AUTO:
                 return HeatpumpProgram.FAN_AUTO; // FIXME: write program
             case FAN_MIN:
-                return HeatpumpProgram.FAN_MIN;
             case DRY_TIMER:
-                // TODO
                 return HeatpumpProgram.FAN_MIN;
             case OFF:
                 return HeatpumpProgram.OFF;
@@ -231,6 +269,13 @@ public class HeatpumpService {
             response.setErrorMessage("Exception calling heatpump driver:" + e.getMessage());
             return response;
         }
+    }
+
+    @Data
+    @AllArgsConstructor
+    private static class SchedulerData{
+        private ScheduledFuture<?> scheduledFuture;
+        private HeatpumpPreset heatpumpPreset;
     }
 
 }

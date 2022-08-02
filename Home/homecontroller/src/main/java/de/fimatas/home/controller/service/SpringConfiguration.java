@@ -36,6 +36,7 @@ import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.retry.annotation.EnableRetry;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -132,4 +133,11 @@ public class SpringConfiguration implements WebMvcConfigurer {
         return new JdbcTemplate(ds);
     }
 
+    @Bean
+    public ThreadPoolTaskScheduler threadPoolTaskSchedulerHeatpumpTimer(){
+        ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
+        threadPoolTaskScheduler.setThreadNamePrefix("ThreadPoolTaskSchedulerHeatpumpTimer");
+        threadPoolTaskScheduler.setPoolSize(3);
+        return threadPoolTaskScheduler;
+    }
 }

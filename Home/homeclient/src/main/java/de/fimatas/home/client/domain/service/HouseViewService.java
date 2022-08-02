@@ -1036,7 +1036,6 @@ public class HouseViewService {
         view.setColorClass(color.getUiClass());
         view.setActiveSwitchColorClass(color.getUiClass());
         view.setStateShort(actualPreset.getMode());
-        // FIXME: Intensity vs Timer for suffix view
         view.setElementTitleState(actualPreset.getMode() + (actualPreset.getIntensity()!=null ? ", " + actualPreset.getIntensity() : ""));
         view.setState(actualPreset.getMode());
         view.setStateSuffix(actualPreset.getIntensity()!=null ? ", " + actualPreset.getIntensity() : "");
