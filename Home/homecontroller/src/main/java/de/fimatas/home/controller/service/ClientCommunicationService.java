@@ -1,11 +1,10 @@
 package de.fimatas.home.controller.service;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import de.fimatas.home.library.domain.model.*;
-import de.fimatas.home.library.model.PresenceModel;
 import de.fimatas.home.library.model.PresenceState;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
@@ -126,7 +125,7 @@ public class ClientCommunicationService {
                 }
                 break;
             case SETTINGS_EDIT:
-                settingsService.editSetting(message.getToken(), message.getKey(), Boolean.valueOf(message.getValue()));
+                settingsService.editSetting(message.getToken(), message.getKey(), Boolean.parseBoolean(message.getValue()));
                 break;
             case PRESENCE_EDIT:
                 presenceService.update(message.getKey(), PresenceState.valueOf(message.getValue()));
@@ -195,7 +194,7 @@ public class ClientCommunicationService {
         String url = host + "/controllerLongPollingForAwaitMessageRequest";
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Arrays.asList(MediaType.ALL));
+        headers.setAccept(List.of(MediaType.ALL));
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Cache-Control", "no-cache");
         headers.set(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN,
