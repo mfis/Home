@@ -78,8 +78,8 @@ public class HeatpumpService {
 
         HeatpumpRequest request = HeatpumpRequest.builder()
                 .readWithRoomnames(new ArrayList<>(dictPlaceToRoomNameInDriver.values()))
-                .heatpumpUsername("aaa") // FIXME
-                .heatpumpPassword("bbb") // FIXME
+                .heatpumpUsername(env.getProperty("heatpump.driver.user"))
+                .heatpumpPassword(env.getProperty("heatpump.driver.pass"))
                 .readFromCache(cachedData)
                 .build();
 
@@ -163,8 +163,8 @@ public class HeatpumpService {
             HeatpumpRequest request = HeatpumpRequest.builder()
                     .writeWithRoomnameAndProgram(programs)
                     .readWithRoomnames(new ArrayList<>(dictPlaceToRoomNameInDriver.values()))
-                    .heatpumpUsername("aaa") // FIXME
-                    .heatpumpPassword("bbb") // FIXME
+                    .heatpumpUsername(env.getProperty("heatpump.driver.user"))
+                    .heatpumpPassword(env.getProperty("heatpump.driver.pass"))
                     .readFromCache(false)
                     .build();
 
@@ -209,8 +209,8 @@ public class HeatpumpService {
 
         try {
             HttpEntity<HeatpumpRequest> httpRequest = new HttpEntity<>(request);
-            // FIXME: URL
-            ResponseEntity<HeatpumpResponse> response = restTemplate.postForEntity("http://localhost:8090/callHeatpumpMock", httpRequest, HeatpumpResponse.class);
+            ResponseEntity<HeatpumpResponse> response = restTemplate.postForEntity(
+                    Objects.requireNonNull(env.getProperty("heatpump.driver.url")), httpRequest, HeatpumpResponse.class);
             HttpStatus statusCode = response.getStatusCode();
 
             if (!statusCode.is2xxSuccessful()) {
