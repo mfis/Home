@@ -1,14 +1,10 @@
 package de.fimatas.home.controller.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import de.fimatas.heatpumpdriver.api.*;
-import de.fimatas.home.controller.api.HueAPI;
-import de.fimatas.home.controller.domain.service.HouseService;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.util.HomeAppConstants;
 import lombok.extern.apachecommons.CommonsLog;
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -24,7 +20,6 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
 
 @Component
@@ -51,8 +46,8 @@ public class HeatpumpService {
 
         dictPlaceToRoomNameInDriver = Map.of( //
                 Place.BEDROOM, Place.BEDROOM.getPlaceName(), //
-                Place.KIDSROOM_1, env.getProperty("place.KIDSROOM_1.subtitle"), //
-                Place.KIDSROOM_2, env.getProperty("place.KIDSROOM_2.subtitle") //
+                Place.KIDSROOM_1, Objects.requireNonNull(env.getProperty("place.KIDSROOM_1.subtitle")), //
+                Place.KIDSROOM_2, Objects.requireNonNull(env.getProperty("place.KIDSROOM_2.subtitle")) //
         );
 
         CompletableFuture.runAsync(() -> {
@@ -82,7 +77,7 @@ public class HeatpumpService {
         }
 
         HeatpumpRequest request = HeatpumpRequest.builder()
-                .readWithRoomnames(new ArrayList(dictPlaceToRoomNameInDriver.values()))
+                .readWithRoomnames(new ArrayList<>(dictPlaceToRoomNameInDriver.values()))
                 .heatpumpUsername("aaa") // FIXME
                 .heatpumpPassword("bbb") // FIXME
                 .readFromCache(cachedData)
@@ -119,7 +114,7 @@ public class HeatpumpService {
             Heatpump heatpump = new Heatpump();
             heatpump.setPlace(place);
 
-            if(!s.getOnOffSwitch().booleanValue()){
+            if(!s.getOnOffSwitch()){
                 heatpump.setHeatpumpPreset(HeatpumpPreset.OFF);
             }else if(s.getMode() == HeatpumpMode.COOLING){
                 if(s.getFanSpeed() == HeatpumpFanSpeed.AUTO){
@@ -163,11 +158,11 @@ public class HeatpumpService {
             Map<String, HeatpumpProgram> programs = new HashMap<>();
             programs.put(dictPlaceToRoomNameInDriver.get(place), presetToProgram(preset));
             List.of(StringUtils.split(additionalData, ',')).
-                    forEach(ap -> programs.put(dictPlaceToRoomNameInDriver.get(ap), presetToProgram(preset)));
+                    forEach(ap -> programs.put(dictPlaceToRoomNameInDriver.get(Place.valueOf(ap)), presetToProgram(preset)));
 
             HeatpumpRequest request = HeatpumpRequest.builder()
                     .writeWithRoomnameAndProgram(programs)
-                    .readWithRoomnames(new ArrayList(dictPlaceToRoomNameInDriver.values()))
+                    .readWithRoomnames(new ArrayList<>(dictPlaceToRoomNameInDriver.values()))
                     .heatpumpUsername("aaa") // FIXME
                     .heatpumpPassword("bbb") // FIXME
                     .readFromCache(false)
@@ -212,9 +207,6 @@ public class HeatpumpService {
 
     private synchronized HeatpumpResponse callDriver(HeatpumpRequest request){
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Cache-Control", "no-cache");
-
         try {
             HttpEntity<HeatpumpRequest> httpRequest = new HttpEntity<>(request);
             // FIXME: URL
@@ -226,7 +218,9 @@ public class HeatpumpService {
                 isCallError = true;
             }
             final HeatpumpResponse body = response.getBody();
-            body.setRemoteConnectionSuccessful(true);
+            if(body != null){
+                body.setRemoteConnectionSuccessful(true);
+            }
             return body;
 
         } catch (ResourceAccessException | HttpServerErrorException | HttpClientErrorException e) {
