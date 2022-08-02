@@ -104,7 +104,9 @@
 			    	if(newDoc.getElementById(entry.id)!==null){
 						newDoc.getElementById(entry.id).classList.remove("collapse");
 				    	newDoc.getElementById(entry.id).classList.add("show");
-				    	newDoc.getElementById(entry.id + 'ElementTitleState').innerHTML = '';
+				    	if(newDoc.getElementById(entry.id + 'ElementTitleState')){
+							newDoc.getElementById(entry.id + 'ElementTitleState').innerHTML = '';
+						}
 				    	newDoc.getElementById(entry.id + 'SymbolDown').style.display = 'none';
 				    	newDoc.getElementById(entry.id + 'SymbolUp').style.display = 'inline';
 			    	}
