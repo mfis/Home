@@ -10,6 +10,8 @@ public class HeatpumpView extends View {
 
     private String label = "";
 
+    private String placeSubtitle = "";
+
     private String linkCoolAuto = "#";
 
     private String linkCoolMin = "#";

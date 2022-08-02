@@ -788,17 +788,17 @@
 
 				<div class="pt-1"></div>
 
-				<div class="form-check pl-0" style="opacity: 0.6;">
-					<input class="form-check-input checkbox-preserve-state" type="checkbox" th:id="'idChkHeatpump' + ${model.placeID}" value="true" checked disabled>
-					<label class="btn btn-sm p-0 mb-0" th:for="'idChkHeatpump' + ${model.placeID}">
-						<i class="fa-solid fa-square fa-2x text-secondary check-false"></i><i class="fa-solid fa-square-check fa-2x text-warning check-true"></i><span th:text="' ' + ${model.place}"></span>
+				<div class="form-check pl-0" style="opacity: 0.6;"> <!-- FIXME: duplicate ID's -->
+					<input class="form-check-input checkbox-preserve-state" type="checkbox" th:id="'idChkHeatpump_' + ${model.placeID} + '_self'" value="true" checked disabled>
+					<label class="btn btn-sm p-0 mb-0" th:for="'idChkHeatpump_' + ${model.placeID} + '_self'">
+						<i class="fa-solid fa-square fa-2x text-secondary check-false"></i><i class="fa-solid fa-square-check fa-2x text-warning check-true"></i><span th:text="' ' + ${model.place} + ' ' + ${model.placeSubtitle}"></span>
 					</label>
 				</div>
 
 				<th:block th:each="entry : ${model.otherPlaces}">
-					<div class="form-check pl-0">
-						<input class="form-check-input checkbox-preserve-state" type="checkbox" th:name="'heatpumpAddPlaceFor' + ${model.id}" th:id="'idChkHeatpump' + ${entry.value}" value="true" th:alt="${entry.value}">
-						<label class="btn btn-sm p-0 mb-0" th:for="'idChkHeatpump' + ${entry.value}">
+					<div class="form-check pl-0">	<!-- FIXME: duplicate ID's -->
+						<input class="form-check-input checkbox-preserve-state" type="checkbox" th:name="'heatpumpAddPlaceFor_' + ${model.id}" th:id="'idChkHeatpumpFrom_' + ${model.placeID} + '_for_' + ${entry.value}" value="true" th:alt="${entry.value}">
+						<label class="btn btn-sm p-0 mb-0" th:for="'idChkHeatpumpFrom_' + ${model.placeID} + '_for_' + ${entry.value}">
 							<i class="fa-solid fa-square fa-2x text-secondary check-false"></i><i class="fa-solid fa-square-plus fa-2x text-warning check-true"></i><span th:text="' ' + ${entry.caption}"></span>
 						</label>
 					</div>
@@ -808,7 +808,6 @@
 
 				<div>
 					<div class="btn-group widebutton" role="group" aria-label="heatpump-group-cool-auto">
-						<!-- <button type="button" th:class="${#strings.startsWith(model.linkCoolAuto, '#')} ? 'btn btn-dark btn-sm btn-block' : 'btn btn-secondary btn-sm btn-block'" th:onclick="@{'heatpump' + ${model.id} + '(\''+ ${model.id} +'\', \'' + ${model.placeID} + '\', \'' + ${model.linkCoolAuto} + '\')'}"> -->
 						<button type="button" th:class="${#strings.startsWith(model.linkCoolAuto, '#')} ? 'btn btn-dark btn-sm btn-block' : 'btn btn-secondary btn-sm btn-block'" th:onclick="@{'heatpump' + ${model.id} + '(\''+ ${model.id} +'\', \'' + ${model.placeID} + '\', \'' + ${model.linkCoolAuto} + '\')'}">
 							<span>&nbsp;</span>
 							<span th:class="${#strings.startsWith(model.linkCoolAuto, '#')} ? 'text-' + ${model.activeSwitchColorClass}">
@@ -929,18 +928,15 @@
 
 			<script type="text/javascript">
 				function heatpump[[${model.id}]](id, place, link){
-					if(link.startsWith('#')){
-						// alert('nothing to do');
-						return;
-					}
-					var linkComplete = link;
-					for (let addPlace of document.getElementsByName('heatpumpAddPlaceFor' + id)){
-						if(addPlace.checked){
-							linkComplete += addPlace.getAttribute('alt') + ",";
+					if(!link.startsWith('#')){
+						let linkComplete = link;
+						for (let addPlace of document.getElementsByName('heatpumpAddPlaceFor_' + id)){
+							if(addPlace.checked){
+								linkComplete += addPlace.getAttribute('alt') + ",";
+							}
 						}
+						submitContent(linkComplete);
 					}
-					// alert('LINK=' + linkComplete);
-					submitContent(linkComplete);
 				}
 			</script>
 		</div>
