@@ -38,7 +38,7 @@ public class UploadService {
         log.info("homeAdapterEnabled=" + homeAdapterEnabled);
     }
 
-    public void uploadToClient(Object object) {
+    public void uploadToClient(Object object) { // FIXME: upload only if changed
         String host = env.getProperty("client.hostName");
         uploadBinaryToClient(host + "/upload" + object.getClass().getSimpleName(), object, true);
     }

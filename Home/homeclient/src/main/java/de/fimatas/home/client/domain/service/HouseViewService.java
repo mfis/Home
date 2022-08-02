@@ -1013,7 +1013,15 @@ public class HouseViewService {
         model.addAttribute("heatpump" + place.name(), view);
         view.setName("Wärmepumpe");
         view.setIcon("aircon.png");
+        view.setPlaceEnum(place);
+        view.setPlaceSubtitle(house.getPlaceSubtitles().containsKey(place) ? " " + house.getPlaceSubtitles().get(place) : "");
+        view.setId("heatpump" + place.name());
         view.setUnreach(Boolean.toString(heatpumpModel==null));
+
+        List.of(Place.KIDSROOM_1, Place.KIDSROOM_2, Place.BEDROOM).stream().filter(p -> p != place).forEach(a -> {
+            String subtitle = house.getPlaceSubtitles().containsKey(a) ? " " + house.getPlaceSubtitles().get(a) : "";
+            view.getOtherPlaces().add(new ValueWithCaption(a.name(), a.getPlaceName() + subtitle, Strings.EMPTY));
+        });
 
         if(heatpumpModel==null){
             return;
@@ -1022,8 +1030,6 @@ public class HouseViewService {
         Heatpump heatpump = heatpumpModel.getHeatpumpMap().get(place);
         HeatpumpPreset actualPreset = heatpump.getHeatpumpPreset();
 
-        view.setId("heatpump" + place.name());
-        view.setPlaceEnum(place);
         view.setBusy(Boolean.toString(heatpumpModel.isBusy()));
 
         ConditionColor color = actualPreset == null ? ConditionColor.RED: actualPreset.getConditionColor();
@@ -1043,11 +1049,6 @@ public class HouseViewService {
         view.setLinkFanMin(buildHeatpumpPresetLink(place, HeatpumpPreset.FAN_MIN, actualPreset));
         view.setLinkTimer(buildHeatpumpPresetLink(place, HeatpumpPreset.DRY_TIMER, actualPreset));
         view.setLinkOff(buildHeatpumpPresetLink(place, HeatpumpPreset.OFF, actualPreset));
-
-        List.of(Place.BEDROOM, Place.KIDSROOM_1, Place.KIDSROOM_2).stream().filter(p -> p != place).forEach(a -> {
-                    String subtitle = house.getPlaceSubtitles().containsKey(a) ? " " + house.getPlaceSubtitles().get(a) : "";
-                    view.getOtherPlaces().add(new ValueWithCaption(a.name(), a.getPlaceName() + subtitle, Strings.EMPTY));
-        });
     }
 
     private String buildHeatpumpPresetLink(Place place, HeatpumpPreset targetPreset, HeatpumpPreset actualPreset){

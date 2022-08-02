@@ -193,11 +193,11 @@ public class HeatpumpService {
             case COOL_MIN:
                 return HeatpumpProgram.COOLING_MIN;
             case HEAT_AUTO:
-                return HeatpumpProgram.HEATING_AUTO;
+                return HeatpumpProgram.HEATING_AUTO; // FIXME: write program
             case HEAT_MIN:
-                return HeatpumpProgram.HEATING_MIN;
+                return HeatpumpProgram.HEATING_MIN; // FIXME: write program
             case FAN_AUTO:
-                return HeatpumpProgram.FAN_AUTO;
+                return HeatpumpProgram.FAN_AUTO; // FIXME: write program
             case FAN_MIN:
                 return HeatpumpProgram.FAN_MIN;
             case DRY_TIMER:
