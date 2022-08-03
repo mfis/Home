@@ -38,7 +38,7 @@ public class UploadService {
         log.info("homeAdapterEnabled=" + homeAdapterEnabled);
     }
 
-    public void uploadToClient(Object object) { // TODO: upload only if changed (in update interval timerange)
+    public void uploadToClient(Object object) {
         String host = env.getProperty("client.hostName");
         uploadBinaryToClient(host + "/upload" + object.getClass().getSimpleName(), object, true);
     }

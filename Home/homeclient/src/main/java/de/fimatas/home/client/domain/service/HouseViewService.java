@@ -997,7 +997,7 @@ public class HouseViewService {
         }else if(namesPresent.size() == 0){
             longText = "Keiner zu Hause";
         }else{
-            longText = StringUtils.join(namesPresent, ",");
+            longText = StringUtils.join(namesPresent, ", ");
         }
 
         view.setColorClass(namesPresent.size() > 0 ? ConditionColor.GREEN.getUiClass() : ConditionColor.GRAY.getUiClass());

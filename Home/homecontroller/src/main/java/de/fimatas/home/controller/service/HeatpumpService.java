@@ -50,6 +50,13 @@ public class HeatpumpService {
 
     private Map<Place, Optional<SchedulerData>> placeScheduler;
 
+    private final Map<HeatpumpPreset, List<HeatpumpPreset>> conflictiongPresets = Map.of(
+            HeatpumpPreset.COOL_MIN, List.of(HeatpumpPreset.HEAT_AUTO, HeatpumpPreset.HEAT_MIN),
+            HeatpumpPreset.COOL_AUTO, List.of(HeatpumpPreset.HEAT_AUTO, HeatpumpPreset.HEAT_MIN),
+            HeatpumpPreset.HEAT_MIN, List.of(HeatpumpPreset.COOL_AUTO, HeatpumpPreset.COOL_MIN),
+            HeatpumpPreset.HEAT_AUTO, List.of(HeatpumpPreset.COOL_AUTO, HeatpumpPreset.COOL_MIN)
+            );
+
     private static final Log LOG = LogFactory.getLog(HeatpumpService.class);
 
     @PostConstruct
@@ -63,17 +70,9 @@ public class HeatpumpService {
 
         placeScheduler = new EnumMap<>(Place.class);
         dictPlaceToRoomNameInDriver.keySet().forEach(place -> placeScheduler.put(place, Optional.empty()));
-
-        CompletableFuture.runAsync(() -> {
-            try {
-                refreshHeatpumpModel(true);
-            } catch (Exception e) {
-                LOG.error("Could not initialize HeatpumpService completly.", e);
-            }
-        });
     }
 
-    @Scheduled(fixedDelay = (1000 * HomeAppConstants.MODEL_DEFAULT_INTERVAL_SECONDS) + 400)
+    @Scheduled(initialDelay = 1000 * 10, fixedDelay = (1000 * HomeAppConstants.MODEL_HEATPUMP_INTERVAL_SECONDS) + 180)
     public void scheduledRefreshFromDriverCache() {
         refreshHeatpumpModel(true);
     }
@@ -113,7 +112,6 @@ public class HeatpumpService {
 
         if(!response.isRemoteConnectionSuccessful() || !response.isDriverRunSuccessful() || StringUtils.isNotBlank(response.getErrorMessage())){
             log.warn("Error calling heatpump driver: " + response.getErrorMessage());
-            // fixme: handle/upload error model
             return;
         }
 
@@ -162,10 +160,6 @@ public class HeatpumpService {
 
     public void preset(Place place, HeatpumpPreset preset, String additionalData) {
 
-        // FIXME: OTHER MODES ON OTHER ACTIVE ROOMS !
-
-        log.debug("HEATPUMP PRESET CALL: " + place.name() + ": " + preset.name() + " WITH: " + additionalData);
-
         switchModelToBusy();
 
         List<Place> allPlaces = new LinkedList<>();
@@ -178,6 +172,15 @@ public class HeatpumpService {
         CompletableFuture.runAsync(() -> {
             Map<String, HeatpumpProgram> programs = new HashMap<>();
             allPlaces.forEach(p -> programs.put(dictPlaceToRoomNameInDriver.get(p), presetToProgram(preset)));
+
+            if(conflictiongPresets.containsKey(preset)){
+                dictPlaceToRoomNameInDriver.keySet().stream().filter(p -> !allPlaces.contains(p)).forEach(px -> {
+                    if(conflictiongPresets.get(preset).contains(
+                            ModelObjectDAO.getInstance().readHeatpumpModel().getHeatpumpMap().get(px).getHeatpumpPreset())){
+                        programs.put(dictPlaceToRoomNameInDriver.get(px), HeatpumpProgram.OFF);
+                    }
+                });
+            }
 
             HeatpumpRequest request = HeatpumpRequest.builder()
                     .writeWithRoomnameAndProgram(programs)
@@ -207,7 +210,7 @@ public class HeatpumpService {
 
         if(preset == HeatpumpPreset.DRY_TIMER){
             final ScheduledFuture<?> scheduledFuture = threadPoolTaskSchedulerHeatpumpTimer.schedule(() ->
-                    preset(place, HeatpumpPreset.OFF, additionalData), Instant.now().plus(1, ChronoUnit.MINUTES));
+                    preset(place, HeatpumpPreset.OFF, additionalData), Instant.now().plus(15, ChronoUnit.MINUTES));
             allPlaces.forEach(p -> placeScheduler.put(p, Optional.of(new SchedulerData(scheduledFuture, preset))));
         }
     }
@@ -228,11 +231,11 @@ public class HeatpumpService {
             case COOL_MIN:
                 return HeatpumpProgram.COOLING_MIN;
             case HEAT_AUTO:
-                return HeatpumpProgram.HEATING_AUTO; // FIXME: write program
+                return HeatpumpProgram.HEATING_AUTO;
             case HEAT_MIN:
-                return HeatpumpProgram.HEATING_MIN; // FIXME: write program
+                return HeatpumpProgram.HEATING_MIN;
             case FAN_AUTO:
-                return HeatpumpProgram.FAN_AUTO; // FIXME: write program
+                return HeatpumpProgram.FAN_AUTO;
             case FAN_MIN:
             case DRY_TIMER:
                 return HeatpumpProgram.FAN_MIN;

@@ -129,7 +129,7 @@ public class ModelObjectDAO {
 
     public HeatpumpModel readHeatpumpModel() {
         long newestTimestamp = heatpumpModel == null ? 0 : heatpumpModel.getTimestamp();
-        if (heatpumpModel == null || new Date().getTime() - newestTimestamp > 1000 * HomeAppConstants.MODEL_OUTDATED_SECONDS) {
+        if (heatpumpModel == null || new Date().getTime() - newestTimestamp > 1000 * HomeAppConstants.MODEL_HEATPUMP_OUTDATED_SECONDS) {
             return null; // Too old. Should never happen
         } else {
             return heatpumpModel;
