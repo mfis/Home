@@ -1,5 +1,7 @@
 package de.fimatas.home.controller.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fimatas.heatpumpdriver.api.*;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
@@ -8,9 +10,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.env.Environment;
 import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -36,7 +37,8 @@ public class HeatpumpService {
     private UploadService uploadService;
 
     @Autowired
-    private RestTemplate restTemplate;
+    @Qualifier("restTemplateHeatpumpDriver")
+    private RestTemplate restTemplateHeatpumpDriver;
 
     @Autowired
     private ThreadPoolTaskScheduler threadPoolTaskSchedulerHeatpumpTimer;
@@ -56,8 +58,6 @@ public class HeatpumpService {
             HeatpumpPreset.HEAT_MIN, List.of(HeatpumpPreset.COOL_AUTO, HeatpumpPreset.COOL_MIN),
             HeatpumpPreset.HEAT_AUTO, List.of(HeatpumpPreset.COOL_AUTO, HeatpumpPreset.COOL_MIN)
             );
-
-    private static final Log LOG = LogFactory.getLog(HeatpumpService.class);
 
     @PostConstruct
     public void init() {
@@ -111,7 +111,11 @@ public class HeatpumpService {
     private void handleResponse(HeatpumpResponse response) {
 
         if(!response.isRemoteConnectionSuccessful() || !response.isDriverRunSuccessful() || StringUtils.isNotBlank(response.getErrorMessage())){
-            log.warn("Error calling heatpump driver: " + response.getErrorMessage());
+            try {
+                log.warn("Error calling heatpump driver: " + new ObjectMapper().writeValueAsString(response));
+            } catch (JsonProcessingException e) {
+                log.warn("Error calling heatpump driver....");
+            }
             return;
         }
 
@@ -237,8 +241,9 @@ public class HeatpumpService {
             case FAN_AUTO:
                 return HeatpumpProgram.FAN_AUTO;
             case FAN_MIN:
-            case DRY_TIMER:
                 return HeatpumpProgram.FAN_MIN;
+            case DRY_TIMER:
+                return HeatpumpProgram.FAN_DRY;
             case OFF:
                 return HeatpumpProgram.OFF;
             default:
@@ -250,7 +255,7 @@ public class HeatpumpService {
 
         try {
             HttpEntity<HeatpumpRequest> httpRequest = new HttpEntity<>(request);
-            ResponseEntity<HeatpumpResponse> response = restTemplate.postForEntity(
+            ResponseEntity<HeatpumpResponse> response = restTemplateHeatpumpDriver.postForEntity(
                     Objects.requireNonNull(env.getProperty("heatpump.driver.url")), httpRequest, HeatpumpResponse.class);
             HttpStatus statusCode = response.getStatusCode();
 
