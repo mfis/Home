@@ -1009,6 +1009,9 @@ public class HouseViewService {
 
     private void formatHeatpump(Model model, HouseModel house, HeatpumpModel heatpumpModel, Place place) {
 
+        var isUnreachable = heatpumpModel == null ||
+                heatpumpModel.getHeatpumpMap() == null || heatpumpModel.getHeatpumpMap().get(place) == null;
+
         var view = new HeatpumpView();
         model.addAttribute("heatpump" + place.name(), view);
         view.setName("Wärmepumpe");
@@ -1016,19 +1019,27 @@ public class HouseViewService {
         view.setPlaceEnum(place);
         view.setPlaceSubtitle(house.getPlaceSubtitles().containsKey(place) ? " " + house.getPlaceSubtitles().get(place) : "");
         view.setId("heatpump" + place.name());
-        view.setUnreach(Boolean.toString(heatpumpModel==null));
+        view.setUnreach(Boolean.toString(isUnreachable));
 
         List.of(Place.KIDSROOM_1, Place.KIDSROOM_2, Place.BEDROOM).stream().filter(p -> p != place).forEach(a -> {
             String subtitle = house.getPlaceSubtitles().containsKey(a) ? " " + house.getPlaceSubtitles().get(a) : "";
             view.getOtherPlaces().add(new ValueWithCaption(a.name(), a.getPlaceName() + subtitle, Strings.EMPTY));
         });
 
-        if(heatpumpModel==null){
+        HeatpumpPreset actualPreset = isUnreachable ? null : heatpumpModel.getHeatpumpMap().get(place).getHeatpumpPreset();
+
+        view.setLinkCoolAuto(buildHeatpumpPresetLink(place, HeatpumpPreset.COOL_AUTO, actualPreset));
+        view.setLinkCoolMin(buildHeatpumpPresetLink(place, HeatpumpPreset.COOL_MIN, actualPreset));
+        view.setLinkHeatAuto(buildHeatpumpPresetLink(place, HeatpumpPreset.HEAT_AUTO, actualPreset));
+        view.setLinkHeatMin(buildHeatpumpPresetLink(place, HeatpumpPreset.HEAT_MIN, actualPreset));
+        view.setLinkFanAuto(buildHeatpumpPresetLink(place, HeatpumpPreset.FAN_AUTO, actualPreset));
+        view.setLinkFanMin(buildHeatpumpPresetLink(place, HeatpumpPreset.FAN_MIN, actualPreset));
+        view.setLinkTimer(buildHeatpumpPresetLink(place, HeatpumpPreset.DRY_TIMER, actualPreset));
+        view.setLinkOff(buildHeatpumpPresetLink(place, HeatpumpPreset.OFF, actualPreset));
+
+        if(isUnreachable){
             return;
         }
-
-        Heatpump heatpump = heatpumpModel.getHeatpumpMap().get(place);
-        HeatpumpPreset actualPreset = heatpump.getHeatpumpPreset();
 
         view.setBusy(Boolean.toString(heatpumpModel.isBusy()));
 
@@ -1039,15 +1050,6 @@ public class HouseViewService {
         view.setElementTitleState(actualPreset.getMode() + (actualPreset.getIntensity()!=null ? ", " + actualPreset.getIntensity() : ""));
         view.setState(actualPreset.getMode());
         view.setStateSuffix(actualPreset.getIntensity()!=null ? ", " + actualPreset.getIntensity() : "");
-
-        view.setLinkCoolAuto(buildHeatpumpPresetLink(place, HeatpumpPreset.COOL_AUTO, actualPreset));
-        view.setLinkCoolMin(buildHeatpumpPresetLink(place, HeatpumpPreset.COOL_MIN, actualPreset));
-        view.setLinkHeatAuto(buildHeatpumpPresetLink(place, HeatpumpPreset.HEAT_AUTO, actualPreset));
-        view.setLinkHeatMin(buildHeatpumpPresetLink(place, HeatpumpPreset.HEAT_MIN, actualPreset));
-        view.setLinkFanAuto(buildHeatpumpPresetLink(place, HeatpumpPreset.FAN_AUTO, actualPreset));
-        view.setLinkFanMin(buildHeatpumpPresetLink(place, HeatpumpPreset.FAN_MIN, actualPreset));
-        view.setLinkTimer(buildHeatpumpPresetLink(place, HeatpumpPreset.DRY_TIMER, actualPreset));
-        view.setLinkOff(buildHeatpumpPresetLink(place, HeatpumpPreset.OFF, actualPreset));
     }
 
     private String buildHeatpumpPresetLink(Place place, HeatpumpPreset targetPreset, HeatpumpPreset actualPreset){
