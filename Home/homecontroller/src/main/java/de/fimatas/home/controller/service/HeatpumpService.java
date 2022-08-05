@@ -77,7 +77,7 @@ public class HeatpumpService {
         refreshHeatpumpModel(true);
     }
 
-    @Scheduled(cron = "3 30 00 * * *")
+    @Scheduled(cron = "42 15 4,13 * * *")
     private void scheduledRefreshFromDriverNoCache() {
         isCallError = false;
         refreshHeatpumpModel(false);
