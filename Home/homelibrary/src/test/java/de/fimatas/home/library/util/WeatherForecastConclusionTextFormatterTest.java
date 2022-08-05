@@ -119,4 +119,22 @@ class WeatherForecastConclusionTextFormatterTest {
 
         assertEquals("Temperatur 18 bis 23°C, Sonne ab 15 Uhr, Regen ab 19 Uhr", map.get(FORMAT_LONGEST));
     }
+
+    @Test
+    void testFormatConclusionText_SameMinMaxs(){
+
+        final var conclusion = new WeatherForecastConclusion();
+        conclusion.setMinTemp(new BigDecimal(18L));
+        conclusion.setMaxTemp(new BigDecimal(18L));
+        conclusion.setMaxWind(10);
+        conclusion.setConditions(List.of());
+
+        final Map<Integer, String> map = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion);
+
+        assertEquals("18°C", map.get(FORMAT_FROM_TO_ONLY));
+        assertEquals("", map.get(FORMAT_CONDITIONS_1_MAX));
+        assertEquals("18°C", map.get(FORMAT_FROM_TO_PLUS_1_MAX));
+        assertEquals("18°C", map.get(FORMAT_FROM_TO_ALL_SIGNIFICANT_CONDITIONS));
+        assertEquals("Temperatur 18°C", map.get(FORMAT_LONGEST));
+    }
 }

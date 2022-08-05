@@ -209,10 +209,6 @@ public class WeatherService {
             addConclusionWeatherContition(conclusion, items.stream().filter(fc -> fc.getIcons().contains(WeatherConditions.SUN)).findFirst().orElse(null), WeatherConditions.SUN);
         }
 
-        if(items.stream().filter(fc -> fc.getIcons().contains(WeatherConditions.SUN) || fc.getIcons().contains(WeatherConditions.SUN_CLOUD)).count()>3){
-            addConclusionWeatherContition(conclusion, items.stream().filter(fc -> fc.getIcons().contains(WeatherConditions.SUN) || fc.getIcons().contains(WeatherConditions.SUN_CLOUD)).findFirst().orElse(null), WeatherConditions.SUN_CLOUD);
-        }
-
         return conclusion;
     }
 

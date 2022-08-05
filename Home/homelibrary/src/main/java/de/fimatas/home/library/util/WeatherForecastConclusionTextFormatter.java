@@ -33,11 +33,11 @@ public class WeatherForecastConclusionTextFormatter {
         final var usignificanceConditionWithHighestOrdinal = conclusion.getConditions().stream()
                 .filter(c -> !c.isSignificant()).min(Comparator.comparingInt(WeatherConditions::ordinal));
 
-        final var fromToString = formatTemperature(conclusion.getMinTemp())
-                + ".." + formatTemperature(conclusion.getMaxTemp()) + "°C";
-
-        final var fromUntilToString = formatTemperature(conclusion.getMinTemp())
-                + " bis " + formatTemperature(conclusion.getMaxTemp()) + "°C";
+        final var formattedTempMin = formatTemperature(conclusion.getMinTemp());
+        final var formattedTempMax = formatTemperature(conclusion.getMaxTemp());
+        final var isMinMaxSame = formattedTempMin == formattedTempMax;
+        final var fromToString = formattedTempMin + (isMinMaxSame ? "" : ".." + formattedTempMax) + "°C";
+        final var fromUntilToString = formattedTempMin + (isMinMaxSame ? "" : " bis " + formattedTempMax) + "°C";
 
         StringBuilder fromUntilToWithCaptionAndTime = new StringBuilder("Temperatur " + fromUntilToString);
 
