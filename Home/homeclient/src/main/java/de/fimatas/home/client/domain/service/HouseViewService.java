@@ -980,7 +980,7 @@ public class HouseViewService {
 
         view.setName("Anwesenheit");
         view.setId("presence");
-        view.setPlaceEnum(Place.HOUSE);
+        view.setPlaceEnum(Place.FRONTDOOR);
         view.setIcon("fa-solid fa-house-user");
         view.setUnreach(Boolean.toString(presenceModel == null));
         if(presenceModel == null){
@@ -1022,8 +1022,8 @@ public class HouseViewService {
         view.setUnreach(Boolean.toString(isUnreachable));
 
         List.of(Place.KIDSROOM_1, Place.KIDSROOM_2, Place.BEDROOM).stream().filter(p -> p != place).forEach(a -> {
-            String subtitle = house.getPlaceSubtitles().containsKey(a) ? " " + house.getPlaceSubtitles().get(a) : "";
-            view.getOtherPlaces().add(new ValueWithCaption(a.name(), a.getPlaceName() + subtitle, Strings.EMPTY));
+            String title = house.getPlaceSubtitles().containsKey(a) ? house.getPlaceSubtitles().get(a) : a.getPlaceName();
+            view.getOtherPlaces().add(new ValueWithCaption(a.name(), title, null));
         });
 
         HeatpumpPreset actualPreset = isUnreachable ? null : heatpumpModel.getHeatpumpMap().get(place).getHeatpumpPreset();
@@ -1046,7 +1046,7 @@ public class HouseViewService {
         ConditionColor color = actualPreset == null ? ConditionColor.RED: actualPreset.getConditionColor();
         view.setColorClass(color.getUiClass());
         view.setActiveSwitchColorClass(color.getUiClass());
-        view.setStateShort(actualPreset.getMode());
+        view.setStateShort(actualPreset.getShortText());
         view.setElementTitleState(actualPreset.getMode() + (actualPreset.getIntensity()!=null ? ", " + actualPreset.getIntensity() : ""));
         view.setState(actualPreset.getMode());
         view.setStateSuffix(actualPreset.getIntensity()!=null ? ", " + actualPreset.getIntensity() : "");
