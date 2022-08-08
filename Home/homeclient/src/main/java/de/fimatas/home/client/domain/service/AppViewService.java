@@ -6,9 +6,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import de.fimatas.home.client.domain.model.*;
+import de.fimatas.home.library.domain.model.HeatpumpPreset;
 import de.fimatas.home.library.model.ConditionColor;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.Model;
 import de.fimatas.home.client.model.HomeViewModel;
@@ -66,7 +68,7 @@ public class AppViewService {
         for (PlaceDirectives placeDirectives : targetPlaceDirectives.get(viewTarget)) {
             for (Object value : model.asMap().values()) {
                 if (value instanceof View) {
-                    mapView(appModel, placeDirectives, value, model);
+                    mapView(appModel, placeDirectives, value, model, viewTarget);
                 }
             }
         }
@@ -82,50 +84,56 @@ public class AppViewService {
         return appModel;
     }
 
-    private void mapView(HomeViewModel appModel, PlaceDirectives placeDirectives, Object value, Model completeModel) {
+    private void mapView(HomeViewModel appModel, PlaceDirectives placeDirectives, Object value, Model completeModel, AppViewTarget viewTarget) {
 
         View view = (View) value;
         if (view.getPlaceID().equals(placeDirectives.place.name())) {
             HomeViewPlaceModel placeModel = lookupPlaceModel(appModel, placeDirectives, completeModel);
             if (view instanceof ClimateView) {
-                mapClimateView(placeDirectives, (ClimateView) view, placeModel);
+                mapClimateView(placeDirectives, (ClimateView) view, placeModel, viewTarget);
             } else if (view instanceof PowerView) {
-                mapPowerView(placeDirectives, (PowerView) view, placeModel);
+                mapPowerView(placeDirectives, (PowerView) view, placeModel, viewTarget);
             } else if (view instanceof LockView) {
-                mapLockView(placeDirectives, (LockView) view, placeModel);
+                mapLockView(placeDirectives, (LockView) view, placeModel, viewTarget);
             } else if (view instanceof SwitchView) {
-                mapSwitchView(placeDirectives, (SwitchView) view, placeModel);
+                mapSwitchView(placeDirectives, (SwitchView) view, placeModel, viewTarget);
             } else if (view instanceof WindowSensorView) {
-                mapWindowView(placeDirectives, (WindowSensorView) view, placeModel);
+                mapWindowView(placeDirectives, (WindowSensorView) view, placeModel, viewTarget);
             } else if (view instanceof WeatherForecastsView) {
-                mapWeatherForecastsView(placeDirectives, (WeatherForecastsView) view, placeModel);
+                mapWeatherForecastsView(placeDirectives, (WeatherForecastsView) view, placeModel, viewTarget);
+            } else if (view instanceof PresenceView) {
+                mapPresenceView(placeDirectives, (PresenceView) view, placeModel, viewTarget);
+            } else if(view instanceof HeatpumpView){
+                mapHeatpumpView(placeDirectives, (HeatpumpView) view, placeModel, viewTarget);
             }
         }
     }
 
-    private void mapSwitchView(PlaceDirectives placeDirectives, SwitchView view, HomeViewPlaceModel placeModel) {
+    private void mapSwitchView(PlaceDirectives placeDirectives, SwitchView view, HomeViewPlaceModel placeModel, AppViewTarget viewTarget) {
 
         placeModel.getValues().add(mapSwitchStatus(placeDirectives, view));
         placeModel.getActions().addAll(mapSwitchActions(placeDirectives, view));
     }
 
-    private void mapWindowView(PlaceDirectives placeDirectives, WindowSensorView view, HomeViewPlaceModel placeModel) {
+    private void mapWindowView(PlaceDirectives placeDirectives, WindowSensorView view, HomeViewPlaceModel placeModel, AppViewTarget viewTarget) {
 
         placeModel.getValues().add(mapWindowStatus(placeDirectives, view));
     }
 
-    private void mapLockView(PlaceDirectives placeDirectives, LockView view, HomeViewPlaceModel placeModel) {
+    private void mapLockView(PlaceDirectives placeDirectives, LockView view, HomeViewPlaceModel placeModel, AppViewTarget viewTarget) {
         if(directiveContainsOnly(placeDirectives, PlaceDirective.WIDGET_SYMBOL) && isColorClassOrangeOrRed(view)){
             placeModel.setName("HaustuerOrangeOrRed");
             placeModel.getValues().add(mapLockStatus(placeDirectives, view));
         }else{
-            placeModel.setName("Haustür");
+            placeModel.setName("Haus");
             placeModel.getValues().add(mapLockStatus(placeDirectives, view));
-            placeModel.getActions().addAll(mapLockActions(placeDirectives, view));
+            if(viewTarget == AppViewTarget.WATCH){
+                placeModel.getActions().addAll(mapLockActions(placeDirectives, view));
+            }
         }
     }
 
-    private void mapPowerView(PlaceDirectives placeDirectives, PowerView view, HomeViewPlaceModel placeModel) {
+    private void mapPowerView(PlaceDirectives placeDirectives, PowerView view, HomeViewPlaceModel placeModel, AppViewTarget viewTarget) {
 
         if (placeDirectives.place == Place.HOUSE) {
             placeModel.setName("Strom Gesamt");
@@ -134,20 +142,37 @@ public class AppViewService {
         placeModel.getValues().add(mapTodayPower(placeDirectives, view));
     }
 
-    private void mapClimateView(PlaceDirectives placeDirectives, ClimateView view, HomeViewPlaceModel placeModel) {
+    private void mapClimateView(PlaceDirectives placeDirectives, ClimateView view, HomeViewPlaceModel placeModel, AppViewTarget viewTarget) {
 
         placeModel.getValues().add(mapTemperature(placeDirectives, view));
-        if (StringUtils.isNotBlank(view.getStateHumidity())) {
+        if (StringUtils.isNotBlank(view.getStateHumidity()) && viewTarget != AppViewTarget.COMPLICATION) {
             placeModel.getValues().add(mapHumidity(placeDirectives, view));
         }
     }
 
-    private void mapWeatherForecastsView(PlaceDirectives placeDirectives, WeatherForecastsView view, HomeViewPlaceModel placeModel) {
+    private void mapWeatherForecastsView(PlaceDirectives placeDirectives, WeatherForecastsView view, HomeViewPlaceModel placeModel, AppViewTarget viewTarget) {
+
+        if(viewTarget == AppViewTarget.COMPLICATION){
+            return;
+        }
 
         placeModel.getValues().add(mapForecastTemperature(placeDirectives, view));
         if (StringUtils.isNotBlank(view.getStateEventWatch())) {
             placeModel.getValues().add(mapForecastEvent(placeDirectives, view));
         }
+    }
+
+    private void mapPresenceView(PlaceDirectives placeDirectives, PresenceView view, HomeViewPlaceModel placeModel, AppViewTarget viewTarget) {
+
+        if(viewTarget == AppViewTarget.WATCH){
+            placeModel.getValues().add(mapPresence(placeDirectives, view));
+        }
+    }
+
+    private void mapHeatpumpView(PlaceDirectives placeDirectives, HeatpumpView view, HomeViewPlaceModel placeModel, AppViewTarget viewTarget) {
+
+        placeModel.getValues().add(mapHeatpump(placeDirectives, view));
+        placeModel.getActions().addAll(mapHeatpumpActions(placeDirectives, view));
     }
 
     private HomeViewPlaceModel lookupPlaceModel(HomeViewModel appModel, PlaceDirectives placeDirectives, Model completeModel) {
@@ -210,6 +235,24 @@ public class AppViewService {
         return hvm;
     }
 
+    private HomeViewValueModel mapPresence(PlaceDirectives placeDirectives, PresenceView view) {
+        HomeViewValueModel hvm = new HomeViewValueModel();
+        hvm.setId(placeDirectives.place.getPlaceName() + "#presence");
+        hvm.setKey(view.getName());
+        hvm.setValue(view.getStateShort());
+        hvm.setAccent(mapAccent(view.getColorClass()));
+        return hvm;
+    }
+
+    private HomeViewValueModel mapHeatpump(PlaceDirectives placeDirectives, HeatpumpView view) {
+        HomeViewValueModel hvm = new HomeViewValueModel();
+        hvm.setId(placeDirectives.place.getPlaceName() + "#heatpump");
+        hvm.setKey("W-Pumpe");
+        hvm.setValue(view.getStateShort());
+        hvm.setAccent(mapAccent(view.getColorClass()));
+        return hvm;
+    }
+
     private HomeViewValueModel mapForecastEvent(PlaceDirectives placeDirectives, WeatherForecastsView view) {
         HomeViewValueModel hvm = new HomeViewValueModel();
         hvm.setId(placeDirectives.place.getPlaceName() + "#fcEvent");
@@ -249,7 +292,7 @@ public class AppViewService {
     private HomeViewValueModel mapLockStatus(PlaceDirectives placeDirectives, LockView view) {
         HomeViewValueModel hvm = new HomeViewValueModel();
         hvm.setId(placeDirectives.place.getPlaceName() + "#lockStatus");
-        hvm.setKey("Zustand");
+        hvm.setKey("Tür");
         hvm.setValue(Boolean.TRUE.toString().equalsIgnoreCase(view.getBusy()) ? ". . ." : view.getState());
         hvm.setAccent(mapAccent(view.getColorClass()));
         return hvm;
@@ -262,6 +305,11 @@ public class AppViewService {
         }
 
         List<HomeViewActionModel> actionsState = new LinkedList<>();
+        HomeViewActionModel actionSwitchCaption = new HomeViewActionModel();
+        actionSwitchCaption.setId(placeDirectives.place.getPlaceName() + "#lockStateCaption");
+        actionSwitchCaption.setName("Tür Status");
+        actionSwitchCaption.setLink(Strings.EMPTY);
+        actionsState.add(actionSwitchCaption);
         HomeViewActionModel actionLock = new HomeViewActionModel();
         actionLock.setId(placeDirectives.place.getPlaceName() + "#lockActionLock");
         actionLock.setName("Verriegeln");
@@ -278,6 +326,11 @@ public class AppViewService {
         actionOpen.setLink(view.getLinkOpen());
         actionsState.add(actionOpen);
         List<HomeViewActionModel> actionsControl = new LinkedList<>();
+        HomeViewActionModel actionModeCaption = new HomeViewActionModel();
+        actionModeCaption.setId(placeDirectives.place.getPlaceName() + "#lockModeCaption");
+        actionModeCaption.setName("Tür Modus");
+        actionModeCaption.setLink(Strings.EMPTY);
+        actionsControl.add(actionModeCaption);
         HomeViewActionModel actionAuto = new HomeViewActionModel();
         actionAuto.setId(placeDirectives.place.getPlaceName() + "#lockActionAuto");
         actionAuto.setName("Automatisch");
@@ -324,6 +377,11 @@ public class AppViewService {
         }
 
         List<HomeViewActionModel> actionsOnOff = new LinkedList<>();
+        HomeViewActionModel actionSwitchCaption = new HomeViewActionModel();
+        actionSwitchCaption.setId(placeDirectives.place.getPlaceName() + "#switchStateCaption");
+        actionSwitchCaption.setName("Schalter Status");
+        actionSwitchCaption.setLink(Strings.EMPTY);
+        actionsOnOff.add(actionSwitchCaption);
         HomeViewActionModel actionOn = new HomeViewActionModel();
         actionOn.setId(placeDirectives.place.getPlaceName() + "#switchActionOn");
         actionOn.setName("Ein");
@@ -335,6 +393,11 @@ public class AppViewService {
         actionOff.setLink(view.getLinkOff());
         actionsOnOff.add(actionOff);
         List<HomeViewActionModel> actionsControl = new LinkedList<>();
+        HomeViewActionModel actionModeCaption = new HomeViewActionModel();
+        actionModeCaption.setId(placeDirectives.place.getPlaceName() + "#switchModeCaption");
+        actionModeCaption.setName("Schalter Modus");
+        actionModeCaption.setLink(Strings.EMPTY);
+        actionsControl.add(actionModeCaption);
         HomeViewActionModel actionAuto = new HomeViewActionModel();
         actionAuto.setId(placeDirectives.place.getPlaceName() + "#switchActionAuto");
         actionAuto.setName("Automatisch");
@@ -349,6 +412,92 @@ public class AppViewService {
         actions.add(actionsOnOff);
         actions.add(actionsControl);
         return actions;
+    }
+
+    private List<List<HomeViewActionModel>> mapHeatpumpActions(PlaceDirectives placeDirectives, HeatpumpView view) {
+
+        if (BooleanUtils.toBoolean(view.getUnreach())) {
+            return new LinkedList<>();
+        }
+
+        List<List<HomeViewActionModel>> actions = new LinkedList<>();
+
+        // direct
+        actions.add(mapHeatpumpActionsRoomCombination(placeDirectives, view, List.of()));
+
+        // with one other room
+        view.getOtherPlaces().forEach(other -> actions.add(mapHeatpumpActionsRoomCombination(placeDirectives, view, List.of(other))));
+
+        // all
+        actions.add(mapHeatpumpActionsRoomCombination(placeDirectives, view, view.getOtherPlaces()));
+
+        return actions;
+    }
+
+    private List<HomeViewActionModel> mapHeatpumpActionsRoomCombination(PlaceDirectives placeDirectives, HeatpumpView view, List<ValueWithCaption> other) {
+
+        List<HomeViewActionModel> actionsDirect = new LinkedList<>();
+
+        HomeViewActionModel actionSwitchCaption = new HomeViewActionModel();
+
+        var idSuffix = other.stream().map(ValueWithCaption::getValue).collect(Collectors.joining("#"));
+        actionSwitchCaption.setId(placeDirectives.place.getPlaceName() + "#hpSwitchesCaption#" + idSuffix);
+        actionSwitchCaption.setName("W-Pumpe\n" + (StringUtils.isBlank(view.getPlaceSubtitle()) ? view.getPlace() : "") + view.getPlaceSubtitle().trim());
+        if(!other.isEmpty()){
+            other.forEach(o -> actionSwitchCaption.setName(actionSwitchCaption.getName() + "\n" + (StringUtils.isNotBlank(o.getCssClass()) ? o.getCssClass().trim() : o.getCaption())));
+        }
+        actionSwitchCaption.setLink(Strings.EMPTY);
+        actionsDirect.add(actionSwitchCaption);
+
+        actionsDirect.add(mapHeatpumpActionSinglePreset(placeDirectives, view, other, HeatpumpPreset.COOL_AUTO, idSuffix));
+        actionsDirect.add(mapHeatpumpActionSinglePreset(placeDirectives, view, other, HeatpumpPreset.COOL_MIN, idSuffix));
+        actionsDirect.add(mapHeatpumpActionSinglePreset(placeDirectives, view, other, HeatpumpPreset.HEAT_AUTO, idSuffix));
+        actionsDirect.add(mapHeatpumpActionSinglePreset(placeDirectives, view, other, HeatpumpPreset.HEAT_MIN, idSuffix));
+        actionsDirect.add(mapHeatpumpActionSinglePreset(placeDirectives, view, other, HeatpumpPreset.FAN_AUTO, idSuffix));
+        actionsDirect.add(mapHeatpumpActionSinglePreset(placeDirectives, view, other, HeatpumpPreset.FAN_MIN, idSuffix));
+        actionsDirect.add(mapHeatpumpActionSinglePreset(placeDirectives, view, other, HeatpumpPreset.DRY_TIMER, idSuffix));
+        actionsDirect.add(mapHeatpumpActionSinglePreset(placeDirectives, view, other, HeatpumpPreset.OFF, idSuffix));
+
+        return actionsDirect;
+    }
+
+    private HomeViewActionModel mapHeatpumpActionSinglePreset(PlaceDirectives placeDirectives, HeatpumpView view, List<ValueWithCaption> other, HeatpumpPreset preset, String idSuffix) {
+
+        HomeViewActionModel hpActionSwitch = new HomeViewActionModel();
+        hpActionSwitch.setId(placeDirectives.place.getPlaceName() + "#hpSwitch#" + preset + "#" + idSuffix);
+        hpActionSwitch.setName(preset.getShortText());
+        var link = "#";
+        switch (preset){
+            case COOL_AUTO:
+                link = view.getLinkCoolAuto();
+                break;
+            case COOL_MIN:
+                link = view.getLinkCoolMin();
+                break;
+            case HEAT_AUTO:
+                link = view.getLinkHeatAuto();
+                break;
+            case HEAT_MIN:
+                link = view.getLinkHeatMin();
+                break;
+            case FAN_AUTO:
+                link = view.getLinkFanAuto();
+                break;
+            case FAN_MIN:
+                link = view.getLinkFanMin();
+                break;
+            case DRY_TIMER:
+                link = view.getLinkTimer();
+                break;
+            case OFF:
+                link = view.getLinkOff();
+                break;
+        }
+        hpActionSwitch.setLink(link);
+        if(!other.isEmpty() && !link.equals("#")){
+            other.forEach(o -> hpActionSwitch.setLink(hpActionSwitch.getLink() + o.getValue() + ","));
+        }
+        return hpActionSwitch;
     }
 
     private boolean directiveContainsOnly(PlaceDirectives placeDirectives, @SuppressWarnings("SameParameterValue") PlaceDirective directive){
