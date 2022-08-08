@@ -62,6 +62,10 @@ public class LoginInterceptor implements HandlerInterceptor {
     private static final Set<String> WHITELIST_EXTENSIONS =
         Set.of("png", "css", "js", "ico", "svg", "eot", "ttf", "woff", "woff2", "map");
 
+    private static final Map<String, String> WHITELIST_URI_AND_QUERY = Map.of(
+            "/getAppModel", "viewTarget=complication" //
+    );
+
     @Autowired
     private UserService userService;
 
@@ -113,6 +117,11 @@ public class LoginInterceptor implements HandlerInterceptor {
             return true;
         }
 
+        if(WHITELIST_URI_AND_QUERY.containsKey(request.getRequestURI()) &&
+                WHITELIST_URI_AND_QUERY.get(request.getRequestURI()).equals(request.getQueryString())){
+            return true;
+        }
+
         return WHITELIST_EXTENSIONS.contains(FilenameUtils.getExtension(request.getRequestURI()));
     }
 
@@ -144,7 +153,8 @@ public class LoginInterceptor implements HandlerInterceptor {
         }
 
         // Token hat hoehere Prio als Cookie
-        if (StringUtils.isNotBlank(request.getHeader(APP_USER_TOKEN))) {
+        if (StringUtils.isNotBlank(request.getHeader(APP_USER_TOKEN))
+                || StringUtils.isNotBlank(request.getHeader(APP_USER_NAME))) {
             return checkUser(tokenLogin(request, response));
         }
 
@@ -180,7 +190,7 @@ public class LoginInterceptor implements HandlerInterceptor {
     }
 
     private boolean noLoginDataProvided(HttpServletRequest request) {
-        return StringUtils.isAllBlank(request.getHeader(APP_USER_TOKEN), request.getParameter(LOGIN_USERNAME),
+        return StringUtils.isAllBlank(request.getHeader(APP_USER_NAME), request.getHeader(APP_USER_TOKEN), request.getParameter(LOGIN_USERNAME),
             cookieRead(request));
     }
 
