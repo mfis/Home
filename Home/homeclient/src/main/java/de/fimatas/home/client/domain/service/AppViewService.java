@@ -172,7 +172,9 @@ public class AppViewService {
     private void mapHeatpumpView(PlaceDirectives placeDirectives, HeatpumpView view, HomeViewPlaceModel placeModel, AppViewTarget viewTarget) {
 
         placeModel.getValues().add(mapHeatpump(placeDirectives, view));
-        placeModel.getActions().addAll(mapHeatpumpActions(placeDirectives, view));
+        if(!Boolean.parseBoolean(view.getBusy()) && !Boolean.parseBoolean(view.getUnreach())) {
+            placeModel.getActions().addAll(mapHeatpumpActions(placeDirectives, view));
+        }
     }
 
     private HomeViewPlaceModel lookupPlaceModel(HomeViewModel appModel, PlaceDirectives placeDirectives, Model completeModel) {
@@ -204,7 +206,7 @@ public class AppViewService {
 
     private HomeViewValueModel mapTemperature(PlaceDirectives placeDirectives, ClimateView view) {
         HomeViewValueModel hvm = new HomeViewValueModel();
-        hvm.setId(placeDirectives.place.getPlaceName() + "#temp");
+        hvm.setId(placeDirectives.place.name() + "#temp");
         hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP).map(Enum::name).collect(Collectors.toList()));
         hvm.setKey("Wärme");
         hvm.setValue(view.getStateTemperature());
@@ -216,7 +218,7 @@ public class AppViewService {
 
     private HomeViewValueModel mapHumidity(PlaceDirectives placeDirectives, ClimateView view) {
         HomeViewValueModel hvm = new HomeViewValueModel();
-        hvm.setId(placeDirectives.place.getPlaceName() + "#humi");
+        hvm.setId(placeDirectives.place.name() + "#humi");
         hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP, ValueDirective.WIDGET_SKIP).map(Enum::name).collect(Collectors.toList()));
         hvm.setKey("Feuchte");
         hvm.setValue(view.getStateHumidity());
@@ -227,7 +229,7 @@ public class AppViewService {
 
     private HomeViewValueModel mapForecastTemperature(PlaceDirectives placeDirectives, WeatherForecastsView view) {
         HomeViewValueModel hvm = new HomeViewValueModel();
-        hvm.setId(placeDirectives.place.getPlaceName() + "#fcTemp");
+        hvm.setId(placeDirectives.place.name() + "#fcTemp");
         hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP).map(Enum::name).collect(Collectors.toList()));
         hvm.setKey("2-Tage");
         hvm.setValue(view.getStateTemperatureWatch());
@@ -237,7 +239,7 @@ public class AppViewService {
 
     private HomeViewValueModel mapPresence(PlaceDirectives placeDirectives, PresenceView view) {
         HomeViewValueModel hvm = new HomeViewValueModel();
-        hvm.setId(placeDirectives.place.getPlaceName() + "#presence");
+        hvm.setId(placeDirectives.place.name() + "#presence");
         hvm.setKey(view.getName());
         hvm.setValue(view.getStateShort());
         hvm.setAccent(mapAccent(view.getColorClass()));
@@ -246,16 +248,24 @@ public class AppViewService {
 
     private HomeViewValueModel mapHeatpump(PlaceDirectives placeDirectives, HeatpumpView view) {
         HomeViewValueModel hvm = new HomeViewValueModel();
-        hvm.setId(placeDirectives.place.getPlaceName() + "#heatpump");
+        hvm.setId(placeDirectives.place.name() + "#heatpump");
         hvm.setKey("W-Pumpe");
-        hvm.setValue(view.getStateShort());
-        hvm.setAccent(mapAccent(view.getColorClass()));
+        if(Boolean.parseBoolean(view.getBusy())) {
+            hvm.setValue("...\u21BB...");
+            hvm.setAccent(Strings.EMPTY);
+        }else if(Boolean.parseBoolean(view.getUnreach())) {
+            hvm.setValue("???");
+            hvm.setAccent(Strings.EMPTY);
+        }else{
+            hvm.setValue(view.getStateShort());
+            hvm.setAccent(mapAccent(view.getColorClass()));
+        }
         return hvm;
     }
 
     private HomeViewValueModel mapForecastEvent(PlaceDirectives placeDirectives, WeatherForecastsView view) {
         HomeViewValueModel hvm = new HomeViewValueModel();
-        hvm.setId(placeDirectives.place.getPlaceName() + "#fcEvent");
+        hvm.setId(placeDirectives.place.name() + "#fcEvent");
         hvm.getValueDirectives().addAll(Stream.of(ValueDirective.WIDGET_SKIP).map(Enum::name).collect(Collectors.toList()));
         hvm.setKey("Ereignis");
         hvm.setValue(view.getStateEventWatch());
@@ -266,7 +276,7 @@ public class AppViewService {
 
     private HomeViewValueModel mapActualPower(PlaceDirectives placeDirectives, PowerView view) {
         HomeViewValueModel hvm = new HomeViewValueModel();
-        hvm.setId(placeDirectives.place.getPlaceName() + "#actPowerSum");
+        hvm.setId(placeDirectives.place.name() + "#actPowerSum");
         hvm.setKey("Aktuell");
         hvm.setValue(view.getState().replace("Watt", "W"));
         hvm.setAccent(mapAccent(view.getColorClass()));
@@ -276,7 +286,7 @@ public class AppViewService {
 
     private HomeViewValueModel mapTodayPower(PlaceDirectives placeDirectives, PowerView view) {
         HomeViewValueModel hvm = new HomeViewValueModel();
-        hvm.setId(placeDirectives.place.getPlaceName() + "#todayPowerSum");
+        hvm.setId(placeDirectives.place.name() + "#todayPowerSum");
         hvm.setKey("Heute");
         if (BooleanUtils.toBoolean(view.getUnreach())) {
             hvm.setValue(StringUtils.EMPTY);
@@ -291,7 +301,7 @@ public class AppViewService {
 
     private HomeViewValueModel mapLockStatus(PlaceDirectives placeDirectives, LockView view) {
         HomeViewValueModel hvm = new HomeViewValueModel();
-        hvm.setId(placeDirectives.place.getPlaceName() + "#lockStatus");
+        hvm.setId(placeDirectives.place.name() + "#lockStatus");
         hvm.setKey("Tür");
         hvm.setValue(Boolean.TRUE.toString().equalsIgnoreCase(view.getBusy()) ? ". . ." : view.getState());
         hvm.setAccent(mapAccent(view.getColorClass()));
@@ -306,43 +316,43 @@ public class AppViewService {
 
         List<HomeViewActionModel> actionsState = new LinkedList<>();
         HomeViewActionModel actionSwitchCaption = new HomeViewActionModel();
-        actionSwitchCaption.setId(placeDirectives.place.getPlaceName() + "#lockStateCaption");
+        actionSwitchCaption.setId(placeDirectives.place.name() + "#lockStateCaption");
         actionSwitchCaption.setName("Tür Status");
         actionSwitchCaption.setLink(Strings.EMPTY);
         actionsState.add(actionSwitchCaption);
         HomeViewActionModel actionLock = new HomeViewActionModel();
-        actionLock.setId(placeDirectives.place.getPlaceName() + "#lockActionLock");
+        actionLock.setId(placeDirectives.place.name() + "#lockActionLock");
         actionLock.setName("Verriegeln");
         actionLock.setLink(view.getLinkLock());
         actionsState.add(actionLock);
         HomeViewActionModel actionUnlock = new HomeViewActionModel();
-        actionUnlock.setId(placeDirectives.place.getPlaceName() + "#lockActionUnlock");
+        actionUnlock.setId(placeDirectives.place.name() + "#lockActionUnlock");
         actionUnlock.setName("Entriegeln");
         actionUnlock.setLink(view.getLinkUnlock());
         actionsState.add(actionUnlock);
         HomeViewActionModel actionOpen = new HomeViewActionModel();
-        actionOpen.setId(placeDirectives.place.getPlaceName() + "#lockActionOpen");
+        actionOpen.setId(placeDirectives.place.name() + "#lockActionOpen");
         actionOpen.setName("Öffnen");
         actionOpen.setLink(view.getLinkOpen());
         actionsState.add(actionOpen);
         List<HomeViewActionModel> actionsControl = new LinkedList<>();
         HomeViewActionModel actionModeCaption = new HomeViewActionModel();
-        actionModeCaption.setId(placeDirectives.place.getPlaceName() + "#lockModeCaption");
+        actionModeCaption.setId(placeDirectives.place.name() + "#lockModeCaption");
         actionModeCaption.setName("Tür Modus");
         actionModeCaption.setLink(Strings.EMPTY);
         actionsControl.add(actionModeCaption);
         HomeViewActionModel actionAuto = new HomeViewActionModel();
-        actionAuto.setId(placeDirectives.place.getPlaceName() + "#lockActionAuto");
+        actionAuto.setId(placeDirectives.place.name() + "#lockActionAuto");
         actionAuto.setName("Automatisch");
         actionAuto.setLink(view.getLinkAuto());
         actionsControl.add(actionAuto);
         HomeViewActionModel actionManu = new HomeViewActionModel();
-        actionManu.setId(placeDirectives.place.getPlaceName() + "#lockActionManu");
+        actionManu.setId(placeDirectives.place.name() + "#lockActionManu");
         actionManu.setName("Manuell");
         actionManu.setLink(view.getLinkManual());
         actionsControl.add(actionManu);
         HomeViewActionModel actionEvent = new HomeViewActionModel();
-        actionEvent.setId(placeDirectives.place.getPlaceName() + "#lockActionEvent");
+        actionEvent.setId(placeDirectives.place.name() + "#lockActionEvent");
         actionEvent.setName("Ereignis");
         actionEvent.setLink(view.getLinkAutoEvent());
         actionsControl.add(actionEvent);
@@ -354,7 +364,7 @@ public class AppViewService {
 
     private HomeViewValueModel mapSwitchStatus(PlaceDirectives placeDirectives, SwitchView view) {
         HomeViewValueModel hvm = new HomeViewValueModel();
-        hvm.setId(placeDirectives.place.getPlaceName() + "#switchStatus");
+        hvm.setId(placeDirectives.place.name() + "#switchStatus");
         hvm.setKey(view.getShortName());
         hvm.setValue(view.getStateShort());
         hvm.setAccent(mapAccent(view.getColorClass()));
@@ -363,7 +373,7 @@ public class AppViewService {
 
     private HomeViewValueModel mapWindowStatus(PlaceDirectives placeDirectives, WindowSensorView view) {
         HomeViewValueModel hvm = new HomeViewValueModel();
-        hvm.setId(placeDirectives.place.getPlaceName() + "#windowStatus");
+        hvm.setId(placeDirectives.place.name() + "#windowStatus");
         hvm.setKey(view.getShortName());
         hvm.setValue(view.getStateShort());
         hvm.setAccent(mapAccent(view.getColorClass()));
@@ -378,33 +388,33 @@ public class AppViewService {
 
         List<HomeViewActionModel> actionsOnOff = new LinkedList<>();
         HomeViewActionModel actionSwitchCaption = new HomeViewActionModel();
-        actionSwitchCaption.setId(placeDirectives.place.getPlaceName() + "#switchStateCaption");
+        actionSwitchCaption.setId(placeDirectives.place.name() + "#switchStateCaption");
         actionSwitchCaption.setName("Schalter Status");
         actionSwitchCaption.setLink(Strings.EMPTY);
         actionsOnOff.add(actionSwitchCaption);
         HomeViewActionModel actionOn = new HomeViewActionModel();
-        actionOn.setId(placeDirectives.place.getPlaceName() + "#switchActionOn");
+        actionOn.setId(placeDirectives.place.name() + "#switchActionOn");
         actionOn.setName("Ein");
         actionOn.setLink(view.getLinkOn());
         actionsOnOff.add(actionOn);
         HomeViewActionModel actionOff = new HomeViewActionModel();
-        actionOff.setId(placeDirectives.place.getPlaceName() + "#switchActionOff");
+        actionOff.setId(placeDirectives.place.name() + "#switchActionOff");
         actionOff.setName("Aus");
         actionOff.setLink(view.getLinkOff());
         actionsOnOff.add(actionOff);
         List<HomeViewActionModel> actionsControl = new LinkedList<>();
         HomeViewActionModel actionModeCaption = new HomeViewActionModel();
-        actionModeCaption.setId(placeDirectives.place.getPlaceName() + "#switchModeCaption");
+        actionModeCaption.setId(placeDirectives.place.name() + "#switchModeCaption");
         actionModeCaption.setName("Schalter Modus");
         actionModeCaption.setLink(Strings.EMPTY);
         actionsControl.add(actionModeCaption);
         HomeViewActionModel actionAuto = new HomeViewActionModel();
-        actionAuto.setId(placeDirectives.place.getPlaceName() + "#switchActionAuto");
+        actionAuto.setId(placeDirectives.place.name() + "#switchActionAuto");
         actionAuto.setName("Automatisch");
         actionAuto.setLink(view.getLinkAuto());
         actionsControl.add(actionAuto);
         HomeViewActionModel actionManu = new HomeViewActionModel();
-        actionManu.setId(placeDirectives.place.getPlaceName() + "#switchActionManu");
+        actionManu.setId(placeDirectives.place.name() + "#switchActionManu");
         actionManu.setName("Manuell");
         actionManu.setLink(view.getLinkManual());
         actionsControl.add(actionManu);
@@ -441,8 +451,8 @@ public class AppViewService {
         HomeViewActionModel actionSwitchCaption = new HomeViewActionModel();
 
         var idSuffix = other.stream().map(ValueWithCaption::getValue).collect(Collectors.joining("#"));
-        actionSwitchCaption.setId(placeDirectives.place.getPlaceName() + "#hpSwitchesCaption#" + idSuffix);
-        actionSwitchCaption.setName("W-Pumpe\n" + (StringUtils.isBlank(view.getPlaceSubtitle()) ? view.getPlace() : "") + view.getPlaceSubtitle().trim());
+        actionSwitchCaption.setId(placeDirectives.place.name() + "#hpSwitchesCaption#" + idSuffix);
+        actionSwitchCaption.setName("Wärmepumpe\n" + (StringUtils.isBlank(view.getPlaceSubtitle()) ? view.getPlace() : "") + view.getPlaceSubtitle().trim());
         if(!other.isEmpty()){
             other.forEach(o -> actionSwitchCaption.setName(actionSwitchCaption.getName() + "\n" + (StringUtils.isNotBlank(o.getCssClass()) ? o.getCssClass().trim() : o.getCaption())));
         }
@@ -464,7 +474,7 @@ public class AppViewService {
     private HomeViewActionModel mapHeatpumpActionSinglePreset(PlaceDirectives placeDirectives, HeatpumpView view, List<ValueWithCaption> other, HeatpumpPreset preset, String idSuffix) {
 
         HomeViewActionModel hpActionSwitch = new HomeViewActionModel();
-        hpActionSwitch.setId(placeDirectives.place.getPlaceName() + "#hpSwitch#" + preset + "#" + idSuffix);
+        hpActionSwitch.setId(placeDirectives.place.name() + "#hpSwitch#" + preset + "#" + idSuffix);
         hpActionSwitch.setName(preset.getShortText());
         var link = "#";
         switch (preset){
