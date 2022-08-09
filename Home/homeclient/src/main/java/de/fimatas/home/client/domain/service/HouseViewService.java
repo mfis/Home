@@ -1017,7 +1017,7 @@ public class HouseViewService {
         view.setName("Wärmepumpe");
         view.setIcon("aircon.png");
         view.setPlaceEnum(place);
-        view.setPlaceSubtitle(house.getPlaceSubtitles().containsKey(place) ? " " + house.getPlaceSubtitles().get(place) : "");
+        view.setPlaceSubtitle(house.getPlaceSubtitles().containsKey(place) ? house.getPlaceSubtitles().get(place) : place.getPlaceName());
         view.setId("heatpump" + place.name());
         view.setUnreach(Boolean.toString(isUnreachable));
 
