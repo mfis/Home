@@ -13,10 +13,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
 import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
@@ -33,13 +30,35 @@ public class BrightSkyAPI {
 
     private static final ObjectMapper jsonObjectMapper = new ObjectMapper();
 
-    public List<JsonNode> call(){
+    private Map<LocalDate, List<JsonNode>> cacheFurtherDays = null;
+
+    public List<JsonNode> callTwoDays(){
 
         List<JsonNode> forecasts = new LinkedList<>();
         LocalDate now = LocalDate.now();
         callForDate(now, forecasts);
         callForDate(now.plusDays(1L), forecasts);
         return forecasts;
+    }
+
+    public Map<LocalDate, List<JsonNode>> getCachedFurtherDays(){
+        if(cacheFurtherDays == null){
+            cachingCallForFurtherDays();
+        }
+        return cacheFurtherDays;
+    }
+
+    public void cachingCallForFurtherDays(){
+
+        Map<LocalDate, List<JsonNode>> allDays = new LinkedHashMap<>();
+        LocalDate now = LocalDate.now();
+
+        for(int i = 2 ; i < 10 ; i++){
+            List<JsonNode> singleDay = new LinkedList<>();
+            callForDate(now.plusDays(i), singleDay);
+            allDays.put(now.plusDays(i), singleDay);
+        }
+        cacheFurtherDays = allDays;
     }
 
     @SneakyThrows

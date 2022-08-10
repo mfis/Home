@@ -42,16 +42,34 @@ public class WeatherService {
 
     private static final BigDecimal WIND_SPEED_STORM = BigDecimal.valueOf(35);
 
+
+    @Retryable(value = Exception.class, maxAttempts = 4, backoff = @Backoff(delay = 5000))
+    public void refreshFurtherDaysCache() {
+        brightSkyAPI.cachingCallForFurtherDays();
+    }
+
     @Retryable(value = Exception.class, maxAttempts = 4, backoff = @Backoff(delay = 5000))
     public void refreshWeatherForecastModel() {
 
         var model = new WeatherForecastModel();
-        model.setForecasts(mapApiResponse(brightSkyAPI.call()));
+        model.setForecasts(mapApiResponse(brightSkyAPI.callTwoDays()));
         model.setDateTime(System.currentTimeMillis());
         model.setSourceText(env.getProperty("weatherForecast.sourcetext"));
 
         calculateSunriseSunset(model.getForecasts());
         calculateConclusions(model);
+
+        final Map<LocalDate, List<JsonNode>> furtherDays = brightSkyAPI.getCachedFurtherDays();
+        furtherDays.forEach((date, day) -> {
+            final List<WeatherForecast> dayForecasts = mapApiResponse(day);
+            final WeatherForecastConclusion dayConclusion = calculateConclusionForTimerange(dayForecasts);
+            WeatherConditions.lessSignificantConditions().forEach(c -> {
+                if(dayConclusion.getConditions().isEmpty()) {
+                    dayForecasts.stream().filter(fc -> fc.getIcons().contains(c)).findFirst().ifPresent(i -> dayConclusion.getConditions().add(c));
+                }
+                });
+            model.getFurtherDays().put(date, dayConclusion);
+        });
 
         ModelObjectDAO.getInstance().write(model);
         uploadService.uploadToClient(model);

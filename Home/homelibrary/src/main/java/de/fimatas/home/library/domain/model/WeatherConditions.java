@@ -2,6 +2,8 @@ package de.fimatas.home.library.domain.model;
 
 import de.fimatas.home.library.model.ConditionColor;
 
+import java.util.List;
+
 public enum WeatherConditions {
 
     WIND("fa-solid fa-wind",  "wind","Sturm", true, ConditionColor.RED),
@@ -31,6 +33,10 @@ public enum WeatherConditions {
         this.caption = caption;
         this.significant = significant;
         this.color = color;
+    }
+
+    public static List<WeatherConditions> lessSignificantConditions(){
+        return List.of(SUN_CLOUD, CLOUD);
     }
 
     public String getFontAwesomeID() {

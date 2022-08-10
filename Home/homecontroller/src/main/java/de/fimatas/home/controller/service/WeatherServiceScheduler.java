@@ -15,12 +15,23 @@ public class WeatherServiceScheduler {
     private WeatherService weatherService;
 
     @PostConstruct
-    @Scheduled(cron = "2 00 * * * *") // two seconds after full hour
-    private void scheduledRefreshHouseModel() {
+    @Scheduled(cron = "2 00 1-23 * * *") // two seconds after full hour
+    private void scheduledRefreshWeatherModel() {
         try {
             weatherService.refreshWeatherForecastModel();
         }catch(Exception e){
-           log.error("Could not call weather service", e);
+           log.error("Could not call weather service(1)", e);
+        }
+    }
+
+    @PostConstruct
+    @Scheduled(cron = "2 00 0 * * *") // two seconds after full hour
+    private void scheduledRefreshWeatherModelWithFurtherDays() {
+        try {
+            weatherService.refreshFurtherDaysCache();
+            weatherService.refreshWeatherForecastModel();
+        }catch(Exception e){
+            log.error("Could not call weather service(2)", e);
         }
     }
 
