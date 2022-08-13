@@ -878,6 +878,7 @@ public class HouseViewService {
         forecasts.setState(StringUtils.EMPTY); // setting state for every day instead
 
         final LocalDate[] lastDateAdded = {null};
+        final String[] lastDayNight = {null};
         weatherForecastModel.getForecasts().forEach( fc -> {
             if(lastDateAdded[0] ==null || !lastDateAdded[0].equals(fc.getTime().toLocalDate())){
                 var view = new WeatherForecastView();
@@ -890,7 +891,10 @@ public class HouseViewService {
                 forecasts.getForecasts().add(view);
             }
             var view = new WeatherForecastView();
-            view.setStripeColorClass(fc.isDay() ? ConditionColor.ROW_STRIPE_ACCENT.getUiClass():ConditionColor.ROW_STRIPE_DEFAULT.getUiClass());
+            view.setStripeColorClass(ConditionColor.ROW_STRIPE_DEFAULT.getUiClass());
+            view.setDayNight(fc.isDay() ? "day" : "night");
+            view.setDayNightSwitch(Boolean.toString(lastDayNight[0] != null && !lastDayNight[0].equals(view.getDayNight())));
+            lastDayNight[0] = view.getDayNight();
             view.setTime(fc.getTime().format(DateTimeFormatter.ofPattern("HH")) + " Uhr");
             view.setTemperature(fc.getTemperature()==null?"":df.format(fc.getTemperature()) + "°C");
             view.setWind(fc.getWind()==null?"":df.format(fc.getWind()) + " km/h");
