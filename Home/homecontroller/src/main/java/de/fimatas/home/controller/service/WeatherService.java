@@ -254,7 +254,31 @@ public class WeatherService {
                 actualSunset = LocalDateTime.ofInstant(actualSunsetCalendar.toInstant(), actualSunsetCalendar.getTimeZone().toZoneId());
                 lastDateProcessed = forecast.getTime().toLocalDate();
             }
-            forecast.setDay(forecast.getTime().getHour()>actualSunrise.getHour() && forecast.getTime().getHour()<actualSunset.getHour());
+
+            boolean sunsetDay = (forecast.getTime().getHour()==actualSunrise.getHour() && actualSunrise.getMinute() < 30)
+                    || forecast.getTime().getHour()>actualSunrise.getHour();
+            boolean sunriseDay = (forecast.getTime().getHour()==actualSunset.getHour()
+                    && actualSunset.getMinute() > 30)
+                    || forecast.getTime().getHour()<actualSunset.getHour();
+
+            forecast.setDay(sunsetDay && sunriseDay);
+
+            // Adjust icons, because weather api can calculate day/night icons with different algorithm
+            if(forecast.isDay()){
+                replaceCondition(forecast, WeatherConditions.MOON_CLOUD, WeatherConditions.SUN_CLOUD);
+                replaceCondition(forecast, WeatherConditions.MOON, WeatherConditions.SUN);
+            }
+            if(!forecast.isDay()){
+                replaceCondition(forecast, WeatherConditions.SUN_CLOUD, WeatherConditions.MOON_CLOUD);
+                replaceCondition(forecast, WeatherConditions.SUN, WeatherConditions.MOON);
+            }
+        }
+    }
+
+    private void replaceCondition (WeatherForecast forecast, WeatherConditions from, WeatherConditions to){
+        if(forecast.getIcons().contains(from)){
+            forecast.getIcons().remove(from);
+            forecast.getIcons().add(to);
         }
     }
 
