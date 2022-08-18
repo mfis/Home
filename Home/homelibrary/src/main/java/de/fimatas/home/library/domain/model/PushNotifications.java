@@ -6,6 +6,8 @@ public enum PushNotifications {
     WINDOW_OPEN("Fenster noch geöffnet", "Geöffnete Fenster",true), //
     LOW_BATTERY("Batterie fast leer", "Leere Batterien",true), //
     WEATHER_TODAY("Das Wetter heute", "Tageswetter",false), //
+
+    ERRORMESSAGE("Fehlermeldung", "Fehlermeldungen",false), //
     ;
 
     private final String pushText;

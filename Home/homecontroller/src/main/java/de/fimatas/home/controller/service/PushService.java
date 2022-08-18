@@ -126,6 +126,16 @@ public class PushService {
         }
     }
 
+    public void sendErrorMessage(String message) {
+
+        try {
+            settingsService.listTokensWithEnabledSetting(PushNotifications.ERRORMESSAGE).forEach(pushToken ->
+                    handleMessage(pushToken, PushNotifications.ERRORMESSAGE.getPushText(), message));
+        } catch (Exception e) {
+            LogFactory.getLog(PushService.class).error("Could not [sendErorMessage] push notifications:", e);
+        }
+    }
+
     private void windowOpenMessage(HouseModel newModel) {
 
         var roomNames = new LinkedList<String>();
