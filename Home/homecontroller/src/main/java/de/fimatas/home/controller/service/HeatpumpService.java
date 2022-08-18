@@ -124,9 +124,7 @@ public class HeatpumpService {
             return;
         }
 
-        HeatpumpModel newModel = new HeatpumpModel();
-        newModel.setTimestamp(System.currentTimeMillis());
-
+        HeatpumpModel newModel = getHeatpumpModelWithUnknownPresets();
         response.getRoomnamesAndStates().forEach((r, s) -> {
 
             Place place = dictPlaceToRoomNameInDriver.entrySet().stream().filter(e ->
@@ -249,12 +247,18 @@ public class HeatpumpService {
 
     private void switchModelToUnknown() {
 
+        final HeatpumpModel unknownHeatpumpModel = getHeatpumpModelWithUnknownPresets();
+        ModelObjectDAO.getInstance().write(unknownHeatpumpModel);
+        uploadService.uploadToClient(unknownHeatpumpModel);
+    }
+
+    private HeatpumpModel getHeatpumpModelWithUnknownPresets() {
+
         final var unknownHeatpumpModel = new HeatpumpModel();
         unknownHeatpumpModel.setTimestamp(System.currentTimeMillis());
         dictPlaceToRoomNameInDriver.keySet().forEach(
                 place -> unknownHeatpumpModel.getHeatpumpMap().put(place, new Heatpump(place, HeatpumpPreset.UNKNOWN)));
-        ModelObjectDAO.getInstance().write(unknownHeatpumpModel);
-        uploadService.uploadToClient(unknownHeatpumpModel);
+        return unknownHeatpumpModel;
     }
 
     private HeatpumpProgram presetToProgram(HeatpumpPreset preset){
