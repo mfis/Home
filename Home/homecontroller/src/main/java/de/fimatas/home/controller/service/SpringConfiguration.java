@@ -139,10 +139,10 @@ public class SpringConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public ThreadPoolTaskScheduler threadPoolTaskSchedulerHeatpumpTimer(){
+    public ThreadPoolTaskScheduler threadPoolTaskScheduler(){
         ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
-        threadPoolTaskScheduler.setThreadNamePrefix("ThreadPoolTaskSchedulerHeatpumpTimer");
-        threadPoolTaskScheduler.setPoolSize(3);
+        threadPoolTaskScheduler.setThreadNamePrefix("ThreadPoolTaskScheduler");
+        threadPoolTaskScheduler.setPoolSize(10);
         return threadPoolTaskScheduler;
     }
 }

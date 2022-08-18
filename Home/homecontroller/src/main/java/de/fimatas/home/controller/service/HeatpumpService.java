@@ -44,7 +44,7 @@ public class HeatpumpService {
     private RestTemplate restTemplateHeatpumpDriver;
 
     @Autowired
-    private ThreadPoolTaskScheduler threadPoolTaskSchedulerHeatpumpTimer;
+    private ThreadPoolTaskScheduler threadPoolTaskScheduler;
 
     @Autowired
     private Environment env;
@@ -230,7 +230,7 @@ public class HeatpumpService {
     private void scheduleNewTimers(Place place, HeatpumpPreset preset, String additionalData, List<Place> allPlaces) {
 
         if(preset == HeatpumpPreset.DRY_TIMER){
-            final ScheduledFuture<?> scheduledFuture = threadPoolTaskSchedulerHeatpumpTimer.schedule(() ->
+            final ScheduledFuture<?> scheduledFuture = threadPoolTaskScheduler.schedule(() ->
                     preset(place, HeatpumpPreset.OFF, additionalData), Instant.now().plus(15, ChronoUnit.MINUTES));
             allPlaces.forEach(p -> placeScheduler.put(p, Optional.of(new SchedulerData(scheduledFuture, preset, HeatpumpPreset.FAN_MIN))));
         }
