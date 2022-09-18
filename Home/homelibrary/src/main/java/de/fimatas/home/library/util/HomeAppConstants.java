@@ -46,7 +46,7 @@ public class HomeAppConstants {
 
     public static final int MODEL_HEATPUMP_INTERVAL_SECONDS = 60 * 10;
 
-    public static final int MODEL_HEATPUMP_OUTDATED_SECONDS = 60 * 22;
+    public static final int MODEL_HEATPUMP_OUTDATED_SECONDS = 60 * 32;
 
     //
 

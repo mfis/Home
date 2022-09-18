@@ -79,12 +79,7 @@ public class HeatpumpService {
 
     @Scheduled(initialDelay = 1000 * 10, fixedDelay = (1000 * HomeAppConstants.MODEL_HEATPUMP_INTERVAL_SECONDS) + 180)
     public void scheduledRefreshFromDriverCache() {
-        if(isRestartInTimerangeMinutes(10)) {
-            final HeatpumpModel oldModel = ModelObjectDAO.getInstance().readHeatpumpModel();
-            oldModel.setTimestamp(System.currentTimeMillis());
-            ModelObjectDAO.getInstance().write(oldModel);
-            uploadService.uploadToClient(oldModel);
-        }else{
+        if(!isRestartInTimerangeMinutes(10)) {
             refreshHeatpumpModel(true);
         }
     }
