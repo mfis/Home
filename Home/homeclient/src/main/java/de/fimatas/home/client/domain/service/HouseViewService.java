@@ -74,13 +74,13 @@ public class HouseViewService {
 
     private static final String SET_HEATPUMP = MESSAGEPATH + TYPE_IS + MessageType.CONTROL_HEATPUMP + AND_PLACE_IS;
 
-    private static final BigDecimal HIGH_TEMP = new BigDecimal("25");
+    private static final BigDecimal HIGH_TEMP = new BigDecimal("25.5");
 
-    private static final BigDecimal MEDIUM_HIGH_TEMP = new BigDecimal("23.0");
+    private static final BigDecimal MEDIUM_HIGH_TEMP = new BigDecimal("23.5");
 
-    private static final BigDecimal LOW_TEMP = new BigDecimal("18");
+    private static final BigDecimal LOW_TEMP = new BigDecimal("17.5");
 
-    private static final BigDecimal FROST_TEMP = new BigDecimal("3");
+    private static final BigDecimal FROST_TEMP = new BigDecimal("3.5");
 
     public static final String PLACE_SUBTITLE_PREFIX = "place_subtitle_";
 

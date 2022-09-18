@@ -58,6 +58,6 @@ public enum WeatherConditions {
     }
 
     public boolean isKindOfRain(){
-        return this == RAIN || this == CLOUD_RAIN;
+        return this == RAIN || this == CLOUD_RAIN || this == HAIL || this == THUNDERSTORM;
     }
 }

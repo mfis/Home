@@ -697,20 +697,20 @@
 						<tbody>
 							<th:block th:each="entry : ${model.forecasts}">
 								<th:block th:if="${#strings.equals(entry.header,'')}">
-									<tr th:if="${#strings.equals(entry.dayNightSwitch, 'true')}">
+									<!-- <tr th:if="${#strings.equals(entry.dayNightSwitch, 'true')}">
 										<td colspan="4" class="td-no-border" style="padding: 0px 16px 0px 5px;">
 											<hr style="border-top: 1px solid; border-top-color: #404040; margin: 5px 0px 5px 0px;"/>
 										</td>
-									</tr>
+									</tr> -->
 									<tr th:class="'tr-dark-stripe-' + ${entry.stripeColorClass}" th:style="${#strings.equals(entry.dayNight, 'night')} ? 'opacity: 0.55 !important;' : ''">
-										<td th:class="'td-no-border text-' + ${entry.colorClass}" style="padding: .20rem;" th:text="${entry.time}"></td>
-										<td th:class="'td-no-border text-' + ${entry.colorClass}" style="padding: .20rem" >
+										<td th:class="'td-no-border text-' + ${entry.colorClass}" style="padding: .08rem;" th:text="${entry.time}"></td>
+										<td th:class="'td-no-border text-' + ${entry.colorClass}" style="padding: .08rem" >
 											<th:block th:each="icon : ${entry.icons}">
 												<th:block th:replace="basics :: symbol (name=${icon})"/>
 											</th:block>
 										</td>
-										<td th:class="'td-no-border text-' + ${entry.colorClass}" style="text-align: right; padding: .20rem 1.5rem .20rem .25rem;" th:text="${entry.temperature}"></td>
-										<td th:class="'td-no-border text-' + ${entry.colorClass}" style="text-align: right; padding: .20rem .75rem .20rem .25rem;" th:text="${entry.wind}"></td>
+										<td th:class="'td-no-border text-' + ${entry.colorClass}" style="text-align: right; padding: .08rem 1.5rem .08rem .25rem;" th:text="${entry.temperature}"></td>
+										<td th:class="'td-no-border text-' + ${entry.colorClass}" style="text-align: right; padding: .08rem .75rem .08rem .25rem;" th:text="${entry.wind}"></td>
 									</tr>
 								</th:block>
 								<th:block th:unless="${#strings.equals(entry.header,'')}">
