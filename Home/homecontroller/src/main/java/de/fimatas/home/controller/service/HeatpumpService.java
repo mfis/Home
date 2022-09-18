@@ -227,11 +227,33 @@ public class HeatpumpService {
 
             final HeatpumpResponse response = callDriver(request);
             if(!responseHasError(response)){
-                scheduleNewTimers(place, preset, additionalData, allPlaces);
+                if(areExpectedModesSet(allPlaces, presetToProgram(preset), response)){
+                    scheduleNewTimers(place, preset, additionalData, allPlaces);
+                }else{
+                    CompletableFuture.runAsync(() -> pushService.sendErrorMessage("Wärmepumpe befindet sich nicht im erwarteten Modus!"));
+                }
             }
 
             handleResponse(response);
         });
+    }
+
+    private boolean areExpectedModesSet(List<Place> allPlaces, HeatpumpProgram program, HeatpumpResponse response) {
+
+        for(Map.Entry<String, HeatpumpState> entry : response.getRoomnamesAndStates().entrySet()){
+
+            Place place = dictPlaceToRoomNameInDriver.entrySet().stream().filter(e ->
+                    e.getValue().equalsIgnoreCase(entry.getKey())).findFirst().orElseThrow().getKey();
+
+            if(allPlaces.contains(place)){
+                if(program.isExpectedOnOffState() != entry.getValue().getOnOffSwitch()){
+                    return false;
+                }else if(entry.getValue().getOnOffSwitch() && (entry.getValue().getMode() != program.getExpectedMode())){
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     private void cancelOldTimers(List<Place> allPlaces) {
