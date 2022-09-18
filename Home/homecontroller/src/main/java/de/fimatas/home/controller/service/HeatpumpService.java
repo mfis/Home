@@ -16,6 +16,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -24,6 +25,7 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -77,13 +79,35 @@ public class HeatpumpService {
 
     @Scheduled(initialDelay = 1000 * 10, fixedDelay = (1000 * HomeAppConstants.MODEL_HEATPUMP_INTERVAL_SECONDS) + 180)
     public void scheduledRefreshFromDriverCache() {
-        refreshHeatpumpModel(true);
+        if(isRestartInTimerangeMinutes(10)) {
+            final HeatpumpModel oldModel = ModelObjectDAO.getInstance().readHeatpumpModel();
+            oldModel.setTimestamp(System.currentTimeMillis());
+            ModelObjectDAO.getInstance().write(oldModel);
+            uploadService.uploadToClient(oldModel);
+        }else{
+            refreshHeatpumpModel(true);
+        }
     }
 
     @Scheduled(cron = "42 15 4,13 * * *")
     private void scheduledRefreshFromDriverNoCache() {
         isCallError = false;
+        if(isRestartInTimerangeMinutes(60 * 3)) {
+            // no non-cache call if server restarts within +- three hours (and resets cache)
+            return;
+        }
         refreshHeatpumpModel(false);
+    }
+
+    private boolean isRestartInTimerangeMinutes(int minutes){
+        String serverRestartCron = env.getProperty("heatpump.server.restartCron");
+        if(StringUtils.isNotBlank(serverRestartCron)) {
+            CronExpression cronExpression = CronExpression.parse(serverRestartCron);
+            final LocalDateTime next = cronExpression.next(LocalDateTime.now());
+            final long minutesBetween = Math.abs(ChronoUnit.MINUTES.between(next, LocalDateTime.now()));
+            return minutesBetween <= minutes;
+        }
+        return false;
     }
 
     private synchronized void refreshHeatpumpModel(boolean cachedData) {
