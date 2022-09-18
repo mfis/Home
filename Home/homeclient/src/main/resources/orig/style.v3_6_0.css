@@ -4,6 +4,13 @@
 		padding-right: 7px;
 	}
 }
+a,hr,th,td,table,thead,tbody,tr,h1,h2,h3,h4,h5,h6,label,legend,span,i,image,img,ul,li,strong,small{
+	user-select: none !important;
+	-webkit-user-select: none !important;
+	-khtml-user-select: none !important;
+	-moz-user-select: none !important;
+	-ms-user-select: none !important;
+}
 a, th, td{
 	font-weight:330 !important;
 }
