@@ -1073,7 +1073,7 @@ public class HouseViewService {
         view.setColorClass(color.getUiClass());
         view.setActiveSwitchColorClass(color.getUiClass());
         view.setStateShort(actualPreset.getShortText());
-        view.setElementTitleState(actualPreset.getMode() + (actualPreset.getIntensity()!=null ? ", " + actualPreset.getIntensity() : ""));
+        view.setElementTitleState(heatpumpModel.isBusy()? "Ansteuerung..." : actualPreset.getMode() + (actualPreset.getIntensity()!=null ? ", " + actualPreset.getIntensity() : ""));
         view.setState(actualPreset.getMode());
         view.setStateSuffix(actualPreset.getIntensity()!=null ? ", " + actualPreset.getIntensity() : "");
     }
