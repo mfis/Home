@@ -996,6 +996,11 @@ public class HouseViewService {
         }
         lights.setState(lights.getElementTitleState());
 
+        var stateShort = lights.getElementTitleState();
+        stateShort = StringUtils.replaceIgnoreCase(stateShort, EINGESCHALTET, "ein");
+        stateShort = StringUtils.replaceIgnoreCase(stateShort, AUSGESCHALTET, "aus");
+        lights.setStateShort(stateShort);
+
         model.addAttribute("lights" + place.name(), lights);
     }
 

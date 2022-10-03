@@ -105,6 +105,8 @@ public class AppViewService {
                 mapPresenceView(placeDirectives, (PresenceView) view, placeModel, viewTarget);
             } else if(view instanceof HeatpumpView){
                 mapHeatpumpView(placeDirectives, (HeatpumpView) view, placeModel, viewTarget);
+            } else if(view instanceof LightsView){
+                mapLightsView(placeDirectives, (LightsView) view, placeModel, viewTarget);
             }
         }
     }
@@ -174,6 +176,17 @@ public class AppViewService {
         placeModel.getValues().add(mapHeatpump(placeDirectives, view));
         if(!Boolean.parseBoolean(view.getBusy()) && !Boolean.parseBoolean(view.getUnreach())) {
             placeModel.getActions().addAll(mapHeatpumpActions(placeDirectives, view));
+        }
+    }
+
+    private void mapLightsView(PlaceDirectives placeDirectives, LightsView view, HomeViewPlaceModel placeModel, AppViewTarget viewTarget) {
+
+        if(viewTarget != AppViewTarget.WATCH || view.getLights().isEmpty()){
+            return;
+        }
+        placeModel.getValues().add(mapLights(placeDirectives, view));
+        if(!Boolean.parseBoolean(view.getUnreach())) {
+            placeModel.getActions().addAll(mapLightsActions(placeDirectives, view));
         }
     }
 
@@ -254,6 +267,20 @@ public class AppViewService {
             hvm.setValue("...\u21BB...");
             hvm.setAccent(Strings.EMPTY);
         }else if(Boolean.parseBoolean(view.getUnreach())) {
+            hvm.setValue("???");
+            hvm.setAccent(Strings.EMPTY);
+        }else{
+            hvm.setValue(view.getStateShort());
+            hvm.setAccent(mapAccent(view.getColorClass()));
+        }
+        return hvm;
+    }
+
+    private HomeViewValueModel mapLights(PlaceDirectives placeDirectives, LightsView view) {
+        HomeViewValueModel hvm = new HomeViewValueModel();
+        hvm.setId(placeDirectives.place.name() + "#light");
+        hvm.setKey("Licht");
+        if(Boolean.parseBoolean(view.getUnreach())) {
             hvm.setValue("???");
             hvm.setAccent(Strings.EMPTY);
         }else{
@@ -508,6 +535,33 @@ public class AppViewService {
             other.forEach(o -> hpActionSwitch.setLink(hpActionSwitch.getLink() + o.getValue() + ","));
         }
         return hpActionSwitch;
+    }
+
+    private List<List<HomeViewActionModel>> mapLightsActions(PlaceDirectives placeDirectives, LightsView view) {
+
+        List<List<HomeViewActionModel>> actions = new LinkedList<>();
+
+        view.getLights().forEach(light -> {
+            List<HomeViewActionModel> lightAction = new LinkedList<>();
+            HomeViewActionModel actionLightCaption = new HomeViewActionModel();
+            actionLightCaption.setId(light.getId() + "#Caption");
+            actionLightCaption.setName("Licht " + light.getName());
+            actionLightCaption.setLink(Strings.EMPTY);
+            lightAction.add(actionLightCaption);
+            HomeViewActionModel actionOn = new HomeViewActionModel();
+            actionOn.setId(light.getId() + "#ActionOn");
+            actionOn.setName("Ein");
+            actionOn.setLink(light.getLinkOn());
+            lightAction.add(actionOn);
+            HomeViewActionModel actionOff = new HomeViewActionModel();
+            actionOff.setId(light.getId() + "#ActionOff");
+            actionOff.setName("Aus");
+            actionOff.setLink(light.getLinkOff());
+            lightAction.add(actionOff);
+            actions.add(lightAction);
+        });
+
+        return actions;
     }
 
     private boolean directiveContainsOnly(PlaceDirectives placeDirectives, @SuppressWarnings("SameParameterValue") PlaceDirective directive){
