@@ -56,7 +56,7 @@ public class AppViewService {
         Set<PlaceDirectives> widget = new LinkedHashSet<>();
         targetPlaceDirectives.put(AppViewTarget.WIDGET, widget);
 
-        widget.add(new PlaceDirectives(Place.OUTSIDE, PlaceDirective.WIDGET_LABEL_SMALL, PlaceDirective.WIDGET_LABEL_MEDIUM, PlaceDirective.WIDGET_LABEL_LARGE, PlaceDirective.WIDGET_SYMBOL));
+        widget.add(new PlaceDirectives(Place.OUTSIDE, PlaceDirective.WIDGET_LABEL_SMALL, PlaceDirective.WIDGET_LABEL_MEDIUM, PlaceDirective.WIDGET_LABEL_LARGE, PlaceDirective.WIDGET_SYMBOL, PlaceDirective.WIDGET_LOCKSCREEN_CIRCULAR));
         widget.add(new PlaceDirectives(Place.UPPER_FLOOR_TEMPERATURE, PlaceDirective.WIDGET_LABEL_SMALL, PlaceDirective.WIDGET_LABEL_MEDIUM, PlaceDirective.WIDGET_LABEL_LARGE));
         widget.add(new PlaceDirectives(Place.FRONTDOOR, PlaceDirective.WIDGET_SYMBOL));
     }
@@ -219,7 +219,7 @@ public class AppViewService {
     private HomeViewValueModel mapHumidity(PlaceDirectives placeDirectives, ClimateView view) {
         HomeViewValueModel hvm = new HomeViewValueModel();
         hvm.setId(placeDirectives.place.name() + "#humi");
-        hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP, ValueDirective.WIDGET_SKIP).map(Enum::name).collect(Collectors.toList()));
+        hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP, ValueDirective.WIDGET_SKIP, ValueDirective.LOCKSCREEN_SKIP).map(Enum::name).collect(Collectors.toList()));
         hvm.setKey("Feuchte");
         hvm.setValue(view.getStateHumidity());
         hvm.setAccent(mapAccent(view.getColorClassHumidity()));
@@ -550,13 +550,14 @@ public class AppViewService {
     private enum PlaceDirective {
         // Watch
         WATCH_LABEL, WATCH_SYMBOL,
-        // Widget
+        // Widget HomeScreen
         WIDGET_LABEL_SMALL, WIDGET_LABEL_MEDIUM, WIDGET_LABEL_LARGE, WIDGET_SYMBOL,
-        //
+        // Widget LockScreen
+        WIDGET_LOCKSCREEN_CIRCULAR
     }
 
     private enum ValueDirective {
-        SYMBOL_SKIP, WIDGET_SKIP
+        SYMBOL_SKIP, WIDGET_SKIP, LOCKSCREEN_SKIP
     }
 
     private static class PlaceDirectives{
