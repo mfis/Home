@@ -99,8 +99,9 @@ public class HeatpumpService {
         if(StringUtils.isNotBlank(serverRestartCron)) {
             CronExpression cronExpression = CronExpression.parse(serverRestartCron);
             final LocalDateTime next = cronExpression.next(LocalDateTime.now());
-            final long minutesBetween = Math.abs(ChronoUnit.MINUTES.between(next, LocalDateTime.now()));
-            return minutesBetween <= minutes;
+            final LocalDateTime previous = cronExpression.next(LocalDateTime.now().minus(1, ChronoUnit.DAYS));
+            return Math.abs(ChronoUnit.MINUTES.between(next, LocalDateTime.now())) <= minutes
+                    || Math.abs(ChronoUnit.MINUTES.between(previous, LocalDateTime.now())) <= minutes ;
         }
         return false;
     }
@@ -138,7 +139,9 @@ public class HeatpumpService {
             } catch (JsonProcessingException e) {
                 log.warn("Error calling heatpump driver....");
             }
-            CompletableFuture.runAsync(() -> pushService.sendErrorMessage("Fehler bei Ansteuerung der Wärmepumpe!"));
+            if(!response.isCacheNotPresentError()){
+                CompletableFuture.runAsync(() -> pushService.sendErrorMessage("Fehler bei Ansteuerung der Wärmepumpe!"));
+            }
             switchModelToUnknown();
             return;
         }
