@@ -130,8 +130,10 @@ public class HouseViewService {
 
         formatFrontDoorBell(model, "frontDoor", house.getFrontDoorBell(), house.getFrontDoorCamera());
         formatFrontDoorLock(model, "frontDoorLock", house.getFrontDoorLock());
+
         formatPower(model, house.getTotalElectricalPowerConsumption(), historyModel==null?null:historyModel.getTotalElectricPowerConsumptionDay());
         formatPower(model, house.getWallboxElectricalPowerConsumption(), historyModel==null?null:historyModel.getWallboxElectricPowerConsumptionDay());
+        formatEVCharge(model);
 
         formatHeatpump(model, house, heatpumpModel, Place.BEDROOM);
         formatHeatpump(model, house, heatpumpModel, Place.KIDSROOM_1);
@@ -1089,5 +1091,25 @@ public class HouseViewService {
         }else{
             return SET_HEATPUMP + place.name() + AND_VALUE_IS + targetPreset.name() + AND_ADD_DATA_ARE;
         }
+    }
+
+    private void formatEVCharge(Model model) {
+
+        var view = new View();
+        model.addAttribute("evcharge", view);
+
+        view.setName("Ladung eUp");
+        view.setId("evcharge");
+        view.setPlaceEnum(Place.HOUSE);
+        view.setIcon("fa-solid fa-car");
+        view.setUnreach(Boolean.toString(false));
+        if(new Object() == null){
+            return;
+        }
+
+        view.setColorClass(ConditionColor.GRAY.getUiClass());
+        view.setStateShort("xy%");
+        view.setElementTitleState("xy%");
+        view.setState("xy%");
     }
 }

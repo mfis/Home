@@ -23,7 +23,7 @@
 	<link rel="icon" sizes="180x180" href="apple-touch-icon-180x180.png">
 	<link rel="shortcut icon" href="favicon.ico"></link>
 	
-	<link rel='stylesheet' href='style.v3_6_0.css'/>
+	<link rel='stylesheet' href='style.v3_8_0.css'/>
 	
 	<link rel='stylesheet' href='/webjars/bootstrap/css/bootstrap.min.css'/>
 	
@@ -34,11 +34,15 @@
 <th:block th:fragment="scriptresources">
 
 	<script type="text/javascript" src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+	<link href="/soundar24-roundSlider/roundslider-min.css" rel="stylesheet"/>
+	<script src="/soundar24-roundSlider/roundslider-min.js"></script>
+	<script src="scripts.v1_0_0.js"></script>
 
 	<script>
 		
 		var pushToken = '';
 		var clientName = '';
+		var sliderList = [];
 		
 		function setPushToken(newTokenValue, newClientName){
 			clientName = newClientName;
@@ -80,6 +84,7 @@
 							registerCollapseListener();
 							showCheck();
 							showUserErrorMessage();
+							doOnloadFunctions();
 						} else if(httpRequest.status == 304){	
 							lastRefresh = (new Date).getTime();
 							showCheck();
@@ -93,7 +98,13 @@
 				showOffline();
 			}			
 		}
-		
+
+		function doOnloadFunctions(){
+			sliderList.forEach(function (e) {
+				initSlider(e);
+			})
+		}
+
 		function submitContent(target){
 			submitContentWithPin(target, '');
 		}
@@ -226,7 +237,8 @@
 			
 			var transitions = document.getElementsByClassName('collapsing');
 			
-			if((document.hasFocus() || isApp()) && $('.modal.fade.show').length === 0 && ((new Date).getTime() - lastRefresh > (1000)) && transitions.length === 0){
+			if((document.hasFocus() || isApp()) &&
+					$('.modal.fade.show').length === 0 && ((new Date).getTime() - lastRefresh > (1000)) && transitions.length === 0 && document.getElementsByClassName('doNotRefresh').length === 0){
 				refreshContent();
 			}
 			if((document.hasFocus() || isApp())){

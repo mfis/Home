@@ -68,6 +68,10 @@
 			<artifactId>webjars-locator</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>web</groupId>
+			<artifactId>soundar24-roundSlider</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
 			<scope>test</scope>
