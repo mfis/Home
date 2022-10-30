@@ -1,10 +1,9 @@
 package de.fimatas.home.controller.dao;
 
 import de.fimatas.home.controller.database.mapper.EvChargingMapper;
-import de.fimatas.home.controller.database.mapper.StateRowMapper;
 import de.fimatas.home.controller.model.EvChargeDatabaseEntry;
-import de.fimatas.home.controller.model.State;
 import de.fimatas.home.library.domain.model.ElectricVehicle;
+import de.fimatas.home.library.domain.model.EvChargePoint;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -23,8 +22,6 @@ import java.util.List;
 public class EvChargingDAO {
 
     private final String TABLE_NAME = "EVCHARGING";
-
-    private final int CHARGEPOINT_FIX = 1;
 
     private static final DateTimeFormatter SQL_TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
@@ -49,28 +46,28 @@ public class EvChargingDAO {
 
         return jdbcTemplate.query(
                 "select * FROM " + TABLE_NAME + " where EVNAME = ? and STARTTS >= ?;",
-                new String[]{ev.name(), SQL_TIMESTAMP_FORMATTER.format(startTS)}, new EvChargingMapper());
+                new EvChargingMapper(), ev.name(), SQL_TIMESTAMP_FORMATTER.format(startTS));
     }
 
     @Transactional
-    public synchronized void write(ElectricVehicle ev, BigDecimal counter, boolean finish){
+    public synchronized void write(ElectricVehicle ev, BigDecimal counter, EvChargePoint chargePoint, boolean finish){
 
         final List<EvChargeDatabaseEntry> entryList = jdbcTemplate.query(
-                "select * FROM " + TABLE_NAME + " where EVNAME = ? and ENDTS = null;",
-                new String[]{ev.name()}, new EvChargingMapper());
+                "select * FROM " + TABLE_NAME + " where EVNAME = ? and ENDTS is null;",
+                new EvChargingMapper(), ev.name());
 
         if(entryList.size()>1){
             log.error("Unexpected row count: " + entryList.size());
         }else if(entryList.size()==1){
             jdbcTemplate
-                    .update("UPDATE " + TABLE_NAME + " SET ENDTS = ?, ENDVAL = ?, MALVAL = ?",
+                    .update("UPDATE " + TABLE_NAME + " SET ENDTS = ?, ENDVAL = ?, MAXVAL = ? WHERE EVNAME = ? AND ENDTS is null",
                             finish?SQL_TIMESTAMP_FORMATTER.format(LocalDateTime.now()):null,
-                            counter, entryList.get(0).getEndVal().compareTo(counter) > 1 ? entryList.get(0).getEndVal() : counter);
+                            counter, entryList.get(0).getEndVal().compareTo(counter) > 0 ? entryList.get(0).getEndVal() : counter, ev.name());
         }else{
             jdbcTemplate
                     .update("INSERT INTO " + TABLE_NAME + " (STARTTS, ENDTS, CHARGEPOINT, EVNAME, STARTVAL, ENDVAL, MAXVAL) VALUES (?, ?, ?, ?, ?, ?, ?)",
                             SQL_TIMESTAMP_FORMATTER.format(LocalDateTime.now()), finish?SQL_TIMESTAMP_FORMATTER.format(LocalDateTime.now()):null,
-                            CHARGEPOINT_FIX, ev.name(), counter, counter, counter);
+                            chargePoint.getNumber(), ev.name(), counter, counter, counter);
         }
     }
 

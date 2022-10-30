@@ -26,8 +26,8 @@ public class EvChargeDatabaseEntry {
     public boolean finished(){return endTS!=null;}
 
     public BigDecimal countValue(){
-        if(endVal.compareTo(maxVal)< 1){
-            return maxVal.subtract(startVal).add(endVal);
+        if(maxVal.compareTo(endVal) > 0){
+            return maxVal.subtract(startVal).add(endVal); // overflow
         }else{
             return endVal.subtract(startVal);
         }
