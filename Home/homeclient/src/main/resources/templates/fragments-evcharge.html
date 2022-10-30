@@ -25,7 +25,7 @@
 					});
 				</script>
 
-				<input type="hidden" th:id="${model.id} + '-isActual'" value="false"/>
+				<input type="hidden" th:id="${model.id} + '-isActual'" th:value="${model.stateActualFlag}"/>
 				<input type="hidden" th:id="${model.id} + '-startValue'" th:value="${model.numericValue}"/>
 				<input type="hidden" th:id="${model.id} + '-eventState'" value=""/>
 				<input type="hidden" th:id="'val_update_slider_' + ${model.id}" th:value="${model.linkUpdate}">

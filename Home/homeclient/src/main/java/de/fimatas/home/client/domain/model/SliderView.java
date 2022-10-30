@@ -16,4 +16,6 @@ public class SliderView extends View {
 
     private String numericValue = "";
 
+    private String stateActualFlag = "";
+
 }

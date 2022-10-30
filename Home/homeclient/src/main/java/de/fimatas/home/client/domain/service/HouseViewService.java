@@ -5,6 +5,7 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -1109,15 +1110,28 @@ public class HouseViewService {
                 return;
             }
 
-            var ts = viewFormatter.formatTimestamp(e.getValue().getTimestamp(), TimestampFormat.SHORT_WITH_TIME);
-            boolean isChargedSinceReading = false;
+            var isChargedSinceReading = false;
+            var percentagePrefix = isChargedSinceReading?"~":"";
+            var isStateNew = ChronoUnit.MINUTES.between(e.getValue().getTimestamp(), LocalDateTime.now()) < 2;
+            short percentage;
+            LocalDateTime timestamp;
+            if(isChargedSinceReading){
+                percentage = (short) (e.getValue().getBatteryPercentage() + 0); // FIXME
+                timestamp = LocalDateTime.now(); // FIXME
+            }else{
+                percentage =  e.getValue().getBatteryPercentage();
+                timestamp = e.getValue().getTimestamp();
+            }
+            var tsFormatted = viewFormatter.formatTimestamp(timestamp, TimestampFormat.SHORT_WITH_TIME);
+            ConditionColor conditionColor = percentage > 89?ConditionColor.ORANGE:percentage<21?ConditionColor.RED:ConditionColor.GREEN;
 
             view.setLinkUpdate(MESSAGEPATH + TYPE_IS + MessageType.SLIDERVALUE + AND_DEVICE_ID_IS + e.getKey().name() + AND_VALUE_IS);
-            view.setColorClass(ConditionColor.GRAY.getUiClass());
-            view.setStateShort(e.getValue().getBatteryPercentage() + "%a");
-            view.setElementTitleState(e.getValue().getBatteryPercentage() + "%b");
-            view.setState((isChargedSinceReading?"Geladen ":"Gesetzt ") + ts);
-            view.setNumericValue(Short.toString(e.getValue().getBatteryPercentage()));
+            view.setColorClass(conditionColor.getUiClass());
+            view.setStateShort(percentagePrefix + percentage + "%"); // watch etc
+            view.setElementTitleState(tsFormatted + " " + percentagePrefix + percentage + "%"); // collapsed top right
+            view.setState((isChargedSinceReading?"Geladen ":"Gesetzt ") + tsFormatted);
+            view.setNumericValue(Short.toString(percentage));
+            view.setStateActualFlag(Boolean.toString(isStateNew && !isChargedSinceReading));
         });
     }
 }
