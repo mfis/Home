@@ -1129,7 +1129,7 @@ public class HouseViewService {
             view.setColorClass(conditionColor.getUiClass());
             view.setStateShort(percentagePrefix + percentage + "%"); // watch etc
             view.setElementTitleState(tsFormatted + " " + percentagePrefix + percentage + "%"); // collapsed top right
-            view.setState((isChargedSinceReading?"Geladen ":"Gesetzt ") + tsFormatted);
+            view.setState((isChargedSinceReading?"Geladen":"Gesetzt") + " " + tsFormatted);
             view.setNumericValue(Short.toString(percentage));
             view.setStateActualFlag(Boolean.toString(isStateNew && !isChargedSinceReading));
         });

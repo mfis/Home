@@ -14,6 +14,7 @@ public enum ElectricVehicle {
     private ElectricVehicle(String caption, boolean other) {
         this.caption = caption;
         this.other = other;
+        if(this.name().length()>8) throw new IllegalArgumentException("name too long: " + this.name());
     }
 
     public String getCaption() {
