@@ -8,22 +8,28 @@
 		<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState}, colorClass=${model.colorClass})"></div>
 		<th:block th:unless="${#strings.equals(model.unreach,'true')}">
 			<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
-				<h4><span id="handle1-label"></span><span>&nbsp;</span><span id="handle1-status"><i style="font-size: 1.0rem;" class="fa-solid fa-circle"></i></span></h4>
+				<h4>
+					<span th:text="${model.state}"></span>
+				</h4>
+				<h4>
+					<span style="text-align: center;" th:id="${model.id} + '-status'"><i style="font-size: 0.8rem;" class="fa-solid fa-circle"></i></span>
+					<span th:id="${model.id} + '-label'"></span>
+				</h4>
 
 				<script>
-					let idSlider1 = "handle1";
-
+					let idSlider = "[[${model.id}]]";
 					$(document).ready(function(){
 						prototypeSlider();
-						initSlider(idSlider1);
-						sliderList.push(idSlider1);
+						initSlider(idSlider);
+						sliderList.push(idSlider);
 					});
 				</script>
 
-				<input type="hidden" id="handle1-isActual" value="false"/>
-				<input type="hidden" id="handle1-startValue" value="40"/>
-				<input type="hidden" id="handle1-eventState" value=""/>
-				<div id="handle1" class="evBatterySlider" style="margin: 25px 35px 35px auto;"></div>
+				<input type="hidden" th:id="${model.id} + '-isActual'" value="false"/>
+				<input type="hidden" th:id="${model.id} + '-startValue'" th:value="${model.numericValue}"/>
+				<input type="hidden" th:id="${model.id} + '-eventState'" value=""/>
+				<input type="hidden" th:id="'val_update_slider_' + ${model.id}" th:value="${model.linkUpdate}">
+				<div th:id="${model.id}" class="evBatterySlider" style="margin: 15px 35px 35px auto;"></div>
 			</div>
 		</th:block>
 	</div>

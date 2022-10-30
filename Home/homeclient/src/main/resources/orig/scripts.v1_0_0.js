@@ -79,14 +79,11 @@ function initSlider(id){
         }
     });
     // prevent misaligned handle
-    setTimeout(function(){ document.getElementById(idSlider1).getElementsByClassName('rs-handle').item(0).style.display = 'block'; }, 10);
+    setTimeout(function(){ document.getElementById(id).getElementsByClassName('rs-handle').item(0).style.display = 'block'; }, 10);
 }
 
 function updateEvSliderValue(id, value) {
     document.getElementById(id + '-status').style.color = "red";
-    setTimeout(() => {
-            document.getElementById(id + '-status').style.color = "green";
-            $('#' + id).removeClass('doNotRefresh');
-        }
-        , 1000);
+    submitContent(document.getElementById('val_update_slider_' + id).value + value);
+    $('#' + id).removeClass('doNotRefresh');
 }

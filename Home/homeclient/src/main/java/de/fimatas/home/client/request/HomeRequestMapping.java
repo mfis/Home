@@ -47,7 +47,7 @@ public class HomeRequestMapping {
 
     private static final String DEVICE_NAME = "deviceName";
 
-    private static final String HUE_DEVICE_ID = "hueDeviceId";
+    private static final String DEVICE_ID = "deviceId";
 
     // private static final String CAMERA_MODE = "cameraMode";
 
@@ -74,7 +74,7 @@ public class HomeRequestMapping {
             @CookieValue(name = LoginInterceptor.COOKIE_NAME, required = false) String userCookie, //
             @RequestParam(name = "type") String type, //
             @RequestParam(name = DEVICE_NAME, required = false) String deviceName, //
-            @RequestParam(name = HUE_DEVICE_ID, required = false) String hueDeviceId, //
+            @RequestParam(name = DEVICE_ID, required = false) String deviceId, //
             @RequestParam(name = "placeName", required = false) String placeName, //
             @RequestParam(name = "additionalData", required = false) String additionalData, //
             @RequestParam(name = "value") String value, //
@@ -91,8 +91,8 @@ public class HomeRequestMapping {
 
         if (log.isDebugEnabled()) {
             log.debug("message: userCookie=" + userCookie + ", appUserName=" + appUserName + ", type=" + type + ", deviceName="
-                + deviceName + ", placeName=" + placeName + ", additionalData=" + additionalData + ", hueDeviceId=" + ", hueDeviceId="
-                + hueDeviceId + ", value="
+                + deviceName + ", placeName=" + placeName + ", additionalData=" + additionalData + ", deviceId="
+                + deviceId + ", value="
                 + value + ", isApp=" + isNativeApp + ", pinLength=" + StringUtils.trimToEmpty(securityPin).length());
         }
 
@@ -101,13 +101,13 @@ public class HomeRequestMapping {
         if (!isPinBlankOrSetAndCorrect(userName, securityPin)) {
             prepareErrorMessage(isNativeApp, "Die eingegebene PIN ist nicht korrekt.", userCookie, httpServletResponse);
             log.warn("message for previous error: userCookie length=" + userCookie.length() + ", appUserName=" + appUserName + ", type=" + type + ", deviceName="
-                    + deviceName + ", hueDeviceId="
-                    + hueDeviceId + ", value="
+                    + deviceName + ", deviceId="
+                    + deviceId + ", value="
                     + value + ", isApp=" + isNativeApp + ", pin length=" + StringUtils.trimToEmpty(securityPin).length());
             return lookupMessageReturnValue(isNativeApp, MessageType.valueOf(type).getTargetSite());
         }
 
-        Message responseMessage = request(userName, type, deviceName, placeName, additionalData, hueDeviceId, value, securityPin);
+        Message responseMessage = request(userName, type, deviceName, placeName, additionalData, deviceId, value, securityPin);
 
         if (!responseMessage.isSuccessfullExecuted()) {
             prepareErrorMessage(isNativeApp, "Die Anfrage konnte nicht erfolgreich verarbeitet werden.", userCookie,
@@ -234,7 +234,7 @@ public class HomeRequestMapping {
                 return "empty";
             } else {
                 houseView.fillViewModel(model, houseModel, ModelObjectDAO.getInstance().readHistoryModel(),
-                    ModelObjectDAO.getInstance().readLightsModel(), ModelObjectDAO.getInstance().readWeatherForecastModel(), ModelObjectDAO.getInstance().readPresenceModel(), ModelObjectDAO.getInstance().readHeatpumpModel());
+                    ModelObjectDAO.getInstance().readLightsModel(), ModelObjectDAO.getInstance().readWeatherForecastModel(), ModelObjectDAO.getInstance().readPresenceModel(), ModelObjectDAO.getInstance().readHeatpumpModel(), ModelObjectDAO.getInstance().readElectricVehicleModel());
                 return Pages.getEntry(Pages.PATH_HOME).getTemplate();
             }
         } catch (Exception e) {
@@ -279,7 +279,7 @@ public class HomeRequestMapping {
             && StringUtils.equals(etag, Long.toString(ModelObjectDAO.getInstance().calculateModelTimestamp()));
     }
 
-    private Message request(String userName, String type, String deviceName, String placeName, String additionalData, String hueDeviceId, String value,
+    private Message request(String userName, String type, String deviceName, String placeName, String additionalData, String deviceId, String value,
             String securityPin) {
 
         MessageType messageType = MessageType.valueOf(type);
@@ -291,7 +291,7 @@ public class HomeRequestMapping {
         message.setDevice(device);
         message.setPlace(place);
         message.setAdditionalData(additionalData);
-        message.setHueDeviceId(hueDeviceId);
+        message.setDeviceId(deviceId);
         message.setValue(value);
         message.setUser(userName);
         message.setSecurityPin(securityPin);

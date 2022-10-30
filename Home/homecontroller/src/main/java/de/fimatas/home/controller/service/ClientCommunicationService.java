@@ -56,6 +56,9 @@ public class ClientCommunicationService {
     private SettingsService settingsService;
 
     @Autowired
+    private ElectricVehicleService electricVehicleService;
+
+    @Autowired
     private UploadService uploadService;
 
     @Autowired
@@ -93,7 +96,7 @@ public class ClientCommunicationService {
                 houseService.refreshHouseModel();
                 break;
             case TOGGLELIGHT:
-                lightService.toggleLight(message.getHueDeviceId(), Boolean.valueOf(message.getValue()));
+                lightService.toggleLight(message.getDeviceId(), Boolean.valueOf(message.getValue()));
                 lightService.refreshLightsModel();
                 break;
             case HEATINGBOOST:
@@ -132,6 +135,9 @@ public class ClientCommunicationService {
                 break;
             case CONTROL_HEATPUMP:
                 heatpumpService.preset(message.getPlace(), HeatpumpPreset.valueOf(message.getValue()), message.getAdditionalData());
+                break;
+            case SLIDERVALUE:
+                electricVehicleService.updateBatteryPercentage(ElectricVehicle.valueOf(message.getDeviceId()), message.getValue());
                 break;
             default:
                 throw new IllegalStateException("Unknown MessageType:" + message.getMessageType().name());
@@ -181,6 +187,12 @@ public class ClientCommunicationService {
             heatpumpService.scheduledRefreshFromDriverCache();
         } else {
             uploadService.uploadToClient(ModelObjectDAO.getInstance().readHeatpumpModel());
+        }
+
+        if (ModelObjectDAO.getInstance().readElectricVehicleModel() == null) {
+            electricVehicleService.refresh();
+        } else {
+            uploadService.uploadToClient(ModelObjectDAO.getInstance().readElectricVehicleModel());
         }
 
         uploadService.uploadToClient(ModelObjectDAO.getInstance().readCameraModel());

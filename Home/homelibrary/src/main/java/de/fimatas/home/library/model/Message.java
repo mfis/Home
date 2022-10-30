@@ -22,7 +22,7 @@ public class Message implements Serializable {
 
     private Place place;
 
-    private String hueDeviceId;
+    private String deviceId;
 
     private String key;
 

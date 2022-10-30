@@ -56,7 +56,7 @@ public class HouseViewService {
 
     private static final String AND_ADD_DATA_ARE = "&additionalData=";
 
-    private static final String AND_HUE_DEVICE_ID_IS = "&hueDeviceId=";
+    private static final String AND_DEVICE_ID_IS = "&deviceId=";
 
     private static final String NEEDS_PIN = "&needsPin";
 
@@ -70,7 +70,7 @@ public class HouseViewService {
 
     private static final String OPEN_STATE = MESSAGEPATH + TYPE_IS + MessageType.OPEN + AND_DEVICE_IS;
 
-    private static final String TOGGLE_LIGHT = MESSAGEPATH + TYPE_IS + MessageType.TOGGLELIGHT + AND_HUE_DEVICE_ID_IS;
+    private static final String TOGGLE_LIGHT = MESSAGEPATH + TYPE_IS + MessageType.TOGGLELIGHT + AND_DEVICE_ID_IS;
 
     private static final String SET_HEATPUMP = MESSAGEPATH + TYPE_IS + MessageType.CONTROL_HEATPUMP + AND_PLACE_IS;
 
@@ -100,7 +100,7 @@ public class HouseViewService {
         });
     }
 
-    public void fillViewModel(Model model, HouseModel house, HistoryModel historyModel, LightsModel lightsModel, WeatherForecastModel weatherForecastModel, PresenceModel presenceModel, HeatpumpModel heatpumpModel) {
+    public void fillViewModel(Model model, HouseModel house, HistoryModel historyModel, LightsModel lightsModel, WeatherForecastModel weatherForecastModel, PresenceModel presenceModel, HeatpumpModel heatpumpModel, ElectricVehicleModel electricVehicleModel) {
 
         model.addAttribute("modelTimestamp", ModelObjectDAO.getInstance().calculateModelTimestamp());
 
@@ -133,7 +133,7 @@ public class HouseViewService {
 
         formatPower(model, house.getTotalElectricalPowerConsumption(), historyModel==null?null:historyModel.getTotalElectricPowerConsumptionDay());
         formatPower(model, house.getWallboxElectricalPowerConsumption(), historyModel==null?null:historyModel.getWallboxElectricPowerConsumptionDay());
-        formatEVCharge(model);
+        formatEVCharge(model, electricVehicleModel);
 
         formatHeatpump(model, house, heatpumpModel, Place.BEDROOM);
         formatHeatpump(model, house, heatpumpModel, Place.KIDSROOM_1);
@@ -1093,23 +1093,31 @@ public class HouseViewService {
         }
     }
 
-    private void formatEVCharge(Model model) {
+    private void formatEVCharge(Model model, ElectricVehicleModel electricVehicleModel) {
 
-        var view = new View();
-        model.addAttribute("evcharge", view);
+        electricVehicleModel.getEvMap().entrySet().stream().filter(e -> !e.getKey().isOther()).forEach(e -> {
 
-        view.setName("Ladung eUp");
-        view.setId("evcharge");
-        view.setPlaceEnum(Place.HOUSE);
-        view.setIcon("fa-solid fa-car");
-        view.setUnreach(Boolean.toString(false));
-        if(new Object() == null){
-            return;
-        }
+            var view = new SliderView();
+            model.addAttribute("evcharge_" + e.getKey().name(), view);
 
-        view.setColorClass(ConditionColor.GRAY.getUiClass());
-        view.setStateShort("xy%");
-        view.setElementTitleState("xy%");
-        view.setState("xy%");
+            view.setName("Ladung " + e.getKey().getCaption());
+            view.setId("evcharge_" + e.getKey().name());
+            view.setPlaceEnum(Place.HOUSE);
+            view.setIcon("fa-solid fa-car");
+            view.setUnreach(Boolean.toString(false));
+            if(new Object() == null){
+                return;
+            }
+
+            var ts = viewFormatter.formatTimestamp(e.getValue().getTimestamp(), TimestampFormat.SHORT_WITH_TIME);
+            boolean isChargedSinceReading = false;
+
+            view.setLinkUpdate(MESSAGEPATH + TYPE_IS + MessageType.SLIDERVALUE + AND_DEVICE_ID_IS + e.getKey().name() + AND_VALUE_IS);
+            view.setColorClass(ConditionColor.GRAY.getUiClass());
+            view.setStateShort(e.getValue().getBatteryPercentage() + "%a");
+            view.setElementTitleState(e.getValue().getBatteryPercentage() + "%b");
+            view.setState((isChargedSinceReading?"Geladen ":"Gesetzt ") + ts);
+            view.setNumericValue(Short.toString(e.getValue().getBatteryPercentage()));
+        });
     }
 }

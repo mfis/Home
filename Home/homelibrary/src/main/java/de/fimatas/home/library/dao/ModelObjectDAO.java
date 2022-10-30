@@ -29,6 +29,8 @@ public class ModelObjectDAO {
 
     private WeatherForecastModel weatherForecastModel;
 
+    private ElectricVehicleModel electricVehicleModel;
+
     private SettingsContainer settingsContainer;
 
     private String lastHouseModelState;
@@ -64,6 +66,11 @@ public class ModelObjectDAO {
     public void write(HeatpumpModel newModel) {
         heatpumpModel = newModel;
         heatpumpModel.setTimestamp(new Date().getTime());
+    }
+
+    public void write(ElectricVehicleModel newModel) {
+        electricVehicleModel = newModel;
+        electricVehicleModel.setTimestamp(new Date().getTime());
     }
 
     public void write(CameraModel newModel) {
@@ -145,6 +152,10 @@ public class ModelObjectDAO {
         }
     }
 
+    public ElectricVehicleModel readElectricVehicleModel() {
+        return electricVehicleModel;
+    }
+
     public CameraModel readCameraModel() {
         if (cameraModel == null) {
             cameraModel = new CameraModel();
@@ -182,13 +193,15 @@ public class ModelObjectDAO {
         WeatherForecastModel wfm = readWeatherForecastModel();
         PresenceModel pm = readPresenceModel();
         HeatpumpModel hpm = readHeatpumpModel();
+        ElectricVehicleModel evm = readElectricVehicleModel();
 
         return  Stream.of(
                 hm==null?0:hm.getDateTime(),
                 lm==null?0:lm.getTimestamp(),
                 wfm==null?0:wfm.getDateTime(),
                 pm==null?0:pm.getDateTime(),
-                hpm==null?0:hpm.getTimestamp()
+                hpm==null?0:hpm.getTimestamp(),
+                evm==null?0:evm.getTimestamp()
         ).max(Long::compare).get();
     }
 
