@@ -4,6 +4,7 @@ import de.fimatas.home.library.domain.model.ElectricVehicle;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 
 @Data
@@ -25,11 +26,13 @@ public class EvChargeDatabaseEntry {
 
     public boolean finished(){return endTS!=null;}
 
-    public BigDecimal countValue(){
+    public BigDecimal countValueAsKWH(){
+        BigDecimal sum;
         if(maxVal.compareTo(endVal) > 0){
-            return maxVal.subtract(startVal).add(endVal); // overflow
+            sum = maxVal.subtract(startVal).add(endVal); // overflow
         }else{
-            return endVal.subtract(startVal);
+            sum = endVal.subtract(startVal);
         }
+        return sum.divide(new BigDecimal(1000), 4, RoundingMode.HALF_UP);
     }
 }

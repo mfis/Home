@@ -10,11 +10,14 @@ public class ElectricVehicleState {
         this.electricVehicle = electricVehicle;
         this.batteryPercentage = batteryPercentage;
         this.timestamp = timestamp;
+        this.additionalChargingPercentage = 0;
     }
 
     private final ElectricVehicle electricVehicle;
 
     private short batteryPercentage;
+
+    private short additionalChargingPercentage;
 
     private boolean connectedToWallbox = false;
 
@@ -42,5 +45,13 @@ public class ElectricVehicleState {
 
     public void setConnectedToWallbox(boolean connectedToWallbox) {
         this.connectedToWallbox = connectedToWallbox;
+    }
+
+    public short getAdditionalChargingPercentage() {
+        return additionalChargingPercentage;
+    }
+
+    public void setAdditionalChargingPercentage(short additionalChargingPercentage) {
+        this.additionalChargingPercentage = additionalChargingPercentage;
     }
 }

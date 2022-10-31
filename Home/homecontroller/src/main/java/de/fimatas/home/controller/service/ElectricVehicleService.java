@@ -4,6 +4,7 @@ import de.fimatas.home.controller.api.HomematicAPI;
 import de.fimatas.home.controller.command.HomematicCommandBuilder;
 import de.fimatas.home.controller.dao.EvChargingDAO;
 import de.fimatas.home.controller.dao.StateHandlerDAO;
+import de.fimatas.home.controller.model.EvChargeDatabaseEntry;
 import de.fimatas.home.controller.model.State;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -80,8 +82,17 @@ public class ElectricVehicleService {
         final List<State> states = stateHandlerDAO.readStates(STATEHANDLER_GROUPNAME_BATTERY);
 
         var newModel = new ElectricVehicleModel();
-        states.forEach(s-> newModel.getEvMap().put(ElectricVehicle.valueOf(s.getStatename()),
-                new ElectricVehicleState(ElectricVehicle.valueOf(s.getStatename()), Short.parseShort(s.getValue()), s.getTimestamp())));
+        states.forEach(s-> {
+            var state = new ElectricVehicleState(ElectricVehicle.valueOf(s.getStatename()), Short.parseShort(s.getValue()), s.getTimestamp());
+            final List<EvChargeDatabaseEntry> entries = evChargingDAO.read(state.getElectricVehicle(), state.getTimestamp());
+            final BigDecimal sum = entries.stream().map(e -> e.countValueAsKWH()).reduce(BigDecimal.ZERO, BigDecimal::add);
+            if(sum.compareTo(BigDecimal.ZERO) > 0){
+                final BigDecimal addPercentage = sum.divide(new BigDecimal(36.5), 4, RoundingMode.HALF_UP).multiply(new BigDecimal(100.0));
+                log.info("ADDITIONAL:" + sum + " -> " + addPercentage + "%");
+                state.setAdditionalChargingPercentage(addPercentage.shortValue());
+            }
+            newModel.getEvMap().put(ElectricVehicle.valueOf(s.getStatename()), state);
+        });
 
         Arrays.stream(ElectricVehicle.values()).filter(ev -> !newModel.getEvMap().containsKey(ev)).forEach(ev ->
                 newModel.getEvMap().put(ev, new ElectricVehicleState(ev, (short) 0, LocalDateTime.now())));
@@ -109,6 +120,9 @@ public class ElectricVehicleService {
     // FIXME: wenn beim setzen bereits eine ladung aufgezeichnet wird, diese beenden und neue starten
     // startts muss dann immer gleich oder nach setz-datum prozet liegen
     // FIXME: finnished erkennen über schalter im houseservice??
+    // FIXME: direkt nach einschalten counter abfragen um startwert richtig zu erfassen. trigger?
+    // FIXME: unique timestamp provider einbauen
+    // FIXME: Testfehler nach Umbau finish-flag und kWh-Faktor
 
     @Scheduled(initialDelay = 1000 * 20, fixedDelay = (1000 * HomeAppConstants.CHARGING_STATE_CHECK_INTERVAL_SECONDS) + 234)
     private void scheduledCheckChargingState() {
@@ -122,7 +136,6 @@ public class ElectricVehicleService {
             if(cachedChargingState == ChargingState.FINISHED){
                 return; // wallbox off and all known chargings finished -> end
             }
-            return;
         }
 
         // update

@@ -61,7 +61,7 @@ class EvChargingDAOTest {
         assertNotNull(read);
         assertEquals(1, read.size());
         assertFalse(read.get(0).finished());
-        assertEquals(0, read.get(0).countValue().intValue());
+        assertEquals(0, read.get(0).countValueAsKWH().intValue());
     }
 
     @Test
@@ -74,7 +74,7 @@ class EvChargingDAOTest {
 
         assertNotNull(read);
         assertEquals(1, read.size());
-        assertEquals(2, read.get(0).countValue().intValue());
+        assertEquals(2, read.get(0).countValueAsKWH().intValue());
     }
 
     @Test // should be handled in service
