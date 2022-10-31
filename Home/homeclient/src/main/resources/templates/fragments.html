@@ -69,9 +69,9 @@
 		</div>
 	</div>
 
-	<!-- PowerMeter with switch -->
-	<div th:fragment="powerMeterWithSwitch (modelMeter, modelSwitch)" th:class="'alert alert-' + ${modelSwitch.colorClass} + ' callout callout-' + ${modelSwitch.colorClass}">
-		<div th:replace="fragments :: elementnameCollapsable (icon=${modelMeter.icon}, name=${modelMeter.name} + ' ' + ${modelMeter.place}, place='', unreach=${modelMeter.unreach}, collapseLink='collapse' + ${modelSwitch.id}, elementTitleState=${modelMeter.elementTitleState}, colorClass=${modelMeter.colorClass})"></div>
+	<!-- wallbox-->
+	<div th:fragment="wallbox (modelMeter, modelSwitch)" th:class="'alert alert-' + ${modelSwitch.colorClass} + ' callout callout-' + ${modelSwitch.colorClass}">
+		<div th:replace="fragments :: elementnameCollapsable (icon=${modelMeter.icon}, name=${modelMeter.place}, place='', unreach=${modelMeter.unreach}, collapseLink='collapse' + ${modelSwitch.id}, elementTitleState=${modelMeter.elementTitleState}, colorClass=${modelMeter.colorClass})"></div>
 		<div class="collapse collapse-preserve-state" th:id="'collapse' + ${modelSwitch.id}">
 			<h4>
 				<span th:text="${modelMeter.state}"></span>
@@ -84,7 +84,63 @@
 				</th:block>		
 			</h4>
 			<h4><span th:text="${modelSwitch.state}"></span><span th:text="${modelSwitch.stateSuffix}" style="font-size: 80%;"></span></h4>
-			<div th:replace="fragments :: switchControls (model=${modelSwitch})"></div>
+			<!-- on/off -->
+			<th:block th:unless="${#strings.equals(modelSwitch.unreach, 'true')}">
+				<div class="btn-group" role="group" aria-label="wallboxswitch">
+					<button th:if="${#strings.startsWith(modelSwitch.linkOn, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${modelSwitch.activeSwitchColorClass}"><th:block th:replace="basics :: symbol (name='fas fa-check-circle')"/></span><span>&nbsp;</span></button>
+					<button th:if="${#strings.startsWith(modelSwitch.linkOn, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToOn' + ${modelSwitch.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-check-circle')"/></span><span>&nbsp;</span></button>
+					<button th:if="${#strings.startsWith(modelSwitch.linkOff, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${modelSwitch.activeSwitchColorClass}"><th:block th:replace="basics :: symbol (name='fas fa-power-off')"/></span><span>&nbsp;</span></button>
+					<button th:if="${#strings.startsWith(modelSwitch.linkOff, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToOff' + ${modelSwitch.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-power-off')"/></span><span>&nbsp;</span></button>
+				</div>
+				<input type="hidden" th:id="'val_model_linkOff_' + ${modelSwitch.id}" th:value="${modelSwitch.linkOff}">
+				<input type="hidden" th:id="'val_model_linkOn_' + ${modelSwitch.id}" th:value="${modelSwitch.linkOn}">
+				<script type="text/javascript">
+					function toggleToOn[[${modelSwitch.id}]](){
+						submitContent(document.getElementById('val_model_linkOn_[[${modelSwitch.id}]]').value);
+					}
+					function toggleToOff[[${modelSwitch.id}]](){
+						submitContent(document.getElementById('val_model_linkOff_[[${modelSwitch.id}]]').value);
+					}
+				</script>
+				<!-- auto/manual -->
+				<th:block th:if="${!#strings.startsWith(modelSwitch.linkAuto, '#') or !#strings.startsWith(model.modelSwitch, '#')}">
+					<span>&nbsp;</span>
+					<div class="btn-group" role="group" aria-label="heating">
+						<button th:if="${#strings.startsWith(modelSwitch.linkManual, '#')}" type="button" th:class="'btn btn-dark btn-sm text-' + ${modelSwitch.activeSwitchColorClass}">
+							<span>&nbsp;</span>
+							<span th:if="${#strings.isEmpty(modelSwitch.buttonCaptionManual)}"><th:block th:replace="basics :: symbol (name='fas fa-hand-paper')"/></span>
+							<span th:if="${!#strings.isEmpty(modelSwitch.buttonCaptionManual)}"><th:block th:text="${modelSwitch.buttonCaptionManual}"/></span>
+							<span>&nbsp;</span>
+						</button>
+						<button th:if="${#strings.startsWith(modelSwitch.linkManual, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToManual' + ${model.id} + '()'}">
+							<span>&nbsp;</span>
+							<span th:if="${#strings.isEmpty(modelSwitch.buttonCaptionManual)}"><th:block th:replace="basics :: symbol (name='fas fa-hand-paper')"/></span>
+							<span th:if="${!#strings.isEmpty(modelSwitch.buttonCaptionManual)}"><th:block th:text="${modelSwitch.buttonCaptionManual}"/></span>
+							<span>&nbsp;</span>
+						</button>
+					</div>
+					<input type="hidden" th:id="'val_model_linkManual_' + ${modelSwitch.id}" th:value="${modelSwitch.linkManual}">
+					<script type="text/javascript">
+						function toggleToAuto[[${modelSwitch.id}]](){
+							submitContent(document.getElementById('val_model_linkAuto_[[${modelSwitch.id}]]').value);
+						}
+					</script>
+					<div style="display: block; height: 10px;"></div>
+					<div class="btn-group" role="group" aria-label="evs">
+						<th:block th:each="ev : ${modelSwitch.evs}">
+							<button type="button" th:class="${#strings.startsWith(ev.link, '#')} ? 'btn btn-dark btn-sm' : 'btn btn-secondary btn-sm'" th:onclick="@{'evselect' + '(\'' + ${ev.link} + '\')'}">
+								<span th:class="${#strings.startsWith(ev.link, '#')} ? 'text-' + ${ev.activeSwitchColorClass}"th:text="${ev.caption}"></span>
+							</button>
+						</th:block>
+					</div>
+					<script type="text/javascript">
+						function evselect(link){
+							if(!link.startsWith('#')){
+								submitContent(link);
+							}
+						}
+					</script>
+			</th:block>
 		</div>
 	</div>
 
@@ -480,7 +536,7 @@
 	
 	<!-- Actual Power Consumption -->
 	<div th:fragment="actualPowerConsumption (model)" th:class="'alert alert-secondary callout callout-secondary'">
-		<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name} + ' Gesamt', place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState}, colorClass=${model.colorClass})"></div>
+		<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState}, colorClass=${model.colorClass})"></div>
 		<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
 			<h4>
 				<span th:text="${model.state}"></span>

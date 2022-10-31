@@ -61,4 +61,8 @@ public class HomeAppConstants {
     public static final int HISTORY_OUTDATED_SECONDS = 60 * 15;
 
     public static final int HISTORY_DEFAULT_INTERVAL_SECONDS = 60 * 5;
+
+    //
+
+    public static final int CHARGING_STATE_CHECK_INTERVAL_SECONDS = 60 * 1;
 }

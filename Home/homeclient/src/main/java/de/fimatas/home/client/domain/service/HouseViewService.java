@@ -126,13 +126,14 @@ public class HouseViewService {
         formatWindowSensor(model, "windowSensorLaundry", house.getLaundryWindowSensor());
 
         formatSwitch(model, "switchKitchen", house.getKitchenWindowLightSwitch());
-        formatSwitch(model, "switchWallbox", house.getWallboxSwitch());
         formatSwitch(model, "switchWorkshopVentilation", house.getWorkshopVentilationSwitch());
 
         formatFrontDoorBell(model, "frontDoor", house.getFrontDoorBell(), house.getFrontDoorCamera());
         formatFrontDoorLock(model, "frontDoorLock", house.getFrontDoorLock());
 
         formatPower(model, house.getTotalElectricalPowerConsumption(), historyModel==null?null:historyModel.getTotalElectricPowerConsumptionDay());
+
+        formatWallboxSwitch(model, "switchWallbox", house.getWallboxSwitch(), electricVehicleModel);
         formatPower(model, house.getWallboxElectricalPowerConsumption(), historyModel==null?null:historyModel.getWallboxElectricPowerConsumptionDay());
         formatEVCharge(model, electricVehicleModel);
 
@@ -704,6 +705,29 @@ public class HouseViewService {
     private void formatSwitch(Model model, String viewKey, Switch switchModel) {
 
         SwitchView view = new SwitchView();
+        formatSwitchInternal(model, viewKey, switchModel, view);
+    }
+
+    private void formatWallboxSwitch(Model model, String viewKey, WallboxSwitch switchModel, ElectricVehicleModel electricVehicleModel) {
+
+        WallboxSwitchView view = new WallboxSwitchView();
+        formatSwitchInternal(model, viewKey, switchModel, view);
+        Arrays.stream(ElectricVehicle.values()).forEach(ev -> {
+            ElectroVehicleView evView = new ElectroVehicleView();
+            evView.setCaption(ev.getCaption());
+            if(electricVehicleModel.getEvMap().get(ev).isConnectedToWallbox()){
+               evView.setActiveSwitchColorClass(ConditionColor.ACTIVE_BUTTON.getUiClass());
+            }else{
+                evView.setLink(MESSAGEPATH + TYPE_IS + MessageType.WALLBOX_SELECTED_EV + AND_DEVICE_ID_IS + ev.name() + AND_VALUE_IS + Boolean.TRUE.toString());
+                evView.setActiveSwitchColorClass(view.getColorClass());
+            }
+            view.getEvs().add(evView);
+        });
+    }
+
+    private void formatSwitchInternal(Model model, String viewKey, Switch switchModel, SwitchView view) {
+
+        model.addAttribute(viewKey, view);
         view.setId(viewKey);
         view.setName(switchModel.getDevice().getType().getShortName());
         view.setShortName(switchModel.getDevice().getType().getShortName());
@@ -727,7 +751,6 @@ public class HouseViewService {
         } else {
             view.setLinkOn(TOGGLE_STATE + switchModel.getDevice().name() + AND_VALUE_IS + !switchModel.isState());
         }
-        model.addAttribute(viewKey, view);
     }
 
     private void formatSwitchColors(Switch switchModel, SwitchView view) {
@@ -1101,7 +1124,7 @@ public class HouseViewService {
             var view = new SliderView();
             model.addAttribute("evcharge_" + e.getKey().name(), view);
 
-            view.setName("Ladung " + e.getKey().getCaption());
+            view.setName(e.getKey().getCaption());
             view.setId("evcharge_" + e.getKey().name());
             view.setPlaceEnum(Place.HOUSE);
             view.setIcon("fa-solid fa-car");
@@ -1128,7 +1151,7 @@ public class HouseViewService {
             view.setLinkUpdate(MESSAGEPATH + TYPE_IS + MessageType.SLIDERVALUE + AND_DEVICE_ID_IS + e.getKey().name() + AND_VALUE_IS);
             view.setColorClass(conditionColor.getUiClass());
             view.setStateShort(percentagePrefix + percentage + "%"); // watch etc
-            view.setElementTitleState(tsFormatted + " " + percentagePrefix + percentage + "%"); // collapsed top right
+            view.setElementTitleState(StringUtils.capitalize(tsFormatted) + " " + percentagePrefix + percentage + "%"); // collapsed top right
             view.setState((isChargedSinceReading?"Geladen":"Gesetzt") + " " + tsFormatted);
             view.setNumericValue(Short.toString(percentage));
             view.setStateActualFlag(Boolean.toString(isStateNew && !isChargedSinceReading));

@@ -16,7 +16,7 @@ public enum MessageType {
     CAMERAPICTUREREQUEST(null), //
     SETTINGS_NEW(null), //
     SETTINGS_EDIT(null), //
-
+    WALLBOX_SELECTED_EV(Pages.PATH_HOME),
     PRESENCE_EDIT(null), //
     ;//
 

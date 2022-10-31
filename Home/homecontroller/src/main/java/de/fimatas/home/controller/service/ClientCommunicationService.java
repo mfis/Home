@@ -139,6 +139,9 @@ public class ClientCommunicationService {
             case SLIDERVALUE:
                 electricVehicleService.updateBatteryPercentage(ElectricVehicle.valueOf(message.getDeviceId()), message.getValue());
                 break;
+            case WALLBOX_SELECTED_EV:
+                electricVehicleService.updateSelectedEvForWallbox(ElectricVehicle.valueOf(message.getDeviceId()));
+                break;
             default:
                 throw new IllegalStateException("Unknown MessageType:" + message.getMessageType().name());
             }
@@ -190,7 +193,7 @@ public class ClientCommunicationService {
         }
 
         if (ModelObjectDAO.getInstance().readElectricVehicleModel() == null) {
-            electricVehicleService.refresh();
+            electricVehicleService.refreshModel();
         } else {
             uploadService.uploadToClient(ModelObjectDAO.getInstance().readElectricVehicleModel());
         }

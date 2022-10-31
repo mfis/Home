@@ -80,7 +80,7 @@
 			<!-- Energie -->
 			<div th:replace="fragments :: title (name='Energie')"></div>
 			<div th:replace="fragments :: actualPowerConsumption (model=${StromHaus})"></div>
-			<div th:replace="fragments :: powerMeterWithSwitch (modelMeter=${StromWallbox}, modelSwitch=${switchWallbox})"></div>
+			<div th:replace="fragments :: wallbox (modelMeter=${StromWallbox}, modelSwitch=${switchWallbox})"></div>
 			<div th:replace="fragments-evcharge :: evcharge (model=${evcharge_EUP})"></div>
 			
 			<div style="height: 35px;"></div>

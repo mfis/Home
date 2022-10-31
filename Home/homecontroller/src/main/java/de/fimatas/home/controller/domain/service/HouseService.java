@@ -153,7 +153,7 @@ public class HouseService {
         newModel.setClimateGarden(readOutdoorClimate(Device.THERMOMETER_GARTEN, Device.THERMOMETER_EINFAHRT));
 
         newModel.setKitchenWindowLightSwitch(readSwitchState(Device.SCHALTER_KUECHE_LICHT));
-        newModel.setWallboxSwitch(readSwitchState(Device.SCHALTER_WALLBOX));
+        newModel.setWallboxSwitch(readWallboxSwitchState(Device.SCHALTER_WALLBOX));
         newModel.setWorkshopVentilationSwitch(readSwitchState(Device.SCHALTER_WERKSTATT_LUEFTUNG));
 
         newModel.setFrontDoorBell(readFrontDoorBell());
@@ -690,16 +690,27 @@ public class HouseService {
 
     private Switch readSwitchState(Device device) {
         Switch switchModel = new Switch();
+        readSwitchInternal(device, switchModel);
+        return switchModel;
+    }
+
+    private WallboxSwitch readWallboxSwitchState(Device device) {
+        WallboxSwitch switchModel = new WallboxSwitch();
+        readSwitchInternal(device, switchModel);
+        // FIXME: Timer, solar etc....
+        return switchModel;
+    }
+
+    private void readSwitchInternal(Device device, Switch switchModel) {
         switchModel.setDevice(device);
         switchModel.setUnreach(hmApi.isDeviceUnreachableOrNotSending(device));
         if (switchModel.isUnreach()) {
-            return switchModel;
+            return;
         }
 
         switchModel.setState(hmApi.getAsBoolean(homematicCommandBuilder.read(device, Datapoint.STATE)));
         switchModel.setAutomation(hmApi.getAsBoolean(homematicCommandBuilder.read(device, AUTOMATIC)));
         switchModel.setAutomationInfoText(hmApi.getAsString(homematicCommandBuilder.read(device, AUTOMATIC + "InfoText")));
-        return switchModel;
     }
 
     private WindowSensor readWindowSensorState(Device device) {

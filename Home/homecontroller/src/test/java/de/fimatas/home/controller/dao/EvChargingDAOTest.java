@@ -55,20 +55,21 @@ class EvChargingDAOTest {
     @Test
     void testSimpleWriteRead(){
         final LocalDateTime percentageSetTS = LocalDateTime.now();
-        evChargingDAO.write(ElectricVehicle.OTHER, new BigDecimal(1), EvChargePoint.WALLBOX1, false);
+        evChargingDAO.write(ElectricVehicle.OTHER, new BigDecimal(1), EvChargePoint.WALLBOX1);
         final List<EvChargeDatabaseEntry> read = evChargingDAO.read(ElectricVehicle.OTHER, percentageSetTS);
 
         assertNotNull(read);
         assertEquals(1, read.size());
         assertFalse(read.get(0).finished());
+        assertEquals(0, read.get(0).countValue().intValue());
     }
 
     @Test
     void testAddSomeValues(){
         final LocalDateTime percentageSetTS = LocalDateTime.now();
-        evChargingDAO.write(ElectricVehicle.OTHER, new BigDecimal(1), EvChargePoint.WALLBOX1, false);
-        evChargingDAO.write(ElectricVehicle.OTHER, new BigDecimal(2), EvChargePoint.WALLBOX1, false);
-        evChargingDAO.write(ElectricVehicle.OTHER, new BigDecimal(3), EvChargePoint.WALLBOX1, false);
+        evChargingDAO.write(ElectricVehicle.OTHER, new BigDecimal(1), EvChargePoint.WALLBOX1);
+        evChargingDAO.write(ElectricVehicle.OTHER, new BigDecimal(2), EvChargePoint.WALLBOX1);
+        evChargingDAO.write(ElectricVehicle.OTHER, new BigDecimal(3), EvChargePoint.WALLBOX1);
         final List<EvChargeDatabaseEntry> read = evChargingDAO.read(ElectricVehicle.OTHER, percentageSetTS);
 
         assertNotNull(read);
@@ -78,11 +79,11 @@ class EvChargingDAOTest {
 
     @Test // should be handled in service
     void testPercentageSetAfterChargingStart() throws Exception{
-        evChargingDAO.write(ElectricVehicle.OTHER, new BigDecimal(1), EvChargePoint.WALLBOX1, false);
+        evChargingDAO.write(ElectricVehicle.OTHER, new BigDecimal(1), EvChargePoint.WALLBOX1);
         Thread.sleep(100L);
         final LocalDateTime percentageSetTS = LocalDateTime.now();
-        evChargingDAO.write(ElectricVehicle.OTHER, new BigDecimal(2), EvChargePoint.WALLBOX1, false);
-        evChargingDAO.write(ElectricVehicle.OTHER, new BigDecimal(3), EvChargePoint.WALLBOX1, false);
+        evChargingDAO.write(ElectricVehicle.OTHER, new BigDecimal(2), EvChargePoint.WALLBOX1);
+        evChargingDAO.write(ElectricVehicle.OTHER, new BigDecimal(3), EvChargePoint.WALLBOX1);
         final List<EvChargeDatabaseEntry> read = evChargingDAO.read(ElectricVehicle.OTHER, percentageSetTS);
 
         assertNotNull(read);
@@ -92,8 +93,8 @@ class EvChargingDAOTest {
     @Test // should be handled in service
     void testFinished(){
         final LocalDateTime percentageSetTS = LocalDateTime.now();
-        evChargingDAO.write(ElectricVehicle.OTHER, new BigDecimal(1), EvChargePoint.WALLBOX1, false);
-        evChargingDAO.write(ElectricVehicle.OTHER, new BigDecimal(2), EvChargePoint.WALLBOX1, true);
+        evChargingDAO.write(ElectricVehicle.OTHER, new BigDecimal(1), EvChargePoint.WALLBOX1);
+        evChargingDAO.write(ElectricVehicle.OTHER, new BigDecimal(2), EvChargePoint.WALLBOX1);
         final List<EvChargeDatabaseEntry> read = evChargingDAO.read(ElectricVehicle.OTHER, percentageSetTS);
 
         assertNotNull(read);

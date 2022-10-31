@@ -49,8 +49,23 @@ public class EvChargingDAO {
                 new EvChargingMapper(), ev.name(), SQL_TIMESTAMP_FORMATTER.format(startTS));
     }
 
+    @Transactional(readOnly = true)
+    public boolean unfinishedChargingOnDB(){
+
+        return !jdbcTemplate.query(
+                "select * FROM " + TABLE_NAME + " where ENDTS is null;", new EvChargingMapper()).isEmpty();
+    }
+
     @Transactional
-    public synchronized void write(ElectricVehicle ev, BigDecimal counter, EvChargePoint chargePoint, boolean finish){
+    public synchronized void finishAll(){
+
+        jdbcTemplate
+                .update("UPDATE " + TABLE_NAME + " SET ENDTS = ? WHERE ENDTS is null",
+                        SQL_TIMESTAMP_FORMATTER.format(LocalDateTime.now()));
+    }
+
+    @Transactional
+    public synchronized void write(ElectricVehicle ev, BigDecimal counter, EvChargePoint chargePoint){
 
         final List<EvChargeDatabaseEntry> entryList = jdbcTemplate.query(
                 "select * FROM " + TABLE_NAME + " where EVNAME = ? and ENDTS is null;",
@@ -61,12 +76,11 @@ public class EvChargingDAO {
         }else if(entryList.size()==1){
             jdbcTemplate
                     .update("UPDATE " + TABLE_NAME + " SET ENDTS = ?, ENDVAL = ?, MAXVAL = ? WHERE EVNAME = ? AND ENDTS is null",
-                            finish?SQL_TIMESTAMP_FORMATTER.format(LocalDateTime.now()):null,
-                            counter, entryList.get(0).getEndVal().compareTo(counter) > 0 ? entryList.get(0).getEndVal() : counter, ev.name());
+                            null, counter, entryList.get(0).getEndVal().compareTo(counter) > 0 ? entryList.get(0).getEndVal() : counter, ev.name());
         }else{
             jdbcTemplate
                     .update("INSERT INTO " + TABLE_NAME + " (STARTTS, ENDTS, CHARGEPOINT, EVNAME, STARTVAL, ENDVAL, MAXVAL) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                            SQL_TIMESTAMP_FORMATTER.format(LocalDateTime.now()), finish?SQL_TIMESTAMP_FORMATTER.format(LocalDateTime.now()):null,
+                            SQL_TIMESTAMP_FORMATTER.format(LocalDateTime.now()), null,
                             chargePoint.getNumber(), ev.name(), counter, counter, counter);
         }
     }

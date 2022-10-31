@@ -40,7 +40,7 @@ public class HouseModel implements Serializable {
 
     private Switch kitchenWindowLightSwitch;
 
-    private Switch wallboxSwitch;
+    private WallboxSwitch wallboxSwitch;
 
     private Switch workshopVentilationSwitch;
 
@@ -272,11 +272,11 @@ public class HouseModel implements Serializable {
         this.climateGarden = climateGarden;
     }
 
-    public Switch getWallboxSwitch() {
+    public WallboxSwitch getWallboxSwitch() {
         return wallboxSwitch;
     }
 
-    public void setWallboxSwitch(Switch wallboxSwitch) {
+    public void setWallboxSwitch(WallboxSwitch wallboxSwitch) {
         this.wallboxSwitch = wallboxSwitch;
     }
 

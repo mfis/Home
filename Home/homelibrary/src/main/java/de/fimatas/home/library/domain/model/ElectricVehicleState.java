@@ -16,6 +16,8 @@ public class ElectricVehicleState {
 
     private short batteryPercentage;
 
+    private boolean connectedToWallbox = false;
+
     private LocalDateTime timestamp;
 
     public LocalDateTime getTimestamp() {
@@ -34,4 +36,11 @@ public class ElectricVehicleState {
         return electricVehicle;
     }
 
+    public boolean isConnectedToWallbox() {
+        return connectedToWallbox;
+    }
+
+    public void setConnectedToWallbox(boolean connectedToWallbox) {
+        this.connectedToWallbox = connectedToWallbox;
+    }
 }
