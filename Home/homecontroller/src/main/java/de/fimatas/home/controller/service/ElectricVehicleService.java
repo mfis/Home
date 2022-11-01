@@ -61,7 +61,7 @@ public class ElectricVehicleService {
     private ElectricVehicle cachedConnectedEv = null;
 
     @PostConstruct
-    public void init() {
+    private void init() {
         CompletableFuture.runAsync(() -> {
             try {
                 if(evChargingDAO.unfinishedChargingOnDB()){
@@ -111,31 +111,43 @@ public class ElectricVehicleService {
 
     public void updateBatteryPercentage(ElectricVehicle electricVehicle, String percentageString){
         stateHandlerDAO.writeState(STATEHANDLER_GROUPNAME_BATTERY, electricVehicle.name(), Short.toString(Short.parseShort(percentageString)));
+        startNewChargingEntry();
         refreshModel();
     }
 
     public void updateSelectedEvForWallbox(ElectricVehicle electricVehicle){
         stateHandlerDAO.writeState(STATEHANDLER_GROUPNAME_SELECTED_EV, STATEHANDLER_GROUPNAME_SELECTED_EV, electricVehicle.name());
         cachedConnectedEv = electricVehicle;
+        startNewChargingEntry();
         refreshModel();
     }
 
-    // FIXME: wenn beim setzen bereits eine ladung aufgezeichnet wird, diese beenden und neue starten
-    // startts muss dann immer gleich oder nach setz-datum prozet liegen
-    // FIXME: finnished erkennen über schalter im houseservice??
+    private void startNewChargingEntry(){
+        if(cachedChargingState != ChargingState.FINISHED){
+            finishAllChargingEntries();
+            checkChargingState();
+        }
+    }
+
+    // FIXME: finnished erkennen über schalter im houseservice?? oder keine erhöhung counter
     // FIXME: direkt nach einschalten counter abfragen um startwert richtig zu erfassen. trigger?
+    // FIXME: 'geladen' status in view
 
     @Scheduled(initialDelay = 1000 * 20, fixedDelay = (1000 * HomeAppConstants.CHARGING_STATE_CHECK_INTERVAL_SECONDS) + 234)
     private void scheduledCheckChargingState() {
+        checkChargingState();
+    }
+
+    private void checkChargingState() {
 
         if(homematicAPI.isDeviceUnreachableOrNotSending(COUNTER_DEVICE)
                 || homematicAPI.isDeviceUnreachableOrNotSending(WALLBOX_SWITCH_DEVICE)){
-            return; // unreachable -> end
+            return;
         }
 
         if(!homematicAPI.getAsBoolean(homematicCommandBuilder.read(WALLBOX_SWITCH_DEVICE, Datapoint.STATE))){
             if(cachedChargingState == ChargingState.FINISHED){
-                return; // wallbox off and all known chargings finished -> end
+                return;
             }
         }
 
@@ -145,11 +157,15 @@ public class ElectricVehicleService {
         cachedChargingState = ChargingState.ACTIVE;
 
         if(!homematicAPI.getAsBoolean(homematicCommandBuilder.read(WALLBOX_SWITCH_DEVICE, Datapoint.STATE))){
-            evChargingDAO.finishAll(); // wallbox off and last counter written -> finish
-            cachedChargingState = ChargingState.FINISHED;
+            finishAllChargingEntries();  // wallbox off and last counter written -> finish
         }
 
         refreshModel();
+    }
+
+    private void finishAllChargingEntries() {
+        evChargingDAO.finishAll();
+        cachedChargingState = ChargingState.FINISHED;
     }
 
     private enum ChargingState{
