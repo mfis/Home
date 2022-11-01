@@ -2,6 +2,7 @@ package de.fimatas.home.controller.dao;
 
 import de.fimatas.home.controller.database.mapper.StateRowMapper;
 import de.fimatas.home.controller.model.State;
+import de.fimatas.home.controller.service.UniqueTimestampService;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -10,7 +11,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -24,6 +24,9 @@ public class StateHandlerDAO {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    private UniqueTimestampService uniqueTimestampService;
 
     @PostConstruct
     @Transactional(propagation = Propagation.REQUIRED)
@@ -57,7 +60,7 @@ public class StateHandlerDAO {
     public void writeState(String groupname, String statename, String value){
         jdbcTemplate
                 .update("MERGE INTO " + TABLE_NAME + " KEY (GROUPNAME, STATENAME) VALUES (?, ?, ?, ?)",
-                        groupname, cleanString(statename), SQL_TIMESTAMP_FORMATTER.format(LocalDateTime.now()), cleanString(value));
+                        groupname, cleanString(statename), uniqueTimestampService.getAsStringWithMillis(), cleanString(value));
     }
 
     private String cleanString(String string){

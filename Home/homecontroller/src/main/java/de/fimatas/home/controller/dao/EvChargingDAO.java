@@ -2,6 +2,7 @@ package de.fimatas.home.controller.dao;
 
 import de.fimatas.home.controller.database.mapper.EvChargingMapper;
 import de.fimatas.home.controller.model.EvChargeDatabaseEntry;
+import de.fimatas.home.controller.service.UniqueTimestampService;
 import de.fimatas.home.library.domain.model.ElectricVehicle;
 import de.fimatas.home.library.domain.model.EvChargePoint;
 import lombok.extern.apachecommons.CommonsLog;
@@ -27,6 +28,9 @@ public class EvChargingDAO {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    private UniqueTimestampService uniqueTimestampService;
 
     @PostConstruct
     @Transactional(propagation = Propagation.REQUIRED)
@@ -61,7 +65,7 @@ public class EvChargingDAO {
 
         jdbcTemplate
                 .update("UPDATE " + TABLE_NAME + " SET ENDTS = ? WHERE ENDTS is null",
-                        SQL_TIMESTAMP_FORMATTER.format(LocalDateTime.now()));
+                        uniqueTimestampService.getAsStringWithMillis());
     }
 
     @Transactional
@@ -80,7 +84,7 @@ public class EvChargingDAO {
         }else{
             jdbcTemplate
                     .update("INSERT INTO " + TABLE_NAME + " (STARTTS, ENDTS, CHARGEPOINT, EVNAME, STARTVAL, ENDVAL, MAXVAL) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                            SQL_TIMESTAMP_FORMATTER.format(LocalDateTime.now()), null,
+                            uniqueTimestampService.getAsStringWithMillis(), null,
                             chargePoint.getNumber(), ev.name(), counter, counter, counter);
         }
     }

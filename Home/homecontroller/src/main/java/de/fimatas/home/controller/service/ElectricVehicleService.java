@@ -43,6 +43,9 @@ public class ElectricVehicleService {
     @Autowired
     private HomematicCommandBuilder homematicCommandBuilder;
 
+    @Autowired
+    private UniqueTimestampService uniqueTimestampService;
+
     private final String STATEHANDLER_GROUPNAME_BATTERY = "ev-battery";
 
     private final String STATEHANDLER_GROUPNAME_SELECTED_EV = "ev-selected";
@@ -95,7 +98,7 @@ public class ElectricVehicleService {
         });
 
         Arrays.stream(ElectricVehicle.values()).filter(ev -> !newModel.getEvMap().containsKey(ev)).forEach(ev ->
-                newModel.getEvMap().put(ev, new ElectricVehicleState(ev, (short) 0, LocalDateTime.now())));
+                newModel.getEvMap().put(ev, new ElectricVehicleState(ev, (short) 0, uniqueTimestampService.get())));
 
         // wallbox-connected ev
         if(cachedConnectedEv!=null){
@@ -121,8 +124,6 @@ public class ElectricVehicleService {
     // startts muss dann immer gleich oder nach setz-datum prozet liegen
     // FIXME: finnished erkennen über schalter im houseservice??
     // FIXME: direkt nach einschalten counter abfragen um startwert richtig zu erfassen. trigger?
-    // FIXME: unique timestamp provider einbauen
-    // FIXME: Testfehler nach Umbau finish-flag und kWh-Faktor
 
     @Scheduled(initialDelay = 1000 * 20, fixedDelay = (1000 * HomeAppConstants.CHARGING_STATE_CHECK_INTERVAL_SECONDS) + 234)
     private void scheduledCheckChargingState() {
