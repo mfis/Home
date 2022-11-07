@@ -28,6 +28,8 @@ public class HeatpumpView extends View {
 
     private String linkOff = "#";
 
+    private String linkRefresh = "#";
+
     private List<ValueWithCaption> otherPlaces = new LinkedList<>();
 
 }

@@ -209,7 +209,12 @@ public class HeatpumpService {
 
         CompletableFuture.runAsync(() -> {
             Map<String, HeatpumpProgram> programs = new HashMap<>();
-            allPlaces.forEach(p -> programs.put(dictPlaceToRoomNameInDriver.get(p), presetToProgram(preset)));
+            allPlaces.forEach(p -> {
+                final HeatpumpProgram program = presetToProgram(preset);
+                if (program != null) {
+                    programs.put(dictPlaceToRoomNameInDriver.get(p), program);
+                }
+            });
 
             if(conflictiongPresets.containsKey(preset)){
                 dictPlaceToRoomNameInDriver.keySet().stream().filter(p -> !allPlaces.contains(p)).forEach(px -> {
@@ -242,6 +247,10 @@ public class HeatpumpService {
     }
 
     private boolean areExpectedModesSet(List<Place> allPlaces, HeatpumpProgram program, HeatpumpResponse response) {
+
+        if(program==null){
+            return true;
+        }
 
         for(Map.Entry<String, HeatpumpState> entry : response.getRoomnamesAndStates().entrySet()){
 
@@ -323,6 +332,8 @@ public class HeatpumpService {
                 return HeatpumpProgram.FAN_DRY;
             case OFF:
                 return HeatpumpProgram.OFF;
+            case UNKNOWN:
+                return null; // refresh only
             default:
                 throw new IllegalArgumentException("unknown preset: " + preset);
         }
