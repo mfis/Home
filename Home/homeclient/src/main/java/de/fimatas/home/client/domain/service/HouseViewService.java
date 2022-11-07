@@ -133,9 +133,9 @@ public class HouseViewService {
 
         formatPower(model, house.getTotalElectricalPowerConsumption(), historyModel==null?null:historyModel.getTotalElectricPowerConsumptionDay());
 
-        formatWallboxSwitch(model, "switchWallbox", house.getWallboxSwitch(), electricVehicleModel);
+        formatWallboxSwitch(model, "switchWallbox", house.getWallboxSwitch(), house.getWallboxElectricalPowerConsumption(), electricVehicleModel);
         formatPower(model, house.getWallboxElectricalPowerConsumption(), historyModel==null?null:historyModel.getWallboxElectricPowerConsumptionDay());
-        formatEVCharge(model, electricVehicleModel);
+        formatEVCharge(model, electricVehicleModel, house.getWallboxElectricalPowerConsumption());
 
         formatHeatpump(model, house, heatpumpModel, Place.BEDROOM);
         formatHeatpump(model, house, heatpumpModel, Place.KIDSROOM_1);
@@ -708,10 +708,13 @@ public class HouseViewService {
         formatSwitchInternal(model, viewKey, switchModel, view);
     }
 
-    private void formatWallboxSwitch(Model model, String viewKey, WallboxSwitch switchModel, ElectricVehicleModel electricVehicleModel) {
+    private void formatWallboxSwitch(Model model, String viewKey, WallboxSwitch switchModel, PowerMeter wallboxElectricalPowerConsumption, ElectricVehicleModel electricVehicleModel) {
 
         WallboxSwitchView view = new WallboxSwitchView();
         formatSwitchInternal(model, viewKey, switchModel, view);
+        if(wallboxElectricalPowerConsumption.isUnreach()){
+            view.setUnreach(Boolean.toString(wallboxElectricalPowerConsumption.isUnreach()));
+        }
         Arrays.stream(ElectricVehicle.values()).forEach(ev -> {
             ElectroVehicleView evView = new ElectroVehicleView();
             evView.setCaption(ev.getCaption());
