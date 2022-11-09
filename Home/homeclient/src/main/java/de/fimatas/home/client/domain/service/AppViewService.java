@@ -52,6 +52,7 @@ public class AppViewService {
         watch.add(new PlaceDirectives(Place.WORKSHOP, PlaceDirective.WATCH_LABEL));
         watch.add(new PlaceDirectives(Place.HOUSE, PlaceDirective.WATCH_LABEL));
         watch.add(new PlaceDirectives(Place.WALLBOX, PlaceDirective.WATCH_LABEL));
+        watch.add(new PlaceDirectives(Place.ELECTROVEHICLE, PlaceDirective.WATCH_LABEL));
 
         Set<PlaceDirectives> widget = new LinkedHashSet<>();
         targetPlaceDirectives.put(AppViewTarget.WIDGET, widget);
@@ -107,6 +108,8 @@ public class AppViewService {
                 mapHeatpumpView(placeDirectives, (HeatpumpView) view, placeModel, viewTarget);
             } else if(view instanceof LightsView){
                 mapLightsView(placeDirectives, (LightsView) view, placeModel, viewTarget);
+            } else if(view instanceof ChargingView){
+                mapChargingView(placeDirectives, (ChargingView) view, placeModel, viewTarget);
             }
         }
     }
@@ -190,6 +193,12 @@ public class AppViewService {
         }
     }
 
+    private void mapChargingView(PlaceDirectives placeDirectives, ChargingView view, HomeViewPlaceModel placeModel, AppViewTarget viewTarget) {
+
+        placeModel.setName("Ladung " + view.getName());
+        placeModel.getValues().add(mapCharging(placeDirectives, view));
+    }
+
     private HomeViewPlaceModel lookupPlaceModel(HomeViewModel appModel, PlaceDirectives placeDirectives, Model completeModel) {
 
         HomeViewPlaceModel placeModel = null;
@@ -215,6 +224,15 @@ public class AppViewService {
             appModel.getPlaces().add(placeModel);
         }
         return placeModel;
+    }
+
+    private HomeViewValueModel mapCharging(PlaceDirectives placeDirectives, ChargingView view) {
+        HomeViewValueModel hvm = new HomeViewValueModel();
+        hvm.setId(view.getId());
+        hvm.setKey(view.getStateShortLabel());
+        hvm.setValue(view.getStateShort());
+        hvm.setAccent(mapAccent(view.getColorClass()));
+        return hvm;
     }
 
     private HomeViewValueModel mapTemperature(PlaceDirectives placeDirectives, ClimateView view) {
@@ -435,16 +453,20 @@ public class AppViewService {
         actionModeCaption.setName("Schalter Modus");
         actionModeCaption.setLink(Strings.EMPTY);
         actionsControl.add(actionModeCaption);
-        HomeViewActionModel actionAuto = new HomeViewActionModel();
-        actionAuto.setId(placeDirectives.place.name() + "#switchActionAuto");
-        actionAuto.setName("Automatisch");
-        actionAuto.setLink(view.getLinkAuto());
-        actionsControl.add(actionAuto);
-        HomeViewActionModel actionManu = new HomeViewActionModel();
-        actionManu.setId(placeDirectives.place.name() + "#switchActionManu");
-        actionManu.setName("Manuell");
-        actionManu.setLink(view.getLinkManual());
-        actionsControl.add(actionManu);
+        if(StringUtils.isNotBlank(view.getLinkAuto())){
+            HomeViewActionModel actionAuto = new HomeViewActionModel();
+            actionAuto.setId(placeDirectives.place.name() + "#switchActionAuto");
+            actionAuto.setName("Automatisch");
+            actionAuto.setLink(view.getLinkAuto());
+            actionsControl.add(actionAuto);
+        }
+        if(StringUtils.isNotBlank(view.getLinkManual())){
+            HomeViewActionModel actionManu = new HomeViewActionModel();
+            actionManu.setId(placeDirectives.place.name() + "#switchActionManu");
+            actionManu.setName("Manuell");
+            actionManu.setLink(view.getLinkManual());
+            actionsControl.add(actionManu);
+        }
         List<List<HomeViewActionModel>> actions = new LinkedList<>();
         actions.add(actionsOnOff);
         actions.add(actionsControl);
