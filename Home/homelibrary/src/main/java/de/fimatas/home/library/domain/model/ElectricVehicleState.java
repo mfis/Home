@@ -6,11 +6,13 @@ import java.util.Map;
 
 public class ElectricVehicleState {
 
-    public ElectricVehicleState(ElectricVehicle electricVehicle, short batteryPercentage, LocalDateTime timestamp) {
+    public ElectricVehicleState(ElectricVehicle electricVehicle, short batteryPercentage, LocalDateTime batteryPercentageTimestamp) {
         this.electricVehicle = electricVehicle;
         this.batteryPercentage = batteryPercentage;
-        this.timestamp = timestamp;
+        this.batteryPercentageTimestamp = batteryPercentageTimestamp;
         this.additionalChargingPercentage = 0;
+        this.connectedToWallbox = false;
+        this.activeCharging = false;
     }
 
     private final ElectricVehicle electricVehicle;
@@ -19,12 +21,32 @@ public class ElectricVehicleState {
 
     private short additionalChargingPercentage;
 
-    private boolean connectedToWallbox = false;
+    private boolean connectedToWallbox;
 
-    private LocalDateTime timestamp;
+    private boolean activeCharging;
 
-    public LocalDateTime getTimestamp() {
-        return timestamp;
+    private LocalDateTime batteryPercentageTimestamp;
+
+    private LocalDateTime chargingTimestamp;
+
+    public LocalDateTime getChargingTimestamp() {
+        return chargingTimestamp;
+    }
+
+    public void setChargingTimestamp(LocalDateTime chargingTimestamp) {
+        this.chargingTimestamp = chargingTimestamp;
+    }
+
+    public boolean isActiveCharging() {
+        return activeCharging;
+    }
+
+    public void setActiveCharging(boolean activeCharging) {
+        this.activeCharging = activeCharging;
+    }
+
+    public LocalDateTime getBatteryPercentageTimestamp() {
+        return batteryPercentageTimestamp;
     }
 
     public short getBatteryPercentage() {

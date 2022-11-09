@@ -804,8 +804,12 @@ public class HouseViewService {
                     view.setElementTitleState(PROGRAMMGESTEUERT.replaceAll(REGEXP_NOT_ALPHANUMERIC, StringUtils.EMPTY));
                 }
             } else {
-                view.setLinkAuto(
-                        TOGGLE_AUTOMATION + switchModel.getDevice().name() + AND_VALUE_IS + AutomationState.AUTOMATIC.name());
+                if(switchModel.getDevice() == Device.SCHALTER_WALLBOX){
+                    view.setLinkAuto(StringUtils.EMPTY);
+                }else{
+                    view.setLinkAuto(
+                            TOGGLE_AUTOMATION + switchModel.getDevice().name() + AND_VALUE_IS + AutomationState.AUTOMATIC.name());
+                }
                 if (ArrayUtils.isNotEmpty(buttonCaptions)) {
                     view.setStateSuffix(PROGRAMMGESTEUERT + ", " + buttonCaptions[1]);
                     view.setElementTitleState(buttonCaptions[1]);
@@ -1124,33 +1128,33 @@ public class HouseViewService {
         }
     }
 
-    private void formatEVCharge(Model model, ElectricVehicleModel electricVehicleModel) {
+    private void formatEVCharge(Model model, ElectricVehicleModel electricVehicleModel, PowerMeter wallboxPowerMeter) {
 
         electricVehicleModel.getEvMap().entrySet().stream().filter(e -> !e.getKey().isOther()).forEach(e -> {
 
-            var view = new SliderView();
+            var view = new ChargingView();
             model.addAttribute("evcharge_" + e.getKey().name(), view);
 
             view.setName(e.getKey().getCaption());
             view.setId("evcharge_" + e.getKey().name());
-            view.setPlaceEnum(Place.HOUSE);
+            view.setPlaceEnum(Place.ELECTROVEHICLE);
             view.setIcon("fa-solid fa-car");
             view.setUnreach(Boolean.toString(false));
             if(new Object() == null){
                 return;
             }
 
-            var isChargedSinceReading = false;
+            var isChargedSinceReading = e.getValue().getChargingTimestamp() != null;
             var percentagePrefix = isChargedSinceReading?"~":"";
-            var isStateNew = ChronoUnit.MINUTES.between(e.getValue().getTimestamp(), LocalDateTime.now()) < 2;
+            var isStateNew = ChronoUnit.MINUTES.between(e.getValue().getBatteryPercentageTimestamp(), LocalDateTime.now()) < 2;
             short percentage;
             LocalDateTime timestamp;
             if(isChargedSinceReading){
-                percentage = (short) (e.getValue().getBatteryPercentage() + 0); // FIXME
-                timestamp = LocalDateTime.now(); // FIXME
+                percentage = (short) (e.getValue().getBatteryPercentage() + e.getValue().getAdditionalChargingPercentage());
+                timestamp = e.getValue().getChargingTimestamp();
             }else{
                 percentage =  e.getValue().getBatteryPercentage();
-                timestamp = e.getValue().getTimestamp();
+                timestamp = e.getValue().getBatteryPercentageTimestamp();
             }
             var tsFormatted = viewFormatter.formatTimestamp(timestamp, TimestampFormat.SHORT_WITH_TIME);
             ConditionColor conditionColor = percentage > 89?ConditionColor.ORANGE:percentage<21?ConditionColor.RED:ConditionColor.GREEN;
@@ -1158,9 +1162,24 @@ public class HouseViewService {
             view.setLinkUpdate(MESSAGEPATH + TYPE_IS + MessageType.SLIDERVALUE + AND_DEVICE_ID_IS + e.getKey().name() + AND_VALUE_IS);
             view.setColorClass(conditionColor.getUiClass());
             view.setStateShort(percentagePrefix + percentage + "%"); // watch etc
+            view.setStateShortLabel(tsFormatted);
             view.setElementTitleState(StringUtils.capitalize(tsFormatted) + " " + percentagePrefix + percentage + "%"); // collapsed top right
-            view.setState((isChargedSinceReading?"Geladen":"Gesetzt") + " " + tsFormatted);
-            view.setNumericValue(Short.toString(percentage));
+            if(e.getValue().isActiveCharging()){
+                if(wallboxPowerMeter.getActualConsumption().getValue().intValue() > 0){
+                    view.setState("Lädt gerade");
+                }else{
+                    if(isChargedSinceReading){
+                        view.setState("Bereit zum Laden...");
+                    }else{
+                        view.setState("Laden starten...");
+                    }
+                }
+            }else if(isChargedSinceReading){
+                view.setState("Geladen " + tsFormatted);
+            }else{
+                view.setState("Gesetzt " + tsFormatted);
+            }
+            view.setNumericValue(Short.toString(percentage>100?100:percentage)); // TODO: move condition up to var after testing
             view.setStateActualFlag(Boolean.toString(isStateNew && !isChargedSinceReading));
         });
     }

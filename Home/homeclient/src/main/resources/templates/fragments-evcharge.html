@@ -25,11 +25,20 @@
 					});
 				</script>
 
-				<input type="hidden" th:id="${model.id} + '-isActual'" th:value="${model.stateActualFlag}"/>
-				<input type="hidden" th:id="${model.id} + '-startValue'" th:value="${model.numericValue}"/>
-				<input type="hidden" th:id="${model.id} + '-eventState'" value=""/>
-				<input type="hidden" th:id="'val_update_slider_' + ${model.id}" th:value="${model.linkUpdate}">
-				<div th:id="${model.id}" class="evBatterySlider" style="margin: 15px 35px 35px auto;"></div>
+				<div style="display: flex;">
+					<div style="width: 60px !important;">
+						<button style="margin-top: 10px;" type="button" class="btn btn-block btn-secondary btn-sm" disabled><span>Voll</span></button>
+						<button style="margin-top: 10px;" type="button" class="btn btn-block btn-secondary btn-sm" disabled><span>90%</span></button>
+						<button style="margin-top: 10px;" type="button" class="btn btn-block btn-secondary btn-sm" disabled><span>80%</span></button>
+					</div>
+					<div style="margin-right: 0px; margin-left: auto;">
+						<input type="hidden" th:id="${model.id} + '-isActual'" th:value="${model.stateActualFlag}"/>
+						<input type="hidden" th:id="${model.id} + '-startValue'" th:value="${model.numericValue}"/>
+						<input type="hidden" th:id="${model.id} + '-eventState'" value=""/>
+						<input type="hidden" th:id="'val_update_slider_' + ${model.id}" th:value="${model.linkUpdate}">
+						<div th:id="${model.id}" class="evBatterySlider" style="margin: 5px 35px 35px auto;"></div>
+					</div>
+				</div>
 			</div>
 		</th:block>
 	</div>

@@ -14,6 +14,8 @@ public class EvChargeDatabaseEntry {
 
     private LocalDateTime endTS;
 
+    private LocalDateTime changeTS;
+
     private Integer chargepoint;
 
     private ElectricVehicle electricVehicle;

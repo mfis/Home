@@ -2,11 +2,8 @@ package de.fimatas.home.client.domain.model;
 
 import lombok.Data;
 
-import java.util.LinkedList;
-import java.util.List;
-
 @Data
-public class SliderView extends View {
+public class ChargingView extends View {
 
     private String label = "";
 
@@ -17,5 +14,7 @@ public class SliderView extends View {
     private String numericValue = "";
 
     private String stateActualFlag = "";
+
+    private String stateShortLabel = "";
 
 }

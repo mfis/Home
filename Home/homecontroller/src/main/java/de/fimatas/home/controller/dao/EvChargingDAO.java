@@ -1,5 +1,6 @@
 package de.fimatas.home.controller.dao;
 
+import de.fimatas.home.controller.database.mapper.ChangeTimestampMapper;
 import de.fimatas.home.controller.database.mapper.EvChargingMapper;
 import de.fimatas.home.controller.model.EvChargeDatabaseEntry;
 import de.fimatas.home.controller.service.UniqueTimestampService;
@@ -37,12 +38,14 @@ public class EvChargingDAO {
     public void createTables() {
 
         jdbcTemplate.update("CREATE CACHED TABLE IF NOT EXISTS " + TABLE_NAME
-                + " (STARTTS DATETIME NOT NULL, ENDTS DATETIME, CHARGEPOINT INTEGER, EVNAME VARCHAR(8) NOT NULL, " +
+                + " (STARTTS DATETIME NOT NULL, ENDTS DATETIME, CHANGETS DATETIME NOT NULL, CHARGEPOINT INTEGER NOT NULL, EVNAME VARCHAR(8) NOT NULL, " +
                 "STARTVAL DOUBLE NOT NULL, ENDVAL DOUBLE NOT NULL, MAXVAL DOUBLE NOT NULL, PRIMARY KEY (STARTTS, EVNAME));");
         jdbcTemplate
                 .update("CREATE UNIQUE INDEX IF NOT EXISTS " + "IDX1_" + TABLE_NAME + " ON " + TABLE_NAME + " (STARTTS, EVNAME);");
         jdbcTemplate
-                .update("CREATE UNIQUE INDEX IF NOT EXISTS " + "IDX2_" + TABLE_NAME + " ON " + TABLE_NAME + " (EVNAME, ENDTS);");
+                .update("CREATE UNIQUE INDEX IF NOT EXISTS " + "IDX2_" + TABLE_NAME + " ON " + TABLE_NAME + " (ENDTS);");
+        jdbcTemplate
+                .update("CREATE UNIQUE INDEX IF NOT EXISTS " + "IDX3_" + TABLE_NAME + " ON " + TABLE_NAME + " (CHANGETS);");
     }
 
     @Transactional(readOnly = true)
@@ -54,11 +57,20 @@ public class EvChargingDAO {
     }
 
     @Transactional(readOnly = true)
-    public boolean unfinishedChargingOnDB(){
+    public boolean activeChargingOnDB(){
 
         return !jdbcTemplate.query(
                 "select * FROM " + TABLE_NAME + " where ENDTS is null;", new EvChargingMapper()).isEmpty();
     }
+
+
+   @Transactional(readOnly = true)
+    public LocalDateTime maxChangeTimestamp(){
+
+       final List<LocalDateTime> entries = jdbcTemplate.query(
+               "select CHANGETS FROM " + TABLE_NAME + " ORDER BY CHANGETS DESC LIMIT 1;", new ChangeTimestampMapper());
+       return entries.isEmpty()?null:entries.get(0);
+   }
 
     @Transactional
     public synchronized void finishAll(){
@@ -78,13 +90,17 @@ public class EvChargingDAO {
         if(entryList.size()>1){
             log.error("Unexpected row count: " + entryList.size());
         }else if(entryList.size()==1){
-            jdbcTemplate
-                    .update("UPDATE " + TABLE_NAME + " SET ENDTS = ?, ENDVAL = ?, MAXVAL = ? WHERE EVNAME = ? AND ENDTS is null",
-                            null, counter, entryList.get(0).getEndVal().compareTo(counter) > 0 ? entryList.get(0).getEndVal() : counter, ev.name());
+            if(counter.compareTo(entryList.get(0).getEndVal()) != 0){
+                jdbcTemplate
+                        .update("UPDATE " + TABLE_NAME + " SET CHANGETS = ?, ENDVAL = ?, MAXVAL = ? WHERE EVNAME = ? AND ENDTS is null",
+                                uniqueTimestampService.getAsStringWithMillis(),
+                                counter, entryList.get(0).getEndVal().compareTo(counter) > 0 ? entryList.get(0).getEndVal() : counter, ev.name());
+            }
         }else{
+            String ts = uniqueTimestampService.getAsStringWithMillis();
             jdbcTemplate
-                    .update("INSERT INTO " + TABLE_NAME + " (STARTTS, ENDTS, CHARGEPOINT, EVNAME, STARTVAL, ENDVAL, MAXVAL) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                            uniqueTimestampService.getAsStringWithMillis(), null,
+                    .update("INSERT INTO " + TABLE_NAME + " (STARTTS, ENDTS, CHANGETS, CHARGEPOINT, EVNAME, STARTVAL, ENDVAL, MAXVAL) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                            ts, null, ts,
                             chargePoint.getNumber(), ev.name(), counter, counter, counter);
         }
     }

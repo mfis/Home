@@ -4,6 +4,7 @@ import de.fimatas.home.controller.api.HomematicAPI;
 import de.fimatas.home.controller.command.HomematicCommand;
 import de.fimatas.home.controller.command.HomematicCommandBuilder;
 import de.fimatas.home.controller.service.CameraService;
+import de.fimatas.home.controller.service.ElectricVehicleService;
 import de.fimatas.home.controller.service.PushService;
 import de.fimatas.home.controller.service.UploadService;
 import de.fimatas.home.library.dao.ModelObjectDAO;
@@ -91,6 +92,9 @@ public class HouseService {
     private UserService userService;
 
     @Autowired
+    private ElectricVehicleService electricVehicleService;
+
+    @Autowired
     private Environment env;
 
     @Scheduled(initialDelay = (1000 * 3), fixedDelay = (1000 * HomeAppConstants.MODEL_DEFAULT_INTERVAL_SECONDS))
@@ -120,6 +124,8 @@ public class HouseService {
         cameraService.cleanUp();
 
         historyService.saveNewValues();
+
+        informOtherServices(oldModel, newModel);
     }
 
     private HouseModel refreshModel(HouseModel oldModel) {
@@ -171,6 +177,12 @@ public class HouseService {
         readSubtitles(newModel);
 
         return newModel;
+    }
+
+    private void informOtherServices(HouseModel oldModel, HouseModel newModel) {
+        if(oldModel==null || (oldModel.getWallboxSwitch().isState() != newModel.getWallboxSwitch().isState())){
+            electricVehicleService.startNewChargingEntryAndRefreshModel();
+        }
     }
 
     private void calculateConclusion(HouseModel oldModel, HouseModel newModel) {

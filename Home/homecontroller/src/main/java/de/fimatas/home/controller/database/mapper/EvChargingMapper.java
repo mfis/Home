@@ -19,6 +19,7 @@ public class EvChargingMapper implements RowMapper<EvChargeDatabaseEntry> {
         entry.setStartTS(LocalDateTime.ofInstant(Instant.ofEpochMilli(rs.getTimestamp("STARTTS").getTime()), ZoneId.systemDefault()));
         entry.setEndTS(rs.getTimestamp("ENDTS")==null?null:
                 LocalDateTime.ofInstant(Instant.ofEpochMilli(rs.getTimestamp("ENDTS").getTime()), ZoneId.systemDefault()));
+        entry.setChangeTS(LocalDateTime.ofInstant(Instant.ofEpochMilli(rs.getTimestamp("CHANGETS").getTime()), ZoneId.systemDefault()));
         entry.setChargepoint(rs.getInt("CHARGEPOINT"));
         entry.setElectricVehicle(ElectricVehicle.valueOf(rs.getString("EVNAME")));
         entry.setStartVal(rs.getBigDecimal("STARTVAL"));

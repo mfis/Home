@@ -18,6 +18,7 @@ public enum Place {
     WORKSHOP("Werkstatt", false), //
     HOUSE("Haus", false), //
     WALLBOX("Wallbox", false), //
+    ELECTROVEHICLE("E-Auto", false), //
     ENTRANCE("Einfahrt", false), //
     TERRACE("Terrasse", false), //
     GARDEN("Garten", false), //
