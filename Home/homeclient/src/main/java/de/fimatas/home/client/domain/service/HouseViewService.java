@@ -1032,7 +1032,7 @@ public class HouseViewService {
         var stateShort = lights.getElementTitleState();
         stateShort = StringUtils.replaceIgnoreCase(stateShort, EINGESCHALTET, "ein");
         stateShort = StringUtils.replaceIgnoreCase(stateShort, AUSGESCHALTET, "aus");
-        lights.setStateShort(stateShort);
+        lights.setStateShort(StringUtils.capitalize(stateShort));
 
         model.addAttribute("lights" + place.name(), lights);
     }
@@ -1156,7 +1156,7 @@ public class HouseViewService {
                 percentage =  e.getValue().getBatteryPercentage();
                 timestamp = e.getValue().getBatteryPercentageTimestamp();
             }
-            var tsFormatted = viewFormatter.formatTimestamp(timestamp, TimestampFormat.SHORT_WITH_TIME);
+            var tsFormatted = StringUtils.capitalize(viewFormatter.formatTimestamp(timestamp, TimestampFormat.SHORT_WITH_TIME));
             ConditionColor conditionColor = percentage > 89?ConditionColor.ORANGE:percentage<21?ConditionColor.RED:ConditionColor.GREEN;
 
             view.setLinkUpdate(MESSAGEPATH + TYPE_IS + MessageType.SLIDERVALUE + AND_DEVICE_ID_IS + e.getKey().name() + AND_VALUE_IS);

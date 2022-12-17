@@ -4,22 +4,25 @@ import java.math.BigDecimal;
 
 public enum Tendency {
 
-    NONE(0, ""), //
+    NONE(0, "", ""), //
 
-    RISE(0, "far fa-arrow-alt-circle-up"), //
-    RISE_SLIGHT(Constants.ONE_MINUTE * 25, "far fa-arrow-alt-circle-up fa-rotate-45"), //
-    EQUAL(Constants.ONE_MINUTE * 75, "far fa-arrow-alt-circle-right"), //
-    FALL_SLIGHT(Constants.ONE_MINUTE * 25, "far fa-arrow-alt-circle-right fa-rotate-45"), //
-    FALL(0, "far fa-arrow-alt-circle-down"), //
+    RISE(0, "far fa-arrow-alt-circle-up", "arrow.up.circle"), //
+    RISE_SLIGHT(Constants.ONE_MINUTE * 25, "far fa-arrow-alt-circle-up fa-rotate-45", "arrow.up.forward.circle"), //
+    EQUAL(Constants.ONE_MINUTE * 75, "far fa-arrow-alt-circle-right", "equal.circle"), //
+    FALL_SLIGHT(Constants.ONE_MINUTE * 25, "far fa-arrow-alt-circle-right fa-rotate-45", "arrow.down.right.circle"), //
+    FALL(0, "far fa-arrow-alt-circle-down", "arrow.down.circle"), //
     ;
 
     private long timeDiff;
 
     private String iconCssClass;
 
-    private Tendency(long timeDiff, String iconCssClass) {
+    private String symbolId;
+
+    private Tendency(long timeDiff, String iconCssClass, String symbolId) {
         this.timeDiff = timeDiff;
         this.iconCssClass = iconCssClass;
+        this.symbolId = symbolId;
     }
 
     public static Tendency calculate(ValueWithTendency<BigDecimal> reference, long timeDiff) {
@@ -73,6 +76,15 @@ public enum Tendency {
         for (Tendency tendency : values()) {
             if (tendency.getIconCssClass().equals(cssClass)) {
                 return tendency.name();
+            }
+        }
+        return NONE.name();
+    }
+
+    public static String symbolFromCssClass(String cssClass) {
+        for (Tendency tendency : values()) {
+            if (tendency.getIconCssClass().equals(cssClass)) {
+                return tendency.symbolId;
             }
         }
         return NONE.name();

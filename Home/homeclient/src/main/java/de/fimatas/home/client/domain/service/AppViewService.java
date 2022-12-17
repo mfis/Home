@@ -244,6 +244,7 @@ public class AppViewService {
         hvm.setValueShort(view.getStateShort());
         hvm.setAccent(mapAccent(view.getColorClass()));
         hvm.setTendency(Tendency.nameFromCssClass(view.getTendencyIconTemperature()));
+        hvm.setSymbol(Tendency.symbolFromCssClass(view.getTendencyIconTemperature()));
         return hvm;
     }
 
@@ -265,6 +266,7 @@ public class AppViewService {
         hvm.setKey("2-Tage");
         hvm.setValue(view.getStateTemperatureWatch());
         hvm.setAccent(mapAccent(view.getColorClass()));
+        hvm.setSymbol(view.getIconNativeClient());
         return hvm;
     }
 
@@ -280,7 +282,7 @@ public class AppViewService {
     private HomeViewValueModel mapHeatpump(PlaceDirectives placeDirectives, HeatpumpView view) {
         HomeViewValueModel hvm = new HomeViewValueModel();
         hvm.setId(placeDirectives.place.name() + "#heatpump");
-        hvm.setKey("W-Pumpe");
+        hvm.setKey("Wärmepumpe");
         if(Boolean.parseBoolean(view.getBusy())) {
             hvm.setValue("...\u21BB...");
             hvm.setAccent(Strings.EMPTY);

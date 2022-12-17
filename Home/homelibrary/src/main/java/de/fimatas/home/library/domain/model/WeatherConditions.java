@@ -7,17 +7,17 @@ import java.util.List;
 public enum WeatherConditions {
 
     WIND("fa-solid fa-wind",  "wind","Sturm", true, ConditionColor.RED),
-    SNOW("fa-solid fa-snowflake", "snowflake.circle.fill", "Schnee", true, ConditionColor.COLD),
-    HAIL("fa-solid fa-cloud-meatball", "cloud.hail.fill", "Hagel", true, null),
-    THUNDERSTORM("fa-solid fa-cloud-bolt", "bolt.fill", "Gewitter", true, null),
-    RAIN("fa-solid fa-cloud-showers-heavy", "cloud.heavyrain.fill", "Regen", true, null),
-    CLOUD_RAIN("fa-solid fa-cloud-rain", "cloud.rain.fill", "Bewölkt und Regen", true, null),
-    SUN("fa-solid fa-sun", "sun.max.fill", "Sonne", true, null),
-    FOG("fa-solid fa-smog", "cloud.fog.fill", "Nebel", false, null),
-    SUN_CLOUD("fa-solid fa-cloud-sun", "cloud.sun.fill", "Leicht bewölkt", false, null),
+    SNOW("fa-solid fa-snowflake", "snowflake", "Schnee", true, ConditionColor.COLD),
+    HAIL("fa-solid fa-cloud-meatball", "cloud.hail", "Hagel", true, null),
+    THUNDERSTORM("fa-solid fa-cloud-bolt", "bolt", "Gewitter", true, null),
+    RAIN("fa-solid fa-cloud-showers-heavy", "cloud.heavyrain", "Regen", true, null),
+    CLOUD_RAIN("fa-solid fa-cloud-rain", "cloud.rain", "Bewölkt und Regen", true, null),
+    SUN("fa-solid fa-sun", "sun.max", "Sonne", true, null),
+    FOG("fa-solid fa-smog", "cloud.fog", "Nebel", false, null),
+    SUN_CLOUD("fa-solid fa-cloud-sun", "cloud.sun", "Leicht bewölkt", false, null),
     CLOUD("fa-solid fa-cloud", "cloud.fill", "Wolken", false, null),
     MOON("fa-solid fa-moon", "moon.fill", "Mond", false, null),
-    MOON_CLOUD("fa-solid fa-cloud-moon", "cloud.moon.fill", "Leicht bewölkt", false, null),
+    MOON_CLOUD("fa-solid fa-cloud-moon", "cloud.moon", "Leicht bewölkt", false, null),
     UNKNOWN("fa-solid fa-circle-question", "", "Unbekannt", false, null)
     ;
 
