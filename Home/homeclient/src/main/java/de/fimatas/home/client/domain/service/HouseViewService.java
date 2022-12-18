@@ -160,7 +160,7 @@ public class HouseViewService {
                 .filter(c -> place.getSubPlaces().contains(c.getDevice().getPlace())).collect(Collectors.toList());
         var unreach = subPlaces.stream().anyMatch(AbstractDeviceModel::isUnreach);
 
-        ClimateView view = new ClimateView();
+        ClimateGroupView view = new ClimateGroupView();
         model.addAttribute(viewKey, view);
 
         view.setId(viewKey);
@@ -178,16 +178,18 @@ public class HouseViewService {
         var from = format(minTemperature.get().getTemperature().getValue(), false, false);
         var to = format(maxTemperature.get().getTemperature().getValue(), false, false);
 
-        StringBuilder combinedTemperatures = new StringBuilder(20);
-        combinedTemperatures.append(from);
-        if(!from.equals(to)) {
-            combinedTemperatures.append(" bis ");
-            combinedTemperatures.append(to);
-        }
-        combinedTemperatures.append(ViewFormatter.DEGREE + "C");
-        view.setStateTemperature(combinedTemperatures.toString());
-
-        formatClimateBackground(maxTemperature.get(), view);
+        subPlaces.stream().forEach(sp -> {
+            if(!sp.isBusy() && !sp.isUnreach()){
+                var singlePlace = sp.getDevice().getPlace();
+                var key = house.getPlaceSubtitles().containsKey(singlePlace) ? house.getPlaceSubtitles().get(singlePlace) : singlePlace.getPlaceName();
+                // FIXME: shortened name
+                key = StringUtils.remove(key, "zimmer");
+                var cv = new ClimateView();
+                cv.setStateTemperature(format(sp.getTemperature().getValue(), true, true) + ViewFormatter.DEGREE + "C");
+                formatClimateBackground(sp, cv);
+                view.getCaptionAndValue().put(key, cv);
+            }
+        });
     }
 
     private void formatFrontDoorBell(Model model, String id, Doorbell doorbell, Camera camera) {

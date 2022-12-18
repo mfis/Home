@@ -92,6 +92,8 @@ public class AppViewService {
             HomeViewPlaceModel placeModel = lookupPlaceModel(appModel, placeDirectives, completeModel);
             if (view instanceof ClimateView) {
                 mapClimateView(placeDirectives, (ClimateView) view, placeModel, viewTarget);
+            } else if (view instanceof ClimateGroupView) {
+                mapClimateGroupView(placeDirectives, (ClimateGroupView) view, placeModel, viewTarget);
             } else if (view instanceof PowerView) {
                 mapPowerView(placeDirectives, (PowerView) view, placeModel, viewTarget);
             } else if (view instanceof LockView) {
@@ -153,6 +155,20 @@ public class AppViewService {
         if (StringUtils.isNotBlank(view.getStateHumidity()) && viewTarget != AppViewTarget.COMPLICATION) {
             placeModel.getValues().add(mapHumidity(placeDirectives, view));
         }
+    }
+
+    private void mapClimateGroupView(PlaceDirectives placeDirectives, ClimateGroupView view, HomeViewPlaceModel placeModel, AppViewTarget viewTarget) {
+
+        view.getCaptionAndValue().forEach((k, v) -> {
+            var hvm = new HomeViewValueModel();
+            hvm.setId("grp_" + k + "#temp");
+            hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP).map(Enum::name).collect(Collectors.toList()));
+            hvm.setKey(k);
+            hvm.setValue(v.getStateTemperature());
+            hvm.setValueShort(v.getStateTemperature());
+            hvm.setAccent(mapAccent(v.getColorClass()));
+            placeModel.getValues().add(hvm);
+        });
     }
 
     private void mapWeatherForecastsView(PlaceDirectives placeDirectives, WeatherForecastsView view, HomeViewPlaceModel placeModel, AppViewTarget viewTarget) {
@@ -313,7 +329,7 @@ public class AppViewService {
     private HomeViewValueModel mapForecastEvent(PlaceDirectives placeDirectives, WeatherForecastsView view) {
         HomeViewValueModel hvm = new HomeViewValueModel();
         hvm.setId(placeDirectives.place.name() + "#fcEvent");
-        hvm.getValueDirectives().addAll(Stream.of(ValueDirective.WIDGET_SKIP).map(Enum::name).collect(Collectors.toList()));
+        hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP, ValueDirective.WIDGET_SKIP).map(Enum::name).collect(Collectors.toList()));
         hvm.setKey("Ereignis");
         hvm.setValue(view.getStateEventWatch());
         hvm.setAccent(mapAccent(view.getColorClass()));
