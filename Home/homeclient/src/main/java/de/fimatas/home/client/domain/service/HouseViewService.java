@@ -114,8 +114,6 @@ public class HouseViewService {
         formatClimate(model, "tempGuestroom", house.getClimateGuestRoom(), house.getHeatingGuestRoom(), false);
         formatClimate(model, "tempWorkshop", house.getClimateWorkshop(), null, false);
 
-        formatClimateGroup(model, "upperFloor", Place.UPPER_FLOOR_TEMPERATURE, house);
-
         // formatWindow(model, "leftWindowBedroom", // NOSONAR
         // house.getLeftWindowBedRoom()); // NOSONAR
 
@@ -152,15 +150,19 @@ public class HouseViewService {
         formatWeatherForecast(model, weatherForecastModel);
 
         formatPresence(model, presenceModel);
+
+        // widget only
+        formatUpperFloorGroup(model, "upperFloor", Place.UPPER_FLOOR_TEMPERATURE, house);
+        formatGridsGroup(model, "grids", Place.GRIDS, house, historyModel==null?null:historyModel.getTotalElectricPowerConsumptionDay());
     }
 
-    private void formatClimateGroup(Model model, String viewKey, Place place, HouseModel house) {
+    private void formatUpperFloorGroup(Model model, String viewKey, Place place, HouseModel house) {
 
         var subPlaces = house.lookupFields(RoomClimate.class).values().stream()
                 .filter(c -> place.getSubPlaces().contains(c.getDevice().getPlace())).collect(Collectors.toList());
         var unreach = subPlaces.stream().anyMatch(AbstractDeviceModel::isUnreach);
 
-        ClimateGroupView view = new ClimateGroupView();
+        WidgetGroupView view = new WidgetGroupView();
         model.addAttribute(viewKey, view);
 
         view.setId(viewKey);
@@ -184,12 +186,38 @@ public class HouseViewService {
                 var key = house.getPlaceSubtitles().containsKey(singlePlace) ? house.getPlaceSubtitles().get(singlePlace) : singlePlace.getPlaceName();
                 // FIXME: shortened name
                 key = StringUtils.remove(key, "zimmer");
-                var cv = new ClimateView();
-                cv.setStateTemperature(format(sp.getTemperature().getValue(), true, true) + ViewFormatter.DEGREE + "C");
-                formatClimateBackground(sp, cv);
-                view.getCaptionAndValue().put(key, cv);
+                var sv = new View();
+                sv.setState(format(sp.getTemperature().getValue(), true, true) + ViewFormatter.DEGREE + "C");
+                formatClimateBackground(sp, sv);
+                view.getCaptionAndValue().put(key, sv);
             }
         });
+    }
+
+
+    private void formatGridsGroup(Model model, String viewKey, Place place, HouseModel house, List<PowerConsumptionDay> pcdElectric) {
+
+        var unreach = pcdElectric == null;
+
+        WidgetGroupView view = new WidgetGroupView();
+        model.addAttribute(viewKey, view);
+
+        view.setId(viewKey);
+        view.setPlaceEnum(place);
+        view.setUnreach(Boolean.toString(unreach));
+        if (unreach) {
+            return;
+        }
+
+        var electric = new View();
+        electric.setState("0" + ViewFormatter.K_W_H);
+        if (!pcdElectric.isEmpty()) {
+            List<ChartEntry> dayViewModel = viewFormatter.fillPowerHistoryDayViewModel(pcdElectric, false);
+            if (!dayViewModel.isEmpty()) {
+                electric.setState(dayViewModel.get(0).getLabel().replace(ViewFormatter.SUM_SIGN, "").trim());
+            }
+        }
+        view.getCaptionAndValue().put("Strom", electric);
     }
 
     private void formatFrontDoorBell(Model model, String id, Doorbell doorbell, Camera camera) {
@@ -503,21 +531,24 @@ public class HouseViewService {
         view.setActiveSwitchColorClass(switchColorClass);
     }
 
-    private void formatClimateBackground(Climate climate, ClimateView view) {
+    private void formatClimateBackground(Climate climate, View view) {
 
         formatTemperatureConditionColor(view, List.of(), climate.getTemperature().getValue(), climate.getTemperature().getValue());
 
         // for now only used in app
-        if (climate instanceof RoomClimate && climate.getHumidity() != null) {
-            if (climate.getHumidity().getValue().compareTo(HomeAppConstants.TARGET_HUMIDITY_MAX_INSIDE) > 0) {
-                view.setColorClassHumidity(ConditionColor.ORANGE.getUiClass());
-            } else if (climate.getHumidity().getValue().compareTo(HomeAppConstants.TARGET_HUMIDITY_MIN_INSIDE) < 0) {
-                view.setColorClassHumidity(ConditionColor.ORANGE.getUiClass());
+        if(view instanceof ClimateView){
+            ClimateView cv = (ClimateView) view;
+            if (climate instanceof RoomClimate && climate.getHumidity() != null) {
+                if (climate.getHumidity().getValue().compareTo(HomeAppConstants.TARGET_HUMIDITY_MAX_INSIDE) > 0) {
+                    cv.setColorClassHumidity(ConditionColor.ORANGE.getUiClass());
+                } else if (climate.getHumidity().getValue().compareTo(HomeAppConstants.TARGET_HUMIDITY_MIN_INSIDE) < 0) {
+                    cv.setColorClassHumidity(ConditionColor.ORANGE.getUiClass());
+                } else {
+                    cv.setColorClassHumidity(ConditionColor.GREEN.getUiClass());
+                }
             } else {
-                view.setColorClassHumidity(ConditionColor.GREEN.getUiClass());
+                cv.setColorClassHumidity(ConditionColor.GRAY.getUiClass());
             }
-        } else {
-            view.setColorClassHumidity(ConditionColor.GRAY.getUiClass());
         }
     }
 

@@ -25,8 +25,11 @@ public enum Place {
     FRONTDOOR("Haustür", false), //
     // with sub-places
     OUTSIDE("Draußen", false, Place.ENTRANCE, Place.TERRACE), //
+
+    // widget only
     UPPER_FLOOR_TEMPERATURE("Obergeschoss", false, Place.BEDROOM, Place.KIDSROOM_1, Place.KIDSROOM_2), //
     DOORS_AND_WINDOWS("Türen und Fenster", false, Place.HOUSE, Place.GUESTROOM, Place.WORKSHOP, Place.LAUNDRY), //
+    GRIDS("Netze", false), //
     ;
 
     private String placeName;

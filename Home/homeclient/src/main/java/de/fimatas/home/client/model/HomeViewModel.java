@@ -42,7 +42,7 @@ public class HomeViewModel implements Serializable {
 
         private String value;
 
-        private String valueShort = "";
+        private String valueShort = EMPTY;
 
         private String accent;
 

@@ -60,6 +60,7 @@ public class AppViewService {
         widget.add(new PlaceDirectives(Place.OUTSIDE, PlaceDirective.WIDGET_LABEL_SMALL, PlaceDirective.WIDGET_LABEL_MEDIUM, PlaceDirective.WIDGET_LABEL_LARGE, PlaceDirective.WIDGET_SYMBOL, PlaceDirective.WIDGET_LOCKSCREEN_CIRCULAR));
         widget.add(new PlaceDirectives(Place.UPPER_FLOOR_TEMPERATURE, PlaceDirective.WIDGET_LABEL_SMALL, PlaceDirective.WIDGET_LABEL_MEDIUM, PlaceDirective.WIDGET_LABEL_LARGE));
         widget.add(new PlaceDirectives(Place.FRONTDOOR, PlaceDirective.WIDGET_SYMBOL));
+        widget.add(new PlaceDirectives(Place.GRIDS, PlaceDirective.WIDGET_LABEL_MEDIUM, PlaceDirective.WIDGET_LABEL_LARGE));
     }
 
     public HomeViewModel mapAppModel(Model model, AppViewTarget viewTarget) {
@@ -92,8 +93,8 @@ public class AppViewService {
             HomeViewPlaceModel placeModel = lookupPlaceModel(appModel, placeDirectives, completeModel);
             if (view instanceof ClimateView) {
                 mapClimateView(placeDirectives, (ClimateView) view, placeModel, viewTarget);
-            } else if (view instanceof ClimateGroupView) {
-                mapClimateGroupView(placeDirectives, (ClimateGroupView) view, placeModel, viewTarget);
+            } else if (view instanceof WidgetGroupView) {
+                mapClimateGroupView(placeDirectives, (WidgetGroupView) view, placeModel, viewTarget);
             } else if (view instanceof PowerView) {
                 mapPowerView(placeDirectives, (PowerView) view, placeModel, viewTarget);
             } else if (view instanceof LockView) {
@@ -157,15 +158,14 @@ public class AppViewService {
         }
     }
 
-    private void mapClimateGroupView(PlaceDirectives placeDirectives, ClimateGroupView view, HomeViewPlaceModel placeModel, AppViewTarget viewTarget) {
+    private void mapClimateGroupView(PlaceDirectives placeDirectives, WidgetGroupView view, HomeViewPlaceModel placeModel, AppViewTarget viewTarget) {
 
         view.getCaptionAndValue().forEach((k, v) -> {
             var hvm = new HomeViewValueModel();
-            hvm.setId("grp_" + k + "#temp");
+            hvm.setId("grp_" + "#" + view.getPlace() + "#" + k);
             hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP).map(Enum::name).collect(Collectors.toList()));
             hvm.setKey(k);
-            hvm.setValue(v.getStateTemperature());
-            hvm.setValueShort(v.getStateTemperature());
+            hvm.setValue(v.getState());
             hvm.setAccent(mapAccent(v.getColorClass()));
             placeModel.getValues().add(hvm);
         });

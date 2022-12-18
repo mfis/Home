@@ -6,7 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Data
-public class ClimateGroupView extends View {
+public class WidgetGroupView extends View {
 
-    private Map<String, ClimateView> captionAndValue = new LinkedHashMap<>();
+    private Map<String, View> captionAndValue = new LinkedHashMap<>();
 }
