@@ -45,12 +45,12 @@ public class HistoryViewService {
         if (key.equals(house.getTotalElectricalPowerConsumption().getDevice().historyKeyPrefix())) {
             fillPowerHistoryMonthViewModel(model, history.getTotalElectricPowerConsumptionMonth());
             List<ChartEntry> dayViewModel =
-                viewFormatter.fillPowerHistoryDayViewModel(history.getTotalElectricPowerConsumptionDay(), true);
+                viewFormatter.fillPowerHistoryDayViewModel(history.getTotalElectricPowerConsumptionDay(), true, false);
             model.addAttribute("chartEntries", dayViewModel);
         } else if (key.equals(house.getWallboxElectricalPowerConsumption().getDevice().historyKeyPrefix())) {
             fillPowerHistoryMonthViewModel(model, history.getWallboxElectricPowerConsumptionMonth());
             List<ChartEntry> dayViewModel =
-                viewFormatter.fillPowerHistoryDayViewModel(history.getWallboxElectricPowerConsumptionDay(), true);
+                viewFormatter.fillPowerHistoryDayViewModel(history.getWallboxElectricPowerConsumptionDay(), true, false);
             model.addAttribute("chartEntries", dayViewModel);
         } else if (key.equals(house.getConclusionClimateFacadeMin().getDevice().historyKeyPrefix())) {
             fillTemperatureHistoryViewModel(model, history.getOutsideTemperature());

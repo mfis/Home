@@ -137,7 +137,7 @@ public class ViewFormatter {
         return frmt;
     }
 
-    public List<ChartEntry> fillPowerHistoryDayViewModel(List<PowerConsumptionDay> days, boolean historyView) {
+    public List<ChartEntry> fillPowerHistoryDayViewModel(List<PowerConsumptionDay> days, boolean historyView, boolean onlyToday) {
 
         DecimalFormat decimalFormat = new DecimalFormat("0.#");
         LocalDateTime today = LocalDateTime.now();
@@ -163,6 +163,7 @@ public class ViewFormatter {
                 daySum);
             String sumCaption = sumCaption(historyView, decimalFormat, isToday, daySum);
             chartEntryLabels(historyView, pcd, chartEntry, sumCaption);
+            chartEntry.setNumericValue(daySum);
             chartEntries.add(chartEntry);
             index++;
         }

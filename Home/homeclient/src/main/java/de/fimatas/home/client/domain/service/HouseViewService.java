@@ -205,15 +205,15 @@ public class HouseViewService {
 
         var electric = new View();
         electric.setState("0" + ViewFormatter.K_W_H);
-        if (!pcdElectric.isEmpty()) {
-            List<ChartEntry> dayViewModel = viewFormatter.fillPowerHistoryDayViewModel(pcdElectric, false);
-            if (!dayViewModel.isEmpty()) {
+        if (pcdElectric != null &&!pcdElectric.isEmpty()) {
+            List<ChartEntry> dayViewModel = viewFormatter.fillPowerHistoryDayViewModel(pcdElectric, false, true);
+            if (dayViewModel != null && !dayViewModel.isEmpty()) {
                 electric.setState(dayViewModel.get(0).getLabel().replace(ViewFormatter.SUM_SIGN, "").trim());
+                electric.setColorClass(calculateViewConditionColorGridElectricPowerActualDayDay(dayViewModel.get(0).getNumericValue()).getUiClass());
             }
         }
         view.getCaptionAndValue().put("Strom", electric);
     }
-
 
     private void formatEnergyGroup(Model model, String viewKey, Place place, ElectricVehicleModel electricVehicleModel) {
 
@@ -229,7 +229,7 @@ public class HouseViewService {
                 ev.setState(calculateViewFormattedPercentageEv(e));
                 ev.setColorClass(calculateViewConditionColorEv(calculateViewPercentageEv(e)).getUiClass());
                 if(e.getValue().isActiveCharging()){
-                    ev.setIconNativeClient("bolt");
+                    ev.setIconNativeClient("bolt"); // TODO: centralize
                 }
                 view.getCaptionAndValue().put(e.getKey().getCaption(), ev);
             }
@@ -658,9 +658,12 @@ public class HouseViewService {
         }
 
         if (pcd != null && !pcd.isEmpty()) {
-            List<ChartEntry> dayViewModel = viewFormatter.fillPowerHistoryDayViewModel(pcd, false);
+            List<ChartEntry> dayViewModel = viewFormatter.fillPowerHistoryDayViewModel(pcd, false, false);
             if (!dayViewModel.isEmpty()) {
                 power.setTodayConsumption(dayViewModel.get(0));
+                if (powerMeter.getDevice() == Device.STROMZAEHLER_GESAMT) {
+                    power.setColorClass(calculateViewConditionColorGridElectricPowerActualDayDay(dayViewModel.get(0).getNumericValue()).getUiClass());
+                }
             }
         }
 
@@ -1250,6 +1253,12 @@ public class HouseViewService {
     }
 
     private ConditionColor calculateViewConditionColorEv(short percentage) {
-        return percentage > 89 ? ConditionColor.ORANGE:percentage<21?ConditionColor.RED:ConditionColor.GREEN;
+        return percentage > 89 ? ConditionColor.ORANGE:percentage<21?ConditionColor.RED:ConditionColor.GREEN; // TODO: constant
+    }
+
+    private ConditionColor calculateViewConditionColorGridElectricPowerActualDayDay(BigDecimal kwhDay) {
+        var upRoundedHours = LocalTime.now().getHour() + 1;
+        var maxKwhPerHourForGreen = new BigDecimal("0.7"); // TODO: constant
+        return kwhDay.compareTo(maxKwhPerHourForGreen.multiply(new BigDecimal(upRoundedHours))) < 0 ? ConditionColor.GREEN : ConditionColor.ORANGE;
     }
 }
