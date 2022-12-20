@@ -58,9 +58,10 @@ public class AppViewService {
         targetPlaceDirectives.put(AppViewTarget.WIDGET, widget);
 
         widget.add(new PlaceDirectives(Place.OUTSIDE, PlaceDirective.WIDGET_LABEL_SMALL, PlaceDirective.WIDGET_LABEL_MEDIUM, PlaceDirective.WIDGET_LABEL_LARGE, PlaceDirective.WIDGET_SYMBOL, PlaceDirective.WIDGET_LOCKSCREEN_CIRCULAR));
-        widget.add(new PlaceDirectives(Place.UPPER_FLOOR_TEMPERATURE, PlaceDirective.WIDGET_LABEL_SMALL, PlaceDirective.WIDGET_LABEL_MEDIUM, PlaceDirective.WIDGET_LABEL_LARGE));
+        widget.add(new PlaceDirectives(Place.WIDGET_UPPER_FLOOR_TEMPERATURE, PlaceDirective.WIDGET_LABEL_SMALL, PlaceDirective.WIDGET_LABEL_MEDIUM, PlaceDirective.WIDGET_LABEL_LARGE));
         widget.add(new PlaceDirectives(Place.FRONTDOOR, PlaceDirective.WIDGET_SYMBOL));
-        widget.add(new PlaceDirectives(Place.GRIDS, PlaceDirective.WIDGET_LABEL_MEDIUM, PlaceDirective.WIDGET_LABEL_LARGE));
+        widget.add(new PlaceDirectives(Place.WIDGET_GRIDS, PlaceDirective.WIDGET_LABEL_MEDIUM, PlaceDirective.WIDGET_LABEL_LARGE));
+        widget.add(new PlaceDirectives(Place.WIDGET_ENERGY, PlaceDirective.WIDGET_LABEL_MEDIUM, PlaceDirective.WIDGET_LABEL_LARGE));
     }
 
     public HomeViewModel mapAppModel(Model model, AppViewTarget viewTarget) {
@@ -162,11 +163,12 @@ public class AppViewService {
 
         view.getCaptionAndValue().forEach((k, v) -> {
             var hvm = new HomeViewValueModel();
-            hvm.setId("grp_" + "#" + view.getPlace() + "#" + k);
+            hvm.setId(view.getPlace() + "#grp#" + k);
             hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP).map(Enum::name).collect(Collectors.toList()));
             hvm.setKey(k);
             hvm.setValue(v.getState());
             hvm.setAccent(mapAccent(v.getColorClass()));
+            hvm.setSymbol(v.getIconNativeClient());
             placeModel.getValues().add(hvm);
         });
     }

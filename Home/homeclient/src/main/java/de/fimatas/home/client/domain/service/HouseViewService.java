@@ -152,23 +152,23 @@ public class HouseViewService {
         formatPresence(model, presenceModel);
 
         // widget only
-        formatUpperFloorGroup(model, "upperFloor", Place.UPPER_FLOOR_TEMPERATURE, house);
-        formatGridsGroup(model, "grids", Place.GRIDS, house, historyModel==null?null:historyModel.getTotalElectricPowerConsumptionDay());
+        formatUpperFloorGroup(model, "widgetUpperFloor", Place.WIDGET_UPPER_FLOOR_TEMPERATURE, house);
+        formatGridsGroup(model, "widgetGrids", Place.WIDGET_GRIDS, house, historyModel==null?null:historyModel.getTotalElectricPowerConsumptionDay());
+        formatEnergyGroup(model, "widgetEnergy", Place.WIDGET_ENERGY, electricVehicleModel);
     }
 
     private void formatUpperFloorGroup(Model model, String viewKey, Place place, HouseModel house) {
 
         var subPlaces = house.lookupFields(RoomClimate.class).values().stream()
                 .filter(c -> place.getSubPlaces().contains(c.getDevice().getPlace())).collect(Collectors.toList());
-        var unreach = subPlaces.stream().anyMatch(AbstractDeviceModel::isUnreach);
 
-        WidgetGroupView view = new WidgetGroupView();
+        if (subPlaces.stream().anyMatch(AbstractDeviceModel::isUnreach)) {
+            return;
+        }
+
+        WidgetGroupView view = new WidgetGroupView(viewKey, place, subPlaces);
         model.addAttribute(viewKey, view);
-
-        view.setId(viewKey);
-        view.setPlaceEnum(place);
-        view.setUnreach(Boolean.toString(unreach));
-        if (unreach || subPlaces.size()==0) {
+        if (view.isUnreach()) {
             return;
         }
 
@@ -197,15 +197,9 @@ public class HouseViewService {
 
     private void formatGridsGroup(Model model, String viewKey, Place place, HouseModel house, List<PowerConsumptionDay> pcdElectric) {
 
-        var unreach = pcdElectric == null;
-
-        WidgetGroupView view = new WidgetGroupView();
+        WidgetGroupView view = new WidgetGroupView(viewKey, place, pcdElectric);
         model.addAttribute(viewKey, view);
-
-        view.setId(viewKey);
-        view.setPlaceEnum(place);
-        view.setUnreach(Boolean.toString(unreach));
-        if (unreach) {
+        if (view.isUnreach()) {
             return;
         }
 
@@ -218,6 +212,28 @@ public class HouseViewService {
             }
         }
         view.getCaptionAndValue().put("Strom", electric);
+    }
+
+
+    private void formatEnergyGroup(Model model, String viewKey, Place place, ElectricVehicleModel electricVehicleModel) {
+
+        WidgetGroupView view = new WidgetGroupView(viewKey, place, electricVehicleModel);
+        model.addAttribute(viewKey, view);
+        if (view.isUnreach()) {
+            return;
+        }
+
+        electricVehicleModel.getEvMap().entrySet().stream().filter(e -> !e.getKey().isOther()).forEach(e -> {
+            if(!e.getValue().getElectricVehicle().isOther()){
+                var ev = new View();
+                ev.setState(calculateViewFormattedPercentageEv(e));
+                ev.setColorClass(calculateViewConditionColorEv(calculateViewPercentageEv(e)).getUiClass());
+                if(e.getValue().isActiveCharging()){
+                    ev.setIconNativeClient("bolt");
+                }
+                view.getCaptionAndValue().put(e.getKey().getCaption(), ev);
+            }
+        });
     }
 
     private void formatFrontDoorBell(Model model, String id, Doorbell doorbell, Camera camera) {
@@ -1178,25 +1194,17 @@ public class HouseViewService {
             }
 
             var isChargedSinceReading = e.getValue().getChargingTimestamp() != null;
-            var percentagePrefix = isChargedSinceReading?"~":"";
             var isStateNew = ChronoUnit.MINUTES.between(e.getValue().getBatteryPercentageTimestamp(), LocalDateTime.now()) < 2;
-            short percentage;
-            LocalDateTime timestamp;
-            if(isChargedSinceReading){
-                percentage = (short) (e.getValue().getBatteryPercentage() + e.getValue().getAdditionalChargingPercentage());
-                timestamp = e.getValue().getChargingTimestamp();
-            }else{
-                percentage =  e.getValue().getBatteryPercentage();
-                timestamp = e.getValue().getBatteryPercentageTimestamp();
-            }
+            short percentage = calculateViewPercentageEv(e);
+            LocalDateTime timestamp = calculateViewTimestampEv(e);
+
             var tsFormatted = StringUtils.capitalize(viewFormatter.formatTimestamp(timestamp, TimestampFormat.SHORT_WITH_TIME));
-            ConditionColor conditionColor = percentage > 89?ConditionColor.ORANGE:percentage<21?ConditionColor.RED:ConditionColor.GREEN;
 
             view.setLinkUpdate(MESSAGEPATH + TYPE_IS + MessageType.SLIDERVALUE + AND_DEVICE_ID_IS + e.getKey().name() + AND_VALUE_IS);
-            view.setColorClass(conditionColor.getUiClass());
-            view.setStateShort(percentagePrefix + percentage + "%"); // watch etc
+            view.setColorClass(calculateViewConditionColorEv(percentage).getUiClass());
+            view.setStateShort(calculateViewFormattedPercentageEv(e)); // watch etc
             view.setStateShortLabel(tsFormatted);
-            view.setElementTitleState(StringUtils.capitalize(tsFormatted) + " " + percentagePrefix + percentage + "%"); // collapsed top right
+            view.setElementTitleState(StringUtils.capitalize(tsFormatted) + " " + calculateViewFormattedPercentageEv(e)); // collapsed top right
             if(e.getValue().isActiveCharging()){
                 if(wallboxPowerMeter.getActualConsumption().getValue().intValue() > 0){
                     view.setState("Lädt gerade");
@@ -1212,8 +1220,36 @@ public class HouseViewService {
             }else{
                 view.setState("Gesetzt " + tsFormatted);
             }
-            view.setNumericValue(Short.toString(percentage>100?100:percentage)); // TODO: move condition up to var after testing
+            view.setNumericValue(Short.toString(percentage));
             view.setStateActualFlag(Boolean.toString(isStateNew && !isChargedSinceReading));
         });
+    }
+
+    private short calculateViewPercentageEv(Map.Entry<ElectricVehicle, ElectricVehicleState> e) {
+        if (e.getValue().getChargingTimestamp() != null) {
+            var s = (short) (e.getValue().getBatteryPercentage() + e.getValue().getAdditionalChargingPercentage());
+            return s>100?100:s;
+        } else {
+            return e.getValue().getBatteryPercentage();
+        }
+    }
+
+    private String calculateViewFormattedPercentageEv(Map.Entry<ElectricVehicle, ElectricVehicleState> e) {
+        var isChargedSinceReading = e.getValue().getChargingTimestamp() != null;
+        var percentagePrefix = isChargedSinceReading?"~":"";
+        var percentage = calculateViewPercentageEv(e);
+        return percentagePrefix + percentage + "%";
+    }
+
+    private LocalDateTime calculateViewTimestampEv(Map.Entry<ElectricVehicle, ElectricVehicleState> e) {
+        if (e.getValue().getChargingTimestamp() != null) {
+            return e.getValue().getChargingTimestamp();
+        } else {
+            return e.getValue().getBatteryPercentageTimestamp();
+        }
+    }
+
+    private ConditionColor calculateViewConditionColorEv(short percentage) {
+        return percentage > 89 ? ConditionColor.ORANGE:percentage<21?ConditionColor.RED:ConditionColor.GREEN;
     }
 }
