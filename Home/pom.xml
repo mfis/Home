@@ -21,7 +21,7 @@
 		<!-- Java -->
 		<java.version>11</java.version>
 		<!-- Dependency versions -->
-		<spring-boot.version>2.6.12</spring-boot.version>
+		<spring-boot.version>2.6.14</spring-boot.version>
 		<files-api.version>2.2</files-api.version>
 		<commons-io.version>2.8.0</commons-io.version>
 		<commons-text.version>1.10.0</commons-text.version>
@@ -31,7 +31,7 @@
 		<!-- Webjars versions -->
 		<webjars-locator.version>0.45</webjars-locator.version>
 		<bootstrap.version>4.6.1</bootstrap.version>
-		<jquery.version>3.6.0</jquery.version>
+		<jquery.version>3.6.1</jquery.version>
 		<font-awesome.version>6.1.2</font-awesome.version>
 		<soundar24-roundSlider.version>1.6.1-1</soundar24-roundSlider.version>
 		<!-- Plugin versions -->
