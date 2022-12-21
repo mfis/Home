@@ -128,10 +128,10 @@ public class HeatpumpService {
             isCallError = !response.isDriverRunSuccessful() || StringUtils.isNotBlank(response.getErrorMessage());
         }
 
-        handleResponse(response);
+        handleResponse(request, response);
     }
 
-    private void handleResponse(HeatpumpResponse response) {
+    private void handleResponse(HeatpumpRequest request, HeatpumpResponse response) {
 
         if(responseHasError(response)){
             try {
@@ -139,7 +139,7 @@ public class HeatpumpService {
             } catch (JsonProcessingException e) {
                 log.warn("Error calling heatpump driver....");
             }
-            if(!response.isCacheNotPresentError()){
+            if(!request.isReadFromCache() || !request.getWriteWithRoomnameAndProgram().isEmpty()){
                 CompletableFuture.runAsync(() -> pushService.sendErrorMessage("Fehler bei Ansteuerung der Wärmepumpe!"));
             }
             switchModelToUnknown();
@@ -242,7 +242,7 @@ public class HeatpumpService {
                 }
             }
 
-            handleResponse(response);
+            handleResponse(request, response);
         });
     }
 
