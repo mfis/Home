@@ -68,7 +68,7 @@ public class WeatherForecastConclusionTextFormatter {
     }
 
     private static String text(WeatherConditions cond, WeatherForecastConclusion conclusion, boolean longText){
-        if(conclusion.getConditions().contains(WeatherConditions.WIND)){
+        if(cond == WeatherConditions.WIND){
             return "Wind " + (longText ? "bis " : "") + conclusion.getMaxWind() + " km/h";
         }else{
             return cond.getCaption();
