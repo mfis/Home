@@ -16,6 +16,12 @@ public class WidgetGroupView extends View {
         this.setUnreach(Boolean.toString(unreach));
     }
 
+    public WidgetGroupView(String viewKey, Place place){
+        this.setId(viewKey);
+        this.setPlaceEnum(place);
+        this.setUnreach(Boolean.toString(false));
+    }
+
     public boolean isUnreach(){
         return Boolean.parseBoolean(getUnreach());
     }

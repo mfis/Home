@@ -59,9 +59,9 @@ public class AppViewService {
 
         widget.add(new PlaceDirectives(Place.OUTSIDE, PlaceDirective.WIDGET_LABEL_SMALL, PlaceDirective.WIDGET_LABEL_MEDIUM, PlaceDirective.WIDGET_LABEL_LARGE, PlaceDirective.WIDGET_SYMBOL, PlaceDirective.WIDGET_LOCKSCREEN_CIRCULAR));
         widget.add(new PlaceDirectives(Place.WIDGET_UPPER_FLOOR_TEMPERATURE, PlaceDirective.WIDGET_LABEL_SMALL, PlaceDirective.WIDGET_LABEL_MEDIUM, PlaceDirective.WIDGET_LABEL_LARGE));
-        widget.add(new PlaceDirectives(Place.FRONTDOOR, PlaceDirective.WIDGET_SYMBOL));
         widget.add(new PlaceDirectives(Place.WIDGET_GRIDS, PlaceDirective.WIDGET_LABEL_MEDIUM, PlaceDirective.WIDGET_LABEL_LARGE));
         widget.add(new PlaceDirectives(Place.WIDGET_ENERGY, PlaceDirective.WIDGET_LABEL_MEDIUM, PlaceDirective.WIDGET_LABEL_LARGE));
+        widget.add(new PlaceDirectives(Place.WIDGET_SYMBOLS, PlaceDirective.WIDGET_SYMBOL));
     }
 
     public HomeViewModel mapAppModel(Model model, AppViewTarget viewTarget) {
@@ -95,7 +95,7 @@ public class AppViewService {
             if (view instanceof ClimateView) {
                 mapClimateView(placeDirectives, (ClimateView) view, placeModel, viewTarget);
             } else if (view instanceof WidgetGroupView) {
-                mapClimateGroupView(placeDirectives, (WidgetGroupView) view, placeModel, viewTarget);
+                mapGroupView(placeDirectives, (WidgetGroupView) view, placeModel, viewTarget);
             } else if (view instanceof PowerView) {
                 mapPowerView(placeDirectives, (PowerView) view, placeModel, viewTarget);
             } else if (view instanceof LockView) {
@@ -159,12 +159,16 @@ public class AppViewService {
         }
     }
 
-    private void mapClimateGroupView(PlaceDirectives placeDirectives, WidgetGroupView view, HomeViewPlaceModel placeModel, AppViewTarget viewTarget) {
+    private void mapGroupView(PlaceDirectives placeDirectives, WidgetGroupView view, HomeViewPlaceModel placeModel, AppViewTarget viewTarget) {
 
         view.getCaptionAndValue().forEach((k, v) -> {
             var hvm = new HomeViewValueModel();
             hvm.setId(view.getPlace() + "#grp#" + k);
-            hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP).map(Enum::name).collect(Collectors.toList()));
+            if(StringUtils.isBlank(v.getState()) && StringUtils.isNotBlank(v.getIconNativeClient())){
+                // widget symbol header
+            }else{
+                hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP).map(Enum::name).collect(Collectors.toList()));
+            }
             hvm.setKey(k);
             hvm.setValue(v.getState());
             hvm.setAccent(mapAccent(v.getColorClass()));

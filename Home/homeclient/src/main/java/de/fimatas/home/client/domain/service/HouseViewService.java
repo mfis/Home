@@ -155,6 +155,7 @@ public class HouseViewService {
         formatUpperFloorGroup(model, "widgetUpperFloor", Place.WIDGET_UPPER_FLOOR_TEMPERATURE, house);
         formatGridsGroup(model, "widgetGrids", Place.WIDGET_GRIDS, house, historyModel==null?null:historyModel.getTotalElectricPowerConsumptionDay());
         formatEnergyGroup(model, "widgetEnergy", Place.WIDGET_ENERGY, electricVehicleModel);
+        formatSymbolsGroup(model, "widgetSymbols", Place.WIDGET_SYMBOLS, presenceModel);
     }
 
     private void formatUpperFloorGroup(Model model, String viewKey, Place place, HouseModel house) {
@@ -234,6 +235,20 @@ public class HouseViewService {
                 view.getCaptionAndValue().put(e.getKey().getCaption(), ev);
             }
         });
+    }
+
+    private void formatSymbolsGroup(Model model, String viewKey, Place place, PresenceModel presenceModel) {
+
+        WidgetGroupView view = new WidgetGroupView(viewKey, place);
+        model.addAttribute(viewKey, view);
+
+        if(presenceModel != null){
+            var presenceCounter = presenceModel.getPresenceStates().entrySet().stream().filter(e -> e.getValue() == PresenceState.PRESENT).map(e -> e.getKey()).collect(Collectors.toList()).size();
+            var ev = new View();
+            ev.setIconNativeClient(Integer.toString(presenceCounter) + ".circle"); // TODO: centralize
+            view.getCaptionAndValue().put("presence", ev);
+        }
+
     }
 
     private void formatFrontDoorBell(Model model, String id, Doorbell doorbell, Camera camera) {
