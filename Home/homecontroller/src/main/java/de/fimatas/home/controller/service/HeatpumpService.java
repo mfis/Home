@@ -139,7 +139,7 @@ public class HeatpumpService {
             } catch (JsonProcessingException e) {
                 log.warn("Error calling heatpump driver....");
             }
-            if(!request.isReadFromCache() || !request.getWriteWithRoomnameAndProgram().isEmpty()){
+            if(!request.isReadFromCache() || (request.getWriteWithRoomnameAndProgram() != null && !request.getWriteWithRoomnameAndProgram().isEmpty())){
                 CompletableFuture.runAsync(() -> pushService.sendErrorMessage("Fehler bei Ansteuerung der Wärmepumpe!"));
             }
             switchModelToUnknown();
