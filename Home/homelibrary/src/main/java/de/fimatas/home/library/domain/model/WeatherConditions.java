@@ -6,7 +6,8 @@ import java.util.List;
 
 public enum WeatherConditions {
 
-    WIND("fa-solid fa-wind",  "wind","Sturm", true, ConditionColor.RED),
+    GUST("fa-solid fa-wind",  "wind","Böen", true, ConditionColor.RED),
+    WIND("fa-solid fa-wind",  "wind","Wind", true, ConditionColor.ORANGE),
     SNOW("fa-solid fa-snowflake", "snowflake", "Schnee", true, ConditionColor.COLD),
     HAIL("fa-solid fa-cloud-meatball", "cloud.hail", "Hagel", true, null),
     THUNDERSTORM("fa-solid fa-cloud-bolt", "bolt", "Gewitter", true, null),

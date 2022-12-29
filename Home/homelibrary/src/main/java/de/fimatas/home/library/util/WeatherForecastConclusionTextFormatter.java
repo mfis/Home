@@ -22,6 +22,8 @@ public class WeatherForecastConclusionTextFormatter {
     public static final int SIGNIFICANT_CONDITION_NATIVE_ICON = 7;
     public static final int SIGNIFICANT_CONDITION_WEB_ICON = 8;
 
+    public static final int WIND_GUST_TEXT = 9;
+
     public static Map<Integer, String> formatConclusionText(WeatherForecastConclusion conclusion){
 
         final var texts = new LinkedHashMap<Integer, String>();
@@ -46,14 +48,14 @@ public class WeatherForecastConclusionTextFormatter {
         }
 
         for(WeatherConditions c : conditionsSortedByTime){
-            fromUntilToWithCaptionAndTime.append(", ").append(text(c, conclusion, true));
+            fromUntilToWithCaptionAndTime.append(", ").append(text(c, conclusion));
             if(conclusion.getFirstOccurences().containsKey(c)){
                 fromUntilToWithCaptionAndTime.append(" ab ").append(conclusion.getFirstOccurences().get(c).getHour()).append(" Uhr");
             }
         }
 
-        final var condOneMax = conditionsSortedBySignificance.isEmpty()? "" : text(conditionsSortedBySignificance.get(0), conclusion, false) + plusIfMoreThenOne(conditionsSortedBySignificance);
-        final var allSignificantConditions = conditionsSortedByTime.stream().map(c -> text(c, conclusion, false)).collect(Collectors.joining(", "));
+        final var condOneMax = conditionsSortedBySignificance.isEmpty()? "" : text(conditionsSortedBySignificance.get(0), conclusion) + plusIfMoreThenOne(conditionsSortedBySignificance);
+        final var allSignificantConditions = conditionsSortedByTime.stream().map(c -> text(c, conclusion)).collect(Collectors.joining(", "));
 
         texts.put(FORMAT_FROM_TO_ONLY, fromToString);
         texts.put(FORMAT_CONDITIONS_1_MAX, condOneMax);
@@ -63,15 +65,29 @@ public class WeatherForecastConclusionTextFormatter {
         texts.put(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS, conditionsSortedBySignificance.isEmpty() || conditionsSortedBySignificance.get(0).getColor() == null ? "" : conditionsSortedBySignificance.get(0).getColor().getUiClass());
         texts.put(SIGNIFICANT_CONDITION_NATIVE_ICON, conditionsSortedBySignificance.isEmpty() ? (usignificanceConditionWithHighestOrdinal.isPresent()?usignificanceConditionWithHighestOrdinal.get().getSfSymbolsID():"") : conditionsSortedBySignificance.get(0).getSfSymbolsID());
         texts.put(SIGNIFICANT_CONDITION_WEB_ICON, conditionsSortedBySignificance.isEmpty() ? (usignificanceConditionWithHighestOrdinal.isPresent()?usignificanceConditionWithHighestOrdinal.get().getFontAwesomeID():"") : conditionsSortedBySignificance.get(0).getFontAwesomeID());
+        texts.put(WIND_GUST_TEXT, windGustText(null, conclusion));
 
         return texts;
     }
 
-    private static String text(WeatherConditions cond, WeatherForecastConclusion conclusion, boolean longText){
-        if(cond == WeatherConditions.WIND){
-            return "Wind " + (longText ? "bis " : "") + conclusion.getMaxWind() + " km/h";
+    private static String text(WeatherConditions cond, WeatherForecastConclusion conclusion){
+        if(cond == WeatherConditions.WIND || cond == WeatherConditions.GUST){
+            return windGustText(cond, conclusion);
         }else{
             return cond.getCaption();
+        }
+    }
+
+    private static String windGustText(WeatherConditions cond, WeatherForecastConclusion conclusion) {
+        String conditionPrefix = cond == null ? "" : cond.getCaption();
+        if(conclusion.getMaxGust() == null || (conclusion.getMaxWind().intValue() == conclusion.getMaxGust().intValue())){
+            if (conclusion.getMaxWind() != null){
+                return (conditionPrefix + " bis " + conclusion.getMaxWind() + " km/h").trim();
+            }else{
+                return "";
+            }
+        }else{
+            return (conditionPrefix + " " + conclusion.getMaxWind() + ".." + conclusion.getMaxGust() + " km/h").trim();
         }
     }
 

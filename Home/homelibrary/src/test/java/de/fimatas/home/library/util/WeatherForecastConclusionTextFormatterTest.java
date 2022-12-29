@@ -21,6 +21,7 @@ class WeatherForecastConclusionTextFormatterTest {
         conclusion.setMinTemp(new BigDecimal(18L));
         conclusion.setMaxTemp(new BigDecimal(23L));
         conclusion.setMaxWind(10);
+        conclusion.setMaxGust(20);
         conclusion.setConditions(List.of());
 
         final Map<Integer, String> map = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion);
@@ -39,14 +40,53 @@ class WeatherForecastConclusionTextFormatterTest {
         conclusion.setMinTemp(new BigDecimal(18L));
         conclusion.setMaxTemp(new BigDecimal(23L));
         conclusion.setMaxWind(25);
+        conclusion.setMaxGust(30);
         conclusion.setConditions(List.of(WeatherConditions.WIND));
 
         final Map<Integer, String> map = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion);
 
         assertEquals("18..23°C", map.get(FORMAT_FROM_TO_ONLY));
-        assertEquals("Wind 25 km/h", map.get(FORMAT_CONDITIONS_1_MAX));
-        assertEquals("18..23°C, Wind 25 km/h", map.get(FORMAT_FROM_TO_PLUS_1_MAX));
-        assertEquals("18 bis 23°C, Wind 25 km/h", map.get(FORMAT_FROM_TO_ALL_SIGNIFICANT_CONDITIONS));
+        assertEquals("Wind 25..30 km/h", map.get(FORMAT_CONDITIONS_1_MAX));
+        assertEquals("18..23°C, Wind 25..30 km/h", map.get(FORMAT_FROM_TO_PLUS_1_MAX));
+        assertEquals("18 bis 23°C, Wind 25..30 km/h", map.get(FORMAT_FROM_TO_ALL_SIGNIFICANT_CONDITIONS));
+        assertEquals("Temperatur 18 bis 23°C, Wind 25..30 km/h", map.get(FORMAT_LONGEST));
+    }
+
+    @Test
+    void testFormatConclusionText_OneConditionGust(){
+
+        final var conclusion = new WeatherForecastConclusion();
+        conclusion.setMinTemp(new BigDecimal(18L));
+        conclusion.setMaxTemp(new BigDecimal(23L));
+        conclusion.setMaxWind(25);
+        conclusion.setMaxGust(80);
+        conclusion.setConditions(List.of(WeatherConditions.GUST));
+
+        final Map<Integer, String> map = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion);
+
+        assertEquals("18..23°C", map.get(FORMAT_FROM_TO_ONLY));
+        assertEquals("Böen 25..80 km/h", map.get(FORMAT_CONDITIONS_1_MAX));
+        assertEquals("18..23°C, Böen 25..80 km/h", map.get(FORMAT_FROM_TO_PLUS_1_MAX));
+        assertEquals("18 bis 23°C, Böen 25..80 km/h", map.get(FORMAT_FROM_TO_ALL_SIGNIFICANT_CONDITIONS));
+        assertEquals("Temperatur 18 bis 23°C, Böen 25..80 km/h", map.get(FORMAT_LONGEST));
+    }
+
+    @Test
+    void testFormatConclusionText_OneConditionWindSameGustValue(){
+
+        final var conclusion = new WeatherForecastConclusion();
+        conclusion.setMinTemp(new BigDecimal(18L));
+        conclusion.setMaxTemp(new BigDecimal(23L));
+        conclusion.setMaxWind(25);
+        conclusion.setMaxGust(25);
+        conclusion.setConditions(List.of(WeatherConditions.WIND));
+
+        final Map<Integer, String> map = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion);
+
+        assertEquals("18..23°C", map.get(FORMAT_FROM_TO_ONLY));
+        assertEquals("Wind bis 25 km/h", map.get(FORMAT_CONDITIONS_1_MAX));
+        assertEquals("18..23°C, Wind bis 25 km/h", map.get(FORMAT_FROM_TO_PLUS_1_MAX));
+        assertEquals("18 bis 23°C, Wind bis 25 km/h", map.get(FORMAT_FROM_TO_ALL_SIGNIFICANT_CONDITIONS));
         assertEquals("Temperatur 18 bis 23°C, Wind bis 25 km/h", map.get(FORMAT_LONGEST));
     }
 
@@ -57,6 +97,7 @@ class WeatherForecastConclusionTextFormatterTest {
         conclusion.setMinTemp(new BigDecimal(18L));
         conclusion.setMaxTemp(new BigDecimal(23L));
         conclusion.setMaxWind(10);
+        conclusion.setMaxGust(20);
         conclusion.setConditions(List.of(WeatherConditions.SUN));
 
         final Map<Integer, String> map = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion);
@@ -75,6 +116,7 @@ class WeatherForecastConclusionTextFormatterTest {
         conclusion.setMinTemp(new BigDecimal(18L));
         conclusion.setMaxTemp(new BigDecimal(23L));
         conclusion.setMaxWind(10);
+        conclusion.setMaxGust(20);
         conclusion.setConditions(List.of(WeatherConditions.SUN, WeatherConditions.RAIN, WeatherConditions.SUN_CLOUD));
 
         final Map<Integer, String> map = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion);
@@ -93,6 +135,7 @@ class WeatherForecastConclusionTextFormatterTest {
         conclusion.setMinTemp(new BigDecimal(18L));
         conclusion.setMaxTemp(new BigDecimal(23L));
         conclusion.setMaxWind(10);
+        conclusion.setMaxGust(20);
         conclusion.setConditions(List.of(WeatherConditions.SUN_CLOUD));
 
         final Map<Integer, String> map = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion);
@@ -111,6 +154,7 @@ class WeatherForecastConclusionTextFormatterTest {
         conclusion.setMinTemp(new BigDecimal(18L));
         conclusion.setMaxTemp(new BigDecimal(23L));
         conclusion.setMaxWind(10);
+        conclusion.setMaxGust(20);
         conclusion.setConditions(List.of(WeatherConditions.SUN, WeatherConditions.RAIN));
         conclusion.getFirstOccurences().put(WeatherConditions.SUN, LocalDateTime.of(2022,5,23,15,0));
         conclusion.getFirstOccurences().put(WeatherConditions.RAIN, LocalDateTime.of(2022,5,23,19,0));
@@ -127,6 +171,7 @@ class WeatherForecastConclusionTextFormatterTest {
         conclusion.setMinTemp(new BigDecimal(18L));
         conclusion.setMaxTemp(new BigDecimal(18L));
         conclusion.setMaxWind(10);
+        conclusion.setMaxGust(20);
         conclusion.setConditions(List.of());
 
         final Map<Integer, String> map = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion);

@@ -41,6 +41,7 @@ public class WeatherService {
     private Environment env;
 
     private static final BigDecimal WIND_SPEED_STORM = BigDecimal.valueOf(35);
+    private static final BigDecimal WIND_SPEED_GUST_STORM = BigDecimal.valueOf(60);
 
 
     @Retryable(value = Exception.class, maxAttempts = 4, backoff = @Backoff(delay = 5000))
@@ -97,13 +98,14 @@ public class WeatherService {
             forecast.setTime(dateTime);
             forecast.setTemperature(new BigDecimal(entry.get("temperature").asText()));
             forecast.setWind(new BigDecimal(entry.get("wind_speed").asText()));
-            forecast.setIcons(addConditions(condition, icon, forecast.getWind()));
+            forecast.setGust(new BigDecimal(entry.get("wind_gust_speed").asText()));
+            forecast.setIcons(addConditions(condition, icon, forecast.getWind(), forecast.getGust()));
             forecasts.add(forecast);
         });
         return forecasts;
     }
 
-    private List<WeatherConditions> addConditions(BrightSkyCondition condition, BrightSkyIcon icon, BigDecimal windSpeed) {
+    private List<WeatherConditions> addConditions(BrightSkyCondition condition, BrightSkyIcon icon, BigDecimal windSpeed, BigDecimal gustSpeed) {
 
         var icons = new LinkedList<WeatherConditions>();
         if (condition == null || icon == null) {
@@ -166,8 +168,12 @@ public class WeatherService {
             icons.add(WeatherConditions.SNOW);
         }
 
-        if (windSpeed != null && windSpeed.compareTo(WIND_SPEED_STORM) > 0 && !icons.contains(WeatherConditions.WIND)) {
+        if (windSpeed != null && windSpeed.compareTo(WIND_SPEED_STORM) > 0 && !icons.contains(WeatherConditions.WIND) && !icons.contains(WeatherConditions.GUST)) {
             icons.add(WeatherConditions.WIND);
+        }
+        if (gustSpeed != null && gustSpeed.compareTo(WIND_SPEED_GUST_STORM) > 0 && !icons.contains(WeatherConditions.GUST)) {
+            icons.remove(WeatherConditions.WIND);
+            icons.add(WeatherConditions.GUST);
         }
 
         if (condition == BrightSkyCondition.RAIN && !icons.contains(WeatherConditions.CLOUD_RAIN) && !icons.contains(WeatherConditions.RAIN) && !icons.contains(WeatherConditions.SNOW)) {
@@ -203,12 +209,16 @@ public class WeatherService {
         conclusion.setMinTemp(items.stream().map(WeatherForecast::getTemperature).filter(Objects::nonNull).min(BigDecimal::compareTo).orElse(null));
         conclusion.setMaxTemp(items.stream().map(WeatherForecast::getTemperature).filter(Objects::nonNull).max(BigDecimal::compareTo).orElse(null));
         conclusion.setMaxWind(items.stream().filter(fc -> fc.getWind()!=null).map(fc -> fc.getWind().setScale(0, RoundingMode.HALF_UP).intValue()).max(Integer::compare).orElse(null));
+        conclusion.setMaxGust(items.stream().filter(fc -> fc.getGust()!=null).map(fc -> fc.getGust().setScale(0, RoundingMode.HALF_UP).intValue()).max(Integer::compare).orElse(null));
 
         final Optional<WeatherForecast> firstSnow = items.stream().filter(fc -> fc.getIcons().contains(WeatherConditions.SNOW)).findFirst();
         firstSnow.ifPresent(weatherForecast -> addConclusionWeatherContition(conclusion, weatherForecast, WeatherConditions.SNOW));
 
         final Optional<WeatherForecast> firstWind = items.stream().filter(fc -> fc.getIcons().contains(WeatherConditions.WIND)).findFirst();
         firstWind.ifPresent(weatherForecast -> addConclusionWeatherContition(conclusion, weatherForecast, WeatherConditions.WIND));
+
+        final Optional<WeatherForecast> firstGust = items.stream().filter(fc -> fc.getIcons().contains(WeatherConditions.GUST)).findFirst();
+        firstGust.ifPresent(weatherForecast -> addConclusionWeatherContition(conclusion, weatherForecast, WeatherConditions.GUST));
 
         final Optional<WeatherForecast> firstHail = items.stream().filter(fc -> fc.getIcons().contains(WeatherConditions.HAIL)).findFirst();
         firstHail.ifPresent(weatherForecast -> addConclusionWeatherContition(conclusion, weatherForecast, WeatherConditions.HAIL));

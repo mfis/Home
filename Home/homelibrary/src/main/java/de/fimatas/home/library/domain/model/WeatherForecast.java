@@ -22,6 +22,8 @@ public class WeatherForecast implements Serializable {
 
     private BigDecimal wind;
 
+    private BigDecimal gust;
+
     private boolean isDay;
 
     private List<WeatherConditions> icons;

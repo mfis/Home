@@ -20,7 +20,18 @@ public class WeatherForecastConclusion implements Serializable {
     private BigDecimal minTemp;
     private BigDecimal maxTemp;
     private Integer maxWind;
+    private Integer maxGust;
     private List<WeatherConditions> conditions = new LinkedList<>();
     private Map<WeatherConditions, LocalDateTime> firstOccurences = new HashMap<>();
+
+    public static WeatherForecastConclusion fromWeatherForecast(WeatherForecast wf){
+        var conclusion = new WeatherForecastConclusion();
+        conclusion.setMinTemp(wf.getTemperature());
+        conclusion.setMaxTemp(wf.getTemperature());
+        conclusion.setMaxWind(wf.getWind().setScale(0, RoundingMode.HALF_UP).intValue());
+        conclusion.setMaxGust(wf.getGust().setScale(0, RoundingMode.HALF_UP).intValue());
+        conclusion.setConditions(wf.getIcons());
+        return conclusion;
+    }
 
 }
