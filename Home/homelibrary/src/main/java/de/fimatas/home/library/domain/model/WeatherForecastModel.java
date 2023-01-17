@@ -28,5 +28,7 @@ public class WeatherForecastModel implements Serializable {
 
     private WeatherForecastConclusion conclusion24to48hours;
 
+    private WeatherForecastConclusion conclusion3hours;
+
     private Map<LocalDate, WeatherForecastConclusion> furtherDays = new LinkedHashMap<>();
 }

@@ -187,6 +187,11 @@ public class AppViewService {
         if (StringUtils.isNotBlank(view.getStateEventWatch())) {
             placeModel.getValues().add(mapForecastEvent(placeDirectives, view));
         }
+
+        if(viewTarget == AppViewTarget.WATCH) {
+            placeModel.getValues().add(mapForecastShortTerm(placeDirectives, view));
+        }
+
     }
 
     private void mapPresenceView(PlaceDirectives placeDirectives, PresenceView view, HomeViewPlaceModel placeModel, AppViewTarget viewTarget) {
@@ -289,6 +294,16 @@ public class AppViewService {
         hvm.setValue(view.getStateTemperatureWatch());
         hvm.setAccent(mapAccent(view.getColorClass()));
         hvm.setSymbol(view.getIconNativeClient());
+        return hvm;
+    }
+
+    private HomeViewValueModel mapForecastShortTerm(PlaceDirectives placeDirectives, WeatherForecastsView view) {
+        HomeViewValueModel hvm = new HomeViewValueModel();
+        hvm.setId(placeDirectives.place.name() + "#fcShortTerm");
+        hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP, ValueDirective.WIDGET_SKIP, ValueDirective.LOCKSCREEN_SKIP).map(Enum::name).collect(Collectors.toList()));
+        hvm.setKey("3-Stunden");
+        hvm.setValue(view.getShortTermText());
+        hvm.setAccent(mapAccent(view.getShortTermColorClass()));
         return hvm;
     }
 

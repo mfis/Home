@@ -20,7 +20,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.LogFactory;
-import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.Model;
@@ -564,7 +563,7 @@ public class HouseViewService {
 
     private void formatClimateBackground(Climate climate, View view) {
 
-        formatTemperatureConditionColor(view, List.of(), climate.getTemperature().getValue(), climate.getTemperature().getValue());
+        formatTemperatureConditionColor(view, Set.of(), climate.getTemperature().getValue(), climate.getTemperature().getValue());
 
         // for now only used in app
         if(view instanceof ClimateView){
@@ -583,7 +582,7 @@ public class HouseViewService {
         }
     }
 
-    private void formatTemperatureConditionColor(View view, List<WeatherConditions> conditions, BigDecimal temperatureMin, BigDecimal temperatureMax) {
+    private void formatTemperatureConditionColor(View view, Set<WeatherConditions> conditions, BigDecimal temperatureMin, BigDecimal temperatureMax) {
 
         if(temperatureMin == null || temperatureMax == null){
             return;
@@ -953,7 +952,7 @@ public class HouseViewService {
         var forecasts = new WeatherForecastsView();
         model.addAttribute("weatherForecasts", forecasts);
 
-        forecasts.setName("2-Tage Wetter");
+        forecasts.setName("2-Tage");
         forecasts.setPlaceEnum(Place.OUTSIDE);
         forecasts.setId("weatherForecasts");
         forecasts.setColorClass(ConditionColor.GRAY.getUiClass());
@@ -964,18 +963,24 @@ public class HouseViewService {
         }
 
         final WeatherForecastConclusion conclusion24to48hours = weatherForecastModel.getConclusion24to48hours();
-        final Map<Integer, String> textMap = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion24to48hours);
+        final Map<Integer, String> textMap48h = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion24to48hours);
+
+        final WeatherForecastConclusion conclusion3hours = weatherForecastModel.getConclusion3hours();
+        final Map<Integer, String> textMap3h = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion3hours);
 
         forecasts.setSource(weatherForecastModel.getSourceText());
-        forecasts.setColorClass(StringUtils.isNotBlank(textMap.get(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS)) ? textMap.get(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS) : ConditionColor.GRAY.getUiClass());
+        forecasts.setColorClass(StringUtils.isNotBlank(textMap48h.get(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS)) ? textMap48h.get(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS) : ConditionColor.GRAY.getUiClass());
         mapWeatherForecastConditionsAfterSettingColorClass(conclusion24to48hours.getConditions(), forecasts, conclusion24to48hours.getMaxTemp(), conclusion24to48hours.getMinTemp());
-        forecasts.setStateShort(textMap.get(FORMAT_FROM_TO_ONLY));
-        forecasts.setStateTemperatureWatch(textMap.get(FORMAT_FROM_TO_ONLY));
-        forecasts.setElementTitleState(textMap.get(WeatherForecastConclusionTextFormatter.FORMAT_FROM_TO_PLUS_1_MAX));
-        forecasts.setIcon(StringUtils.isNotBlank(textMap.get(SIGNIFICANT_CONDITION_WEB_ICON)) ? textMap.get(SIGNIFICANT_CONDITION_WEB_ICON) : "fa-solid fa-clock");
-        forecasts.setIconNativeClient(textMap.get(WeatherForecastConclusionTextFormatter.SIGNIFICANT_CONDITION_NATIVE_ICON));
-        forecasts.setStateEventWatch(textMap.get(WeatherForecastConclusionTextFormatter.FORMAT_CONDITIONS_1_MAX)); // Watch App 'Ereignis'
+        forecasts.setStateShort(textMap48h.get(FORMAT_FROM_TO_ONLY));
+        forecasts.setStateTemperatureWatch(textMap48h.get(FORMAT_FROM_TO_ONLY));
+        forecasts.setElementTitleState(textMap48h.get(WeatherForecastConclusionTextFormatter.FORMAT_FROM_TO_PLUS_1_MAX));
+        forecasts.setIcon(StringUtils.isNotBlank(textMap48h.get(SIGNIFICANT_CONDITION_WEB_ICON)) ? textMap48h.get(SIGNIFICANT_CONDITION_WEB_ICON) : "fa-solid fa-clock");
+        forecasts.setIconNativeClient(textMap48h.get(WeatherForecastConclusionTextFormatter.SIGNIFICANT_CONDITION_NATIVE_ICON));
+        forecasts.setStateEventWatch(textMap48h.get(WeatherForecastConclusionTextFormatter.FORMAT_CONDITIONS_SHORT_1_MAX)); // Watch App 'Ereignis'
         forecasts.setState(StringUtils.EMPTY); // setting state for every day instead
+
+        forecasts.setShortTermText(textMap3h.get(FORMAT_CONDITIONS_SHORT_1_MAX_INCL_UNSIGNIFICANT));
+        forecasts.setShortTermColorClass(StringUtils.isNotBlank(textMap3h.get(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS)) ? textMap3h.get(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS) : ConditionColor.GRAY.getUiClass());
 
         final LocalDate[] lastDateAdded = {null};
         final String[] lastDayNight = {null};
@@ -1026,7 +1031,7 @@ public class HouseViewService {
         });
     }
 
-    private void mapWeatherForecastConditionsAfterSettingColorClass(List<WeatherConditions> conditions, View view, BigDecimal maxTemp, BigDecimal minTemp) {
+    private void mapWeatherForecastConditionsAfterSettingColorClass(Set<WeatherConditions> conditions, View view, BigDecimal maxTemp, BigDecimal minTemp) {
         if(view.getColorClass().equals(ConditionColor.GRAY.getUiClass()) || view.getColorClass().equals(ConditionColor.DEFAULT.getUiClass())){
             formatTemperatureConditionColor(view, conditions, minTemp, maxTemp);
         }

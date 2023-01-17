@@ -7,7 +7,9 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -26,5 +28,5 @@ public class WeatherForecast implements Serializable {
 
     private boolean isDay;
 
-    private List<WeatherConditions> icons;
+    private Set<WeatherConditions> icons;
 }

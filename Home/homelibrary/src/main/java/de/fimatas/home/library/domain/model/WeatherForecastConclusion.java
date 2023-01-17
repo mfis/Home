@@ -6,10 +6,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Data
@@ -21,7 +18,7 @@ public class WeatherForecastConclusion implements Serializable {
     private BigDecimal maxTemp;
     private Integer maxWind;
     private Integer maxGust;
-    private List<WeatherConditions> conditions = new LinkedList<>();
+    private Set<WeatherConditions> conditions;
     private Map<WeatherConditions, LocalDateTime> firstOccurences = new HashMap<>();
 
     public static WeatherForecastConclusion fromWeatherForecast(WeatherForecast wf){

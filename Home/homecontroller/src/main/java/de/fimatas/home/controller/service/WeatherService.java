@@ -105,9 +105,9 @@ public class WeatherService {
         return forecasts;
     }
 
-    private List<WeatherConditions> addConditions(BrightSkyCondition condition, BrightSkyIcon icon, BigDecimal windSpeed, BigDecimal gustSpeed) {
+    private Set<WeatherConditions> addConditions(BrightSkyCondition condition, BrightSkyIcon icon, BigDecimal windSpeed, BigDecimal gustSpeed) {
 
-        var icons = new LinkedList<WeatherConditions>();
+        var icons = new LinkedHashSet<WeatherConditions>();
         if (condition == null || icon == null) {
             icons.add(WeatherConditions.UNKNOWN);
             log.warn("Unknown condition/icon:" + condition + "/" + icon);
@@ -157,34 +157,44 @@ public class WeatherService {
                 break;
         }
 
-        if (condition == BrightSkyCondition.SNOW && !icons.contains(WeatherConditions.SNOW)) {
-            icons.remove(WeatherConditions.RAIN);
-            icons.remove(WeatherConditions.CLOUD_RAIN);
-            icons.remove(WeatherConditions.CLOUD);
-            icons.remove(WeatherConditions.SUN);
-            icons.remove(WeatherConditions.SUN_CLOUD);
-            icons.remove(WeatherConditions.MOON);
-            icons.remove(WeatherConditions.MOON_CLOUD);
-            icons.add(WeatherConditions.SNOW);
-        }
-
-        if (windSpeed != null && windSpeed.compareTo(WIND_SPEED_STORM) > 0 && !icons.contains(WeatherConditions.WIND) && !icons.contains(WeatherConditions.GUST)) {
+        if (windSpeed != null && windSpeed.compareTo(WIND_SPEED_STORM) > 0) {
             icons.add(WeatherConditions.WIND);
         }
-        if (gustSpeed != null && gustSpeed.compareTo(WIND_SPEED_GUST_STORM) > 0 && !icons.contains(WeatherConditions.GUST)) {
-            icons.remove(WeatherConditions.WIND);
+
+        if (gustSpeed != null && gustSpeed.compareTo(WIND_SPEED_GUST_STORM) > 0) {
             icons.add(WeatherConditions.GUST);
         }
 
-        if (condition == BrightSkyCondition.RAIN && !icons.contains(WeatherConditions.CLOUD_RAIN) && !icons.contains(WeatherConditions.RAIN) && !icons.contains(WeatherConditions.SNOW)) {
-            icons.remove(WeatherConditions.SUN);
-            icons.remove(WeatherConditions.SUN_CLOUD);
-            icons.remove(WeatherConditions.MOON);
-            icons.remove(WeatherConditions.MOON_CLOUD);
-            icons.add(0, WeatherConditions.RAIN);
+        return reduceConditions(icons);
+    }
+
+    private static Set<WeatherConditions> reduceConditions(Set<WeatherConditions> set){
+
+        if (set.contains(WeatherConditions.SNOW)) {
+            set.remove(WeatherConditions.RAIN);
+            set.remove(WeatherConditions.CLOUD_RAIN);
+            set.remove(WeatherConditions.CLOUD);
+            set.remove(WeatherConditions.SUN);
+            set.remove(WeatherConditions.SUN_CLOUD);
+            set.remove(WeatherConditions.MOON);
+            set.remove(WeatherConditions.MOON_CLOUD);
         }
 
-        return icons;
+        if (set.contains(WeatherConditions.GUST)) {
+            set.remove(WeatherConditions.WIND);
+        }
+
+        if (set.contains(WeatherConditions.RAIN)) {
+            set.remove(WeatherConditions.CLOUD_RAIN);
+            set.remove(WeatherConditions.SUN);
+            set.remove(WeatherConditions.SUN_CLOUD);
+            set.remove(WeatherConditions.MOON);
+            set.remove(WeatherConditions.MOON_CLOUD);
+        }
+
+        return set.stream()
+                .sorted(Comparator.comparing(WeatherConditions::ordinal))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     private void calculateConclusions(WeatherForecastModel model) {
@@ -196,6 +206,7 @@ public class WeatherService {
         model.setConclusion24to48hours(calculateConclusionForTimerange(model.getForecasts()));
         model.setConclusionToday(calculateConclusionForTimerange(model.getForecasts().stream().filter(fc -> fc.getTime().toLocalDate().isEqual(LocalDate.now())).collect(Collectors.toList())));
         model.setConclusionTomorrow(calculateConclusionForTimerange(model.getForecasts().stream().filter(fc -> fc.getTime().toLocalDate().isEqual(LocalDate.now().plusDays(1))).collect(Collectors.toList())));
+        model.setConclusion3hours(calculateConclusionForTimerange(model.getForecasts().stream().filter(fc -> fc.getTime().isBefore(LocalDateTime.now().plusHours(3))).collect(Collectors.toList())));
 
         model.getConclusionForDate().put(LocalDate.now(), model.getConclusionToday());
         model.getConclusionForDate().put(LocalDate.now().plusDays(1), model.getConclusionTomorrow());
@@ -204,39 +215,25 @@ public class WeatherService {
     static WeatherForecastConclusion calculateConclusionForTimerange(List<WeatherForecast> items) {
 
         var conclusion = new WeatherForecastConclusion();
-        conclusion.setConditions(new LinkedList<>());
+        conclusion.setConditions(new LinkedHashSet<>());
 
         conclusion.setMinTemp(items.stream().map(WeatherForecast::getTemperature).filter(Objects::nonNull).min(BigDecimal::compareTo).orElse(null));
         conclusion.setMaxTemp(items.stream().map(WeatherForecast::getTemperature).filter(Objects::nonNull).max(BigDecimal::compareTo).orElse(null));
         conclusion.setMaxWind(items.stream().filter(fc -> fc.getWind()!=null).map(fc -> fc.getWind().setScale(0, RoundingMode.HALF_UP).intValue()).max(Integer::compare).orElse(null));
         conclusion.setMaxGust(items.stream().filter(fc -> fc.getGust()!=null).map(fc -> fc.getGust().setScale(0, RoundingMode.HALF_UP).intValue()).max(Integer::compare).orElse(null));
 
-        final Optional<WeatherForecast> firstSnow = items.stream().filter(fc -> fc.getIcons().contains(WeatherConditions.SNOW)).findFirst();
-        firstSnow.ifPresent(weatherForecast -> addConclusionWeatherContition(conclusion, weatherForecast, WeatherConditions.SNOW));
-
-        final Optional<WeatherForecast> firstWind = items.stream().filter(fc -> fc.getIcons().contains(WeatherConditions.WIND)).findFirst();
-        firstWind.ifPresent(weatherForecast -> addConclusionWeatherContition(conclusion, weatherForecast, WeatherConditions.WIND));
-
-        final Optional<WeatherForecast> firstGust = items.stream().filter(fc -> fc.getIcons().contains(WeatherConditions.GUST)).findFirst();
-        firstGust.ifPresent(weatherForecast -> addConclusionWeatherContition(conclusion, weatherForecast, WeatherConditions.GUST));
-
-        final Optional<WeatherForecast> firstHail = items.stream().filter(fc -> fc.getIcons().contains(WeatherConditions.HAIL)).findFirst();
-        firstHail.ifPresent(weatherForecast -> addConclusionWeatherContition(conclusion, weatherForecast, WeatherConditions.HAIL));
-
-        final Optional<WeatherForecast> firstThunderstorm = items.stream().filter(fc -> fc.getIcons().contains(WeatherConditions.THUNDERSTORM)).findFirst();
-        firstThunderstorm.ifPresent(weatherForecast -> addConclusionWeatherContition(conclusion, weatherForecast, WeatherConditions.THUNDERSTORM));
-
-        final Optional<WeatherForecast> firstKindOfRain = items.stream().filter(fc -> fc.getIcons().stream().anyMatch(WeatherConditions::isKindOfRain)).findFirst();
-        if(items.stream().anyMatch(fc -> fc.getIcons().stream().anyMatch(WeatherConditions::isKindOfRain))){
-            if(!conclusion.getConditions().contains(WeatherConditions.HAIL) && !conclusion.getConditions().contains(WeatherConditions.THUNDERSTORM)){
-                addConclusionWeatherContition(conclusion, firstKindOfRain.orElse(null), WeatherConditions.RAIN);
+        Arrays.stream(WeatherConditions.values()).forEach(c -> {
+            final Optional<WeatherForecast> first = items.stream().filter(fc -> fc.getIcons().contains(c)).findFirst();
+            boolean add = true;
+            if(c == WeatherConditions.SUN && items.stream().filter(fc -> fc.getIcons().contains(WeatherConditions.SUN)).count() < 3){
+                add = false;
             }
-        }
+            if(add){
+                first.ifPresent(weatherForecast -> addConclusionWeatherContition(conclusion, weatherForecast, c));
+            }
+        });
 
-        if(items.stream().filter(fc -> fc.getIcons().contains(WeatherConditions.SUN)).count() > 2){
-            addConclusionWeatherContition(conclusion, items.stream().filter(fc -> fc.getIcons().contains(WeatherConditions.SUN)).findFirst().orElse(null), WeatherConditions.SUN);
-        }
-
+        conclusion.setConditions(reduceConditions(conclusion.getConditions()));
         return conclusion;
     }
 

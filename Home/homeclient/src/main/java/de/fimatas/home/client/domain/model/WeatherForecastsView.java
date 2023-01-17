@@ -15,4 +15,8 @@ public class WeatherForecastsView extends View {
     private String stateTemperatureWatch = "";
 
     private String stateEventWatch = "";
+
+    private String shortTermText = "";
+
+    private String shortTermColorClass = "";
 }
