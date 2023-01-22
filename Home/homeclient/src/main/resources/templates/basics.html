@@ -217,9 +217,15 @@
 		}
 
 		function fastLinkTo(id){
-			openCollapsable(document, 'collapse' + id);
+			let divId = 'collapse' + id;
+			let element = document.getElementById(divId);
+			if(!element){
+				console.log('id not found:' + divId);
+				return;
+			}
+			// open collapsable
+			openCollapsable(document, divId);
 			// scroll to previous title
-			let element = document.getElementById('collapse' + id);
 			let parentCounter = 0;
 			while((element && !element.classList.contains('alert') || !element.classList.contains('callout')) && parentCounter < 100){
 				parentCounter++;
