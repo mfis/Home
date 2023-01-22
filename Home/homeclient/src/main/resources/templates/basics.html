@@ -112,15 +112,7 @@
 		function preserveStatus(oldDoc, newDoc){
 			for (let entry of oldDoc.getElementsByClassName('collapse-preserve-state')){
 				if(entry.classList.contains('show')){
-			    	if(newDoc.getElementById(entry.id)!==null){
-						newDoc.getElementById(entry.id).classList.remove("collapse");
-				    	newDoc.getElementById(entry.id).classList.add("show");
-				    	if(newDoc.getElementById(entry.id + 'ElementTitleState')){
-							newDoc.getElementById(entry.id + 'ElementTitleState').innerHTML = '';
-						}
-				    	newDoc.getElementById(entry.id + 'SymbolDown').style.display = 'none';
-				    	newDoc.getElementById(entry.id + 'SymbolUp').style.display = 'inline';
-			    	}
+					openCollapsable(newDoc, entry.id);
 			    }
 			}
 			for (let entry of oldDoc.getElementsByClassName('checkbox-preserve-state')){
@@ -129,6 +121,18 @@
 						newDoc.getElementById(entry.id).setAttribute("checked", "checked");
 					}
 				}
+			}
+		}
+
+		function openCollapsable(document, id){
+			if(document.getElementById(id)!==null){
+				document.getElementById(id).classList.remove("collapse");
+				document.getElementById(id).classList.add("show");
+				if(document.getElementById(id + 'ElementTitleState')){
+					document.getElementById(id + 'ElementTitleState').innerHTML = '';
+				}
+				document.getElementById(id + 'SymbolDown').style.display = 'none';
+				document.getElementById(id + 'SymbolUp').style.display = 'inline';
 			}
 		}
 
@@ -210,7 +214,29 @@
 			}else if (document.getElementById('browserTitle') !== null){ 
 				document.title = document.getElementById('browserTitle').value;
 			}
-		}	
+		}
+
+		function fastLinkTo(id){
+			openCollapsable(document, 'collapse' + id);
+			// scroll to previous title
+			let element = document.getElementById('collapse' + id);
+			let parentCounter = 0;
+			while((element && !element.classList.contains('alert') || !element.classList.contains('callout')) && parentCounter < 100){
+				parentCounter++;
+				element = element.parentElement;
+			}
+			if(element && element.classList.contains('alert') && element.classList.contains('callout')){
+				let siblingCounter = 0;
+				while(element && !element.classList.contains('placeTitle') && siblingCounter < 100){
+					siblingCounter++;
+					element = element.previousElementSibling;
+				}
+				if(element && element.classList.contains('placeTitle') ){
+					element.scrollIntoView();
+					window.scrollBy(0, (document.getElementById('navbar').offsetHeight + 4) * -1);
+				}
+			}
+		}
 		
 		setAppTitle(null);
 		registerCollapseListener();
