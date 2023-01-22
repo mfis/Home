@@ -4,8 +4,7 @@
 	<head><title></title></head>
 
 	<!-- Titel -->
-	<div th:fragment="title (name)"
-		th:assert="${!#strings.isEmpty(name)}">
+	<div class="placeTitle" th:fragment="title (name)" th:assert="${!#strings.isEmpty(name)}">
 		<h4 style="font-size: 1.3rem; margin-top: 10px; letter-spacing: 2px;">
 			<span th:text="${name}">Name</span>
 		</h4>

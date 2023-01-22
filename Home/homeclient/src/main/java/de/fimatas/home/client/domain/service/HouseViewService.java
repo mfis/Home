@@ -954,7 +954,7 @@ public class HouseViewService {
 
         forecasts.setName("2-Tage");
         forecasts.setPlaceEnum(Place.OUTSIDE);
-        forecasts.setId("weatherForecasts");
+        forecasts.setId(Place.OUTSIDE.name() + "-fcTemp");
         forecasts.setColorClass(ConditionColor.GRAY.getUiClass());
         forecasts.setUnreach(Boolean.toString(unreach));
 
