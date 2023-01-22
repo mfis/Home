@@ -239,7 +239,11 @@
 				}
 				if(element && element.classList.contains('placeTitle') ){
 					element.scrollIntoView();
-					window.scrollBy(0, (document.getElementById('navbar').offsetHeight + 4) * -1);
+					let navbarHeight = 0;
+					if(document.getElementById('navbar')){
+						navbarHeight = document.getElementById('navbar').offsetHeight;
+					}
+					window.scrollBy(0, (navbarHeight + 6) * -1);
 				}
 			}
 		}

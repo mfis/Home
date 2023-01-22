@@ -228,6 +228,7 @@ public class HouseViewService {
         electricVehicleModel.getEvMap().entrySet().stream().filter(e -> !e.getKey().isOther()).forEach(e -> {
             if(!e.getValue().getElectricVehicle().isOther()){
                 var ev = new View();
+                ev.setId("evcharge-" + e.getKey().name());
                 ev.setState(calculateViewFormattedPercentageEv(e));
                 ev.setColorClass(calculateViewConditionColorEv(calculateViewPercentageEv(e)).getUiClass());
                 if(e.getValue().isActiveCharging()){
@@ -1208,7 +1209,7 @@ public class HouseViewService {
             model.addAttribute("evcharge_" + e.getKey().name(), view);
 
             view.setName(e.getKey().getCaption());
-            view.setId("evcharge_" + e.getKey().name());
+            view.setId("evcharge-" + e.getKey().name());
             view.setPlaceEnum(Place.ELECTROVEHICLE);
             view.setIcon("fa-solid fa-car");
             view.setUnreach(Boolean.toString(false));
