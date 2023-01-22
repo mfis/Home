@@ -187,6 +187,7 @@ public class HouseViewService {
                 // FIXME: shortened name
                 key = StringUtils.remove(key, "zimmer");
                 var sv = new View();
+                sv.setId(singlePlace.name() + "-temp");
                 sv.setState(format(sp.getTemperature().getValue(), true, true) + ViewFormatter.DEGREE + "C");
                 formatClimateBackground(sp, sv);
                 view.getCaptionAndValue().put(key, sv);
@@ -204,6 +205,7 @@ public class HouseViewService {
         }
 
         var electric = new View();
+        electric.setId(house.getTotalElectricalPowerConsumption().getDevice().getPlace().name() + "-todayPowerSum");
         electric.setState("0" + ViewFormatter.K_W_H);
         if (pcdElectric != null &&!pcdElectric.isEmpty()) {
             List<ChartEntry> dayViewModel = viewFormatter.fillPowerHistoryDayViewModel(pcdElectric, false, true);
@@ -244,6 +246,7 @@ public class HouseViewService {
         if(presenceModel != null){
             var presenceCounter = presenceModel.getPresenceStates().entrySet().stream().filter(e -> e.getValue() == PresenceState.PRESENT).map(e -> e.getKey()).collect(Collectors.toList()).size();
             var ev = new View();
+            ev.setId("symbols-presence");
             ev.setIconNativeClient(Integer.toString(presenceCounter) + ".circle"); // TODO: centralize
             view.getCaptionAndValue().put("presence", ev);
         }
@@ -423,7 +426,7 @@ public class HouseViewService {
     private ClimateView formatClimate(Climate climate, Heating heating, String viewKey, boolean history) {
 
         ClimateView view = new ClimateView();
-        view.setId(viewKey);
+        view.setId(climate.getDevice().getPlace().name() + "-temp");
         view.setPlaceEnum(climate.getDevice().getPlace());
         view.setUnreach(Boolean.toString(climate.isUnreach() || (heating != null && heating.isUnreach())));
         if (climate.isUnreach() || (heating != null && heating.isUnreach())) {
@@ -654,7 +657,7 @@ public class HouseViewService {
     private void formatPower(Model model, PowerMeter powerMeter, List<PowerConsumptionDay> pcd) {
 
         PowerView power = new PowerView();
-        power.setId(powerMeter.getDevice().programNamePrefix());
+        power.setId(powerMeter.getDevice().getPlace().name() + "-todayPowerSum");
         power.setPlaceEnum(powerMeter.getDevice().getPlace());
         power.setDescription(powerMeter.getDevice().getDescription());
         power.setUnreach(Boolean.toString(powerMeter.isUnreach()));

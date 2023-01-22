@@ -163,7 +163,7 @@ public class AppViewService {
 
         view.getCaptionAndValue().forEach((k, v) -> {
             var hvm = new HomeViewValueModel();
-            hvm.setId(view.getPlace() + "-grp-" + k);
+            hvm.setId(v.getId());
             if(StringUtils.isBlank(v.getState()) && StringUtils.isNotBlank(v.getIconNativeClient())){
                 // widget symbol header
             }else{
@@ -370,7 +370,7 @@ public class AppViewService {
 
     private HomeViewValueModel mapTodayPower(PlaceDirectives placeDirectives, PowerView view) {
         HomeViewValueModel hvm = new HomeViewValueModel();
-        hvm.setId(placeDirectives.place.name() + "-todayPowerSum");
+        hvm.setId(view.getId());
         hvm.setKey("Heute");
         if (BooleanUtils.toBoolean(view.getUnreach())) {
             hvm.setValue(StringUtils.EMPTY);
