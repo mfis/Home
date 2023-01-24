@@ -217,7 +217,8 @@
 		}
 
 		function fastLinkTo(id){
-			let divId = 'collapse' + id;
+			let cleanedId = id.replace('_groupitem', '');;
+			let divId = ('collapse' + cleanedId);
 			let element = document.getElementById(divId);
 			if(!element){
 				console.log('id not found:' + divId);
@@ -225,6 +226,13 @@
 			}
 			// open collapsable
 			openCollapsable(document, divId);
+			// open collapse of viewCorrelation
+			let viewCorrelationId = 'viewCorrelation_' + cleanedId;
+			let viewCorrelationElement = document.getElementById(viewCorrelationId);
+			if(viewCorrelationElement){
+				let viewCorrelationCollapsableId = 'collapse' + viewCorrelationElement.value;
+				openCollapsable(document, viewCorrelationCollapsableId);
+			}
 			// scroll to previous title
 			let parentCounter = 0;
 			while((element && !element.classList.contains('alert') || !element.classList.contains('callout')) && parentCounter < 100){

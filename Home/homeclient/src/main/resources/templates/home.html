@@ -8,6 +8,7 @@
 		<div th:replace="basics :: navigation (selected=${MENU_SELECTED}, selectable=${MENU_SELECTABLE}, status=${SITE_REQUEST_TS}, isApp=${isApp})"></div>
 		<input type="hidden" th:id="'modelTimestamp'" th:value="${modelTimestamp}"></input>	
 		<input type="hidden" id="SITE_REQUEST_TS" th:value="${SITE_REQUEST_TS}" />
+		<div th:replace="fragments :: viewCorrelations (model=${viewCorrelations})"></div>
 
 		<div class="container">
 		
@@ -85,8 +86,7 @@
 			
 			<div style="height: 35px;"></div>
 		</div>
-		<!-- <a href="javascript:fastLinkTo('OUTSIDE_fcTemp')">TEST</a> -->
-		
+
 	</body>
 	
 	<div th:replace="basics :: scriptresources"></div>

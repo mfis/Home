@@ -810,6 +810,13 @@
 			</div>
 		</th:block>	
 	</th:block>
+
+	<!-- ViewCorrelations -->
+	<th:block th:fragment="viewCorrelations (model)">
+		<th:block th:each="entry : ${model}">
+			<input type="hidden" th:id="'viewCorrelation_' + ${entry.from}" th:value="${entry.to}" />
+		</th:block>
+	</th:block>
 	
 	<!-- Chart Entry -->
 	<th:block th:fragment="chartEntry (chart, showCaption)">	

@@ -264,7 +264,7 @@ public class AppViewService {
 
     private HomeViewValueModel mapTemperature(PlaceDirectives placeDirectives, ClimateView view) {
         HomeViewValueModel hvm = new HomeViewValueModel();
-        hvm.setId(placeDirectives.place.name() + "-temp");
+        hvm.setId(view.getId());
         hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP).map(Enum::name).collect(Collectors.toList()));
         hvm.setKey("Wärme");
         hvm.setValue(view.getStateTemperature());
@@ -318,7 +318,7 @@ public class AppViewService {
 
     private HomeViewValueModel mapHeatpump(PlaceDirectives placeDirectives, HeatpumpView view) {
         HomeViewValueModel hvm = new HomeViewValueModel();
-        hvm.setId(placeDirectives.place.name() + "-heatpump");
+        hvm.setId(view.getId());
         hvm.setKey("Wärmepumpe");
         if(Boolean.parseBoolean(view.getBusy())) {
             hvm.setValue("...\u21BB...");

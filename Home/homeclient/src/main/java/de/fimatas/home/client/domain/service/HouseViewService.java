@@ -104,6 +104,8 @@ public class HouseViewService {
 
         model.addAttribute("modelTimestamp", ModelObjectDAO.getInstance().calculateModelTimestamp());
 
+        formatViewCorrelations(model);
+
         formatClimate(model, "tempBathroom", house.getClimateBathRoom(), house.getHeatingBathRoom(), false);
         formatClimate(model, "tempKids1", house.getClimateKidsRoom1(), null, true);
         formatClimate(model, "tempKids2", house.getClimateKidsRoom2(), null, true);
@@ -130,7 +132,7 @@ public class HouseViewService {
 
         formatPower(model, house.getTotalElectricalPowerConsumption(), historyModel==null?null:historyModel.getTotalElectricPowerConsumptionDay());
 
-        formatWallboxSwitch(model, "switchWallbox", house.getWallboxSwitch(), house.getWallboxElectricalPowerConsumption(), electricVehicleModel);
+        formatWallboxSwitch(model, lookupWallboxId(), house.getWallboxSwitch(), house.getWallboxElectricalPowerConsumption(), electricVehicleModel);
         formatPower(model, house.getWallboxElectricalPowerConsumption(), historyModel==null?null:historyModel.getWallboxElectricPowerConsumptionDay());
         formatEVCharge(model, electricVehicleModel, house.getWallboxElectricalPowerConsumption());
 
@@ -184,17 +186,15 @@ public class HouseViewService {
             if(!sp.isBusy() && !sp.isUnreach()){
                 var singlePlace = sp.getDevice().getPlace();
                 var key = house.getPlaceSubtitles().containsKey(singlePlace) ? house.getPlaceSubtitles().get(singlePlace) : singlePlace.getPlaceName();
-                // FIXME: shortened name
-                key = StringUtils.remove(key, "zimmer");
+                key = lookupShortenedRoomName(key);
                 var sv = new View();
-                sv.setId(singlePlace.name() + "-temp");
+                sv.setId(lookupClimateId(singlePlace, true));
                 sv.setState(format(sp.getTemperature().getValue(), true, true) + ViewFormatter.DEGREE + "C");
                 formatClimateBackground(sp, sv);
                 view.getCaptionAndValue().put(key, sv);
             }
         });
     }
-
 
     private void formatGridsGroup(Model model, String viewKey, Place place, HouseModel house, List<PowerConsumptionDay> pcdElectric) {
 
@@ -205,7 +205,7 @@ public class HouseViewService {
         }
 
         var electric = new View();
-        electric.setId(house.getTotalElectricalPowerConsumption().getDevice().getPlace().name() + "-todayPowerSum");
+        electric.setId(lookupTodayPowerId(house.getTotalElectricalPowerConsumption().getDevice().getPlace(), true));
         electric.setState("0" + ViewFormatter.K_W_H);
         if (pcdElectric != null &&!pcdElectric.isEmpty()) {
             List<ChartEntry> dayViewModel = viewFormatter.fillPowerHistoryDayViewModel(pcdElectric, false, true);
@@ -228,7 +228,7 @@ public class HouseViewService {
         electricVehicleModel.getEvMap().entrySet().stream().filter(e -> !e.getKey().isOther()).forEach(e -> {
             if(!e.getValue().getElectricVehicle().isOther()){
                 var ev = new View();
-                ev.setId("evcharge-" + e.getKey().name());
+                ev.setId(lookupEvChargeId(e.getKey(), true));
                 ev.setState(calculateViewFormattedPercentageEv(e));
                 ev.setColorClass(calculateViewConditionColorEv(calculateViewPercentageEv(e)).getUiClass());
                 if(e.getValue().isActiveCharging()){
@@ -247,7 +247,7 @@ public class HouseViewService {
         if(presenceModel != null){
             var presenceCounter = presenceModel.getPresenceStates().entrySet().stream().filter(e -> e.getValue() == PresenceState.PRESENT).map(e -> e.getKey()).collect(Collectors.toList()).size();
             var ev = new View();
-            ev.setId("symbols-presence");
+            ev.setId("symbols-presence" + lookupGroupitemIdPostfix(true));
             ev.setIconNativeClient(Integer.toString(presenceCounter) + ".circle"); // TODO: centralize
             view.getCaptionAndValue().put("presence", ev);
         }
@@ -427,7 +427,7 @@ public class HouseViewService {
     private ClimateView formatClimate(Climate climate, Heating heating, String viewKey, boolean history) {
 
         ClimateView view = new ClimateView();
-        view.setId(climate.getDevice().getPlace().name() + "-temp");
+        view.setId(lookupClimateId(climate.getDevice().getPlace(), false));
         view.setPlaceEnum(climate.getDevice().getPlace());
         view.setUnreach(Boolean.toString(climate.isUnreach() || (heating != null && heating.isUnreach())));
         if (climate.isUnreach() || (heating != null && heating.isUnreach())) {
@@ -658,7 +658,7 @@ public class HouseViewService {
     private void formatPower(Model model, PowerMeter powerMeter, List<PowerConsumptionDay> pcd) {
 
         PowerView power = new PowerView();
-        power.setId(powerMeter.getDevice().getPlace().name() + "-todayPowerSum");
+        power.setId(lookupTodayPowerId(powerMeter.getDevice().getPlace(), false));
         power.setPlaceEnum(powerMeter.getDevice().getPlace());
         power.setDescription(powerMeter.getDevice().getDescription());
         power.setUnreach(Boolean.toString(powerMeter.isUnreach()));
@@ -698,6 +698,16 @@ public class HouseViewService {
         }
 
         model.addAttribute(powerMeter.getDevice().programNamePrefix(), power);
+    }
+
+
+    private void formatViewCorrelations(Model model) {
+        List<ViewCorrelationView> list = new LinkedList<>();
+        list.add(new ViewCorrelationView(lookupClimateId(Place.BEDROOM, false), lookupHeatpumpId(Place.BEDROOM, false)));
+        list.add(new ViewCorrelationView(lookupClimateId(Place.KIDSROOM_1, false), lookupHeatpumpId(Place.KIDSROOM_1, false)));
+        list.add(new ViewCorrelationView(lookupClimateId(Place.KIDSROOM_2, false), lookupHeatpumpId(Place.KIDSROOM_2, false)));
+        list.add(new ViewCorrelationView(lookupEvChargeId(ElectricVehicle.EUP, false), lookupWallboxId()));
+        model.addAttribute("viewCorrelations", list);
     }
 
     private void formatLowBattery(Model model, List<String> lowBatteryDevices) {
@@ -958,7 +968,7 @@ public class HouseViewService {
 
         forecasts.setName("2-Tage");
         forecasts.setPlaceEnum(Place.OUTSIDE);
-        forecasts.setId(Place.OUTSIDE.name() + "-fcTemp");
+        forecasts.setId(lookupWeatherForecastId(Place.OUTSIDE, false));
         forecasts.setColorClass(ConditionColor.GRAY.getUiClass());
         forecasts.setUnreach(Boolean.toString(unreach));
 
@@ -1155,7 +1165,7 @@ public class HouseViewService {
         view.setIcon("aircon.png");
         view.setPlaceEnum(place);
         view.setPlaceSubtitle(house.getPlaceSubtitles().containsKey(place) ? house.getPlaceSubtitles().get(place) : place.getPlaceName());
-        view.setId("heatpump" + place.name());
+        view.setId(lookupHeatpumpId(place, false));
         view.setUnreach(Boolean.toString(isUnreachable));
 
         List.of(Place.KIDSROOM_1, Place.KIDSROOM_2, Place.BEDROOM).stream().filter(p -> p != place).forEach(a -> {
@@ -1193,6 +1203,39 @@ public class HouseViewService {
         view.setStateSuffix(actualPreset.getIntensity()!=null ? ", " + actualPreset.getIntensity() : "");
     }
 
+    private static String lookupHeatpumpId(Place place, boolean isGroupItem) {
+        return place.name() + "_heatpump" + lookupGroupitemIdPostfix(isGroupItem);
+    }//_groupitem
+
+    private static String lookupClimateId(Place place, boolean isGroupItem) {
+        return place.name() + "_temp" + lookupGroupitemIdPostfix(isGroupItem);
+    }
+
+    private static String lookupTodayPowerId(Place place, boolean isGroupItem) {
+        return place.name() + "_todayPowerSum" + lookupGroupitemIdPostfix(isGroupItem);
+    } // ev.setId("evcharge-" + e.getKey().name() + "_groupitem"); // FIXME
+
+
+    private static String lookupEvChargeId(ElectricVehicle ev, boolean isGroupItem) {
+        return ev.name() + "_evcharge" + lookupGroupitemIdPostfix(isGroupItem);
+    }
+
+    private static String lookupWeatherForecastId(Place place, boolean isGroupItem) {
+        return place.name() + "_fcTemp" + lookupGroupitemIdPostfix(isGroupItem);
+    }
+
+    private static String lookupGroupitemIdPostfix(boolean isGroupItem) {
+        return isGroupItem? "_groupitem" : "";
+    }
+
+    private String lookupShortenedRoomName(String name){
+        return StringUtils.remove(name, "zimmer");
+    }
+
+    private String lookupWallboxId() {
+        return "switchWallbox";
+    }
+
     private String buildHeatpumpPresetLink(Place place, HeatpumpPreset targetPreset, HeatpumpPreset actualPreset){
         if(targetPreset==actualPreset && targetPreset != HeatpumpPreset.UNKNOWN){
             return "#";
@@ -1209,7 +1252,7 @@ public class HouseViewService {
             model.addAttribute("evcharge_" + e.getKey().name(), view);
 
             view.setName(e.getKey().getCaption());
-            view.setId("evcharge-" + e.getKey().name());
+            view.setId(lookupEvChargeId(e.getKey(), false));
             view.setPlaceEnum(Place.ELECTROVEHICLE);
             view.setIcon("fa-solid fa-car");
             view.setUnreach(Boolean.toString(false));
