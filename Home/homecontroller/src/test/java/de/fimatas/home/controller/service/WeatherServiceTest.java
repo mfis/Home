@@ -53,8 +53,8 @@ class WeatherServiceTest {
 
         final WeatherForecastConclusion conclusion = WeatherService.calculateConclusionForTimerange(items);
 
-        assertTrue(conclusion.getConditions().contains(WeatherConditions.RAIN));
-        assertEquals(21, conclusion.getFirstOccurences().get(WeatherConditions.RAIN).getHour());
+        assertTrue(conclusion.getConditions().contains(WeatherConditions.CLOUD_RAIN));
+        assertEquals(21, conclusion.getFirstOccurences().get(WeatherConditions.CLOUD_RAIN).getHour());
         assertFalse(conclusion.getConditions().contains(WeatherConditions.SUN));
     }
 
