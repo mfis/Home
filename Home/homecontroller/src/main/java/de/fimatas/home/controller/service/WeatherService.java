@@ -170,7 +170,7 @@ public class WeatherService {
 
     private static Set<WeatherConditions> reduceConditions(Set<WeatherConditions> set){
 
-        if (set.contains(WeatherConditions.SNOW)) {
+        /*if (set.contains(WeatherConditions.SNOW)) {
             set.remove(WeatherConditions.RAIN);
             set.remove(WeatherConditions.CLOUD_RAIN);
             set.remove(WeatherConditions.CLOUD);
@@ -178,7 +178,7 @@ public class WeatherService {
             set.remove(WeatherConditions.SUN_CLOUD);
             set.remove(WeatherConditions.MOON);
             set.remove(WeatherConditions.MOON_CLOUD);
-        }
+        }*/
 
         if (set.contains(WeatherConditions.GUST)) {
             set.remove(WeatherConditions.WIND);
