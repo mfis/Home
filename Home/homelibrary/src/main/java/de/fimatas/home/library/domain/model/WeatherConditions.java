@@ -12,7 +12,7 @@ public enum WeatherConditions {
     HAIL("fa-solid fa-cloud-meatball", "cloud.hail", "Hagel", true, null),
     THUNDERSTORM("fa-solid fa-cloud-bolt", "bolt", "Gewitter", true, null),
     RAIN("fa-solid fa-cloud-showers-heavy", "cloud.heavyrain", "Regen", true, null),
-    CLOUD_RAIN("fa-solid fa-cloud-rain", "cloud.rain", "Bewölkt und Regen", true, null),
+    CLOUD_RAIN("fa-solid fa-cloud-rain", "cloud.rain", "Leichter Regen", true, null),
     SUN("fa-solid fa-sun", "sun.max", "Sonne", true, null),
     FOG("fa-solid fa-smog", "cloud.fog", "Nebel", false, null),
     SUN_CLOUD("fa-solid fa-cloud-sun", "cloud.sun", "Leicht bewölkt", false, null),

@@ -130,6 +130,22 @@ class WeatherForecastConclusionTextFormatterTest {
     }
 
     @Test
+    void testFormatConclusionText_TwoSignificantConditions(){
+
+        final var conclusion = new WeatherForecastConclusion();
+        conclusion.setMinTemp(new BigDecimal(-5L));
+        conclusion.setMaxTemp(new BigDecimal(5L));
+        conclusion.setMaxWind(10);
+        conclusion.setMaxGust(20);
+        conclusion.setConditions(Set.of(WeatherConditions.RAIN, WeatherConditions.SNOW));
+
+        final Map<Integer, String> map = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion);
+
+        assertEquals("Schnee +", map.get(FORMAT_CONDITIONS_SHORT_1_MAX));
+        assertEquals("-5..5°C, Schnee +", map.get(FORMAT_FROM_TO_PLUS_1_MAX));
+    }
+
+    @Test
     void testFormatConclusionText_UnsignificantConditions(){
 
         final var conclusion = new WeatherForecastConclusion();
