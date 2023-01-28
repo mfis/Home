@@ -17,7 +17,7 @@
 				</h4>
 
 				<script>
-					let idSlider = "[[${model.id}]]";
+					let idSlider = "[[${model.id}]]"; // FIXME: works obly with one slider per document
 					$(document).ready(function(){
 						prototypeSlider();
 						initSlider(idSlider);
@@ -25,19 +25,21 @@
 					});
 				</script>
 
-				<div style="display: flex;">
-					<div style="width: 60px !important;">
-						<button style="margin-top: 10px;" type="button" class="btn btn-block btn-secondary btn-sm" disabled><span>Voll</span></button>
-						<button style="margin-top: 10px;" type="button" class="btn btn-block btn-secondary btn-sm" disabled><span>90%</span></button>
-						<button style="margin-top: 10px;" type="button" class="btn btn-block btn-secondary btn-sm" disabled><span>80%</span></button>
-					</div>
-					<div style="margin-right: 0px; margin-left: auto;">
-						<input type="hidden" th:id="${model.id} + '-isActual'" th:value="${model.stateActualFlag}"/>
-						<input type="hidden" th:id="${model.id} + '-startValue'" th:value="${model.numericValue}"/>
-						<input type="hidden" th:id="${model.id} + '-eventState'" value=""/>
-						<input type="hidden" th:id="'val_update_slider_' + ${model.id}" th:value="${model.linkUpdate}">
-						<div th:id="${model.id}" class="evBatterySlider" style="margin: 5px 35px 35px auto;"></div>
-					</div>
+				<div class="btn-group" role="group" aria-label="evmaxcharge">
+					<button style="margin-top: 10px; width: 60px" type="button" class="btn btn-block btn-secondary btn-sm" disabled><span>60%</span></button>
+					<button style="margin-top: 10px; width: 60px" type="button" class="btn btn-block btn-secondary btn-sm" disabled><span>85%</span></button>
+					<button style="margin-top: 10px; width: 60px" type="button" class="btn btn-block btn-secondary btn-sm" disabled><span>Voll</span></button>
+				</div>
+				<div class="btn-group" role="group" aria-label="evenableslider" style="margin-left: 10px;">
+					<button style="margin-top: 10px; width: 60px" type="button" class="btn btn-block btn-secondary btn-sm" th:onclick="'enableSlider(idSlider)'"><span>Setzen</span></button>
+				</div>
+
+				<div style="margin-left: 0px; padding-top: 30px;">
+					<input type="hidden" th:id="${model.id} + '-isActual'" th:value="${model.stateActualFlag}"/>
+					<input type="hidden" th:id="${model.id} + '-startValue'" th:value="${model.numericValue}"/>
+					<input type="hidden" th:id="${model.id} + '-eventState'" value=""/>
+					<input type="hidden" th:id="'val_update_slider_' + ${model.id}" th:value="${model.linkUpdate}">
+					<div th:id="${model.id}" class="evBatterySlider" style="margin: 5px auto 35px -70px;"></div>
 				</div>
 			</div>
 		</th:block>

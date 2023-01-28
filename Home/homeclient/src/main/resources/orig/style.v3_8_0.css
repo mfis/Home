@@ -258,17 +258,17 @@ input[type="checkbox"]:checked ~ label .check-true{
 	border: 8px solid transparent;
 	border-right-color: red;
 	margin: -6px 0px 0px 14px !important;
-	border-width: 6px 104px 6px 4px;
+	border-width: 10px 140px 10px 2px;
 }
 .evBatterySlider .rs-handle:before  {
 	display: block;
 	content: " ";
 	position: absolute;
-	height: 22px;
-	width: 22px;
+	height: 28px;
+	width: 28px;
 	background: gray;
-	right: -11px;
-	bottom: -11px;
+	right: -18px;
+	bottom: -18px;
 	border-radius: 100px;
 }
 .evBatterySlider .rs-path-color  {

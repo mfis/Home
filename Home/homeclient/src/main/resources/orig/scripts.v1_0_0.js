@@ -33,7 +33,7 @@ function initSlider(id){
     $('#' + id).roundSlider({
         editableTooltip: false,
         width: 12,
-        radius: 117,
+        radius: 160,
         handleShape: "square",
         handleSize: 1,
         value: startValue,
@@ -78,8 +78,24 @@ function initSlider(id){
             }
         }
     });
+    $('#' + id).roundSlider("disable");
     // prevent misaligned handle
-    setTimeout(function(){ document.getElementById(id).getElementsByClassName('rs-handle').item(0).style.display = 'block'; }, 10);
+    setTimeout(function(){
+        document.getElementById(id).getElementsByClassName('rs-handle').item(0).style.display = 'block';
+    }, 10);
+}
+
+function enableSlider(id){
+    console.log('ID=' + id, $('#' + id))
+    $('#' + id).addClass('doNotRefresh');
+    $('#' + id).roundSlider("enable");
+    console.log('handle', document.getElementById(id).getElementsByClassName('rs-handle').item(0).style)
+    setTimeout(function(){
+        if(document.getElementById(id + "-eventState").value != 'drag'){
+            $('#' + id).removeClass('doNotRefresh');
+            $('#' + id).roundSlider("disable");
+        }
+    }, 6000);
 }
 
 function updateEvSliderValue(id, value) {
