@@ -256,4 +256,9 @@ public class ElectricVehicleService {
 
         return chargingCapacity;
     }
+
+    public void updateChargeLimit(ElectricVehicle electricVehicle, String value) {
+        stateHandlerDAO.writeState(STATEHANDLER_GROUPNAME_CHARGELIMIT, electricVehicle.name(), ChargeLimit.valueOf(value).name());
+        startNewChargingEntryAndRefreshModel();
+    }
 }

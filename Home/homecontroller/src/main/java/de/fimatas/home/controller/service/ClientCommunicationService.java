@@ -142,6 +142,9 @@ public class ClientCommunicationService {
             case WALLBOX_SELECTED_EV:
                 electricVehicleService.updateSelectedEvForWallbox(ElectricVehicle.valueOf(message.getDeviceId()));
                 break;
+            case CHARGELIMIT:
+                electricVehicleService.updateChargeLimit(ElectricVehicle.valueOf(message.getDeviceId()), message.getValue());
+                break;
             default:
                 throw new IllegalStateException("Unknown MessageType:" + message.getMessageType().name());
             }
