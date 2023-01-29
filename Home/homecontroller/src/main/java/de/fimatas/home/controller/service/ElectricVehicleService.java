@@ -60,6 +60,8 @@ public class ElectricVehicleService {
 
     private final String STATEHANDLER_GROUPNAME_BATTERY = "ev-battery";
 
+    private final String STATEHANDLER_GROUPNAME_CHARGELIMIT = "ev-limit";
+
     private final String STATEHANDLER_GROUPNAME_SELECTED_EV = "ev-selected";
 
     private final Device COUNTER_DEVICE = Device.STROMZAEHLER_WALLBOX; // FIXME
@@ -85,13 +87,18 @@ public class ElectricVehicleService {
         var newModel = new ElectricVehicleModel();
         states.forEach(s-> {
             var state = new ElectricVehicleState(ElectricVehicle.valueOf(s.getStatename()), Short.parseShort(s.getValue()), s.getTimestamp());
+            readChargeLimit(state);
             readAdditionalChargingPercentage(state);
             newModel.getEvMap().put(ElectricVehicle.valueOf(s.getStatename()), state);
         });
 
         // add new ev's
-        Arrays.stream(ElectricVehicle.values()).filter(ev -> !newModel.getEvMap().containsKey(ev)).forEach(ev ->
-                newModel.getEvMap().put(ev, new ElectricVehicleState(ev, (short) 0, uniqueTimestampService.get())));
+        Arrays.stream(ElectricVehicle.values()).filter(ev -> !newModel.getEvMap().containsKey(ev)).forEach(ev -> {
+            var newEvState = new ElectricVehicleState(ev, (short) 0, uniqueTimestampService.get());
+            readChargeLimit(newEvState);
+            newModel.getEvMap().put(ev, newEvState);
+        });
+
 
         // wallbox-connected ev
         ElectricVehicle connected = readConnectedEv();
@@ -103,6 +110,12 @@ public class ElectricVehicleService {
         uploadService.uploadToClient(newModel);
     }
 
+    private void readChargeLimit(ElectricVehicleState state) {
+        final State readState = stateHandlerDAO.readState(STATEHANDLER_GROUPNAME_CHARGELIMIT, state.getElectricVehicle().name());
+        if(readState!=null){
+            state.setChargeLimit(ChargeLimit.valueOf(readState.getValue()));
+        }
+    }
 
     public void updateBatteryPercentage(ElectricVehicle electricVehicle, String percentageString){
         stateHandlerDAO.writeState(STATEHANDLER_GROUPNAME_BATTERY, electricVehicle.name(), Short.toString(Short.parseShort(percentageString)));

@@ -9,6 +9,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
 
 import de.fimatas.home.client.domain.model.*;
@@ -1292,8 +1293,10 @@ public class HouseViewService {
             view.setStateActualFlag(Boolean.toString(isStateNew && !isChargedSinceReading));
 
             view.setChargeLimitLink(MESSAGEPATH + TYPE_IS + MessageType.CHARGELIMIT + AND_DEVICE_ID_IS + e.getKey().name() + AND_VALUE_IS);
-            view.getChargeLimits().add(new ValueWithCaption("full", "100%", null));
-            view.getChargeLimits().add(new ValueWithCaption("#", "65%", null));
+            Stream.of(ChargeLimit.values()).forEach(cl -> {
+                var value = cl==e.getValue().getChargeLimit() ? "#" : cl.name();
+                view.getChargeLimits().add(new ValueWithCaption(value, cl.getPercentage() + "%", null));
+            });
         });
     }
 

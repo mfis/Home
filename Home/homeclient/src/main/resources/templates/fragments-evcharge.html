@@ -10,10 +10,8 @@
 			<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
 				<h4>
 					<span th:text="${model.state}"></span>
-				</h4>
-				<h4>
-					<span style="text-align: center;" th:id="${model.id} + '-status'"><i style="font-size: 0.8rem;" class="fa-solid fa-circle"></i></span>
 					<span th:id="${model.id} + '-label'"></span>
+					<span style="text-align: center;" th:id="${model.id} + '-status'"><i style="font-size: 0.8rem;" class="fa-solid fa-circle"></i></span>
 				</h4>
 
 				<script>
@@ -28,9 +26,10 @@
 					<button style="margin-top: 10px; width: 60px" type="button" class="btn btn-block btn-secondary btn-sm" th:onclick="@{'enableSlider(\'' + ${model.id} + '\')'}"><span>Setzen</span></button>
 				</div>
 
+				<span style="height: 31px;" class="align-text-top"><a>Limit:</a></span>
 				<div class="btn-group" role="group" aria-label="evmaxcharge">
 					<th:block th:each="entry : ${model.chargeLimits}">
-						<button style="margin-top: 10px; width: 60px" type="button" th:class="${#strings.startsWith(entry.value, '#')} ? 'btn btn-dark btn-sm btn-block' : 'btn btn-secondary btn-sm btn-block'" th:onclick="@{'evChargeLimit(\''+ ${model.chargeLimitLink} +'\', \'' + ${entry.value} + '\')'}">
+						<button style="margin-top: 10px; width: 55px" type="button" th:class="${#strings.startsWith(entry.value, '#')} ? 'btn btn-dark btn-sm btn-block' : 'btn btn-secondary btn-sm btn-block'" th:onclick="@{'evChargeLimit(\''+ ${model.chargeLimitLink} +'\', \'' + ${entry.value} + '\')'}">
 							<span th:class="${#strings.startsWith(entry.value, '#')} ? 'text-' + ${model.activeSwitchColorClass}"th:text="${entry.caption}"></span>
 						</button>
 					</th:block>

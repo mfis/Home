@@ -53,7 +53,14 @@ public class StateHandlerDAO {
         String query =
                 "select * FROM " + TABLE_NAME + " where GROUPNAME = ? and statename = ?;";
 
-        return jdbcTemplate.queryForObject(query, new String[]{groupname, cleanString(statename)}, new StateRowMapper());
+        var result = jdbcTemplate.query(query, new StateRowMapper(), groupname, cleanString(statename));
+        if(result== null || result.size()==0){
+            return null;
+        }else if(result.size()==1){
+            return result.get(0);
+        }else{
+            throw new IllegalStateException("incorrect result size: " + result.size());
+        }
     }
 
     @Transactional
