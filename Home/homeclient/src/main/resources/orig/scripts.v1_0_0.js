@@ -86,10 +86,8 @@ function initSlider(id){
 }
 
 function enableSlider(id){
-    console.log('ID=' + id, $('#' + id))
     $('#' + id).addClass('doNotRefresh');
     $('#' + id).roundSlider("enable");
-    console.log('handle', document.getElementById(id).getElementsByClassName('rs-handle').item(0).style)
     setTimeout(function(){
         if(document.getElementById(id + "-eventState").value != 'drag'){
             $('#' + id).removeClass('doNotRefresh');
