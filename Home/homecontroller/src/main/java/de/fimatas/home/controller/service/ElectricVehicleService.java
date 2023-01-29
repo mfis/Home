@@ -174,8 +174,13 @@ public class ElectricVehicleService {
             return false;
         }
 
+        final ElectricVehicle connectedElectricVehicle = readConnectedEv();
+        if(connectedElectricVehicle==null){
+            return false;
+        }
+
         // update
-        evChargingDAO.write(readConnectedEv(), readEnergyCounterValue(), EvChargePoint.WALLBOX1);
+        evChargingDAO.write(connectedElectricVehicle, readEnergyCounterValue(), EvChargePoint.WALLBOX1);
 
         if(isNoChargineEnergyCounted()){
             switchWallboxOff();
