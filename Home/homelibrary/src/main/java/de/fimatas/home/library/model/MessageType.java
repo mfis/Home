@@ -12,6 +12,7 @@ public enum MessageType {
     HEATINGMANUAL(Pages.PATH_HOME), //
     HEATINGAUTO(Pages.PATH_HOME), //
     SLIDERVALUE(Pages.PATH_HOME), //
+    CHARGELIMIT(Pages.PATH_HOME), //
     CONTROL_HEATPUMP(Pages.PATH_HOME), //
     CAMERAPICTUREREQUEST(null), //
     SETTINGS_NEW(null), //

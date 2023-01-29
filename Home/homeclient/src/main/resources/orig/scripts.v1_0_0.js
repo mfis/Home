@@ -96,6 +96,13 @@ function enableSlider(id){
     }, 6000);
 }
 
+function evChargeLimit(link, value){
+    if(!value.startsWith('#')){
+        let linkComplete = link + value;
+        submitContent(linkComplete);
+    }
+}
+
 function updateEvSliderValue(id, value) {
     document.getElementById(id + '-status').style.color = "red";
     submitContent(document.getElementById('val_update_slider_' + id).value + value);

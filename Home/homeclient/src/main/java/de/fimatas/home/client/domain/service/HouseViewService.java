@@ -1269,6 +1269,7 @@ public class HouseViewService {
 
             view.setLinkUpdate(MESSAGEPATH + TYPE_IS + MessageType.SLIDERVALUE + AND_DEVICE_ID_IS + e.getKey().name() + AND_VALUE_IS);
             view.setColorClass(calculateViewConditionColorEv(percentage).getUiClass());
+            view.setActiveSwitchColorClass(calculateViewConditionColorEv(percentage).getUiClass());
             view.setStateShort(calculateViewFormattedPercentageEv(e)); // watch etc
             view.setStateShortLabel(tsFormatted);
             view.setElementTitleState(StringUtils.capitalize(tsFormatted) + " " + calculateViewFormattedPercentageEv(e)); // collapsed top right
@@ -1289,6 +1290,10 @@ public class HouseViewService {
             }
             view.setNumericValue(Short.toString(percentage));
             view.setStateActualFlag(Boolean.toString(isStateNew && !isChargedSinceReading));
+
+            view.setChargeLimitLink(MESSAGEPATH + TYPE_IS + MessageType.CHARGELIMIT + AND_DEVICE_ID_IS + e.getKey().name() + AND_VALUE_IS);
+            view.getChargeLimits().add(new ValueWithCaption("full", "100%", null));
+            view.getChargeLimits().add(new ValueWithCaption("#", "65%", null));
         });
     }
 
