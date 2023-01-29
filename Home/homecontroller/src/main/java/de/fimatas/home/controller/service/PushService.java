@@ -136,6 +136,15 @@ public class PushService {
         }
     }
 
+    public void chargeLimit(boolean error, ElectricVehicle ev, short actualPercentage) {
+
+        PushNotifications notification = error ? PushNotifications.CHARGELIMIT_ERROR : PushNotifications.CHARGELIMIT_OK;
+        settingsService.listTokensWithEnabledSetting(notification).forEach(pushToken -> {
+            var text = String.format(notification.getPushText(), actualPercentage);
+            handleMessage(pushToken, "Wallbox: " + ev.getCaption(), text);
+        });
+    }
+
     private void windowOpenMessage(HouseModel newModel) {
 
         var roomNames = new LinkedList<String>();

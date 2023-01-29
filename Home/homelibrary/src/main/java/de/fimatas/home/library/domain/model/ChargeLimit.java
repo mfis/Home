@@ -2,19 +2,19 @@ package de.fimatas.home.library.domain.model;
 
 public enum ChargeLimit {
 
-    MEDIUM(60), //
-    NEARFULL(85), //
-    MAX(100), //
+    MEDIUM((short)60), //
+    NEARFULL((short)85), //
+    MAX((short)100), //
     ;
 
-    private final Integer percentage;
+    private final short percentage;
 
-    private ChargeLimit(Integer percentage) {
+    private ChargeLimit(short percentage) {
         this.percentage = percentage;
         if(this.name().length()>8) throw new IllegalArgumentException("name too long: " + this.name());
     }
 
-    public Integer getPercentage() {
+    public short getPercentage() {
         return percentage;
     }
 

@@ -50,6 +50,9 @@ public class ElectricVehicleService {
     private HouseService houseService;
 
     @Autowired
+    private PushService pushService;
+
+    @Autowired
     private HomematicCommandBuilder homematicCommandBuilder;
 
     @Autowired
@@ -67,6 +70,8 @@ public class ElectricVehicleService {
     private final Device COUNTER_DEVICE = Device.STROMZAEHLER_WALLBOX; // FIXME
 
     private final Device WALLBOX_SWITCH_DEVICE = Device.SCHALTER_WALLBOX;
+
+    private final short CHARGING_LIMIT_MAX_DIFF = 7;
 
     @PostConstruct
     private void init() {
@@ -182,7 +187,7 @@ public class ElectricVehicleService {
         // update
         evChargingDAO.write(connectedElectricVehicle, readEnergyCounterValue(), EvChargePoint.WALLBOX1);
 
-        if(isNoChargineEnergyCounted()){
+        if(isChargingFinished(connectedElectricVehicle)){
             switchWallboxOff();
         }
 
@@ -203,10 +208,22 @@ public class ElectricVehicleService {
         return homematicAPI.getAsBigDecimal(homematicCommandBuilder.read(COUNTER_DEVICE, Datapoint.ENERGY_COUNTER));
     }
 
-    private boolean isNoChargineEnergyCounted(){
+    private boolean isChargingFinished(ElectricVehicle connectedElectricVehicle){ TEST
+
+        final ElectricVehicleState state = ModelObjectDAO.getInstance().readElectricVehicleModel().getEvMap().get(connectedElectricVehicle);
+        var actual = state.getBatteryPercentage() + state.getAdditionalChargingPercentage();
+        var limit = state.getChargeLimit() == null ? 100 : state.getChargeLimit().getPercentage();
+        if(actual >= limit){
+            return true;
+        }
+
         final LocalDateTime maxChangeTimestamp = evChargingDAO.maxChangeTimestamp();
-        return maxChangeTimestamp!=null &&
-                ChronoUnit.SECONDS.between(maxChangeTimestamp, uniqueTimestampService.get()) > minSecondsNoChangeUntilSwitchOffWallbox();
+        if(maxChangeTimestamp!=null &&
+                ChronoUnit.SECONDS.between(maxChangeTimestamp, uniqueTimestampService.get()) > minSecondsNoChangeUntilSwitchOffWallbox()){
+            pushService.chargeLimit((limit - actual > CHARGING_LIMIT_MAX_DIFF), connectedElectricVehicle, (short)actual);
+            return true;
+        }
+        return false;
     }
 
     private void switchWallboxOff() {
