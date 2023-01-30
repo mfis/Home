@@ -157,7 +157,6 @@ public class ElectricVehicleService {
             final BigDecimal addPercentage = sum
                     .divide(calculateChargingCapacity(state.getElectricVehicle(), false), 4, RoundingMode.HALF_UP)
                     .multiply(new BigDecimal("100.0"));
-            // log.info("ADDITIONAL:" + sum + " -> " + addPercentage + "%");
             state.setAdditionalChargingPercentage(addPercentage.shortValue());
         }
         state.setActiveCharging(entries.stream().anyMatch(e -> !e.finished()));
@@ -179,15 +178,15 @@ public class ElectricVehicleService {
             return false;
         }
 
-        final ElectricVehicle connectedElectricVehicle = readConnectedEv();
-        if(connectedElectricVehicle==null){
+        final ElectricVehicleState connectedElectricVehicleState = ModelObjectDAO.getInstance().readElectricVehicleModel().getEvMap().values().stream().filter(e -> e.isConnectedToWallbox()).findFirst().orElse(null);
+        if(connectedElectricVehicleState==null){
             return false;
         }
 
         // update
-        evChargingDAO.write(connectedElectricVehicle, readEnergyCounterValue(), EvChargePoint.WALLBOX1);
+        evChargingDAO.write(connectedElectricVehicleState.getElectricVehicle(), readEnergyCounterValue(), EvChargePoint.WALLBOX1);
 
-        if(isChargingFinished(connectedElectricVehicle)){
+        if(isChargingFinished(connectedElectricVehicleState)){
             switchWallboxOff();
         }
 
@@ -208,11 +207,10 @@ public class ElectricVehicleService {
         return homematicAPI.getAsBigDecimal(homematicCommandBuilder.read(COUNTER_DEVICE, Datapoint.ENERGY_COUNTER));
     }
 
-    private boolean isChargingFinished(ElectricVehicle connectedElectricVehicle){ TEST
+    private boolean isChargingFinished(ElectricVehicleState connectedElectricVehicleState){
 
-        final ElectricVehicleState state = ModelObjectDAO.getInstance().readElectricVehicleModel().getEvMap().get(connectedElectricVehicle);
-        var actual = state.getBatteryPercentage() + state.getAdditionalChargingPercentage();
-        var limit = state.getChargeLimit() == null ? 100 : state.getChargeLimit().getPercentage();
+        var actual = connectedElectricVehicleState.getBatteryPercentage() + connectedElectricVehicleState.getAdditionalChargingPercentage();
+        var limit = connectedElectricVehicleState.getChargeLimit() == null ? 100 : connectedElectricVehicleState.getChargeLimit().getPercentage();
         if(actual >= limit){
             return true;
         }
@@ -220,7 +218,7 @@ public class ElectricVehicleService {
         final LocalDateTime maxChangeTimestamp = evChargingDAO.maxChangeTimestamp();
         if(maxChangeTimestamp!=null &&
                 ChronoUnit.SECONDS.between(maxChangeTimestamp, uniqueTimestampService.get()) > minSecondsNoChangeUntilSwitchOffWallbox()){
-            pushService.chargeLimit((limit - actual > CHARGING_LIMIT_MAX_DIFF), connectedElectricVehicle, (short)actual);
+            pushService.chargeLimit((limit - actual > CHARGING_LIMIT_MAX_DIFF), connectedElectricVehicleState.getElectricVehicle(), (short)actual);
             return true;
         }
         return false;
