@@ -192,6 +192,7 @@ public class ElectricVehicleService {
     }
 
     private void switchWallboxOff() {
+        // FIXME: temporarily inactive due to debugging
         houseService.togglestate(WALLBOX_SWITCH_DEVICE, false);
         houseService.refreshHouseModel();
     }
