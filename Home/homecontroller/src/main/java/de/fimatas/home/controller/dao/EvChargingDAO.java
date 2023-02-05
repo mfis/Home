@@ -88,16 +88,20 @@ public class EvChargingDAO {
                 new EvChargingMapper(), ev.name());
 
         if(entryList.size()>1){
-            log.error("Unexpected row count: " + entryList.size());
+            log.error("write() -> Unexpected row count: " + entryList.size());
         }else if(entryList.size()==1){
             if(counter.compareTo(entryList.get(0).getEndVal()) != 0){
+                log.debug("write() -> update new value=" + counter);
                 jdbcTemplate
                         .update("UPDATE " + TABLE_NAME + " SET CHANGETS = ?, ENDVAL = ?, MAXVAL = ? WHERE EVNAME = ? AND ENDTS is null",
                                 uniqueTimestampService.getAsStringWithMillis(),
                                 counter, entryList.get(0).getEndVal().compareTo(counter) > 0 ? entryList.get(0).getEndVal() : counter, ev.name());
+            }else{
+                log.debug("write() -> ignoring same value=" + counter);
             }
         }else{
             String ts = uniqueTimestampService.getAsStringWithMillis();
+            log.debug("write() -> NEW INSERT! start=" + ts);
             jdbcTemplate
                     .update("INSERT INTO " + TABLE_NAME + " (STARTTS, ENDTS, CHANGETS, CHARGEPOINT, EVNAME, STARTVAL, ENDVAL, MAXVAL) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                             ts, null, ts,

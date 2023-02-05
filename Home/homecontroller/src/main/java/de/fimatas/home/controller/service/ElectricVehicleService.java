@@ -67,7 +67,7 @@ public class ElectricVehicleService {
 
     private final String STATEHANDLER_GROUPNAME_SELECTED_EV = "ev-selected";
 
-    private final Device COUNTER_DEVICE = Device.STROMZAEHLER_WALLBOX; // FIXME
+    private final Device COUNTER_DEVICE = Device.STROMZAEHLER_WALLBOX;
 
     private final Device WALLBOX_SWITCH_DEVICE = Device.SCHALTER_WALLBOX;
 
@@ -104,12 +104,16 @@ public class ElectricVehicleService {
             newModel.getEvMap().put(ev, newEvState);
         });
 
-
         // wallbox-connected ev
         ElectricVehicle connected = readConnectedEv();
         if(connected!=null){
             newModel.getEvMap().get(connected).setConnectedToWallbox(true);
         }
+
+        // debug
+        var actual = newModel.getEvMap().get(connected).getBatteryPercentage() + newModel.getEvMap().get(connected).getAdditionalChargingPercentage();
+        var limit = newModel.getEvMap().get(connected).getChargeLimit() == null ? 100 : newModel.getEvMap().get(connected).getChargeLimit().getPercentage();
+        log.debug("refreshModel() actual=" + actual + " limit=" + limit);
 
         ModelObjectDAO.getInstance().write(newModel);
         uploadService.uploadToClient(newModel);
@@ -135,6 +139,7 @@ public class ElectricVehicleService {
 
     public void startNewChargingEntryAndRefreshModel(){
         if(evChargingDAO.activeChargingOnDB()){
+            log.debug("startNewChargingEntryAndRefreshModel() -> finishAllChargingEntries()");
             finishAllChargingEntries();
         }
         if(!checkChargingState()){
@@ -178,7 +183,9 @@ public class ElectricVehicleService {
             return false;
         }
 
-        final ElectricVehicleState connectedElectricVehicleState = ModelObjectDAO.getInstance().readElectricVehicleModel().getEvMap().values().stream().filter(e -> e.isConnectedToWallbox()).findFirst().orElse(null);
+        final ElectricVehicleState connectedElectricVehicleState =
+                ModelObjectDAO.getInstance().readElectricVehicleModel().getEvMap().values().stream()
+                        .filter(ElectricVehicleState::isConnectedToWallbox).findFirst().orElse(null);
         if(connectedElectricVehicleState==null){
             return false;
         }
@@ -191,6 +198,7 @@ public class ElectricVehicleService {
         }
 
         if(isWallboxSwitchOff()){
+            log.debug("scheduledCheckChargingState() -> isWallboxSwitchOff() -> finishAllChargingEntries()");
             finishAllChargingEntries();  // wallbox off and last counter written -> finish
         }
 
@@ -209,9 +217,14 @@ public class ElectricVehicleService {
 
     private boolean isChargingFinished(ElectricVehicleState connectedElectricVehicleState){
 
+        readAdditionalChargingPercentage(connectedElectricVehicleState);
         var actual = connectedElectricVehicleState.getBatteryPercentage() + connectedElectricVehicleState.getAdditionalChargingPercentage();
         var limit = connectedElectricVehicleState.getChargeLimit() == null ? 100 : connectedElectricVehicleState.getChargeLimit().getPercentage();
+
+        log.debug("isChargingFinished() actual=" + actual + " limit=" + limit);
+
         if(actual >= limit){
+            log.debug("isChargingFinished() return true -> limit");
             return true;
         }
 
@@ -219,12 +232,14 @@ public class ElectricVehicleService {
         if(maxChangeTimestamp!=null &&
                 ChronoUnit.SECONDS.between(maxChangeTimestamp, uniqueTimestampService.get()) > minSecondsNoChangeUntilSwitchOffWallbox()){
             pushService.chargeLimit((limit - actual > CHARGING_LIMIT_MAX_DIFF), connectedElectricVehicleState.getElectricVehicle(), (short)actual);
+            log.debug("isChargingFinished() return true -> no charge");
             return true;
         }
         return false;
     }
 
     private void switchWallboxOff() {
+        log.debug("switchWallboxOff() !!!");
         houseService.togglestate(WALLBOX_SWITCH_DEVICE, false);
         houseService.refreshHouseModel();
     }
