@@ -193,8 +193,9 @@ public class ElectricVehicleService {
 
     private void switchWallboxOff() {
         // FIXME: temporarily inactive due to debugging
-        houseService.togglestate(WALLBOX_SWITCH_DEVICE, false);
-        houseService.refreshHouseModel();
+        log.info("switchWallboxOff() IGNORED");
+        // houseService.togglestate(WALLBOX_SWITCH_DEVICE, false);
+        // houseService.refreshHouseModel();
     }
 
     private boolean isWallboxSwitchOff(){
