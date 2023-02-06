@@ -240,8 +240,8 @@ public class ElectricVehicleService {
 
     private void switchWallboxOff() {
         log.debug("switchWallboxOff() !!!");
-        houseService.togglestate(WALLBOX_SWITCH_DEVICE, false);
-        houseService.refreshHouseModel();
+        //FIXME: houseService.togglestate(WALLBOX_SWITCH_DEVICE, false);
+        //FIXME: houseService.refreshHouseModel();
     }
 
     private boolean isWallboxSwitchOff(){
