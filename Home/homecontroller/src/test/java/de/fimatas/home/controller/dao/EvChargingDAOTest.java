@@ -81,7 +81,7 @@ class EvChargingDAOTest {
     }
 
     @Test // should be handled in service
-    void testPercentageSetAfterChargingStart() throws Exception{
+    void testPercentageSetAfterChargingStart() {
         evChargingDAO.write(ElectricVehicle.OTHER, new BigDecimal(1000), EvChargePoint.WALLBOX1);
         final LocalDateTime percentageSetTS = uniqueTimestampService.get();
         evChargingDAO.write(ElectricVehicle.OTHER, new BigDecimal(2000), EvChargePoint.WALLBOX1);
@@ -103,5 +103,38 @@ class EvChargingDAOTest {
         assertNotNull(read);
         assertEquals(1, read.size());
         assertTrue(read.get(0).finished());
+    }
+
+    @Test
+    void testOverflow(){
+        final LocalDateTime percentageSetTS = uniqueTimestampService.get();
+        evChargingDAO.write(ElectricVehicle.OTHER, new BigDecimal(1000), EvChargePoint.WALLBOX1);
+        evChargingDAO.write(ElectricVehicle.OTHER, new BigDecimal(2000), EvChargePoint.WALLBOX1);
+        evChargingDAO.write(ElectricVehicle.OTHER, new BigDecimal(100), EvChargePoint.WALLBOX1);
+        evChargingDAO.write(ElectricVehicle.OTHER, new BigDecimal(200), EvChargePoint.WALLBOX1);
+        final List<EvChargeDatabaseEntry> read = evChargingDAO.read(ElectricVehicle.OTHER, percentageSetTS);
+
+        assertNotNull(read);
+        assertEquals(1, read.size());
+        assertEquals(1, read.get(0).countValueAsKWH().intValue());
+        assertEquals(1000, read.get(0).getStartVal().intValue());
+        assertEquals(200, read.get(0).getEndVal().intValue());
+        assertEquals(2000, read.get(0).getMaxVal().intValue());
+    }
+
+    @Test
+    void testOverflowKWH(){
+        final LocalDateTime percentageSetTS = uniqueTimestampService.get();
+        evChargingDAO.write(ElectricVehicle.OTHER, new BigDecimal(1000), EvChargePoint.WALLBOX1);
+        evChargingDAO.write(ElectricVehicle.OTHER, new BigDecimal(2000), EvChargePoint.WALLBOX1);
+        evChargingDAO.write(ElectricVehicle.OTHER, new BigDecimal(3000), EvChargePoint.WALLBOX1);
+        evChargingDAO.write(ElectricVehicle.OTHER, new BigDecimal(100), EvChargePoint.WALLBOX1);
+        evChargingDAO.write(ElectricVehicle.OTHER, new BigDecimal(1000), EvChargePoint.WALLBOX1);
+        evChargingDAO.write(ElectricVehicle.OTHER, new BigDecimal(2000), EvChargePoint.WALLBOX1);
+        final List<EvChargeDatabaseEntry> read = evChargingDAO.read(ElectricVehicle.OTHER, percentageSetTS);
+
+        assertNotNull(read);
+        assertEquals(1, read.size());
+        assertEquals(4, read.get(0).countValueAsKWH().intValue());
     }
 }

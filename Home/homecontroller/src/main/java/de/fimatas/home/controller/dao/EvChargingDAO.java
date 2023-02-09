@@ -95,7 +95,7 @@ public class EvChargingDAO {
                 jdbcTemplate
                         .update("UPDATE " + TABLE_NAME + " SET CHANGETS = ?, ENDVAL = ?, MAXVAL = ? WHERE EVNAME = ? AND ENDTS is null",
                                 uniqueTimestampService.getAsStringWithMillis(),
-                                counter, entryList.get(0).getEndVal().compareTo(counter) > 0 ? entryList.get(0).getEndVal() : counter, ev.name());
+                                counter, entryList.get(0).getMaxVal().compareTo(counter) > 0 ? entryList.get(0).getMaxVal() : counter, ev.name());
             }else{
                 log.debug("write() -> ignoring same value=" + counter);
             }
