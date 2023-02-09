@@ -249,7 +249,7 @@ public class ElectricVehicleService {
     }
 
     private long minSecondsNoChangeUntilSwitchOffWallbox(){
-        return Math.max(HomeAppConstants.MODEL_DEFAULT_INTERVAL_SECONDS, HomeAppConstants.CHARGING_STATE_CHECK_INTERVAL_SECONDS) * 10;
+        return Math.max(HomeAppConstants.MODEL_DEFAULT_INTERVAL_SECONDS, HomeAppConstants.CHARGING_STATE_CHECK_INTERVAL_SECONDS) * 15;
     }
 
     private void finishAllChargingEntries() {
