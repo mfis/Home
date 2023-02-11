@@ -11,7 +11,7 @@ function prototypeSlider(){
         }
         // 1/8 ticks
         if(this.options.show8ticks){
-            for (let i = this.options.min; i <= this.options.max; i += 12.5) {
+            for (let i = this.options.min + 12.5; i <= this.options.max - 12.5; i += 12.5) {
                 let angle = this._valueToAngle(i);
                 this._addSeperator(angle, "slider-separator").children().removeClass().addClass("rs-tick8").html("&#8226;").rsRotate(-angle);
             }
