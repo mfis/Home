@@ -71,7 +71,7 @@ public class ElectricVehicleService {
 
     private final Device WALLBOX_SWITCH_DEVICE = Device.SCHALTER_WALLBOX;
 
-    private final short CHARGING_LIMIT_MAX_DIFF = 7;
+    @SuppressWarnings("FieldCanBeLocal") private final short CHARGING_LIMIT_MAX_DIFF = 7;
 
     @PostConstruct
     private void init() {
@@ -240,8 +240,8 @@ public class ElectricVehicleService {
 
     private void switchWallboxOff() {
         log.debug("switchWallboxOff() !!!");
-        //FIXME: houseService.togglestate(WALLBOX_SWITCH_DEVICE, false);
-        //FIXME: houseService.refreshHouseModel();
+        houseService.togglestate(WALLBOX_SWITCH_DEVICE, false);
+        houseService.refreshHouseModel();
     }
 
     private boolean isWallboxSwitchOff(){
