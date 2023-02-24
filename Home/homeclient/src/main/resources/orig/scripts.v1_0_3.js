@@ -11,7 +11,7 @@ function prototypeSlider(){
         }
         // 1/8 ticks
         if(this.options.show8ticks){
-            for (let i = this.options.min; i <= this.options.max; i += 12.5) {
+            for (let i = this.options.min + 12.5; i <= this.options.max - 12.5; i += 12.5) {
                 let angle = this._valueToAngle(i);
                 this._addSeperator(angle, "slider-separator").children().removeClass().addClass("rs-tick8").html("&#8226;").rsRotate(-angle);
             }
@@ -33,7 +33,7 @@ function initSlider(id){
     $('#' + id).roundSlider({
         editableTooltip: false,
         width: 12,
-        radius: 117,
+        radius: 160,
         handleShape: "square",
         handleSize: 1,
         value: startValue,
@@ -78,8 +78,29 @@ function initSlider(id){
             }
         }
     });
+    $('#' + id).roundSlider("disable");
     // prevent misaligned handle
-    setTimeout(function(){ document.getElementById(id).getElementsByClassName('rs-handle').item(0).style.display = 'block'; }, 10);
+    setTimeout(function(){
+        document.getElementById(id).getElementsByClassName('rs-handle').item(0).style.display = 'block';
+    }, 10);
+}
+
+function enableSlider(id){
+    $('#' + id).addClass('doNotRefresh');
+    $('#' + id).roundSlider("enable");
+    setTimeout(function(){
+        if(document.getElementById(id + "-eventState").value != 'drag'){
+            $('#' + id).removeClass('doNotRefresh');
+            $('#' + id).roundSlider("disable");
+        }
+    }, 6000);
+}
+
+function evChargeLimit(link, value){
+    if(!value.startsWith('#')){
+        let linkComplete = link + value;
+        submitContent(linkComplete);
+    }
 }
 
 function updateEvSliderValue(id, value) {

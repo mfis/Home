@@ -10,6 +10,7 @@ public class ElectricVehicleState {
         this.electricVehicle = electricVehicle;
         this.batteryPercentage = batteryPercentage;
         this.batteryPercentageTimestamp = batteryPercentageTimestamp;
+        this.chargeLimit = null;
         this.additionalChargingPercentage = 0;
         this.connectedToWallbox = false;
         this.activeCharging = false;
@@ -24,6 +25,8 @@ public class ElectricVehicleState {
     private boolean connectedToWallbox;
 
     private boolean activeCharging;
+
+    private ChargeLimit chargeLimit;
 
     private LocalDateTime batteryPercentageTimestamp;
 
@@ -75,5 +78,13 @@ public class ElectricVehicleState {
 
     public void setAdditionalChargingPercentage(short additionalChargingPercentage) {
         this.additionalChargingPercentage = additionalChargingPercentage;
+    }
+
+    public ChargeLimit getChargeLimit() {
+        return chargeLimit;
+    }
+
+    public void setChargeLimit(ChargeLimit chargeLimit) {
+        this.chargeLimit = chargeLimit;
     }
 }

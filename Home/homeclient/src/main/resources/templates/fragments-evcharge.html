@@ -10,34 +10,37 @@
 			<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
 				<h4>
 					<span th:text="${model.state}"></span>
-				</h4>
-				<h4>
-					<span style="text-align: center;" th:id="${model.id} + '-status'"><i style="font-size: 0.8rem;" class="fa-solid fa-circle"></i></span>
 					<span th:id="${model.id} + '-label'"></span>
+					<span style="text-align: center;" th:id="${model.id} + '-status'"><i style="font-size: 0.8rem;" class="fa-solid fa-circle"></i></span>
 				</h4>
 
 				<script>
-					let idSlider = "[[${model.id}]]";
 					$(document).ready(function(){
 						prototypeSlider();
-						initSlider(idSlider);
-						sliderList.push(idSlider);
+						initSlider('[[${model.id}]]');
+						sliderList.push('[[${model.id}]]');
 					});
 				</script>
 
-				<div style="display: flex;">
-					<div style="width: 60px !important;">
-						<button style="margin-top: 10px;" type="button" class="btn btn-block btn-secondary btn-sm" disabled><span>Voll</span></button>
-						<button style="margin-top: 10px;" type="button" class="btn btn-block btn-secondary btn-sm" disabled><span>90%</span></button>
-						<button style="margin-top: 10px;" type="button" class="btn btn-block btn-secondary btn-sm" disabled><span>80%</span></button>
-					</div>
-					<div style="margin-right: 0px; margin-left: auto;">
-						<input type="hidden" th:id="${model.id} + '-isActual'" th:value="${model.stateActualFlag}"/>
-						<input type="hidden" th:id="${model.id} + '-startValue'" th:value="${model.numericValue}"/>
-						<input type="hidden" th:id="${model.id} + '-eventState'" value=""/>
-						<input type="hidden" th:id="'val_update_slider_' + ${model.id}" th:value="${model.linkUpdate}">
-						<div th:id="${model.id}" class="evBatterySlider" style="margin: 5px 35px 35px auto;"></div>
-					</div>
+				<div class="btn-group" role="group" aria-label="evenableslider" style="margin-right: 10px;">
+					<button style="margin-top: 10px; width: 60px" type="button" class="btn btn-block btn-secondary btn-sm" th:onclick="@{'enableSlider(\'' + ${model.id} + '\')'}"><span>Setzen</span></button>
+				</div>
+
+				<span style="height: 31px;" class="align-text-top"><a>Limit:</a></span>
+				<div class="btn-group" role="group" aria-label="evmaxcharge">
+					<th:block th:each="entry : ${model.chargeLimits}">
+						<button style="margin-top: 10px; width: 55px" type="button" th:class="${#strings.startsWith(entry.value, '#')} ? 'btn btn-dark btn-sm btn-block' : 'btn btn-secondary btn-sm btn-block'" th:onclick="@{'evChargeLimit(\''+ ${model.chargeLimitLink} +'\', \'' + ${entry.value} + '\')'}">
+							<span th:class="${#strings.startsWith(entry.value, '#')} ? 'text-' + ${model.activeSwitchColorClass}"th:text="${entry.caption}"></span>
+						</button>
+					</th:block>
+				</div>
+
+				<div style="margin-left: 0px; padding-top: 30px;">
+					<input type="hidden" th:id="${model.id} + '-isActual'" th:value="${model.stateActualFlag}"/>
+					<input type="hidden" th:id="${model.id} + '-startValue'" th:value="${model.numericValue}"/>
+					<input type="hidden" th:id="${model.id} + '-eventState'" value=""/>
+					<input type="hidden" th:id="'val_update_slider_' + ${model.id}" th:value="${model.linkUpdate}">
+					<div th:id="${model.id}" class="evBatterySlider" style="margin: 5px auto 35px -70px;"></div>
 				</div>
 			</div>
 		</th:block>

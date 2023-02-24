@@ -50,6 +50,9 @@ public class ElectricVehicleService {
     private HouseService houseService;
 
     @Autowired
+    private PushService pushService;
+
+    @Autowired
     private HomematicCommandBuilder homematicCommandBuilder;
 
     @Autowired
@@ -60,11 +63,15 @@ public class ElectricVehicleService {
 
     private final String STATEHANDLER_GROUPNAME_BATTERY = "ev-battery";
 
+    private final String STATEHANDLER_GROUPNAME_CHARGELIMIT = "ev-limit";
+
     private final String STATEHANDLER_GROUPNAME_SELECTED_EV = "ev-selected";
 
-    private final Device COUNTER_DEVICE = Device.STROMZAEHLER_WALLBOX; // FIXME
+    private final Device COUNTER_DEVICE = Device.STROMZAEHLER_WALLBOX;
 
     private final Device WALLBOX_SWITCH_DEVICE = Device.SCHALTER_WALLBOX;
+
+    @SuppressWarnings("FieldCanBeLocal") private final short CHARGING_LIMIT_MAX_DIFF = 7;
 
     @PostConstruct
     private void init() {
@@ -85,13 +92,17 @@ public class ElectricVehicleService {
         var newModel = new ElectricVehicleModel();
         states.forEach(s-> {
             var state = new ElectricVehicleState(ElectricVehicle.valueOf(s.getStatename()), Short.parseShort(s.getValue()), s.getTimestamp());
+            readChargeLimit(state);
             readAdditionalChargingPercentage(state);
             newModel.getEvMap().put(ElectricVehicle.valueOf(s.getStatename()), state);
         });
 
         // add new ev's
-        Arrays.stream(ElectricVehicle.values()).filter(ev -> !newModel.getEvMap().containsKey(ev)).forEach(ev ->
-                newModel.getEvMap().put(ev, new ElectricVehicleState(ev, (short) 0, uniqueTimestampService.get())));
+        Arrays.stream(ElectricVehicle.values()).filter(ev -> !newModel.getEvMap().containsKey(ev)).forEach(ev -> {
+            var newEvState = new ElectricVehicleState(ev, (short) 0, uniqueTimestampService.get());
+            readChargeLimit(newEvState);
+            newModel.getEvMap().put(ev, newEvState);
+        });
 
         // wallbox-connected ev
         ElectricVehicle connected = readConnectedEv();
@@ -99,10 +110,21 @@ public class ElectricVehicleService {
             newModel.getEvMap().get(connected).setConnectedToWallbox(true);
         }
 
+        // debug
+        var actual = newModel.getEvMap().get(connected).getBatteryPercentage() + newModel.getEvMap().get(connected).getAdditionalChargingPercentage();
+        var limit = newModel.getEvMap().get(connected).getChargeLimit() == null ? 100 : newModel.getEvMap().get(connected).getChargeLimit().getPercentage();
+        log.debug("refreshModel() actual=" + actual + " limit=" + limit);
+
         ModelObjectDAO.getInstance().write(newModel);
         uploadService.uploadToClient(newModel);
     }
 
+    private void readChargeLimit(ElectricVehicleState state) {
+        final State readState = stateHandlerDAO.readState(STATEHANDLER_GROUPNAME_CHARGELIMIT, state.getElectricVehicle().name());
+        if(readState!=null){
+            state.setChargeLimit(ChargeLimit.valueOf(readState.getValue()));
+        }
+    }
 
     public void updateBatteryPercentage(ElectricVehicle electricVehicle, String percentageString){
         stateHandlerDAO.writeState(STATEHANDLER_GROUPNAME_BATTERY, electricVehicle.name(), Short.toString(Short.parseShort(percentageString)));
@@ -117,6 +139,7 @@ public class ElectricVehicleService {
 
     public void startNewChargingEntryAndRefreshModel(){
         if(evChargingDAO.activeChargingOnDB()){
+            log.debug("startNewChargingEntryAndRefreshModel() -> finishAllChargingEntries()");
             finishAllChargingEntries();
         }
         if(!checkChargingState()){
@@ -139,7 +162,6 @@ public class ElectricVehicleService {
             final BigDecimal addPercentage = sum
                     .divide(calculateChargingCapacity(state.getElectricVehicle(), false), 4, RoundingMode.HALF_UP)
                     .multiply(new BigDecimal("100.0"));
-            // log.info("ADDITIONAL:" + sum + " -> " + addPercentage + "%");
             state.setAdditionalChargingPercentage(addPercentage.shortValue());
         }
         state.setActiveCharging(entries.stream().anyMatch(e -> !e.finished()));
@@ -161,14 +183,22 @@ public class ElectricVehicleService {
             return false;
         }
 
-        // update
-        evChargingDAO.write(readConnectedEv(), readEnergyCounterValue(), EvChargePoint.WALLBOX1);
+        final ElectricVehicleState connectedElectricVehicleState =
+                ModelObjectDAO.getInstance().readElectricVehicleModel().getEvMap().values().stream()
+                        .filter(ElectricVehicleState::isConnectedToWallbox).findFirst().orElse(null);
+        if(connectedElectricVehicleState==null){
+            return false;
+        }
 
-        if(isNoChargineEnergyCounted()){
+        // update
+        evChargingDAO.write(connectedElectricVehicleState.getElectricVehicle(), readEnergyCounterValue(), EvChargePoint.WALLBOX1);
+
+        if(isChargingFinished(connectedElectricVehicleState)){
             switchWallboxOff();
         }
 
         if(isWallboxSwitchOff()){
+            log.debug("scheduledCheckChargingState() -> isWallboxSwitchOff() -> finishAllChargingEntries()");
             finishAllChargingEntries();  // wallbox off and last counter written -> finish
         }
 
@@ -185,17 +215,33 @@ public class ElectricVehicleService {
         return homematicAPI.getAsBigDecimal(homematicCommandBuilder.read(COUNTER_DEVICE, Datapoint.ENERGY_COUNTER));
     }
 
-    private boolean isNoChargineEnergyCounted(){
+    private boolean isChargingFinished(ElectricVehicleState connectedElectricVehicleState){
+
+        readAdditionalChargingPercentage(connectedElectricVehicleState);
+        var actual = connectedElectricVehicleState.getBatteryPercentage() + connectedElectricVehicleState.getAdditionalChargingPercentage();
+        var limit = connectedElectricVehicleState.getChargeLimit() == null ? 100 : connectedElectricVehicleState.getChargeLimit().getPercentage();
+
+        log.debug("isChargingFinished() actual=" + actual + " limit=" + limit);
+
+        if(actual >= limit){
+            log.debug("isChargingFinished() return true -> limit");
+            return true;
+        }
+
         final LocalDateTime maxChangeTimestamp = evChargingDAO.maxChangeTimestamp();
-        return maxChangeTimestamp!=null &&
-                ChronoUnit.SECONDS.between(maxChangeTimestamp, uniqueTimestampService.get()) > minSecondsNoChangeUntilSwitchOffWallbox();
+        if(maxChangeTimestamp!=null &&
+                ChronoUnit.SECONDS.between(maxChangeTimestamp, uniqueTimestampService.get()) > minSecondsNoChangeUntilSwitchOffWallbox()){
+            pushService.chargeLimit((limit - actual > CHARGING_LIMIT_MAX_DIFF), connectedElectricVehicleState.getElectricVehicle(), (short)actual);
+            log.debug("isChargingFinished() return true -> no charge");
+            return true;
+        }
+        return false;
     }
 
     private void switchWallboxOff() {
-        // FIXME: temporarily inactive due to debugging
-        log.info("switchWallboxOff() IGNORED");
-        // houseService.togglestate(WALLBOX_SWITCH_DEVICE, false);
-        // houseService.refreshHouseModel();
+        log.debug("switchWallboxOff() !!!");
+        houseService.togglestate(WALLBOX_SWITCH_DEVICE, false);
+        houseService.refreshHouseModel();
     }
 
     private boolean isWallboxSwitchOff(){
@@ -203,7 +249,7 @@ public class ElectricVehicleService {
     }
 
     private long minSecondsNoChangeUntilSwitchOffWallbox(){
-        return Math.max(HomeAppConstants.MODEL_DEFAULT_INTERVAL_SECONDS, HomeAppConstants.CHARGING_STATE_CHECK_INTERVAL_SECONDS) * 5; // FIXME
+        return Math.max(HomeAppConstants.MODEL_DEFAULT_INTERVAL_SECONDS, HomeAppConstants.CHARGING_STATE_CHECK_INTERVAL_SECONDS) * 15;
     }
 
     private void finishAllChargingEntries() {
@@ -244,5 +290,10 @@ public class ElectricVehicleService {
         }
 
         return chargingCapacity;
+    }
+
+    public void updateChargeLimit(ElectricVehicle electricVehicle, String value) {
+        stateHandlerDAO.writeState(STATEHANDLER_GROUPNAME_CHARGELIMIT, electricVehicle.name(), ChargeLimit.valueOf(value).name());
+        startNewChargingEntryAndRefreshModel();
     }
 }
