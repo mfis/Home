@@ -30,6 +30,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledFuture;
+import java.util.stream.Collectors;
 
 @Component
 @CommonsLog
@@ -57,12 +58,12 @@ public class HeatpumpService {
 
     private Map<Place, Optional<SchedulerData>> placeScheduler;
 
-    private Map<HeatpumpPreset, SchedulerConfig> schedulerConfigMap = Map.of(
-            HeatpumpPreset.DRY_TIMER, new SchedulerConfig(HeatpumpPreset.OFF, HeatpumpPreset.FAN_MIN, 2), // FIXME 20
-            HeatpumpPreset.HEAT_TIMER1, new SchedulerConfig(HeatpumpPreset.OFF, HeatpumpPreset.HEAT_MIN, 6), // 60
-            HeatpumpPreset.HEAT_TIMER2, new SchedulerConfig(HeatpumpPreset.OFF, HeatpumpPreset.HEAT_MIN, 12), // 120
-            HeatpumpPreset.COOL_TIMER1, new SchedulerConfig(HeatpumpPreset.DRY_TIMER, HeatpumpPreset.COOL_MIN, 6), // 60
-            HeatpumpPreset.COOL_TIMER2, new SchedulerConfig(HeatpumpPreset.DRY_TIMER, HeatpumpPreset.COOL_MIN, 12) // 120
+    private final Map<HeatpumpPreset, SchedulerConfig> schedulerConfigMap = Map.of(
+            HeatpumpPreset.DRY_TIMER, new SchedulerConfig(HeatpumpPreset.OFF, HeatpumpPreset.FAN_MIN, 20),
+            HeatpumpPreset.HEAT_TIMER1, new SchedulerConfig(HeatpumpPreset.OFF, HeatpumpPreset.HEAT_MIN, 60),
+            HeatpumpPreset.HEAT_TIMER2, new SchedulerConfig(HeatpumpPreset.OFF, HeatpumpPreset.HEAT_MIN, 120),
+            HeatpumpPreset.COOL_TIMER1, new SchedulerConfig(HeatpumpPreset.DRY_TIMER, HeatpumpPreset.COOL_MIN, 60),
+            HeatpumpPreset.COOL_TIMER2, new SchedulerConfig(HeatpumpPreset.DRY_TIMER, HeatpumpPreset.COOL_MIN, 120)
             );
 
     private final Map<HeatpumpPreset, List<HeatpumpPreset>> conflictiongPresets = Map.of(
@@ -85,7 +86,7 @@ public class HeatpumpService {
         dictPlaceToRoomNameInDriver.keySet().forEach(place -> placeScheduler.put(place, Optional.empty()));
     }
 
-    @Scheduled(initialDelay = 1000 * 10, fixedDelay = (1000 * HomeAppConstants.MODEL_HEATPUMP_INTERVAL_SECONDS / 10) + 180)
+    @Scheduled(initialDelay = 1000 * 10, fixedDelay = (1000 * HomeAppConstants.MODEL_HEATPUMP_INTERVAL_SECONDS) + 180)
     public void scheduledRefreshFromDriverCache() {
         if(!isRestartInTimerangeMinutes(10)) {
             refreshHeatpumpModel(true);
@@ -164,10 +165,11 @@ public class HeatpumpService {
 
             // upgrade to scheduled preset
             if(placeScheduler.get(place).isPresent() && placeScheduler.get(place).get().getBasePreset() == preset) {
-                preset = placeScheduler.get(place).get().getSchedulerPreset();
+                newModel.getHeatpumpMap().put(place, new Heatpump(
+                        place, placeScheduler.get(place).get().getSchedulerPreset(), placeScheduler.get(place).get().getScheduledTimeInstant().toEpochMilli()));
+            }else{
+                newModel.getHeatpumpMap().put(place, new Heatpump(place, preset, null));
             }
-
-            newModel.getHeatpumpMap().put(place, new Heatpump(place, preset));
         });
 
         ModelObjectDAO.getInstance().write(newModel);
@@ -205,53 +207,65 @@ public class HeatpumpService {
         return !response.isRemoteConnectionSuccessful() || !response.isDriverRunSuccessful() || StringUtils.isNotBlank(response.getErrorMessage());
     }
 
+    public void timerPreset(List<Place> places, HeatpumpPreset preset, Instant scheduledTime) {
+
+        final List<Place> validTimerPlaces =
+                places.stream().filter(p -> placeScheduler.get(p).isPresent() && placeScheduler.get(p).get().getScheduledTimeInstant() == scheduledTime).collect(Collectors.toList());
+
+        preset(validTimerPlaces, preset);
+    }
+
     public void preset(List<Place> places, HeatpumpPreset preset) {
+
+        if(places.isEmpty()){
+            return;
+        }
 
         switchModelToBusy();
 
         cancelOldTimers(places);
 
-        CompletableFuture.runAsync(() -> {
-            Map<String, HeatpumpProgram> programs = new HashMap<>();
-            places.forEach(p -> {
-                final HeatpumpProgram program = presetToProgram(preset);
-                if (program != null) {
-                    programs.put(dictPlaceToRoomNameInDriver.get(p), program);
+        CompletableFuture.runAsync(() -> startPresetInternal(places, preset));
+    }
+
+    private synchronized void startPresetInternal(List<Place> places, HeatpumpPreset preset) {
+
+        Map<String, HeatpumpProgram> programs = new HashMap<>();
+        places.forEach(p -> {
+            final HeatpumpProgram program = presetToProgram(preset);
+            final Map<Place, Heatpump> heatpumpMap = ModelObjectDAO.getInstance().readHeatpumpModel().getHeatpumpMap();
+            if (program != null && heatpumpMap.containsKey(p) && presetToProgram(heatpumpMap.get(p).getHeatpumpPreset()) != program) {
+                programs.put(dictPlaceToRoomNameInDriver.get(p), program);
+            }
+        });
+
+        if(conflictiongPresets.containsKey(preset)){
+            dictPlaceToRoomNameInDriver.keySet().stream().filter(p -> !places.contains(p)).forEach(px -> {
+                if(conflictiongPresets.get(preset).contains(
+                        ModelObjectDAO.getInstance().readHeatpumpModel().getHeatpumpMap().get(px).getHeatpumpPreset())){
+                    programs.put(dictPlaceToRoomNameInDriver.get(px), HeatpumpProgram.OFF);
                 }
             });
+        }
 
-            if(conflictiongPresets.containsKey(preset)){
-                dictPlaceToRoomNameInDriver.keySet().stream().filter(p -> !places.contains(p)).forEach(px -> {
-                    if(conflictiongPresets.get(preset).contains(
-                            ModelObjectDAO.getInstance().readHeatpumpModel().getHeatpumpMap().get(px).getHeatpumpPreset())){
-                        programs.put(dictPlaceToRoomNameInDriver.get(px), HeatpumpProgram.OFF);
-                    }
-                });
+        HeatpumpRequest request = HeatpumpRequest.builder()
+                .writeWithRoomnameAndProgram(programs)
+                .readWithRoomnames(new ArrayList<>(dictPlaceToRoomNameInDriver.values()))
+                .heatpumpUsername(env.getProperty("heatpump.driver.user"))
+                .heatpumpPassword(env.getProperty("heatpump.driver.pass"))
+                .readFromCache(false)
+                .build();
+
+        final HeatpumpResponse response = callDriver(request);
+        if(!responseHasError(response)){
+            if(areExpectedModesSet(places, presetToProgram(preset), response)){
+                scheduleNewTimers(places, preset);
+            }else{
+                CompletableFuture.runAsync(() -> pushService.sendErrorMessage("Wärmepumpe befindet sich nicht im erwarteten Modus!"));
             }
+        }
 
-            // FIXME: OPTIMIZE WRITING WHIL SAME PROGRAM IS RUNNING (E.G. TO ANOTHER PRESET)
-
-            // FIXME: AFTER COOLING TIMER SWITCH TO DRY INSTEAD OF OFF
-
-            HeatpumpRequest request = HeatpumpRequest.builder()
-                    .writeWithRoomnameAndProgram(programs)
-                    .readWithRoomnames(new ArrayList<>(dictPlaceToRoomNameInDriver.values()))
-                    .heatpumpUsername(env.getProperty("heatpump.driver.user"))
-                    .heatpumpPassword(env.getProperty("heatpump.driver.pass"))
-                    .readFromCache(false)
-                    .build();
-
-            final HeatpumpResponse response = callDriver(request);
-            if(!responseHasError(response)){
-                if(areExpectedModesSet(places, presetToProgram(preset), response)){
-                    scheduleNewTimers(places, preset);
-                }else{
-                    CompletableFuture.runAsync(() -> pushService.sendErrorMessage("Wärmepumpe befindet sich nicht im erwarteten Modus!"));
-                }
-            }
-
-            handleResponse(request, response);
-        });
+        handleResponse(request, response);
     }
 
     private boolean areExpectedModesSet(List<Place> allPlaces, HeatpumpProgram program, HeatpumpResponse response) {
@@ -278,16 +292,9 @@ public class HeatpumpService {
 
     private void cancelOldTimers(List<Place> allPlaces) {
 
-        allPlaces.forEach(p -> { // FIXME: LET TIMERS FOR OTHER PLACES ALIVE !
+        allPlaces.forEach(p -> {
             if(placeScheduler.get(p).isPresent()){
-
-                // --
-                // placeScheduler.entrySet().stream().filter(entry -> )
-                // --
-
-                if(!placeScheduler.get(p).get().getScheduledFuture().isCancelled() && !placeScheduler.get(p).get().getScheduledFuture().isDone()){
-                    placeScheduler.get(p).get().getScheduledFuture().cancel(false);
-                }
+                // do not cancel timer -let it run for other places!
                 placeScheduler.put(p, Optional.empty());
             }
         });
@@ -297,10 +304,9 @@ public class HeatpumpService {
 
         if(schedulerConfigMap.containsKey(preset)){
             var config = schedulerConfigMap.get(preset);
-            log.info("!!!!!!! scheduleNewTimers for " + preset); // FIXME
             var scheduledTime = Instant.now().plus(config.getTimeInMinutes(), ChronoUnit.MINUTES);
             final ScheduledFuture<?> scheduledFuture = threadPoolTaskScheduler.schedule(() ->
-                    preset(places, config.getTarget()), scheduledTime);
+                    timerPreset(places, config.getTarget(), scheduledTime), scheduledTime);
             places.forEach(p -> placeScheduler.put(p, Optional.of(new SchedulerData(scheduledFuture, preset, config.getBase(), scheduledTime))));
         }
     }
@@ -326,7 +332,7 @@ public class HeatpumpService {
         final var unknownHeatpumpModel = new HeatpumpModel();
         unknownHeatpumpModel.setTimestamp(System.currentTimeMillis());
         dictPlaceToRoomNameInDriver.keySet().forEach(
-                place -> unknownHeatpumpModel.getHeatpumpMap().put(place, new Heatpump(place, HeatpumpPreset.UNKNOWN)));
+                place -> unknownHeatpumpModel.getHeatpumpMap().put(place, new Heatpump(place, HeatpumpPreset.UNKNOWN, null)));
         return unknownHeatpumpModel;
     }
 

@@ -14,4 +14,6 @@ public class Heatpump implements Serializable {
     private Place place;
 
     private HeatpumpPreset heatpumpPreset;
+
+    private Long timer;
 }
