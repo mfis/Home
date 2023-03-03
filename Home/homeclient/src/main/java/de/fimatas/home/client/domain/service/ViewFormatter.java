@@ -55,7 +55,7 @@ public class ViewFormatter {
     public static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm", Locale.GERMAN);
 
     public enum TimestampFormat {
-        DATE, DATE_TIME, SHORT, SHORT_WITH_TIME
+        DATE, DATE_TIME, SHORT, SHORT_WITH_TIME, ONLY_TIME
     }
 
 
@@ -74,6 +74,10 @@ public class ViewFormatter {
 
         if (date == null) {
             return "unbekannt";
+        }
+
+        if(format==TimestampFormat.ONLY_TIME){
+            return TIME_FORMATTER.format(date) + " Uhr";
         }
 
         LocalDateTime localDate2 = LocalDateTime.now();

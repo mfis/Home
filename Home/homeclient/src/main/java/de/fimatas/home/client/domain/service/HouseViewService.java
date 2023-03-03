@@ -1200,6 +1200,9 @@ public class HouseViewService {
         view.setBusy(Boolean.toString(heatpumpModel.isBusy()));
 
         var timerInfo = "";
+        if(heatpumpModel.getHeatpumpMap().get(place).getTimer() != null){
+            timerInfo = " bis " + viewFormatter.formatTimestamp(heatpumpModel.getHeatpumpMap().get(place).getTimer(), TimestampFormat.ONLY_TIME);;
+        }
 
         ConditionColor color = actualPreset == null ? ConditionColor.RED: actualPreset.getConditionColor();
         view.setColorClass(color.getUiClass());
@@ -1207,7 +1210,7 @@ public class HouseViewService {
         view.setStateShort(actualPreset.getShortText());
         view.setElementTitleState(heatpumpModel.isBusy()? "Ansteuerung..." : actualPreset.getMode() + (actualPreset.getIntensity()!=null ? ", " + actualPreset.getIntensity() : ""));
         view.setState(actualPreset.getMode());
-        view.setStateSuffix(actualPreset.getIntensity()!=null ? (StringUtils.trim(", " + actualPreset.getIntensity() + " " + timerInfo)) : "");
+        view.setStateSuffix(actualPreset.getIntensity()!=null ? (", " + actualPreset.getIntensity() + timerInfo) : "");
     }
 
     private static String lookupHeatpumpId(Place place, boolean isGroupItem) {
