@@ -157,7 +157,7 @@ public class HouseViewService {
         formatUpperFloorGroup(model, "widgetUpperFloor", Place.WIDGET_UPPER_FLOOR_TEMPERATURE, house);
         formatGridsGroup(model, "widgetGrids", Place.WIDGET_GRIDS, house, historyModel==null?null:historyModel.getTotalElectricPowerConsumptionDay());
         formatEnergyGroup(model, "widgetEnergy", Place.WIDGET_ENERGY, electricVehicleModel);
-        formatSymbolsGroup(model, "widgetSymbols", Place.WIDGET_SYMBOLS, presenceModel);
+        formatSymbolsGroup(model, "widgetSymbols", Place.WIDGET_SYMBOLS, presenceModel, heatpumpModel);
     }
 
     private void formatUpperFloorGroup(Model model, String viewKey, Place place, HouseModel house) {
@@ -240,19 +240,33 @@ public class HouseViewService {
         });
     }
 
-    private void formatSymbolsGroup(Model model, String viewKey, Place place, PresenceModel presenceModel) {
+    private void formatSymbolsGroup(Model model, String viewKey, Place place, PresenceModel presenceModel, HeatpumpModel heatpumpModel) {
 
         WidgetGroupView view = new WidgetGroupView(viewKey, place);
         model.addAttribute(viewKey, view);
 
-        if(presenceModel != null){
-            var presenceCounter = presenceModel.getPresenceStates().entrySet().stream().filter(e -> e.getValue() == PresenceState.PRESENT).map(e -> e.getKey()).collect(Collectors.toList()).size();
-            var ev = new View();
-            ev.setId("symbols-presence" + lookupGroupitemIdPostfix(true));
-            ev.setIconNativeClient(Integer.toString(presenceCounter) + ".circle"); // TODO: centralize
-            view.getCaptionAndValue().put("presence", ev);
+        if(heatpumpModel != null){
+            var countUnknwn = heatpumpModel.getHeatpumpMap().values().stream().filter(h -> h.getHeatpumpPreset() == HeatpumpPreset.UNKNOWN).count();
+            var countOn = heatpumpModel.getHeatpumpMap().values().stream().filter(h -> h.getHeatpumpPreset() != HeatpumpPreset.OFF).count();
+            var v = new View();
+            v.setId("symbols-heatpump" + lookupGroupitemIdPostfix(true));
+            if(countUnknwn>0){
+                v.setIconNativeClient("questionmark.circle.fill"); // TODO: centralize
+            } else if(countOn > 0){
+                v.setIconNativeClient("asset-aircon"); // TODO: centralize
+            }
+            if(StringUtils.isNotBlank(v.getIconNativeClient())){
+                view.getCaptionAndValue().put("heatpump", v);
+            }
         }
 
+        if(presenceModel != null){
+            var presenceCounter = presenceModel.getPresenceStates().entrySet().stream().filter(e -> e.getValue() == PresenceState.PRESENT).map(e -> e.getKey()).collect(Collectors.toList()).size();
+            var v = new View();
+            v.setId("symbols-presence" + lookupGroupitemIdPostfix(true));
+            v.setIconNativeClient(Integer.toString(presenceCounter) + ".circle"); // TODO: centralize
+            view.getCaptionAndValue().put("presence", v);
+        }
     }
 
     private void formatFrontDoorBell(Model model, String id, Doorbell doorbell, Camera camera) {
