@@ -6,8 +6,12 @@ public enum HeatpumpPreset {
 
     COOL_AUTO("Kühlen", "Automatisch", "Kühlen+", ConditionColor.BLUE), //
     COOL_MIN("Kühlen", "Leise", "Kühlen-", ConditionColor.BLUE), //
+    COOL_TIMER1("Kühlen", "Timer 1 Std", "Kühlen 1h", ConditionColor.BLUE), //
+    COOL_TIMER2("Kühlen", "Timer 2 Std", "Kühlen 2h", ConditionColor.BLUE), //
     HEAT_AUTO("Heizen", "Automatisch", "Heizen+", ConditionColor.ORANGE), //
     HEAT_MIN("Heizen", "Leise", "Heizen-", ConditionColor.ORANGE), //
+    HEAT_TIMER1("Heizen", "Timer 1 Std", "Heizen 1h", ConditionColor.ORANGE), //
+    HEAT_TIMER2("Heizen", "Timer 2 Std", "Heizen 2h", ConditionColor.ORANGE), //
     FAN_AUTO("Gebläse", "Automatisch", "Gebläse+", ConditionColor.GREEN), //
     FAN_MIN("Gebläse", "Leise", "Gebläse-", ConditionColor.GREEN), //
     DRY_TIMER("Trocknen", "Timer", "Trocknen", ConditionColor.GREEN), //

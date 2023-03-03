@@ -551,8 +551,6 @@ public class AppViewService {
         actionsDirect.add(mapHeatpumpActionSinglePreset(placeDirectives, view, other, HeatpumpPreset.COOL_MIN, idSuffix));
         actionsDirect.add(mapHeatpumpActionSinglePreset(placeDirectives, view, other, HeatpumpPreset.HEAT_AUTO, idSuffix));
         actionsDirect.add(mapHeatpumpActionSinglePreset(placeDirectives, view, other, HeatpumpPreset.HEAT_MIN, idSuffix));
-        actionsDirect.add(mapHeatpumpActionSinglePreset(placeDirectives, view, other, HeatpumpPreset.FAN_AUTO, idSuffix));
-        actionsDirect.add(mapHeatpumpActionSinglePreset(placeDirectives, view, other, HeatpumpPreset.FAN_MIN, idSuffix));
         actionsDirect.add(mapHeatpumpActionSinglePreset(placeDirectives, view, other, HeatpumpPreset.DRY_TIMER, idSuffix));
         actionsDirect.add(mapHeatpumpActionSinglePreset(placeDirectives, view, other, HeatpumpPreset.OFF, idSuffix));
 
@@ -578,14 +576,8 @@ public class AppViewService {
             case HEAT_MIN:
                 link = view.getLinkHeatMin();
                 break;
-            case FAN_AUTO:
-                link = view.getLinkFanAuto();
-                break;
-            case FAN_MIN:
-                link = view.getLinkFanMin();
-                break;
             case DRY_TIMER:
-                link = view.getLinkTimer();
+                link = view.getLinkDryTimer();
                 break;
             case OFF:
                 link = view.getLinkOff();

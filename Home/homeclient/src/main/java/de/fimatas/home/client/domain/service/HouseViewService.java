@@ -1181,11 +1181,15 @@ public class HouseViewService {
         }else{
             view.setLinkCoolAuto(buildHeatpumpPresetLink(place, HeatpumpPreset.COOL_AUTO, actualPreset));
             view.setLinkCoolMin(buildHeatpumpPresetLink(place, HeatpumpPreset.COOL_MIN, actualPreset));
+            view.setLinkCoolTimer1(buildHeatpumpPresetLink(place, HeatpumpPreset.COOL_TIMER1, actualPreset));
+            view.setLinkCoolTimer2(buildHeatpumpPresetLink(place, HeatpumpPreset.COOL_TIMER2, actualPreset));
             view.setLinkHeatAuto(buildHeatpumpPresetLink(place, HeatpumpPreset.HEAT_AUTO, actualPreset));
             view.setLinkHeatMin(buildHeatpumpPresetLink(place, HeatpumpPreset.HEAT_MIN, actualPreset));
+            view.setLinkHeatTimer1(buildHeatpumpPresetLink(place, HeatpumpPreset.HEAT_TIMER1, actualPreset));
+            view.setLinkHeatTimer2(buildHeatpumpPresetLink(place, HeatpumpPreset.HEAT_TIMER2, actualPreset));
             view.setLinkFanAuto(buildHeatpumpPresetLink(place, HeatpumpPreset.FAN_AUTO, actualPreset));
             view.setLinkFanMin(buildHeatpumpPresetLink(place, HeatpumpPreset.FAN_MIN, actualPreset));
-            view.setLinkTimer(buildHeatpumpPresetLink(place, HeatpumpPreset.DRY_TIMER, actualPreset));
+            view.setLinkDryTimer(buildHeatpumpPresetLink(place, HeatpumpPreset.DRY_TIMER, actualPreset));
             view.setLinkOff(buildHeatpumpPresetLink(place, HeatpumpPreset.OFF, actualPreset));
         }
 
@@ -1195,13 +1199,15 @@ public class HouseViewService {
 
         view.setBusy(Boolean.toString(heatpumpModel.isBusy()));
 
+        var timerInfo = "";
+
         ConditionColor color = actualPreset == null ? ConditionColor.RED: actualPreset.getConditionColor();
         view.setColorClass(color.getUiClass());
         view.setActiveSwitchColorClass(color.getUiClass());
         view.setStateShort(actualPreset.getShortText());
         view.setElementTitleState(heatpumpModel.isBusy()? "Ansteuerung..." : actualPreset.getMode() + (actualPreset.getIntensity()!=null ? ", " + actualPreset.getIntensity() : ""));
         view.setState(actualPreset.getMode());
-        view.setStateSuffix(actualPreset.getIntensity()!=null ? ", " + actualPreset.getIntensity() : "");
+        view.setStateSuffix(actualPreset.getIntensity()!=null ? (StringUtils.trim(", " + actualPreset.getIntensity() + " " + timerInfo)) : "");
     }
 
     private static String lookupHeatpumpId(Place place, boolean isGroupItem) {

@@ -1,12 +1,14 @@
 package de.fimatas.home.controller.service;
 
 import java.math.BigDecimal;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.model.PresenceState;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -134,7 +136,10 @@ public class ClientCommunicationService {
                 presenceService.update(message.getKey(), PresenceState.valueOf(message.getValue()));
                 break;
             case CONTROL_HEATPUMP:
-                heatpumpService.preset(message.getPlace(), HeatpumpPreset.valueOf(message.getValue()), message.getAdditionalData());
+                List<Place> places = new LinkedList<>();
+                places.add(message.getPlace());
+                List.of(StringUtils.split(message.getAdditionalData(), ',')).forEach(ap ->places.add(Place.valueOf(ap)));
+                heatpumpService.preset(places, HeatpumpPreset.valueOf(message.getValue()));
                 break;
             case SLIDERVALUE:
                 electricVehicleService.updateBatteryPercentage(ElectricVehicle.valueOf(message.getDeviceId()), message.getValue());
