@@ -9,9 +9,9 @@
 		<th:block th:unless="${#strings.equals(model.unreach,'true')}">
 			<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
 				<h4>
-					<span th:text="${model.state}"></span>
 					<span th:id="${model.id} + '-label'"></span>
 					<span style="text-align: center;" th:id="${model.id} + '-status'"><i style="font-size: 0.8rem;" class="fa-solid fa-circle"></i></span>
+					<span th:text="${model.state}"></span>
 				</h4>
 
 				<script>

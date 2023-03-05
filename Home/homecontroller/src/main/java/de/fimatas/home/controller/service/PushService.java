@@ -136,13 +136,13 @@ public class PushService {
         }
     }
 
-    public void chargeLimit(boolean error, ElectricVehicle ev, short actualPercentage) {
+    public void chargeFinished(boolean early, String user) {
 
-        PushNotifications notification = error ? PushNotifications.CHARGELIMIT_ERROR : PushNotifications.CHARGELIMIT_OK;
-        settingsService.listTokensWithEnabledSetting(notification).forEach(pushToken -> {
-            var text = String.format(notification.getPushText(), actualPercentage);
-            handleMessage(pushToken, "Wallbox: " + ev.getCaption(), text);
-        });
+        PushNotifications notification = early ? PushNotifications.CHARGELIMIT_ERROR : PushNotifications.CHARGELIMIT_OK;
+        final String pushToken = settingsService.tokenWithEnabledSettingForUser(notification, user);
+        if(pushToken != null){
+            handleMessage(pushToken, "Wallbox", notification.getPushText());
+        };
     }
 
     private void windowOpenMessage(HouseModel newModel) {

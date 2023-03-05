@@ -210,6 +210,9 @@ public class ModelObjectDAO {
     }
 
     public boolean isKnownPushToken(String pushToken) {
+        if(settingsContainer == null){
+            return false;
+        }
         return settingsContainer.getSettings().stream().anyMatch(model -> model.getToken().equals(pushToken));
     }
 

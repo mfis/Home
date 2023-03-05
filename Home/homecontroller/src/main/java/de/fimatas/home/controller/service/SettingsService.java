@@ -107,8 +107,16 @@ public class SettingsService {
 
     public List<String> listTokensWithEnabledSetting(PushNotifications pushNotifications) {
         return SettingsDAO.getInstance().read().stream()
-            .filter(model -> model.getPushNotifications().get(pushNotifications)).map(SettingsModel::getToken)
+            .filter(model -> model.getPushNotifications().get(pushNotifications))
+                .map(SettingsModel::getToken)
             .collect(Collectors.toList());
+    }
+
+    public String tokenWithEnabledSettingForUser(PushNotifications pushNotifications, String user) {
+        return SettingsDAO.getInstance().read().stream()
+                .filter(model -> model.getPushNotifications().get(pushNotifications))
+                .filter(settings -> settings.getUser().equals(user))
+                .map(SettingsModel::getToken).findFirst().orElse(null);
     }
 
     public void editSetting(String token, String key, boolean value){

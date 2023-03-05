@@ -67,6 +67,8 @@ public class ElectricVehicleService {
 
     private final String STATEHANDLER_GROUPNAME_SELECTED_EV = "ev-selected";
 
+    private final String STATEHANDLER_GROUPNAME_CHARGING_USER = "ev-user";
+
     private final Device COUNTER_DEVICE = Device.STROMZAEHLER_WALLBOX;
 
     private final Device WALLBOX_SWITCH_DEVICE = Device.SCHALTER_WALLBOX;
@@ -131,11 +133,16 @@ public class ElectricVehicleService {
         startNewChargingEntryAndRefreshModel();
     }
 
+    public void saveChargingUser(String user){
+        CompletableFuture.runAsync(() -> {
+            stateHandlerDAO.writeState(STATEHANDLER_GROUPNAME_CHARGING_USER, STATEHANDLER_GROUPNAME_CHARGING_USER, user);
+        });
+    }
+
     public void updateSelectedEvForWallbox(ElectricVehicle electricVehicle){
         stateHandlerDAO.writeState(STATEHANDLER_GROUPNAME_SELECTED_EV, STATEHANDLER_GROUPNAME_SELECTED_EV, electricVehicle.name());
         startNewChargingEntryAndRefreshModel();
     }
-
 
     public void startNewChargingEntryAndRefreshModel(){
         if(evChargingDAO.activeChargingOnDB()){
@@ -193,8 +200,10 @@ public class ElectricVehicleService {
         // update
         evChargingDAO.write(connectedElectricVehicleState.getElectricVehicle(), readEnergyCounterValue(), EvChargePoint.WALLBOX1);
 
-        if(isChargingFinished(connectedElectricVehicleState)){
+        var chargingFinishedState = isChargingFinished(connectedElectricVehicleState);
+        if(chargingFinishedState != ChargingFinishedState.STILL_CHARGING){
             switchWallboxOff();
+            sentPushNotification(chargingFinishedState);
         }
 
         if(isWallboxSwitchOff()){
@@ -206,6 +215,13 @@ public class ElectricVehicleService {
         return true;
     }
 
+    private void sentPushNotification(ChargingFinishedState chargingFinishedState) {
+        var state = stateHandlerDAO.readState(STATEHANDLER_GROUPNAME_CHARGING_USER, STATEHANDLER_GROUPNAME_CHARGING_USER);
+        if(state != null){
+            pushService.chargeFinished(chargingFinishedState == ChargingFinishedState.FINISHED_EARLY, state.getValue());
+        }
+    }
+
     private boolean isDeviceConnectionProblem() {
         return homematicAPI.isDeviceUnreachableOrNotSending(COUNTER_DEVICE)
                 || homematicAPI.isDeviceUnreachableOrNotSending(WALLBOX_SWITCH_DEVICE);
@@ -215,7 +231,7 @@ public class ElectricVehicleService {
         return homematicAPI.getAsBigDecimal(homematicCommandBuilder.read(COUNTER_DEVICE, Datapoint.ENERGY_COUNTER));
     }
 
-    private boolean isChargingFinished(ElectricVehicleState connectedElectricVehicleState){
+    private ChargingFinishedState isChargingFinished(ElectricVehicleState connectedElectricVehicleState){
 
         readAdditionalChargingPercentage(connectedElectricVehicleState);
         var actual = connectedElectricVehicleState.getBatteryPercentage() + connectedElectricVehicleState.getAdditionalChargingPercentage();
@@ -225,17 +241,16 @@ public class ElectricVehicleService {
 
         if(actual >= limit){
             log.debug("isChargingFinished() return true -> limit");
-            return true;
+            return ChargingFinishedState.FINISHED_NORMAL;
         }
 
         final LocalDateTime maxChangeTimestamp = evChargingDAO.maxChangeTimestamp();
         if(maxChangeTimestamp!=null &&
                 ChronoUnit.SECONDS.between(maxChangeTimestamp, uniqueTimestampService.get()) > minSecondsNoChangeUntilSwitchOffWallbox()){
-            pushService.chargeLimit((limit - actual > CHARGING_LIMIT_MAX_DIFF), connectedElectricVehicleState.getElectricVehicle(), (short)actual);
             log.debug("isChargingFinished() return true -> no charge");
-            return true;
+            return (limit - actual > CHARGING_LIMIT_MAX_DIFF)?ChargingFinishedState.FINISHED_EARLY:ChargingFinishedState.FINISHED_NORMAL;
         }
-        return false;
+        return ChargingFinishedState.STILL_CHARGING;
     }
 
     private void switchWallboxOff() {
@@ -295,5 +310,9 @@ public class ElectricVehicleService {
     public void updateChargeLimit(ElectricVehicle electricVehicle, String value) {
         stateHandlerDAO.writeState(STATEHANDLER_GROUPNAME_CHARGELIMIT, electricVehicle.name(), ChargeLimit.valueOf(value).name());
         startNewChargingEntryAndRefreshModel();
+    }
+
+    private enum ChargingFinishedState{
+        FINISHED_NORMAL, FINISHED_EARLY, STILL_CHARGING
     }
 }

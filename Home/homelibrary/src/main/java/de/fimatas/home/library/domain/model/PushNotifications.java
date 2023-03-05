@@ -6,8 +6,8 @@ public enum PushNotifications {
     WINDOW_OPEN("Fenster noch geöffnet", "Geöffnete Fenster",true), //
     LOW_BATTERY("Batterie fast leer", "Leere Batterien",true), //
     WEATHER_TODAY("Das Wetter heute", "Tageswetter",false), //
-    CHARGELIMIT_OK("Ladevorgang abgeschlossen mit %s%%", "Ladevorgang OK",false), //
-    CHARGELIMIT_ERROR("Ladevorgang unterbrochen bei %s%%", "Ladevorgang Fehler",false), //
+    CHARGELIMIT_OK("Ladevorgang abgeschlossen", "Ladevorgang OK",false), //
+    CHARGELIMIT_ERROR("Ladevorgang unterbrochen", "Ladevorgang Fehler",false), //
     ERRORMESSAGE("Fehlermeldung", "Fehlermeldungen",false), //
     ;
 

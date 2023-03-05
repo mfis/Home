@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import de.fimatas.home.library.domain.model.*;
+import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.model.PresenceState;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
@@ -94,6 +95,9 @@ public class ClientCommunicationService {
                 houseService.refreshHouseModel();
                 break;
             case TOGGLESTATE:
+                if(message.getDevice()== Device.SCHALTER_WALLBOX && Boolean.parseBoolean(message.getValue())){
+                    electricVehicleService.saveChargingUser(message.getUser());
+                }
                 houseService.togglestate(message.getDevice(), Boolean.parseBoolean(message.getValue()));
                 houseService.refreshHouseModel();
                 break;
@@ -142,12 +146,15 @@ public class ClientCommunicationService {
                 heatpumpService.preset(places, HeatpumpPreset.valueOf(message.getValue()));
                 break;
             case SLIDERVALUE:
+                electricVehicleService.saveChargingUser(message.getUser());
                 electricVehicleService.updateBatteryPercentage(ElectricVehicle.valueOf(message.getDeviceId()), message.getValue());
                 break;
             case WALLBOX_SELECTED_EV:
+                electricVehicleService.saveChargingUser(message.getUser());
                 electricVehicleService.updateSelectedEvForWallbox(ElectricVehicle.valueOf(message.getDeviceId()));
                 break;
             case CHARGELIMIT:
+                electricVehicleService.saveChargingUser(message.getUser());
                 electricVehicleService.updateChargeLimit(ElectricVehicle.valueOf(message.getDeviceId()), message.getValue());
                 break;
             default:
