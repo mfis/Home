@@ -9,18 +9,16 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
 import javax.annotation.PostConstruct;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
+
+import static de.fimatas.home.controller.dao.DaoUtils.cleanSqlValue;
 
 @Component
 @CommonsLog
 public class StateHandlerDAO {
 
     private final String TABLE_NAME = "STATES";
-
-    private static final DateTimeFormatter SQL_TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -53,8 +51,8 @@ public class StateHandlerDAO {
         String query =
                 "select * FROM " + TABLE_NAME + " where GROUPNAME = ? and statename = ?;";
 
-        var result = jdbcTemplate.query(query, new StateRowMapper(), groupname, cleanString(statename));
-        if(result== null || result.size()==0){
+        var result = jdbcTemplate.query(query, new StateRowMapper(), groupname, cleanSqlValue(statename));
+        if(result == null || result.size()==0){
             return null;
         }else if(result.size()==1){
             return result.get(0);
@@ -67,11 +65,6 @@ public class StateHandlerDAO {
     public void writeState(String groupname, String statename, String value){
         jdbcTemplate
                 .update("MERGE INTO " + TABLE_NAME + " KEY (GROUPNAME, STATENAME) VALUES (?, ?, ?, ?)",
-                        groupname, cleanString(statename), uniqueTimestampService.getAsStringWithMillis(), cleanString(value));
-    }
-
-    private String cleanString(String string){
-        String REGEXP_CLEAN = "[^a-zA-Z\\d-]";
-        return string.replaceAll(REGEXP_CLEAN, string);
+                        groupname, cleanSqlValue(statename), uniqueTimestampService.getAsStringWithMillis(), cleanSqlValue(value));
     }
 }

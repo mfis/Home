@@ -24,4 +24,8 @@ public class UniqueTimestampService {
     public String getAsStringWithMillis(){
         return get().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
     }
+
+    public static String getAsStringWithMillis(LocalDateTime ldt){
+        return ldt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
+    }
 }

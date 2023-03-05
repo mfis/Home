@@ -130,7 +130,7 @@ public class ClientCommunicationService {
                 break;
             case SETTINGS_NEW:
                 if(settingsService.createNewSettingsForToken(message.getToken(), message.getUser(), message.getClient())){
-                    pushService.sendRegistrationConfirmation(message.getToken(), message.getClient());
+                    pushService.sendRegistrationConfirmation(message.getUser(), message.getToken(), message.getClient());
                 }
                 break;
             case SETTINGS_EDIT:
