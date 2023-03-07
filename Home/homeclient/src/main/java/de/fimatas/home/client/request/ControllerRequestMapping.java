@@ -2,7 +2,7 @@ package de.fimatas.home.client.request;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Date;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 import de.fimatas.home.library.domain.model.*;
@@ -81,6 +81,12 @@ public class ControllerRequestMapping {
         return new ActionModel("OK");
     }
 
+    @PostMapping(value = UPLOAD_METHOD_PREFIX + "PushMessageModel")
+    public ActionModel uploadPushMessageModel(@RequestBody PushMessageModel pushMessageModel) {
+        ModelObjectDAO.getInstance().write(pushMessageModel);
+        return new ActionModel("OK");
+    }
+
     @PostMapping(value = UPLOAD_METHOD_PREFIX + "SettingsContainer")
     public ActionModel uploadSettingsContainer(@RequestBody SettingsContainer settingsContainer) {
         ModelObjectDAO.getInstance().write(settingsContainer);
@@ -96,7 +102,7 @@ public class ControllerRequestMapping {
     @PostMapping(value = UPLOAD_METHOD_PREFIX + "BackupFile")
     public ActionModel uploadBackupFile(@RequestBody BackupFile backupFile) throws IOException {
         String path = env.getProperty("backup.location");
-        if (!path.endsWith("/")) {
+        if (!Objects.requireNonNull(path).endsWith("/")) {
             path = path + "/"; // NOSONAR
         }
         String absFilePath = path + backupFile.getFilename();
@@ -106,7 +112,6 @@ public class ControllerRequestMapping {
 
     @PostMapping(value = CONTROLLER_LONG_POLLING_FOR_AWAIT_MESSAGE_REQUEST)
     public DeferredResult<Message> controllerLongPollingForAwaitMessageRequest() {
-        ModelObjectDAO.getInstance().setLastLongPollingTimestamp(new Date().getTime());
         DeferredResult<Message> deferredResult = new DeferredResult<>(Long.MAX_VALUE, null);
         CompletableFuture.runAsync(() -> deferredResult.setResult(MessageQueue.getInstance().pollMessage()));
         return deferredResult;

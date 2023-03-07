@@ -101,7 +101,7 @@ public class HouseViewService {
         });
     }
 
-    public void fillViewModel(Model model, HouseModel house, HistoryModel historyModel, LightsModel lightsModel, WeatherForecastModel weatherForecastModel, PresenceModel presenceModel, HeatpumpModel heatpumpModel, ElectricVehicleModel electricVehicleModel) {
+    public void fillViewModel(Model model, String username, HouseModel house, HistoryModel historyModel, LightsModel lightsModel, WeatherForecastModel weatherForecastModel, PresenceModel presenceModel, HeatpumpModel heatpumpModel, ElectricVehicleModel electricVehicleModel, PushMessageModel pushMessageModel) {
 
         model.addAttribute("modelTimestamp", ModelObjectDAO.getInstance().calculateModelTimestamp());
 
@@ -142,8 +142,8 @@ public class HouseViewService {
         formatHeatpump(model, house, heatpumpModel, Place.KIDSROOM_2);
 
         formatLowBattery(model, house.getLowBatteryDevices());
-
         formatWarnings(model, house, lightsModel, weatherForecastModel, historyModel);
+        formatPushMessages(model, username, pushMessageModel);
 
         formatPlaceSubtitles(model, house);
 
@@ -756,6 +756,24 @@ public class HouseViewService {
         }
 
         model.addAttribute("warnings", copy);
+    }
+
+    private void formatPushMessages(Model model, String user, PushMessageModel pushMessageModel) {
+
+        var list = pushMessageModel == null ? Collections.EMPTY_LIST :
+                pushMessageModel.getList().stream()
+                        .filter(msg -> {
+                            long minutesOld = Duration
+                                    .between(Instant.ofEpochMilli(msg.getTimestamp())
+                                            .atZone(ZoneId.systemDefault()).toLocalDateTime(), LocalDateTime.now()).toMinutes();
+                            return minutesOld < 60 && msg.getUsername().equalsIgnoreCase(user);
+                        })
+                        .map(msg -> {
+                    var ts = StringUtils.capitalize(viewFormatter.formatTimestamp(msg.getTimestamp(), TimestampFormat.DATE_TIME));
+                    return new PushMessageView(ts, msg.getTitle(), msg.getTextMessage());
+                }).collect(Collectors.toList());
+
+        model.addAttribute("pushMessages", list);
     }
 
     private void formatPlaceSubtitles(Model model, HouseModel house) {

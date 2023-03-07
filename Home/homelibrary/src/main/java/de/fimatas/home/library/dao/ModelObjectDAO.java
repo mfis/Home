@@ -31,11 +31,11 @@ public class ModelObjectDAO {
 
     private ElectricVehicleModel electricVehicleModel;
 
+    private PushMessageModel pushMessageModel;
+
     private SettingsContainer settingsContainer;
 
     private String lastHouseModelState;
-
-    private long lastLongPollingTimestamp = 0;
 
     private ModelObjectDAO() {
         super();
@@ -83,6 +83,15 @@ public class ModelObjectDAO {
 
     public void write(WeatherForecastModel newModel) {
         weatherForecastModel = newModel;
+    }
+
+    public void write(PushMessageModel newModel) {
+        if(newModel.isAdditionalEntries() && pushMessageModel != null){
+            pushMessageModel.getList().addAll(0, newModel.getList());
+            pushMessageModel.setTimestamp(newModel.getTimestamp());
+        }else{
+            pushMessageModel = newModel;
+        }
     }
 
     public void write(SettingsContainer newSettingsContainer) {
@@ -152,6 +161,10 @@ public class ModelObjectDAO {
         }
     }
 
+    public PushMessageModel readPushMessageModel() {
+        return pushMessageModel;
+    }
+
     public ElectricVehicleModel readElectricVehicleModel() {
         return electricVehicleModel;
     }
@@ -194,6 +207,7 @@ public class ModelObjectDAO {
         PresenceModel pm = readPresenceModel();
         HeatpumpModel hpm = readHeatpumpModel();
         ElectricVehicleModel evm = readElectricVehicleModel();
+        PushMessageModel pmm = readPushMessageModel();
 
         return  Stream.of(
                 hm==null?0:hm.getDateTime(),
@@ -201,7 +215,8 @@ public class ModelObjectDAO {
                 wfm==null?0:wfm.getDateTime(),
                 pm==null?0:pm.getDateTime(),
                 hpm==null?0:hpm.getTimestamp(),
-                evm==null?0:evm.getTimestamp()
+                evm==null?0:evm.getTimestamp(),
+                pmm==null?0:pmm.getTimestamp()
         ).max(Long::compare).get();
     }
 
@@ -226,13 +241,5 @@ public class ModelObjectDAO {
 
     public String getLastHouseModelState() {
         return lastHouseModelState;
-    }
-
-    public long getLastLongPollingTimestamp() {
-        return lastLongPollingTimestamp;
-    }
-
-    public void setLastLongPollingTimestamp(long lastLongPollingTimestamp) {
-        this.lastLongPollingTimestamp = lastLongPollingTimestamp;
     }
 }

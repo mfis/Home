@@ -213,6 +213,12 @@ public class ClientCommunicationService {
             uploadService.uploadToClient(ModelObjectDAO.getInstance().readElectricVehicleModel());
         }
 
+        if (ModelObjectDAO.getInstance().readPushMessageModel() == null) {
+            pushService.refreshModel();
+        } else {
+            uploadService.uploadToClient(ModelObjectDAO.getInstance().readPushMessageModel());
+        }
+
         uploadService.uploadToClient(ModelObjectDAO.getInstance().readCameraModel());
 
         settingsService.refreshSettingsModelsComplete();

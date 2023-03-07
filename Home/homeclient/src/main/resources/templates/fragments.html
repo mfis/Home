@@ -782,6 +782,20 @@
 		</th:block>
 	</th:block>
 
+	<!-- PushBenachrichtigungen -->
+	<th:block th:fragment="pushMessages (model)">
+		<th:block th:if="${#lists.size(model) &gt; 0}">
+			<div th:replace="fragments :: title (name='Push-Benachrichtigungen')"></div>
+		</th:block>
+		<th:block th:each="entry : ${model}">
+			<div th:class="'alert alert-dark callout callout-dark classHomeWarning'">
+				<h5 class="card-title"><span><th:block th:replace="basics :: symbol (name='fa-regular fa-envelope')"/></span> <span th:text="${entry.title}"></span></h5>
+				<h6 class="card-subtitle mb-2 text-muted" th:text="${entry.timestamp}"></h6>
+				<p class="card-text" th:text="${entry.message}"></p>
+			</div>
+		</th:block>
+	</th:block>
+
 	<!-- AllgemeineWarnung -->
 	<th:block th:fragment="generalWarning (model)">
 		<th:block th:if="${#lists.size(model) &gt; 0}">

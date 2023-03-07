@@ -58,6 +58,9 @@ public class PushService {
     @Autowired
     private PushMessageDAO pushMessageDAO;
 
+    @Autowired
+    private UploadService uploadService;
+
     private static final Log LOG = LogFactory.getLog(PushService.class);
 
     @PostConstruct
@@ -89,6 +92,16 @@ public class PushService {
     @Scheduled(cron = "0 00 00 * * *")
     public void cleanUpDatabase() {
         pushMessageDAO.deleteMessagesOlderAsNDays(92);
+        refreshModel();
+
+    }
+
+    public void refreshModel() {
+        PushMessageModel pmm = new PushMessageModel();
+        pmm.setAdditionalEntries(false);
+        pmm.getList().addAll(pushMessageDAO.readMessages());
+        ModelObjectDAO.getInstance().write(pmm);
+        uploadService.uploadToClient(pmm);
     }
 
     @Scheduled(cron = "0 00 22 * * *")
@@ -246,8 +259,12 @@ public class PushService {
 
     private void saveNewMessageToDatabase(PushToken token, String title, String text){
         CompletableFuture.runAsync(() -> {
-            pushMessageDAO.writeMessage(token.getUsername(), title, text);
-            // FIXME: UPLOAD
+            final PushMessage message = pushMessageDAO.writeMessage(token.getUsername(), title, text);
+            PushMessageModel pmm = new PushMessageModel();
+            pmm.setAdditionalEntries(true);
+            pmm.getList().add(message);
+            ModelObjectDAO.getInstance().write(pmm);
+            uploadService.uploadToClient(pmm);
         });
     }
 
