@@ -23,13 +23,13 @@
 				</script>
 
 				<div class="btn-group" role="group" aria-label="evenableslider" style="margin-right: 10px;">
-					<button style="margin-top: 10px; width: 60px" type="button" class="btn btn-block btn-secondary btn-sm" th:onclick="@{'enableSlider(\'' + ${model.id} + '\')'}"><span>Setzen</span></button>
+					<button style="margin-top: 10px; width: 40px" type="button" class="btn btn-block btn-secondary btn-sm" th:onclick="@{'enableSlider(\'' + ${model.id} + '\')'}"><span><i style="font-size: 0.8rem;" class="fa-solid fa-pencil"></i></span></button>
 				</div>
 
 				<span style="height: 31px;" class="align-text-top"><a>Limit:</a></span>
 				<div class="btn-group" role="group" aria-label="evmaxcharge">
 					<th:block th:each="entry : ${model.chargeLimits}">
-						<button style="margin-top: 10px; width: 55px" type="button" th:class="${#strings.startsWith(entry.value, '#')} ? 'btn btn-dark btn-sm btn-block' : 'btn btn-secondary btn-sm btn-block'" th:onclick="@{'evChargeLimit(\''+ ${model.chargeLimitLink} +'\', \'' + ${entry.value} + '\')'}">
+						<button style="margin-top: 10px; width: 50px" type="button" th:class="${#strings.startsWith(entry.value, '#')} ? 'btn btn-dark btn-sm btn-block' : 'btn btn-secondary btn-sm btn-block'" th:onclick="@{'evChargeLimit(\''+ ${model.chargeLimitLink} +'\', \'' + ${entry.value} + '\')'}">
 							<span th:class="${#strings.startsWith(entry.value, '#')} ? 'text-' + ${model.activeSwitchColorClass}"th:text="${entry.caption}"></span>
 						</button>
 					</th:block>

@@ -1336,7 +1336,7 @@ public class HouseViewService {
             view.setChargeLimitLink(MESSAGEPATH + TYPE_IS + MessageType.CHARGELIMIT + AND_DEVICE_ID_IS + e.getKey().name() + AND_VALUE_IS);
             Stream.of(ChargeLimit.values()).forEach(cl -> {
                 var value = cl==e.getValue().getChargeLimit() ? "#" : cl.name();
-                view.getChargeLimits().add(new ValueWithCaption(value, cl.getPercentage() + "%", null));
+                view.getChargeLimits().add(new ValueWithCaption(value, cl.getCaption(), null));
             });
         });
     }

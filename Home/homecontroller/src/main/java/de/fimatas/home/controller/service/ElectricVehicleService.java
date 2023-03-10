@@ -239,7 +239,7 @@ public class ElectricVehicleService {
 
         log.debug("isChargingFinished() actual=" + actual + " limit=" + limit);
 
-        if(actual >= limit){
+        if(actual >= limit && limit < 100){
             log.debug("isChargingFinished() return true -> limit");
             return ChargingFinishedState.FINISHED_NORMAL;
         }
