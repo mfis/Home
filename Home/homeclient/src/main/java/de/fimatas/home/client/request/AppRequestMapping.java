@@ -1,11 +1,14 @@
 package de.fimatas.home.client.request;
 
+import de.fimatas.home.client.domain.model.PushMessageView;
 import de.fimatas.home.client.domain.service.AppViewService;
 import de.fimatas.home.client.domain.service.HouseViewService;
+import de.fimatas.home.client.domain.service.ViewFormatter;
 import de.fimatas.home.client.model.*;
 import de.fimatas.home.client.service.LoginInterceptor;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.HouseModel;
+import de.fimatas.home.library.domain.model.PushMessageModel;
 import de.fimatas.home.library.model.Message;
 import de.fimatas.home.library.model.MessageType;
 import de.fimatas.home.library.model.SettingsModel;
@@ -23,9 +26,15 @@ import org.springframework.ui.ExtendedModelMap;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static de.fimatas.home.library.util.HomeAppConstants.PUSH_TOKEN_NOT_AVAILABLE_INDICATOR;
 
@@ -44,6 +53,9 @@ public class AppRequestMapping {
 
     @Autowired
     private AppViewService appViewService;
+
+    @Autowired
+    private ViewFormatter viewFormatter;
 
     @Value("${application.identifier}")
     private String applicationIdentifier;
@@ -88,6 +100,27 @@ public class AppRequestMapping {
             log.error("sending empty app model due to exception while mapping.", e);
             return appViewService.newEmptyModel();
         }
+    }
+
+    @GetMapping(value = "/getPushMessageModel")
+    public PushMessageModel getPushMessageModel(@RequestHeader("appUserName") String appUserName) {
+
+        final PushMessageModel pushMessageModel = ModelObjectDAO.getInstance().readPushMessageModel();
+        if(pushMessageModel == null){
+            return null;
+        }
+
+        var list = pushMessageModel == null ? Collections.EMPTY_LIST :
+                pushMessageModel.getList().stream()
+                        .filter(msg -> msg.getUsername().equalsIgnoreCase(appUserName))
+                        .map(msg -> {
+                            var ts = StringUtils.capitalize(viewFormatter.formatTimestamp(msg.getTimestamp(), ViewFormatter.TimestampFormat.DATE_TIME));
+                            return new PushMessageView(ts, msg.getTitle(), msg.getTextMessage());
+                        }).collect(Collectors.toList());
+
+        var modelToReturn = new PushMessageModel();
+        modelToReturn.getList().addAll(list);
+        return  modelToReturn;
     }
 
     @GetMapping(value = "/getPushSettings")
