@@ -3,6 +3,7 @@ package de.fimatas.home.controller.service;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedList;
@@ -60,6 +61,9 @@ public class PushService {
 
     @Autowired
     private UploadService uploadService;
+
+    @Autowired
+    private UniqueTimestampService uniqueTimestampService;
 
     private static final Log LOG = LogFactory.getLog(PushService.class);
 
@@ -222,15 +226,16 @@ public class PushService {
 
     private void handleMessage(PushToken pushToken, String title, String message) {
 
+        LocalDateTime ts = uniqueTimestampService.get();
         if (HomeAppConstants.PUSH_TOKEN_NOT_AVAILABLE_INDICATOR.equals(pushToken.getToken())) {
             LOG.info("Push Message to dummy token: " + title + " - " + message);
-            saveNewMessageToDatabase(pushToken, title, message);
+            saveNewMessageToDatabase(ts, pushToken, title, message);
         } else {
-            sendToApns(pushToken, title, message);
+            sendToApns(pushToken, ts, title, message);
         }
     }
 
-    private void sendToApns(PushToken pushToken, String title, String message) {
+    private void sendToApns(PushToken pushToken, LocalDateTime ts, String title, String message) {
 
         final ApnsPayloadBuilder payloadBuilder = new SimpleApnsPayloadBuilder();
         payloadBuilder.setAlertTitle(title);
@@ -241,10 +246,10 @@ public class PushService {
         PushNotificationFuture<SimpleApnsPushNotification, PushNotificationResponse<SimpleApnsPushNotification>> sendNotificationFuture =
             apnsClient.sendNotification(new SimpleApnsPushNotification(pushToken.getToken(), iOsAppIdentifier, payloadBuilder.build()));
 
-        sendNotificationFuture.whenComplete((response, cause) -> handleApnsResponse(response, cause, pushToken, title, message));
+        sendNotificationFuture.whenComplete((response, cause) -> handleApnsResponse(response, cause, ts, pushToken, title, message));
     }
 
-    private void handleApnsResponse(PushNotificationResponse<SimpleApnsPushNotification> response, Throwable cause, PushToken pushToken, String title, String text) {
+    private void handleApnsResponse(PushNotificationResponse<SimpleApnsPushNotification> response, Throwable cause, LocalDateTime ts, PushToken pushToken, String title, String text) {
 
         if (response != null) {
             if (!response.isAccepted()) {
@@ -254,12 +259,12 @@ public class PushService {
         } else {
             LOG.error("Failed to send push notification to apns.", cause);
         }
-        saveNewMessageToDatabase(pushToken, title, text);
+        saveNewMessageToDatabase(ts, pushToken, title, text);
     }
 
-    private void saveNewMessageToDatabase(PushToken token, String title, String text){
+    private void saveNewMessageToDatabase(LocalDateTime ts, PushToken token, String title, String text){
         CompletableFuture.runAsync(() -> {
-            final PushMessage message = pushMessageDAO.writeMessage(token.getUsername(), title, text);
+            final PushMessage message = pushMessageDAO.writeMessage(ts, token.getUsername(), title, text);
             PushMessageModel pmm = new PushMessageModel();
             pmm.setAdditionalEntries(true);
             pmm.getList().add(message);

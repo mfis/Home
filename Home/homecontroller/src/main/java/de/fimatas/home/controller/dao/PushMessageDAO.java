@@ -49,11 +49,10 @@ public class PushMessageDAO {
     }
 
     @Transactional
-    public PushMessage writeMessage(String user, String title, String textMessage){
-        final LocalDateTime ts = uniqueTimestampService.get();
+    public synchronized PushMessage writeMessage(LocalDateTime ts, String user, String title, String textMessage){
         final PushMessage message = new PushMessage(ts.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli(), cleanSqlValue(user), cleanSqlValue(title), cleanSqlValue(textMessage));
         jdbcTemplate
-                .update("INSERT INTO " + TABLE_NAME + " (TS, USERNAME, TITLE, TEXTMSG) VALUES (?, ?, ?, ?)",
+                .update("MERGE INTO " + TABLE_NAME + " (TS, USERNAME, TITLE, TEXTMSG) VALUES (?, ?, ?, ?)",
                         UniqueTimestampService.getAsStringWithMillis(ts), message.getUsername(), message.getTitle(), message.getTextMessage());
         return message;
     }
