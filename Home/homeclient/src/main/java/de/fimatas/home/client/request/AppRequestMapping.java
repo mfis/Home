@@ -133,15 +133,13 @@ public class AppRequestMapping {
 
         final Optional<SettingsModel> settingsModel = settingsModels.stream()
                 .filter(settings -> settings.getToken().equals(lookupToken(token))).findFirst();
+        var listPushSettings = new LinkedList<AppPushSettingsModel>();
+        var listAttributes = new LinkedList<AppAttributeModel>();
         if(settingsModel.isPresent()){
-            var listPushSettings = new LinkedList<AppPushSettingsModel>();
-            var listAttributes = new LinkedList<AppAttributeModel>();
             settingsModel.get().getPushNotifications().forEach((k, v) -> listPushSettings.add(new AppPushSettingsModel(k.name(), k.getSettingsText(), v)));
             settingsModel.get().getAttributes().forEach((k, v) -> listAttributes.add(new AppAttributeModel(k, v)));
-            return new AppPushSettingsModels(listPushSettings, listAttributes);
-        }else{
-            return null;
         }
+        return new AppPushSettingsModels(listPushSettings, listAttributes);
     }
 
     @PostMapping(value = "/setPushSetting")

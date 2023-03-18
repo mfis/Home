@@ -531,16 +531,6 @@ public class HouseService {
         return newVal != null && (oldVal == null || oldVal.compareTo(newVal) != 0);
     }
 
-    @SuppressWarnings("unused")
-    private void updateCameraPictures(HouseModel oldModel, HouseModel newModel) {
-
-        // FrontDoor
-        if (doorbellTimestampChanged(oldModel, newModel) && newModel.getFrontDoorCamera() != null
-            && newModel.getFrontDoorCamera().getDevice() != null) {
-            cameraService.takeEventPicture(newModel.getFrontDoorBell(), newModel.getFrontDoorCamera());
-        }
-    }
-
     public static boolean doorbellTimestampChanged(HouseModel oldModel, HouseModel newModel) {
 
         long doorbellOld = oldModel != null && oldModel.getFrontDoorBell() != null

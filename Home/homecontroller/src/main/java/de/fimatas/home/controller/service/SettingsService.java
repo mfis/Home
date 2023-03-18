@@ -1,5 +1,6 @@
 package de.fimatas.home.controller.service;
 
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -101,9 +102,15 @@ public class SettingsService {
         return oldToken.isEmpty();
     }
 
-    public void deleteSettingsForToken(String token) {
+    public void resetSettingsForToken(String token) {
+        EnumMap<PushNotifications, Boolean> newMap = new EnumMap<>(PushNotifications.class);
         SettingsDAO.getInstance().read().stream().filter(model -> model.getToken().equals(token)).findFirst()
-            .ifPresent(SettingsDAO.getInstance()::delete);
+            .ifPresent(s -> {
+                s.getPushNotifications().keySet().forEach(k -> newMap.put(k, false));
+                s.setPushNotifications(newMap);
+                SettingsDAO.getInstance().write(s);
+            });
+        SettingsDAO.getInstance().persist();
         refreshSettingsModelsComplete();
     }
 

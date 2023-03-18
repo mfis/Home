@@ -1,20 +1,18 @@
 package de.fimatas.home.controller.service;
 
-import java.io.File;
-import java.io.IOException;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.util.LinkedList;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-
+import com.eatthepath.pushy.apns.ApnsClient;
+import com.eatthepath.pushy.apns.ApnsClientBuilder;
+import com.eatthepath.pushy.apns.PushNotificationResponse;
+import com.eatthepath.pushy.apns.util.ApnsPayloadBuilder;
+import com.eatthepath.pushy.apns.util.SimpleApnsPayloadBuilder;
+import com.eatthepath.pushy.apns.util.SimpleApnsPushNotification;
+import com.eatthepath.pushy.apns.util.concurrent.PushNotificationFuture;
 import de.fimatas.home.controller.dao.PushMessageDAO;
+import de.fimatas.home.controller.domain.service.HouseService;
 import de.fimatas.home.controller.model.PushToken;
+import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
+import de.fimatas.home.library.util.HomeAppConstants;
 import de.fimatas.home.library.util.WeatherForecastConclusionTextFormatter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -23,24 +21,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import com.eatthepath.pushy.apns.ApnsClient;
-import com.eatthepath.pushy.apns.ApnsClientBuilder;
-import com.eatthepath.pushy.apns.PushNotificationResponse;
-import com.eatthepath.pushy.apns.util.ApnsPayloadBuilder;
-import com.eatthepath.pushy.apns.util.SimpleApnsPayloadBuilder;
-import com.eatthepath.pushy.apns.util.SimpleApnsPushNotification;
-import com.eatthepath.pushy.apns.util.concurrent.PushNotificationFuture;
-import de.fimatas.home.controller.domain.service.HouseService;
-import de.fimatas.home.library.dao.ModelObjectDAO;
-import de.fimatas.home.library.util.HomeAppConstants;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import java.io.File;
+import java.io.IOException;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.LinkedList;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 @Component
 public class PushService {
 
     @Autowired
     private SettingsService settingsService;
-
-    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
     private ApnsClient apnsClient;
 
@@ -64,6 +60,8 @@ public class PushService {
 
     @Autowired
     private UniqueTimestampService uniqueTimestampService;
+
+    private static LocalDateTime timestampLastDoorbellPushMessage = LocalDateTime.now();
 
     private static final Log LOG = LogFactory.getLog(PushService.class);
 
@@ -198,16 +196,19 @@ public class PushService {
 
     private void doorbellMessage(HouseModel oldModel, HouseModel newModel) {
 
-        if (!HouseService.doorbellTimestampChanged(oldModel, newModel)) {
-            return;
+        if(!HouseService.doorbellTimestampChanged(oldModel, newModel)){
+            return; // detect previous doorbell ring
         }
 
-        settingsService.listTokensWithEnabledSetting(PushNotifications.DOORBELL).forEach(pushToken -> {
-            final String time =
-                TIME_FORMATTER.format(Instant.ofEpochMilli(newModel.getFrontDoorBell().getTimestampLastDoorbell())
-                .atZone(ZoneId.systemDefault()).toLocalDateTime());
-            handleMessage(pushToken, PushNotifications.DOORBELL.getPushText(), "Zeitpunkt: " + time + " Uhr.");
-        });
+        if (Math.abs(Duration.between(timestampLastDoorbellPushMessage, LocalDateTime.now()).toSeconds()) < 4) {
+            return; // detect multiple doorbell ring
+        }
+
+        timestampLastDoorbellPushMessage = LocalDateTime.now();
+
+        LOG.info("doorbellMessage(..)"); // FIXME
+        settingsService.listTokensWithEnabledSetting(PushNotifications.DOORBELL).forEach(pushToken ->
+                handleMessage(pushToken, PushNotifications.DOORBELL.getPushText(), "Türklingelbetätigung!"));
     }
 
     private void todayWeatherMessage(WeatherForecastModel model) {
@@ -227,6 +228,7 @@ public class PushService {
     private void handleMessage(PushToken pushToken, String title, String message) {
 
         LocalDateTime ts = uniqueTimestampService.get();
+        LOG.info(String.format("handleMessage(%s, %s, %s)", ts.toString(), pushToken.getUsername(), title)); // FIXME
         if (HomeAppConstants.PUSH_TOKEN_NOT_AVAILABLE_INDICATOR.equals(pushToken.getToken())) {
             LOG.info("Push Message to dummy token: " + title + " - " + message);
             saveNewMessageToDatabase(ts, pushToken, title, message);
@@ -251,26 +253,37 @@ public class PushService {
 
     private void handleApnsResponse(PushNotificationResponse<SimpleApnsPushNotification> response, Throwable cause, LocalDateTime ts, PushToken pushToken, String title, String text) {
 
+        boolean doResetSettings = false;
         if (response != null) {
             if (!response.isAccepted()) {
                 LOG.warn("Push Notification rejected by the apns gateway: " + response.getRejectionReason());
-                settingsService.deleteSettingsForToken(pushToken.getToken());
+                doResetSettings = true;
             }
         } else {
             LOG.error("Failed to send push notification to apns.", cause);
         }
+        LOG.info(String.format("handleApnsResponse(%s, %s, %s)", ts.toString(), pushToken.getUsername(), title)); // FIXME
         saveNewMessageToDatabase(ts, pushToken, title, text);
+        if(doResetSettings){
+            settingsService.resetSettingsForToken(pushToken.getToken());
+            saveNewMessageToDatabase(uniqueTimestampService.get(), pushToken, "Push-Zustellung Fehler", "Bitte erneut registrieren.");
+        }
     }
 
-    private void saveNewMessageToDatabase(LocalDateTime ts, PushToken token, String title, String text){
-        CompletableFuture.runAsync(() -> {
-            final PushMessage message = pushMessageDAO.writeMessage(ts, token.getUsername(), title, text);
-            PushMessageModel pmm = new PushMessageModel();
-            pmm.setAdditionalEntries(true);
-            pmm.getList().add(message);
-            ModelObjectDAO.getInstance().write(pmm);
-            uploadService.uploadToClient(pmm);
-        });
+    private synchronized void saveNewMessageToDatabase(LocalDateTime ts, PushToken token, String title, String text){
+
+        if(pushMessageDAO.readMessagesFromLastThreeSeconds().stream().anyMatch(pm ->
+                pm.getUsername().equalsIgnoreCase(token.getUsername()) && pm.getTitle().equals(title) && pm.getTextMessage().equals(text))){
+            LOG.warn("Duplicate message for user " + token.getUsername() + ". Check token settings!");
+            return;
+        }
+
+        final PushMessage message = pushMessageDAO.writeMessage(ts, token.getUsername(), title, text);
+        PushMessageModel pmm = new PushMessageModel();
+        pmm.setAdditionalEntries(true);
+        pmm.getList().add(message);
+        ModelObjectDAO.getInstance().write(pmm);
+        uploadService.uploadToClient(pmm);
     }
 
 }

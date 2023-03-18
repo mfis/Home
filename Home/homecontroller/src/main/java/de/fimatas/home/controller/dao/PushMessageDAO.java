@@ -48,11 +48,20 @@ public class PushMessageDAO {
         return jdbcTemplate.query(query, new String[]{}, new PushMessageRowMapper());
     }
 
+    @Transactional(readOnly = true)
+    public List<PushMessage> readMessagesFromLastThreeSeconds(){
+
+        String query =
+                "select * FROM " + TABLE_NAME + " WHERE TS > ? ORDER BY TS DESC;";
+
+        return jdbcTemplate.query(query, new String[]{UniqueTimestampService.getAsStringWithMillis(LocalDateTime.now().minusSeconds(3))}, new PushMessageRowMapper());
+    }
+
     @Transactional
-    public synchronized PushMessage writeMessage(LocalDateTime ts, String user, String title, String textMessage){
+    public PushMessage writeMessage(LocalDateTime ts, String user, String title, String textMessage){
         final PushMessage message = new PushMessage(ts.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli(), cleanSqlValue(user), cleanSqlValue(title), cleanSqlValue(textMessage));
         jdbcTemplate
-                .update("MERGE INTO " + TABLE_NAME + " (TS, USERNAME, TITLE, TEXTMSG) VALUES (?, ?, ?, ?)",
+                .update("INSERT INTO " + TABLE_NAME + " (TS, USERNAME, TITLE, TEXTMSG) VALUES (?, ?, ?, ?)",
                         UniqueTimestampService.getAsStringWithMillis(ts), message.getUsername(), message.getTitle(), message.getTextMessage());
         return message;
     }
