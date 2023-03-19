@@ -22,7 +22,7 @@
 		<java.version>11</java.version>
 		<!-- Dependency versions -->
 		<spring-boot.version>2.6.14</spring-boot.version>
-		<files-api.version>2.2</files-api.version>
+		<files-api.version>2.3</files-api.version>
 		<commons-io.version>2.8.0</commons-io.version>
 		<commons-text.version>1.10.0</commons-text.version>
 		<commons-collections4.version>4.4</commons-collections4.version>

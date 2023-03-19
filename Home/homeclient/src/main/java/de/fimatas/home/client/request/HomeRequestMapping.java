@@ -2,6 +2,7 @@ package de.fimatas.home.client.request;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 import javax.servlet.http.HttpServletResponse;
 
 import de.fimatas.home.library.domain.model.*;
@@ -168,38 +169,6 @@ public class HomeRequestMapping {
         return "appInstallation";
     }
 
-
-    /* @GetMapping(value = "/cameraPicture", produces = "image/jpeg")
-    public ResponseEntity<byte[]> cameraPicture(@RequestParam(DEVICE_NAME) String deviceName,
-            @RequestParam(CAMERA_MODE) String cameraMode, @RequestParam("ts") String timestamp,
-            @RequestParam(name = "onlyheader", required = false) String onlyheader) {
-
-        boolean onlyHeaderFlag = Boolean.parseBoolean(onlyheader);
-        log.info("poll for camera image - " + timestamp + (onlyHeaderFlag ? " onlyHeader" : ""));
-        byte[] bytes = cameraPicture(Device.valueOf(deviceName), CameraMode.valueOf(cameraMode), Long.parseLong(timestamp));
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(new MediaType("image", "jpeg"));
-        headers.setContentDispositionFormData("attachment", deviceName + "_" + cameraMode + ".jpg");
-        headers.setContentLength(bytes.length);
-        if (bytes.length == 0) {
-            return new ResponseEntity<>(bytes, headers, HttpStatus.NO_CONTENT);
-        } else {
-            return new ResponseEntity<>(bytes, headers, HttpStatus.OK);
-        }
-    }
-
-    @GetMapping(value = "/cameraPictureRequest")
-    public ResponseEntity<String> cameraPictureRequest(Model model,
-            @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, @RequestParam(name = "type") String type,
-            @RequestParam(name = DEVICE_NAME, required = false) String deviceName, @RequestParam("value") String value) {
-
-        log.info("requesting new camera image " + deviceName);
-
-        Message response = request(userService.userNameFromLoginCookie(userCookie), type, deviceName, null, null, null, value, null);
-        return new ResponseEntity<>(response.getResponse(), HttpStatus.OK);
-    }  */
-
     @RequestMapping(Pages.PATH_HOME) // NOSONAR: POST after login, all other GET
     public String homePage(Model model, HttpServletResponse response,
             @CookieValue(name = LoginInterceptor.COOKIE_NAME, required = false) String userCookie,
@@ -208,6 +177,7 @@ public class HomeRequestMapping {
             @RequestHeader(name = CLIENT_NAME, required = false) String clientName,
             @RequestHeader(name = LoginInterceptor.APP_PUSH_TOKEN, required = false) String appPushToken) {
 
+        long l1 = System.nanoTime();
         boolean isWebViewApp = StringUtils.equals(userAgent, ControllerUtil.USER_AGENT_APP_WEB_VIEW);
 
         if (log.isDebugEnabled()) {
@@ -225,25 +195,33 @@ public class HomeRequestMapping {
         fillUserAttributes(model, userCookie);
         HouseModel houseModel = ModelObjectDAO.getInstance().readHouseModel();
 
+        String returnTemplate;
         try {
             if (houseModel == null) {
                 mappingErrorAttributes(model, response, "Keine aktuellen Daten vorhanden - " + ModelObjectDAO.getInstance().getLastHouseModelState(), null);
-                return "error";
+                returnTemplate = "error";
             } else if (isModelUnchanged(etag) && !isNewMessage) {
                 response.setStatus(HttpStatus.NOT_MODIFIED.value());
-                return "empty";
+                returnTemplate =  "empty";
             } else {
                 String user = userService.userNameFromLoginCookie(userCookie);
                 houseView.fillViewModel(model, user, houseModel, ModelObjectDAO.getInstance().readHistoryModel(),
                     ModelObjectDAO.getInstance().readLightsModel(), ModelObjectDAO.getInstance().readWeatherForecastModel(), ModelObjectDAO.getInstance().readPresenceModel(), ModelObjectDAO.getInstance().readHeatpumpModel(), ModelObjectDAO.getInstance().readElectricVehicleModel(), ModelObjectDAO.getInstance().readPushMessageModel());
-                return Pages.getEntry(Pages.PATH_HOME).getTemplate();
+                returnTemplate =  Objects.requireNonNull(Pages.getEntry(Pages.PATH_HOME)).getTemplate();
             }
         } catch (Exception e) {
             String message = "sending error page to browser due to exception while mapping.";
             mappingErrorAttributes(model, response, message, e);
             log.error(message, e);
-            return "error";
+            returnTemplate =  "error";
         }
+
+        long l2 = System.nanoTime();
+        long ldiff = (l2 - l1) / 1000000; // ms
+        if(ldiff > 1500){
+            log.warn("HomeRequestMapping#homePage slow response: " + ldiff + " ms!");
+        }
+        return returnTemplate;
     }
 
     private void handlePushToken(String appPushToken, String userName, String client) {
@@ -299,14 +277,6 @@ public class HomeRequestMapping {
 
         return MessageQueue.getInstance().request(message, true);
     }
-
-    /* private byte[] cameraPicture(Device device, CameraMode mode, long timestamp) {
-        CameraPicture cameraPicture = ModelObjectDAO.getInstance().readCameraPicture(device, mode, timestamp);
-        if (cameraPicture != null) {
-            return cameraPicture.getBytes();
-        }
-        return new byte[0];
-    } */
 
     private void fillUserAttributes(Model model, String userCookie) {
         String user = userService.userNameFromLoginCookie(userCookie);

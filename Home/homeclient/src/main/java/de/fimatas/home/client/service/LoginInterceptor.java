@@ -54,7 +54,8 @@ public class LoginInterceptor implements HandlerInterceptor {
 
     private static final Set<String> LOGIN_URIS =
         Set.of(LoginController.LOGIN_URI, LoginController.LOGIN_COOKIECHECK_URI, LoginController.LOGIN_FAILED_URI,
-            LoginController.LOGIN_VIA_APP_FAILED_URI, AppRequestMapping.URI_WHOAMI, AppRequestMapping.URI_CREATE_AUTH_TOKEN);
+            LoginController.LOGIN_VIA_APP_FAILED_URI, AppRequestMapping.URI_WHOAMI, AppRequestMapping.URI_CREATE_AUTH_TOKEN,
+                LoginController.LOGIN_INTERRUPTED_URI);
 
     private final Set<String> WHITELIST_URIS = Set.of("/error", "/robots.txt");
     private Set<String> WHITELIST_URIS_DYNAMIC;
@@ -94,10 +95,17 @@ public class LoginInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler) throws Exception {
 
+        long l1 = System.nanoTime();
         boolean loginOK = checkLogin(request, response);
 
         if (!loginOK && !noLoginDataProvided(request)) {
             log.warn("Request: " + request.getRequestURI() + " NOT ok");
+        }
+
+        long l2 = System.nanoTime();
+        long ldiff = (l2 - l1) / 1000000; // ms
+        if(ldiff > 1500){
+            log.warn("LoginInterceptor#preHandle slow response: " + ldiff + " ms!");
         }
 
         return loginOK;
@@ -268,8 +276,12 @@ public class LoginInterceptor implements HandlerInterceptor {
                 return userService.userNameFromLoginCookie(token);
             }
         } else {
-            response.sendRedirect(LoginController.LOGIN_FAILED_URI);
-            logoff(request, response);
+            if(tokenResult.isTimeout()){
+                response.sendRedirect(LoginController.LOGIN_INTERRUPTED_URI);
+            }else{
+                response.sendRedirect(LoginController.LOGIN_FAILED_URI);
+                logoff(request, response);
+            }
             return null;
         }
     }

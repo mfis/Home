@@ -53,23 +53,23 @@ class LoginInterceptorTest {
         given(userService.deleteToken(THE_USER_NAME, THE_USER_AGENT, DeviceType.BROWSER)).willReturn(true);
 
         given(userService.createToken(anyString(), anyString(), anyString(), any(DeviceType.class)))
-                .willReturn(new TokenResult(false, null));
+                .willReturn(new TokenResult(false, false,null));
         given(userService.createToken(THE_USER_NAME, THE_PASSWORD, THE_USER_AGENT, DeviceType.BROWSER))
-                .willReturn(new TokenResult(true, THE_TOKEN));
+                .willReturn(new TokenResult(true, false, THE_TOKEN));
 
         given(userService.checkToken(isNull(), anyString(), anyString(), any(DeviceType.class), anyBoolean()))
-                .willReturn(new TokenResult(false, null));
+                .willReturn(new TokenResult(false, false,null));
         given(userService.checkToken(anyString(), anyString(), anyString(), any(DeviceType.class), anyBoolean()))
-                .willReturn(new TokenResult(false, null));
+                .willReturn(new TokenResult(false, false,null));
         given(userService.checkToken(THE_USER_NAME, THE_TOKEN, THE_USER_AGENT, DeviceType.BROWSER, false))
-                .willReturn(new TokenResult(true, null));
+                .willReturn(new TokenResult(true, false,null));
         given(userService.checkToken(THE_USER_NAME, THE_TOKEN, THE_USER_AGENT, DeviceType.BROWSER, true))
-                .willReturn(new TokenResult(true, THE_NEW_TOKEN));
+                .willReturn(new TokenResult(true, false,THE_NEW_TOKEN));
         given(userService.checkToken(THE_USER_NAME, THE_TOKEN, THE_DEVICE, DeviceType.APP, false))
-                .willReturn(new TokenResult(true, null));
+                .willReturn(new TokenResult(true, false,null));
 
         given(userService.readExternalKey(anyString(), anyString(), anyString(), any(DeviceType.class), anyString()))
-                .willReturn(new TokenResult(false, null));
+                .willReturn(new TokenResult(false, false,null));
     }
 
     @Test

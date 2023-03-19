@@ -16,6 +16,8 @@ public class LoginController {
 
     public static final String LOGIN_FAILED_URI = "/loginFailed";
 
+    public static final String LOGIN_INTERRUPTED_URI = "/loginInterrupted";
+
     public static final String LOGIN_VIA_APP_FAILED_URI = "/loginViaAppFailed";
 
     public static final String LOGOFF_URI = "/logoff";
@@ -53,6 +55,14 @@ public class LoginController {
         ControllerUtil.setEssentialHeader(response);
         model.addAttribute(LAW_LINK, lawLink);
         model.addAttribute(LOGIN_MESSAGE, "Name und/oder Passwort nicht korrekt.");
+        return LOGIN_TEMPLATE;
+    }
+
+    @GetMapping(LOGIN_INTERRUPTED_URI)
+    public String loginInterrupted(Model model, HttpServletResponse response) {
+        ControllerUtil.setEssentialHeader(response);
+        model.addAttribute(LAW_LINK, lawLink);
+        model.addAttribute(LOGIN_MESSAGE, "Anmeldung konnte nicht durchgeführt werden.");
         return LOGIN_TEMPLATE;
     }
 
