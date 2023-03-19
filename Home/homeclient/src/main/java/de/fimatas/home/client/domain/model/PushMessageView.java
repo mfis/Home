@@ -7,11 +7,12 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
 public class PushMessageView implements Serializable {
 
     private static final long serialVersionUID = 1L;
+
+    private String id = "";
 
     private String timestamp = "";
 

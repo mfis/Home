@@ -1,6 +1,7 @@
 package de.fimatas.home.client.request;
 
 import de.fimatas.home.client.domain.model.PushMessageView;
+import de.fimatas.home.client.domain.model.PushMessagesView;
 import de.fimatas.home.client.domain.service.AppViewService;
 import de.fimatas.home.client.domain.service.HouseViewService;
 import de.fimatas.home.client.domain.service.ViewFormatter;
@@ -103,7 +104,7 @@ public class AppRequestMapping {
     }
 
     @GetMapping(value = "/getPushMessageModel")
-    public PushMessageModel getPushMessageModel(@RequestHeader("appUserName") String appUserName) {
+    public PushMessagesView getPushMessageModel(@RequestHeader("appUserName") String appUserName) {
 
         final PushMessageModel pushMessageModel = ModelObjectDAO.getInstance().readPushMessageModel();
         if(pushMessageModel == null){
@@ -115,12 +116,10 @@ public class AppRequestMapping {
                         .filter(msg -> msg.getUsername().equalsIgnoreCase(appUserName))
                         .map(msg -> {
                             var ts = StringUtils.capitalize(viewFormatter.formatTimestamp(msg.getTimestamp(), ViewFormatter.TimestampFormat.DATE_TIME));
-                            return new PushMessageView(ts, msg.getTitle(), msg.getTextMessage());
+                            return new PushMessageView("id_pm_" + msg.getTimestamp(), ts, msg.getTitle(), msg.getTextMessage());
                         }).collect(Collectors.toList());
 
-        var modelToReturn = new PushMessageModel();
-        modelToReturn.getList().addAll(list);
-        return  modelToReturn;
+        return new PushMessagesView(list);
     }
 
     @GetMapping(value = "/getPushSettings")

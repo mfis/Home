@@ -770,7 +770,7 @@ public class HouseViewService {
                         })
                         .map(msg -> {
                     var ts = StringUtils.capitalize(viewFormatter.formatTimestamp(msg.getTimestamp(), TimestampFormat.DATE_TIME));
-                    return new PushMessageView(ts, msg.getTitle(), msg.getTextMessage());
+                    return new PushMessageView("id_pm_" + ts, ts, msg.getTitle(), msg.getTextMessage());
                 }).collect(Collectors.toList());
 
         model.addAttribute("pushMessages", list);
