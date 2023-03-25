@@ -33,6 +33,12 @@ public class EvChargingDAO {
     @Autowired
     private UniqueTimestampService uniqueTimestampService;
 
+    private boolean setupIsRunning = true;
+
+    public void completeInit(){
+        setupIsRunning = false;
+    }
+
     @PostConstruct
     @Transactional(propagation = Propagation.REQUIRED)
     public void createTables() {
@@ -82,6 +88,10 @@ public class EvChargingDAO {
 
     @Transactional
     public synchronized void write(ElectricVehicle ev, BigDecimal counter, EvChargePoint chargePoint){
+
+        if (setupIsRunning) {
+            throw new IllegalStateException("setup is still running");
+        }
 
         final List<EvChargeDatabaseEntry> entryList = jdbcTemplate.query(
                 "select * FROM " + TABLE_NAME + " where EVNAME = ? and ENDTS is null;",

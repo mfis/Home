@@ -29,6 +29,12 @@ public class PushMessageDAO {
     @Autowired
     private UniqueTimestampService uniqueTimestampService;
 
+    private boolean setupIsRunning = true;
+
+    public void completeInit(){
+        setupIsRunning = false;
+    }
+
     @PostConstruct
     @Transactional(propagation = Propagation.REQUIRED)
     public void createTables() {
@@ -59,6 +65,11 @@ public class PushMessageDAO {
 
     @Transactional
     public PushMessage writeMessage(LocalDateTime ts, String user, String title, String textMessage){
+
+        if (setupIsRunning) {
+            throw new IllegalStateException("setup is still running");
+        }
+
         final PushMessage message = new PushMessage(ts.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli(), cleanSqlValue(user), cleanSqlValue(title), cleanSqlValue(textMessage));
         jdbcTemplate
                 .update("INSERT INTO " + TABLE_NAME + " (TS, USERNAME, TITLE, TEXTMSG) VALUES (?, ?, ?, ?)",
@@ -68,6 +79,11 @@ public class PushMessageDAO {
 
     @Transactional
     public void deleteMessagesOlderAsNDays(int days){
+
+        if (setupIsRunning) {
+            throw new IllegalStateException("setup is still running");
+        }
+
         final String ts = UniqueTimestampService.getAsStringWithMillis(uniqueTimestampService.get().minusDays(days));
         jdbcTemplate
                 .update("DELETE FROM " + TABLE_NAME + " WHERE TS < ?", ts);

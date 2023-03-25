@@ -27,18 +27,7 @@ public class PresenceService {
 
     private final String STATEHANDLER_GROUPNAME_PERSONS = "presence-persons";
 
-    @PostConstruct
-    public void init() {
-        CompletableFuture.runAsync(() -> {
-            try {
-                refresh();
-            } catch (Exception e) {
-                log.error("Could not initialize PresenceService completly.", e);
-            }
-        });
-    }
-
-    @Scheduled(fixedDelay = (1000 * HomeAppConstants.MODEL_PRESENCE_INTERVAL_SECONDS) + 200, initialDelay = 20000)
+    @Scheduled(initialDelay = 22 * 1000, fixedDelay = (1000 * HomeAppConstants.MODEL_PRESENCE_INTERVAL_SECONDS) + 200)
     private void scheduledRefresh() {
         refresh();
     }

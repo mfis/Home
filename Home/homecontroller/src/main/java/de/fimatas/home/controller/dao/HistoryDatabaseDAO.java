@@ -52,35 +52,25 @@ public class HistoryDatabaseDAO {
     private JdbcTemplate jdbcTemplate;
 
     @Autowired
-    private Environment env;
-
-    @Autowired
     private History history;
-
-    private boolean setupIsRunning = true;
 
     private static final Log LOG = LogFactory.getLog(HistoryDatabaseDAO.class);
 
-    @PostConstruct
-    @Transactional
-    public void setupTables() throws IOException {
+    private long countOnStartup = -1;
 
-        long completeCount = createTables();
+    private boolean setupIsRunning = true;
 
-        if (completeCount == 0) {
-            File importFile = new File(lookupPath() + "import.sql.zip");
-            if (importFile.exists()) {
-                LOG.info("auto-import database from: " + importFile.getAbsolutePath());
-                restoreDatabase(importFile.getAbsolutePath());
-                importFile.renameTo(new File(importFile.getAbsolutePath() + ".done")); // NOSONAR
-            }
-        }
-
+    public void completeInit(){
         setupIsRunning = false;
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
-    public long createTables() {
+    public long getCountOnStartup() {
+        return countOnStartup;
+    }
+
+    @Transactional
+    @PostConstruct
+    public void createTables() {
 
         long completeCount = 0;
         for (HistoryElement history : history.list()) {
@@ -94,63 +84,7 @@ public class HistoryDatabaseDAO {
             long result = jdbcTemplate.queryForObject(countQuery, new Object[] {}, new LongRowMapper("CNT"));
             completeCount += result;
         }
-        LOG.info("database row count: " + completeCount);
-        return completeCount;
-    }
-
-    @Transactional
-    public void backupDatabase(String filename) {
-
-        List<String> scriptQueries = jdbcTemplate.query("SCRIPT;", new Object[] {}, new StringRowMapper("SCRIPT"));
-
-        try (FileOutputStream fos = new FileOutputStream(filename); ZipOutputStream zipOut = new ZipOutputStream(fos);) {
-
-            ZipEntry zipEntry = new ZipEntry(new File(filename).getName().replace(".zip", ""));
-            zipOut.putNextEntry(zipEntry);
-
-            scriptQueries.stream().forEach(e -> {
-                String line = StringUtils.trimToEmpty(e);
-                if (isNotCreateOrAlterStatement(line)) {
-                    byte[] cmdBytes = line.concat("\n").getBytes(StandardCharsets.UTF_8);
-                    try {
-                        zipOut.write(cmdBytes, 0, cmdBytes.length);
-                    } catch (IOException ioe) {
-                        throw new IllegalArgumentException("error writing zio out", ioe);
-                    }
-                }
-            });
-        } catch (Exception e) {
-            LOG.error("error processing backup file:", e);
-        }
-    }
-
-    private boolean isNotCreateOrAlterStatement(String line) {
-        return StringUtils.isNotBlank(line) && !StringUtils.startsWithIgnoreCase(line, "CREATE ")
-            && !StringUtils.startsWithIgnoreCase(line, "ALTER ") && !StringUtils.startsWithIgnoreCase(line, "-- ");
-    }
-
-    @Transactional(propagation = Propagation.REQUIRED)
-    public void restoreDatabase(String filename) throws IOException {
-
-        StringBuilder sb = new StringBuilder();
-        try (ZipInputStream zis = new ZipInputStream(new FileInputStream(filename));) {
-            byte[] buffer = new byte[1024];
-            ZipEntry zipEntry = zis.getNextEntry();
-            while (zipEntry != null) {
-                int len;
-                while ((len = zis.read(buffer)) > 0) {
-                    String s = new String(buffer, 0, len, StandardCharsets.UTF_8);
-                    sb.append(s);
-                }
-                zipEntry = zis.getNextEntry();
-            }
-            zis.closeEntry();
-        }
-
-        StringTokenizer tokenizer = new StringTokenizer(sb.toString(), ";");
-        while (tokenizer.hasMoreTokens()) {
-            jdbcTemplate.update(tokenizer.nextToken().trim() + ";");
-        }
+        countOnStartup = completeCount;
     }
 
     @Transactional
@@ -249,15 +183,6 @@ public class HistoryDatabaseDAO {
         }
         return jdbcTemplate.query("select * FROM " + command.getCashedVarName() + whereClause + " order by ts asc;",
             new Object[] {}, new TimestampValueRowMapper());
-    }
-
-    public String lookupPath() {
-
-        String path = env.getProperty("backup.database.path");
-        if (!path.endsWith("/")) {
-            path = path + "/"; // NOSONAR
-        }
-        return path;
     }
 
     private String formatTimestamp(LocalDateTime optionalFromDateTime) {

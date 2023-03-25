@@ -26,6 +26,12 @@ public class StateHandlerDAO {
     @Autowired
     private UniqueTimestampService uniqueTimestampService;
 
+    private boolean setupIsRunning = true;
+
+    public void completeInit(){
+        setupIsRunning = false;
+    }
+
     @PostConstruct
     @Transactional(propagation = Propagation.REQUIRED)
     public void createTables() {
@@ -63,6 +69,11 @@ public class StateHandlerDAO {
 
     @Transactional
     public void writeState(String groupname, String statename, String value){
+
+        if (setupIsRunning) {
+            throw new IllegalStateException("setup is still running");
+        }
+
         jdbcTemplate
                 .update("MERGE INTO " + TABLE_NAME + " KEY (GROUPNAME, STATENAME) VALUES (?, ?, ?, ?)",
                         groupname, cleanSqlValue(statename), uniqueTimestampService.getAsStringWithMillis(), cleanSqlValue(value));

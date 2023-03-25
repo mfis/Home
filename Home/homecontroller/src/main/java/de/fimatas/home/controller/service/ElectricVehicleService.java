@@ -75,17 +75,7 @@ public class ElectricVehicleService {
 
     @SuppressWarnings("FieldCanBeLocal") private final short CHARGING_LIMIT_MAX_DIFF = 7;
 
-    @PostConstruct
-    private void init() {
-        CompletableFuture.runAsync(() -> {
-            try {
-                refreshModel();
-                Arrays.stream(ElectricVehicle.values()).filter(ev -> !ev.isOther()).forEach(ev -> calculateChargingCapacity(ev, true));
-            } catch (Exception e) {
-                log.error("Could not initialize ElectricVehicleService completly.", e);
-            }
-        });
-    }
+    private boolean firstRun = true;
 
     public void refreshModel() {
 
@@ -177,6 +167,16 @@ public class ElectricVehicleService {
 
     @Scheduled(initialDelay = 1000 * 20, fixedDelay = (1000 * HomeAppConstants.CHARGING_STATE_CHECK_INTERVAL_SECONDS) + 234)
     private void scheduledCheckChargingState() {
+        if(firstRun){
+            try {
+                refreshModel();
+                Arrays.stream(ElectricVehicle.values()).filter(ev -> !ev.isOther()).forEach(ev -> calculateChargingCapacity(ev, true));
+            } catch (Exception e) {
+                log.error("Could not initialize ElectricVehicleService completly.", e);
+            } finally {
+                firstRun = false;
+            }
+        }
         checkChargingState();
     }
 
