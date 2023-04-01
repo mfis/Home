@@ -132,6 +132,7 @@ public class HouseViewService {
         formatFrontDoorLock(model, "frontDoorLock", house.getFrontDoorLock());
 
         formatPower(model, house.getTotalElectricalPowerConsumption(), historyModel==null?null:historyModel.getTotalElectricPowerConsumptionDay());
+        formatPower(model, house.getGasConsumption(), historyModel==null?null:historyModel.getGasConsumptionDay());
 
         formatWallboxSwitch(model, lookupWallboxId(), house.getWallboxSwitch(), house.getWallboxElectricalPowerConsumption(), electricVehicleModel);
         formatPower(model, house.getWallboxElectricalPowerConsumption(), historyModel==null?null:historyModel.getWallboxElectricPowerConsumptionDay());
@@ -197,22 +198,22 @@ public class HouseViewService {
         });
     }
 
-    private void formatGridsGroup(Model model, String viewKey, Place place, HouseModel house, List<PowerConsumptionDay> pcdElectric) {
+    private void formatGridsGroup(Model model, String viewKey, Place pseudo, HouseModel house, List<PowerConsumptionDay> pcdElectric) {
 
-        WidgetGroupView view = new WidgetGroupView(viewKey, place, pcdElectric);
+        WidgetGroupView view = new WidgetGroupView(viewKey, pseudo, pcdElectric);
         model.addAttribute(viewKey, view);
         if (view.isUnreach()) {
             return;
         }
 
         var electric = new View();
-        electric.setId(lookupTodayPowerId(house.getTotalElectricalPowerConsumption().getDevice().getPlace(), true));
-        electric.setState("0" + ViewFormatter.K_W_H);
+        electric.setId(lookupTodayPowerId(house.getTotalElectricalPowerConsumption().getDevice(), true));
+        electric.setState("0" + ViewFormatter.powerConsumptionUnit(house.getTotalElectricalPowerConsumption().getDevice()));
         if (pcdElectric != null &&!pcdElectric.isEmpty()) {
-            List<ChartEntry> dayViewModel = viewFormatter.fillPowerHistoryDayViewModel(pcdElectric, false, true);
+            List<ChartEntry> dayViewModel = viewFormatter.fillPowerHistoryDayViewModel(house.getTotalElectricalPowerConsumption().getDevice(), pcdElectric, false, true);
             if (dayViewModel != null && !dayViewModel.isEmpty()) {
                 electric.setState(dayViewModel.get(0).getLabel().replace(ViewFormatter.SUM_SIGN, "").trim());
-                electric.setColorClass(calculateViewConditionColorGridElectricPowerActualDayDay(dayViewModel.get(0).getNumericValue()).getUiClass());
+                electric.setColorClass(calculateViewConditionColorGridElectricPowerActualDayDay(house.getTotalElectricalPowerConsumption().getDevice(), dayViewModel.get(0).getNumericValue()).getUiClass());
             }
         }
         view.getCaptionAndValue().put("Strom", electric);
@@ -673,8 +674,9 @@ public class HouseViewService {
     private void formatPower(Model model, PowerMeter powerMeter, List<PowerConsumptionDay> pcd) {
 
         PowerView power = new PowerView();
-        power.setId(lookupTodayPowerId(powerMeter.getDevice().getPlace(), false));
+        power.setId(lookupTodayPowerId(powerMeter.getDevice(), false));
         power.setPlaceEnum(powerMeter.getDevice().getPlace());
+        power.setDevice(powerMeter.getDevice());
         power.setDescription(powerMeter.getDevice().getDescription());
         power.setUnreach(Boolean.toString(powerMeter.isUnreach()));
         if (powerMeter.isUnreach()) {
@@ -684,32 +686,34 @@ public class HouseViewService {
 
         power.setHistoryKey(powerMeter.getDevice().historyKeyPrefix());
         power.setState(powerMeter.getActualConsumption().getValue() == null ? UNBEKANNT
-                : powerMeter.getActualConsumption().getValue().intValue() + " W");
+                : ViewFormatter.powerConsumptionValueForView(powerMeter.getDevice(), powerMeter.getActualConsumption().getValue()) + ViewFormatter.actualPowerUnit(power.getDevice()));
         power.setName(powerMeter.getDevice().getType().getTypeName());
         if (powerMeter.getActualConsumption().getTendency() != null) {
             power.setTendencyIcon(powerMeter.getActualConsumption().getTendency().getIconCssClass());
         }
 
         if (pcd != null && !pcd.isEmpty()) {
-            List<ChartEntry> dayViewModel = viewFormatter.fillPowerHistoryDayViewModel(pcd, false, false);
+            List<ChartEntry> dayViewModel = viewFormatter.fillPowerHistoryDayViewModel(power.getDevice(), pcd, false, false);
             if (!dayViewModel.isEmpty()) {
                 power.setTodayConsumption(dayViewModel.get(0));
                 if (powerMeter.getDevice() == Device.STROMZAEHLER_GESAMT) {
-                    power.setColorClass(calculateViewConditionColorGridElectricPowerActualDayDay(dayViewModel.get(0).getNumericValue()).getUiClass());
+                    power.setColorClass(calculateViewConditionColorGridElectricPowerActualDayDay(powerMeter.getDevice(), dayViewModel.get(0).getNumericValue()).getUiClass());
                 }
             }
         }
 
         if (power.getTodayConsumption() == null) {
-            power.setElementTitleState("0" + ViewFormatter.K_W_H);
+            power.setElementTitleState("0" + ViewFormatter.powerConsumptionUnit(power.getDevice()));
         } else {
             power.setElementTitleState(power.getTodayConsumption().getLabel().replace(ViewFormatter.SUM_SIGN, "").trim());
         }
 
         if (powerMeter.getDevice() == Device.STROMZAEHLER_WALLBOX) {
             power.setIcon("fas fa-charging-station");
-        } else {
+        } else if (powerMeter.getDevice() == Device.STROMZAEHLER_GESAMT){
             power.setIcon("fas fa-bolt");
+        } else if (powerMeter.getDevice() == Device.GASZAEHLER){
+            power.setIcon("fa-solid fa-fire-flame-simple");
         }
 
         model.addAttribute(powerMeter.getDevice().programNamePrefix(), power);
@@ -1253,9 +1257,9 @@ public class HouseViewService {
         return place.name() + "_temp" + lookupGroupitemIdPostfix(isGroupItem);
     }
 
-    private static String lookupTodayPowerId(Place place, boolean isGroupItem) {
-        return place.name() + "_todayPowerSum" + lookupGroupitemIdPostfix(isGroupItem);
-    } // ev.setId("evcharge-" + e.getKey().name() + "_groupitem"); // FIXME
+    private static String lookupTodayPowerId(Device device, boolean isGroupItem) {
+        return device.name() + "_" + device.getPlace().name() + "_todayPowerSum" + lookupGroupitemIdPostfix(isGroupItem);
+    }
 
 
     private static String lookupEvChargeId(ElectricVehicle ev, boolean isGroupItem) {
@@ -1369,9 +1373,9 @@ public class HouseViewService {
         return percentage > 89 ? ConditionColor.ORANGE:percentage<21?ConditionColor.RED:ConditionColor.GREEN; // TODO: constant
     }
 
-    private ConditionColor calculateViewConditionColorGridElectricPowerActualDayDay(BigDecimal kwhDay) {
+    private ConditionColor calculateViewConditionColorGridElectricPowerActualDayDay(Device device, BigDecimal kwhDay) {
         var upRoundedHours = LocalTime.now().getHour() + 1;
-        var maxKwhPerHourForGreen = new BigDecimal("0.7"); // TODO: constant
+        var maxKwhPerHourForGreen = device.getType() == Type.GAS_POWER ? new BigDecimal("0.1") : new BigDecimal("0.7"); // TODO: constant
         return kwhDay.compareTo(maxKwhPerHourForGreen.multiply(new BigDecimal(upRoundedHours))) < 0 ? ConditionColor.GREEN : ConditionColor.ORANGE;
     }
 }

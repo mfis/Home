@@ -14,6 +14,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
+import de.fimatas.home.library.homematic.model.Device;
+import de.fimatas.home.library.homematic.model.Type;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.stereotype.Component;
@@ -30,11 +33,7 @@ public class ViewFormatter {
 
     public static final String DEGREE = "\u00b0";
 
-    public static final String K_W_H = " kW/h";
-
-    public static final long KWH_FACTOR = 1000L;
-
-    private static final BigDecimal KWH_FACTOR_BD = new BigDecimal(ViewFormatter.KWH_FACTOR);
+    private static final BigDecimal KWH_FACTOR = new BigDecimal(1000);
 
     private static final BigDecimal SPACER_VALUE = new BigDecimal("0.5");
 
@@ -45,6 +44,31 @@ public class ViewFormatter {
     private static final BigDecimal PLACEHOLDER_TIMERANGE_KWH = new BigDecimal("3");
 
     public static final DateTimeFormatter WEEKDAY_FORMATTER = DateTimeFormatter.ofPattern("EEEE", Locale.GERMAN);
+
+    private static final String K_W_H = " kW/h";
+
+    private static final String M_3_H = " m³/h";
+
+    private static final String WATT = " Watt";
+
+    private static final String M_3 = " m³";
+
+    public static String actualPowerUnit(Device device){
+        return device.getType() == Type.GAS_POWER ? M_3_H : WATT;
+    }
+
+    public static String powerConsumptionUnit(Device device){
+        return device.getType() == Type.GAS_POWER ? M_3 : K_W_H;
+    }
+
+    public static BigDecimal powerConsumptionValue(Device device, BigDecimal value){
+        return device.getType() == Type.GAS_POWER ? value : value.divide(KWH_FACTOR, new MathContext(3, RoundingMode.HALF_UP));
+    }
+
+    public static String powerConsumptionValueForView(Device device, BigDecimal value){
+        var decimalFormat = device.getType() == Type.GAS_POWER ? new DecimalFormat("0.0") : new DecimalFormat("0");
+        return decimalFormat.format(powerConsumptionValue(device, value));
+    }
 
     public static final DateTimeFormatter DAY_MONTH_YEAR_FORMATTER =
         DateTimeFormatter.ofPattern("E, dd.MM.yyyy", Locale.GERMAN);
@@ -141,7 +165,7 @@ public class ViewFormatter {
         return frmt;
     }
 
-    public List<ChartEntry> fillPowerHistoryDayViewModel(List<PowerConsumptionDay> days, boolean historyView, boolean onlyToday) {
+    public List<ChartEntry> fillPowerHistoryDayViewModel(Device device, List<PowerConsumptionDay> days, boolean historyView, boolean onlyToday) {
 
         DecimalFormat decimalFormat = new DecimalFormat("0.#");
         LocalDateTime today = LocalDateTime.now();
@@ -153,20 +177,20 @@ public class ViewFormatter {
             return chartEntries;
         }
 
-        BigDecimal maxKwh = maxSum.divide(KWH_FACTOR_BD, new MathContext(3, RoundingMode.HALF_UP));
+        BigDecimal maxVal = powerConsumptionValue(device, maxSum);
         int index = 0;
 
         for (PowerConsumptionDay pcd : days) {
             boolean isToday = HomeUtils.isSameDay(pcd.measurePointMaxDateTime(), today);
             BigDecimal percentageBase = HUNDRED.subtract(SPACER_VALUE.multiply(new BigDecimal(pcd.getValues().size())));
-            BigDecimal chartValuePerPowerValue = percentageBase.divide(maxKwh, new MathContext(3, RoundingMode.HALF_UP));
+            BigDecimal chartValuePerPowerValue = percentageBase.divide(maxVal, new MathContext(3, RoundingMode.HALF_UP));
             ChartEntry chartEntry = new ChartEntry();
             lookupCollapsablePowerDay(days, index, chartEntry);
             BigDecimal daySum = BigDecimal.ZERO;
-            daySum = handleAllTimeRangesForOneDay(decimalFormat, actualRange, pcd, isToday, chartValuePerPowerValue, chartEntry,
+            daySum = handleAllTimeRangesForOneDay(device, decimalFormat, actualRange, pcd, isToday, chartValuePerPowerValue, chartEntry,
                 daySum);
             String sumCaption = sumCaption(historyView, decimalFormat, isToday, daySum);
-            chartEntryLabels(historyView, pcd, chartEntry, sumCaption);
+            chartEntryLabels(device, historyView, pcd, chartEntry, sumCaption);
             chartEntry.setNumericValue(daySum);
             chartEntries.add(chartEntry);
             index++;
@@ -176,13 +200,13 @@ public class ViewFormatter {
         return chartEntries;
     }
 
-    private void chartEntryLabels(boolean historyView, PowerConsumptionDay pcd, ChartEntry chartEntry, String sumCaption) {
+    private void chartEntryLabels(Device device, boolean historyView, PowerConsumptionDay pcd, ChartEntry chartEntry, String sumCaption) {
         if (historyView) {
             chartEntry
                 .setLabel(StringUtils.capitalize(formatTimestamp(pcd.getMeasurePointMax(), TimestampFormat.DATE)));
             chartEntry.setAdditionalLabel(sumCaption);
         } else {
-            chartEntry.setLabel(chartEntry.getLabel() + " " + sumCaption + ViewFormatter.K_W_H);
+            chartEntry.setLabel(chartEntry.getLabel() + " " + sumCaption + ViewFormatter.powerConsumptionUnit(device));
         }
     }
 
@@ -206,7 +230,7 @@ public class ViewFormatter {
         return maxSum;
     }
 
-    private BigDecimal handleAllTimeRangesForOneDay(DecimalFormat decimalFormat, TimeRange actualRange, PowerConsumptionDay pcd,
+    private BigDecimal handleAllTimeRangesForOneDay(Device device, DecimalFormat decimalFormat, TimeRange actualRange, PowerConsumptionDay pcd,
             boolean isToday, BigDecimal chartValuePerPowerValue, ChartEntry chartEntry, BigDecimal daySum) {
 
         for (Map.Entry<TimeRange, BigDecimal> entry : pcd.getValues().entrySet()) {
@@ -217,7 +241,7 @@ public class ViewFormatter {
             if (isToday && comingTimeRange) {
                 kwh = handleComingTimeRange(vwc);
             } else {
-                kwh = handlePreviousOrActualTimeRange(decimalFormat, actualRange, isToday, entry, vwc);
+                kwh = handlePreviousOrActualTimeRange(device, decimalFormat, actualRange, isToday, entry, vwc);
                 daySum = daySum.add(kwh);
             }
             vwc.setValue(chartValuePerPowerValue.multiply(kwh).toString());
@@ -250,11 +274,11 @@ public class ViewFormatter {
         chartEntry.getValuesWithCaptions().add(spacer);
     }
 
-    private BigDecimal handlePreviousOrActualTimeRange(DecimalFormat decimalFormat, TimeRange actualRange, boolean isToday,
+    private BigDecimal handlePreviousOrActualTimeRange(Device device, DecimalFormat decimalFormat, TimeRange actualRange, boolean isToday,
             Map.Entry<TimeRange, BigDecimal> entry, ValueWithCaption vwc) {
 
         BigDecimal kwh;
-        kwh = entry.getValue().divide(KWH_FACTOR_BD, new MathContext(3, RoundingMode.HALF_UP));
+        kwh = powerConsumptionValue(device, entry.getValue());
         cssClassActiveTimerange(actualRange, isToday, entry, vwc);
         vwc.setCaption(chartValueCaption(decimalFormat, kwh));
         return kwh;

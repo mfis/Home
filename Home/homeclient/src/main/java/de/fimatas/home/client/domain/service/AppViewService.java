@@ -360,9 +360,9 @@ public class AppViewService {
 
     private HomeViewValueModel mapActualPower(PlaceDirectives placeDirectives, PowerView view) {
         HomeViewValueModel hvm = new HomeViewValueModel();
-        hvm.setId(placeDirectives.place.name() + "-actPowerSum");
+        hvm.setId(view.getDevice().name() + "-" + placeDirectives.place.name() + "-actPowerSum");
         hvm.setKey("Aktuell");
-        hvm.setValue(view.getState().replace("Watt", "W"));
+        hvm.setValue(view.getState());
         hvm.setAccent(mapAccent(view.getColorClass()));
         hvm.setTendency(Tendency.nameFromCssClass(view.getTendencyIcon()));
         return hvm;
@@ -375,7 +375,7 @@ public class AppViewService {
         if (BooleanUtils.toBoolean(view.getUnreach())) {
             hvm.setValue(StringUtils.EMPTY);
         } else if (view.getTodayConsumption() == null) {
-            hvm.setValue("0" + ViewFormatter.K_W_H);
+            hvm.setValue("0" + ViewFormatter.powerConsumptionUnit(view.getDevice()));
         }else {
             hvm.setValue(view.getTodayConsumption().getLabel().replace(ViewFormatter.SUM_SIGN, "").trim());
         }

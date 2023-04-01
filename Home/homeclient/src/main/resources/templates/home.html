@@ -81,6 +81,7 @@
 	
 			<!-- Energie -->
 			<div th:replace="fragments :: title (name='Energie')"></div>
+			<div th:replace="fragments :: actualPowerConsumption (model=${GasHaus})"></div>
 			<div th:replace="fragments :: actualPowerConsumption (model=${StromHaus})"></div>
 			<div th:replace="fragments :: wallbox (modelMeter=${StromWallbox}, modelSwitch=${switchWallbox})"></div>
 			<div th:replace="fragments-evcharge :: evcharge (model=${evcharge_EUP})"></div>

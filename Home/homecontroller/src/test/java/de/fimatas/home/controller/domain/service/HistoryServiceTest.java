@@ -198,7 +198,7 @@ public class HistoryServiceTest {
 
         final LocalDateTime baseTime = LocalDateTime.of(2019, 12, 7, 21, 30);
         final HistoryElement historyElement = new HistoryElement(
-                homematicCommandBuilder.read(Device.AUSSENTEMPERATUR, Datapoint.TEMPERATURE), HistoryStrategy.AVG, 1);
+                homematicCommandBuilder.read(Device.AUSSENTEMPERATUR, Datapoint.TEMPERATURE), HistoryStrategy.AVG, new BigDecimal(1));
 
         class TestParams {
             final TimestampValuePair pair;

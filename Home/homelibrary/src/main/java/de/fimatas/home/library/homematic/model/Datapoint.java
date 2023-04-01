@@ -26,6 +26,8 @@ public enum Datapoint {
     ERROR(HomematicValueFormat.DEC, null, false), //
     UNREACH(HomematicValueFormat.DEC, 0, false), //
     SYSVAR_DUMMY(null, null, false), //
+    GAS_ENERGY_COUNTER(HomematicValueFormat.DEC, null, true), //
+    GAS_POWER(HomematicValueFormat.DEC, null, false), //
     ;
 
     protected static final List<Datapoint> LIST_THERMOSTAT_HM =
@@ -42,6 +44,8 @@ public enum Datapoint {
     protected static final List<Datapoint> LIST_SWITCH_HM = Arrays.asList(Datapoint.STATE);
 
     protected static final List<Datapoint> LIST_POWERMETER_HM = Arrays.asList(Datapoint.ENERGY_COUNTER, Datapoint.POWER);
+
+    protected static final List<Datapoint> LIST_GASMETER_HM = Arrays.asList(Datapoint.GAS_ENERGY_COUNTER, Datapoint.GAS_POWER);
 
     protected static final List<Datapoint> LIST_SYSVAR = Arrays.asList(Datapoint.SYSVAR_DUMMY);
 

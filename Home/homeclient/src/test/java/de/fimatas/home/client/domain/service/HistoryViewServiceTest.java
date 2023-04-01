@@ -4,6 +4,7 @@ import de.fimatas.home.client.domain.model.HistoryEntry;
 import de.fimatas.home.library.domain.model.PowerConsumptionMonth;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
@@ -36,11 +37,11 @@ class HistoryViewServiceTest {
         var testObject = new HistoryEntry();
         var actualValue = new PowerConsumptionMonth();
         actualValue.setMeasurePointMax(LocalDate.of(2022, 3, 31).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
-        actualValue.setPowerConsumption( newValue);
+        actualValue.setPowerConsumption(newValue == null ? null : new BigDecimal(newValue));
 
         var oldPowerConsumptionMonth = new PowerConsumptionMonth();
         oldPowerConsumptionMonth.setMeasurePointMax(LocalDate.of(2021, 3, 31).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
-        oldPowerConsumptionMonth.setPowerConsumption( oldValue);
+        oldPowerConsumptionMonth.setPowerConsumption(oldValue == null ? null : new BigDecimal(oldValue));
 
         new HistoryViewService().calculatePreviousYearDifference(testObject, actualValue, List.of(oldPowerConsumptionMonth), null);
 

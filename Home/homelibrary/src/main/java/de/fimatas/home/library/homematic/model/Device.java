@@ -38,6 +38,9 @@ public enum Device {
     STROMZAEHLER_WALLBOX(HomematicProtocol.HM, Type.ELECTRIC_POWER, Place.WALLBOX, true, Datapoint.LIST_POWERMETER_HM,
         Type.VAR_PREFIXES_TIMESTAMP),
 
+    GASZAEHLER(HomematicProtocol.HM, Type.GAS_POWER, Place.HOUSE, true, Datapoint.LIST_GASMETER_HM,
+            Type.VAR_PREFIXES_TIMESTAMP),
+
     SCHALTER_WALLBOX(HomematicProtocol.HM, Type.SWITCH_WALLBOX, Place.WALLBOX, true, Datapoint.LIST_SWITCH_HM,
         Type.VAR_PREFIXES_SWITCH_AUTO, Boolean.class, AutomationState.class),
 

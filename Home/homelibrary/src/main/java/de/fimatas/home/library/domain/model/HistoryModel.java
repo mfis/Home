@@ -20,6 +20,10 @@ public class HistoryModel implements Serializable {
 
     private List<PowerConsumptionDay> wallboxElectricPowerConsumptionDay;
 
+    private List<PowerConsumptionMonth> gasConsumptionMonth;
+
+    private List<PowerConsumptionDay> gasConsumptionDay;
+
     private boolean initialized = false;
 
     private BigDecimal highestOutsideTemperatureInLast24Hours;
@@ -63,6 +67,8 @@ public class HistoryModel implements Serializable {
         totalElectricPowerConsumptionDay = new LinkedList<>();
         wallboxElectricPowerConsumptionMonth = new LinkedList<>();
         wallboxElectricPowerConsumptionDay = new LinkedList<>();
+        gasConsumptionDay = new LinkedList<>();
+        gasConsumptionMonth = new LinkedList<>();
         outsideTemperature = new LinkedList<>();
         bedRoomTemperature = new LinkedList<>();
         kidsRoom1Temperature = new LinkedList<>();
@@ -150,4 +156,20 @@ public class HistoryModel implements Serializable {
         this.wallboxElectricPowerConsumptionDay = wallboxElectricPowerConsumptionDay;
     }
 
+
+    public List<PowerConsumptionMonth> getGasConsumptionMonth() {
+        return gasConsumptionMonth;
+    }
+
+    public void setGasConsumptionMonth(List<PowerConsumptionMonth> gasConsumptionMonth) {
+        this.gasConsumptionMonth = gasConsumptionMonth;
+    }
+
+    public List<PowerConsumptionDay> getGasConsumptionDay() {
+        return gasConsumptionDay;
+    }
+
+    public void setGasConsumptionDay(List<PowerConsumptionDay> gasConsumptionDay) {
+        this.gasConsumptionDay = gasConsumptionDay;
+    }
 }

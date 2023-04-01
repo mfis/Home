@@ -62,6 +62,8 @@ public class HouseModel implements Serializable {
 
     private PowerMeter wallboxElectricalPowerConsumption;
 
+    private PowerMeter gasConsumption;
+
     private Doorbell frontDoorBell;
 
     private Camera frontDoorCamera;
@@ -359,5 +361,13 @@ public class HouseModel implements Serializable {
 
     public void setClimateWorkshop(RoomClimate climateWorkshop) {
         this.climateWorkshop = climateWorkshop;
+    }
+
+    public PowerMeter getGasConsumption() {
+        return gasConsumption;
+    }
+
+    public void setGasConsumption(PowerMeter gasConsumption) {
+        this.gasConsumption = gasConsumption;
     }
 }

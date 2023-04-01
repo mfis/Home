@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import de.fimatas.home.library.homematic.model.Device;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -43,14 +44,19 @@ public class HistoryViewService {
     public void fillHistoryViewModel(Model model, HistoryModel history, HouseModel house, String key) {
 
         if (key.equals(house.getTotalElectricalPowerConsumption().getDevice().historyKeyPrefix())) {
-            fillPowerHistoryMonthViewModel(model, history.getTotalElectricPowerConsumptionMonth());
+            fillPowerHistoryMonthViewModel(model, house.getTotalElectricalPowerConsumption().getDevice(), history.getTotalElectricPowerConsumptionMonth());
             List<ChartEntry> dayViewModel =
-                viewFormatter.fillPowerHistoryDayViewModel(history.getTotalElectricPowerConsumptionDay(), true, false);
+                viewFormatter.fillPowerHistoryDayViewModel(house.getTotalElectricalPowerConsumption().getDevice(), history.getTotalElectricPowerConsumptionDay(), true, false);
             model.addAttribute("chartEntries", dayViewModel);
         } else if (key.equals(house.getWallboxElectricalPowerConsumption().getDevice().historyKeyPrefix())) {
-            fillPowerHistoryMonthViewModel(model, history.getWallboxElectricPowerConsumptionMonth());
+            fillPowerHistoryMonthViewModel(model, house.getWallboxElectricalPowerConsumption().getDevice(), history.getWallboxElectricPowerConsumptionMonth());
             List<ChartEntry> dayViewModel =
-                viewFormatter.fillPowerHistoryDayViewModel(history.getWallboxElectricPowerConsumptionDay(), true, false);
+                viewFormatter.fillPowerHistoryDayViewModel(house.getWallboxElectricalPowerConsumption().getDevice(), history.getWallboxElectricPowerConsumptionDay(), true, false);
+            model.addAttribute("chartEntries", dayViewModel);
+        } else if (key.equals(house.getGasConsumption().getDevice().historyKeyPrefix())) {
+            fillPowerHistoryMonthViewModel(model, house.getGasConsumption().getDevice(), history.getGasConsumptionMonth());
+            List<ChartEntry> dayViewModel =
+                    viewFormatter.fillPowerHistoryDayViewModel(house.getGasConsumption().getDevice(), history.getGasConsumptionDay(), true, false);
             model.addAttribute("chartEntries", dayViewModel);
         } else if (key.equals(house.getConclusionClimateFacadeMin().getDevice().historyKeyPrefix())) {
             fillTemperatureHistoryViewModel(model, history.getOutsideTemperature());
@@ -65,10 +71,9 @@ public class HistoryViewService {
         }
     }
 
-    private void fillPowerHistoryMonthViewModel(Model model, List<PowerConsumptionMonth> pcms) {
+    private void fillPowerHistoryMonthViewModel(Model model, Device device, List<PowerConsumptionMonth> pcms) {
 
         List<HistoryEntry> list = new LinkedList<>();
-        DecimalFormat decimalFormat = new DecimalFormat("0");
         int index = 0;
         for (PowerConsumptionMonth pcm : pcms) {
             if (pcm.getPowerConsumption() != null) {
@@ -76,14 +81,14 @@ public class HistoryViewService {
                 Long calculated = null;
                 entry.setLineOneLabel(MONTH_YEAR_FORMATTER.format(pcm.measurePointMaxDateTime()));
                 entry.setLineOneValue(
-                    decimalFormat.format(pcm.getPowerConsumption() / ViewFormatter.KWH_FACTOR) + ViewFormatter.K_W_H);
+                        ViewFormatter.powerConsumptionValueForView(device, pcm.getPowerConsumption()) + ViewFormatter.powerConsumptionUnit(device));
                 lookupCollapsablePowerMonth(pcms, index, entry);
                 boolean calculateDifference = true;
                 if (index == pcms.size() - 1) {
                     if (pcm.measurePointMaxDateTime().getDayOfMonth() > 1) {
                         entry.setLineTwoLabel("Hochgerechnet");
                         entry.setBadgeLabel("Vergleich Vorjahr");
-                        calculated = calculateProjectedConsumption(entry, pcm.measurePointMaxDateTime(), pcm);
+                        calculated = calculateProjectedConsumption(entry, device, pcm.measurePointMaxDateTime(), pcm);
                     } else {
                         calculateDifference = false;
                     }
@@ -102,18 +107,17 @@ public class HistoryViewService {
         model.addAttribute("historyEntries", list);
     }
 
-    private Long calculateProjectedConsumption(HistoryEntry entry, LocalDateTime dateTime, PowerConsumptionMonth pcm) {
+    private Long calculateProjectedConsumption(HistoryEntry entry, Device device, LocalDateTime dateTime, PowerConsumptionMonth pcm) {
 
         YearMonth yearMonthObject = YearMonth.of(dateTime.getYear(), dateTime.getMonthValue());
         int daysInMonth = yearMonthObject.lengthOfMonth();
         int hoursAgo = ((dateTime.getDayOfMonth() - 1) * 24) + dateTime.getHour();
         int hoursToGo = (daysInMonth * 24) - hoursAgo;
         if (hoursAgo > 0) {
-            BigDecimal actualValue = new BigDecimal(pcm.getPowerConsumption());
-            BigDecimal calculated = actualValue
-                .add(actualValue.divide(new BigDecimal(hoursAgo), 2, RoundingMode.HALF_UP).multiply(new BigDecimal(hoursToGo)));
+            BigDecimal calculated = pcm.getPowerConsumption()
+                .add(pcm.getPowerConsumption().divide(new BigDecimal(hoursAgo), 2, RoundingMode.HALF_UP).multiply(new BigDecimal(hoursToGo)));
             entry.setLineTwoValue(
-                "≈" + new DecimalFormat("0").format(calculated.longValue() / ViewFormatter.KWH_FACTOR) + ViewFormatter.K_W_H);
+                "≈" + ViewFormatter.powerConsumptionValueForView(device, calculated) + ViewFormatter.powerConsumptionUnit(device));
             return calculated.longValue();
         }
         return null;
@@ -124,19 +128,19 @@ public class HistoryViewService {
 
         DecimalFormat decimalFormat = new DecimalFormat("+0;-0");
         LocalDateTime baseDateTime = pcm.measurePointMaxDateTime();
-        Long baseValue = calculated != null ? calculated : (pcm.getPowerConsumption() != null? pcm.getPowerConsumption() : 0L);
+        long baseValue = calculated != null ? calculated : (pcm.getPowerConsumption() != null? pcm.getPowerConsumption().longValue() : 0L);
         Long compareValue = null;
 
         for (PowerConsumptionMonth historyEntry : history) {
             LocalDateTime otherDateTime = historyEntry.measurePointMaxDateTime();
             if (otherDateTime.getYear() + 1 == baseDateTime.getYear()
                 && otherDateTime.getMonthValue() == baseDateTime.getMonthValue()) {
-                compareValue = historyEntry.getPowerConsumption();
+                compareValue = historyEntry.getPowerConsumption() == null ? null : historyEntry.getPowerConsumption().longValue();
                 break;
             }
         }
 
-        if (baseValue != null && compareValue != null && compareValue != 0L) {
+        if (compareValue != null && compareValue != 0L) {
             BigDecimal percentage =
                     new BigDecimal(baseValue).divide(new BigDecimal(compareValue), 4, RoundingMode.HALF_UP).multiply(BD100).subtract(BD100);
             if(percentage.compareTo(BigDecimal.ZERO) == 0){

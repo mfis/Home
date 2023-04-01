@@ -1,5 +1,6 @@
 package de.fimatas.home.controller.model;
 
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -26,40 +27,43 @@ public class History {
 
         elements
             .add(new HistoryElement(homematicCommandBuilder.read(Device.THERMOMETER_KINDERZIMMER_1, Datapoint.ACTUAL_TEMPERATURE),
-                HistoryStrategy.AVG, 1));
+                HistoryStrategy.AVG, new BigDecimal(1)));
 
         elements.add(new HistoryElement(homematicCommandBuilder.read(Device.THERMOMETER_KINDERZIMMER_1, Datapoint.HUMIDITY),
-            HistoryStrategy.AVG, 2));
+            HistoryStrategy.AVG, new BigDecimal(2)));
 
         elements
                 .add(new HistoryElement(homematicCommandBuilder.read(Device.THERMOMETER_KINDERZIMMER_2, Datapoint.ACTUAL_TEMPERATURE),
-                        HistoryStrategy.AVG, 1));
+                        HistoryStrategy.AVG, new BigDecimal(1)));
 
         elements.add(new HistoryElement(homematicCommandBuilder.read(Device.THERMOMETER_KINDERZIMMER_2, Datapoint.HUMIDITY),
-                HistoryStrategy.AVG, 2));
+                HistoryStrategy.AVG, new BigDecimal(2)));
 
         elements
             .add(new HistoryElement(homematicCommandBuilder.read(Device.THERMOMETER_SCHLAFZIMMER, Datapoint.ACTUAL_TEMPERATURE),
-                HistoryStrategy.AVG, 1));
+                HistoryStrategy.AVG, new BigDecimal(1)));
 
         elements.add(new HistoryElement(homematicCommandBuilder.read(Device.THERMOMETER_SCHLAFZIMMER, Datapoint.HUMIDITY),
-            HistoryStrategy.AVG, 2));
+            HistoryStrategy.AVG, new BigDecimal(2)));
 
         elements
             .add(new HistoryElement(homematicCommandBuilder.read(Device.THERMOMETER_WASCHKUECHE, Datapoint.ACTUAL_TEMPERATURE),
-                HistoryStrategy.AVG, 1));
+                HistoryStrategy.AVG, new BigDecimal(1)));
 
         elements.add(new HistoryElement(homematicCommandBuilder.read(Device.THERMOMETER_WASCHKUECHE, Datapoint.HUMIDITY),
-            HistoryStrategy.AVG, 2));
+            HistoryStrategy.AVG, new BigDecimal(2)));
 
         elements.add(
-            new HistoryElement(homematicCommandBuilder.read(Device.AUSSENTEMPERATUR, Datapoint.VALUE), HistoryStrategy.AVG, 1));
+            new HistoryElement(homematicCommandBuilder.read(Device.AUSSENTEMPERATUR, Datapoint.VALUE), HistoryStrategy.AVG, new BigDecimal(1)));
 
         elements.add(new HistoryElement(homematicCommandBuilder.read(Device.STROMZAEHLER_GESAMT, Datapoint.ENERGY_COUNTER),
-            HistoryStrategy.MAX, 1000));
+            HistoryStrategy.MAX, new BigDecimal(1000)));
 
         elements.add(new HistoryElement(homematicCommandBuilder.read(Device.STROMZAEHLER_WALLBOX, Datapoint.ENERGY_COUNTER),
-            HistoryStrategy.MAX, 1000));
+            HistoryStrategy.MAX, new BigDecimal(1000)));
+
+        elements.add(new HistoryElement(homematicCommandBuilder.read(Device.GASZAEHLER, Datapoint.GAS_ENERGY_COUNTER),
+                HistoryStrategy.MAX, new BigDecimal("0.1")));
     }
 
     public List<HistoryElement> list() {

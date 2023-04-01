@@ -1,6 +1,7 @@
 package de.fimatas.home.library.domain.model;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -9,7 +10,7 @@ public class PowerConsumptionMonth implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private Long powerConsumption;
+    private BigDecimal powerConsumption;
 
     private long measurePointMin;
 
@@ -17,11 +18,11 @@ public class PowerConsumptionMonth implements Serializable {
 
     private transient LocalDateTime measurePointMaxDateTime = null;
 
-    public Long getPowerConsumption() {
+    public BigDecimal getPowerConsumption() {
         return powerConsumption;
     }
 
-    public void setPowerConsumption(Long powerConsumption) {
+    public void setPowerConsumption(BigDecimal powerConsumption) {
         this.powerConsumption = powerConsumption;
     }
 

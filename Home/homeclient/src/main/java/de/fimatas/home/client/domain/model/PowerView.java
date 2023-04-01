@@ -1,5 +1,7 @@
 package de.fimatas.home.client.domain.model;
 
+import de.fimatas.home.library.homematic.model.Device;
+
 public class PowerView extends View {
 
     private String tendencyIcon = "";
@@ -7,6 +9,8 @@ public class PowerView extends View {
     private String description = "";
 
     private ChartEntry todayConsumption;
+
+    private Device device;
 
     public String getTendencyIcon() {
         return tendencyIcon;
@@ -32,4 +36,11 @@ public class PowerView extends View {
         this.todayConsumption = todayConsumption;
     }
 
+    public Device getDevice() {
+        return device;
+    }
+
+    public void setDevice(Device device) {
+        this.device = device;
+    }
 }

@@ -21,6 +21,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import de.fimatas.home.controller.service.UploadService;
+import de.fimatas.home.library.homematic.model.Type;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -156,10 +157,12 @@ public class HistoryService {
 
         HistoryModel newModel = new HistoryModel();
 
-        calculateElectricPowerConsumption(newModel.getTotalElectricPowerConsumptionDay(),
+        calculatePowerConsumption(newModel.getTotalElectricPowerConsumptionDay(),
             newModel.getTotalElectricPowerConsumptionMonth(), Device.STROMZAEHLER_GESAMT, null);
-        calculateElectricPowerConsumption(newModel.getWallboxElectricPowerConsumptionDay(),
+        calculatePowerConsumption(newModel.getWallboxElectricPowerConsumptionDay(),
             newModel.getWallboxElectricPowerConsumptionMonth(), Device.STROMZAEHLER_WALLBOX, null);
+        calculatePowerConsumption(newModel.getGasConsumptionDay(),
+                newModel.getGasConsumptionMonth(), Device.GASZAEHLER, null);
 
         calculateTemperatureHistory(newModel.getOutsideTemperature(), Device.AUSSENTEMPERATUR, Datapoint.VALUE);
         calculateTemperatureHistory(newModel.getKidsRoom1Temperature(), Device.THERMOMETER_KINDERZIMMER_1,
@@ -206,15 +209,20 @@ public class HistoryService {
             return;
         }
 
-        calculateElectricPowerConsumption(model.getTotalElectricPowerConsumptionDay(),
+        calculatePowerConsumption(model.getTotalElectricPowerConsumptionDay(),
             model.getTotalElectricPowerConsumptionMonth(), Device.STROMZAEHLER_GESAMT,
             model.getTotalElectricPowerConsumptionMonth().isEmpty() ? null : model.getTotalElectricPowerConsumptionMonth()
                 .get(model.getTotalElectricPowerConsumptionMonth().size() - 1).measurePointMaxDateTime());
 
-        calculateElectricPowerConsumption(model.getWallboxElectricPowerConsumptionDay(),
+        calculatePowerConsumption(model.getWallboxElectricPowerConsumptionDay(),
             model.getWallboxElectricPowerConsumptionMonth(), Device.STROMZAEHLER_WALLBOX,
             model.getWallboxElectricPowerConsumptionMonth().isEmpty() ? null : model.getWallboxElectricPowerConsumptionMonth()
                 .get(model.getWallboxElectricPowerConsumptionMonth().size() - 1).measurePointMaxDateTime());
+
+        calculatePowerConsumption(model.getGasConsumptionDay(),
+                model.getGasConsumptionMonth(), Device.GASZAEHLER,
+                model.getGasConsumptionMonth().isEmpty() ? null : model.getGasConsumptionMonth()
+                        .get(model.getGasConsumptionMonth().size() - 1).measurePointMaxDateTime());
 
         updateTemperatureHistory(model.getOutsideTemperature(), Device.AUSSENTEMPERATUR, Datapoint.VALUE);
         updateTemperatureHistory(model.getKidsRoom1Temperature(), Device.THERMOMETER_KINDERZIMMER_1, Datapoint.ACTUAL_TEMPERATURE);
@@ -320,11 +328,12 @@ public class HistoryService {
         return ldt;
     }
 
-    private void calculateElectricPowerConsumption(List<PowerConsumptionDay> day, List<PowerConsumptionMonth> month,
-            Device device, LocalDateTime fromDateTime) {
+    private void calculatePowerConsumption(List<PowerConsumptionDay> day, List<PowerConsumptionMonth> month,
+                                           Device device, LocalDateTime fromDateTime) {
 
+        Datapoint datapoint = device.getType() == Type.GAS_POWER ? Datapoint.GAS_ENERGY_COUNTER : Datapoint.ENERGY_COUNTER;
         List<TimestampValuePair> timestampValues =
-            readValuesWithCache(homematicCommandBuilder.read(device, Datapoint.ENERGY_COUNTER), fromDateTime);
+            readValuesWithCache(homematicCommandBuilder.read(device, datapoint), fromDateTime);
 
         if (timestampValues.isEmpty()) {
             return;
@@ -382,7 +391,7 @@ public class HistoryService {
         if (dest == null) {
             dest = new PowerConsumptionMonth();
             if (!powerConsumptionMonth.isEmpty()) {
-                dest.setPowerConsumption(0L);
+                dest.setPowerConsumption(BigDecimal.ZERO);
                 dest.setMeasurePointMin(powerConsumptionMonth.get(powerConsumptionMonth.size() - 1).getMeasurePointMax());
             }
             powerConsumptionMonth.add(dest);
@@ -407,11 +416,11 @@ public class HistoryService {
 
         if (lastSingleValue != null) {
             if (lastSingleValue.longValue() < measurePoint.getValue().longValue()) {
-                pcm.setPowerConsumption((pcm.getPowerConsumption() != null ? pcm.getPowerConsumption() : 0)
-                    + (measurePoint.getValue().longValue() - lastSingleValue.longValue()));
+                pcm.setPowerConsumption((pcm.getPowerConsumption() != null ? pcm.getPowerConsumption() : BigDecimal.ZERO)
+                        .add(measurePoint.getValue().subtract(lastSingleValue)));
             } else if (lastSingleValue.compareTo(measurePoint.getValue()) > 0) {
                 // overflow
-                pcm.setPowerConsumption(pcm.getPowerConsumption() + measurePoint.getValue().longValue());
+                pcm.setPowerConsumption(pcm.getPowerConsumption().add(measurePoint.getValue()));
             }
         }
         pcm.setMeasurePointMax(measurePoint.getTimestamp().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
@@ -610,14 +619,14 @@ public class HistoryService {
             return;
         }
 
-        if(lastValue.getValue().subtract(pair.getValue()).abs().compareTo(new BigDecimal(history.getValueDifferenceToSave())) >= 0){
+        if(lastValue.getValue().subtract(pair.getValue()).abs().compareTo(history.getValueDifferenceToSave()) >= 0){
             dest.add(pair);
             return;
         }
 
         long lastValueRounded = lastValue.getValue().setScale(0, RoundingMode.HALF_UP).longValue();
         long actualValueRounded = pair.getValue().setScale(0, RoundingMode.HALF_UP).longValue();
-        if (Math.abs(actualValueRounded - lastValueRounded) >= history.getValueDifferenceToSave()) {
+        if (new BigDecimal(Math.abs(actualValueRounded - lastValueRounded)).compareTo(history.getValueDifferenceToSave()) >= 0) {
             dest.add(pair);
             return;
         }

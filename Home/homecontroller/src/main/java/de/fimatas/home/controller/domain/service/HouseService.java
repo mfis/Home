@@ -168,6 +168,7 @@ public class HouseService {
 
         newModel.setTotalElectricalPowerConsumption(readPowerConsumption(Device.STROMZAEHLER_GESAMT));
         newModel.setWallboxElectricalPowerConsumption(readPowerConsumption(Device.STROMZAEHLER_WALLBOX));
+        newModel.setGasConsumption(readPowerConsumption(Device.GASZAEHLER));
 
         for (Device device : Device.values()) {
             checkLowBattery(newModel, device);
@@ -815,8 +816,9 @@ public class HouseService {
         if (isPowerConsumptionOutdated(device)) {
             model.setActualConsumption(new ValueWithTendency<>(BigDecimal.ZERO));
         } else {
+            Datapoint datapoint = device.getType() == Type.GAS_POWER ? Datapoint.GAS_POWER : Datapoint.POWER;
             model.setActualConsumption(
-                new ValueWithTendency<>(hmApi.getAsBigDecimal(homematicCommandBuilder.read(device, Datapoint.POWER))));
+                new ValueWithTendency<>(hmApi.getAsBigDecimal(homematicCommandBuilder.read(device, datapoint))));
         }
 
         return model;
@@ -833,7 +835,7 @@ public class HouseService {
         LocalDateTime lastValueChange = Instant.ofEpochMilli(tsLong).atZone(ZoneId.systemDefault()).toLocalDateTime();
 
         return Duration.between(lastValueChange, LocalDateTime.now())
-            .toSeconds() > HomeAppConstants.POWER_CONSUMPTION_OUTDATED_DECONDS;
+            .toSeconds() > (device.getType() == Type.GAS_POWER ? HomeAppConstants.POWER_CONSUMPTION_OUTDATED_DECONDS_GAS : HomeAppConstants.POWER_CONSUMPTION_OUTDATED_DECONDS_ELECTRICITY);
     }
 
     private void checkLowBattery(HouseModel model, Device device) {
