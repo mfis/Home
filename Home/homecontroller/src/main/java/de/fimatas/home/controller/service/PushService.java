@@ -206,7 +206,6 @@ public class PushService {
 
         timestampLastDoorbellPushMessage = LocalDateTime.now();
 
-        LOG.info("doorbellMessage(..)"); // FIXME
         settingsService.listTokensWithEnabledSetting(PushNotifications.DOORBELL).forEach(pushToken ->
                 handleMessage(pushToken, PushNotifications.DOORBELL.getPushText(), "Türklingelbetätigung!"));
     }
@@ -228,7 +227,6 @@ public class PushService {
     private void handleMessage(PushToken pushToken, String title, String message) {
 
         LocalDateTime ts = uniqueTimestampService.get();
-        LOG.info(String.format("handleMessage(%s, %s, %s)", ts.toString(), pushToken.getUsername(), title)); // FIXME
         if (HomeAppConstants.PUSH_TOKEN_NOT_AVAILABLE_INDICATOR.equals(pushToken.getToken())) {
             LOG.info("Push Message to dummy token: " + title + " - " + message);
             saveNewMessageToDatabase(ts, pushToken, title, message);
@@ -262,7 +260,6 @@ public class PushService {
         } else {
             LOG.error("Failed to send push notification to apns.", cause);
         }
-        LOG.info(String.format("handleApnsResponse(%s, %s, %s)", ts.toString(), pushToken.getUsername(), title)); // FIXME
         saveNewMessageToDatabase(ts, pushToken, title, text);
         if(doResetSettings){
             settingsService.resetSettingsForToken(pushToken.getToken());
