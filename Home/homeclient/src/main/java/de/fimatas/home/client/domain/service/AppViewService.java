@@ -7,6 +7,7 @@ import java.util.stream.Stream;
 
 import de.fimatas.home.client.domain.model.*;
 import de.fimatas.home.library.domain.model.HeatpumpPreset;
+import de.fimatas.home.library.homematic.model.Type;
 import de.fimatas.home.library.model.ConditionColor;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -145,9 +146,9 @@ public class AppViewService {
     private void mapPowerView(PlaceDirectives placeDirectives, PowerView view, HomeViewPlaceModel placeModel, AppViewTarget viewTarget) {
 
         if (placeDirectives.place == Place.HOUSE) {
-            placeModel.setName("Strom Gesamt");
+            placeModel.setName("Netze");
         }
-        placeModel.getValues().add(mapActualPower(placeDirectives, view));
+        // placeModel.getValues().add(mapActualPower(placeDirectives, view));
         placeModel.getValues().add(mapTodayPower(placeDirectives, view));
     }
 
@@ -371,7 +372,7 @@ public class AppViewService {
     private HomeViewValueModel mapTodayPower(PlaceDirectives placeDirectives, PowerView view) {
         HomeViewValueModel hvm = new HomeViewValueModel();
         hvm.setId(view.getId());
-        hvm.setKey("Heute");
+        hvm.setKey(view.getDevice().getType() == Type.GAS_POWER ? "Gas" : "Strom");
         if (BooleanUtils.toBoolean(view.getUnreach())) {
             hvm.setValue(StringUtils.EMPTY);
         } else if (view.getTodayConsumption() == null) {

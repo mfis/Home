@@ -156,7 +156,7 @@ public class HouseViewService {
 
         // widget only
         formatUpperFloorGroup(model, "widgetUpperFloor", Place.WIDGET_UPPER_FLOOR_TEMPERATURE, house);
-        formatGridsGroup(model, "widgetGrids", Place.WIDGET_GRIDS, house, historyModel==null?null:historyModel.getTotalElectricPowerConsumptionDay());
+        formatGridsGroup(model, "widgetGrids", Place.WIDGET_GRIDS, house, historyModel==null?null:historyModel.getTotalElectricPowerConsumptionDay(), historyModel==null?null:historyModel.getGasConsumptionDay());
         formatEnergyGroup(model, "widgetEnergy", Place.WIDGET_ENERGY, electricVehicleModel);
         formatSymbolsGroup(model, "widgetSymbols", Place.WIDGET_SYMBOLS, presenceModel, heatpumpModel);
     }
@@ -176,15 +176,7 @@ public class HouseViewService {
             return;
         }
 
-        Comparator<RoomClimate> comparator =
-                Comparator.comparing(Climate::getTemperature, Comparator.comparing(ValueWithTendency::getValue));
-        Optional<RoomClimate> minTemperature = subPlaces.stream().min(comparator);
-        Optional<RoomClimate> maxTemperature = subPlaces.stream().max(comparator);
-
-        var from = format(minTemperature.get().getTemperature().getValue(), false, false);
-        var to = format(maxTemperature.get().getTemperature().getValue(), false, false);
-
-        subPlaces.stream().forEach(sp -> {
+        subPlaces.forEach(sp -> {
             if(!sp.isBusy() && !sp.isUnreach()){
                 var singlePlace = sp.getDevice().getPlace();
                 var key = house.getPlaceSubtitles().containsKey(singlePlace) ? house.getPlaceSubtitles().get(singlePlace) : singlePlace.getPlaceName();
@@ -198,7 +190,7 @@ public class HouseViewService {
         });
     }
 
-    private void formatGridsGroup(Model model, String viewKey, Place pseudo, HouseModel house, List<PowerConsumptionDay> pcdElectric) {
+    private void formatGridsGroup(Model model, String viewKey, Place pseudo, HouseModel house, List<PowerConsumptionDay> pcdElectric, List<PowerConsumptionDay> pcdGas) {
 
         WidgetGroupView view = new WidgetGroupView(viewKey, pseudo, pcdElectric);
         model.addAttribute(viewKey, view);
@@ -213,10 +205,22 @@ public class HouseViewService {
             List<ChartEntry> dayViewModel = viewFormatter.fillPowerHistoryDayViewModel(house.getTotalElectricalPowerConsumption().getDevice(), pcdElectric, false, true);
             if (dayViewModel != null && !dayViewModel.isEmpty()) {
                 electric.setState(dayViewModel.get(0).getLabel().replace(ViewFormatter.SUM_SIGN, "").trim());
-                electric.setColorClass(calculateViewConditionColorGridElectricPowerActualDayDay(house.getTotalElectricalPowerConsumption().getDevice(), dayViewModel.get(0).getNumericValue()).getUiClass());
+                electric.setColorClass(calculateViewConditionColorGridPowerActualDayDay(house.getTotalElectricalPowerConsumption().getDevice(), dayViewModel.get(0).getNumericValue()).getUiClass());
             }
         }
         view.getCaptionAndValue().put("Strom", electric);
+
+        var gas = new View();
+        gas.setId(lookupTodayPowerId(house.getGasConsumption().getDevice(), true));
+        gas.setState("0" + ViewFormatter.powerConsumptionUnit(house.getGasConsumption().getDevice()));
+        if (pcdGas != null &&!pcdGas.isEmpty()) {
+            List<ChartEntry> dayViewModel = viewFormatter.fillPowerHistoryDayViewModel(house.getGasConsumption().getDevice(), pcdGas, false, true);
+            if (dayViewModel != null && !dayViewModel.isEmpty()) {
+                gas.setState(dayViewModel.get(0).getLabel().replace(ViewFormatter.SUM_SIGN, "").trim());
+                gas.setColorClass(calculateViewConditionColorGridPowerActualDayDay(house.getGasConsumption().getDevice(), dayViewModel.get(0).getNumericValue()).getUiClass());
+            }
+        }
+        view.getCaptionAndValue().put("Gas", gas);
     }
 
     private void formatEnergyGroup(Model model, String viewKey, Place place, ElectricVehicleModel electricVehicleModel) {
@@ -697,7 +701,7 @@ public class HouseViewService {
             if (!dayViewModel.isEmpty()) {
                 power.setTodayConsumption(dayViewModel.get(0));
                 if (powerMeter.getDevice() == Device.STROMZAEHLER_GESAMT) {
-                    power.setColorClass(calculateViewConditionColorGridElectricPowerActualDayDay(powerMeter.getDevice(), dayViewModel.get(0).getNumericValue()).getUiClass());
+                    power.setColorClass(calculateViewConditionColorGridPowerActualDayDay(powerMeter.getDevice(), dayViewModel.get(0).getNumericValue()).getUiClass());
                 }
             }
         }
@@ -1373,7 +1377,7 @@ public class HouseViewService {
         return percentage > 89 ? ConditionColor.ORANGE:percentage<21?ConditionColor.RED:ConditionColor.GREEN; // TODO: constant
     }
 
-    private ConditionColor calculateViewConditionColorGridElectricPowerActualDayDay(Device device, BigDecimal kwhDay) {
+    private ConditionColor calculateViewConditionColorGridPowerActualDayDay(Device device, BigDecimal kwhDay) {
         var upRoundedHours = LocalTime.now().getHour() + 1;
         var maxKwhPerHourForGreen = device.getType() == Type.GAS_POWER ? new BigDecimal("0.1") : new BigDecimal("0.7"); // TODO: constant
         return kwhDay.compareTo(maxKwhPerHourForGreen.multiply(new BigDecimal(upRoundedHours))) < 0 ? ConditionColor.GREEN : ConditionColor.ORANGE;
