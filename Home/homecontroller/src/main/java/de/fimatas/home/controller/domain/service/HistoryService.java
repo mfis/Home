@@ -415,7 +415,7 @@ public class HistoryService {
     private void addMeasurePointMonth(PowerConsumptionMonth pcm, TimestampValuePair measurePoint, BigDecimal lastSingleValue) {
 
         if (lastSingleValue != null) {
-            if (lastSingleValue.longValue() < measurePoint.getValue().longValue()) {
+            if (lastSingleValue.compareTo(measurePoint.getValue()) < 0) {
                 pcm.setPowerConsumption((pcm.getPowerConsumption() != null ? pcm.getPowerConsumption() : BigDecimal.ZERO)
                         .add(measurePoint.getValue().subtract(lastSingleValue)));
             } else if (lastSingleValue.compareTo(measurePoint.getValue()) > 0) {

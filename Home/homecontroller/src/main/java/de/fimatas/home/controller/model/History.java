@@ -63,7 +63,7 @@ public class History {
             HistoryStrategy.MAX, new BigDecimal(1000)));
 
         elements.add(new HistoryElement(homematicCommandBuilder.read(Device.GASZAEHLER, Datapoint.GAS_ENERGY_COUNTER),
-                HistoryStrategy.MAX, new BigDecimal("0.1")));
+                HistoryStrategy.MAX, new BigDecimal("0.2")));
     }
 
     public List<HistoryElement> list() {
