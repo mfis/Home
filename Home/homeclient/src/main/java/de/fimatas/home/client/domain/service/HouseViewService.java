@@ -210,6 +210,13 @@ public class HouseViewService {
         }
         view.getCaptionAndValue().put("Strom", electric);
 
+        /*
+        var electcicFeed = new View();
+        electcicFeed.setId("xElectricFeed");
+        electcicFeed.setState("nn,m kW");
+        view.getCaptionAndValue().put("Einspeisung", electcicFeed);
+         */
+
         var gas = new View();
         gas.setId(lookupTodayPowerId(house.getGasConsumption().getDevice(), true));
         gas.setState("0" + ViewFormatter.powerConsumptionUnit(house.getGasConsumption().getDevice()));
@@ -221,6 +228,7 @@ public class HouseViewService {
             }
         }
         view.getCaptionAndValue().put("Gas", gas);
+
     }
 
     private void formatEnergyGroup(Model model, String viewKey, Place place, ElectricVehicleModel electricVehicleModel) {
@@ -230,6 +238,13 @@ public class HouseViewService {
         if (view.isUnreach()) {
             return;
         }
+
+        /*
+        var consumptionHouse = new View();
+        consumptionHouse.setId("xConsumptionHouse");
+        consumptionHouse.setState("nn,m kW");
+        view.getCaptionAndValue().put("Verbrauch", consumptionHouse);
+         */
 
         electricVehicleModel.getEvMap().entrySet().stream().filter(e -> !e.getKey().isOther()).forEach(e -> {
             if(!e.getValue().getElectricVehicle().isOther()){
@@ -243,6 +258,7 @@ public class HouseViewService {
                 view.getCaptionAndValue().put(e.getKey().getCaption(), ev);
             }
         });
+
     }
 
     private void formatSymbolsGroup(Model model, String viewKey, Place place, PresenceModel presenceModel, HeatpumpModel heatpumpModel) {
