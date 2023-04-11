@@ -706,7 +706,7 @@ public class HouseViewService {
 
         power.setHistoryKey(powerMeter.getDevice().historyKeyPrefix());
         power.setState(powerMeter.getActualConsumption().getValue() == null ? UNBEKANNT
-                : ViewFormatter.powerConsumptionValueForView(powerMeter.getDevice(), powerMeter.getActualConsumption().getValue()) + ViewFormatter.actualPowerUnit(power.getDevice()));
+                : ViewFormatter.actualPowerConsumptionValueForView(powerMeter.getDevice(), powerMeter.getActualConsumption().getValue()) + ViewFormatter.actualPowerUnit(power.getDevice()));
         power.setName(powerMeter.getDevice().getType().getTypeName());
         if (powerMeter.getActualConsumption().getTendency() != null) {
             power.setTendencyIcon(powerMeter.getActualConsumption().getTendency().getIconCssClass());

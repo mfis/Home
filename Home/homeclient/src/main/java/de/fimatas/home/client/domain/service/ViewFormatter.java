@@ -61,13 +61,18 @@ public class ViewFormatter {
         return device.getType() == Type.GAS_POWER ? M_3 : K_W_H;
     }
 
-    public static BigDecimal powerConsumptionValue(Device device, BigDecimal value){
+    private static BigDecimal powerConsumptionValue(Device device, BigDecimal value){
         return device.getType() == Type.GAS_POWER ? value : value.divide(KWH_FACTOR, new MathContext(3, RoundingMode.HALF_UP));
     }
 
     public static String powerConsumptionValueForView(Device device, BigDecimal value){
         var decimalFormat = device.getType() == Type.GAS_POWER ? new DecimalFormat("0.0") : new DecimalFormat("0");
         return decimalFormat.format(powerConsumptionValue(device, value));
+    }
+
+    public static String actualPowerConsumptionValueForView(Device device, BigDecimal value){
+        var decimalFormat = device.getType() == Type.GAS_POWER ? new DecimalFormat("0.0") : new DecimalFormat("0");
+        return decimalFormat.format(value);
     }
 
     public static final DateTimeFormatter DAY_MONTH_YEAR_FORMATTER =
