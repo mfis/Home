@@ -125,8 +125,8 @@ class WeatherForecastConclusionTextFormatterTest {
         assertEquals("18..23°C", map.get(FORMAT_FROM_TO_ONLY));
         assertEquals("Regen +", map.get(FORMAT_CONDITIONS_SHORT_1_MAX));
         assertEquals("18..23°C, Regen +", map.get(FORMAT_FROM_TO_PLUS_1_MAX));
-        assertEquals("18 bis 23°C, Regen, Sonne", map.get(FORMAT_FROM_TO_ALL_SIGNIFICANT_CONDITIONS));
-        assertEquals("Temperatur 18 bis 23°C, Regen, Sonne", map.get(FORMAT_LONGEST));
+        assertEquals("18 bis 23°C, Regen, Sonne, Leicht bewölkt", map.get(FORMAT_FROM_TO_ALL_SIGNIFICANT_CONDITIONS));
+        assertEquals("Temperatur 18 bis 23°C, Regen, Sonne, Leicht bewölkt", map.get(FORMAT_LONGEST));
     }
 
     @Test
@@ -158,9 +158,9 @@ class WeatherForecastConclusionTextFormatterTest {
         final Map<Integer, String> map = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion);
 
         assertEquals("18..23°C", map.get(FORMAT_FROM_TO_ONLY));
-        assertEquals("", map.get(FORMAT_CONDITIONS_SHORT_1_MAX));
+        assertEquals("Leicht bewölkt", map.get(FORMAT_CONDITIONS_SHORT_1_MAX));
         assertEquals("Leicht bewölkt", map.get(FORMAT_CONDITIONS_SHORT_1_MAX_INCL_UNSIGNIFICANT));
-        assertEquals("18..23°C", map.get(FORMAT_FROM_TO_PLUS_1_MAX));
+        assertEquals("18..23°C, Leicht bewölkt", map.get(FORMAT_FROM_TO_PLUS_1_MAX));
         assertEquals("18 bis 23°C, Leicht bewölkt", map.get(FORMAT_FROM_TO_ALL_SIGNIFICANT_CONDITIONS));
         assertEquals("Temperatur 18 bis 23°C, Leicht bewölkt", map.get(FORMAT_LONGEST));
     }
