@@ -28,5 +28,9 @@ public class WeatherForecast implements Serializable {
 
     private boolean isDay;
 
+    private BigDecimal precipitationInMM;
+
+    private BigDecimal sunshineInMin;
+
     private Set<WeatherConditions> icons;
 }

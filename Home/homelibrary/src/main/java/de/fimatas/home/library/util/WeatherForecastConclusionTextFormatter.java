@@ -5,11 +5,13 @@ import de.fimatas.home.library.domain.model.WeatherForecastConclusion;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class WeatherForecastConclusionTextFormatter {
 
+    public static final int FORMAT_CONDITIONS_SHORT_1_MAX_INCL_UNSIGNIFICANT = 0;
     public static final int FORMAT_FROM_TO_ONLY = 1;
     public static final int FORMAT_CONDITIONS_SHORT_1_MAX = 2;
     public static final int FORMAT_FROM_TO_PLUS_1_MAX = 3;
@@ -18,10 +20,11 @@ public class WeatherForecastConclusionTextFormatter {
     public static final int SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS = 6;
     public static final int SIGNIFICANT_CONDITION_NATIVE_ICON = 7;
     public static final int SIGNIFICANT_CONDITION_WEB_ICON = 8;
-
     public static final int WIND_GUST_TEXT = 9;
+    public static final int PRECIPATION_TEXT = 10;
+    public static final int SUNDURATION_TEXT = 11;
 
-    public static final int FORMAT_CONDITIONS_SHORT_1_MAX_INCL_UNSIGNIFICANT = 10;
+    private static BigDecimal BD_60 = new BigDecimal("60");
 
     public static Map<Integer, String> formatConclusionText(WeatherForecastConclusion conclusion){
 
@@ -73,6 +76,8 @@ public class WeatherForecastConclusionTextFormatter {
         texts.put(SIGNIFICANT_CONDITION_NATIVE_ICON, conditionsSortedBySignificance.isEmpty() ? (usignificanceConditionWithHighestOrdinal.isPresent()?usignificanceConditionWithHighestOrdinal.get().getSfSymbolsID():"") : firstElementOf(conditionsSortedBySignificance).getSfSymbolsID());
         texts.put(SIGNIFICANT_CONDITION_WEB_ICON, conditionsSortedBySignificance.isEmpty() ? (usignificanceConditionWithHighestOrdinal.isPresent()?usignificanceConditionWithHighestOrdinal.get().getFontAwesomeID():"") : firstElementOf(conditionsSortedBySignificance).getFontAwesomeID());
         texts.put(WIND_GUST_TEXT, windGustText(null, conclusion));
+        texts.put(PRECIPATION_TEXT, precipationText(conclusion));
+        texts.put(SUNDURATION_TEXT, sunDurationText(conclusion));
 
         return texts;
     }
@@ -100,6 +105,24 @@ public class WeatherForecastConclusionTextFormatter {
         }else{
             return (conditionPrefix + " " + conclusion.getMaxWind() + ".." + conclusion.getMaxGust() + " km/h").trim();
         }
+    }
+
+    private static String sunDurationText(WeatherForecastConclusion conclusion) {
+        if(conclusion.getSunshineInMin()==null){
+            return "";
+        }else if(conclusion.getSunshineInMin().intValue() > BD_60.intValue()){
+            return new DecimalFormat("0").format(conclusion.getSunshineInMin().divide(BD_60, 1, RoundingMode.HALF_UP))  + " Std";
+        }else{
+            return conclusion.getSunshineInMin().intValue() + " Min";
+        }
+    }
+
+    private static String precipationText(WeatherForecastConclusion conclusion) {
+        if(conclusion.getPrecipitationInMM()==null){
+            return "";
+        }
+        String pattern  = conclusion.getPrecipitationInMM().compareTo(BigDecimal.TEN) < 0 ? "0.0" : "0";
+        return new DecimalFormat(pattern).format(conclusion.getPrecipitationInMM())  + " mm";
     }
 
     private static String plusIfMoreThenOne(Set<WeatherConditions> cond){

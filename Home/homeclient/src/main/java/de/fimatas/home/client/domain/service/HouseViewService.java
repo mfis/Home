@@ -1074,10 +1074,9 @@ public class HouseViewService {
             lastDayNight[0] = view.getDayNight();
             view.setTime(fc.getTime().format(DateTimeFormatter.ofPattern("HH")) + " Uhr");
             view.setTemperature(fc.getTemperature()==null?"":df.format(fc.getTemperature()) + "°C");
-            view.setWind(textMapSingleEntry.get(WIND_GUST_TEXT));
             view.setColorClass(StringUtils.isNotBlank(textMapSingleEntry.get(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS)) ? textMapSingleEntry.get(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS) : ConditionColor.DEFAULT.getUiClass());
             mapWeatherForecastConditionsAfterSettingColorClass(fc.getIcons(), view, fc.getTemperature(), fc.getTemperature());
-            fc.getIcons().forEach(i -> view.getIcons().add(i.getFontAwesomeID()));
+            fc.getIcons().forEach(i -> view.getIcons().add(new ValueWithCaption(i.getFontAwesomeID(), i.conditionValue(textMapSingleEntry), null)));
             forecasts.getForecasts().add(view);
         });
 
@@ -1092,12 +1091,11 @@ public class HouseViewService {
             view.setStripeColorClass(ConditionColor.ROW_STRIPE_DEFAULT.getUiClass());
             view.setTime(date.format(DateTimeFormatter.ofPattern("EEEE", Locale.GERMAN)));
             view.setTemperature(textMapHeader.get(FORMAT_FROM_TO_ONLY));
-            view.setWind(textMapHeader.get(WIND_GUST_TEXT));
             if(StringUtils.isNotBlank(textMapHeader.get(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS))){
                 view.setColorClass(textMapHeader.get(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS));
             }
             mapWeatherForecastConditionsAfterSettingColorClass(conclusion.getConditions(), view, conclusion.getMaxTemp(), conclusion.getMinTemp());
-            view.getIcons().add(textMapHeader.get(SIGNIFICANT_CONDITION_WEB_ICON));
+            conclusion.getConditions().stream().filter(WeatherConditions::isSignificant).forEach(i -> view.getIcons().add(new ValueWithCaption(i.getFontAwesomeID(), i.conditionValue(textMapHeader), null)));
             forecasts.getForecasts().add(view);
         });
     }

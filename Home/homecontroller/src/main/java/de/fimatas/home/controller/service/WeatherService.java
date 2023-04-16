@@ -10,6 +10,7 @@ import de.fimatas.home.library.domain.model.WeatherForecast;
 import de.fimatas.home.library.domain.model.WeatherForecastConclusion;
 import de.fimatas.home.library.domain.model.WeatherForecastModel;
 import lombok.extern.apachecommons.CommonsLog;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.retry.annotation.Backoff;
@@ -42,7 +43,6 @@ public class WeatherService {
 
     private static final BigDecimal WIND_SPEED_STORM = BigDecimal.valueOf(35);
     private static final BigDecimal WIND_SPEED_GUST_STORM = BigDecimal.valueOf(60);
-
 
     @Retryable(value = Exception.class, maxAttempts = 4, backoff = @Backoff(delay = 5000))
     public void refreshFurtherDaysCache() {
@@ -96,13 +96,22 @@ public class WeatherService {
 
             var forecast = new WeatherForecast();
             forecast.setTime(dateTime);
-            forecast.setTemperature(new BigDecimal(entry.get("temperature").asText()));
-            forecast.setWind(new BigDecimal(entry.get("wind_speed").asText()));
-            forecast.setGust(new BigDecimal(entry.get("wind_gust_speed").asText()));
+            forecast.setTemperature(nodeToBigDecimal(entry.get("temperature")));
+            forecast.setWind(nodeToBigDecimal(entry.get("wind_speed")));
+            forecast.setGust(nodeToBigDecimal(entry.get("wind_gust_speed")));
+            forecast.setPrecipitationInMM(nodeToBigDecimal(entry.get("precipitation")));
+            forecast.setSunshineInMin(nodeToBigDecimal(entry.get("sunshine")));
             forecast.setIcons(addConditions(condition, icon, forecast.getWind(), forecast.getGust()));
             forecasts.add(forecast);
         });
         return forecasts;
+    }
+
+    private BigDecimal nodeToBigDecimal(JsonNode node){
+        if(node == null || StringUtils.isBlank(node.asText())){
+            return null;
+        }
+        return new BigDecimal(node.asText());
     }
 
     private Set<WeatherConditions> addConditions(BrightSkyCondition condition, BrightSkyIcon icon, BigDecimal windSpeed, BigDecimal gustSpeed) {
@@ -170,16 +179,6 @@ public class WeatherService {
 
     private static Set<WeatherConditions> reduceConditions(Set<WeatherConditions> set){
 
-        /*if (set.contains(WeatherConditions.SNOW)) {
-            set.remove(WeatherConditions.RAIN);
-            set.remove(WeatherConditions.CLOUD_RAIN);
-            set.remove(WeatherConditions.CLOUD);
-            set.remove(WeatherConditions.SUN);
-            set.remove(WeatherConditions.SUN_CLOUD);
-            set.remove(WeatherConditions.MOON);
-            set.remove(WeatherConditions.MOON_CLOUD);
-        }*/
-
         if (set.contains(WeatherConditions.GUST)) {
             set.remove(WeatherConditions.WIND);
         }
@@ -193,7 +192,7 @@ public class WeatherService {
         }
 
         return set.stream()
-                .sorted(Comparator.comparing(WeatherConditions::ordinal))
+                .sorted(Comparator.comparing(WeatherConditions::ordinalAsInteger))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
@@ -221,6 +220,8 @@ public class WeatherService {
         conclusion.setMaxTemp(items.stream().map(WeatherForecast::getTemperature).filter(Objects::nonNull).max(BigDecimal::compareTo).orElse(null));
         conclusion.setMaxWind(items.stream().filter(fc -> fc.getWind()!=null).map(fc -> fc.getWind().setScale(0, RoundingMode.HALF_UP).intValue()).max(Integer::compare).orElse(null));
         conclusion.setMaxGust(items.stream().filter(fc -> fc.getGust()!=null).map(fc -> fc.getGust().setScale(0, RoundingMode.HALF_UP).intValue()).max(Integer::compare).orElse(null));
+        conclusion.setPrecipitationInMM(items.stream().map(WeatherForecast::getPrecipitationInMM).reduce(BigDecimal.ZERO, BigDecimal::add));
+        conclusion.setSunshineInMin(items.stream().map(WeatherForecast::getSunshineInMin).reduce(BigDecimal.ZERO, BigDecimal::add));
 
         Arrays.stream(WeatherConditions.values()).forEach(c -> {
             final Optional<WeatherForecast> first = items.stream().filter(fc -> fc.getIcons().contains(c)).findFirst();

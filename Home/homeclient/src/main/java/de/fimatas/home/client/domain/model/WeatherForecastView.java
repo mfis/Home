@@ -21,7 +21,5 @@ public class WeatherForecastView extends View {
 
     private String temperature;
 
-    private String wind;
-
-    private List<String> icons = new LinkedList<>();
+    private List<ValueWithCaption> icons = new LinkedList<>();
 }

@@ -3,6 +3,9 @@ package de.fimatas.home.library.domain.model;
 import de.fimatas.home.library.model.ConditionColor;
 
 import java.util.List;
+import java.util.Map;
+
+import static de.fimatas.home.library.util.WeatherForecastConclusionTextFormatter.*;
 
 public enum WeatherConditions {
 
@@ -15,7 +18,7 @@ public enum WeatherConditions {
     CLOUD_RAIN("fa-solid fa-cloud-rain", "cloud.rain", "Leichter Regen", true, null),
     SUN("fa-solid fa-sun", "sun.max", "Sonne", true, null),
     FOG("fa-solid fa-smog", "cloud.fog", "Nebel", false, null),
-    SUN_CLOUD("fa-solid fa-cloud-sun", "cloud.sun", "Leicht bewölkt", false, null),
+    SUN_CLOUD("fa-solid fa-cloud-sun", "cloud.sun", "Leicht bewölkt", true, null),
     CLOUD("fa-solid fa-cloud", "cloud.fill", "Wolken", false, null),
     MOON("fa-solid fa-moon", "moon.fill", "Mond", false, null),
     MOON_CLOUD("fa-solid fa-cloud-moon", "cloud.moon", "Leicht bewölkt", false, null),
@@ -34,6 +37,28 @@ public enum WeatherConditions {
         this.caption = caption;
         this.significant = significant;
         this.color = color;
+    }
+
+    public Integer ordinalAsInteger(){
+        return (Integer) ordinal();
+    }
+
+    public String conditionValue(Map<Integer, String> textMap){
+        switch (this){
+            case WIND:
+            case GUST:
+                return textMap.get(WIND_GUST_TEXT);
+            case SNOW:
+            case THUNDERSTORM:
+            case RAIN:
+            case CLOUD_RAIN:
+                return textMap.get(PRECIPATION_TEXT);
+            case SUN:
+            case SUN_CLOUD:
+                return textMap.get(SUNDURATION_TEXT);
+            default:
+                return "";
+        }
     }
 
     public static List<WeatherConditions> lessSignificantConditions(){
