@@ -73,3 +73,6 @@ Simple programs (based on clocks, timers etc) are written in the CCU to ensure f
 More complex programs are splitted. The trigger of the actor is implemented over an CCU program or Homematic XML-API call. The activator is implemented in Home application e.g. based on a hint.  
 
 Example: A roller shutter motor has CCU programs to automatically drive up and down based on sunrise and sunset times. An additional CCU program drives the shutter down if a CCU system variable (which is linked to the ‚close roller shutter‘ hint based on temperature and sunshine) is set to true.
+
+# Caution
+No guarantees are made about the suitability of this code for your own use. It is provided as-is, and you are responsible for any damage it may cause. You should not use this code without understanding it first.
