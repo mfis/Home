@@ -62,7 +62,7 @@ public class ViewFormatter {
     }
 
     private static BigDecimal powerConsumptionValue(Device device, BigDecimal value){
-        return device.getType() == Type.GAS_POWER ? value : value.divide(KWH_FACTOR, new MathContext(3, RoundingMode.HALF_UP));
+        return device.getType() == Type.ELECTRIC_POWER ? value.divide(KWH_FACTOR, new MathContext(3, RoundingMode.HALF_UP)) : value;
     }
 
     public static String powerConsumptionValueForView(Device device, BigDecimal value){

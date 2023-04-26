@@ -57,10 +57,10 @@ public class History {
             new HistoryElement(homematicCommandBuilder.read(Device.AUSSENTEMPERATUR, Datapoint.VALUE), HistoryStrategy.AVG, new BigDecimal(1)));
 
         elements.add(new HistoryElement(homematicCommandBuilder.read(Device.STROMZAEHLER_BEZUG, Datapoint.IEC_ENERGY_COUNTER),
-            HistoryStrategy.MAX, new BigDecimal(1000)));
+            HistoryStrategy.MAX, new BigDecimal(1)));
 
         elements.add(new HistoryElement(homematicCommandBuilder.read(Device.STROMZAEHLER_EINSPEISUNG, Datapoint.IEC_ENERGY_COUNTER),
-                HistoryStrategy.MAX, new BigDecimal(1000)));
+                HistoryStrategy.MAX, new BigDecimal(1)));
 
         elements.add(new HistoryElement(homematicCommandBuilder.read(Device.STROMZAEHLER_WALLBOX, Datapoint.ENERGY_COUNTER),
             HistoryStrategy.MAX, new BigDecimal(1000)));
