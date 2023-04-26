@@ -157,8 +157,10 @@ public class HistoryService {
 
         HistoryModel newModel = new HistoryModel();
 
-        calculatePowerConsumption(newModel.getTotalElectricPowerConsumptionDay(),
-            newModel.getTotalElectricPowerConsumptionMonth(), Device.STROMZAEHLER_GESAMT, null);
+        calculatePowerConsumption(newModel.getPurchasedElectricPowerConsumptionDay(),
+            newModel.getPurchasedElectricPowerConsumptionMonth(), Device.STROMZAEHLER_BEZUG, null);
+        calculatePowerConsumption(newModel.getFeedElectricPowerConsumptionDay(),
+                newModel.getFeedElectricPowerConsumptionMonth(), Device.STROMZAEHLER_EINSPEISUNG, null);
         calculatePowerConsumption(newModel.getWallboxElectricPowerConsumptionDay(),
             newModel.getWallboxElectricPowerConsumptionMonth(), Device.STROMZAEHLER_WALLBOX, null);
         calculatePowerConsumption(newModel.getGasConsumptionDay(),
@@ -209,10 +211,15 @@ public class HistoryService {
             return;
         }
 
-        calculatePowerConsumption(model.getTotalElectricPowerConsumptionDay(),
-            model.getTotalElectricPowerConsumptionMonth(), Device.STROMZAEHLER_GESAMT,
-            model.getTotalElectricPowerConsumptionMonth().isEmpty() ? null : model.getTotalElectricPowerConsumptionMonth()
-                .get(model.getTotalElectricPowerConsumptionMonth().size() - 1).measurePointMaxDateTime());
+        calculatePowerConsumption(model.getPurchasedElectricPowerConsumptionDay(),
+            model.getPurchasedElectricPowerConsumptionMonth(), Device.STROMZAEHLER_BEZUG,
+            model.getPurchasedElectricPowerConsumptionMonth().isEmpty() ? null : model.getPurchasedElectricPowerConsumptionMonth()
+                .get(model.getPurchasedElectricPowerConsumptionMonth().size() - 1).measurePointMaxDateTime());
+
+        calculatePowerConsumption(model.getFeedElectricPowerConsumptionDay(),
+                model.getFeedElectricPowerConsumptionMonth(), Device.STROMZAEHLER_EINSPEISUNG,
+                model.getFeedElectricPowerConsumptionMonth().isEmpty() ? null : model.getFeedElectricPowerConsumptionMonth()
+                        .get(model.getFeedElectricPowerConsumptionMonth().size() - 1).measurePointMaxDateTime());
 
         calculatePowerConsumption(model.getWallboxElectricPowerConsumptionDay(),
             model.getWallboxElectricPowerConsumptionMonth(), Device.STROMZAEHLER_WALLBOX,
@@ -331,7 +338,8 @@ public class HistoryService {
     private void calculatePowerConsumption(List<PowerConsumptionDay> day, List<PowerConsumptionMonth> month,
                                            Device device, LocalDateTime fromDateTime) {
 
-        Datapoint datapoint = device.getType() == Type.GAS_POWER ? Datapoint.GAS_ENERGY_COUNTER : Datapoint.ENERGY_COUNTER;
+        Datapoint datapoint = device.getType() == Type.GAS_POWER ? Datapoint.GAS_ENERGY_COUNTER :
+                device.getDatapoints().contains(Datapoint.ENERGY_COUNTER) ? Datapoint.ENERGY_COUNTER : Datapoint.IEC_ENERGY_COUNTER;
         List<TimestampValuePair> timestampValues =
             readValuesWithCache(homematicCommandBuilder.read(device, datapoint), fromDateTime);
 

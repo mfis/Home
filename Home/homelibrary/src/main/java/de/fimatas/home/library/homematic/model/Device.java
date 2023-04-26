@@ -32,8 +32,11 @@ public enum Device {
     SCHALTER_KUECHE_LICHT(HomematicProtocol.HM, Type.SWITCH_WINDOWLIGHT, Place.KITCHEN, true, Datapoint.LIST_SWITCH_HM,
         Type.VAR_PREFIXES_SWITCH_AUTO, Boolean.class, AutomationState.class), //
 
-    STROMZAEHLER_GESAMT(HomematicProtocol.HM, Type.ELECTRIC_POWER, Place.HOUSE, true, Datapoint.LIST_POWERMETER_HM,
+    STROMZAEHLER_BEZUG(HomematicProtocol.HM, Type.ELECTRIC_POWERPURCHASE, Place.HOUSE, true, Datapoint.LIST_POWERMETER_IEC,
         Type.VAR_PREFIXES_TIMESTAMP),
+
+    STROMZAEHLER_EINSPEISUNG(HomematicProtocol.HM, Type.ELECTRIC_POWERFEED, Place.HOUSE, true, Datapoint.LIST_POWERMETER_IEC,
+            Type.VAR_PREFIXES_TIMESTAMP),
 
     STROMZAEHLER_WALLBOX(HomematicProtocol.HM, Type.ELECTRIC_POWER, Place.WALLBOX, true, Datapoint.LIST_POWERMETER_HM,
         Type.VAR_PREFIXES_TIMESTAMP),
@@ -48,9 +51,6 @@ public enum Device {
 
     HAUSTUER_KLINGEL(HomematicProtocol.HM, Type.DOORBELL, Place.FRONTDOOR, false, Datapoint.LIST_DOORBELL,
         Type.VAR_PREFIXES_TIMESTAMP), //
-
-    // HAUSTUER_KAMERA(HomematicProtocol.HM, Type.SWITCH_FRONTDOOR_CAMERA, Place.FRONTDOOR, false, Datapoint.LIST_CAMERA, null),
-    // //
 
     HAUSTUER_SCHLOSS(HomematicProtocol.HM, Type.DOORLOCK, Place.FRONTDOOR, false, Datapoint.LIST_DOORLOCK,
         Type.VAR_PREFIXES_DOORLOCK, null, null), //
@@ -96,7 +96,7 @@ public enum Device {
 
     private final Class<?>[] valueTypes;
 
-    Device(HomematicProtocol homematicProtocol, Type type, Place place, // NOSONAR
+    Device(HomematicProtocol homematicProtocol, Type type, Place place,
            boolean textQueryEnabled, List<Datapoint> datapoints, List<String> sysVars, Class<?>... valueTypes) {
 
         this.homematicProtocol = homematicProtocol;

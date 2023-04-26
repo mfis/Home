@@ -18,9 +18,11 @@ public enum Datapoint {
     STATE(HomematicValueFormat.DEC, null, true), //
     STATE_UNCERTAIN(HomematicValueFormat.DEC, null, false), //
     POWER(HomematicValueFormat.DEC, null, true), //
+    IEC_POWER(HomematicValueFormat.DEC, null, true), //
     LOWBAT(HomematicValueFormat.DEC, 0, false), //
     LOW_BAT(HomematicValueFormat.DEC, 0, false), //
     ENERGY_COUNTER(HomematicValueFormat.DEC, null, false), //
+    IEC_ENERGY_COUNTER(HomematicValueFormat.DEC, null, false), //
     VALUE(HomematicValueFormat.DEC, null, true), //
     PRESS_SHORT(HomematicValueFormat.DEC, null, true), //
     ERROR(HomematicValueFormat.DEC, null, false), //
@@ -44,6 +46,8 @@ public enum Datapoint {
     protected static final List<Datapoint> LIST_SWITCH_HM = Arrays.asList(Datapoint.STATE);
 
     protected static final List<Datapoint> LIST_POWERMETER_HM = Arrays.asList(Datapoint.ENERGY_COUNTER, Datapoint.POWER);
+
+    protected static final List<Datapoint> LIST_POWERMETER_IEC = Arrays.asList(Datapoint.IEC_ENERGY_COUNTER, Datapoint.IEC_POWER);
 
     protected static final List<Datapoint> LIST_GASMETER_HM = Arrays.asList(Datapoint.GAS_ENERGY_COUNTER, Datapoint.GAS_POWER);
 

@@ -166,7 +166,8 @@ public class HouseService {
         newModel.setFrontDoorCamera(readFrontDoorCamera());
         newModel.setFrontDoorLock(readFrontDoorLock(oldModel));
 
-        newModel.setTotalElectricalPowerConsumption(readPowerConsumption(Device.STROMZAEHLER_GESAMT));
+        newModel.setPurchasedElectricalPowerConsumption(readPowerConsumption(Device.STROMZAEHLER_BEZUG));
+        newModel.setFeedElectricalPowerConsumption(readPowerConsumption(Device.STROMZAEHLER_EINSPEISUNG));
         newModel.setWallboxElectricalPowerConsumption(readPowerConsumption(Device.STROMZAEHLER_WALLBOX));
         newModel.setGasConsumption(readPowerConsumption(Device.GASZAEHLER));
 
@@ -242,8 +243,11 @@ public class HouseService {
 
         // Power consumption
         calculatePowerConsumptionTendencies(newModel.getDateTime(),
-            oldModel == null ? null : oldModel.getTotalElectricalPowerConsumption(),
-            newModel.getTotalElectricalPowerConsumption());
+            oldModel == null ? null : oldModel.getPurchasedElectricalPowerConsumption(),
+            newModel.getPurchasedElectricalPowerConsumption());
+        calculatePowerConsumptionTendencies(newModel.getDateTime(),
+                oldModel == null ? null : oldModel.getFeedElectricalPowerConsumption(),
+                newModel.getFeedElectricalPowerConsumption());
         calculatePowerConsumptionTendencies(newModel.getDateTime(),
             oldModel == null ? null : oldModel.getWallboxElectricalPowerConsumption(),
             newModel.getWallboxElectricalPowerConsumption());
@@ -816,7 +820,8 @@ public class HouseService {
         if (isPowerConsumptionOutdated(device)) {
             model.setActualConsumption(new ValueWithTendency<>(BigDecimal.ZERO));
         } else {
-            Datapoint datapoint = device.getType() == Type.GAS_POWER ? Datapoint.GAS_POWER : Datapoint.POWER;
+            Datapoint datapoint = device.getType() == Type.GAS_POWER ? Datapoint.GAS_POWER :
+                    device.getDatapoints().contains(Datapoint.POWER)? Datapoint.POWER : Datapoint.IEC_POWER;
             model.setActualConsumption(
                 new ValueWithTendency<>(hmApi.getAsBigDecimal(homematicCommandBuilder.read(device, datapoint))));
         }

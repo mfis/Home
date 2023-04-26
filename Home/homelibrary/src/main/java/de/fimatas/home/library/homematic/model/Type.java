@@ -19,6 +19,8 @@ public enum Type {
     DOORLOCK("Türschloss", null, true, true), //
     SWITCH_WALLBOX("Schalter", null, false, true), //
     ELECTRIC_POWER("Strom", null, true, false), //
+    ELECTRIC_POWERFEED("Stromeinspeisung", null, true, false), //
+    ELECTRIC_POWERPURCHASE("Strombezug", null, true, false), //
     GAS_POWER("Gas", null, true, false), //
     WINDOW_SENSOR("Fenster", "Fenster", true, false), //
     // with sub-types

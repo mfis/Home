@@ -110,7 +110,7 @@ public class HistoryServiceTest {
     }
 
     private HomematicCommand createCommand() {
-        HomematicCommand command = homematicCommandBuilder.read(Device.STROMZAEHLER_GESAMT, Datapoint.ENERGY_COUNTER);
+        HomematicCommand command = homematicCommandBuilder.read(Device.STROMZAEHLER_BEZUG, Datapoint.IEC_ENERGY_COUNTER);
         processor.buildVarName(command);
         return command;
     }
