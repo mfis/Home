@@ -40,6 +40,10 @@ public class HomeAppConstants {
 
     //
 
+    public static final int SOLARMAN_INTERVAL_SECONDS = 60;
+
+    //
+
     public static final int MODEL_PRESENCE_INTERVAL_SECONDS = 60 * 10;
 
     public static final int MODEL_PRESENCE_OUTDATED_SECONDS = 60 * 15;

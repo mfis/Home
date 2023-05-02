@@ -26,7 +26,7 @@ public class SettingsDAO {
 
     private SettingsDAO() {
         super();
-        properties = getApplicationProperties();
+        properties = DaoUtils.getApplicationProperties(PATH);
         objectMapper = new ObjectMapper();
     }
 
@@ -64,16 +64,6 @@ public class SettingsDAO {
         properties.keySet().stream().filter(key -> ((String) key).startsWith(PUSHTOKEN_PREFIX))
             .forEach(key -> names.add(mapToObject(properties.getProperty((String) key))));
         return names;
-    }
-
-    private Properties getApplicationProperties() {
-        properties = new Properties();
-        try (var stream = new FileInputStream(PATH)) {
-            properties.load(stream);
-        } catch (Exception e) {
-            throw new IllegalStateException("Properties could not be loaded", e);
-        }
-        return properties;
     }
 
     private String mapToJson(SettingsModel settingsModel) {
