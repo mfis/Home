@@ -27,6 +27,13 @@ public enum Type {
     THERMOSTAT("Thermostat", null, true, true, Type.THERMOMETER), //
     // pseudo-types
     SYSVAR_THERMOMETER("ConclusionTemperature", null, false, false, Type.THERMOMETER), //
+    // pseudo-types electric power
+    SYSVAR_ELECTRIC_POWER_GRID_ACTUAL("ElectricPowerGridActual", null, false, false), //
+    SYSVAR_ELECTRIC_POWER_PRODUCTION_ACTUAL("ElectricPowerProductionActual", null, false, false), //
+    SYSVAR_ELECTRIC_POWER_CONSUMPTION_ACTUAL("ElectricPowerConsumptionActual", null, false, false), //
+    SYSVAR_ELECTRIC_POWER_CONSUMPTION_COUNTER("ElectricPowerConsumptionCounter", null, false, false), //
+    SYSVAR_ELECTRIC_POWER_PRODUCTION_COUNTER("ElectricPowerProductionCounter", null, false, false), //
+    SYSVAR_ELECTRIC_POWER_ACTUAL_TIMESTAMP("ElectricPowerActualTimestamp", null, false, false), //
     ;
 
     protected static final List<String> VAR_PREFIXES_SWITCH_AUTO = Arrays.asList("Automatic", "AutomaticInfoText");

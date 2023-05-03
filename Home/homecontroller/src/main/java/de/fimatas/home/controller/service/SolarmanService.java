@@ -2,11 +2,15 @@ package de.fimatas.home.controller.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import de.fimatas.home.controller.api.HomematicAPI;
 import de.fimatas.home.controller.api.SolarmanAPI;
+import de.fimatas.home.controller.command.HomematicCommand;
+import de.fimatas.home.controller.command.HomematicCommandBuilder;
+import de.fimatas.home.library.homematic.model.Datapoint;
+import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.util.HomeAppConstants;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -23,15 +27,18 @@ public class SolarmanService {
     private SolarmanAPI solarmanAPI;
 
     @Autowired
-    private UploadService uploadService;
+    private HomematicAPI hmApi;
 
-    private static final String KEY_CUMULATIVE_PRODUCTION = "Et_ge0";
+    @Autowired
+    private HomematicCommandBuilder homematicCommandBuilder;
 
-    private static final String KEY_CUMULATIVE_CONSUMPTION = "Et_use1";
-
-    private static final String KEY_CURRENT_PRODUCTION = "T_AC_OP";
-
-    private static final String KEY_CURRENT_CONSUMPTION = "E_Puse_t1";
+    private static final Map<String, Device> SOLARMAN_KEY_TO_HM_DEVICE  = new HashMap<>() {{
+        put("Et_ge0", Device.ELECTRIC_POWER_PRODUCTION_COUNTER_HOUSE); // Summe PV
+        put("Et_use1", Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HOUSE); // Summe Verbrauch
+        put("T_AC_OP", Device.ELECTRIC_POWER_PRODUCTION_ACTUAL_HOUSE); // produktion
+        put("E_Puse_t1", Device.ELECTRIC_POWER_CONSUMPTION_ACTUAL_HOUSE); // verbrauch
+        put("PG_Pt1", Device.ELECTRIC_POWER_GRID_ACTUAL_HOUSE); // (+)einspeisung, (-)bezug
+    }};
 
     @Scheduled(fixedDelay = (1000 * HomeAppConstants.SOLARMAN_INTERVAL_SECONDS) + 111, initialDelay = 12000)
     public void refresh() {
@@ -41,33 +48,26 @@ public class SolarmanService {
             return;
         }
 
-        log.info("SOLARMAN CURRENT DATA");
-
-        LocalDateTime timestamp =
-                Instant.ofEpochMilli(Long.parseLong(currentData.get("collectionTime").asText()) * 1000L).atZone(ZoneId.systemDefault()).toLocalDateTime();
-        log.info("  time     = " + timestamp);
+        List<HomematicCommand> updateCommands = new ArrayList<>();
+        long millis = Long.parseLong(currentData.get("collectionTime").asText()) * 1000L;
+        LocalDateTime timestamp = Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDateTime();
+        updateCommands.add(homematicCommandBuilder.write(Device.ELECTRIC_POWER_ACTUAL_TIMESTAMP_HOUSE, Datapoint.SYSVAR_DUMMY, Long.toString(millis)));
+        log.debug("SOLARMAN CURRENT DATA");
+        log.debug("   time = " + timestamp);
 
         final ArrayNode dataList = (ArrayNode) currentData.get("dataList");
         Iterator<JsonNode> dataListElements = dataList.elements();
         while (dataListElements.hasNext()) {
             JsonNode element = dataListElements.next();
-            switch (element.get("key").asText()){
-                case KEY_CUMULATIVE_PRODUCTION:
-                    log.info("  sum pv   = " + element.get("value").asText());
-                    break;
-                case KEY_CUMULATIVE_CONSUMPTION:
-                    log.info("  sum cons = " + element.get("value").asText());
-                    break;
-
-                case KEY_CURRENT_PRODUCTION:
-                    log.info("  act pv   = " + element.get("value").asText());
-                    break;
-
-                case KEY_CURRENT_CONSUMPTION:
-                    log.info("  act cons = " + element.get("value").asText());
-                    break;
+            String key = element.get("key").asText();
+            String value = element.get("value").asText();
+            if(SOLARMAN_KEY_TO_HM_DEVICE.containsKey(key)){
+                Device device = SOLARMAN_KEY_TO_HM_DEVICE.get(key);
+                log.debug("   " + device + " = " + value);
+                updateCommands.add(homematicCommandBuilder.write(device, Datapoint.SYSVAR_DUMMY, value));
             }
-
         }
+
+        hmApi.executeCommand(updateCommands.toArray(new HomematicCommand[0]));
     }
 }
