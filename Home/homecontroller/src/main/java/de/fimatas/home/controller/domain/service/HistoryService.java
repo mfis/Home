@@ -359,7 +359,7 @@ public class HistoryService {
             datapoint = Datapoint.GAS_ENERGY_COUNTER;
         }else if(device.getDatapoints().contains(Datapoint.ENERGY_COUNTER)){
             datapoint = Datapoint.ENERGY_COUNTER;
-        }else if(device.getDatapoints().contains(Datapoint.SYSVAR_DUMMY)){
+        }else if(device.isSysVar()){
             datapoint = Datapoint.SYSVAR_DUMMY;
         }else{
             datapoint = Datapoint.IEC_ENERGY_COUNTER;

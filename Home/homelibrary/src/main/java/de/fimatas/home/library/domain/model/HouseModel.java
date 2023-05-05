@@ -60,9 +60,11 @@ public class HouseModel implements Serializable {
 
     private WindowSensor laundryWindowSensor;
 
-    private PowerMeter purchasedElectricalPowerConsumption;
+    private PowerMeter gridElectricalPower;
 
-    private PowerMeter feedElectricalPowerConsumption;
+    private PowerMeter producedElectricalPower;
+
+    private PowerMeter consumedElectricalPower;
 
     private PowerMeter wallboxElectricalPowerConsumption;
 

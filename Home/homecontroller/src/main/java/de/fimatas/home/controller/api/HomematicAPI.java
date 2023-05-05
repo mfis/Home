@@ -134,6 +134,10 @@ public class HomematicAPI {
 
     public boolean isDeviceUnreachableOrNotSending(Device device) {
 
+        if(device.isSysVar()){
+            return false;
+        }
+
         if (ccuInitState) {
             return true;
         }

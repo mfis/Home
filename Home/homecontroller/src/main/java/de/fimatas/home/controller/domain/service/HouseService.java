@@ -166,8 +166,10 @@ public class HouseService {
         newModel.setFrontDoorCamera(readFrontDoorCamera());
         newModel.setFrontDoorLock(readFrontDoorLock(oldModel));
 
-        newModel.setPurchasedElectricalPowerConsumption(readPowerConsumption(Device.STROMZAEHLER_BEZUG));
-        newModel.setFeedElectricalPowerConsumption(readPowerConsumption(Device.STROMZAEHLER_EINSPEISUNG));
+        newModel.setGridElectricalPower(readPowerConsumption(Device.ELECTRIC_POWER_GRID_ACTUAL_HOUSE));
+        newModel.setProducedElectricalPower(readPowerConsumption(Device.ELECTRIC_POWER_PRODUCTION_ACTUAL_HOUSE));
+        newModel.setConsumedElectricalPower(readPowerConsumption(Device.ELECTRIC_POWER_CONSUMPTION_ACTUAL_HOUSE));
+
         newModel.setWallboxElectricalPowerConsumption(readPowerConsumption(Device.STROMZAEHLER_WALLBOX));
         newModel.setGasConsumption(readPowerConsumption(Device.GASZAEHLER));
 
@@ -243,11 +245,14 @@ public class HouseService {
 
         // Power consumption
         calculatePowerConsumptionTendencies(newModel.getDateTime(),
-            oldModel == null ? null : oldModel.getPurchasedElectricalPowerConsumption(),
-            newModel.getPurchasedElectricalPowerConsumption());
+            oldModel == null ? null : oldModel.getGridElectricalPower(),
+            newModel.getGridElectricalPower());
         calculatePowerConsumptionTendencies(newModel.getDateTime(),
-                oldModel == null ? null : oldModel.getFeedElectricalPowerConsumption(),
-                newModel.getFeedElectricalPowerConsumption());
+                oldModel == null ? null : oldModel.getProducedElectricalPower(),
+                newModel.getProducedElectricalPower());
+        calculatePowerConsumptionTendencies(newModel.getDateTime(),
+                oldModel == null ? null : oldModel.getConsumedElectricalPower(),
+                newModel.getConsumedElectricalPower());
         calculatePowerConsumptionTendencies(newModel.getDateTime(),
             oldModel == null ? null : oldModel.getWallboxElectricalPowerConsumption(),
             newModel.getWallboxElectricalPowerConsumption());
@@ -820,8 +825,17 @@ public class HouseService {
         if (isPowerConsumptionOutdated(device)) {
             model.setActualConsumption(new ValueWithTendency<>(BigDecimal.ZERO));
         } else {
-            Datapoint datapoint = device.getType() == Type.GAS_POWER ? Datapoint.GAS_POWER :
-                    device.getDatapoints().contains(Datapoint.POWER)? Datapoint.POWER : Datapoint.IEC_POWER;
+            Datapoint datapoint;
+            if(device.getType() == Type.GAS_POWER){
+                datapoint = Datapoint.GAS_POWER;
+            }else if(device.getDatapoints().contains(Datapoint.POWER)){
+                datapoint = Datapoint.POWER;
+            }else if(device.isSysVar()){
+                datapoint = Datapoint.SYSVAR_DUMMY;
+            }else{
+                datapoint = Datapoint.IEC_POWER;
+            }
+
             model.setActualConsumption(
                 new ValueWithTendency<>(hmApi.getAsBigDecimal(homematicCommandBuilder.read(device, datapoint))));
         }
@@ -830,6 +844,10 @@ public class HouseService {
     }
 
     private boolean isPowerConsumptionOutdated(Device device) {
+
+        if(device.isSysVar()){
+            return false;
+        }
 
         String ts = hmApi.getAsString(homematicCommandBuilder.read(device, TIMESTAMP));
         if (!StringUtils.isNumeric(ts)) {
