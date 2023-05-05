@@ -23,6 +23,14 @@ public class HistoryModel implements Serializable {
 
     private List<PowerConsumptionDay> feedElectricPowerConsumptionDay;
 
+    private List<PowerConsumptionMonth> producedElectricPowerMonth;
+
+    private List<PowerConsumptionDay> producedElectricPowerDay;
+
+    private List<PowerConsumptionMonth> selfusedElectricPowerConsumptionMonth;
+
+    private List<PowerConsumptionDay> selfusedElectricPowerConsumptionDay;
+
     private List<PowerConsumptionMonth> wallboxElectricPowerConsumptionMonth;
 
     private List<PowerConsumptionDay> wallboxElectricPowerConsumptionDay;
@@ -58,6 +66,10 @@ public class HistoryModel implements Serializable {
         purchasedElectricPowerConsumptionDay = new LinkedList<>();
         feedElectricPowerConsumptionMonth = new LinkedList<>();
         feedElectricPowerConsumptionDay = new LinkedList<>();
+        producedElectricPowerMonth  = new LinkedList<>();
+        producedElectricPowerDay = new LinkedList<>();
+        selfusedElectricPowerConsumptionMonth = new LinkedList<>();
+        selfusedElectricPowerConsumptionDay = new LinkedList<>();
         wallboxElectricPowerConsumptionMonth = new LinkedList<>();
         wallboxElectricPowerConsumptionDay = new LinkedList<>();
         gasConsumptionDay = new LinkedList<>();

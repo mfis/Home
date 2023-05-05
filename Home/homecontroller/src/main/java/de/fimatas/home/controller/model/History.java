@@ -62,6 +62,12 @@ public class History {
         elements.add(new HistoryElement(homematicCommandBuilder.read(Device.STROMZAEHLER_EINSPEISUNG, Datapoint.IEC_ENERGY_COUNTER),
                 HistoryStrategy.MAX, new BigDecimal(1)));
 
+        elements.add(new HistoryElement(homematicCommandBuilder.read(Device.ELECTRIC_POWER_PRODUCTION_COUNTER_HOUSE, Datapoint.VALUE),
+                HistoryStrategy.MAX, new BigDecimal(1)));
+
+        elements.add(new HistoryElement(homematicCommandBuilder.read(Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HOUSE, Datapoint.VALUE),
+                HistoryStrategy.MAX, new BigDecimal(1)));
+
         elements.add(new HistoryElement(homematicCommandBuilder.read(Device.STROMZAEHLER_WALLBOX, Datapoint.ENERGY_COUNTER),
             HistoryStrategy.MAX, new BigDecimal(1000)));
 
