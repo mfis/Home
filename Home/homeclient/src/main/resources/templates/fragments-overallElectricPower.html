@@ -1,0 +1,79 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html" lang="de">
+
+	<head><title></title></head>
+
+	<!-- OverallElectricPower -->
+	<div th:fragment="overallElectricPower (model)" th:class="'alert alert-' + ${model.colorClass} + ' callout callout-' + ${model.colorClass}">
+		<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState}, colorClass=${model.colorClass})"></div>
+		<div class="collapse collapse-preserve-state w-100" th:id="'collapse' + ${model.id}">
+
+			<div class="container">
+				<div class="row">
+					<!-- COL PV -->
+					<div class="col">
+						<div class="container">
+							<div class="row">
+								<a><th:block th:replace="basics :: symbolWithStyle (name=${model.pv.icon}, style='font-size: 150%;')"/></a>
+							</div>
+							<div class="row">
+								<a>Produktion</a>
+							</div>
+							<div class="row">
+								<a>
+									<span th:text="${model.pv.state}"></span>
+									<span><th:block th:replace="fragments :: tendency (icon=${model.pv.tendencyIcon})"></th:block></span>
+								</a>
+							</div>
+							<div class="row">
+								<th:block th:if="${model.pv.todayConsumption != null}">
+									<a>
+										<span class="mb-1" th:text="${model.pv.todayConsumption.label}"></span>
+										<span class="text-muted" style="font-size: 80%;" th:text="${model.pv.todayConsumption.additionalLabel}"></span>
+										<th:block th:replace="fragments :: historyLink (key=${model.pv.historyKey}, name=${model.pv.name} + ' Gesamt', place=${model.pv.place})"></th:block>
+									</a>
+								</th:block>
+							</div>
+						</div>
+					</div>
+					<!-- COL PLUG -->
+					<div class="col">
+						<div class="container">
+							<div class="row">
+								<a><th:block th:replace="basics :: symbolWithStyle (name=${model.consumption.icon}, style='font-size: 150%;')"/></a>
+							</div>
+							<div class="row">
+								<a>Verbrauch</a>
+							</div>
+							<div class="row">
+								<a>
+									<span th:text="${model.consumption.state}"></span>
+									<span><th:block th:replace="fragments :: tendency (icon=${model.consumption.tendencyIcon})"></th:block></span>
+								</a>
+							</div>
+						</div>
+					</div>
+					<!-- COL GRID -->
+					<div class="col">
+						<div class="container">
+							<div class="row">
+								<div class="col"><a><th:block th:replace="basics :: symbolWithStyle (name=${model.gridActualDirectionIcon}, style='font-size: 150%;')"/></a></div>
+								<div th:style="'width:24px; height:24px; -webkit-mask:url(electric-tower.png) center/contain; mask:url(electric-tower.png) center/contain'" th:class="'col img-' + ${model.gridActualDirection.colorClass}"></div>
+								<div class="col"> </div>
+							</div>
+							<div class="row">
+								<div class="col">
+									<a>
+										<span th:text="${model.gridActualDirection.state}"></span>
+										<span><th:block th:replace="fragments :: tendency (icon=${model.gridActualDirection.tendencyIcon})"></th:block></span>
+									</a>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+</html>

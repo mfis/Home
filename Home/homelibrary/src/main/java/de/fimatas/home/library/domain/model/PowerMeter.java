@@ -1,8 +1,14 @@
 package de.fimatas.home.library.domain.model;
 
+import de.fimatas.home.library.homematic.model.Device;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 
+@Data
+@EqualsAndHashCode(callSuper = true)
 public class PowerMeter extends AbstractDeviceModel implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -12,13 +18,4 @@ public class PowerMeter extends AbstractDeviceModel implements Serializable {
     }
 
     private ValueWithTendency<BigDecimal> actualConsumption;
-
-    public ValueWithTendency<BigDecimal> getActualConsumption() {
-        return actualConsumption;
-    }
-
-    public void setActualConsumption(ValueWithTendency<BigDecimal> actualConsumption) {
-        this.actualConsumption = actualConsumption;
-    }
-
 }

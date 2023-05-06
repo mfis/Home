@@ -43,15 +43,15 @@ public class HistoryViewService {
 
     public void fillHistoryViewModel(Model model, HistoryModel history, HouseModel house, String key) {
 
-        if (key.equals(house.getPurchasedElectricalPowerConsumption().getDevice().historyKeyPrefix())) {
-            fillPowerHistoryMonthViewModel(model, house.getPurchasedElectricalPowerConsumption().getDevice(), history.getPurchasedElectricPowerConsumptionMonth());
+        if (key.equals(Device.STROMZAEHLER_BEZUG.historyKeyPrefix())) {
+            fillPowerHistoryMonthViewModel(model, Device.STROMZAEHLER_BEZUG, history.getPurchasedElectricPowerConsumptionMonth());
             List<ChartEntry> dayViewModel =
-                    viewFormatter.fillPowerHistoryDayViewModel(house.getPurchasedElectricalPowerConsumption().getDevice(), history.getPurchasedElectricPowerConsumptionDay(), true, false);
+                    viewFormatter.fillPowerHistoryDayViewModel(Device.STROMZAEHLER_BEZUG, history.getPurchasedElectricPowerConsumptionDay(), true, false);
             model.addAttribute("chartEntries", dayViewModel);
-        } else if (key.equals(house.getFeedElectricalPowerConsumption().getDevice().historyKeyPrefix())) {
-            fillPowerHistoryMonthViewModel(model, house.getFeedElectricalPowerConsumption().getDevice(), history.getFeedElectricPowerConsumptionMonth());
+        } else if (key.equals(Device.STROMZAEHLER_EINSPEISUNG.historyKeyPrefix())) {
+            fillPowerHistoryMonthViewModel(model, Device.STROMZAEHLER_EINSPEISUNG, history.getFeedElectricPowerConsumptionMonth());
             List<ChartEntry> dayViewModel =
-                        viewFormatter.fillPowerHistoryDayViewModel(house.getFeedElectricalPowerConsumption().getDevice(), history.getFeedElectricPowerConsumptionDay(), true, false);
+                        viewFormatter.fillPowerHistoryDayViewModel(Device.STROMZAEHLER_EINSPEISUNG, history.getFeedElectricPowerConsumptionDay(), true, false);
             model.addAttribute("chartEntries", dayViewModel);
         } else if (key.equals(house.getWallboxElectricalPowerConsumption().getDevice().historyKeyPrefix())) {
             fillPowerHistoryMonthViewModel(model, house.getWallboxElectricalPowerConsumption().getDevice(), history.getWallboxElectricPowerConsumptionMonth());
