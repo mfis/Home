@@ -49,7 +49,7 @@ public class ViewFormatter {
 
     private static final String M_3_H = " m³/h";
 
-    private static final String WATT = " Watt";
+    private static final String WATT = " W";
 
     private static final String M_3 = " m³";
 

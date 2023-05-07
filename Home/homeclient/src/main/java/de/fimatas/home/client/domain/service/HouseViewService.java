@@ -699,14 +699,24 @@ public class HouseViewService {
         overallElectricPowerHouseView.setName("#name#");
         overallElectricPowerHouseView.setElementTitleState("#elementTitleState#");
 
-        overallElectricPowerHouseView.setGridActualDirectionIcon("fa-solid fa-angles-left"); // FIXME
-
         overallElectricPowerHouseView.setConsumption(formatPowerView(model, houseModel.getConsumedElectricalPower(), historyModel==null?null:historyModel.getSelfusedElectricPowerConsumptionDay()));
         overallElectricPowerHouseView.setPv(formatPowerView(model, houseModel.getProducedElectricalPower(), historyModel==null?null:historyModel.getProducedElectricPowerDay()));
         overallElectricPowerHouseView.setGridPurchase(formatPowerView(model, houseModel.getGridElectricalPower(), historyModel==null?null:historyModel.getPurchasedElectricPowerConsumptionDay()));
         overallElectricPowerHouseView.setGridFeed(formatPowerView(model, houseModel.getGridElectricalPower(), historyModel==null?null:historyModel.getFeedElectricPowerConsumptionDay()));
 
+        // direction
+        if(!houseModel.getGridElectricalPower().isUnreach()){
+            if(houseModel.getGridElectricalPower().getActualConsumption().getValue() != null){
+                int val = houseModel.getGridElectricalPower().getActualConsumption().getValue().intValue();
+                if(val > 0){
+                    overallElectricPowerHouseView.setGridActualDirectionIcon("fa-solid fa-angles-right");
+                }else if (val < 0){
+                    overallElectricPowerHouseView.setGridActualDirectionIcon("fa-solid fa-angles-left");
+                }
+            }
+        }
         overallElectricPowerHouseView.setGridActualDirection(overallElectricPowerHouseView.getGridFeed()); // FIXME
+        //
 
         model.addAttribute("overallElectricPowerHouse", overallElectricPowerHouseView);
     }
