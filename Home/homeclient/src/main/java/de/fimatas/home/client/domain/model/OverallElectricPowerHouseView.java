@@ -7,15 +7,13 @@ import lombok.EqualsAndHashCode;
 @Data
 public class OverallElectricPowerHouseView extends View {
 
-    private String gridActualDirectionIcon = "";
+    private PowerView consumption = new PowerView();
 
-    private View consumption = new PowerView();
+    private PowerView gridActualDirection = new PowerView();
 
-    private View gridActualDirection = new PowerView();
+    private PowerView pv = new PowerView();
 
-    private View pv = new PowerView();
+    private PowerView gridPurchase = new PowerView();
 
-    private View gridPurchase = new PowerView();
-
-    private View gridFeed = new PowerView();
+    private PowerView gridFeed = new PowerView();
 }
