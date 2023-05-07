@@ -699,12 +699,16 @@ public class HouseViewService {
         overallElectricPowerHouseView.setName("#name#");
         overallElectricPowerHouseView.setElementTitleState("#elementTitleState#");
 
-        overallElectricPowerHouseView.setConsumption(formatPowerView(model, houseModel.getConsumedElectricalPower(), historyModel==null?null:historyModel.getSelfusedElectricPowerConsumptionDay()));
-        overallElectricPowerHouseView.setPv(formatPowerView(model, houseModel.getProducedElectricalPower(), historyModel==null?null:historyModel.getProducedElectricPowerDay()));
-        overallElectricPowerHouseView.setGridPurchase(formatPowerView(model, houseModel.getGridElectricalPower(), historyModel==null?null:historyModel.getPurchasedElectricPowerConsumptionDay()));
-        overallElectricPowerHouseView.setGridFeed(formatPowerView(model, houseModel.getGridElectricalPower(), historyModel==null?null:historyModel.getFeedElectricPowerConsumptionDay()));
+        // clear inverter consumption
+        BigDecimal offsetConsumption = BigDecimal.ZERO;
+        if(houseModel.getProducedElectricalPower().getActualConsumption().getValue() != null && houseModel.getProducedElectricalPower().getActualConsumption().getValue().intValue() < 0){
+            offsetConsumption = houseModel.getProducedElectricalPower().getActualConsumption().getValue().abs();
+        }
+        overallElectricPowerHouseView.setConsumption(formatPowerView(model, houseModel.getConsumedElectricalPower(), historyModel==null?null:historyModel.getSelfusedElectricPowerConsumptionDay(), offsetConsumption, false));
 
-        // direction
+        overallElectricPowerHouseView.setPv(formatPowerView(model, houseModel.getProducedElectricalPower(), historyModel==null?null:historyModel.getProducedElectricPowerDay(), offsetConsumption, false));
+        overallElectricPowerHouseView.setGridPurchase(formatPowerView(model, houseModel.getGridElectricalPower(), historyModel==null?null:historyModel.getPurchasedElectricPowerConsumptionDay(), BigDecimal.ZERO, true));
+        overallElectricPowerHouseView.setGridFeed(formatPowerView(model, houseModel.getGridElectricalPower(), historyModel==null?null:historyModel.getFeedElectricPowerConsumptionDay(), BigDecimal.ZERO, false));
 
         overallElectricPowerHouseView.getGridPurchase().setDirectionIcon("fa-solid fa-angles-left");
         overallElectricPowerHouseView.getGridPurchase().setColorClass(ConditionColor.ORANGE.getUiClass());
@@ -722,17 +726,16 @@ public class HouseViewService {
                 }
             }
         }
-        //
 
         model.addAttribute("overallElectricPowerHouse", overallElectricPowerHouseView);
     }
 
     private void formatPower(Model model, PowerMeter powerMeter, List<PowerConsumptionDay> pcd) {
-        PowerView power = formatPowerView(model, powerMeter, pcd);
+        PowerView power = formatPowerView(model, powerMeter, pcd, BigDecimal.ZERO, false);
         model.addAttribute(powerMeter.getDevice().programNamePrefix(), power);
     }
 
-    private PowerView formatPowerView(Model model, PowerMeter powerMeter, List<PowerConsumptionDay> pcd) {
+    private PowerView formatPowerView(Model model, PowerMeter powerMeter, List<PowerConsumptionDay> pcd, BigDecimal valueOffset, boolean abs) {
 
         PowerView power = new PowerView();
         power.setId(lookupTodayPowerId(powerMeter.getDevice(), false));
@@ -745,8 +748,12 @@ public class HouseViewService {
         }
 
         power.setHistoryKey(powerMeter.getDevice().historyKeyPrefix());
+        BigDecimal val = powerMeter.getActualConsumption().getValue() == null? BigDecimal.ZERO : powerMeter.getActualConsumption().getValue().add(valueOffset);
+        if(abs){
+            val = val.abs();
+        }
         power.setState(powerMeter.getActualConsumption().getValue() == null ? UNBEKANNT
-                : ViewFormatter.actualPowerConsumptionValueForView(powerMeter.getDevice(), powerMeter.getActualConsumption().getValue()) + ViewFormatter.actualPowerUnit(power.getDevice()));
+                : ViewFormatter.actualPowerConsumptionValueForView(powerMeter.getDevice(), val) + ViewFormatter.actualPowerUnit(power.getDevice()));
         power.setName(powerMeter.getDevice().getType().getTypeName());
         if (powerMeter.getActualConsumption().getTendency() != null) {
             power.setTendencyIcon(powerMeter.getActualConsumption().getTendency().getIconCssClass());

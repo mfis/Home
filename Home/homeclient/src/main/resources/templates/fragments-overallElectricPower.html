@@ -8,100 +8,140 @@
 		<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState}, colorClass=${model.colorClass})"></div>
 		<div class="collapse collapse-preserve-state w-100" th:id="'collapse' + ${model.id}">
 
-			<div class="container">
-				<div class="row">
+			<table border="1" width="100%" style="margin-top: 10px;">
+				<tr align="center">
 					<!-- COL PV -->
-					<div class="col pl-0">
-						<div class="container">
-							<div class="row">
-								<a><th:block th:replace="basics :: symbolWithStyle (name=${model.pv.icon}, style='font-size: 150%;')"/></a>
-							</div>
-							<div class="row">
-								<a>Produktion</a>
-							</div>
-							<div class="row">
-								<a>
-									<span th:text="${model.pv.state}"></span>
-									<span><th:block th:replace="fragments :: tendency (icon=${model.pv.tendencyIcon})"></th:block></span>
-								</a>
-							</div>
-							<div class="row">
-								<th:block th:if="${model.pv.todayConsumption != null}">
+					<td>
+						<table border="1" width="100%" >
+							<tr align="center">
+								<td>
+									<a><th:block th:replace="basics :: symbolWithStyle (name=${model.pv.icon}, style='font-size: 150%;')"/></a>
+								</td>
+							</tr>
+							<tr align="center">
+								<td>
+									<a>Produktion</a>
+								</td>
+							</tr>
+							<tr align="center">
+								<td>
 									<a>
-										<span class="mb-1" th:text="${model.pv.todayConsumption.label}"></span>
-										<span class="text-muted" style="font-size: 80%;" th:text="${model.pv.todayConsumption.additionalLabel}"></span>
-										<th:block th:replace="fragments :: historyLink (key=${model.pv.historyKey}, name=${model.pv.name} + ' Gesamt', place=${model.pv.place})"></th:block>
+										<span th:text="${model.pv.state}"></span>
+										<span><th:block th:replace="fragments :: tendency (icon=${model.pv.tendencyIcon})"></th:block></span>
 									</a>
-								</th:block>
-							</div>
-						</div>
-					</div>
-					<!-- COL PLUG -->
-					<div class="col">
-						<div class="container">
-							<div class="row">
-								<a><th:block th:replace="basics :: symbolWithStyle (name=${model.consumption.icon}, style='font-size: 150%;')"/></a>
-							</div>
-							<div class="row">
-								<a>Verbrauch</a>
-							</div>
-							<div class="row">
-								<a>
-									<span th:text="${model.consumption.state}"></span>
-									<span><th:block th:replace="fragments :: tendency (icon=${model.consumption.tendencyIcon})"></th:block></span>
-								</a>
-							</div>
-							<div class="row">
-								<th:block th:if="${model.consumption.todayConsumption != null}">
-									<a>
-										<span class="mb-1" th:text="${model.consumption.todayConsumption.label}"></span>
-										<span class="text-muted" style="font-size: 80%;" th:text="${model.consumption.todayConsumption.additionalLabel}"></span>
-										<th:block th:replace="fragments :: historyLink (key=${model.consumption.historyKey}, name=${model.consumption.name} + ' Gesamt', place=${model.consumption.place})"></th:block>
-									</a>
-								</th:block>
-							</div>
-						</div>
-					</div>
+								</td>
+							</tr>
+							<tr align="center">
+								<td>
+									<th:block th:if="${model.pv.todayConsumption != null}">
+										<a>
+											<span class="mb-1" th:text="${model.pv.todayConsumption.label}"></span>
+											<span class="text-muted" style="font-size: 80%;" th:text="${model.pv.todayConsumption.additionalLabel}"></span>
+											<th:block th:replace="fragments :: historyLink (key=${model.pv.historyKey}, name=${model.pv.name} + ' Gesamt', place=${model.pv.place})"></th:block>
+										</a>
+									</th:block>
+								</td>
+							</tr>
+							<tr><td height="100%">&nbsp;</td></tr>
+						</table>
+					</td>
 					<!-- COL GRID -->
-					<div class="col pr-0">
-						<div class="container">
-							<div class="row">
-									<a><th:block th:replace="basics :: symbolWithStyle (name=${model.gridActualDirection.directionIcon}, style='font-size: 150%;')"/></a>
-									<a>&nbsp;</a>
-									<!-- FIXME: icon name from model -->
-									<div th:class="'img-callout-inline img-' + ${model.gridActualDirection.colorClass}" style="mask: url('electric-tower.png') center/contain; -webkit-mask: url('electric-tower.png') center/contain;"></div>
-							</div>
-							<div class="row">
-								<a>Netz</a>
-							</div>
-							<div class="row">
-								<a>
-									<span th:text="${model.gridActualDirection.state}"></span>
-									<span><th:block th:replace="fragments :: tendency (icon=${model.gridActualDirection.tendencyIcon})"></th:block></span>
-								</a>
-							</div>
-							<div class="row">
-								<th:block th:if="${model.gridPurchase.todayConsumption != null}">
+					<td>
+						<table border="1" width="100%">
+							<tr align="center">
+								<td>
+									<table border="1" width="100%">
+										<tr>
+											<td align="right">
+												<a th:class="'a-' + ${model.gridActualDirection.colorClass}"><th:block th:replace="basics :: symbolWithStyle (name=${model.gridActualDirection.directionIcon}, style='font-size: 150%;')"/></a>
+											</td>
+											<td th:width="5px"></td>
+											<td align="left">
+												<!-- FIXME: icon name from model -->
+												<div th:class="'img-callout-inline img-' + ${model.gridActualDirection.colorClass}" style="mask: url('electric-tower.png') center/contain; -webkit-mask: url('electric-tower.png') center/contain;"></div>
+											</td>
+										</tr>
+									</table>
+								</td>
+							</tr>
+							<tr align="center">
+								<td>
+									<a th:class="'a-' + ${model.gridActualDirection.colorClass}">Netz</a>
+								</td>
+							</tr>
+							<tr align="center">
+								<td>
 									<a>
-										<span class="mb-1" th:text="${model.gridPurchase.todayConsumption.label}"></span>
-										<span class="text-muted" style="font-size: 80%;" th:text="${model.gridPurchase.todayConsumption.additionalLabel}"></span>
-										<th:block th:replace="fragments :: historyLink (key=${model.gridPurchase.historyKey}, name=${model.gridPurchase.name} + ' Gesamt', place=${model.gridPurchase.place})"></th:block>
+										<span th:text="${model.gridActualDirection.state}"></span>
+										<span><th:block th:replace="fragments :: tendency (icon=${model.gridActualDirection.tendencyIcon})"></th:block></span>
 									</a>
-								</th:block>
-							</div>
-							<div class="row">
-								<th:block th:if="${model.gridFeed.todayConsumption != null}">
+								</td>
+							</tr>
+							<tr align="center">
+								<td>
+									<th:block th:if="${model.gridPurchase.todayConsumption != null}">
+										<a>
+											<span><th:block th:replace="basics :: symbolWithStyle (name=${model.gridPurchase.directionIcon}, style='font-size: 100%;')"/></span>
+											<span class="mb-1" th:text="${model.gridPurchase.todayConsumption.label}"></span>
+											<span class="text-muted" style="font-size: 80%;" th:text="${model.gridPurchase.todayConsumption.additionalLabel}"></span>
+											<th:block th:replace="fragments :: historyLink (key=${model.gridPurchase.historyKey}, name=${model.gridPurchase.name} + ' Gesamt', place=${model.gridPurchase.place})"></th:block>
+										</a>
+									</th:block>
+								</td>
+							</tr>
+							<tr align="center">
+								<td>
+									<th:block th:if="${model.gridFeed.todayConsumption != null}">
+										<a>
+											<span><th:block th:replace="basics :: symbolWithStyle (name=${model.gridFeed.directionIcon}, style='font-size: 100%;')"/></span>
+											<span class="mb-1" th:text="${model.gridFeed.todayConsumption.label}"></span>
+											<span class="text-muted" style="font-size: 80%;" th:text="${model.gridFeed.todayConsumption.additionalLabel}"></span>
+											<th:block th:replace="fragments :: historyLink (key=${model.gridFeed.historyKey}, name=${model.gridFeed.name} + ' Gesamt', place=${model.gridFeed.place})"></th:block>
+										</a>
+									</th:block>
+								</td>
+							</tr>
+						</table>
+					</td>
+				</tr>
+				<tr><td height="15px"></td></tr>
+				<tr align="center" style="margin-top: 10px;">
+					<!-- COL PLUG -->
+					<td colspan="2">
+						<table border="1" width="100%">
+							<tr align="center">
+								<td>
+									<a><th:block th:replace="basics :: symbolWithStyle (name=${model.consumption.icon}, style='font-size: 150%;')"/></a>
+								</td>
+							</tr>
+							<tr align="center">
+								<td>
+									<a>Verbrauch</a>
+								</td>
+							</tr>
+							<tr align="center">
+								<td>
 									<a>
-										<span class="mb-1" th:text="${model.gridFeed.todayConsumption.label}"></span>
-										<span class="text-muted" style="font-size: 80%;" th:text="${model.gridFeed.todayConsumption.additionalLabel}"></span>
-										<th:block th:replace="fragments :: historyLink (key=${model.gridFeed.historyKey}, name=${model.gridFeed.name} + ' Gesamt', place=${model.gridFeed.place})"></th:block>
+										<span th:text="${model.consumption.state}"></span>
+										<span><th:block th:replace="fragments :: tendency (icon=${model.consumption.tendencyIcon})"></th:block></span>
 									</a>
-								</th:block>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
+								</td>
+							</tr>
+							<tr align="center">
+								<td>
+									<th:block th:if="${model.consumption.todayConsumption != null}">
+										<a>
+											<span class="mb-1" th:text="${model.consumption.todayConsumption.label}"></span>
+											<span class="text-muted" style="font-size: 80%;" th:text="${model.consumption.todayConsumption.additionalLabel}"></span>
+											<th:block th:replace="fragments :: historyLink (key=${model.consumption.historyKey}, name=${model.consumption.name} + ' Gesamt', place=${model.consumption.place})"></th:block>
+										</a>
+									</th:block>
+								</td>
+							</tr>
+						</table>
+					</td>
+				</tr>
+			</table>
 		</div>
 	</div>
 

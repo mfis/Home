@@ -20,6 +20,10 @@ h4, h5{
 button{
 	font-weight:300 !important;
 }
+.container{
+	padding-left: 4px !important;
+	padding-right: 3px !important;
+}
 .fa-rotate-45 {
 	-webkit-transform: rotate(45deg);
 	-moz-transform: rotate(45deg);
@@ -72,11 +76,9 @@ button{
 .callout-info {
 	border-color: rgb(91,192,222) !important;
 }
-
 .callout-light {
 	border-color: rgb(244,190,238) !important;
 }
-
 .callout-cold {
 	border-color: rgb(244,190,238) !important;
 }
@@ -148,6 +150,30 @@ h4{
 	color: rgb(244,190,238) !important;
 }
 .callout-cold h4, .callout-cold a{
+	color: rgb(244,190,238) !important;
+}
+.a-primary {
+	color: rgb(66,139,202) !important;
+}
+.a-secondary {
+	color: rgb(238,238,238,0.8) !important;
+}
+.a-success{
+	color: rgb(92,184,92) !important;
+}
+.a-danger{
+	color: rgb(217,83,79) !important;
+}
+.a-warning{
+	color: rgb(240,173,78) !important;
+}
+.a-info{
+	color: rgb(91,192,222) !important;
+}
+.a-light{
+	color: rgb(244,190,238) !important;
+}
+.a-cold{
 	color: rgb(244,190,238) !important;
 }
 .historybackground{
