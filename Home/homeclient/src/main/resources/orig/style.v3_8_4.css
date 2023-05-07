@@ -232,12 +232,10 @@ input[type="checkbox"]:checked ~ label .check-true{
 	position:relative;
 	margin-top: 2px;
 }
-.img-icon-medium {
+.img-callout-inline {
 	width: 24px;
 	height: 24px;
-	float:left;
 	position:relative;
-	margin-top: 2px;
 }
 .img-primary {
 	background: rgb(66,139,202);
