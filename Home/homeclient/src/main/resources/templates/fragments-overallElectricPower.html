@@ -14,21 +14,21 @@
 					<td>
 						<table border="1" width="100%" >
 							<tr align="center">
-								<td>
+								<td th:class="'text-' + ${model.pv.colorClass}">
 									<th:block th:replace="basics :: symbolWithStyle (name=${model.pv.icon}, style='font-size: 150%;')"/>
 								</td>
 							</tr>
 							<tr align="center">
-								<td>Produktion</td>
+								<td th:class="'text-' + ${model.pv.colorClass}">Produktion</td>
 							</tr>
 							<tr align="center">
-								<td>
+								<td th:class="'text-' + ${model.pv.colorClass}">
 									<span th:text="${model.pv.state}"></span>
 									<span><th:block th:replace="fragments :: tendency (icon=${model.pv.tendencyIcon})"></th:block></span>
 								</td>
 							</tr>
 							<tr align="center">
-								<td>
+								<td th:class="'text-' + ${model.pv.colorClass}">
 									<th:block th:if="${model.pv.todayConsumption != null}">
 										<span class="mb-1" th:text="${model.pv.todayConsumption.label}"></span>
 										<span class="text-muted" style="font-size: 80%;" th:text="${model.pv.todayConsumption.additionalLabel}"></span>
@@ -68,7 +68,7 @@
 								</td>
 							</tr>
 							<tr align="center">
-								<td>
+								<td th:class="'text-' + ${model.gridPurchase.colorClass}">
 									<th:block th:if="${model.gridPurchase.todayConsumption != null}">
 										<span><th:block th:replace="basics :: symbolWithStyle (name=${model.gridPurchase.directionIcon}, style='font-size: 100%;')"/></span>
 										<span class="mb-1" th:text="${model.gridPurchase.todayConsumption.label}"></span>
@@ -78,7 +78,7 @@
 								</td>
 							</tr>
 							<tr align="center">
-								<td>
+								<td th:class="'text-' + ${model.gridFeed.colorClass}">
 									<th:block th:if="${model.gridFeed.todayConsumption != null}">
 										<span><th:block th:replace="basics :: symbolWithStyle (name=${model.gridFeed.directionIcon}, style='font-size: 100%;')"/></span>
 										<span class="mb-1" th:text="${model.gridFeed.todayConsumption.label}"></span>
@@ -96,21 +96,21 @@
 					<td colspan="2">
 						<table border="1" width="100%">
 							<tr align="center">
-								<td>
+								<td th:class="'text-' + ${model.consumption.colorClass}">
 									<th:block th:replace="basics :: symbolWithStyle (name=${model.consumption.icon}, style='font-size: 150%;')"/>
 								</td>
 							</tr>
 							<tr align="center">
-								<td>Verbrauch</td>
+								<td th:class="'text-' + ${model.consumption.colorClass}">Verbrauch</td>
 							</tr>
 							<tr align="center">
-								<td>
+								<td th:class="'text-' + ${model.consumption.colorClass}">
 									<span th:text="${model.consumption.state}"></span>
 									<span><th:block th:replace="fragments :: tendency (icon=${model.consumption.tendencyIcon})"></th:block></span>
 								</td>
 							</tr>
 							<tr align="center">
-								<td>
+								<td th:class="'text-' + ${model.consumption.colorClass}">
 									<th:block th:if="${model.consumption.todayConsumption != null}">
 										<span class="mb-1" th:text="${model.consumption.todayConsumption.label}"></span>
 										<span class="text-muted" style="font-size: 80%;" th:text="${model.consumption.todayConsumption.additionalLabel}"></span>
@@ -120,6 +120,10 @@
 							</tr>
 						</table>
 					</td>
+				</tr>
+				<tr><td height="15px"></td></tr>
+				<tr>
+					<td colspan="2" th:text="'Aktualisiert: ' + ${model.timestampState}"></td>
 				</tr>
 			</table>
 		</div>

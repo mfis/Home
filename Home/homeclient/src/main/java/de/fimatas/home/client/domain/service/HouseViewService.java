@@ -715,6 +715,11 @@ public class HouseViewService {
 
         overallElectricPowerHouseView.getGridFeed().setDirectionIcon("fa-solid fa-angles-right");
         overallElectricPowerHouseView.getGridFeed().setColorClass(ConditionColor.GREEN.getUiClass());
+        overallElectricPowerHouseView.getPv().setColorClass(houseModel.getProducedElectricalPower().getActualConsumption() != null &&
+                houseModel.getProducedElectricalPower().getActualConsumption().getValue() != null ?
+                houseModel.getProducedElectricalPower().getActualConsumption().getValue().compareTo(BigDecimal.TEN) > 0 ? ConditionColor.GREEN.getUiClass() :
+                        ConditionColor.LIGHT.getUiClass() : ConditionColor.GRAY.getUiClass());
+        overallElectricPowerHouseView.getConsumption().setColorClass(ConditionColor.DEFAULT.getUiClass());
 
         if(!houseModel.getGridElectricalPower().isUnreach()){
             if(houseModel.getGridElectricalPower().getActualConsumption().getValue() != null){
@@ -725,6 +730,12 @@ public class HouseViewService {
                     overallElectricPowerHouseView.setGridActualDirection(overallElectricPowerHouseView.getGridPurchase());
                 }
             }
+        }
+
+        if(houseModel.getPvStatusTime() > 0){
+            LocalDateTime timestamp = Instant.ofEpochMilli(houseModel.getPvStatusTime()).atZone(ZoneId.systemDefault()).toLocalDateTime();
+            long diff = ChronoUnit.MINUTES.between(timestamp, LocalDateTime.now());
+            overallElectricPowerHouseView.setTimestampState(diff==0?"jetzt" : "vor " + diff + " Minute" + (diff ==1?"":"n"));
         }
 
         model.addAttribute("overallElectricPowerHouse", overallElectricPowerHouseView);

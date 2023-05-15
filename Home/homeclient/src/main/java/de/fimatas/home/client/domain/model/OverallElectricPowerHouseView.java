@@ -16,4 +16,6 @@ public class OverallElectricPowerHouseView extends View {
     private PowerView gridPurchase = new PowerView();
 
     private PowerView gridFeed = new PowerView();
+
+    private String timestampState = "unbekannt";
 }

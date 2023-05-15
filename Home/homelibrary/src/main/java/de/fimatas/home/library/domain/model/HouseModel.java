@@ -66,6 +66,8 @@ public class HouseModel implements Serializable {
 
     private PowerMeter consumedElectricalPower;
 
+    private long pvStatusTime;
+
     private PowerMeter wallboxElectricalPowerConsumption;
 
     private PowerMeter gasConsumption;

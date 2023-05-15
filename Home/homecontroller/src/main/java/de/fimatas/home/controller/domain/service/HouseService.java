@@ -15,6 +15,7 @@ import de.fimatas.home.library.homematic.model.HomematicConstants;
 import de.fimatas.home.library.homematic.model.Type;
 import de.fimatas.home.library.model.Message;
 import de.fimatas.home.library.util.HomeAppConstants;
+import lombok.extern.apachecommons.CommonsLog;
 import mfi.files.api.UserService;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.SerializationUtils;
@@ -40,6 +41,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Component
+@CommonsLog
 public class HouseService {
 
     private static final BigDecimal TARGET_TEMPERATURE_INSIDE = new BigDecimal("21");
@@ -169,6 +171,7 @@ public class HouseService {
         newModel.setGridElectricalPower(readPowerConsumption(Device.ELECTRIC_POWER_GRID_ACTUAL_HOUSE));
         newModel.setProducedElectricalPower(readPowerConsumption(Device.ELECTRIC_POWER_PRODUCTION_ACTUAL_HOUSE));
         newModel.setConsumedElectricalPower(readPowerConsumption(Device.ELECTRIC_POWER_CONSUMPTION_ACTUAL_HOUSE));
+        newModel.setPvStatusTime(formatTimestamp(Device.ELECTRIC_POWER_ACTUAL_TIMESTAMP_HOUSE));
 
         newModel.setWallboxElectricalPowerConsumption(readPowerConsumption(Device.STROMZAEHLER_WALLBOX));
         newModel.setGasConsumption(readPowerConsumption(Device.GASZAEHLER));
@@ -181,6 +184,15 @@ public class HouseService {
         readSubtitles(newModel);
 
         return newModel;
+    }
+
+    private long formatTimestamp(Device device) {
+        try{
+            return Long.parseLong(hmApi.getAsString(homematicCommandBuilder.read(device, Datapoint.SYSVAR_DUMMY)));
+        }catch (Exception e){
+            log.warn("PV timestamp problem.", e);
+            return 0;
+        }
     }
 
     private void informOtherServices(HouseModel oldModel, HouseModel newModel) {
