@@ -240,28 +240,28 @@ input[type="checkbox"]:checked ~ label .check-true{
 	position:relative;
 }
 .img-primary {
-	background: rgb(66,139,202);
+	background: rgb(66,139,202); /* fixme based on text color */
 }
 .img-secondary {
-	background: rgb(238,238,238,0.8);
+	background: rgb(238,238,238,0.8); /* fixme based on text color */
 }
 .img-success {
-	background: rgb(92,184,92);
+	background: rgb(40, 167, 69);
 }
 .img-danger {
-	background: rgb(217,83,79);
+	background: rgb(217,83,79); /* fixme based on text color */
 }
 .img-warning {
-	background: rgb(240,173,78);
+	background: rgb(255,193,7);
 }
 .img-info {
-	background: rgb(91,192,222);
+	background: rgb(91,192,222); /* fixme based on text color */
 }
 .img-light {
-	background: rgb(244,190,238);
+	background: rgb(244,190,238); /* fixme based on text color */
 }
 .img-cold {
-	background: rgb(244,190,238);
+	background: rgb(244,190,238); /* fixme based on text color */
 }
 
 .evBatterySlider .rs-handle  {
@@ -306,3 +306,85 @@ input[type="checkbox"]:checked ~ label .check-true{
 	font-size: 10px;
 	color: gray;
 }
+
+/*
+        START - Following CSS is based on: "Smooth arrow animation"
+
+The MIT License (MIT)
+
+Copyright (c) 2023 vlt_dev (https://codepen.io/vlt_dev/pen/NWMNzpE)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+*/
+
+.arrow {
+	position: absolute;
+	transform: translate(-50%, -50%);
+	cursor: pointer;
+}
+
+.arrow-45 {
+	transform: rotate(45deg);
+}
+
+.arrow-135 {
+	transform: rotate(135deg);
+}
+
+.arrow-270 {
+	transform: rotate(270deg);
+}
+
+.arrow span {
+	display: block;
+	width: 12px;
+	height: 12px;
+	border-bottom: 5px solid white;
+	border-right: 5px solid white;
+	transform: rotate(45deg);
+	margin: -10px;
+	animation: animate 2s infinite;
+}
+
+.arrow span:nth-child(2) {
+	animation-delay: -0.2s;
+}
+
+.arrow span:nth-child(3) {
+	animation-delay: -0.4s;
+}
+
+@keyframes animate {
+	0% {
+		opacity: 0;
+		transform: rotate(45deg) translate(-20px, -20px);
+	}
+	50% {
+		opacity: 1;
+	}
+	100% {
+		opacity: 0;
+		transform: rotate(45deg) translate(20px, 20px);
+	}
+}
+
+/*
+        END - Smooth arrow animation
+*/

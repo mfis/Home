@@ -197,17 +197,17 @@ public class HouseViewService {
             return;
         }
 
-        /*var electric = new View();
-        electric.setId(lookupTodayPowerId(house.getPurchasedElectricalPowerConsumption().getDevice(), true));
-        electric.setState("0" + ViewFormatter.powerConsumptionUnit(house.getPurchasedElectricalPowerConsumption().getDevice()));
+        var electric = new View();
+        electric.setId(lookupTodayPowerId(house.getGridElectricalPower().getDevice(), true));
+        electric.setState("0" + ViewFormatter.powerConsumptionUnit(house.getGridElectricalPower().getDevice()));
         if (pcdElectric != null &&!pcdElectric.isEmpty()) {
-            List<ChartEntry> dayViewModel = viewFormatter.fillPowerHistoryDayViewModel(house.getPurchasedElectricalPowerConsumption().getDevice(), pcdElectric, false, true);
+            List<ChartEntry> dayViewModel = viewFormatter.fillPowerHistoryDayViewModel(house.getGridElectricalPower().getDevice(), pcdElectric, false, true);
             if (dayViewModel != null && !dayViewModel.isEmpty()) {
                 electric.setState(dayViewModel.get(0).getLabel().replace(ViewFormatter.SUM_SIGN, "").trim());
-                electric.setColorClass(calculateViewConditionColorGridPowerActualDayDay(house.getPurchasedElectricalPowerConsumption().getDevice(), dayViewModel.get(0).getNumericValue()).getUiClass());
+                electric.setColorClass(calculateViewConditionColorGridPowerActualDayDay(house.getGridElectricalPower().getDevice(), dayViewModel.get(0).getNumericValue()).getUiClass());
             }
         }
-        view.getCaptionAndValue().put("Strom", electric);*/ // FIXME
+        view.getCaptionAndValue().put("Strom", electric);
 
         var gas = new View();
         gas.setId(lookupTodayPowerId(house.getGasConsumption().getDevice(), true));
@@ -689,15 +689,16 @@ public class HouseViewService {
         Device baseDevice = Device.STROMZAEHLER_BEZUG;
         overallElectricPowerHouseView.setId(lookupTodayPowerId(baseDevice, false));
         overallElectricPowerHouseView.setPlaceEnum(baseDevice.getPlace());
-        boolean unreach = false; // FIXME
-        overallElectricPowerHouseView.setUnreach(Boolean.toString(unreach)); // FIXME
+        boolean unreach = houseModel.getGridElectricalPower().isUnreach() || houseModel.getProducedElectricalPower() == null;
+        overallElectricPowerHouseView.setUnreach(Boolean.toString(unreach));
         if (unreach) {
             model.addAttribute("overallElectricPowerHouse", overallElectricPowerHouseView);
+            return;
         }
 
-        overallElectricPowerHouseView.setState("#state#");
-        overallElectricPowerHouseView.setName("#name#");
-        overallElectricPowerHouseView.setElementTitleState("#elementTitleState#");
+        overallElectricPowerHouseView.setState("");
+        overallElectricPowerHouseView.setName("Strom");
+        overallElectricPowerHouseView.setIcon("fas fa-bolt");
 
         // clear inverter consumption
         BigDecimal offsetConsumption = BigDecimal.ZERO;
@@ -718,8 +719,19 @@ public class HouseViewService {
         overallElectricPowerHouseView.getPv().setColorClass(houseModel.getProducedElectricalPower().getActualConsumption() != null &&
                 houseModel.getProducedElectricalPower().getActualConsumption().getValue() != null ?
                 houseModel.getProducedElectricalPower().getActualConsumption().getValue().compareTo(BigDecimal.TEN) > 0 ? ConditionColor.GREEN.getUiClass() :
-                        ConditionColor.LIGHT.getUiClass() : ConditionColor.GRAY.getUiClass());
-        overallElectricPowerHouseView.getConsumption().setColorClass(ConditionColor.DEFAULT.getUiClass());
+                        ConditionColor.GRAY.getUiClass() : ConditionColor.GRAY.getUiClass());
+
+        if(houseModel.getProducedElectricalPower().getActualConsumption() != null &&
+                houseModel.getProducedElectricalPower().getActualConsumption().getValue() != null &&
+                houseModel.getProducedElectricalPower().getActualConsumption().getValue().compareTo(BigDecimal.ZERO) <= 0){
+            overallElectricPowerHouseView.getConsumption().setColorClass(ConditionColor.ORANGE.getUiClass());
+        }else if (houseModel.getGridElectricalPower().getActualConsumption() != null
+                && houseModel.getGridElectricalPower().getActualConsumption().getValue() != null
+                && houseModel.getGridElectricalPower().getActualConsumption().getValue().compareTo(BigDecimal.ZERO) >= 0){
+            overallElectricPowerHouseView.getConsumption().setColorClass(ConditionColor.GREEN.getUiClass());
+        }else{
+            overallElectricPowerHouseView.getConsumption().setColorClass(ConditionColor.LIGHT.getUiClass());
+        }
 
         if(!houseModel.getGridElectricalPower().isUnreach()){
             if(houseModel.getGridElectricalPower().getActualConsumption().getValue() != null){
@@ -738,6 +750,8 @@ public class HouseViewService {
             overallElectricPowerHouseView.setTimestampState(diff==0?"jetzt" : "vor " + diff + " Minute" + (diff ==1?"":"n"));
         }
 
+        overallElectricPowerHouseView.setElementTitleState(overallElectricPowerHouseView.getConsumption().getElementTitleState());
+        overallElectricPowerHouseView.setColorClass(overallElectricPowerHouseView.getConsumption().getColorClass());
         model.addAttribute("overallElectricPowerHouse", overallElectricPowerHouseView);
     }
 
