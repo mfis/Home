@@ -4,7 +4,7 @@ public enum ChargeLimit {
 
     _70((short)70, "70%"), //
     _80((short)80, "80%"), //
-    _90((short)90, "90%"), //
+    _85((short)85, "85%"), //
     MAX((short)100, "Max"), //
     ;
 
