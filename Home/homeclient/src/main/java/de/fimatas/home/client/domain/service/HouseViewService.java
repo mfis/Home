@@ -751,7 +751,8 @@ public class HouseViewService {
         }
 
         overallElectricPowerHouseView.setElementTitleState(overallElectricPowerHouseView.getConsumption().getElementTitleState());
-        overallElectricPowerHouseView.setColorClass(overallElectricPowerHouseView.getConsumption().getColorClass());
+        overallElectricPowerHouseView.setColorClass(overallElectricPowerHouseView.getConsumption().getColorClass().equals(ConditionColor.LIGHT.getUiClass())?
+                ConditionColor.GRAY.getUiClass() : overallElectricPowerHouseView.getConsumption().getColorClass());
         model.addAttribute("overallElectricPowerHouse", overallElectricPowerHouseView);
     }
 
