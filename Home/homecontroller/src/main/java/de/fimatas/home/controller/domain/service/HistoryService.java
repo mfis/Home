@@ -233,7 +233,7 @@ public class HistoryService {
                         .get(model.getSelfusedElectricPowerConsumptionMonth().size() - 1).measurePointMaxDateTime());
 
         calculatePowerConsumption(model.getProducedElectricPowerDay(),
-                model.getProducedElectricPowerMonth(), Device.STROMZAEHLER_EINSPEISUNG,
+                model.getProducedElectricPowerMonth(), Device.ELECTRIC_POWER_PRODUCTION_COUNTER_HOUSE,
                 model.getProducedElectricPowerMonth().isEmpty() ? null : model.getProducedElectricPowerMonth()
                         .get(model.getProducedElectricPowerMonth().size() - 1).measurePointMaxDateTime());
 
