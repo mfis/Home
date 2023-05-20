@@ -98,7 +98,12 @@ public class AppViewService {
             } else if (view instanceof WidgetGroupView) {
                 mapGroupView(placeDirectives, (WidgetGroupView) view, placeModel, viewTarget);
             } else if (view instanceof PowerView) {
-                mapPowerView(placeDirectives, (PowerView) view, placeModel, viewTarget);
+                mapPowerView(placeDirectives, (PowerView) view, placeModel, Optional.empty());
+            } else if (view instanceof OverallElectricPowerHouseView) {
+                mapPowerView(placeDirectives, ((OverallElectricPowerHouseView) view).getGridPurchase(), placeModel, Optional.of("Bez"));
+                mapPowerView(placeDirectives, ((OverallElectricPowerHouseView) view).getGridFeed(), placeModel, Optional.of("Ein"));
+                mapPV(((OverallElectricPowerHouseView) view).getPv(), placeModel, "PV Prod");
+                mapPV(((OverallElectricPowerHouseView) view).getGridFeed(), placeModel, "PV Über");
             } else if (view instanceof LockView) {
                 mapLockView(placeDirectives, (LockView) view, placeModel, viewTarget);
             } else if (view instanceof SwitchView) {
@@ -143,13 +148,17 @@ public class AppViewService {
         }
     }
 
-    private void mapPowerView(PlaceDirectives placeDirectives, PowerView view, HomeViewPlaceModel placeModel, AppViewTarget viewTarget) {
+    private void mapPowerView(PlaceDirectives placeDirectives, PowerView view, HomeViewPlaceModel placeModel, Optional<String> direction) {
 
         if (placeDirectives.place == Place.HOUSE) {
-            placeModel.setName("Netze");
+            placeModel.setName("Netze / PV");
         }
-        // placeModel.getValues().add(mapActualPower(placeDirectives, view));
-        placeModel.getValues().add(mapTodayPower(placeDirectives, view));
+        placeModel.getValues().add(mapTodayPower(placeDirectives, view, direction));
+    }
+
+    private void mapPV(PowerView view, HomeViewPlaceModel placeModel, String caption) {
+
+        placeModel.getValues().add(mapActualPV(view, caption));
     }
 
     private void mapClimateView(PlaceDirectives placeDirectives, ClimateView view, HomeViewPlaceModel placeModel, AppViewTarget viewTarget) {
@@ -369,10 +378,20 @@ public class AppViewService {
         return hvm;
     }
 
-    private HomeViewValueModel mapTodayPower(PlaceDirectives placeDirectives, PowerView view) {
+    private HomeViewValueModel mapTodayPower(PlaceDirectives placeDirectives, PowerView view, Optional<String> direction) {
         HomeViewValueModel hvm = new HomeViewValueModel();
         hvm.setId(view.getId());
         hvm.setKey(view.getDevice().getType() == Type.GAS_POWER ? "Gas" : "Strom");
+        if(view.getDevice().getType() == Type.GAS_POWER){
+            hvm.setKey("Gas");
+        }else{
+            hvm.setKey("Strom");
+        }
+        direction.ifPresent(d -> {
+            hvm.setKey(hvm.getKey() + " " + d);
+            hvm.setId(hvm.getId() + d);
+        });
+
         if (BooleanUtils.toBoolean(view.getUnreach())) {
             hvm.setValue(StringUtils.EMPTY);
         } else if (view.getTodayConsumption() == null) {
@@ -380,6 +399,15 @@ public class AppViewService {
         }else {
             hvm.setValue(view.getTodayConsumption().getLabel().replace(ViewFormatter.SUM_SIGN, "").trim());
         }
+        hvm.setAccent(mapAccent(view.getColorClass()));
+        return hvm;
+    }
+
+    private HomeViewValueModel mapActualPV(PowerView view, String caption) {
+        HomeViewValueModel hvm = new HomeViewValueModel();
+        hvm.setId("pv" + caption.replace(" ", ""));
+        hvm.setKey(caption);
+        hvm.setValue(view.getState());
         hvm.setAccent(mapAccent(view.getColorClass()));
         return hvm;
     }

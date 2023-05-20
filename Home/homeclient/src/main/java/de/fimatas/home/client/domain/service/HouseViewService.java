@@ -204,7 +204,7 @@ public class HouseViewService {
             List<ChartEntry> dayViewModel = viewFormatter.fillPowerHistoryDayViewModel(house.getGridElectricalPower().getDevice(), pcdElectric, false, true);
             if (dayViewModel != null && !dayViewModel.isEmpty()) {
                 electric.setState(dayViewModel.get(0).getLabel().replace(ViewFormatter.SUM_SIGN, "").trim());
-                electric.setColorClass(calculateViewConditionColorGridPowerActualDayDay(house.getGridElectricalPower().getDevice(), dayViewModel.get(0).getNumericValue()).getUiClass());
+                electric.setColorClass(ConditionColor.ORANGE.getUiClass());
             }
         }
         view.getCaptionAndValue().put("Strom", electric);
@@ -243,7 +243,7 @@ public class HouseViewService {
             if(production < 0){
                 production = 0;
             }
-            pv.setState(feed + " / " + production + ViewFormatter.actualPowerUnit(Device.STROMZAEHLER_BEZUG));
+            pv.setState(feed + "/" + production + ViewFormatter.actualPowerUnit(Device.STROMZAEHLER_BEZUG));
             pv.setColorClass(feed > 0 ? ConditionColor.GREEN.getUiClass() : ConditionColor.ORANGE.getUiClass());
         }
         view.getCaptionAndValue().put("Überschuss", pv);
