@@ -217,7 +217,8 @@
 		}
 
 		function fastLinkTo(id){
-			let cleanedId = id.replace('_groupitem', '');;
+			let cleanedId = id.replace('_groupitem2', '');
+			cleanedId = cleanedId.replace('_groupitem', '');
 			let divId = ('collapse' + cleanedId);
 			let element = document.getElementById(divId);
 			if(!element){

@@ -153,10 +153,10 @@ public class HouseViewService {
 
         formatPresence(model, presenceModel);
 
-        // widget only
+        // widget
         formatUpperFloorGroup(model, "widgetUpperFloor", Place.WIDGET_UPPER_FLOOR_TEMPERATURE, house);
         formatGridsGroup(model, "widgetGrids", Place.WIDGET_GRIDS, house, historyModel==null?null:historyModel.getPurchasedElectricPowerConsumptionDay(), historyModel==null?null:historyModel.getGasConsumptionDay());
-        formatEnergyGroup(model, "widgetEnergy", Place.WIDGET_ENERGY, electricVehicleModel);
+        formatEnergyGroup(model, "widgetEnergy", Place.WIDGET_ENERGY, electricVehicleModel, house.getProducedElectricalPower(), house.getGridElectricalPower());
         formatSymbolsGroup(model, "widgetSymbols", Place.WIDGET_SYMBOLS, presenceModel, heatpumpModel);
     }
 
@@ -198,7 +198,7 @@ public class HouseViewService {
         }
 
         var electric = new View();
-        electric.setId(lookupTodayPowerId(house.getGridElectricalPower().getDevice(), true));
+        electric.setId(lookupTodayPowerId(Device.STROMZAEHLER_BEZUG, true));
         electric.setState("0" + ViewFormatter.powerConsumptionUnit(house.getGridElectricalPower().getDevice()));
         if (pcdElectric != null &&!pcdElectric.isEmpty()) {
             List<ChartEntry> dayViewModel = viewFormatter.fillPowerHistoryDayViewModel(house.getGridElectricalPower().getDevice(), pcdElectric, false, true);
@@ -223,7 +223,7 @@ public class HouseViewService {
 
     }
 
-    private void formatEnergyGroup(Model model, String viewKey, Place place, ElectricVehicleModel electricVehicleModel) {
+    private void formatEnergyGroup(Model model, String viewKey, Place place, ElectricVehicleModel electricVehicleModel, PowerMeter producedElectricalPower, PowerMeter gridElectricalPower) {
 
         WidgetGroupView view = new WidgetGroupView(viewKey, place, electricVehicleModel);
         model.addAttribute(viewKey, view);
@@ -231,12 +231,22 @@ public class HouseViewService {
             return;
         }
 
-        /*
-        var consumptionHouse = new View();
-        consumptionHouse.setId("xConsumptionHouse");
-        consumptionHouse.setState("nn,m kW");
-        view.getCaptionAndValue().put("Verbrauch", consumptionHouse);
-         */
+        var pv = new View();
+        pv.setId(lookupTodayPowerId(Device.STROMZAEHLER_BEZUG, true) + "2" /* FIXME */);
+        pv.setState("?");
+        if(producedElectricalPower != null && !producedElectricalPower.isUnreach() && gridElectricalPower != null && !gridElectricalPower.isUnreach()){
+            int feed = gridElectricalPower.getActualConsumption().getValue().intValue();
+            if(feed < 0){
+                feed = 0;
+            }
+            int production = producedElectricalPower.getActualConsumption().getValue().intValue();
+            if(production < 0){
+                production = 0;
+            }
+            pv.setState(feed + " / " + production + ViewFormatter.actualPowerUnit(Device.STROMZAEHLER_BEZUG));
+            pv.setColorClass(feed > 0 ? ConditionColor.GREEN.getUiClass() : ConditionColor.ORANGE.getUiClass());
+        }
+        view.getCaptionAndValue().put("Überschuss", pv);
 
         electricVehicleModel.getEvMap().entrySet().stream().filter(e -> !e.getKey().isOther()).forEach(e -> {
             if(!e.getValue().getElectricVehicle().isOther()){
@@ -250,7 +260,6 @@ public class HouseViewService {
                 view.getCaptionAndValue().put(e.getKey().getCaption(), ev);
             }
         });
-
     }
 
     private void formatSymbolsGroup(Model model, String viewKey, Place place, PresenceModel presenceModel, HeatpumpModel heatpumpModel) {
@@ -696,12 +705,6 @@ public class HouseViewService {
             return;
         }
 
-        // indicators
-        overallElectricPowerHouseView.setState("");
-        overallElectricPowerHouseView.setName("Strom");
-        overallElectricPowerHouseView.setIcon("fas fa-bolt");
-        overallElectricPowerHouseView.setElementTitleState(overallElectricPowerHouseView.getConsumption().getElementTitleState());
-
         // clear inverter consumption
         BigDecimal offsetConsumption = BigDecimal.ZERO;
         if(houseModel.getProducedElectricalPower().getActualConsumption().getValue() != null && houseModel.getProducedElectricalPower().getActualConsumption().getValue().intValue() < 0){
@@ -763,6 +766,12 @@ public class HouseViewService {
             long diff = ChronoUnit.MINUTES.between(timestamp, LocalDateTime.now());
             overallElectricPowerHouseView.setTimestampState(diff==0?"jetzt" : "vor " + diff + " Minute" + (diff ==1?"":"n"));
         }
+
+        // indicators
+        overallElectricPowerHouseView.setState("");
+        overallElectricPowerHouseView.setName("Strom");
+        overallElectricPowerHouseView.setIcon("fas fa-bolt");
+        overallElectricPowerHouseView.setElementTitleState(overallElectricPowerHouseView.getConsumption().getElementTitleState());
 
         // set model
         model.addAttribute("overallElectricPowerHouse", overallElectricPowerHouseView);
