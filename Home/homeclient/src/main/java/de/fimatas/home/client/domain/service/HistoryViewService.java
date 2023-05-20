@@ -14,6 +14,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import de.fimatas.home.library.homematic.model.Device;
+import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -26,6 +27,7 @@ import de.fimatas.home.library.domain.model.PowerConsumptionMonth;
 import de.fimatas.home.library.domain.model.TemperatureHistory;
 
 @Component
+@CommonsLog
 public class HistoryViewService {
 
     private static final BigDecimal BD100 = new BigDecimal(100);
@@ -48,31 +50,54 @@ public class HistoryViewService {
             List<ChartEntry> dayViewModel =
                     viewFormatter.fillPowerHistoryDayViewModel(Device.STROMZAEHLER_BEZUG, history.getPurchasedElectricPowerConsumptionDay(), true, false);
             model.addAttribute("chartEntries", dayViewModel);
+
         } else if (key.equals(Device.STROMZAEHLER_EINSPEISUNG.historyKeyPrefix())) {
             fillPowerHistoryMonthViewModel(model, Device.STROMZAEHLER_EINSPEISUNG, history.getFeedElectricPowerConsumptionMonth());
             List<ChartEntry> dayViewModel =
                         viewFormatter.fillPowerHistoryDayViewModel(Device.STROMZAEHLER_EINSPEISUNG, history.getFeedElectricPowerConsumptionDay(), true, false);
             model.addAttribute("chartEntries", dayViewModel);
+
+        } else if (key.equals(Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HOUSE.historyKeyPrefix())) {
+            fillPowerHistoryMonthViewModel(model, Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HOUSE, history.getSelfusedElectricPowerConsumptionMonth());
+            List<ChartEntry> dayViewModel =
+                    viewFormatter.fillPowerHistoryDayViewModel(Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HOUSE, history.getSelfusedElectricPowerConsumptionDay(), true, false);
+            model.addAttribute("chartEntries", dayViewModel);
+
+        } else if (key.equals(Device.ELECTRIC_POWER_PRODUCTION_COUNTER_HOUSE.historyKeyPrefix())) {
+            fillPowerHistoryMonthViewModel(model, Device.ELECTRIC_POWER_PRODUCTION_COUNTER_HOUSE, history.getProducedElectricPowerMonth());
+            List<ChartEntry> dayViewModel =
+                    viewFormatter.fillPowerHistoryDayViewModel(Device.ELECTRIC_POWER_PRODUCTION_COUNTER_HOUSE, history.getProducedElectricPowerDay(), true, false);
+            model.addAttribute("chartEntries", dayViewModel);
+
         } else if (key.equals(house.getWallboxElectricalPowerConsumption().getDevice().historyKeyPrefix())) {
             fillPowerHistoryMonthViewModel(model, house.getWallboxElectricalPowerConsumption().getDevice(), history.getWallboxElectricPowerConsumptionMonth());
             List<ChartEntry> dayViewModel =
                 viewFormatter.fillPowerHistoryDayViewModel(house.getWallboxElectricalPowerConsumption().getDevice(), history.getWallboxElectricPowerConsumptionDay(), true, false);
             model.addAttribute("chartEntries", dayViewModel);
+
         } else if (key.equals(house.getGasConsumption().getDevice().historyKeyPrefix())) {
             fillPowerHistoryMonthViewModel(model, house.getGasConsumption().getDevice(), history.getGasConsumptionMonth());
             List<ChartEntry> dayViewModel =
                     viewFormatter.fillPowerHistoryDayViewModel(house.getGasConsumption().getDevice(), history.getGasConsumptionDay(), true, false);
             model.addAttribute("chartEntries", dayViewModel);
+
         } else if (key.equals(house.getConclusionClimateFacadeMin().getDevice().historyKeyPrefix())) {
             fillTemperatureHistoryViewModel(model, history.getOutsideTemperature());
+
         } else if (key.equals(house.getClimateBedRoom().getDevice().historyKeyPrefix())) {
             fillTemperatureHistoryViewModel(model, history.getBedRoomTemperature());
+
         } else if (key.equals(house.getClimateKidsRoom1().getDevice().historyKeyPrefix())) {
             fillTemperatureHistoryViewModel(model, history.getKidsRoom1Temperature());
+
         } else if (key.equals(house.getClimateKidsRoom2().getDevice().historyKeyPrefix())) {
             fillTemperatureHistoryViewModel(model, history.getKidsRoom2Temperature());
+
         } else if (key.equals(house.getClimateLaundry().getDevice().historyKeyPrefix())) {
             fillTemperatureHistoryViewModel(model, history.getLaundryTemperature());
+
+        } else {
+            log.warn("unknown history key: " + key);
         }
     }
 

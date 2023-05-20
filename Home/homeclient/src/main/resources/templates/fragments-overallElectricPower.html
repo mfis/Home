@@ -33,7 +33,7 @@
 										<th:block th:if="${model.consumption.todayConsumption != null}">
 											<span class="mb-1" th:text="${model.consumption.todayConsumption.label}"></span>
 											<span class="text-muted" style="font-size: 80%;" th:text="${model.consumption.todayConsumption.additionalLabel}"></span>
-											<th:block th:replace="fragments :: historyLink (key=${model.consumption.historyKey}, name=${model.consumption.name} + ' Gesamt', place=${model.consumption.place})"></th:block>
+											<th:block th:replace="fragments :: historyLink (key=${model.consumption.historyKey}, name='Stromverbrauch' + ' Gesamt ', place=${model.consumption.place})"></th:block>
 										</th:block>
 									</td>
 								</tr>
@@ -64,7 +64,7 @@
 										<th:block th:if="${model.pv.todayConsumption != null}">
 											<span class="mb-1" th:text="${model.pv.todayConsumption.label}"></span>
 											<span class="text-muted" style="font-size: 80%;" th:text="${model.pv.todayConsumption.additionalLabel}"></span>
-											<th:block th:replace="fragments :: historyLink (key=${model.pv.historyKey}, name=${model.pv.name} + ' Gesamt', place=${model.pv.place})"></th:block>
+											<th:block th:replace="fragments :: historyLink (key=${model.pv.historyKey}, name='Photovoltaik Produktion ', place=${model.pv.place})"></th:block>
 										</th:block>
 									</td>
 								</tr>
@@ -109,7 +109,7 @@
 											<span><th:block th:replace="basics :: symbolWithStyle (name=${model.gridPurchase.directionIcon}, style='font-size: 100%;')"/></span>
 											<span class="mb-1" th:text="${model.gridPurchase.todayConsumption.label}"></span>
 											<span class="text-muted" style="font-size: 80%;" th:text="${model.gridPurchase.todayConsumption.additionalLabel}"></span>
-											<th:block th:replace="fragments :: historyLink (key=${model.gridPurchase.historyKey}, name=${model.gridPurchase.name} + ' Gesamt', place=${model.gridPurchase.place})"></th:block>
+											<th:block th:replace="fragments :: historyLink (key=${model.gridPurchase.historyKey}, name='Strombezug ' + ' Gesamt ', place=${model.gridPurchase.place})"></th:block>
 										</th:block>
 									</td>
 								</tr>
@@ -119,7 +119,7 @@
 											<span><th:block th:replace="basics :: symbolWithStyle (name=${model.gridFeed.directionIcon}, style='font-size: 100%;')"/></span>
 											<span class="mb-1" th:text="${model.gridFeed.todayConsumption.label}"></span>
 											<span class="text-muted" style="font-size: 80%;" th:text="${model.gridFeed.todayConsumption.additionalLabel}"></span>
-											<th:block th:replace="fragments :: historyLink (key=${model.gridFeed.historyKey}, name=${model.gridFeed.name} + ' Gesamt', place=${model.gridFeed.place})"></th:block>
+											<th:block th:replace="fragments :: historyLink (key=${model.gridFeed.historyKey}, name='Stromeinspeisung ' + ' Gesamt ', place=${model.gridFeed.place})"></th:block>
 										</th:block>
 									</td>
 								</tr>

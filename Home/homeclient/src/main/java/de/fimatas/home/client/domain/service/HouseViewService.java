@@ -696,24 +696,43 @@ public class HouseViewService {
             return;
         }
 
+        // indicators
         overallElectricPowerHouseView.setState("");
         overallElectricPowerHouseView.setName("Strom");
         overallElectricPowerHouseView.setIcon("fas fa-bolt");
+        overallElectricPowerHouseView.setElementTitleState(overallElectricPowerHouseView.getConsumption().getElementTitleState());
 
         // clear inverter consumption
         BigDecimal offsetConsumption = BigDecimal.ZERO;
         if(houseModel.getProducedElectricalPower().getActualConsumption().getValue() != null && houseModel.getProducedElectricalPower().getActualConsumption().getValue().intValue() < 0){
             offsetConsumption = houseModel.getProducedElectricalPower().getActualConsumption().getValue().abs();
         }
-        overallElectricPowerHouseView.setConsumption(formatPowerView(model, houseModel.getConsumedElectricalPower(), historyModel==null?null:historyModel.getSelfusedElectricPowerConsumptionDay(), offsetConsumption, false));
 
+        // sources / targets
+        overallElectricPowerHouseView.setConsumption(formatPowerView(model, houseModel.getConsumedElectricalPower(), historyModel==null?null:historyModel.getSelfusedElectricPowerConsumptionDay(), offsetConsumption, false));
         overallElectricPowerHouseView.setPv(formatPowerView(model, houseModel.getProducedElectricalPower(), historyModel==null?null:historyModel.getProducedElectricPowerDay(), offsetConsumption, false));
         overallElectricPowerHouseView.setGridPurchase(formatPowerView(model, houseModel.getGridElectricalPower(), historyModel==null?null:historyModel.getPurchasedElectricPowerConsumptionDay(), BigDecimal.ZERO, true));
         overallElectricPowerHouseView.setGridFeed(formatPowerView(model, houseModel.getGridElectricalPower(), historyModel==null?null:historyModel.getFeedElectricPowerConsumptionDay(), BigDecimal.ZERO, false));
 
+        // history keys
+        overallElectricPowerHouseView.getGridPurchase().setHistoryKey(Device.STROMZAEHLER_BEZUG.historyKeyPrefix());
+        overallElectricPowerHouseView.getGridFeed().setHistoryKey(Device.STROMZAEHLER_EINSPEISUNG.historyKeyPrefix());
+        overallElectricPowerHouseView.getConsumption().setHistoryKey(Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HOUSE.historyKeyPrefix());
+        overallElectricPowerHouseView.getPv().setHistoryKey(Device.ELECTRIC_POWER_PRODUCTION_COUNTER_HOUSE.historyKeyPrefix());
+
+        // grid direction
         overallElectricPowerHouseView.getGridPurchase().setDirectionIcon("fa-solid fa-angles-left");
         overallElectricPowerHouseView.getGridPurchase().setColorClass(ConditionColor.ORANGE.getUiClass());
+        if(houseModel.getGridElectricalPower().getActualConsumption().getValue() != null){
+            int val = houseModel.getGridElectricalPower().getActualConsumption().getValue().intValue();
+            if(val > 0){
+                overallElectricPowerHouseView.setGridActualDirection(overallElectricPowerHouseView.getGridFeed());
+            }else{
+                overallElectricPowerHouseView.setGridActualDirection(overallElectricPowerHouseView.getGridPurchase());
+            }
+        }
 
+        // color classes pv and grid
         overallElectricPowerHouseView.getGridFeed().setDirectionIcon("fa-solid fa-angles-right");
         overallElectricPowerHouseView.getGridFeed().setColorClass(ConditionColor.GREEN.getUiClass());
         overallElectricPowerHouseView.getPv().setColorClass(houseModel.getProducedElectricalPower().getActualConsumption() != null &&
@@ -721,6 +740,7 @@ public class HouseViewService {
                 houseModel.getProducedElectricalPower().getActualConsumption().getValue().compareTo(BigDecimal.TEN) > 0 ? ConditionColor.GREEN.getUiClass() :
                         ConditionColor.GRAY.getUiClass() : ConditionColor.GRAY.getUiClass());
 
+        // color classes consumption
         if(houseModel.getProducedElectricalPower().getActualConsumption() != null &&
                 houseModel.getProducedElectricalPower().getActualConsumption().getValue() != null &&
                 houseModel.getProducedElectricalPower().getActualConsumption().getValue().compareTo(BigDecimal.ZERO) <= 0){
@@ -733,26 +753,18 @@ public class HouseViewService {
             overallElectricPowerHouseView.getConsumption().setColorClass(ConditionColor.LIGHT.getUiClass());
         }
 
-        if(!houseModel.getGridElectricalPower().isUnreach()){
-            if(houseModel.getGridElectricalPower().getActualConsumption().getValue() != null){
-                int val = houseModel.getGridElectricalPower().getActualConsumption().getValue().intValue();
-                if(val > 0){
-                    overallElectricPowerHouseView.setGridActualDirection(overallElectricPowerHouseView.getGridFeed());
-                }else{
-                    overallElectricPowerHouseView.setGridActualDirection(overallElectricPowerHouseView.getGridPurchase());
-                }
-            }
-        }
+        // color class callout
+        overallElectricPowerHouseView.setColorClass(overallElectricPowerHouseView.getConsumption().getColorClass().equals(ConditionColor.LIGHT.getUiClass())?
+                ConditionColor.GRAY.getUiClass() : overallElectricPowerHouseView.getConsumption().getColorClass());
 
+        // status time
         if(houseModel.getPvStatusTime() > 0){
             LocalDateTime timestamp = Instant.ofEpochMilli(houseModel.getPvStatusTime()).atZone(ZoneId.systemDefault()).toLocalDateTime();
             long diff = ChronoUnit.MINUTES.between(timestamp, LocalDateTime.now());
             overallElectricPowerHouseView.setTimestampState(diff==0?"jetzt" : "vor " + diff + " Minute" + (diff ==1?"":"n"));
         }
 
-        overallElectricPowerHouseView.setElementTitleState(overallElectricPowerHouseView.getConsumption().getElementTitleState());
-        overallElectricPowerHouseView.setColorClass(overallElectricPowerHouseView.getConsumption().getColorClass().equals(ConditionColor.LIGHT.getUiClass())?
-                ConditionColor.GRAY.getUiClass() : overallElectricPowerHouseView.getConsumption().getColorClass());
+        // set model
         model.addAttribute("overallElectricPowerHouse", overallElectricPowerHouseView);
     }
 
