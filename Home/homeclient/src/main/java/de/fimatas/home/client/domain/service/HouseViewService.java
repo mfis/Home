@@ -694,6 +694,11 @@ public class HouseViewService {
 
     private void formatOverallElectricPowerHouse(Model model, HouseModel houseModel, HistoryModel historyModel) {
 
+        // FIXME: TEST
+        //houseModel.getGridElectricalPower().getActualConsumption().setValue(new BigDecimal("-1000"));
+        //houseModel.getProducedElectricalPower().getActualConsumption().setValue(new BigDecimal("+0"));
+        // FIXME END
+
         OverallElectricPowerHouseView overallElectricPowerHouseView = new OverallElectricPowerHouseView();
         Device baseDevice = Device.STROMZAEHLER_BEZUG;
         overallElectricPowerHouseView.setId(lookupTodayPowerId(baseDevice, false));
@@ -725,23 +730,38 @@ public class HouseViewService {
 
         // grid direction
         overallElectricPowerHouseView.getGridPurchase().setDirectionIcon("fa-solid fa-angles-left");
+        overallElectricPowerHouseView.getGridPurchase().setDirectionArrowClass("135");
         overallElectricPowerHouseView.getGridPurchase().setColorClass(ConditionColor.ORANGE.getUiClass());
         if(houseModel.getGridElectricalPower().getActualConsumption().getValue() != null){
             int val = houseModel.getGridElectricalPower().getActualConsumption().getValue().intValue();
             if(val > 0){
+                overallElectricPowerHouseView.getGridFeed().setColorClass(ConditionColor.GREEN.getUiClass());
                 overallElectricPowerHouseView.setGridActualDirection(overallElectricPowerHouseView.getGridFeed());
             }else{
+                overallElectricPowerHouseView.getGridFeed().setColorClass(ConditionColor.ORANGE.getUiClass());
                 overallElectricPowerHouseView.setGridActualDirection(overallElectricPowerHouseView.getGridPurchase());
             }
         }
 
         // color classes pv and grid
         overallElectricPowerHouseView.getGridFeed().setDirectionIcon("fa-solid fa-angles-right");
-        overallElectricPowerHouseView.getGridFeed().setColorClass(ConditionColor.GREEN.getUiClass());
+        overallElectricPowerHouseView.getGridFeed().setDirectionArrowClass("270");
         overallElectricPowerHouseView.getPv().setColorClass(houseModel.getProducedElectricalPower().getActualConsumption() != null &&
                 houseModel.getProducedElectricalPower().getActualConsumption().getValue() != null ?
                 houseModel.getProducedElectricalPower().getActualConsumption().getValue().compareTo(BigDecimal.TEN) > 0 ? ConditionColor.GREEN.getUiClass() :
                         ConditionColor.GRAY.getUiClass() : ConditionColor.GRAY.getUiClass());
+
+        if (houseModel.getProducedElectricalPower().getActualConsumption() != null
+                && houseModel.getProducedElectricalPower().getActualConsumption().getValue() != null){
+            if(houseModel.getProducedElectricalPower().getActualConsumption().getValue().compareTo(BigDecimal.TEN) > 0){
+                overallElectricPowerHouseView.getPv().setColorClass(ConditionColor.GREEN.getUiClass());
+                overallElectricPowerHouseView.getPv().setDirectionArrowClass("225");
+            }else{
+                overallElectricPowerHouseView.getPv().setColorClass(ConditionColor.GRAY.getUiClass());
+            }
+        }else{
+            overallElectricPowerHouseView.getPv().setColorClass(ConditionColor.GRAY.getUiClass());
+        }
 
         // color classes consumption
         if(houseModel.getProducedElectricalPower().getActualConsumption() != null &&

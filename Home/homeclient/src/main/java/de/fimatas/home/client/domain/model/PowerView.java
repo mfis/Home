@@ -12,6 +12,8 @@ public class PowerView extends View {
 
     private String directionIcon = "";
 
+    private String directionArrowClass = "#";
+
     private String description = "";
 
     private ChartEntry todayConsumption;

@@ -46,8 +46,23 @@
 						<td>
 							<table border="0" width="100%" >
 								<tr align="left">
-									<td th:class="'text-' + ${model.pv.colorClass}">
-										<th:block th:replace="basics :: symbolWithStyle (name=${model.pv.icon}, style='font-size: 150%;')"/>
+									<td height="35px" th:class="'text-' + ${model.pv.colorClass}">
+										<table width="50%" border="0">
+											<tr>
+												<td th:class="'text-' + ${model.pv.colorClass}">
+													<th:block th:replace="basics :: symbolWithStyle (name=${model.pv.icon}, style='font-size: 150%;')"/>
+												</td>
+												<td align="right">
+													<th:block th:unless="${#strings.equals(model.pv.directionArrowClass,'#')}">
+														<div th:class="'arrow arrow-' + ${model.pv.directionArrowClass}">
+															<span></span>
+															<span></span>
+															<span></span>
+														</div>
+													</th:block>
+												</td>
+											</tr>
+										</table>
 									</td>
 								</tr>
 								<tr align="left">
@@ -75,16 +90,15 @@
 						<td>
 							<table border="0" width="100%">
 								<tr align="right">
-									<td>
+									<td height="35px">
 										<table border="0" width="50%">
 											<tr>
 												<td align="right" th:class="'text-' + ${model.gridActualDirection.colorClass}">
-													<th:block th:replace="basics :: symbolWithStyle (name=${model.gridActualDirection.directionIcon}, style='font-size: 150%;')"/>
-													<!-- <div class="arrow arrow-135">
+													<div th:class="'arrow arrow-' + ${model.gridActualDirection.directionArrowClass}">
 														<span></span>
 														<span></span>
 														<span></span>
-													</div> -->
+													</div>
 												</td>
 												<td align="right" style="width: 50%">
 													<!-- FIXME: icon name from model -->
@@ -104,7 +118,7 @@
 									</td>
 								</tr>
 								<tr align="right">
-									<td th:class="'text-' + ${model.gridPurchase.colorClass}">
+									<td th:class="'text-warning'">
 										<th:block th:if="${model.gridPurchase.todayConsumption != null}">
 											<span><th:block th:replace="basics :: symbolWithStyle (name=${model.gridPurchase.directionIcon}, style='font-size: 100%;')"/></span>
 											<span class="mb-1" th:text="${model.gridPurchase.todayConsumption.label}"></span>
@@ -114,7 +128,7 @@
 									</td>
 								</tr>
 								<tr align="right">
-									<td th:class="'text-' + ${model.gridFeed.colorClass}">
+									<td th:class="'text-success'">
 										<th:block th:if="${model.gridFeed.todayConsumption != null}">
 											<span><th:block th:replace="basics :: symbolWithStyle (name=${model.gridFeed.directionIcon}, style='font-size: 100%;')"/></span>
 											<span class="mb-1" th:text="${model.gridFeed.todayConsumption.label}"></span>

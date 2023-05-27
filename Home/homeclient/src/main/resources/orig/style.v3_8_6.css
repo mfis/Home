@@ -347,31 +347,34 @@ SOFTWARE.
 
 .arrow {
 	position: absolute;
-	transform: translate(-50%, -50%);
-	cursor: pointer;
-}
-
-.arrow-45 {
-	transform: rotate(45deg);
 }
 
 .arrow-135 {
-	transform: rotate(135deg);
+	transform: rotate(135deg) translate(-50%, -50%);
+}
+
+.arrow-225 {
+	transform: rotate(225deg) translate(-50%, -50%);
 }
 
 .arrow-270 {
-	transform: rotate(270deg);
+	transform: rotate(270deg) translate(-50%, -50%);
 }
 
 .arrow span {
 	display: block;
 	width: 12px;
 	height: 12px;
-	border-bottom: 5px solid white;
-	border-right: 5px solid white;
+	border-bottom: 5px solid;
+	border-right: 5px solid;
 	transform: rotate(45deg);
 	margin: -10px;
 	animation: animate 2s infinite;
+}
+
+.arrow-orange span {
+	border-bottom-color: rgb(255,193,7);
+	border-right-color: rgb(255,193,7);
 }
 
 .arrow span:nth-child(2) {
