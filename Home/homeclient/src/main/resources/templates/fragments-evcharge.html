@@ -35,6 +35,21 @@
 					</th:block>
 				</div>
 
+				<div style="max-width: 400px; margin-top: 10px;">
+					<table>
+						<tr>
+							<td th:class="'text-' + ${model.colorClass}" colspan="3"><b>Ladezeit bis Limit:</b></td>
+						</tr>
+						<th:block th:each="entry : ${model.chargingTime}">
+							<tr>
+								<td th:class="'text-' + ${model.colorClass}" style="padding-right: 10px;" th:text="${entry.caption}"></td>
+								<td th:class="'text-' + ${model.colorClass}" style="padding-right: 5px;" th:text="${entry.value}"></td>
+								<td th:class="'text-' + ${model.colorClass}" th:text="${entry.cssClass}"></td>
+							</tr>
+						</th:block>
+					</table>
+				</div>
+
 				<div style="margin-left: 0px; padding-top: 30px;">
 					<input type="hidden" th:id="${model.id} + '-isActual'" th:value="${model.stateActualFlag}"/>
 					<input type="hidden" th:id="${model.id} + '-startValue'" th:value="${model.numericValue}"/>

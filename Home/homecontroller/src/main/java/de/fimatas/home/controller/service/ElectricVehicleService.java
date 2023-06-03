@@ -13,7 +13,9 @@ import de.fimatas.home.library.homematic.model.Datapoint;
 import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.util.HomeAppConstants;
 import lombok.extern.apachecommons.CommonsLog;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -75,6 +77,12 @@ public class ElectricVehicleService {
 
     @SuppressWarnings("FieldCanBeLocal") private final short CHARGING_LIMIT_MAX_DIFF = 7;
 
+    private final BigDecimal HUNDRET = new BigDecimal(100);
+
+    private final BigDecimal THOUSAND = new BigDecimal(1000);
+
+    private final BigDecimal MINUTES_A_HOUR = new BigDecimal(60);
+
     private boolean firstRun = true;
 
     public void refreshModel() {
@@ -86,6 +94,7 @@ public class ElectricVehicleService {
             var state = new ElectricVehicleState(ElectricVehicle.valueOf(s.getStatename()), Short.parseShort(s.getValue()), s.getTimestamp());
             readChargeLimit(state);
             readAdditionalChargingPercentage(state);
+            calculateEstimatedChargingTime(state);
             newModel.getEvMap().put(ElectricVehicle.valueOf(s.getStatename()), state);
         });
 
@@ -109,6 +118,41 @@ public class ElectricVehicleService {
 
         ModelObjectDAO.getInstance().write(newModel);
         uploadService.uploadToClient(newModel);
+    }
+
+    private void calculateEstimatedChargingTime(ElectricVehicleState state) {
+
+        state.getChargingTime().clear();
+
+        if(state.getChargeLimit()==null || state.getChargingCapacity()==null){
+            return;
+        }
+        final int batteryPercentage = state.getBatteryPercentage() + state.getAdditionalChargingPercentage();
+
+        final int toChargePercentage = state.getChargeLimit().getPercentage() - batteryPercentage;
+        final BigDecimal toChargeWattMinutes = state.getChargingCapacity()
+                .divide(HUNDRET, 4, RoundingMode.HALF_UP).multiply(new BigDecimal(toChargePercentage))
+                .multiply(THOUSAND).multiply(MINUTES_A_HOUR);
+
+        final short voltage = Short.parseShort(Objects.requireNonNull(env.getProperty("grid.voltage")));
+        final short phaseCount = Short.parseShort(Objects.requireNonNull(env.getProperty("ev." + state.getElectricVehicle().name() + ".chargingPhaseCount")));
+        final String[] amperages =
+                StringUtils.split(Objects.requireNonNull(env.getProperty("ev." + state.getElectricVehicle().name() + ".chargingLevelAmpere")), ',');
+
+        Arrays.stream(amperages).forEach(a -> {
+            final short amperage = Short.parseShort(a);
+            final int wattage = voltage * phaseCount * amperage;
+            BigDecimal minutesToCharge = BigDecimal.ZERO;
+            if(state.getChargeLimit().getPercentage() > batteryPercentage){
+                minutesToCharge = toChargeWattMinutes.divide(new BigDecimal(wattage), 1, RoundingMode.HALF_UP);
+            }
+            var chargingTime = new EvChargingTime();
+            chargingTime.setVoltage(voltage);
+            chargingTime.setPhaseCount(phaseCount);
+            chargingTime.setAmperage(amperage);
+            chargingTime.setMinutes(minutesToCharge.intValue());
+            state.getChargingTime().add(chargingTime);
+        });
     }
 
     private void readChargeLimit(ElectricVehicleState state) {
@@ -150,14 +194,18 @@ public class ElectricVehicleService {
             return;
         }
 
+        final BigDecimal chargingCapacity = calculateChargingCapacity(state.getElectricVehicle(), false);
+        state.setChargingCapacity(chargingCapacity);
+
         final List<EvChargeDatabaseEntry> entries = evChargingDAO.read(state.getElectricVehicle(), state.getBatteryPercentageTimestamp());
         if(entries.isEmpty()){
             return;
         }
         final BigDecimal sum = entries.stream().map(EvChargeDatabaseEntry::countValueAsKWH).reduce(BigDecimal.ZERO, BigDecimal::add);
+
         if(sum.compareTo(BigDecimal.ZERO) > 0){
             final BigDecimal addPercentage = sum
-                    .divide(calculateChargingCapacity(state.getElectricVehicle(), false), 4, RoundingMode.HALF_UP)
+                    .divide(chargingCapacity, 4, RoundingMode.HALF_UP)
                     .multiply(new BigDecimal("100.0"));
             state.setAdditionalChargingPercentage(addPercentage.shortValue());
         }

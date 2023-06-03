@@ -24,4 +24,6 @@ public class ChargingView extends View {
 
     private List<ValueWithCaption> chargeLimits = new LinkedList<>();
 
+    private List<ValueWithCaption> chargingTime = new LinkedList<>();
+
 }

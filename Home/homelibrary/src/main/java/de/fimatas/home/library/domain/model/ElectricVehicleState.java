@@ -1,9 +1,12 @@
 package de.fimatas.home.library.domain.model;
 
-import java.time.LocalDateTime;
-import java.util.EnumMap;
-import java.util.Map;
+import lombok.Data;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.*;
+
+@Data
 public class ElectricVehicleState {
 
     public ElectricVehicleState(ElectricVehicle electricVehicle, short batteryPercentage, LocalDateTime batteryPercentageTimestamp) {
@@ -14,6 +17,8 @@ public class ElectricVehicleState {
         this.additionalChargingPercentage = 0;
         this.connectedToWallbox = false;
         this.activeCharging = false;
+        this.chargingTime = new LinkedList<>();
+        this.chargingCapacity = null;
     }
 
     private final ElectricVehicle electricVehicle;
@@ -32,59 +37,7 @@ public class ElectricVehicleState {
 
     private LocalDateTime chargingTimestamp;
 
-    public LocalDateTime getChargingTimestamp() {
-        return chargingTimestamp;
-    }
+    private BigDecimal chargingCapacity;
 
-    public void setChargingTimestamp(LocalDateTime chargingTimestamp) {
-        this.chargingTimestamp = chargingTimestamp;
-    }
-
-    public boolean isActiveCharging() {
-        return activeCharging;
-    }
-
-    public void setActiveCharging(boolean activeCharging) {
-        this.activeCharging = activeCharging;
-    }
-
-    public LocalDateTime getBatteryPercentageTimestamp() {
-        return batteryPercentageTimestamp;
-    }
-
-    public short getBatteryPercentage() {
-        return batteryPercentage;
-    }
-
-    public void setBatteryPercentage(short batteryPercentage) {
-        this.batteryPercentage = batteryPercentage;
-    }
-
-    public ElectricVehicle getElectricVehicle() {
-        return electricVehicle;
-    }
-
-    public boolean isConnectedToWallbox() {
-        return connectedToWallbox;
-    }
-
-    public void setConnectedToWallbox(boolean connectedToWallbox) {
-        this.connectedToWallbox = connectedToWallbox;
-    }
-
-    public short getAdditionalChargingPercentage() {
-        return additionalChargingPercentage;
-    }
-
-    public void setAdditionalChargingPercentage(short additionalChargingPercentage) {
-        this.additionalChargingPercentage = additionalChargingPercentage;
-    }
-
-    public ChargeLimit getChargeLimit() {
-        return chargeLimit;
-    }
-
-    public void setChargeLimit(ChargeLimit chargeLimit) {
-        this.chargeLimit = chargeLimit;
-    }
+    private List<EvChargingTime> chargingTime;
 }

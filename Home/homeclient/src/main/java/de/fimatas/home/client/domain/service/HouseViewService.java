@@ -1478,6 +1478,20 @@ public class HouseViewService {
                 var value = cl==e.getValue().getChargeLimit() ? "#" : cl.name();
                 view.getChargeLimits().add(new ValueWithCaption(value, cl.getCaption(), null));
             });
+
+            e.getValue().getChargingTime().forEach(ct -> {
+                var wattage = ct.getPhaseCount() * ct.getAmperage() * ct.getVoltage();
+                var caption = wattage + " W (" + ct.getPhaseCount() + "*" + ct.getAmperage() + "A)";
+                int hours = ct.getMinutes() / 60;
+                int restMinutes = ct.getMinutes() - (hours * 60);
+                var clockTime = LocalTime.now().plusMinutes(ct.getMinutes()).format(ViewFormatter.TIME_FORMATTER);
+                var value = ct.getMinutes() <= 0 ? "keine" :
+                        (hours>0?hours+" Std":"")
+                                + (restMinutes>0 && hours>0 ? ", ":"")
+                                + (restMinutes>0?restMinutes + " Min":"");
+                var clock = ct.getMinutes() <= 0 ? "" : " - " + clockTime + " Uhr";
+                view.getChargingTime().add(new ValueWithCaption(value, caption, clock));
+            });
         });
     }
 
