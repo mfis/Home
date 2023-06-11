@@ -230,7 +230,7 @@ public class ElectricVehicleService {
 
     private synchronized boolean checkChargingState() {
 
-        if(isDeviceConnectionProblem()){
+        if(isDeviceConnectionProblem() || ModelObjectDAO.getInstance().readElectricVehicleModel() == null){
             return false;
         }
 

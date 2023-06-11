@@ -71,7 +71,8 @@ function initSlider(id){
         update: function (e){
             $('#' + id).addClass('doNotRefresh');
             document.getElementById(id + '-label').innerHTML = (100 - e.value) + "%";
-            if(document.getElementById(id + "-eventState").value == 'drag'){
+            nativeMessage('startButtonPress');
+            if(document.getElementById(id + "-eventState").value === 'drag'){
                 // waiting for 'stop' event
             } else {
                 updateEvSliderValue(id, (100 - e.value));
