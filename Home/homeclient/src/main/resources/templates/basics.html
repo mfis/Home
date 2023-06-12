@@ -281,11 +281,14 @@
 				}
 			}
 		}
-		
-		setAppTitle(null);
-		registerCollapseListener();
-		showUserErrorMessage();
-		doOnloadFunctions();
+
+		$(document).ready(function(){
+			setAppTitle(null);
+			registerCollapseListener();
+			registerButtonListener();
+			showUserErrorMessage();
+			doOnloadFunctions();
+		});
 		
 	</script>
 
@@ -316,13 +319,6 @@
 				setAutoRefresh();
 			}
 		}
-		function checkScrollUp(){
-			/* var classHomeWarning = document.getElementsByClassName('classHomeWarning');
-			if (classHomeWarning != null && classHomeWarning.length > 0) {	
-				  document.body.scrollTop = 0; 
-				  document.documentElement.scrollTop = 0; 
-			} */
-		}
 		
 	</script>	
 	
@@ -337,8 +333,7 @@
 			// onfocus
 			document.getElementById('idbody').onfocus = function(){
 				doAutoRefresh(); 
-				setAutoRefresh();		
-				checkScrollUp();
+				setAutoRefresh();
 			};
 			// onblur
 			document.getElementById('idbody').onblur = function(){
