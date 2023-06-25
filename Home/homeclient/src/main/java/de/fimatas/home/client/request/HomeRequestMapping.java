@@ -180,12 +180,6 @@ public class HomeRequestMapping {
         long l1 = System.nanoTime();
         boolean isWebViewApp = StringUtils.equals(userAgent, ControllerUtil.USER_AGENT_APP_WEB_VIEW);
 
-        if (log.isDebugEnabled()) {
-            log.debug(
-                "home: isWebViewApp=" + isWebViewApp + ", clientName=" + clientName + ", appPushToken="
-                    + appPushToken + ", etag=" + etag);
-        }
-
         if (isWebViewApp) {
             handlePushToken(appPushToken, userService.userNameFromLoginCookie(userCookie), clientName);
         }
@@ -214,6 +208,11 @@ public class HomeRequestMapping {
             mappingErrorAttributes(model, response, message, e);
             log.error(message, e);
             returnTemplate =  "error";
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug(
+                    "home=" + response.getStatus() + ": isWebViewApp=" + isWebViewApp + ", clientName=" + clientName + ", etag=" + etag);
         }
 
         long l2 = System.nanoTime();
