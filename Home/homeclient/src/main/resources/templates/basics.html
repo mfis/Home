@@ -46,10 +46,6 @@
 
 	<script>
 		
-		var pushToken = '';
-		var clientName = '';
-		var sliderList = [];
-		
 		function setPushToken(newTokenValue, newClientName){
 			clientName = newClientName;
 			var oldValue = pushToken;
@@ -237,8 +233,11 @@
 	
 			if(ts != null){
 				if(isApp()){
-					document.title = "ts=" + ts;
-					nativeMessage("modelTimestamp=" + ts);
+					if(ts !== modelTimestampLastHandled){
+						modelTimestampLastHandled = ts;
+						document.title = "ts=" + ts;
+						nativeMessage("modelTimestamp=" + ts);
+					}
 				}else{
 					document.getElementById('idHeaderStatusText').innerHTML = ts;
 					document.title = 'Zuhause - ' + ts;
