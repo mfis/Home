@@ -247,6 +247,18 @@
 			}
 		}
 
+		function setAppInForegroundMarker(val){
+			if(val===true){
+				document.getElementById('appInForegroundMarker').value = 'true'
+			}else if(val===false){
+				document.getElementById('appInForegroundMarker').value = 'false'
+			}
+		}
+
+		function isAppInForeground(){
+			return isApp() && document.getElementById('appInForegroundMarker').value === 'true';
+		}
+
 		function fastLinkTo(id){
 			$('#fastLinkMarker').addClass('doNotRefresh');
 			try{
@@ -318,14 +330,13 @@
 			}
 		}	
 		function doAutoRefresh(){
-			
-			var transitions = document.getElementsByClassName('collapsing');
-			
-			if((document.hasFocus() || isApp()) &&
-					$('.modal.fade.show').length === 0 && ((new Date).getTime() - lastRefresh > (1000)) && transitions.length === 0 && document.getElementsByClassName('doNotRefresh').length === 0){
+
+			// focus handling in app: app webview only gets focus after first touch event
+			if((document.hasFocus() || isAppInForeground()) &&
+					$('.modal.fade.show').length === 0 && ((new Date).getTime() - lastRefresh > (1000)) && isViewStatePermittingRefresh()){
 				refreshContent();
 			}
-			if((document.hasFocus() || isApp())){
+			if(document.hasFocus() || isAppInForeground()){
 				setAutoRefresh();
 			}
 		}
@@ -344,7 +355,7 @@
 		var lastRefresh = (new Date).getTime();
 		setAutoRefresh();
 		
-		if (element !== null && element.value !== '' && !isApp()) {
+		if (element !== null && element.value !== '' && !isAppInForeground()) {
 			// onfocus
 			document.getElementById('idbody').onfocus = function(){
 				doAutoRefresh(); 
