@@ -83,11 +83,11 @@
 				httpRequest.send();
 				httpRequest.onreadystatechange=(e)=>{
 					if (httpRequest.readyState === 4) {
-						if(target===window.location.href && document.getElementsByClassName('collapsing').length !== 0){
+						if(target===window.location.href && !isViewStatePermittingRefresh()){
 							// do not replace content while gui transition is running
 							showCheck();
 						}else if(httpRequest.status === 200){
-							var doc = new DOMParser().parseFromString(httpRequest.responseText, "text/html");
+							let doc = new DOMParser().parseFromString(httpRequest.responseText, "text/html");
 							preserveStatus(document, doc);
 							document.getElementById('idbody').innerHTML = doc.getElementById('idbody').innerHTML;
 							lastRefresh = (new Date).getTime();
@@ -249,43 +249,47 @@
 		}
 
 		function fastLinkTo(id){
-			let cleanedId = id.replace('_groupitem2', '');
-			cleanedId = cleanedId.replace('_groupitem', '');
-			let divId = ('collapse' + cleanedId);
-			let element = document.getElementById(divId);
-			if(!element){
-				console.log('id not found:' + divId);
-				return;
-			}
-			// open collapsable
-			openCollapsable(document, divId);
-			// open collapse of viewCorrelation
-			let viewCorrelationId = 'viewCorrelation_' + cleanedId;
-			let viewCorrelationElement = document.getElementById(viewCorrelationId);
-			if(viewCorrelationElement){
-				let viewCorrelationCollapsableId = 'collapse' + viewCorrelationElement.value;
-				openCollapsable(document, viewCorrelationCollapsableId);
-			}
-			// scroll to previous title
-			let parentCounter = 0;
-			while((element && !element.classList.contains('alert') || !element.classList.contains('callout')) && parentCounter < 100){
-				parentCounter++;
-				element = element.parentElement;
-			}
-			if(element && element.classList.contains('alert') && element.classList.contains('callout')){
-				let siblingCounter = 0;
-				while(element && !element.classList.contains('placeTitle') && siblingCounter < 100){
-					siblingCounter++;
-					element = element.previousElementSibling;
+			$('#fastLinkMarker').addClass('doNotRefresh');
+			try{
+				let cleanedId = id.replace('_groupitem2', '');
+				cleanedId = cleanedId.replace('_groupitem', '');
+				let divId = ('collapse' + cleanedId);
+				let element = document.getElementById(divId);
+				if(!element){
+					throw('id not found:' + divId);
 				}
-				if(element && element.classList.contains('placeTitle') ){
-					element.scrollIntoView();
-					let navbarHeight = 0;
-					if(document.getElementById('navbar')){
-						navbarHeight = document.getElementById('navbar').offsetHeight;
+				// open collapsable
+				openCollapsable(document, divId);
+				// open collapse of viewCorrelation
+				let viewCorrelationId = 'viewCorrelation_' + cleanedId;
+				let viewCorrelationElement = document.getElementById(viewCorrelationId);
+				if(viewCorrelationElement){
+					let viewCorrelationCollapsableId = 'collapse' + viewCorrelationElement.value;
+					openCollapsable(document, viewCorrelationCollapsableId);
+				}
+				// scroll to previous title
+				let parentCounter = 0;
+				while((element && !element.classList.contains('alert') || !element.classList.contains('callout')) && parentCounter < 100){
+					parentCounter++;
+					element = element.parentElement;
+				}
+				if(element && element.classList.contains('alert') && element.classList.contains('callout')){
+					let siblingCounter = 0;
+					while(element && !element.classList.contains('placeTitle') && siblingCounter < 100){
+						siblingCounter++;
+						element = element.previousElementSibling;
 					}
-					window.scrollBy(0, (navbarHeight + 6) * -1);
+					if(element && element.classList.contains('placeTitle') ){
+						element.scrollIntoView();
+						let navbarHeight = 0;
+						if(document.getElementById('navbar')){
+							navbarHeight = document.getElementById('navbar').offsetHeight;
+						}
+						window.scrollBy(0, (navbarHeight + 6) * -1);
+					}
 				}
+			}finally{
+				$('#fastLinkMarker').removeClass('doNotRefresh');
 			}
 		}
 
@@ -325,6 +329,11 @@
 			if((document.hasFocus() || isApp())){
 				setAutoRefresh();
 			}
+		}
+
+		function isViewStatePermittingRefresh(){
+			let transitions = document.getElementsByClassName('collapsing');
+			return transitions.length === 0 && document.getElementsByClassName('doNotRefresh').length === 0;
 		}
 		
 	</script>	
@@ -384,6 +393,8 @@
 
 		<input type="hidden" id="isApp" th:value="${isApp}" />
 		<input type="hidden" id="browserTitle" th:value="${selected.name}" />
+		<input type="hidden" id="appInForegroundMarker" value="true"/>
+		<input type="hidden" id="fastLinkMarker" value="" class=""/>
 		<th:block th:if="${!#strings.equals(isApp, 'true')}">	
 			<nav id="navbar" class="navbar fixed-top navbar-expand-lg navbar-light py-1" style="border-bottom: 2px solid rgb(119,119,119);">
 				
