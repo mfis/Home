@@ -13,13 +13,8 @@
 					<span style="text-align: center;" th:id="${model.id} + '-status'"><i style="font-size: 0.8rem;" class="fa-solid fa-circle"></i></span>
 					<span th:text="${model.state}"></span>
 				</h4>
-
 				<script>
-					$(document).ready(function(){
-						prototypeSlider();
-						initSlider('[[${model.id}]]');
 						sliderList.push('[[${model.id}]]');
-					});
 				</script>
 
 				<div class="btn-group" role="group" aria-label="evenableslider" style="margin-right: 10px;">

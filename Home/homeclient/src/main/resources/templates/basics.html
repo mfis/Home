@@ -29,6 +29,12 @@
 	
 	<link rel="stylesheet" href="/webjars/font-awesome/css/all.min.css" crossorigin="anonymous"/>
 	<script type="text/javascript" src="/webjars/jquery/jquery.min.js"></script>
+	<script>
+		var pushToken = '';
+		var clientName = '';
+		var sliderList = [];
+		var modelTimestampLastHandled = '';
+	</script>
 </head>
 
 <th:block th:fragment="scriptresources">
@@ -106,6 +112,7 @@
 
 		function doOnloadFunctions(){
 			if(sliderList){
+				prototypeSlider();
 				sliderList.forEach(function (e) {
 					initSlider(e);
 				})
