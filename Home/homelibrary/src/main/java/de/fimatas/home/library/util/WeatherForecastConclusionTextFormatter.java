@@ -121,7 +121,7 @@ public class WeatherForecastConclusionTextFormatter {
         if(conclusion.getPrecipitationInMM()==null){
             return "";
         }
-        String pattern  = conclusion.getPrecipitationInMM().compareTo(BigDecimal.TEN) < 0 ? "0.0" : "0";
+        String pattern = conclusion.getPrecipitationInMM().compareTo(BigDecimal.TEN) < 0 && conclusion.getPrecipitationInMM().compareTo(BigDecimal.ZERO) > 0 ? "0.0" : "0";
         return new DecimalFormat(pattern).format(conclusion.getPrecipitationInMM())  + " mm";
     }
 
