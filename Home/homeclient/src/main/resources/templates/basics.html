@@ -247,14 +247,6 @@
 			}
 		}
 
-		function setAppInForegroundMarker(val){
-			if(val===true){
-				document.getElementById('appInForegroundMarker').value = 'true'
-			}else if(val===false){
-				document.getElementById('appInForegroundMarker').value = 'false'
-			}
-		}
-
 		function isAppInForeground(){
 			return isApp() && document.getElementById('appInForegroundMarker').value === 'true';
 		}
@@ -355,7 +347,7 @@
 		var lastRefresh = (new Date).getTime();
 		setAutoRefresh();
 		
-		if (element !== null && element.value !== '' && !isAppInForeground()) {
+		if (element !== null && element.value !== '' && !isApp()) {
 			// onfocus
 			document.getElementById('idbody').onfocus = function(){
 				doAutoRefresh(); 
@@ -367,6 +359,20 @@
 				showStop();
 			};			
 		}
+
+		function setAppInForegroundMarker(val){
+			if(val===true){
+				document.getElementById('appInForegroundMarker').value = 'true'
+				doAutoRefresh();
+				setAutoRefresh();
+				nativeMessage("confirmForegroundMarker");
+			}else if(val===false){
+				document.getElementById('appInForegroundMarker').value = 'false'
+				unsetAutoRefresh();
+				showStop();
+			}
+		}
+
 	</script>
 	
 </th:block>
