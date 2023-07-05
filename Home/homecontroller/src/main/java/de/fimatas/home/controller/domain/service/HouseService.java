@@ -172,6 +172,7 @@ public class HouseService {
         newModel.setProducedElectricalPower(readPowerConsumption(Device.ELECTRIC_POWER_PRODUCTION_ACTUAL_HOUSE));
         newModel.setConsumedElectricalPower(readPowerConsumption(Device.ELECTRIC_POWER_CONSUMPTION_ACTUAL_HOUSE));
         newModel.setPvStatusTime(formatTimestamp(Device.ELECTRIC_POWER_ACTUAL_TIMESTAMP_HOUSE));
+        newModel.setGridElectricStatusTime(formatTimestamp(Device.ELECTRIC_POWER_GRID_TIMESTAMP_HOUSE));
 
         newModel.setWallboxElectricalPowerConsumption(readPowerConsumption(Device.STROMZAEHLER_WALLBOX));
         newModel.setGasConsumption(readPowerConsumption(Device.GASZAEHLER));

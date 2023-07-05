@@ -429,6 +429,9 @@ public class HomematicAPI {
 
         HttpHeaders headers = createHeaders(body.length(), withAuthentication);
         HttpEntity<String> requestEntity = new HttpEntity<>(body, headers);
+        if (LOG.isTraceEnabled()) {
+            LOG.trace("REQUEST=" + body);
+        }
         ResponseEntity<String> responseEntity = null;
         try {
             responseEntity = restTemplateCCU.postForEntity(host + REGA_HTTPS_PORT_AND_URI, requestEntity, String.class);

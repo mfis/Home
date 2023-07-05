@@ -694,11 +694,6 @@ public class HouseViewService {
 
     private void formatOverallElectricPowerHouse(Model model, HouseModel houseModel, HistoryModel historyModel) {
 
-        // FIXME: TEST
-        //houseModel.getGridElectricalPower().getActualConsumption().setValue(new BigDecimal("-1000"));
-        //houseModel.getProducedElectricalPower().getActualConsumption().setValue(new BigDecimal("+0"));
-        // FIXME END
-
         OverallElectricPowerHouseView overallElectricPowerHouseView = new OverallElectricPowerHouseView();
         Device baseDevice = Device.STROMZAEHLER_BEZUG;
         overallElectricPowerHouseView.setId(lookupTodayPowerId(baseDevice, false));
@@ -785,6 +780,7 @@ public class HouseViewService {
             LocalDateTime timestamp = Instant.ofEpochMilli(houseModel.getPvStatusTime()).atZone(ZoneId.systemDefault()).toLocalDateTime();
             long diff = ChronoUnit.MINUTES.between(timestamp, LocalDateTime.now());
             overallElectricPowerHouseView.setTimestampState(diff==0?"jetzt" : "vor " + diff + " Minute" + (diff ==1?"":"n"));
+            // FIXME: getGridElectricStatusTime() für Smartmeter Timestamp
         }
 
         // indicators
