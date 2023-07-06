@@ -37,6 +37,14 @@
 										</th:block>
 									</td>
 								</tr>
+								<!-- pvSelfConsumptionPercentage -->
+								<th:block th:if="${model.pvSelfConsumptionPercentage != null}">
+									<tr align="center">
+										<td th:class="'text-' + ${model.consumption.colorClass}">
+											<span th:text="${model.pvSelfConsumptionPercentage}"></span>
+										</td>
+									</tr>
+								</th:block>
 							</table>
 						</td>
 					</tr>

@@ -18,4 +18,6 @@ public class OverallElectricPowerHouseView extends View {
     private PowerView gridFeed = new PowerView();
 
     private String timestampState = "unbekannt";
+
+    private String pvSelfConsumptionPercentage = null;
 }

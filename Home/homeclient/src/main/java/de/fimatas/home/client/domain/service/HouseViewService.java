@@ -1,6 +1,7 @@
 package de.fimatas.home.client.domain.service;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.time.*;
@@ -235,16 +236,21 @@ public class HouseViewService {
         pv.setId(lookupTodayPowerId(Device.STROMZAEHLER_BEZUG, true) + "2" /* FIXME */);
         pv.setState("?");
         if(producedElectricalPower != null && !producedElectricalPower.isUnreach() && gridElectricalPower != null && !gridElectricalPower.isUnreach()){
-            int feed = gridElectricalPower.getActualConsumption().getValue().intValue();
-            if(feed < 0){
-                feed = 0;
+            BigDecimal feed = gridElectricalPower.getActualConsumption().getValue();
+            if(feed.compareTo(BigDecimal.ZERO) < 0){
+                feed = BigDecimal.ZERO;
             }
-            int production = producedElectricalPower.getActualConsumption().getValue().intValue();
-            if(production < 0){
-                production = 0;
+            BigDecimal production = producedElectricalPower.getActualConsumption().getValue();
+            if(production.compareTo(BigDecimal.ZERO) < 0){
+                production = BigDecimal.ZERO;
             }
-            pv.setState(feed + "/" + production + ViewFormatter.actualPowerUnit(Device.STROMZAEHLER_BEZUG));
-            pv.setColorClass(feed > 0 ? ConditionColor.GREEN.getUiClass() : ConditionColor.ORANGE.getUiClass());
+
+            if(production.compareTo(BigDecimal.ZERO) == 0){
+                pv.setState(ViewFormatter.powerInWattToKiloWatt(feed) + " kW");
+            }else{
+                pv.setState(ViewFormatter.powerInWattToKiloWatt(feed) + "/" + ViewFormatter.powerInWattToKiloWatt(production) + " kW");
+            }
+            pv.setColorClass(feed.compareTo(BigDecimal.ZERO) > 0 ? ConditionColor.GREEN.getUiClass() : ConditionColor.ORANGE.getUiClass());
         }
         view.getCaptionAndValue().put("Überschuss", pv);
 
@@ -716,6 +722,19 @@ public class HouseViewService {
         overallElectricPowerHouseView.setPv(formatPowerView(model, houseModel.getProducedElectricalPower(), historyModel==null?null:historyModel.getProducedElectricPowerDay(), offsetConsumption, false));
         overallElectricPowerHouseView.setGridPurchase(formatPowerView(model, houseModel.getGridElectricalPower(), historyModel==null?null:historyModel.getPurchasedElectricPowerConsumptionDay(), BigDecimal.ZERO, true));
         overallElectricPowerHouseView.setGridFeed(formatPowerView(model, houseModel.getGridElectricalPower(), historyModel==null?null:historyModel.getFeedElectricPowerConsumptionDay(), BigDecimal.ZERO, false));
+
+        // consumption pv percentage
+        if(overallElectricPowerHouseView.getConsumption().getTodayConsumption() != null
+                && overallElectricPowerHouseView.getPv().getTodayConsumption() != null
+                && overallElectricPowerHouseView.getGridFeed().getTodayConsumption() != null
+                && overallElectricPowerHouseView.getConsumption().getTodayConsumption().getNumericValue().compareTo(BigDecimal.ZERO) > 0){
+            BigDecimal productionNotFeed = overallElectricPowerHouseView.getPv().getTodayConsumption().getNumericValue()
+                    .subtract(overallElectricPowerHouseView.getGridFeed().getTodayConsumption().getNumericValue());
+            BigDecimal pvPercentage = productionNotFeed
+                    .divide(overallElectricPowerHouseView.getConsumption().getTodayConsumption().getNumericValue(), 4, RoundingMode.HALF_UP)
+                    .multiply(ViewFormatter.HUNDRED);
+            overallElectricPowerHouseView.setPvSelfConsumptionPercentage("PV-Anteil " + new DecimalFormat("0.0").format(pvPercentage) + " %");
+        }
 
         // history keys
         overallElectricPowerHouseView.getGridPurchase().setHistoryKey(Device.STROMZAEHLER_BEZUG.historyKeyPrefix());

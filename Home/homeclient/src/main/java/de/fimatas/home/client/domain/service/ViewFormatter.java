@@ -37,7 +37,7 @@ public class ViewFormatter {
 
     private static final BigDecimal SPACER_VALUE = new BigDecimal("0.5");
 
-    private static final BigDecimal HUNDRED = new BigDecimal("100");
+    public static final BigDecimal HUNDRED = new BigDecimal("100");
 
     private static final BigDecimal ONE_POINT_NINE = new BigDecimal("1.9");
 
@@ -63,6 +63,12 @@ public class ViewFormatter {
 
     private static BigDecimal powerConsumptionValue(Device device, BigDecimal value){
         return device.getType() == Type.ELECTRIC_POWER ? value.divide(KWH_FACTOR, new MathContext(3, RoundingMode.HALF_UP)) : value;
+    }
+
+    public static String powerInWattToKiloWatt(BigDecimal value){
+        String format = value.compareTo(new BigDecimal("0.1")) < 0 ? "0" : "0.0";
+        return new DecimalFormat(format).format(value.divide(KWH_FACTOR, new MathContext(3, RoundingMode.HALF_UP)));
+
     }
 
     public static String powerConsumptionValueForView(Device device, BigDecimal value){
