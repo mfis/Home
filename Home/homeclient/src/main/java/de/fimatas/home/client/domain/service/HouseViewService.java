@@ -726,15 +726,16 @@ public class HouseViewService {
         // consumption pv percentage
         if(overallElectricPowerHouseView.getGridPurchase().getTodayConsumption() != null
                 && overallElectricPowerHouseView.getPv().getTodayConsumption() != null
-                && overallElectricPowerHouseView.getGridFeed().getTodayConsumption() != null
-                && overallElectricPowerHouseView.getGridPurchase().getTodayConsumption().getNumericValue().compareTo(BigDecimal.ZERO) > 0){
+                && overallElectricPowerHouseView.getGridFeed().getTodayConsumption() != null){
             BigDecimal selfused = overallElectricPowerHouseView.getPv().getTodayConsumption().getNumericValue()
                     .subtract(overallElectricPowerHouseView.getGridFeed().getTodayConsumption().getNumericValue());
-            BigDecimal percentagePurchased = overallElectricPowerHouseView.getGridPurchase().getTodayConsumption().getNumericValue()
-                    .divide(selfused, 4, RoundingMode.HALF_UP)
-                    .multiply(ViewFormatter.HUNDRED);
-            BigDecimal percentageSelfused = ViewFormatter.HUNDRED.subtract(percentagePurchased);
-            overallElectricPowerHouseView.setPvSelfConsumptionPercentage("PV-Anteil " + new DecimalFormat("0.0").format(percentageSelfused) + " %");
+            if(selfused.compareTo(BigDecimal.ZERO) != 0) {
+                BigDecimal percentagePurchased = overallElectricPowerHouseView.getGridPurchase().getTodayConsumption().getNumericValue()
+                        .divide(selfused, 4, RoundingMode.HALF_UP)
+                        .multiply(ViewFormatter.HUNDRED);
+                BigDecimal percentageSelfused = ViewFormatter.HUNDRED.subtract(percentagePurchased);
+                overallElectricPowerHouseView.setPvSelfConsumptionPercentage("PV-Anteil " + new DecimalFormat("0.0").format(percentageSelfused) + " %");
+            }
         }
 
         // history keys
