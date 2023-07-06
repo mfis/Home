@@ -724,16 +724,17 @@ public class HouseViewService {
         overallElectricPowerHouseView.setGridFeed(formatPowerView(model, houseModel.getGridElectricalPower(), historyModel==null?null:historyModel.getFeedElectricPowerConsumptionDay(), BigDecimal.ZERO, false));
 
         // consumption pv percentage
-        if(overallElectricPowerHouseView.getConsumption().getTodayConsumption() != null
+        if(overallElectricPowerHouseView.getGridPurchase().getTodayConsumption() != null
                 && overallElectricPowerHouseView.getPv().getTodayConsumption() != null
                 && overallElectricPowerHouseView.getGridFeed().getTodayConsumption() != null
-                && overallElectricPowerHouseView.getConsumption().getTodayConsumption().getNumericValue().compareTo(BigDecimal.ZERO) > 0){
-            BigDecimal productionNotFeed = overallElectricPowerHouseView.getPv().getTodayConsumption().getNumericValue()
+                && overallElectricPowerHouseView.getGridPurchase().getTodayConsumption().getNumericValue().compareTo(BigDecimal.ZERO) > 0){
+            BigDecimal selfused = overallElectricPowerHouseView.getPv().getTodayConsumption().getNumericValue()
                     .subtract(overallElectricPowerHouseView.getGridFeed().getTodayConsumption().getNumericValue());
-            BigDecimal pvPercentage = productionNotFeed
-                    .divide(overallElectricPowerHouseView.getConsumption().getTodayConsumption().getNumericValue(), 4, RoundingMode.HALF_UP)
+            BigDecimal percentagePurchased = overallElectricPowerHouseView.getGridPurchase().getTodayConsumption().getNumericValue()
+                    .divide(selfused, 4, RoundingMode.HALF_UP)
                     .multiply(ViewFormatter.HUNDRED);
-            overallElectricPowerHouseView.setPvSelfConsumptionPercentage("PV-Anteil " + new DecimalFormat("0.0").format(pvPercentage) + " %");
+            BigDecimal percentageSelfused = ViewFormatter.HUNDRED.subtract(percentagePurchased);
+            overallElectricPowerHouseView.setPvSelfConsumptionPercentage("PV-Anteil " + new DecimalFormat("0.0").format(percentageSelfused) + " %");
         }
 
         // history keys
