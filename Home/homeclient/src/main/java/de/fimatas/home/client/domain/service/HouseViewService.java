@@ -734,7 +734,7 @@ public class HouseViewService {
                         .divide(selfused, 4, RoundingMode.HALF_UP)
                         .multiply(ViewFormatter.HUNDRED);
                 BigDecimal percentageSelfused = ViewFormatter.HUNDRED.subtract(percentagePurchased);
-                overallElectricPowerHouseView.setPvSelfConsumptionPercentage("PV-Anteil " + new DecimalFormat("0.0").format(percentageSelfused) + " %");
+                // overallElectricPowerHouseView.setPvSelfConsumptionPercentage("PV-Anteil " + new DecimalFormat("0.0").format(percentageSelfused) + " %");
             }
         }
 

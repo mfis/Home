@@ -34,6 +34,7 @@
 		var clientName = '';
 		var sliderList = [];
 		var modelTimestampLastHandled = '';
+		var isFirstRefreshAfterAppBackgroundPending = false;
 	</script>
 </head>
 
@@ -95,6 +96,10 @@
 						} else if(httpRequest.status === 304){
 							lastRefresh = (new Date).getTime();
 							showCheck();
+							if(isFirstRefreshAfterAppBackgroundPending){
+								isFirstRefreshAfterAppBackgroundPending = false;
+								nativeMessage("loadedView");
+							}
 						}else{
 							showOffline();
 						}
@@ -362,12 +367,12 @@
 
 		function setAppInForegroundMarker(val){
 			if(val===true){
-				document.getElementById('appInForegroundMarker').value = 'true'
+				document.getElementById('appInForegroundMarker').value = 'true';
+				isFirstRefreshAfterAppBackgroundPending = true;
 				doAutoRefresh();
 				setAutoRefresh();
-				nativeMessage("confirmForegroundMarker");
 			}else if(val===false){
-				document.getElementById('appInForegroundMarker').value = 'false'
+				document.getElementById('appInForegroundMarker').value = 'false';
 				unsetAutoRefresh();
 				showStop();
 			}
