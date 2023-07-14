@@ -26,7 +26,7 @@
 		<commons-io.version>2.8.0</commons-io.version>
 		<commons-text.version>1.10.0</commons-text.version>
 		<commons-collections4.version>4.4</commons-collections4.version>
-		<pushy.version>0.14.2</pushy.version>
+		<pushy.version>0.15.2</pushy.version>
 		<b2-sdk.version>3.1.0</b2-sdk.version>
 		<!-- Webjars versions -->
 		<webjars-locator.version>0.45</webjars-locator.version>

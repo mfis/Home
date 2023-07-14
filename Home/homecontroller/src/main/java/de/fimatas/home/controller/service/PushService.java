@@ -1,9 +1,8 @@
 package de.fimatas.home.controller.service;
 
-import com.eatthepath.pushy.apns.ApnsClient;
-import com.eatthepath.pushy.apns.ApnsClientBuilder;
-import com.eatthepath.pushy.apns.PushNotificationResponse;
+import com.eatthepath.pushy.apns.*;
 import com.eatthepath.pushy.apns.util.ApnsPayloadBuilder;
+import com.eatthepath.pushy.apns.util.LiveActivityEvent;
 import com.eatthepath.pushy.apns.util.SimpleApnsPayloadBuilder;
 import com.eatthepath.pushy.apns.util.SimpleApnsPushNotification;
 import com.eatthepath.pushy.apns.util.concurrent.PushNotificationFuture;
@@ -27,8 +26,14 @@ import javax.annotation.PreDestroy;
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -231,11 +236,11 @@ public class PushService {
             LOG.info("Push Message to dummy token: " + title + " - " + message);
             saveNewMessageToDatabase(ts, pushToken, title, message);
         } else {
-            sendToApns(pushToken, ts, title, message);
+            sendNotificationToApns(pushToken, ts, title, message);
         }
     }
 
-    private void sendToApns(PushToken pushToken, LocalDateTime ts, String title, String message) {
+    private void sendNotificationToApns(PushToken pushToken, LocalDateTime ts, String title, String message) {
 
         final ApnsPayloadBuilder payloadBuilder = new SimpleApnsPayloadBuilder();
         payloadBuilder.setAlertTitle(title);
@@ -246,10 +251,37 @@ public class PushService {
         PushNotificationFuture<SimpleApnsPushNotification, PushNotificationResponse<SimpleApnsPushNotification>> sendNotificationFuture =
             apnsClient.sendNotification(new SimpleApnsPushNotification(pushToken.getToken(), iOsAppIdentifier, payloadBuilder.build()));
 
-        sendNotificationFuture.whenComplete((response, cause) -> handleApnsResponse(response, cause, ts, pushToken, title, message));
+        sendNotificationFuture.whenComplete((response, cause) -> {
+            saveNewMessageToDatabase(ts, pushToken, title, message);
+            handleApnsResponse(response, cause, pushToken);
+        });
     }
 
-    private void handleApnsResponse(PushNotificationResponse<SimpleApnsPushNotification> response, Throwable cause, LocalDateTime ts, PushToken pushToken, String title, String text) {
+    private void sendLiveActivityToApns(PushToken pushToken /*, LocalDateTime ts, String title, String message*/) {
+
+        Map<String, Object> contentState = new LinkedHashMap<>();
+        contentState.put("pvFeed", DateTimeFormatter.ofPattern("HHmmss", Locale.GERMAN).format(LocalDateTime.now()));
+
+        final ApnsPayloadBuilder payloadBuilder = new SimpleApnsPayloadBuilder();
+        /*payloadBuilder.setAlertTitle(title);
+        payloadBuilder.setAlertBody(message);
+        payloadBuilder.setSound("default");
+        payloadBuilder.setBadgeNumber(1); */
+        payloadBuilder.setEvent(LiveActivityEvent.UPDATE);
+        payloadBuilder.setTimestamp(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant());
+        payloadBuilder.setContentState(contentState);
+
+        var prority = DeliveryPriority.IMMEDIATE; // FIXME;
+        var invalidationTime = Instant.now().plus(Duration.ofHours(4));
+        var topic = iOsAppIdentifier + ".push-type.liveactivity";
+
+        var notofication = new SimpleApnsPushNotification(pushToken.getToken(), topic, payloadBuilder.build(), invalidationTime, prority, PushType.LIVE_ACTIVITY);
+        var sendNotificationFuture = apnsClient.sendNotification(notofication);
+
+        sendNotificationFuture.whenComplete((response, cause) -> handleApnsResponse(response, cause, pushToken));
+    }
+
+    private void handleApnsResponse(PushNotificationResponse<SimpleApnsPushNotification> response, Throwable cause, PushToken pushToken) {
 
         boolean doResetSettings = false;
         if (response != null) {
@@ -260,7 +292,7 @@ public class PushService {
         } else {
             LOG.error("Failed to send push notification to apns.", cause);
         }
-        saveNewMessageToDatabase(ts, pushToken, title, text);
+
         if(doResetSettings){
             settingsService.resetSettingsForToken(pushToken.getToken());
             saveNewMessageToDatabase(uniqueTimestampService.get(), pushToken, "Push-Zustellung Fehler", "Bitte erneut registrieren.");
