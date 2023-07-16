@@ -1,7 +1,9 @@
 package de.fimatas.home.controller.request;
 
+import de.fimatas.home.controller.service.PushService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import de.fimatas.home.controller.domain.service.HouseService;
 import de.fimatas.home.library.domain.model.ActionModel;
@@ -11,6 +13,9 @@ public class RequestMapping {
 
     @Autowired
     private HouseService houseService;
+
+    @Autowired
+    private PushService pushService;
 
     @GetMapping("/controller/refresh")
     public ActionModel refresh() {
@@ -29,6 +34,12 @@ public class RequestMapping {
                 " max:" + (runtime.maxMemory() / MEM_FACTOR_MB) + MB +
                 " totalFree:" + (runtime.freeMemory() + (runtime.maxMemory() - runtime.totalMemory())) / MEM_FACTOR_MB + MB;
         return new ActionModel(info);
+    }
+
+    @GetMapping("/controller/liveactivity")
+    public ActionModel liveactivity(@RequestParam("token") String token) {
+        pushService.sendLiveActivityToApns(token);
+        return new ActionModel("OK");
     }
 
 }

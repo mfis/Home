@@ -1,6 +1,8 @@
 package de.fimatas.home.controller.service;
 
 import com.eatthepath.pushy.apns.*;
+import com.eatthepath.pushy.apns.auth.ApnsSigningKey;
+import com.eatthepath.pushy.apns.auth.AuthenticationToken;
 import com.eatthepath.pushy.apns.util.ApnsPayloadBuilder;
 import com.eatthepath.pushy.apns.util.LiveActivityEvent;
 import com.eatthepath.pushy.apns.util.SimpleApnsPayloadBuilder;
@@ -25,6 +27,8 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.File;
 import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -45,14 +49,25 @@ public class PushService {
 
     private ApnsClient apnsClient;
 
+    private ApnsClient apnsClientJwtBased;
+
+    @Value("${apns.ios.app.identifier}")
+    private String iOsAppIdentifier;
+
     @Value("${apns.cert.path}")
     private String apnsCertPath;
 
     @Value("${apns.cert.pass}")
     private String apnsCertPass;
 
-    @Value("${apns.ios.app.identifier}")
-    private String iOsAppIdentifier;
+    @Value("${apns.ios.app.teamId}")
+    private String apnsTeamId;
+
+    @Value("${apns.ios.app.keyId}")
+    private String apnsKeyId;
+
+    @Value("${apns.ios.app.pkcs8File}")
+    private String pkcs8File;
 
     @Value("${apns.use.production.server}")
     private boolean apnsUseProductionServer;
@@ -81,6 +96,16 @@ public class PushService {
         } catch (IOException e) {
             LOG.error("Unable to build apnsClient.", e);
         }
+        try {
+            apnsClientJwtBased = new ApnsClientBuilder()
+                    .setApnsServer(
+                            apnsUseProductionServer ? ApnsClientBuilder.PRODUCTION_APNS_HOST : ApnsClientBuilder.DEVELOPMENT_APNS_HOST)
+                    .setSigningKey(ApnsSigningKey.loadFromPkcs8File(new File(pkcs8File),
+                            apnsTeamId, apnsKeyId))
+                    .build();
+        } catch (IOException | NoSuchAlgorithmException | InvalidKeyException e) {
+            LOG.error("Unable to build apnsClientJwtBased.", e);
+        }
     }
 
     @PreDestroy
@@ -91,6 +116,15 @@ public class PushService {
                 closeFuture.get();
             } catch (InterruptedException | ExecutionException e) {
                 LOG.error("Unable to shutdown apnsClient.", e);
+                Thread.currentThread().interrupt();
+            }
+        }
+        if (apnsClientJwtBased != null) {
+            CompletableFuture<Void> closeFuture = apnsClientJwtBased.close();
+            try {
+                closeFuture.get();
+            } catch (InterruptedException | ExecutionException e) {
+                LOG.error("Unable to shutdown apnsClientJwtBased.", e);
                 Thread.currentThread().interrupt();
             }
         }
@@ -253,47 +287,46 @@ public class PushService {
 
         sendNotificationFuture.whenComplete((response, cause) -> {
             saveNewMessageToDatabase(ts, pushToken, title, message);
-            handleApnsResponse(response, cause, pushToken);
+            handleApnsResponse(response, cause, pushToken, false);
         });
     }
 
-    private void sendLiveActivityToApns(PushToken pushToken /*, LocalDateTime ts, String title, String message*/) {
+    public void sendLiveActivityToApns(String pushToken /*, LocalDateTime ts, String title, String message*/) {
 
         Map<String, Object> contentState = new LinkedHashMap<>();
-        contentState.put("pvFeed", DateTimeFormatter.ofPattern("HHmmss", Locale.GERMAN).format(LocalDateTime.now()));
+        contentState.put("valueLeading", DateTimeFormatter.ofPattern("HHmmss", Locale.GERMAN).format(LocalDateTime.now()));
+        contentState.put("valueTrailing", "");
+        contentState.put("colorLeading", "green");
+        contentState.put("colorTrailing", "");
 
         final ApnsPayloadBuilder payloadBuilder = new SimpleApnsPayloadBuilder();
-        /*payloadBuilder.setAlertTitle(title);
-        payloadBuilder.setAlertBody(message);
-        payloadBuilder.setSound("default");
-        payloadBuilder.setBadgeNumber(1); */
         payloadBuilder.setEvent(LiveActivityEvent.UPDATE);
         payloadBuilder.setTimestamp(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant());
         payloadBuilder.setContentState(contentState);
 
         var prority = DeliveryPriority.IMMEDIATE; // FIXME;
         var invalidationTime = Instant.now().plus(Duration.ofHours(4));
-        var topic = iOsAppIdentifier + ".push-type.liveactivity";
+        var topic = iOsAppIdentifier + ".push-type.liveactivity"; // muss manuell angehängt werden
 
-        var notofication = new SimpleApnsPushNotification(pushToken.getToken(), topic, payloadBuilder.build(), invalidationTime, prority, PushType.LIVE_ACTIVITY);
-        var sendNotificationFuture = apnsClient.sendNotification(notofication);
+        var notification = new SimpleApnsPushNotification(pushToken, topic, payloadBuilder.build(), invalidationTime, prority, PushType.LIVE_ACTIVITY);
+        var sendNotificationFuture = apnsClientJwtBased.sendNotification(notification);
 
-        sendNotificationFuture.whenComplete((response, cause) -> handleApnsResponse(response, cause, pushToken));
+        sendNotificationFuture.whenComplete((response, cause) -> handleApnsResponse(response, cause, new PushToken("", pushToken), true));
     }
 
-    private void handleApnsResponse(PushNotificationResponse<SimpleApnsPushNotification> response, Throwable cause, PushToken pushToken) {
+    private void handleApnsResponse(PushNotificationResponse<SimpleApnsPushNotification> response, Throwable cause, PushToken pushToken, boolean isLiveActivity) {
 
         boolean doResetSettings = false;
         if (response != null) {
             if (!response.isAccepted()) {
-                LOG.warn("Push Notification rejected by the apns gateway: " + response.getRejectionReason());
+                LOG.warn("Push Notification rejected by the apns gateway: " + response.getStatusCode() + "//" + response.getRejectionReason());
                 doResetSettings = true;
             }
         } else {
             LOG.error("Failed to send push notification to apns.", cause);
         }
 
-        if(doResetSettings){
+        if(doResetSettings && !isLiveActivity){ // FIXME
             settingsService.resetSettingsForToken(pushToken.getToken());
             saveNewMessageToDatabase(uniqueTimestampService.get(), pushToken, "Push-Zustellung Fehler", "Bitte erneut registrieren.");
         }
