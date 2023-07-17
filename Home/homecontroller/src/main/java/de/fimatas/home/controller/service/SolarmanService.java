@@ -37,7 +37,6 @@ public class SolarmanService {
         put("Et_use1", Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HOUSE); // Summe Verbrauch
         put("T_AC_OP", Device.ELECTRIC_POWER_PRODUCTION_ACTUAL_HOUSE); // produktion
         put("E_Puse_t1", Device.ELECTRIC_POWER_CONSUMPTION_ACTUAL_HOUSE); // verbrauch
-        put("PG_Pt1", Device.ELECTRIC_POWER_GRID_ACTUAL_HOUSE); // (+)einspeisung, (-)bezug
     }};
 
     @Scheduled(fixedDelay = (1000 * HomeAppConstants.SOLARMAN_INTERVAL_SECONDS) + 111, initialDelay = 12000)
@@ -51,7 +50,7 @@ public class SolarmanService {
         List<HomematicCommand> updateCommands = new ArrayList<>();
         long millis = Long.parseLong(currentData.get("collectionTime").asText()) * 1000L;
         LocalDateTime timestamp = Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDateTime();
-        updateCommands.add(homematicCommandBuilder.write(Device.ELECTRIC_POWER_ACTUAL_TIMESTAMP_HOUSE, Datapoint.SYSVAR_DUMMY, Long.toString(millis)));
+        updateCommands.add(homematicCommandBuilder.write(Device.ELECTRIC_POWER_ACTUAL_TIMESTAMP_HOUSE, Datapoint.SYSVAR_DUMMY, Long.toString(millis / 1000)));
         log.debug("SOLARMAN CURRENT DATA");
         log.debug("   time = " + timestamp);
 

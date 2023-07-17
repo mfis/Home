@@ -150,7 +150,8 @@
 					</tr>
 					<tr><td height="15px"></td></tr>
 					<tr>
-						<td colspan="2" class="text-secondary" style="font-size: 80%;" th:text="'Aktualisiert: ' + ${model.timestampState}"></td>
+						<td class="text-secondary" style="font-size: 80%; text-align: left;" th:text="${model.timestampStatePV}"></td>
+						<td class="text-secondary" style="font-size: 80%; text-align: right;" th:text="${model.timestampStateGrid}"></td>
 					</tr>
 				</table>
 			</div>

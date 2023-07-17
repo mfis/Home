@@ -9,9 +9,7 @@ import de.fimatas.home.controller.service.PushService;
 import de.fimatas.home.controller.service.UploadService;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
-import de.fimatas.home.library.homematic.model.Datapoint;
-import de.fimatas.home.library.homematic.model.Device;
-import de.fimatas.home.library.homematic.model.HomematicConstants;
+import de.fimatas.home.library.homematic.model.*;
 import de.fimatas.home.library.homematic.model.Type;
 import de.fimatas.home.library.model.Message;
 import de.fimatas.home.library.util.HomeAppConstants;
@@ -168,7 +166,7 @@ public class HouseService {
         newModel.setFrontDoorCamera(readFrontDoorCamera());
         newModel.setFrontDoorLock(readFrontDoorLock(oldModel));
 
-        newModel.setGridElectricalPower(readPowerConsumption(Device.ELECTRIC_POWER_GRID_ACTUAL_HOUSE));
+        newModel.setGridElectricalPower(readPowerConsumption(Device.STROMZAEHLER_BEZUG));
         newModel.setProducedElectricalPower(readPowerConsumption(Device.ELECTRIC_POWER_PRODUCTION_ACTUAL_HOUSE));
         newModel.setConsumedElectricalPower(readPowerConsumption(Device.ELECTRIC_POWER_CONSUMPTION_ACTUAL_HOUSE));
         newModel.setPvStatusTime(formatTimestamp(Device.ELECTRIC_POWER_ACTUAL_TIMESTAMP_HOUSE));
@@ -189,7 +187,7 @@ public class HouseService {
 
     private long formatTimestamp(Device device) {
         try{
-            return Long.parseLong(hmApi.getAsString(homematicCommandBuilder.read(device, Datapoint.SYSVAR_DUMMY)));
+            return Long.parseLong(hmApi.getAsString(homematicCommandBuilder.read(device, Datapoint.SYSVAR_DUMMY))) * 1000L;
         }catch (Exception e){
             log.warn("PV timestamp problem.", e);
             return 0;

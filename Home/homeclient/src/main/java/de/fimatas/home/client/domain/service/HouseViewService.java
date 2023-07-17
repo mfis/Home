@@ -720,8 +720,8 @@ public class HouseViewService {
         // sources / targets
         overallElectricPowerHouseView.setConsumption(formatPowerView(model, houseModel.getConsumedElectricalPower(), historyModel==null?null:historyModel.getSelfusedElectricPowerConsumptionDay(), offsetConsumption, false));
         overallElectricPowerHouseView.setPv(formatPowerView(model, houseModel.getProducedElectricalPower(), historyModel==null?null:historyModel.getProducedElectricPowerDay(), offsetConsumption, false));
-        overallElectricPowerHouseView.setGridPurchase(formatPowerView(model, houseModel.getGridElectricalPower(), historyModel==null?null:historyModel.getPurchasedElectricPowerConsumptionDay(), BigDecimal.ZERO, true));
-        overallElectricPowerHouseView.setGridFeed(formatPowerView(model, houseModel.getGridElectricalPower(), historyModel==null?null:historyModel.getFeedElectricPowerConsumptionDay(), BigDecimal.ZERO, false));
+        overallElectricPowerHouseView.setGridPurchase(formatPowerView(model, houseModel.getGridElectricalPower(), historyModel==null?null:historyModel.getPurchasedElectricPowerConsumptionDay(), BigDecimal.ZERO, false));
+        overallElectricPowerHouseView.setGridFeed(formatPowerView(model, houseModel.getGridElectricalPower(), historyModel==null?null:historyModel.getFeedElectricPowerConsumptionDay(), BigDecimal.ZERO, true));
 
         // consumption pv percentage
         if(overallElectricPowerHouseView.getGridPurchase().getTodayConsumption() != null
@@ -750,7 +750,7 @@ public class HouseViewService {
         overallElectricPowerHouseView.getGridPurchase().setColorClass(ConditionColor.ORANGE.getUiClass());
         if(houseModel.getGridElectricalPower().getActualConsumption().getValue() != null){
             int val = houseModel.getGridElectricalPower().getActualConsumption().getValue().intValue();
-            if(val > 0){
+            if(val < 0){
                 overallElectricPowerHouseView.getGridFeed().setColorClass(ConditionColor.GREEN.getUiClass());
                 overallElectricPowerHouseView.setGridActualDirection(overallElectricPowerHouseView.getGridFeed());
             }else{
@@ -786,7 +786,7 @@ public class HouseViewService {
             overallElectricPowerHouseView.getConsumption().setColorClass(ConditionColor.ORANGE.getUiClass());
         }else if (houseModel.getGridElectricalPower().getActualConsumption() != null
                 && houseModel.getGridElectricalPower().getActualConsumption().getValue() != null
-                && houseModel.getGridElectricalPower().getActualConsumption().getValue().compareTo(BigDecimal.ZERO) >= 0){
+                && houseModel.getGridElectricalPower().getActualConsumption().getValue().compareTo(BigDecimal.ZERO) < 0){
             overallElectricPowerHouseView.getConsumption().setColorClass(ConditionColor.GREEN.getUiClass());
         }else{
             overallElectricPowerHouseView.getConsumption().setColorClass(ConditionColor.LIGHT.getUiClass());
@@ -797,11 +797,16 @@ public class HouseViewService {
                 ConditionColor.GRAY.getUiClass() : overallElectricPowerHouseView.getConsumption().getColorClass());
 
         // status time
+        // TODO: Extract method
         if(houseModel.getPvStatusTime() > 0){
-            LocalDateTime timestamp = Instant.ofEpochMilli(houseModel.getPvStatusTime()).atZone(ZoneId.systemDefault()).toLocalDateTime();
-            long diff = ChronoUnit.MINUTES.between(timestamp, LocalDateTime.now());
-            overallElectricPowerHouseView.setTimestampState(diff==0?"jetzt" : "vor " + diff + " Minute" + (diff ==1?"":"n"));
-            // FIXME: getGridElectricStatusTime() für Smartmeter Timestamp
+            LocalDateTime timestampPV = Instant.ofEpochMilli(houseModel.getPvStatusTime()).atZone(ZoneId.systemDefault()).toLocalDateTime();
+            long diffPV = ChronoUnit.MINUTES.between(timestampPV, LocalDateTime.now());
+            overallElectricPowerHouseView.setTimestampStatePV(diffPV==0?"jetzt" : "vor " + diffPV + " Minute" + (diffPV ==1?"":"n"));
+        }
+        if(houseModel.getGridElectricStatusTime() > 0){
+            LocalDateTime timestampGrid = Instant.ofEpochMilli(houseModel.getGridElectricStatusTime()).atZone(ZoneId.systemDefault()).toLocalDateTime();
+            long diffGrid = ChronoUnit.MINUTES.between(timestampGrid, LocalDateTime.now());
+            overallElectricPowerHouseView.setTimestampStateGrid(diffGrid==0?"jetzt" : "vor " + diffGrid + " Minute" + (diffGrid ==1?"":"n"));
         }
 
         // indicators
@@ -861,8 +866,7 @@ public class HouseViewService {
         } else if (powerMeter.getDevice() == Device.GASZAEHLER){
             power.setIcon("fa-solid fa-fire-flame-simple");
         } else if (powerMeter.getDevice() == Device.STROMZAEHLER_BEZUG
-                || powerMeter.getDevice() == Device.STROMZAEHLER_EINSPEISUNG
-                || powerMeter.getDevice() == Device.ELECTRIC_POWER_GRID_ACTUAL_HOUSE){
+                || powerMeter.getDevice() == Device.STROMZAEHLER_EINSPEISUNG){
             power.setIcon("fas fa-bolt");
         } else if (powerMeter.getDevice() == Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HOUSE
                 || powerMeter.getDevice() == Device.ELECTRIC_POWER_CONSUMPTION_ACTUAL_HOUSE) {

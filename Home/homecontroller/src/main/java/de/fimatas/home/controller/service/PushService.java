@@ -103,6 +103,7 @@ public class PushService {
                     .setSigningKey(ApnsSigningKey.loadFromPkcs8File(new File(pkcs8File),
                             apnsTeamId, apnsKeyId))
                     .build();
+            // FIXME: REFRESH 60 MINUTES
         } catch (IOException | NoSuchAlgorithmException | InvalidKeyException e) {
             LOG.error("Unable to build apnsClientJwtBased.", e);
         }
