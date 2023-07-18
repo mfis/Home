@@ -102,8 +102,8 @@ public class AppViewService {
             } else if (view instanceof OverallElectricPowerHouseView) {
                 mapPowerView(placeDirectives, ((OverallElectricPowerHouseView) view).getGridPurchase(), placeModel, Optional.of("Bez"));
                 mapPowerView(placeDirectives, ((OverallElectricPowerHouseView) view).getGridFeed(), placeModel, Optional.of("Ein"));
-                mapPV(((OverallElectricPowerHouseView) view).getPv(), placeModel, "PV Prod");
-                mapPV(((OverallElectricPowerHouseView) view).getGridFeed(), placeModel, "PV Über");
+                mapPV(((OverallElectricPowerHouseView) view).getPv(), placeModel, "PV");
+                mapPV(((OverallElectricPowerHouseView) view).getGridFeed(), placeModel, "Stromnetz");
             } else if (view instanceof LockView) {
                 mapLockView(placeDirectives, (LockView) view, placeModel, viewTarget);
             } else if (view instanceof SwitchView) {

@@ -236,21 +236,22 @@ public class HouseViewService {
         pv.setId(lookupTodayPowerId(Device.STROMZAEHLER_BEZUG, true) + "2" /* FIXME */);
         pv.setState("?");
         if(producedElectricalPower != null && !producedElectricalPower.isUnreach() && gridElectricalPower != null && !gridElectricalPower.isUnreach()){
-            BigDecimal feed = gridElectricalPower.getActualConsumption().getValue();
-            if(feed.compareTo(BigDecimal.ZERO) < 0){
-                feed = BigDecimal.ZERO;
+            BigDecimal grid = gridElectricalPower.getActualConsumption().getValue();
+            if(grid.compareTo(BigDecimal.ZERO) > 0){
+                grid = BigDecimal.ZERO;
             }
+            grid = grid.abs();
             BigDecimal production = producedElectricalPower.getActualConsumption().getValue();
             if(production.compareTo(BigDecimal.ZERO) < 0){
                 production = BigDecimal.ZERO;
             }
 
             if(production.compareTo(BigDecimal.ZERO) == 0){
-                pv.setState(ViewFormatter.powerInWattToKiloWatt(feed) + " kW");
+                pv.setState(ViewFormatter.powerInWattToKiloWatt(grid) + " kW");
             }else{
-                pv.setState(ViewFormatter.powerInWattToKiloWatt(feed) + "/" + ViewFormatter.powerInWattToKiloWatt(production) + " kW");
+                pv.setState(ViewFormatter.powerInWattToKiloWatt(grid) + "/" + ViewFormatter.powerInWattToKiloWatt(production) + " kW");
             }
-            pv.setColorClass(feed.compareTo(BigDecimal.ZERO) > 0 ? ConditionColor.GREEN.getUiClass() : ConditionColor.ORANGE.getUiClass());
+            pv.setColorClass(grid.compareTo(BigDecimal.ZERO) < 0 ? ConditionColor.GREEN.getUiClass() : ConditionColor.ORANGE.getUiClass());
         }
         view.getCaptionAndValue().put("Überschuss", pv);
 
