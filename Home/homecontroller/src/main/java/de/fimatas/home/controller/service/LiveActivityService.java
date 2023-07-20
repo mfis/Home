@@ -19,11 +19,13 @@ public class LiveActivityService {
 
     private final static int INVALIDATION_MINUTES = 15;
 
-    private final List<String> activeLiveActivities = new LinkedList<>();
+    private final Map<String, Object> activeLiveActivities = new HashMap<>();
+
+    private boolean highPriorityToggle = false; // FIXME: token-level
 
     @Scheduled(cron = "0 * * * * *")
     public void run(){
-        activeLiveActivities.forEach(this::updateValue);
+        activeLiveActivities.keySet().forEach(this::updateValue);
     }
 
     @Scheduled(cron = "0 0 2 * * *")
@@ -37,7 +39,11 @@ public class LiveActivityService {
     }
 
     public void start(String token){
-        activeLiveActivities.add(token);
+        if(activeLiveActivities.containsKey(token)){
+            return;
+        }
+        activeLiveActivities.put(token, new Object());
+        highPriorityToggle = true;
         updateValue(token);
     }
 
@@ -46,7 +52,12 @@ public class LiveActivityService {
     }
 
     private void updateValue(String token) {
-        pushService.sendLiveActivityToApns(token, true, INVALIDATION_MINUTES, false, buildContentStateMap(lookupValue()));
+        sendToApns(token);
+    }
+
+    private void sendToApns(String token) {
+        pushService.sendLiveActivityToApns(token, highPriorityToggle, INVALIDATION_MINUTES, false, buildContentStateMap(lookupValue() + " " + highPriorityToggle));
+        highPriorityToggle = !highPriorityToggle;
     }
 
     private Map<String, Object> buildContentStateMap(String value){
@@ -63,13 +74,13 @@ public class LiveActivityService {
     }
 
     private String lookupValue(){
-        return DateTimeFormatter.ofPattern("HHmmss", Locale.GERMAN).format(LocalDateTime.now());
+        return DateTimeFormatter.ofPattern("HH:mm", Locale.GERMAN).format(LocalDateTime.now());
     }
 
 
     private void endAllActivities() {
         try {
-            activeLiveActivities.forEach(this::endActivitiy);
+            activeLiveActivities.keySet().forEach(this::endActivitiy);
         } catch (Exception e) {
             log.warn("Could not end LiveActivity via APNS");
         }
@@ -77,7 +88,7 @@ public class LiveActivityService {
 
     private void endActivitiy(String token) {
         try {
-            pushService.sendLiveActivityToApns(token, false, 1, true, buildContentStateMap("-"));
+            pushService.sendLiveActivityToApns(token, true, 1, true, buildContentStateMap("-"));
         } catch (Exception e) {
             log.warn("Could not end LiveActivity via APNS: " + e.getMessage());
         }

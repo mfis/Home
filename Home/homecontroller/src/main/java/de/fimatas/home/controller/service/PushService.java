@@ -308,7 +308,7 @@ public class PushService {
         });
     }
 
-    public void sendLiveActivityToApns(String pushToken, boolean force, int invalidationMinutes, boolean isEnd, Map<String, Object> contentState) {
+    public void sendLiveActivityToApns(String pushToken, boolean highPriority, int invalidationMinutes, boolean isEnd, Map<String, Object> contentState) {
 
         Instant instantNow = LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant();
 
@@ -320,7 +320,7 @@ public class PushService {
             payloadBuilder.setDismissalDate(instantNow); // set 'now' at end to close activity widget
         }
 
-        var prority = force ? DeliveryPriority.IMMEDIATE : DeliveryPriority.CONSERVE_POWER;
+        var prority = highPriority ? DeliveryPriority.IMMEDIATE : DeliveryPriority.CONSERVE_POWER;
         var invalidationTime = Instant.now().plus(Duration.ofMinutes(invalidationMinutes));
         var topic = iOsAppIdentifier + ".push-type.liveactivity"; // muss manuell angehängt werden
 
