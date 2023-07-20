@@ -65,7 +65,7 @@ public class LiveActivityService {
         Map<String, Object> contentState = new LinkedHashMap<>();
 
         contentState.put("valueLeading", value);
-        contentState.put("colorLeading", "green");
+        contentState.put("colorLeading", ".green");
 
         contentState.put("valueTrailing", "");
         contentState.put("colorTrailing", "");
