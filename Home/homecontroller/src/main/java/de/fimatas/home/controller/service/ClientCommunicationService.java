@@ -68,6 +68,9 @@ public class ClientCommunicationService {
     private PushService pushService;
 
     @Autowired
+    private LiveActivityService liveActivityService;
+
+    @Autowired
     @Qualifier("restTemplateLongPolling")
     private RestTemplate restTemplateLongPolling;
 
@@ -156,6 +159,12 @@ public class ClientCommunicationService {
             case CHARGELIMIT:
                 electricVehicleService.saveChargingUser(message.getUser());
                 electricVehicleService.updateChargeLimit(ElectricVehicle.valueOf(message.getDeviceId()), message.getValue());
+                break;
+            case LIVEACTIVITY_START:
+                liveActivityService.start(message.getToken());
+                break;
+            case LIVEACTIVITY_END:
+                liveActivityService.end(message.getToken());
                 break;
             default:
                 throw new IllegalStateException("Unknown MessageType:" + message.getMessageType().name());

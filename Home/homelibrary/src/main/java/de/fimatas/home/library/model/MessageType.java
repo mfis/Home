@@ -19,6 +19,8 @@ public enum MessageType {
     SETTINGS_EDIT(null), //
     WALLBOX_SELECTED_EV(Pages.PATH_HOME),
     PRESENCE_EDIT(null), //
+    LIVEACTIVITY_START(null), //
+    LIVEACTIVITY_END(null), //
     ;//
 
     private final String targetSite;

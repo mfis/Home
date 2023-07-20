@@ -166,6 +166,26 @@ public class AppRequestMapping {
         MessageQueue.getInstance().request(message, true);
     }
 
+    @PostMapping(value = "/liveActivityStart")
+    public void liveActivityStart(@RequestParam("token") String token) {
+
+        Message message = new Message();
+        message.setMessageType(MessageType.LIVEACTIVITY_START);
+        message.setToken(token);
+
+        MessageQueue.getInstance().request(message, true);
+    }
+
+    @PostMapping(value = "/liveActivityEnd")
+    public void liveActivityEnd(@RequestParam("token") String token) {
+
+        Message message = new Message();
+        message.setMessageType(MessageType.LIVEACTIVITY_END);
+        message.setToken(token);
+
+        MessageQueue.getInstance().request(message, true);
+    }
+
     private String lookupToken(String tokenRequestParameter){
         if(StringUtils.isBlank(tokenRequestParameter) && acceptNotAvailableToken){
             return PUSH_TOKEN_NOT_AVAILABLE_INDICATOR;

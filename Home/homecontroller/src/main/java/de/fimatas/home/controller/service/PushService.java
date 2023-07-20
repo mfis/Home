@@ -2,7 +2,6 @@ package de.fimatas.home.controller.service;
 
 import com.eatthepath.pushy.apns.*;
 import com.eatthepath.pushy.apns.auth.ApnsSigningKey;
-import com.eatthepath.pushy.apns.auth.AuthenticationToken;
 import com.eatthepath.pushy.apns.util.ApnsPayloadBuilder;
 import com.eatthepath.pushy.apns.util.LiveActivityEvent;
 import com.eatthepath.pushy.apns.util.SimpleApnsPayloadBuilder;
@@ -29,14 +28,8 @@ import java.io.File;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.util.LinkedHashMap;
+import java.time.*;
 import java.util.LinkedList;
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -275,6 +268,29 @@ public class PushService {
         }
     }
 
+    @Scheduled(cron = "0 1 9,11,13,15,17 * * *")
+    public void testMessageDeliveryViaJwtAuth() { // FIXME: DELETE AFTER TEST
+
+        PushToken pushToken = settingsService.tokenForUser("Matthias");
+        int h = LocalDateTime.now().getHour();
+        if(pushToken != null){
+
+            String title = "Zeitansage Test (" + h + ")";
+            String message = "Es ist " + LocalTime.now();
+
+            final ApnsPayloadBuilder payloadBuilder = new SimpleApnsPayloadBuilder();
+            payloadBuilder.setAlertTitle(title);
+            payloadBuilder.setAlertBody(message);
+            payloadBuilder.setSound("default");
+            payloadBuilder.setBadgeNumber(0);
+
+            PushNotificationFuture<SimpleApnsPushNotification, PushNotificationResponse<SimpleApnsPushNotification>> sendNotificationFuture =
+                    apnsClientJwtBased.sendNotification(new SimpleApnsPushNotification(pushToken.getToken(), iOsAppIdentifier, payloadBuilder.build()));
+
+            sendNotificationFuture.whenComplete((response, cause) -> handleApnsResponse(response, cause, pushToken, true));
+        }
+    }
+
     private void sendNotificationToApns(PushToken pushToken, LocalDateTime ts, String title, String message) {
 
         final ApnsPayloadBuilder payloadBuilder = new SimpleApnsPayloadBuilder();
@@ -292,21 +308,20 @@ public class PushService {
         });
     }
 
-    public void sendLiveActivityToApns(String pushToken /*, LocalDateTime ts, String title, String message*/) {
+    public void sendLiveActivityToApns(String pushToken, boolean force, int invalidationMinutes, boolean isEnd, Map<String, Object> contentState) {
 
-        Map<String, Object> contentState = new LinkedHashMap<>();
-        contentState.put("valueLeading", DateTimeFormatter.ofPattern("HHmmss", Locale.GERMAN).format(LocalDateTime.now()));
-        contentState.put("valueTrailing", "");
-        contentState.put("colorLeading", "green");
-        contentState.put("colorTrailing", "");
+        Instant instantNow = LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant();
 
         final ApnsPayloadBuilder payloadBuilder = new SimpleApnsPayloadBuilder();
-        payloadBuilder.setEvent(LiveActivityEvent.UPDATE);
-        payloadBuilder.setTimestamp(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant());
+        payloadBuilder.setEvent(isEnd ? LiveActivityEvent.END : LiveActivityEvent.UPDATE);
+        payloadBuilder.setTimestamp(instantNow);
         payloadBuilder.setContentState(contentState);
+        if(isEnd){
+            payloadBuilder.setDismissalDate(instantNow); // set 'now' at end to close activity widget
+        }
 
-        var prority = DeliveryPriority.IMMEDIATE; // FIXME;
-        var invalidationTime = Instant.now().plus(Duration.ofHours(4));
+        var prority = force ? DeliveryPriority.IMMEDIATE : DeliveryPriority.CONSERVE_POWER;
+        var invalidationTime = Instant.now().plus(Duration.ofMinutes(invalidationMinutes));
         var topic = iOsAppIdentifier + ".push-type.liveactivity"; // muss manuell angehängt werden
 
         var notification = new SimpleApnsPushNotification(pushToken, topic, payloadBuilder.build(), invalidationTime, prority, PushType.LIVE_ACTIVITY);
@@ -322,12 +337,16 @@ public class PushService {
             if (!response.isAccepted()) {
                 LOG.warn("Push Notification rejected by the apns gateway: " + response.getStatusCode() + "//" + response.getRejectionReason());
                 doResetSettings = true;
+            }else{
+                if(isLiveActivity){ // FIXME: only DEBUG logging
+                    LOG.info("Push Notification delivered: " + response.getStatusCode());
+                }
             }
         } else {
             LOG.error("Failed to send push notification to apns.", cause);
         }
 
-        if(doResetSettings && !isLiveActivity){ // FIXME
+        if(doResetSettings && !isLiveActivity){
             settingsService.resetSettingsForToken(pushToken.getToken());
             saveNewMessageToDatabase(uniqueTimestampService.get(), pushToken, "Push-Zustellung Fehler", "Bitte erneut registrieren.");
         }
