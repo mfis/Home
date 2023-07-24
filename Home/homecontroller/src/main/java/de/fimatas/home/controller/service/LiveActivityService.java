@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PreDestroy;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -17,11 +18,9 @@ public class LiveActivityService {
     @Autowired
     private PushService pushService;
 
-    private final static int INVALIDATION_MINUTES = 15;
+    private final static int INVALIDATION_MINUTES = 1; // FIXME
 
     private final Map<String, Object> activeLiveActivities = new HashMap<>();
-
-    private boolean highPriorityToggle = false; // FIXME: token-level
 
     @Scheduled(cron = "0 * * * * *")
     public void run(){
@@ -35,7 +34,7 @@ public class LiveActivityService {
 
     @PreDestroy
     public void preDestroy(){
-        endAllActivities();
+       endAllActivities();
     }
 
     public void start(String token){
@@ -43,7 +42,6 @@ public class LiveActivityService {
             return;
         }
         activeLiveActivities.put(token, new Object());
-        highPriorityToggle = true;
         updateValue(token);
     }
 
@@ -56,8 +54,8 @@ public class LiveActivityService {
     }
 
     private void sendToApns(String token) {
-        pushService.sendLiveActivityToApns(token, highPriorityToggle, INVALIDATION_MINUTES, false, buildContentStateMap(lookupValue() + " " + highPriorityToggle));
-        highPriorityToggle = !highPriorityToggle;
+        boolean highPriority = LocalTime.now().getMinute() % 2 == 0;
+        pushService.sendLiveActivityToApns(token, highPriority, INVALIDATION_MINUTES, false, buildContentStateMap(lookupValue() + " " + highPriority));
     }
 
     private Map<String, Object> buildContentStateMap(String value){
