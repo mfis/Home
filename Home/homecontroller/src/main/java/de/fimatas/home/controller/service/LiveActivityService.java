@@ -23,7 +23,7 @@ public class LiveActivityService {
 
     @Scheduled(cron = "0 * * * * *")
     public void run(){
-        activeLiveActivities.keySet().forEach(this::updateValue);
+        activeLiveActivities.keySet().forEach(this::sendToApns);
     }
 
     @Scheduled(cron = "0 0 2 * * *")
@@ -50,20 +50,20 @@ public class LiveActivityService {
         model.setUsername(user);
         model.setDevice(device);
         activeLiveActivities.put(token, model);
-        updateValue(token);
+        sendToApns(token);
     }
 
     public void end(String token){
         endActivitiy(token);
     }
 
-    private void updateValue(String token) {
-        sendToApns(token);
-    }
-
-    private void sendToApns(String token) {
-        boolean highPriority = LocalTime.now().getMinute() % 2 == 0;
-        pushService.sendLiveActivityToApns(token, highPriority, false, buildContentStateMap(lookupValue() + " " + highPriority));
+    private synchronized void sendToApns(String token) {
+        LiveActivityModel model = activeLiveActivities.get(token);
+        boolean highPriority = model.getHighPriorityCount() == 0 || LocalTime.now().getMinute() % 5 == 0;
+        pushService.sendLiveActivityToApns(token, highPriority, false, buildContentStateMap(lookupValue() + " " + (highPriority?"\u2191":"\u2193")));
+        if(highPriority){
+            model.setHighPriorityCount(model.getHighPriorityCount() + 1);
+        }
     }
 
     private Map<String, Object> buildContentStateMap(String value){

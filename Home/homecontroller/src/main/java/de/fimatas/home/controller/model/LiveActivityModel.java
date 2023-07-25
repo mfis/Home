@@ -11,4 +11,6 @@ public class LiveActivityModel {
     private String token;
 
     private String device;
+
+    private int highPriorityCount = 0;
 }
