@@ -40,8 +40,6 @@ public class PushService {
     @Autowired
     private SettingsService settingsService;
 
-    private ApnsClient apnsClient;
-
     private ApnsClient apnsClientJwtBased;
 
     @Value("${apns.ios.app.identifier}")
@@ -81,22 +79,12 @@ public class PushService {
     @PostConstruct
     public void init() {
         try {
-            apnsClient = new ApnsClientBuilder()
-                .setApnsServer(
-                    apnsUseProductionServer ? ApnsClientBuilder.PRODUCTION_APNS_HOST : ApnsClientBuilder.DEVELOPMENT_APNS_HOST)
-                .setClientCredentials(new File(apnsCertPath), apnsCertPass)
-                .build();
-        } catch (IOException e) {
-            LOG.error("Unable to build apnsClient.", e);
-        }
-        try {
             apnsClientJwtBased = new ApnsClientBuilder()
                     .setApnsServer(
                             apnsUseProductionServer ? ApnsClientBuilder.PRODUCTION_APNS_HOST : ApnsClientBuilder.DEVELOPMENT_APNS_HOST)
                     .setSigningKey(ApnsSigningKey.loadFromPkcs8File(new File(pkcs8File),
                             apnsTeamId, apnsKeyId))
                     .build();
-            // FIXME: REFRESH 60 MINUTES
         } catch (IOException | NoSuchAlgorithmException | InvalidKeyException e) {
             LOG.error("Unable to build apnsClientJwtBased.", e);
         }
@@ -104,15 +92,6 @@ public class PushService {
 
     @PreDestroy
     public void shutdown() {
-        if (apnsClient != null) {
-            CompletableFuture<Void> closeFuture = apnsClient.close();
-            try {
-                closeFuture.get();
-            } catch (InterruptedException | ExecutionException e) {
-                LOG.error("Unable to shutdown apnsClient.", e);
-                Thread.currentThread().interrupt();
-            }
-        }
         if (apnsClientJwtBased != null) {
             CompletableFuture<Void> closeFuture = apnsClientJwtBased.close();
             try {
@@ -268,39 +247,16 @@ public class PushService {
         }
     }
 
-    @Scheduled(cron = "0 1 9,11,13,15,17 * * *")
-    public void testMessageDeliveryViaJwtAuth() { // FIXME: DELETE AFTER TEST
-
-        PushToken pushToken = settingsService.tokenForUser("Matthias");
-        int h = LocalDateTime.now().getHour();
-        if(pushToken != null){
-
-            String title = "Zeitansage Test (" + h + ")";
-            String message = "Es ist " + LocalTime.now();
-
-            final ApnsPayloadBuilder payloadBuilder = new SimpleApnsPayloadBuilder();
-            payloadBuilder.setAlertTitle(title);
-            payloadBuilder.setAlertBody(message);
-            payloadBuilder.setSound("default");
-            payloadBuilder.setBadgeNumber(0);
-
-            PushNotificationFuture<SimpleApnsPushNotification, PushNotificationResponse<SimpleApnsPushNotification>> sendNotificationFuture =
-                    apnsClientJwtBased.sendNotification(new SimpleApnsPushNotification(pushToken.getToken(), iOsAppIdentifier, payloadBuilder.build()));
-
-            sendNotificationFuture.whenComplete((response, cause) -> handleApnsResponse(response, cause, pushToken, true));
-        }
-    }
-
     private void sendNotificationToApns(PushToken pushToken, LocalDateTime ts, String title, String message) {
 
         final ApnsPayloadBuilder payloadBuilder = new SimpleApnsPayloadBuilder();
         payloadBuilder.setAlertTitle(title);
         payloadBuilder.setAlertBody(message);
         payloadBuilder.setSound("default");
-        payloadBuilder.setBadgeNumber(1);
+        payloadBuilder.setBadgeNumber(0);
 
         PushNotificationFuture<SimpleApnsPushNotification, PushNotificationResponse<SimpleApnsPushNotification>> sendNotificationFuture =
-            apnsClient.sendNotification(new SimpleApnsPushNotification(pushToken.getToken(), iOsAppIdentifier, payloadBuilder.build()));
+                apnsClientJwtBased.sendNotification(new SimpleApnsPushNotification(pushToken.getToken(), iOsAppIdentifier, payloadBuilder.build()));
 
         sendNotificationFuture.whenComplete((response, cause) -> {
             saveNewMessageToDatabase(ts, pushToken, title, message);
