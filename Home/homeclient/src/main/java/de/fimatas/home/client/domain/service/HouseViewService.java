@@ -251,7 +251,7 @@ public class HouseViewService {
             }else{
                 pv.setState(ViewFormatter.powerInWattToKiloWatt(grid) + "/" + ViewFormatter.powerInWattToKiloWatt(production) + " kW");
             }
-            pv.setColorClass(grid.compareTo(BigDecimal.ZERO) < 0 ? ConditionColor.GREEN.getUiClass() : ConditionColor.ORANGE.getUiClass());
+            pv.setColorClass(grid.compareTo(BigDecimal.ZERO) == 0 ? ConditionColor.ORANGE.getUiClass() : ConditionColor.GREEN.getUiClass());
         }
         view.getCaptionAndValue().put("Überschuss", pv);
 

@@ -167,11 +167,15 @@ public class AppRequestMapping {
     }
 
     @PostMapping(value = "/liveActivityStart")
-    public void liveActivityStart(@RequestParam("token") String token) {
+    public void liveActivityStart(@RequestParam("token") String token,
+                                  @RequestHeader(name = LoginInterceptor.APP_USER_NAME) String appUserName,
+                                  @RequestHeader(name = LoginInterceptor.APP_DEVICE) String appDevice) {
 
         Message message = new Message();
         message.setMessageType(MessageType.LIVEACTIVITY_START);
         message.setToken(token);
+        message.setUser(appUserName);
+        message.setDeviceId(appDevice);
 
         MessageQueue.getInstance().request(message, true);
     }

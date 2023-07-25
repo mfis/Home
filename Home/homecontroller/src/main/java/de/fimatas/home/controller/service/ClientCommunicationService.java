@@ -161,7 +161,7 @@ public class ClientCommunicationService {
                 electricVehicleService.updateChargeLimit(ElectricVehicle.valueOf(message.getDeviceId()), message.getValue());
                 break;
             case LIVEACTIVITY_START:
-                liveActivityService.start(message.getToken());
+                liveActivityService.start(message.getToken(), message.getUser(), message.getDeviceId());
                 break;
             case LIVEACTIVITY_END:
                 liveActivityService.end(message.getToken());

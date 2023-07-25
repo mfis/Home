@@ -308,7 +308,7 @@ public class PushService {
         });
     }
 
-    public void sendLiveActivityToApns(String pushToken, boolean highPriority, int invalidationMinutes, boolean isEnd, Map<String, Object> contentState) {
+    public void sendLiveActivityToApns(String pushToken, boolean highPriority, boolean isEnd, Map<String, Object> contentState) {
 
         Instant instantNow = LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant();
 
@@ -321,7 +321,7 @@ public class PushService {
         }
 
         var prority = highPriority ? DeliveryPriority.IMMEDIATE : DeliveryPriority.CONSERVE_POWER;
-        var invalidationTime = Instant.now().plus(Duration.ofMinutes(invalidationMinutes));
+        var invalidationTime = Instant.now().plus(Duration.ofMinutes(15)); // not mapped
         var topic = iOsAppIdentifier + ".push-type.liveactivity"; // muss manuell angehängt werden
 
         var notification = new SimpleApnsPushNotification(pushToken, topic, payloadBuilder.build(), invalidationTime, prority, PushType.LIVE_ACTIVITY);

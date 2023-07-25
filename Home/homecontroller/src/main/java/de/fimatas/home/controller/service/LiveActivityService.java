@@ -1,5 +1,6 @@
 package de.fimatas.home.controller.service;
 
+import de.fimatas.home.controller.model.LiveActivityModel;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -18,9 +19,7 @@ public class LiveActivityService {
     @Autowired
     private PushService pushService;
 
-    private final static int INVALIDATION_MINUTES = 1; // FIXME
-
-    private final Map<String, Object> activeLiveActivities = new HashMap<>();
+    private final Map<String, LiveActivityModel> activeLiveActivities = new HashMap<>();
 
     @Scheduled(cron = "0 * * * * *")
     public void run(){
@@ -37,11 +36,20 @@ public class LiveActivityService {
        endAllActivities();
     }
 
-    public void start(String token){
+    public void start(String token, String user, String device){
+
         if(activeLiveActivities.containsKey(token)){
             return;
         }
-        activeLiveActivities.put(token, new Object());
+
+        activeLiveActivities.values().stream().filter(la -> la.getUsername().equals(user) && la.getDevice().equals(device))
+                .findFirst().ifPresent(la -> end(la.getToken()));
+
+        var model = new LiveActivityModel();
+        model.setToken(token);
+        model.setUsername(user);
+        model.setDevice(device);
+        activeLiveActivities.put(token, model);
         updateValue(token);
     }
 
@@ -55,7 +63,7 @@ public class LiveActivityService {
 
     private void sendToApns(String token) {
         boolean highPriority = LocalTime.now().getMinute() % 2 == 0;
-        pushService.sendLiveActivityToApns(token, highPriority, INVALIDATION_MINUTES, false, buildContentStateMap(lookupValue() + " " + highPriority));
+        pushService.sendLiveActivityToApns(token, highPriority, false, buildContentStateMap(lookupValue() + " " + highPriority));
     }
 
     private Map<String, Object> buildContentStateMap(String value){
@@ -86,7 +94,7 @@ public class LiveActivityService {
 
     private void endActivitiy(String token) {
         try {
-            pushService.sendLiveActivityToApns(token, true, 1, true, buildContentStateMap("-"));
+            pushService.sendLiveActivityToApns(token, true, true, buildContentStateMap("-"));
         } catch (Exception e) {
             log.warn("Could not end LiveActivity via APNS: " + e.getMessage());
         }
