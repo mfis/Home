@@ -98,10 +98,10 @@ public class AppViewService {
             } else if (view instanceof WidgetGroupView) {
                 mapGroupView(placeDirectives, (WidgetGroupView) view, placeModel, viewTarget);
             } else if (view instanceof PowerView) {
-                mapPowerView(placeDirectives, (PowerView) view, placeModel, Optional.empty());
+                mapPowerView(placeDirectives, (PowerView) view, placeModel, Optional.empty(), null);
             } else if (view instanceof OverallElectricPowerHouseView) {
-                mapPowerView(placeDirectives, ((OverallElectricPowerHouseView) view).getGridPurchase(), placeModel, Optional.of("Bez"));
-                mapPowerView(placeDirectives, ((OverallElectricPowerHouseView) view).getGridFeed(), placeModel, Optional.of("Ein"));
+                mapPowerView(placeDirectives, ((OverallElectricPowerHouseView) view).getGridPurchase(), placeModel, Optional.of("Bez"), ConditionColor.ORANGE.getUiClass());
+                mapPowerView(placeDirectives, ((OverallElectricPowerHouseView) view).getGridFeed(), placeModel, Optional.of("Ein"), ConditionColor.GREEN.getUiClass());
                 mapPV(((OverallElectricPowerHouseView) view).getPv(), placeModel, "PV");
                 mapPV(((OverallElectricPowerHouseView) view).getGridFeed(), placeModel, "Stromnetz");
             } else if (view instanceof LockView) {
@@ -148,12 +148,12 @@ public class AppViewService {
         }
     }
 
-    private void mapPowerView(PlaceDirectives placeDirectives, PowerView view, HomeViewPlaceModel placeModel, Optional<String> direction) {
+    private void mapPowerView(PlaceDirectives placeDirectives, PowerView view, HomeViewPlaceModel placeModel, Optional<String> direction, String overrideColorClass) {
 
         if (placeDirectives.place == Place.HOUSE) {
             placeModel.setName("Netze / PV");
         }
-        placeModel.getValues().add(mapTodayPower(placeDirectives, view, direction));
+        placeModel.getValues().add(mapTodayPower(placeDirectives, view, direction, overrideColorClass));
     }
 
     private void mapPV(PowerView view, HomeViewPlaceModel placeModel, String caption) {
@@ -378,7 +378,7 @@ public class AppViewService {
         return hvm;
     }
 
-    private HomeViewValueModel mapTodayPower(PlaceDirectives placeDirectives, PowerView view, Optional<String> direction) {
+    private HomeViewValueModel mapTodayPower(PlaceDirectives placeDirectives, PowerView view, Optional<String> direction, String overrideColorClass) {
         HomeViewValueModel hvm = new HomeViewValueModel();
         hvm.setId(view.getId());
         hvm.setKey(view.getDevice().getType() == Type.GAS_POWER ? "Gas" : "Strom");
@@ -399,7 +399,7 @@ public class AppViewService {
         }else {
             hvm.setValue(view.getTodayConsumption().getLabel().replace(ViewFormatter.SUM_SIGN, "").trim());
         }
-        hvm.setAccent(mapAccent(view.getColorClass()));
+        hvm.setAccent(mapAccent(overrideColorClass != null ? overrideColorClass : view.getColorClass()));
         return hvm;
     }
 

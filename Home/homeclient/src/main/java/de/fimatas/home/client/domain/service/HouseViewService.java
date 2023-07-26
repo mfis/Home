@@ -249,7 +249,12 @@ public class HouseViewService {
             if(production.compareTo(BigDecimal.ZERO) == 0){
                 pv.setState(ViewFormatter.powerInWattToKiloWatt(grid) + " kW");
             }else{
-                pv.setState(ViewFormatter.powerInWattToKiloWatt(grid) + "/" + ViewFormatter.powerInWattToKiloWatt(production) + " kW");
+                if(production.compareTo(grid) < 0){
+                    // older production value
+                    pv.setState(ViewFormatter.powerInWattToKiloWatt(grid) + "/>" + ViewFormatter.powerInWattToKiloWatt(grid) + " kW");
+                }else{
+                    pv.setState(ViewFormatter.powerInWattToKiloWatt(grid) + "/" + ViewFormatter.powerInWattToKiloWatt(production) + " kW");
+                }
             }
             pv.setColorClass(grid.compareTo(BigDecimal.ZERO) == 0 ? ConditionColor.ORANGE.getUiClass() : ConditionColor.GREEN.getUiClass());
         }
