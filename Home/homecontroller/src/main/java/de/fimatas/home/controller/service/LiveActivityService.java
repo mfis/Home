@@ -2,6 +2,7 @@ package de.fimatas.home.controller.service;
 
 import de.fimatas.home.controller.model.LiveActivityModel;
 import lombok.extern.apachecommons.CommonsLog;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -19,14 +20,12 @@ public class LiveActivityService {
     @Autowired
     private PushService pushService;
 
-    private final Map<String, LiveActivityModel> activeLiveActivities = new HashMap<>();
-
     @Scheduled(cron = "0 * * * * *")
     public void run(){
-        activeLiveActivities.keySet().forEach(this::sendToApns);
+        pushService.getActiveLiveActivities().keySet().forEach(this::sendToApns);
     }
 
-    @Scheduled(cron = "0 0 2 * * *")
+    @Scheduled(cron = "20 0 0 * * *")
     public void endAll(){
         endAllActivities();
     }
@@ -38,18 +37,18 @@ public class LiveActivityService {
 
     public void start(String token, String user, String device){
 
-        if(activeLiveActivities.containsKey(token)){
+        if(pushService.getActiveLiveActivities().containsKey(token)){
             return;
         }
 
-        activeLiveActivities.values().stream().filter(la -> la.getUsername().equals(user) && la.getDevice().equals(device))
+        pushService.getActiveLiveActivities().values().stream().filter(la -> la.getUsername().equals(user) && la.getDevice().equals(device))
                 .findFirst().ifPresent(la -> end(la.getToken()));
 
         var model = new LiveActivityModel();
         model.setToken(token);
         model.setUsername(user);
         model.setDevice(device);
-        activeLiveActivities.put(token, model);
+        pushService.getActiveLiveActivities().put(token, model);
         sendToApns(token);
     }
 
@@ -58,7 +57,8 @@ public class LiveActivityService {
     }
 
     private synchronized void sendToApns(String token) {
-        LiveActivityModel model = activeLiveActivities.get(token);
+        log.info("send live activity update: " + StringUtils.left(token, 10) + "...");
+        LiveActivityModel model = pushService.getActiveLiveActivities().get(token);
         boolean highPriority = model.getHighPriorityCount() == 0 || LocalTime.now().getMinute() % 5 == 0;
         pushService.sendLiveActivityToApns(token, highPriority, false, buildContentStateMap(lookupValue() + " " + (highPriority?"\u2191":"\u2193")));
         if(highPriority){
@@ -86,7 +86,7 @@ public class LiveActivityService {
 
     private void endAllActivities() {
         try {
-            activeLiveActivities.keySet().forEach(this::endActivitiy);
+            pushService.getActiveLiveActivities().keySet().forEach(this::endActivitiy);
         } catch (Exception e) {
             log.warn("Could not end LiveActivity via APNS");
         }
@@ -98,6 +98,6 @@ public class LiveActivityService {
         } catch (Exception e) {
             log.warn("Could not end LiveActivity via APNS: " + e.getMessage());
         }
-        activeLiveActivities.remove(token);
+        pushService.getActiveLiveActivities().remove(token);
     }
 }

@@ -9,6 +9,7 @@ import com.eatthepath.pushy.apns.util.SimpleApnsPushNotification;
 import com.eatthepath.pushy.apns.util.concurrent.PushNotificationFuture;
 import de.fimatas.home.controller.dao.PushMessageDAO;
 import de.fimatas.home.controller.domain.service.HouseService;
+import de.fimatas.home.controller.model.LiveActivityModel;
 import de.fimatas.home.controller.model.PushToken;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
@@ -29,6 +30,7 @@ import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.*;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -44,12 +46,6 @@ public class PushService {
 
     @Value("${apns.ios.app.identifier}")
     private String iOsAppIdentifier;
-
-    @Value("${apns.cert.path}")
-    private String apnsCertPath;
-
-    @Value("${apns.cert.pass}")
-    private String apnsCertPass;
 
     @Value("${apns.ios.app.teamId}")
     private String apnsTeamId;
@@ -73,6 +69,8 @@ public class PushService {
     private UniqueTimestampService uniqueTimestampService;
 
     private static LocalDateTime timestampLastDoorbellPushMessage = LocalDateTime.now();
+
+    private final Map<String, LiveActivityModel> activeLiveActivities = new HashMap<>();
 
     private static final Log LOG = LogFactory.getLog(PushService.class);
 
@@ -293,18 +291,18 @@ public class PushService {
             if (!response.isAccepted()) {
                 LOG.warn("Push Notification rejected by the apns gateway: " + response.getStatusCode() + "//" + response.getRejectionReason());
                 doResetSettings = true;
-            }else{
-                if(isLiveActivity){ // FIXME: only DEBUG logging
-                    LOG.info("Push Notification delivered: " + response.getStatusCode());
-                }
             }
         } else {
             LOG.error("Failed to send push notification to apns.", cause);
         }
 
-        if(doResetSettings && !isLiveActivity){
-            settingsService.resetSettingsForToken(pushToken.getToken());
-            saveNewMessageToDatabase(uniqueTimestampService.get(), pushToken, "Push-Zustellung Fehler", "Bitte erneut registrieren.");
+        if(doResetSettings){
+            if(isLiveActivity){
+                activeLiveActivities.remove(pushToken.getToken());
+            }else{
+                settingsService.resetSettingsForToken(pushToken.getToken());
+                saveNewMessageToDatabase(uniqueTimestampService.get(), pushToken, "Push-Zustellung Fehler", "Bitte erneut registrieren.");
+            }
         }
     }
 
@@ -322,6 +320,10 @@ public class PushService {
         pmm.getList().add(message);
         ModelObjectDAO.getInstance().write(pmm);
         uploadService.uploadToClient(pmm);
+    }
+
+    public Map<String, LiveActivityModel> getActiveLiveActivities(){
+        return activeLiveActivities;
     }
 
 }
