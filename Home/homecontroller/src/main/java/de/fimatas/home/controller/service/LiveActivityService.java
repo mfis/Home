@@ -42,7 +42,7 @@ public class LiveActivityService {
         }
 
         pushService.getActiveLiveActivities().values().stream().filter(la -> la.getUsername().equals(user) && la.getDevice().equals(device))
-                .findFirst().ifPresent(la -> end(la.getToken()));
+                .forEach(la -> end(la.getToken()));
 
         var model = new LiveActivityModel();
         model.setToken(token);
@@ -60,6 +60,7 @@ public class LiveActivityService {
         log.info("send live activity update: " + StringUtils.left(token, 10) + "...");
         LiveActivityModel model = pushService.getActiveLiveActivities().get(token);
         boolean highPriority = model.getHighPriorityCount() == 0 || LocalTime.now().getMinute() % 5 == 0;
+        //noinspection UnnecessaryUnicodeEscape
         pushService.sendLiveActivityToApns(token, highPriority, false, buildContentStateMap(lookupValue() + " " + (highPriority?"\u2191":"\u2193")));
         if(highPriority){
             model.setHighPriorityCount(model.getHighPriorityCount() + 1);

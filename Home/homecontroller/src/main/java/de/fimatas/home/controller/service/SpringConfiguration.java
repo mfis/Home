@@ -120,6 +120,11 @@ public class SpringConfiguration implements WebMvcConfigurer {
         return restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(10)).setReadTimeout(Duration.ofSeconds(120)).build();
     }
 
+    @Bean(name = "restTemplateModelUpload")
+    public RestTemplate restTemplateModelUpload(RestTemplateBuilder restTemplateBuilder) {
+        return restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(5)).setReadTimeout(Duration.ofSeconds(8)).build();
+    }
+
     @Bean
     @Primary
     public DataSourceProperties dataSourceProperties() {

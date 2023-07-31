@@ -7,7 +7,9 @@ import java.util.concurrent.TimeUnit;
 
 import de.fimatas.home.library.model.Message;
 import de.fimatas.home.library.util.HomeAppConstants;
+import lombok.extern.apachecommons.CommonsLog;
 
+@CommonsLog
 public class MessageQueue {
 
     private static MessageQueue instance;
@@ -51,6 +53,7 @@ public class MessageQueue {
                 TimeUnit.MILLISECONDS.sleep(50);
             } catch (InterruptedException e) { // NOSONAR
                 start = 0L;
+                log.warn("Exception while sleep: ", e);
             }
             now = System.currentTimeMillis();
         } while (!responses.containsKey(message.getUid())

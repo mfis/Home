@@ -1,10 +1,12 @@
 package de.fimatas.home.controller.service;
 
 import de.fimatas.home.library.util.HomeAppConstants;
+import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.*;
@@ -18,18 +20,18 @@ import java.util.List;
 import java.util.Map;
 
 @Component
+@CommonsLog
 public class UploadService {
 
     @Autowired
-    private RestTemplate restTemplate;
+    @Qualifier("restTemplateModelUpload")
+    private RestTemplate restTemplateModelUpload;
 
     @Autowired
     private Environment env;
 
     @Value("${application.homeAdapterEnabled:false}")
     private boolean homeAdapterEnabled;
-
-    private final static Log log = LogFactory.getLog(UploadService.class);
 
     private final Map<String, Long> resourceNotAvailableCounter = new HashMap<>();
 
@@ -52,6 +54,8 @@ public class UploadService {
 
     private <T> void uploadBinaryToClient(String url, Object instance, boolean credentials) {
 
+        String modelName =  instance.getClass().getSimpleName();
+
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(List.of(MediaType.ALL));
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -66,35 +70,42 @@ public class UploadService {
         }
 
         try {
+            long l1 = System.nanoTime();
             @SuppressWarnings("unchecked")
             HttpEntity<T> request = new HttpEntity<>((T) instance, headers);
-            ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+            ResponseEntity<String> response = restTemplateModelUpload.postForEntity(url, request, String.class);
             HttpStatus statusCode = response.getStatusCode();
 
-            connectionEstablishedLogging(url);
+            connectionEstablishedLogging(modelName);
             if (!statusCode.is2xxSuccessful()) {
                 LogFactory.getLog(UploadService.class).error("Could not successful upload data. RC=" + statusCode.value());
             }
 
+            long l2 = System.nanoTime();
+            long ldiff = (l2 - l1) / 1000000; // ms
+            if(ldiff > 3000){
+                log.warn("uploadBinaryToClient " + modelName + ": " + ldiff + " ms!");
+            }
+
         } catch (ResourceAccessException | HttpServerErrorException | HttpClientErrorException e) {
-            connectionNotEstablishedLogging(url, e);
+            connectionNotEstablishedLogging(modelName, e);
         }
     }
 
-    private void connectionNotEstablishedLogging(String url, RestClientException e) {
-        resourceNotAvailableCounter.putIfAbsent(url, 0L);
-        resourceNotAvailableCounter.put(url, resourceNotAvailableCounter.get(url) + 1);
-        String suppressLogEntries = resourceNotAvailableCounter.get(url) == 5 ? " NO FURTHER LOG ENTRIES WILL BE WRITTEN." : "";
-        if (resourceNotAvailableCounter.get(url) < 4) {
-            log.warn("Could not upload state (#" + resourceNotAvailableCounter.get(url) + "). "
+    private void connectionNotEstablishedLogging(String name, RestClientException e) {
+        resourceNotAvailableCounter.putIfAbsent(name, 0L);
+        resourceNotAvailableCounter.put(name, resourceNotAvailableCounter.get(name) + 1);
+        String suppressLogEntries = resourceNotAvailableCounter.get(name) == 5 ? " NO FURTHER LOG ENTRIES WILL BE WRITTEN." : "";
+        if (resourceNotAvailableCounter.get(name) < 4) {
+            log.warn("Could not upload state (#" + resourceNotAvailableCounter.get(name) + "). " + name + " - "
                 + (e.getMessage() != null ? e.getMessage().replace('\r', ' ').replace('\n', ' ') : "") + suppressLogEntries); // NOSONAR
         }
     }
 
-    private void connectionEstablishedLogging(String url) {
-        if (resourceNotAvailableCounter.containsKey(url) && resourceNotAvailableCounter.get(url) > 0) {
-            log.warn("upload state successful after " + resourceNotAvailableCounter.get(url) + " times.");
-            resourceNotAvailableCounter.put(url, 0L);
+    private void connectionEstablishedLogging(String name) {
+        if (resourceNotAvailableCounter.containsKey(name) && resourceNotAvailableCounter.get(name) > 0) {
+            log.warn("upload state successful after " + resourceNotAvailableCounter.get(name) + " times. " + name);
+            resourceNotAvailableCounter.put(name, 0L);
         }
     }
 

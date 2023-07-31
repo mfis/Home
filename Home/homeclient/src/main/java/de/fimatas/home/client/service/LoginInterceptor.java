@@ -156,6 +156,7 @@ public class LoginInterceptor implements HandlerInterceptor {
         Map<String, String> params = mapRequestParameters(request);
 
         if (noLoginDataProvided(request)) {
+            log.warn("sendRedirect - noLoginDataProvided");
             response.sendRedirect(LoginController.LOGIN_URI);
             return false;
         }
@@ -169,6 +170,7 @@ public class LoginInterceptor implements HandlerInterceptor {
         if (params.containsKey(LOGIN_USERNAME)) {
             if (userHasNotAcceptedCookies(params)) {
                 response.sendRedirect(LoginController.LOGIN_COOKIECHECK_URI);
+                log.warn("sendRedirect - userHasNotAcceptedCookies");
                 return false;
             } else {
                 return checkUser(credentialsBrowserLogin(params, request, response));
@@ -250,6 +252,7 @@ public class LoginInterceptor implements HandlerInterceptor {
             return loginUser;
         } else {
             response.sendRedirect(LoginController.LOGIN_FAILED_URI);
+            log.warn("sendRedirect - !tokenResult.isCheckOk()");
             return null;
         }
     }
@@ -278,8 +281,10 @@ public class LoginInterceptor implements HandlerInterceptor {
         } else {
             if(tokenResult.isTimeout()){
                 response.sendRedirect(LoginController.LOGIN_INTERRUPTED_URI);
+                log.warn("sendRedirect - tokenResult.isTimeout()");
             }else{
                 response.sendRedirect(LoginController.LOGIN_FAILED_URI);
+                log.warn("sendRedirect - login failed");
                 logoff(request, response);
             }
             return null;
