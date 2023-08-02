@@ -1,6 +1,7 @@
 package de.fimatas.home.controller.service;
 
 import de.fimatas.home.controller.model.LiveActivityModel;
+import lombok.Data;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,33 +58,76 @@ public class LiveActivityService {
     }
 
     private synchronized void sendToApns(String token) {
+
         log.info("send live activity update: " + StringUtils.left(token, 10) + "...");
         LiveActivityModel model = pushService.getActiveLiveActivities().get(token);
         boolean highPriority = model.getHighPriorityCount() == 0 || LocalTime.now().getMinute() % 5 == 0;
         //noinspection UnnecessaryUnicodeEscape
-        pushService.sendLiveActivityToApns(token, highPriority, false, buildContentStateMap(lookupValue() + " " + (highPriority?"\u2191":"\u2193")));
+        pushService.sendLiveActivityToApns(token, highPriority, false, buildContentStateMap(true));
         if(highPriority){
             model.setHighPriorityCount(model.getHighPriorityCount() + 1);
         }
     }
 
-    private Map<String, Object> buildContentStateMap(String value){
+    private Map<String, Object> buildContentStateMap(boolean withLiveValue){
+
+        SingleState primaryObject;
+        SingleState secondaryObject;
+
+        if(withLiveValue){
+            primaryObject = singleStateTime();
+            secondaryObject = singleStateDate();
+        }else{
+            primaryObject = singleStateEmpty();
+            secondaryObject = singleStateEmpty();
+        }
 
         Map<String, Object> contentState = new LinkedHashMap<>();
-
-        contentState.put("valueLeading", value);
-        contentState.put("colorLeading", ".green");
-
-        contentState.put("valueTrailing", "");
-        contentState.put("colorTrailing", "");
+        contentState.put("contentId", UUID.randomUUID().toString());
+        contentState.put("timestamp", LocalTime.now().format(DateTimeFormatter.ISO_TIME));
+        contentState.put("primary", buildSingleStateMap(primaryObject));
+        contentState.put("secondary", buildSingleStateMap(secondaryObject));
 
         return contentState;
     }
 
-    private String lookupValue(){
-        return DateTimeFormatter.ofPattern("HH:mm", Locale.GERMAN).format(LocalDateTime.now());
+    private SingleState singleStateEmpty(){
+        var state = new SingleState();
+        state.val = "--";
+        state.symbolName = "square.dashed";
+        state.symbolType = "sys";
+        state.color = ".grey";
+        return state;
     }
 
+    private SingleState singleStateTime(){
+        var state = new SingleState();
+        state.val = DateTimeFormatter.ofPattern("HH:mm", Locale.GERMAN).format(LocalDateTime.now());
+        state.symbolName = "clock";
+        state.symbolType = "sys";
+        state.color = ".green";
+        return state;
+    }
+
+    private SingleState singleStateDate(){
+        var state = new SingleState();
+        state.val = DateTimeFormatter.ofPattern("dd:MM", Locale.GERMAN).format(LocalDateTime.now());
+        state.symbolName = "calendar";
+        state.symbolType = "sys";
+        state.color = ".white";
+        return state;
+    }
+
+    private Map<String, Object> buildSingleStateMap(SingleState state){
+        Map<String, Object> singleStateMap = new LinkedHashMap<>();
+        singleStateMap.put("symbolName", StringUtils.trimToEmpty(state.symbolName));
+        singleStateMap.put("symbolType", StringUtils.trimToEmpty(state.symbolType));
+        singleStateMap.put("label", StringUtils.trimToEmpty(state.label));
+        singleStateMap.put("val", StringUtils.trimToEmpty(state.val));
+        singleStateMap.put("valShort", StringUtils.trimToEmpty(state.valShort));
+        singleStateMap.put("color", StringUtils.trimToEmpty(state.color));
+        return singleStateMap;
+    }
 
     private void endAllActivities() {
         try {
@@ -95,10 +139,20 @@ public class LiveActivityService {
 
     private void endActivitiy(String token) {
         try {
-            pushService.sendLiveActivityToApns(token, true, true, buildContentStateMap("-"));
+            pushService.sendLiveActivityToApns(token, true, true, buildContentStateMap(false));
         } catch (Exception e) {
             log.warn("Could not end LiveActivity via APNS: " + e.getMessage());
         }
         pushService.getActiveLiveActivities().remove(token);
+    }
+
+    @Data
+    private static class SingleState {
+        private String symbolName;
+        private String symbolType;
+        private String label;
+        private String val;
+        private String valShort;
+        private String color;
     }
 }
