@@ -104,6 +104,7 @@ public class LiveActivityService {
     private SingleState singleStateTime(){
         var state = new SingleState();
         state.val = DateTimeFormatter.ofPattern("HH:mm", Locale.GERMAN).format(LocalDateTime.now());
+        state.valShort = state.val;
         state.symbolName = "clock";
         state.symbolType = "sys";
         state.color = ".green";
@@ -113,6 +114,7 @@ public class LiveActivityService {
     private SingleState singleStateDate(){
         var state = new SingleState();
         state.val = DateTimeFormatter.ofPattern("dd.MM.", Locale.GERMAN).format(LocalDateTime.now());
+        state.valShort = state.val;
         state.symbolName = "calendar";
         state.symbolType = "sys";
         state.color = ".white";
