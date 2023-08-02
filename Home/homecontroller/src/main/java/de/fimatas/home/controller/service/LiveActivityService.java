@@ -85,6 +85,7 @@ public class LiveActivityService {
         Map<String, Object> contentState = new LinkedHashMap<>();
         contentState.put("contentId", UUID.randomUUID().toString());
         contentState.put("timestamp", LocalTime.now().format(DateTimeFormatter.ISO_TIME));
+        contentState.put("dismissSeconds", "600"); // FIXME
         contentState.put("primary", buildSingleStateMap(primaryObject));
         contentState.put("secondary", buildSingleStateMap(secondaryObject));
 
@@ -111,7 +112,7 @@ public class LiveActivityService {
 
     private SingleState singleStateDate(){
         var state = new SingleState();
-        state.val = DateTimeFormatter.ofPattern("dd:MM", Locale.GERMAN).format(LocalDateTime.now());
+        state.val = DateTimeFormatter.ofPattern("dd.MM.", Locale.GERMAN).format(LocalDateTime.now());
         state.symbolName = "calendar";
         state.symbolType = "sys";
         state.color = ".white";

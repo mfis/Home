@@ -15,6 +15,7 @@ import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.util.HomeAppConstants;
 import de.fimatas.home.library.util.WeatherForecastConclusionTextFormatter;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -70,6 +71,7 @@ public class PushService {
 
     private static LocalDateTime timestampLastDoorbellPushMessage = LocalDateTime.now();
 
+    @Getter
     private final Map<String, LiveActivityModel> activeLiveActivities = new HashMap<>();
 
     private static final Log LOG = LogFactory.getLog(PushService.class);
@@ -320,10 +322,6 @@ public class PushService {
         pmm.getList().add(message);
         ModelObjectDAO.getInstance().write(pmm);
         uploadService.uploadToClient(pmm);
-    }
-
-    public Map<String, LiveActivityModel> getActiveLiveActivities(){
-        return activeLiveActivities;
     }
 
 }
