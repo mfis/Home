@@ -73,13 +73,16 @@ public class LiveActivityService {
 
         SingleState primaryObject;
         SingleState secondaryObject;
+        SingleState tertiaryObject;
 
         if(withLiveValue){
             primaryObject = singleStateTime();
             secondaryObject = singleStateDate();
+            tertiaryObject =  singleStateEmpty();
         }else{
-            primaryObject = singleStateEmpty();
-            secondaryObject = singleStateEmpty();
+            primaryObject = singleStatePreview();
+            secondaryObject = singleStatePreview();
+            tertiaryObject = singleStatePreview();
         }
 
         Map<String, Object> contentState = new LinkedHashMap<>();
@@ -88,11 +91,21 @@ public class LiveActivityService {
         contentState.put("dismissSeconds", "600"); // FIXME
         contentState.put("primary", buildSingleStateMap(primaryObject));
         contentState.put("secondary", buildSingleStateMap(secondaryObject));
+        contentState.put("tertiary", buildSingleStateMap(tertiaryObject));
 
         return contentState;
     }
 
     private SingleState singleStateEmpty(){
+        var state = new SingleState();
+        state.val = "";
+        state.symbolName = "";
+        state.symbolType = "";
+        state.color = "";
+        return state;
+    }
+
+    private SingleState singleStatePreview(){
         var state = new SingleState();
         state.val = "--";
         state.symbolName = "square.dashed";
