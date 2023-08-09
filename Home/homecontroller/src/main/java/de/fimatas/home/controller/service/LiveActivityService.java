@@ -4,7 +4,9 @@ import de.fimatas.home.controller.model.LiveActivityField;
 import de.fimatas.home.controller.model.LiveActivityModel;
 import de.fimatas.home.controller.model.LiveActivityType;
 import de.fimatas.home.library.dao.ModelObjectDAO;
+import de.fimatas.home.library.domain.model.ElectricVehicleModel;
 import de.fimatas.home.library.domain.model.HouseModel;
+import de.fimatas.home.library.util.ViewFormatterUtils;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -60,8 +62,11 @@ public class LiveActivityService {
         List<MessagePriority> priorities = new ArrayList<>();
 
         if (model instanceof HouseModel) {
-            // Values from HouseModel
             priorities.add(processValue(valueElectricGrid((HouseModel) model), liveActivity));
+        }
+
+        if(model instanceof ElectricVehicleModel) {
+            priorities.add(processValue(valueElectricVehicle((ElectricVehicleModel) model), liveActivity));
         }
 
         MessagePriority highestPriority = MessagePriority.getHighestPriority(priorities);
@@ -88,6 +93,13 @@ public class LiveActivityService {
     private FieldValue valueElectricGrid(HouseModel houseModel) {
         return houseModel.getGridElectricalPower() != null && houseModel.getGridElectricalPower().getActualConsumption() != null ?
                 new FieldValue(houseModel.getGridElectricalPower().getActualConsumption().getValue(), LiveActivityField.ELECTRIC_GRID) : null;
+    }
+
+    private FieldValue valueElectricVehicle(ElectricVehicleModel electricVehicleModel) {
+        return electricVehicleModel.getEvMap().values().stream()
+            .filter(evs -> evs.isActiveCharging() && evs.isConnectedToWallbox()).findFirst()
+                .map(evs -> new FieldValue(new BigDecimal(ViewFormatterUtils.calculateViewPercentageEv(evs)), LiveActivityField.EV_CHARGE))
+                .orElse(null);
     }
 
     private MessagePriority calculateValueChangeEvaluation(FieldValue fieldValue, LiveActivityModel model) {
