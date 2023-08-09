@@ -37,7 +37,6 @@ public class LiveActivityService {
 
     @Scheduled(cron = "0 * 9-16 * * *") // FIXME
     public void testCounts() {
-        System.out.println("----");
         LiveActivityModel liveActivity = new LiveActivityModel();
         liveActivity.setLiveActivityType(LiveActivityType.ELECTRICITY);
         processNewModelForSingleUser(ModelObjectDAO.getInstance().readHouseModel(), liveActivity);
@@ -45,7 +44,7 @@ public class LiveActivityService {
 
     @Scheduled(cron = "0 1 17 * * *") // FIXME
     public void testCountsReset() {
-        log.warn("IGNORE = " + ignore + ", LOW = " + low + ", HIGH = " + high);
+        log.warn("LIVE-ACTIVITY: IGNORE = " + ignore + ", LOW = " + low + ", HIGH = " + high);
         low = 0;
         high = 0;
         ignore = 0;
@@ -61,11 +60,8 @@ public class LiveActivityService {
         List<MessagePriority> priorities = new ArrayList<>();
 
         if (model instanceof HouseModel) {
-            HouseModel houseModel = (HouseModel) model;
-            final FieldValue valueElectricGrid = valueElectricGrid(houseModel);
-            if (valueElectricGrid != null) {
-                priorities.add(processValue(valueElectricGrid, liveActivity));
-            }
+            // Values from HouseModel
+            priorities.add(processValue(valueElectricGrid((HouseModel) model), liveActivity));
         }
 
         MessagePriority highestPriority = MessagePriority.getHighestPriority(priorities);
@@ -82,6 +78,9 @@ public class LiveActivityService {
     }
 
     private MessagePriority processValue(FieldValue fieldValue, LiveActivityModel liveActivityModel) {
+        if(fieldValue == null){
+            return MessagePriority.IGNORE;
+        }
         liveActivityModel.getActualValues().put(fieldValue.getField(), fieldValue.getValue());
         return calculateValueChangeEvaluation(fieldValue, liveActivityModel);
     }
