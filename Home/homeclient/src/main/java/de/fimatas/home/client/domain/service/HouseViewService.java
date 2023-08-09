@@ -17,6 +17,7 @@ import de.fimatas.home.client.domain.model.*;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.model.*;
+import de.fimatas.home.library.util.ViewFormatterUtils;
 import de.fimatas.home.library.util.WeatherForecastConclusionTextFormatter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.RegExUtils;
@@ -264,8 +265,8 @@ public class HouseViewService {
             if(!e.getValue().getElectricVehicle().isOther()){
                 var ev = new View();
                 ev.setId(lookupEvChargeId(e.getKey(), true));
-                ev.setState(calculateViewFormattedPercentageEv(e));
-                ev.setColorClass(calculateViewConditionColorEv(calculateViewPercentageEv(e)).getUiClass());
+                ev.setState(ViewFormatterUtils.calculateViewFormattedPercentageEv(e.getValue()));
+                ev.setColorClass(calculateViewConditionColorEv(ViewFormatterUtils.calculateViewPercentageEv(e.getValue())).getUiClass());
                 if(e.getValue().isActiveCharging()){
                     ev.setIconNativeClient("bolt"); // TODO: centralize
                 }
@@ -1471,7 +1472,7 @@ public class HouseViewService {
 
             var isChargedSinceReading = e.getValue().getChargingTimestamp() != null;
             var isStateNew = ChronoUnit.MINUTES.between(e.getValue().getBatteryPercentageTimestamp(), LocalDateTime.now()) < 2;
-            short percentage = calculateViewPercentageEv(e);
+            short percentage = ViewFormatterUtils.calculateViewPercentageEv(e.getValue());
             LocalDateTime timestamp = calculateViewTimestampEv(e);
 
             var tsFormatted = StringUtils.capitalize(viewFormatter.formatTimestamp(timestamp, TimestampFormat.SHORT_WITH_TIME));
@@ -1479,9 +1480,9 @@ public class HouseViewService {
             view.setLinkUpdate(MESSAGEPATH + TYPE_IS + MessageType.SLIDERVALUE + AND_DEVICE_ID_IS + e.getKey().name() + AND_VALUE_IS);
             view.setColorClass(calculateViewConditionColorEv(percentage).getUiClass());
             view.setActiveSwitchColorClass(calculateViewConditionColorEv(percentage).getUiClass());
-            view.setStateShort(calculateViewFormattedPercentageEv(e)); // watch etc
+            view.setStateShort(ViewFormatterUtils.calculateViewFormattedPercentageEv(e.getValue())); // watch etc
             view.setStateShortLabel(tsFormatted);
-            view.setElementTitleState(StringUtils.capitalize(tsFormatted) + " " + calculateViewFormattedPercentageEv(e)); // collapsed top right
+            view.setElementTitleState(StringUtils.capitalize(tsFormatted) + " " + ViewFormatterUtils.calculateViewFormattedPercentageEv(e.getValue())); // collapsed top right
             if(e.getValue().isActiveCharging()){
                 if(wallboxPowerMeter.getActualConsumption().getValue().intValue() > 0){
                     view.setState("Lädt gerade");
@@ -1520,22 +1521,6 @@ public class HouseViewService {
                 view.getChargingTime().add(new ValueWithCaption(value, caption, clock));
             });
         });
-    }
-
-    private short calculateViewPercentageEv(Map.Entry<ElectricVehicle, ElectricVehicleState> e) {
-        if (e.getValue().getChargingTimestamp() != null) {
-            var s = (short) (e.getValue().getBatteryPercentage() + e.getValue().getAdditionalChargingPercentage());
-            return s>100?100:s;
-        } else {
-            return e.getValue().getBatteryPercentage();
-        }
-    }
-
-    private String calculateViewFormattedPercentageEv(Map.Entry<ElectricVehicle, ElectricVehicleState> e) {
-        var isChargedSinceReading = e.getValue().getChargingTimestamp() != null;
-        var percentagePrefix = isChargedSinceReading?"~":"";
-        var percentage = calculateViewPercentageEv(e);
-        return percentagePrefix + percentage + "%";
     }
 
     private LocalDateTime calculateViewTimestampEv(Map.Entry<ElectricVehicle, ElectricVehicleState> e) {
