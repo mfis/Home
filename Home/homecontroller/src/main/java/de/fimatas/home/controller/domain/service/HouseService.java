@@ -3,10 +3,7 @@ package de.fimatas.home.controller.domain.service;
 import de.fimatas.home.controller.api.HomematicAPI;
 import de.fimatas.home.controller.command.HomematicCommand;
 import de.fimatas.home.controller.command.HomematicCommandBuilder;
-import de.fimatas.home.controller.service.CameraService;
-import de.fimatas.home.controller.service.ElectricVehicleService;
-import de.fimatas.home.controller.service.PushService;
-import de.fimatas.home.controller.service.UploadService;
+import de.fimatas.home.controller.service.*;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.homematic.model.*;
@@ -80,6 +77,9 @@ public class HouseService {
     private PushService pushService;
 
     @Autowired
+    private LiveActivityService liveActivityService;
+
+    @Autowired
     private HistoryService historyService;
 
     @Autowired
@@ -118,6 +118,7 @@ public class HouseService {
         pushService.sendAfterModelRefresh(oldModel, newModel);
         uploadService.uploadToClient(newModel);
         uploadService.uploadToAdapter(newModel);
+        liveActivityService.newModel(newModel);
 
         // updateCameraPictures(oldModel, newModel); // async
         updateHomematicSystemVariables(oldModel, newModel);

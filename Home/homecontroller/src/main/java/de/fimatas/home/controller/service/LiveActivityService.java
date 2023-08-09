@@ -1,14 +1,22 @@
 package de.fimatas.home.controller.service;
 
+import de.fimatas.home.controller.model.LiveActivityField;
 import de.fimatas.home.controller.model.LiveActivityModel;
+import de.fimatas.home.controller.model.LiveActivityType;
+import de.fimatas.home.library.dao.ModelObjectDAO;
+import de.fimatas.home.library.domain.model.HouseModel;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PreDestroy;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -21,24 +29,98 @@ public class LiveActivityService {
     @Autowired
     private PushService pushService;
 
-    @Scheduled(cron = "0 * * * * *")
-    public void run(){
-        pushService.getActiveLiveActivities().keySet().forEach(this::sendToApns);
+    private int low = 0;// FIXME
+
+    private int high = 0;// FIXME
+
+    private int ignore = 0;// FIXME
+
+    @Scheduled(cron = "0 * 9-16 * * *") // FIXME
+    public void testCounts() {
+        System.out.println("----");
+        LiveActivityModel liveActivity = new LiveActivityModel();
+        liveActivity.setLiveActivityType(LiveActivityType.ELECTRICITY);
+        processNewModelForSingleUser(ModelObjectDAO.getInstance().readHouseModel(), liveActivity);
+    }
+
+    @Scheduled(cron = "0 1 17 * * *") // FIXME
+    public void testCountsReset() {
+        log.warn("IGNORE = " + ignore + ", LOW = " + low + ", HIGH = " + high);
+        low = 0;
+        high = 0;
+        ignore = 0;
+    }
+
+    @Async
+    public void newModel(Object object) {
+        pushService.getActiveLiveActivities().forEach((token, liveActivity) -> processNewModelForSingleUser(object, liveActivity));
+    }
+
+    private void processNewModelForSingleUser(Object model, LiveActivityModel liveActivity) {
+
+        List<MessagePriority> priorities = new ArrayList<>();
+
+        if (model instanceof HouseModel) {
+            HouseModel houseModel = (HouseModel) model;
+            final FieldValue valueElectricGrid = valueElectricGrid(houseModel);
+            if (valueElectricGrid != null) {
+                priorities.add(processValue(valueElectricGrid, liveActivity));
+            }
+        }
+
+        MessagePriority highestPriority = MessagePriority.getHighestPriority(priorities);
+        if (highestPriority == MessagePriority.IGNORE) {
+            ignore++;
+        } else if (highestPriority == MessagePriority.LOW_PRIORITY) {
+            // FIXME: SEND WITH LOW PRIORITY
+            low++;
+        } else if (highestPriority == MessagePriority.HIGH_PRIORITY) {
+            // FIXME: SEND WITH HIGH PRIORITY
+            liveActivity.shiftValuesToSentWithHighPriotity();
+            high++;
+        }
+    }
+
+    private MessagePriority processValue(FieldValue fieldValue, LiveActivityModel liveActivityModel) {
+        liveActivityModel.getActualValues().put(fieldValue.getField(), fieldValue.getValue());
+        return calculateValueChangeEvaluation(fieldValue, liveActivityModel);
+    }
+
+    private FieldValue valueElectricGrid(HouseModel houseModel) {
+        return houseModel.getGridElectricalPower() != null && houseModel.getGridElectricalPower().getActualConsumption() != null ?
+                new FieldValue(houseModel.getGridElectricalPower().getActualConsumption().getValue(), LiveActivityField.ELECTRIC_GRID) : null;
+    }
+
+    private MessagePriority calculateValueChangeEvaluation(FieldValue fieldValue, LiveActivityModel model) {
+        if (model.getLiveActivityType().fields().contains(fieldValue.getField())) {
+            if (model.getLastValuesSentWithHighPriotity().get(fieldValue.getField()) == null) {
+                return MessagePriority.HIGH_PRIORITY;
+            }
+            if (model.getLastValuesSentWithHighPriotity().get(fieldValue.getField()).compareTo(fieldValue.getValue()) == 0) {
+                return MessagePriority.IGNORE;
+            }
+            BigDecimal diff = model.getLastValuesSentWithHighPriotity().get(fieldValue.getField()).subtract(fieldValue.getValue()).abs();
+            if (diff.compareTo(fieldValue.getField().getThresholdMin()) >= 0) {
+                return MessagePriority.HIGH_PRIORITY;
+            }
+            return MessagePriority.LOW_PRIORITY;
+        }
+        return MessagePriority.IGNORE;
     }
 
     @Scheduled(cron = "20 0 0 * * *")
-    public void endAll(){
+    public void endAll() {
         endAllActivities();
     }
 
     @PreDestroy
-    public void preDestroy(){
-       endAllActivities();
+    public void preDestroy() {
+        endAllActivities();
     }
 
-    public void start(String token, String user, String device){
+    public void start(String token, String user, String device) {
 
-        if(pushService.getActiveLiveActivities().containsKey(token)){
+        if (pushService.getActiveLiveActivities().containsKey(token)) {
             return;
         }
 
@@ -49,37 +131,35 @@ public class LiveActivityService {
         model.setToken(token);
         model.setUsername(user);
         model.setDevice(device);
+        model.setLiveActivityType(LiveActivityType.ELECTRICITY);
         pushService.getActiveLiveActivities().put(token, model);
-        sendToApns(token);
+        sendToApns(token, true);
     }
 
-    public void end(String token){
+    public void end(String token) {
         endActivitiy(token);
     }
 
-    private synchronized void sendToApns(String token) {
+    private synchronized void sendToApns(String token, boolean isFirstState) {
 
-        log.info("send live activity update: " + StringUtils.left(token, 10) + "...");
+        // log.info("send live activity update: " + StringUtils.left(token, 10) + "...");
         LiveActivityModel model = pushService.getActiveLiveActivities().get(token);
-        boolean highPriority = model.getHighPriorityCount() == 0 || LocalTime.now().getMinute() % 5 == 0;
+        //boolean highPriority = isFirstState || LocalTime.now().getMinute() % 5 == 0;
         //noinspection UnnecessaryUnicodeEscape
-        pushService.sendLiveActivityToApns(token, highPriority, false, buildContentStateMap(true));
-        if(highPriority){
-            model.setHighPriorityCount(model.getHighPriorityCount() + 1);
-        }
+        // FIXME: pushService.sendLiveActivityToApns(token, true, false, buildContentStateMap(true));
     }
 
-    private Map<String, Object> buildContentStateMap(boolean withLiveValue){
+    private Map<String, Object> buildContentStateMap(boolean withLiveValue) {
 
         SingleState primaryObject;
         SingleState secondaryObject;
         SingleState tertiaryObject;
 
-        if(withLiveValue){
+        if (withLiveValue) {
             primaryObject = singleStateTime();
             secondaryObject = singleStateDate();
-            tertiaryObject =  singleStateEmpty();
-        }else{
+            tertiaryObject = singleStateEmpty();
+        } else {
             primaryObject = singleStatePreview();
             secondaryObject = singleStatePreview();
             tertiaryObject = singleStatePreview();
@@ -96,7 +176,7 @@ public class LiveActivityService {
         return contentState;
     }
 
-    private SingleState singleStateEmpty(){
+    private SingleState singleStateEmpty() {
         var state = new SingleState();
         state.val = "";
         state.symbolName = "";
@@ -105,7 +185,7 @@ public class LiveActivityService {
         return state;
     }
 
-    private SingleState singleStatePreview(){
+    private SingleState singleStatePreview() {
         var state = new SingleState();
         state.val = "--";
         state.symbolName = "square.dashed";
@@ -114,7 +194,7 @@ public class LiveActivityService {
         return state;
     }
 
-    private SingleState singleStateTime(){
+    private SingleState singleStateTime() {
         var state = new SingleState();
         state.val = DateTimeFormatter.ofPattern("HH:mm", Locale.GERMAN).format(LocalDateTime.now());
         state.valShort = state.val;
@@ -124,7 +204,7 @@ public class LiveActivityService {
         return state;
     }
 
-    private SingleState singleStateDate(){
+    private SingleState singleStateDate() {
         var state = new SingleState();
         state.val = DateTimeFormatter.ofPattern("dd.MM.", Locale.GERMAN).format(LocalDateTime.now());
         state.valShort = state.val;
@@ -134,7 +214,7 @@ public class LiveActivityService {
         return state;
     }
 
-    private Map<String, Object> buildSingleStateMap(SingleState state){
+    private Map<String, Object> buildSingleStateMap(SingleState state) {
         Map<String, Object> singleStateMap = new LinkedHashMap<>();
         singleStateMap.put("symbolName", StringUtils.trimToEmpty(state.symbolName));
         singleStateMap.put("symbolType", StringUtils.trimToEmpty(state.symbolType));
@@ -170,5 +250,22 @@ public class LiveActivityService {
         private String val;
         private String valShort;
         private String color;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    private static class FieldValue {
+        private BigDecimal value;
+        private LiveActivityField field;
+    }
+
+    private enum MessagePriority {
+        IGNORE, LOW_PRIORITY, HIGH_PRIORITY;
+
+        static MessagePriority getHighestPriority(List<MessagePriority> list){
+            return list.stream()
+                    .max(Comparator.comparing(Enum::ordinal))
+                    .orElse(null);
+        }
     }
 }
