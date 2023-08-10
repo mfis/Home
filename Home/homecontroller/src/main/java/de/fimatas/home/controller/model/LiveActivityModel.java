@@ -22,6 +22,8 @@ public class LiveActivityModel {
 
     private LocalDateTime lastValTimestampLowPriority;
 
+    private int updateCounter;
+
     private Map<LiveActivityField, BigDecimal> lastValuesSentWithHighPriotity = new HashMap<>();
 
     private Map<LiveActivityField, BigDecimal> actualValues = new HashMap<>();

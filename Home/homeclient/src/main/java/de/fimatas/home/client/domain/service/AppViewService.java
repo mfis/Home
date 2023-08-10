@@ -9,6 +9,7 @@ import de.fimatas.home.client.domain.model.*;
 import de.fimatas.home.library.domain.model.HeatpumpPreset;
 import de.fimatas.home.library.homematic.model.Type;
 import de.fimatas.home.library.model.ConditionColor;
+import de.fimatas.home.library.util.ViewFormatterUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
@@ -84,7 +85,7 @@ public class AppViewService {
 
         HomeViewModel appModel = new HomeViewModel();
         appModel.setTimestamp(HomeRequestMapping.TS_FORMATTER.format(LocalDateTime.now()));
-        appModel.setDefaultAccent(mapAccent(""));
+        appModel.setDefaultAccent(ViewFormatterUtils.mapAppColorAccent(""));
         return appModel;
     }
 
@@ -181,7 +182,7 @@ public class AppViewService {
             }
             hvm.setKey(k);
             hvm.setValue(v.getState());
-            hvm.setAccent(mapAccent(v.getColorClass()));
+            hvm.setAccent(ViewFormatterUtils.mapAppColorAccent(v.getColorClass()));
             hvm.setSymbol(v.getIconNativeClient());
             placeModel.getValues().add(hvm);
         });
@@ -268,7 +269,7 @@ public class AppViewService {
         hvm.setId(view.getId());
         hvm.setKey(view.getStateShortLabel());
         hvm.setValue(view.getStateShort());
-        hvm.setAccent(mapAccent(view.getColorClass()));
+        hvm.setAccent(ViewFormatterUtils.mapAppColorAccent(view.getColorClass()));
         return hvm;
     }
 
@@ -279,7 +280,7 @@ public class AppViewService {
         hvm.setKey("Wärme");
         hvm.setValue(view.getStateTemperature());
         hvm.setValueShort(view.getStateShort());
-        hvm.setAccent(mapAccent(view.getColorClass()));
+        hvm.setAccent(ViewFormatterUtils.mapAppColorAccent(view.getColorClass()));
         hvm.setTendency(Tendency.nameFromCssClass(view.getTendencyIconTemperature()));
         hvm.setSymbol(Tendency.symbolFromCssClass(view.getTendencyIconTemperature()));
         return hvm;
@@ -291,7 +292,7 @@ public class AppViewService {
         hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP, ValueDirective.WIDGET_SKIP, ValueDirective.LOCKSCREEN_SKIP).map(Enum::name).collect(Collectors.toList()));
         hvm.setKey("Feuchte");
         hvm.setValue(view.getStateHumidity());
-        hvm.setAccent(mapAccent(view.getColorClassHumidity()));
+        hvm.setAccent(ViewFormatterUtils.mapAppColorAccent(view.getColorClassHumidity()));
         hvm.setTendency(Tendency.nameFromCssClass(view.getTendencyIconHumidity()));
         return hvm;
     }
@@ -302,7 +303,7 @@ public class AppViewService {
         hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP).map(Enum::name).collect(Collectors.toList()));
         hvm.setKey("2-Tage");
         hvm.setValue(view.getStateTemperatureWatch());
-        hvm.setAccent(mapAccent(view.getColorClass()));
+        hvm.setAccent(ViewFormatterUtils.mapAppColorAccent(view.getColorClass()));
         hvm.setSymbol(view.getIconNativeClient());
         return hvm;
     }
@@ -313,7 +314,7 @@ public class AppViewService {
         hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP, ValueDirective.WIDGET_SKIP, ValueDirective.LOCKSCREEN_SKIP).map(Enum::name).collect(Collectors.toList()));
         hvm.setKey("3-Stunden");
         hvm.setValue(view.getShortTermText());
-        hvm.setAccent(mapAccent(view.getShortTermColorClass()));
+        hvm.setAccent(ViewFormatterUtils.mapAppColorAccent(view.getShortTermColorClass()));
         return hvm;
     }
 
@@ -322,7 +323,7 @@ public class AppViewService {
         hvm.setId(placeDirectives.place.name() + "-presence");
         hvm.setKey(view.getName());
         hvm.setValue(view.getStateShort());
-        hvm.setAccent(mapAccent(view.getColorClass()));
+        hvm.setAccent(ViewFormatterUtils.mapAppColorAccent(view.getColorClass()));
         return hvm;
     }
 
@@ -338,7 +339,7 @@ public class AppViewService {
             hvm.setAccent(Strings.EMPTY);
         }else{
             hvm.setValue(view.getStateShort());
-            hvm.setAccent(mapAccent(view.getColorClass()));
+            hvm.setAccent(ViewFormatterUtils.mapAppColorAccent(view.getColorClass()));
         }
         return hvm;
     }
@@ -352,7 +353,7 @@ public class AppViewService {
             hvm.setAccent(Strings.EMPTY);
         }else{
             hvm.setValue(view.getStateShort());
-            hvm.setAccent(mapAccent(view.getColorClass()));
+            hvm.setAccent(ViewFormatterUtils.mapAppColorAccent(view.getColorClass()));
         }
         return hvm;
     }
@@ -363,7 +364,7 @@ public class AppViewService {
         hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP, ValueDirective.WIDGET_SKIP).map(Enum::name).collect(Collectors.toList()));
         hvm.setKey("Ereignis");
         hvm.setValue(view.getStateEventWatch());
-        hvm.setAccent(mapAccent(view.getColorClass()));
+        hvm.setAccent(ViewFormatterUtils.mapAppColorAccent(view.getColorClass()));
         hvm.setSymbol(view.getIconNativeClient());
         return hvm;
     }
@@ -373,7 +374,7 @@ public class AppViewService {
         hvm.setId(view.getDevice().name() + "-" + placeDirectives.place.name() + "-actPowerSum");
         hvm.setKey("Aktuell");
         hvm.setValue(view.getState());
-        hvm.setAccent(mapAccent(view.getColorClass()));
+        hvm.setAccent(ViewFormatterUtils.mapAppColorAccent(view.getColorClass()));
         hvm.setTendency(Tendency.nameFromCssClass(view.getTendencyIcon()));
         return hvm;
     }
@@ -399,7 +400,7 @@ public class AppViewService {
         }else {
             hvm.setValue(view.getTodayConsumption().getLabel().replace(ViewFormatter.SUM_SIGN, "").trim());
         }
-        hvm.setAccent(mapAccent(overrideColorClass != null ? overrideColorClass : view.getColorClass()));
+        hvm.setAccent(ViewFormatterUtils.mapAppColorAccent(overrideColorClass != null ? overrideColorClass : view.getColorClass()));
         return hvm;
     }
 
@@ -408,7 +409,7 @@ public class AppViewService {
         hvm.setId("pv" + caption.replace(" ", ""));
         hvm.setKey(caption);
         hvm.setValue(view.getState());
-        hvm.setAccent(mapAccent(view.getColorClass()));
+        hvm.setAccent(ViewFormatterUtils.mapAppColorAccent(view.getColorClass()));
         return hvm;
     }
 
@@ -417,7 +418,7 @@ public class AppViewService {
         hvm.setId(placeDirectives.place.name() + "-lockStatus");
         hvm.setKey("Tür");
         hvm.setValue(Boolean.TRUE.toString().equalsIgnoreCase(view.getBusy()) ? ". . ." : view.getState());
-        hvm.setAccent(mapAccent(view.getColorClass()));
+        hvm.setAccent(ViewFormatterUtils.mapAppColorAccent(view.getColorClass()));
         return hvm;
     }
 
@@ -480,7 +481,7 @@ public class AppViewService {
         hvm.setId(placeDirectives.place.name() + "-switchStatus");
         hvm.setKey(view.getShortName());
         hvm.setValue(view.getStateShort());
-        hvm.setAccent(mapAccent(view.getColorClass()));
+        hvm.setAccent(ViewFormatterUtils.mapAppColorAccent(view.getColorClass()));
         return hvm;
     }
 
@@ -489,7 +490,7 @@ public class AppViewService {
         hvm.setId(placeDirectives.place.name() + "-windowStatus");
         hvm.setKey(view.getShortName());
         hvm.setValue(view.getStateShort());
-        hvm.setAccent(mapAccent(view.getColorClass()));
+        hvm.setAccent(ViewFormatterUtils.mapAppColorAccent(view.getColorClass()));
         return hvm;
     }
 
@@ -653,30 +654,6 @@ public class AppViewService {
     private boolean isColorClassOrangeOrRed(View view){
         return view.getColorClass().equalsIgnoreCase(ConditionColor.ORANGE.getUiClass())
                 || view.getColorClass().equalsIgnoreCase(ConditionColor.RED.getUiClass());
-    }
-
-    private String mapAccent(String colorClass) {
-
-        final ConditionColor conditionColor = ConditionColor.fromUiName(colorClass);
-        if(conditionColor==null){
-            return StringUtils.EMPTY;
-        }
-
-        switch (conditionColor) {
-        case GREEN:
-            return ".green";
-        case ORANGE:
-            return ".orange";
-        case RED:
-            return ".red";
-        case BLUE:
-            return ".blue";
-        case LIGHT:
-        case COLD:
-            return ".purple";
-        default:
-            return StringUtils.EMPTY;
-        }
     }
 
     public enum AppViewTarget{

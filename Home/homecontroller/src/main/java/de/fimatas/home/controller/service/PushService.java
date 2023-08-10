@@ -264,6 +264,10 @@ public class PushService {
 
     public void sendLiveActivityToApns(String pushToken, boolean highPriority, boolean isEnd, Map<String, Object> contentState) {
 
+        if(pushToken.equalsIgnoreCase("test")) { // FIXME
+            return;
+        }
+
         Instant instantNow = LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant();
 
         final ApnsPayloadBuilder payloadBuilder = new SimpleApnsPayloadBuilder();

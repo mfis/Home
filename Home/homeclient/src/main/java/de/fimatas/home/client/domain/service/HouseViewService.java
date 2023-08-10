@@ -266,7 +266,7 @@ public class HouseViewService {
                 var ev = new View();
                 ev.setId(lookupEvChargeId(e.getKey(), true));
                 ev.setState(ViewFormatterUtils.calculateViewFormattedPercentageEv(e.getValue()));
-                ev.setColorClass(calculateViewConditionColorEv(ViewFormatterUtils.calculateViewPercentageEv(e.getValue())).getUiClass());
+                ev.setColorClass(ViewFormatterUtils.calculateViewConditionColorEv(ViewFormatterUtils.calculateViewPercentageEv(e.getValue())).getUiClass());
                 if(e.getValue().isActiveCharging()){
                     ev.setIconNativeClient("bolt"); // TODO: centralize
                 }
@@ -1478,8 +1478,8 @@ public class HouseViewService {
             var tsFormatted = StringUtils.capitalize(viewFormatter.formatTimestamp(timestamp, TimestampFormat.SHORT_WITH_TIME));
 
             view.setLinkUpdate(MESSAGEPATH + TYPE_IS + MessageType.SLIDERVALUE + AND_DEVICE_ID_IS + e.getKey().name() + AND_VALUE_IS);
-            view.setColorClass(calculateViewConditionColorEv(percentage).getUiClass());
-            view.setActiveSwitchColorClass(calculateViewConditionColorEv(percentage).getUiClass());
+            view.setColorClass(ViewFormatterUtils.calculateViewConditionColorEv(percentage).getUiClass());
+            view.setActiveSwitchColorClass(ViewFormatterUtils.calculateViewConditionColorEv(percentage).getUiClass());
             view.setStateShort(ViewFormatterUtils.calculateViewFormattedPercentageEv(e.getValue())); // watch etc
             view.setStateShortLabel(tsFormatted);
             view.setElementTitleState(StringUtils.capitalize(tsFormatted) + " " + ViewFormatterUtils.calculateViewFormattedPercentageEv(e.getValue())); // collapsed top right
@@ -1529,10 +1529,6 @@ public class HouseViewService {
         } else {
             return e.getValue().getBatteryPercentageTimestamp();
         }
-    }
-
-    private ConditionColor calculateViewConditionColorEv(short percentage) {
-        return percentage > 89 ? ConditionColor.ORANGE:percentage<21?ConditionColor.RED:ConditionColor.GREEN; // TODO: constant
     }
 
     private ConditionColor calculateViewConditionColorGridPowerActualDayDay(Device device, BigDecimal kwhDay) {
