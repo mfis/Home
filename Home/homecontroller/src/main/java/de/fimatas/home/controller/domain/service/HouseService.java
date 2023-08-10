@@ -117,8 +117,8 @@ public class HouseService {
 
         pushService.sendAfterModelRefresh(oldModel, newModel);
         uploadService.uploadToClient(newModel);
-        uploadService.uploadToAdapter(newModel);
         liveActivityService.newModel(newModel);
+        uploadService.uploadToAdapter(newModel);
 
         // updateCameraPictures(oldModel, newModel); // async
         updateHomematicSystemVariables(oldModel, newModel);

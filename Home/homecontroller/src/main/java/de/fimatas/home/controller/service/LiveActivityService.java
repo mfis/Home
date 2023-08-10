@@ -1,5 +1,6 @@
 package de.fimatas.home.controller.service;
 
+import de.fimatas.home.controller.dao.LiveActivityDAO;
 import de.fimatas.home.controller.model.LiveActivityField;
 import de.fimatas.home.controller.model.LiveActivityModel;
 import de.fimatas.home.controller.model.LiveActivityType;
@@ -37,24 +38,28 @@ public class LiveActivityService {
 
     private int ignore = 0;// FIXME
 
+    private int sent = 0;// FIXME
+
     @Scheduled(cron = "0 * 9-16 * * *") // FIXME
     public void testCounts() {
         LiveActivityModel liveActivity = new LiveActivityModel();
         liveActivity.setLiveActivityType(LiveActivityType.ELECTRICITY);
         processNewModelForSingleUser(ModelObjectDAO.getInstance().readHouseModel(), liveActivity);
+        processNewModelForSingleUser(ModelObjectDAO.getInstance().readElectricVehicleModel(), liveActivity);
     }
 
     @Scheduled(cron = "0 1 17 * * *") // FIXME
     public void testCountsReset() {
-        log.warn("LIVE-ACTIVITY: IGNORE = " + ignore + ", LOW = " + low + ", HIGH = " + high);
+        log.warn("LIVE-ACTIVITY: SENT = " + sent + ", IGNORE = " + ignore + ", LOW = " + low + ", HIGH = " + high);
         low = 0;
         high = 0;
         ignore = 0;
+        sent = 0;
     }
 
     @Async
     public void newModel(Object object) {
-        pushService.getActiveLiveActivities().forEach((token, liveActivity) -> processNewModelForSingleUser(object, liveActivity));
+        // FIXME: LiveActivityDAO.getInstance().getActiveLiveActivities().forEach((token, liveActivity) -> processNewModelForSingleUser(object, liveActivity));
     }
 
     private void processNewModelForSingleUser(Object model, LiveActivityModel liveActivity) {
@@ -72,6 +77,7 @@ public class LiveActivityService {
         MessagePriority highestPriority = MessagePriority.getHighestPriority(priorities);
         if (highestPriority == MessagePriority.IGNORE) {
             ignore++;
+            // do nothing
         } else if (highestPriority == MessagePriority.LOW_PRIORITY) {
             // FIXME: SEND WITH LOW PRIORITY
             low++;
@@ -131,11 +137,11 @@ public class LiveActivityService {
 
     public void start(String token, String user, String device) {
 
-        if (pushService.getActiveLiveActivities().containsKey(token)) {
+        if (LiveActivityDAO.getInstance().getActiveLiveActivities().containsKey(token)) {
             return;
         }
 
-        pushService.getActiveLiveActivities().values().stream().filter(la -> la.getUsername().equals(user) && la.getDevice().equals(device))
+        LiveActivityDAO.getInstance().getActiveLiveActivities().values().stream().filter(la -> la.getUsername().equals(user) && la.getDevice().equals(device))
                 .forEach(la -> end(la.getToken()));
 
         var model = new LiveActivityModel();
@@ -143,24 +149,25 @@ public class LiveActivityService {
         model.setUsername(user);
         model.setDevice(device);
         model.setLiveActivityType(LiveActivityType.ELECTRICITY);
-        pushService.getActiveLiveActivities().put(token, model);
-        sendToApns(token, true);
+        LiveActivityDAO.getInstance().getActiveLiveActivities().put(token, model);
+        // FIXME: collect initial values
+        sendToApns(token, MessagePriority.HIGH_PRIORITY); // FIXME: shift so sent model, set timestamp etc....
     }
 
     public void end(String token) {
         endActivitiy(token);
     }
 
-    private synchronized void sendToApns(String token, boolean isFirstState) {
+    private synchronized void sendToApns(String token, MessagePriority messagePriority) {
 
         // log.info("send live activity update: " + StringUtils.left(token, 10) + "...");
-        LiveActivityModel model = pushService.getActiveLiveActivities().get(token);
+        // LiveActivityModel model = LiveActivityDAO.getInstance().getActiveLiveActivities().get(token);
         //boolean highPriority = isFirstState || LocalTime.now().getMinute() % 5 == 0;
         //noinspection UnnecessaryUnicodeEscape
         // FIXME: pushService.sendLiveActivityToApns(token, true, false, buildContentStateMap(true));
     }
 
-    private Map<String, Object> buildContentStateMap(boolean withLiveValue) {
+    private Map<String, Object> buildContentStateMap(String token, boolean withLiveValue) {
 
         SingleState primaryObject;
         SingleState secondaryObject;
@@ -238,7 +245,7 @@ public class LiveActivityService {
 
     private void endAllActivities() {
         try {
-            pushService.getActiveLiveActivities().keySet().forEach(this::endActivitiy);
+            LiveActivityDAO.getInstance().getActiveLiveActivities().keySet().forEach(this::endActivitiy);
         } catch (Exception e) {
             log.warn("Could not end LiveActivity via APNS");
         }
@@ -246,11 +253,11 @@ public class LiveActivityService {
 
     private void endActivitiy(String token) {
         try {
-            pushService.sendLiveActivityToApns(token, true, true, buildContentStateMap(false));
+            pushService.sendLiveActivityToApns(token, true, true, buildContentStateMap(token, false));
         } catch (Exception e) {
             log.warn("Could not end LiveActivity via APNS: " + e.getMessage());
         }
-        pushService.getActiveLiveActivities().remove(token);
+        LiveActivityDAO.getInstance().getActiveLiveActivities().remove(token);
     }
 
     @Data

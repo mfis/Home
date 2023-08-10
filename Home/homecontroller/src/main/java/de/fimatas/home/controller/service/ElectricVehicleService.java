@@ -40,6 +40,9 @@ public class ElectricVehicleService {
     private UploadService uploadService;
 
     @Autowired
+    private LiveActivityService liveActivityService;
+
+    @Autowired
     private StateHandlerDAO stateHandlerDAO;
 
     @Autowired
@@ -118,6 +121,7 @@ public class ElectricVehicleService {
 
         ModelObjectDAO.getInstance().write(newModel);
         uploadService.uploadToClient(newModel);
+        liveActivityService.newModel(newModel);
     }
 
     private void calculateEstimatedChargingTime(ElectricVehicleState state) {

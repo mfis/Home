@@ -1,9 +1,6 @@
 package de.fimatas.home.library.util;
 
-import de.fimatas.home.library.domain.model.ElectricVehicle;
 import de.fimatas.home.library.domain.model.ElectricVehicleState;
-
-import java.util.Map;
 
 public class ViewFormatterUtils {
 

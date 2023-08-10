@@ -7,6 +7,7 @@ import com.eatthepath.pushy.apns.util.LiveActivityEvent;
 import com.eatthepath.pushy.apns.util.SimpleApnsPayloadBuilder;
 import com.eatthepath.pushy.apns.util.SimpleApnsPushNotification;
 import com.eatthepath.pushy.apns.util.concurrent.PushNotificationFuture;
+import de.fimatas.home.controller.dao.LiveActivityDAO;
 import de.fimatas.home.controller.dao.PushMessageDAO;
 import de.fimatas.home.controller.domain.service.HouseService;
 import de.fimatas.home.controller.model.LiveActivityModel;
@@ -70,9 +71,6 @@ public class PushService {
     private UniqueTimestampService uniqueTimestampService;
 
     private static LocalDateTime timestampLastDoorbellPushMessage = LocalDateTime.now();
-
-    @Getter
-    private final Map<String, LiveActivityModel> activeLiveActivities = new HashMap<>();
 
     private static final Log LOG = LogFactory.getLog(PushService.class);
 
@@ -300,7 +298,7 @@ public class PushService {
 
         if(doResetSettings){
             if(isLiveActivity){
-                activeLiveActivities.remove(pushToken.getToken());
+                LiveActivityDAO.getInstance().getActiveLiveActivities().remove(pushToken.getToken());
             }else{
                 settingsService.resetSettingsForToken(pushToken.getToken());
                 saveNewMessageToDatabase(uniqueTimestampService.get(), pushToken, "Push-Zustellung Fehler", "Bitte erneut registrieren.");
