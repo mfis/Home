@@ -17,6 +17,7 @@ public enum LiveActivityField {
     ELECTRIC_GRID(
             "energygrid", "app",
             new BigDecimal(50),
+            true,
             val -> new DecimalFormat("0").format(val.abs()) + "W",
             val -> new DecimalFormat("0.0").format(val.divide(new BigDecimal(1000), new MathContext(3, RoundingMode.HALF_UP))),
             val -> ViewFormatterUtils.mapAppColorAccent(val.compareTo(BigDecimal.ZERO) > 0 ? ConditionColor.ORANGE.getUiClass() : ConditionColor.GREEN.getUiClass())
@@ -25,6 +26,7 @@ public enum LiveActivityField {
     EV_CHARGE(
             "bolt.car", "sys",
             new BigDecimal(1),
+            false,
             val -> val.intValue() + "%",
             val -> val.intValue() + "%",
             val -> ViewFormatterUtils.mapAppColorAccent(ViewFormatterUtils.calculateViewConditionColorEv(val.shortValue()).getUiClass())
@@ -37,16 +39,19 @@ public enum LiveActivityField {
 
     private final BigDecimal thresholdMin;
 
+    private final boolean allowsHighPriority;
+
     private final Function<BigDecimal, String> formatterValue;
 
     private final Function<BigDecimal, String> formatterShort;
 
     private final Function<BigDecimal, String> color;
 
-    LiveActivityField(String symbolName, String symbolType, BigDecimal thresholdMin, Function<BigDecimal, String> formatterValue, Function<BigDecimal, String> formatterShort, Function<BigDecimal, String> color){
+    LiveActivityField(String symbolName, String symbolType, BigDecimal thresholdMin, boolean allowsHighPriority, Function<BigDecimal, String> formatterValue, Function<BigDecimal, String> formatterShort, Function<BigDecimal, String> color){
         this.symbolName = symbolName;
         this.symbolType = symbolType;
         this.thresholdMin = thresholdMin;
+        this.allowsHighPriority = allowsHighPriority;
         this.formatterValue = formatterValue;
         this.formatterShort = formatterShort;
         this.color = color;
