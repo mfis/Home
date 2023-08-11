@@ -2,9 +2,7 @@ package de.fimatas.home.controller.service;
 
 import de.fimatas.home.controller.dao.LiveActivityDAO;
 import de.fimatas.home.library.dao.ModelObjectDAO;
-import de.fimatas.home.library.domain.model.HouseModel;
-import de.fimatas.home.library.domain.model.PowerMeter;
-import de.fimatas.home.library.domain.model.ValueWithTendency;
+import de.fimatas.home.library.domain.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -16,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -43,6 +42,7 @@ class LiveActivityServiceTest {
     @BeforeEach
     public void setup(){
         LiveActivityDAO.getInstance().getActiveLiveActivities().clear();
+        ModelObjectDAO.resetAll();
     }
 
     @Test
@@ -131,9 +131,39 @@ class LiveActivityServiceTest {
         assertEquals(".green", getSingleVal(1, "primary", "color"));
     }
 
-    // FIXME: Priorities
 
-    // FIXME: Two values
+    @Test
+    void testStartHouseAndElectricVehicleNoCharge() {
+        ModelObjectDAO.getInstance().write(houseModelWithElectricGridValue(500));
+        ModelObjectDAO.getInstance().write(electricVehicleModelWithValue(30, 0));
+        liveActivityService.start("test", "user", "device");
+
+        verify(pushService, times(1))
+                .sendLiveActivityToApns(eq("test"), argCaptorHighPriority.capture(), eq(false), argCaptorValueMap.capture());
+
+        assertTrue(getSinglePriorityHigh(0));
+        assertEquals("500W", getSingleVal(0, "primary", "val"));
+        assertEquals("", getSingleVal(0, "secondary", "val"));
+    }
+
+    @Test
+    void testNewModelsHouseAndElectricVehicleCharging() {
+        ModelObjectDAO.getInstance().write(houseModelWithElectricGridValue(500));
+        ModelObjectDAO.getInstance().write(electricVehicleModelWithValue(40, 5));
+        liveActivityService.start("test", "user", "device");
+
+        liveActivityService.newModel(electricVehicleModelWithValue(40, 15));
+
+        verify(pushService, times(2))
+                .sendLiveActivityToApns(eq("test"), argCaptorHighPriority.capture(), eq(false), argCaptorValueMap.capture());
+
+        assertTrue(getSinglePriorityHigh(0));
+        assertEquals("500W", getSingleVal(0, "primary", "val"));
+        assertEquals("45%", getSingleVal(0, "secondary", "val"));
+        assertTrue(getSinglePriorityHigh(1));
+        assertEquals("500W", getSingleVal(1, "primary", "val"));
+        assertEquals("55%", getSingleVal(1, "secondary", "val"));
+    }
 
     private boolean getSinglePriorityHigh(int number) {
         return argCaptorHighPriority.getAllValues().get(number);
@@ -150,5 +180,16 @@ class LiveActivityServiceTest {
         houseModel.getGridElectricalPower().setActualConsumption(new ValueWithTendency<>());
         houseModel.getGridElectricalPower().getActualConsumption().setValue(new BigDecimal(value));
         return houseModel;
+    }
+
+    private ElectricVehicleModel electricVehicleModelWithValue(int base, int charge){
+        ElectricVehicleModel electricVehicleModel = new ElectricVehicleModel();
+        ElectricVehicleState evs = new ElectricVehicleState(ElectricVehicle.EUP, (short)base, LocalDateTime.now());
+        evs.setActiveCharging(charge != 0);
+        evs.setConnectedToWallbox(charge != 0);
+        evs.setAdditionalChargingPercentage((short)charge);
+        evs.setChargingTimestamp(charge != 0 ? LocalDateTime.now() : null);
+        electricVehicleModel.getEvMap().put(ElectricVehicle.EUP, evs);
+        return electricVehicleModel;
     }
 }

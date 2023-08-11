@@ -48,6 +48,10 @@ public class ModelObjectDAO {
         return instance;
     }
 
+    public static void resetAll(){
+        instance = new ModelObjectDAO();
+    }
+
     public void write(HouseModel newModel) {
         houseModel = newModel;
         houseModel.setDateTime(new Date().getTime());
