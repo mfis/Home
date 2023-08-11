@@ -112,12 +112,20 @@ public class LiveActivityService {
 
     private MessagePriority calculateValueChangeEvaluation(FieldValue fieldValue, LiveActivityModel model) {
         if (model.getLiveActivityType().fields().contains(fieldValue.getField())) {
+            // check for first value
             if (model.getLastValuesSentWithHighPriotity().get(fieldValue.getField()) == null) {
                 return MessagePriority.HIGH_PRIORITY;
             }
+            // check for equal value
             if (model.getLastValuesSentWithHighPriotity().get(fieldValue.getField()).compareTo(fieldValue.getValue()) == 0) {
                 return MessagePriority.IGNORE;
             }
+            // check for different signs
+            BigDecimal product = model.getLastValuesSentWithHighPriotity().get(fieldValue.getField()).multiply(fieldValue.getValue());
+            if(product.compareTo(BigDecimal.ZERO) < 0){
+                return MessagePriority.HIGH_PRIORITY;
+            }
+            // check for threshold
             BigDecimal diff = model.getLastValuesSentWithHighPriotity().get(fieldValue.getField()).subtract(fieldValue.getValue()).abs();
             if (diff.compareTo(fieldValue.getField().getThresholdMin()) >= 0) {
                 return MessagePriority.HIGH_PRIORITY;

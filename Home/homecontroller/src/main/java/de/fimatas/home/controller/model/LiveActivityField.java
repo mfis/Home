@@ -10,13 +10,14 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.function.Function;
 
+@Getter
 public enum LiveActivityField {
 
     // TODO: Re-use View Formatter
     ELECTRIC_GRID(
             "energygrid", "app",
             new BigDecimal(50),
-            val -> new DecimalFormat("0").format(val) + "W",
+            val -> new DecimalFormat("0").format(val.abs()) + "W",
             val -> new DecimalFormat("0.0").format(val.divide(new BigDecimal(1000), new MathContext(3, RoundingMode.HALF_UP))),
             val -> ViewFormatterUtils.mapAppColorAccent(val.compareTo(BigDecimal.ZERO) > 0 ? ConditionColor.ORANGE.getUiClass() : ConditionColor.GREEN.getUiClass())
     ), //
@@ -30,13 +31,10 @@ public enum LiveActivityField {
     ), //
     ;
 
-    @Getter
     private final String symbolName;
 
-    @Getter
     private final String symbolType;
 
-    @Getter
     private final BigDecimal thresholdMin;
 
     private final Function<BigDecimal, String> formatterValue;
