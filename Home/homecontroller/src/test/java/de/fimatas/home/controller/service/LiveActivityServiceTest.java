@@ -37,6 +37,9 @@ class LiveActivityServiceTest {
     @Captor
     private ArgumentCaptor<Map<String, Object>> argCaptorValueMap;
 
+    @Captor
+    private ArgumentCaptor<Boolean> argCaptorHighPriority;
+
     @BeforeEach
     public void setup(){
         LiveActivityDAO.getInstance().getActiveLiveActivities().clear();
@@ -46,13 +49,13 @@ class LiveActivityServiceTest {
     void testStart() {
         ModelObjectDAO.getInstance().write(houseModelWithElectricGridValue(100));
         liveActivityService.start("test", "user", "device");
-        //liveActivityService.newModel(houseModelWithElectricGridValue(1000));
 
         verify(pushService, times(1))
-                .sendLiveActivityToApns(eq("test"), eq(true), eq(false), argCaptorValueMap.capture());
+                .sendLiveActivityToApns(eq("test"), argCaptorHighPriority.capture(), eq(false), argCaptorValueMap.capture());
 
         assertNotNull(argCaptorValueMap.getValue());
         assertNotNull(argCaptorValueMap.getValue().get("timestamp"));
+        assertTrue(getSinglePriorityHigh(0));
         assertEquals("100W", getSingleVal(0, "primary", "val"));
         assertEquals(".orange", getSingleVal(0, "primary", "color"));
         assertEquals("0,1", getSingleVal(0, "primary", "valShort"));
@@ -68,9 +71,11 @@ class LiveActivityServiceTest {
         liveActivityService.newModel(houseModelWithElectricGridValue(1000));
 
         verify(pushService, times(2))
-                .sendLiveActivityToApns(eq("test"), eq(true), eq(false), argCaptorValueMap.capture());
+                .sendLiveActivityToApns(eq("test"), argCaptorHighPriority.capture(), eq(false), argCaptorValueMap.capture());
 
+        assertTrue(getSinglePriorityHigh(0));
         assertEquals("100W", getSingleVal(0, "primary", "val"));
+        assertTrue(getSinglePriorityHigh(1));
         assertEquals("1000W", getSingleVal(1, "primary", "val"));
     }
 
@@ -82,8 +87,9 @@ class LiveActivityServiceTest {
         liveActivityService.newModel(houseModelWithElectricGridValue(500));
 
         verify(pushService, times(1))
-                .sendLiveActivityToApns(eq("test"), eq(true), eq(false), argCaptorValueMap.capture());
+                .sendLiveActivityToApns(eq("test"), argCaptorHighPriority.capture(), eq(false), argCaptorValueMap.capture());
 
+        assertTrue(getSinglePriorityHigh(0));
         assertEquals("500W", getSingleVal(0, "primary", "val"));
     }
 
@@ -96,10 +102,15 @@ class LiveActivityServiceTest {
         liveActivityService.newModel(houseModelWithElectricGridValue(490));
         liveActivityService.newModel(houseModelWithElectricGridValue(500));
 
-        verify(pushService, times(1))
-                .sendLiveActivityToApns(eq("test"), eq(true), eq(false), argCaptorValueMap.capture());
+        verify(pushService, times(3))
+                .sendLiveActivityToApns(eq("test"), argCaptorHighPriority.capture(), eq(false), argCaptorValueMap.capture());
 
+        assertTrue(getSinglePriorityHigh(0));
         assertEquals("500W", getSingleVal(0, "primary", "val"));
+        assertFalse(getSinglePriorityHigh(1));
+        assertEquals("510W", getSingleVal(1, "primary", "val"));
+        assertFalse(getSinglePriorityHigh(2));
+        assertEquals("490W", getSingleVal(2, "primary", "val"));
     }
 
     @Test
@@ -110,17 +121,27 @@ class LiveActivityServiceTest {
         liveActivityService.newModel(houseModelWithElectricGridValue(-2));
 
         verify(pushService, times(2))
-                .sendLiveActivityToApns(eq("test"), eq(true), eq(false), argCaptorValueMap.capture());
+                .sendLiveActivityToApns(eq("test"), argCaptorHighPriority.capture(), eq(false), argCaptorValueMap.capture());
 
+        assertTrue(getSinglePriorityHigh(0));
         assertEquals("5W", getSingleVal(0, "primary", "val"));
         assertEquals(".orange", getSingleVal(0, "primary", "color"));
+        assertTrue(getSinglePriorityHigh(1));
         assertEquals("2W", getSingleVal(1, "primary", "val"));
         assertEquals(".green", getSingleVal(1, "primary", "color"));
     }
 
-    private Object getSingleVal(int number, String mapName, String name) {
+    // FIXME: Priorities
+
+    // FIXME: Two values
+
+    private boolean getSinglePriorityHigh(int number) {
+        return argCaptorHighPriority.getAllValues().get(number);
+    }
+
+    private String getSingleVal(int number, String mapName, String name) {
         //noinspection unchecked
-        return ((Map<String, Object>) argCaptorValueMap.getAllValues().get(number).get(mapName)).get(name);
+        return (String)((Map<String, Object>) argCaptorValueMap.getAllValues().get(number).get(mapName)).get(name);
     }
 
     private HouseModel houseModelWithElectricGridValue(int value) {
