@@ -31,46 +31,16 @@ public class LiveActivityService {
     @Autowired
     private PushService pushService;
 
-    private int low = 0;// FIXME
-
-    private int high = 0;// FIXME
-
-    private int ignore = 0;// FIXME
-
-    private int sent = 0;// FIXME
-
     private static final Integer DISMISS_SECONDS = 600;
 
-    private static final int MAX_UPDATES = 3000;
-
-    @Scheduled(cron = "0 * 9-16 * * *") // FIXME
-    public void testCounts() {
-        LiveActivityModel liveActivity = new LiveActivityModel();
-        liveActivity.setToken("test");
-        liveActivity.setLiveActivityType(LiveActivityType.ELECTRICITY);
-        List<MessagePriority> messagePriorityList = new ArrayList<>();
-        messagePriorityList.addAll(processNewModelForSingleUser(ModelObjectDAO.getInstance().readHouseModel(), liveActivity));
-        messagePriorityList.addAll(processNewModelForSingleUser(ModelObjectDAO.getInstance().readElectricVehicleModel(), liveActivity));
-        sendToApns(liveActivity.getToken(), MessagePriority.getHighestPriority(messagePriorityList));
-    }
-
-    @Scheduled(cron = "0 1 17 * * *") // FIXME
-    public void testCountsReset() {
-        log.warn("LIVE-ACTIVITY: SENT = " + sent + ", IGNORE = " + ignore + ", LOW = " + low + ", HIGH = " + high);
-        low = 0;
-        high = 0;
-        ignore = 0;
-        sent = 0;
-    }
+    private static final int MAX_UPDATES = 2500;
 
     @Async
     public void newModel(Object object) {
         LiveActivityDAO.getInstance().getActiveLiveActivities().forEach((token, liveActivity) -> {
-            if(token.equalsIgnoreCase("test")) { // FIXME
-                synchronized (LiveActivityDAO.getInstance().getActiveLiveActivities().get(token)){
-                    List<MessagePriority> messagePriorityList = processNewModelForSingleUser(object, liveActivity);
-                    sendToApns(liveActivity.getToken(), MessagePriority.getHighestPriority(messagePriorityList));
-                }
+            synchronized (LiveActivityDAO.getInstance().getActiveLiveActivities().get(token)){
+                List<MessagePriority> messagePriorityList = processNewModelForSingleUser(object, liveActivity);
+                sendToApns(liveActivity.getToken(), MessagePriority.getHighestPriority(messagePriorityList));
             }
         });
     }
@@ -91,7 +61,8 @@ public class LiveActivityService {
     }
 
     private MessagePriority processValue(FieldValue fieldValue, LiveActivityModel liveActivityModel) {
-        if(fieldValue == null){
+        if(fieldValue.getValue() == null){
+            liveActivityModel.getActualValues().remove(fieldValue.getField());
             return MessagePriority.IGNORE;
         }
         liveActivityModel.getActualValues().put(fieldValue.getField(), fieldValue.getValue());
@@ -99,15 +70,16 @@ public class LiveActivityService {
     }
 
     private FieldValue valueElectricGrid(HouseModel houseModel) {
-        return houseModel.getGridElectricalPower() != null && houseModel.getGridElectricalPower().getActualConsumption() != null ?
-                new FieldValue(houseModel.getGridElectricalPower().getActualConsumption().getValue(), LiveActivityField.ELECTRIC_GRID) : null;
+        return new FieldValue(houseModel.getGridElectricalPower() != null
+                && houseModel.getGridElectricalPower().getActualConsumption() != null ?
+                houseModel.getGridElectricalPower().getActualConsumption().getValue() : null, LiveActivityField.ELECTRIC_GRID);
     }
 
     private FieldValue valueElectricVehicle(ElectricVehicleModel electricVehicleModel) {
         return electricVehicleModel.getEvMap().values().stream()
             .filter(evs -> evs.isActiveCharging() && evs.isConnectedToWallbox()).findFirst()
                 .map(evs -> new FieldValue(new BigDecimal(ViewFormatterUtils.calculateViewPercentageEv(evs)), LiveActivityField.EV_CHARGE))
-                .orElse(null);
+                .orElse(new FieldValue(null, LiveActivityField.EV_CHARGE));
     }
 
     private MessagePriority calculateValueChangeEvaluation(FieldValue fieldValue, LiveActivityModel model) {
@@ -173,34 +145,22 @@ public class LiveActivityService {
 
     private void sendToApns(String token, MessagePriority messagePriority) {
 
-        // FIXME
         if (messagePriority == MessagePriority.IGNORE) {
-            ignore++;
-        } else if (messagePriority == MessagePriority.LOW_PRIORITY) {
-            low++;
-        } else if (messagePriority == MessagePriority.HIGH_PRIORITY) {
-            high++;
+            return;
         }
 
-        if(token.equalsIgnoreCase("test")){ // FIXME
+        LiveActivityModel liveActivityModel = LiveActivityDAO.getInstance().getActiveLiveActivities().get(token);
+        liveActivityModel.setUpdateCounter(liveActivityModel.getUpdateCounter() +1);
+        if(liveActivityModel.getUpdateCounter() > MAX_UPDATES){
+            return;
+        }
 
-            if (messagePriority == MessagePriority.IGNORE) {
-                return;
-            }
+        boolean highPriority = messagePriority == MessagePriority.HIGH_PRIORITY;
+        //noinspection UnnecessaryUnicodeEscape
+        pushService.sendLiveActivityToApns(token, highPriority, false, buildContentStateMap(token, true));
 
-            LiveActivityModel liveActivityModel = LiveActivityDAO.getInstance().getActiveLiveActivities().get(token);
-            liveActivityModel.setUpdateCounter(liveActivityModel.getUpdateCounter() +1);
-            if(liveActivityModel.getUpdateCounter() > MAX_UPDATES){
-                return;
-            }
-
-            boolean highPriority = messagePriority == MessagePriority.HIGH_PRIORITY;
-            //noinspection UnnecessaryUnicodeEscape
-            pushService.sendLiveActivityToApns(token, highPriority, false, buildContentStateMap(token, true));
-
-            if (messagePriority == MessagePriority.HIGH_PRIORITY) {
-                liveActivityModel.shiftValuesToSentWithHighPriotity();
-            }
+        if (messagePriority == MessagePriority.HIGH_PRIORITY) {
+            liveActivityModel.shiftValuesToSentWithHighPriotity();
         }
     }
 

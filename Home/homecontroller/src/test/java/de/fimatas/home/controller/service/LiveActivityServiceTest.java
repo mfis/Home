@@ -56,7 +56,7 @@ class LiveActivityServiceTest {
         assertNotNull(argCaptorValueMap.getValue());
         assertNotNull(argCaptorValueMap.getValue().get("timestamp"));
         assertTrue(getSinglePriorityHigh(0));
-        assertEquals("100W", getSingleVal(0, "primary", "val"));
+        assertEquals("100 W", getSingleVal(0, "primary", "val"));
         assertEquals(".orange", getSingleVal(0, "primary", "color"));
         assertEquals("0,1", getSingleVal(0, "primary", "valShort"));
         assertEquals("energygrid", getSingleVal(0, "primary", "symbolName"));
@@ -74,9 +74,9 @@ class LiveActivityServiceTest {
                 .sendLiveActivityToApns(eq("test"), argCaptorHighPriority.capture(), eq(false), argCaptorValueMap.capture());
 
         assertTrue(getSinglePriorityHigh(0));
-        assertEquals("100W", getSingleVal(0, "primary", "val"));
+        assertEquals("100 W", getSingleVal(0, "primary", "val"));
         assertTrue(getSinglePriorityHigh(1));
-        assertEquals("1000W", getSingleVal(1, "primary", "val"));
+        assertEquals("1000 W", getSingleVal(1, "primary", "val"));
     }
 
     @Test
@@ -90,7 +90,7 @@ class LiveActivityServiceTest {
                 .sendLiveActivityToApns(eq("test"), argCaptorHighPriority.capture(), eq(false), argCaptorValueMap.capture());
 
         assertTrue(getSinglePriorityHigh(0));
-        assertEquals("500W", getSingleVal(0, "primary", "val"));
+        assertEquals("500 W", getSingleVal(0, "primary", "val"));
     }
 
     @Test
@@ -106,11 +106,11 @@ class LiveActivityServiceTest {
                 .sendLiveActivityToApns(eq("test"), argCaptorHighPriority.capture(), eq(false), argCaptorValueMap.capture());
 
         assertTrue(getSinglePriorityHigh(0));
-        assertEquals("500W", getSingleVal(0, "primary", "val"));
+        assertEquals("500 W", getSingleVal(0, "primary", "val"));
         assertFalse(getSinglePriorityHigh(1));
-        assertEquals("510W", getSingleVal(1, "primary", "val"));
+        assertEquals("510 W", getSingleVal(1, "primary", "val"));
         assertFalse(getSinglePriorityHigh(2));
-        assertEquals("490W", getSingleVal(2, "primary", "val"));
+        assertEquals("490 W", getSingleVal(2, "primary", "val"));
     }
 
     @Test
@@ -124,10 +124,10 @@ class LiveActivityServiceTest {
                 .sendLiveActivityToApns(eq("test"), argCaptorHighPriority.capture(), eq(false), argCaptorValueMap.capture());
 
         assertTrue(getSinglePriorityHigh(0));
-        assertEquals("5W", getSingleVal(0, "primary", "val"));
+        assertEquals("5 W", getSingleVal(0, "primary", "val"));
         assertEquals(".orange", getSingleVal(0, "primary", "color"));
         assertTrue(getSinglePriorityHigh(1));
-        assertEquals("2W", getSingleVal(1, "primary", "val"));
+        assertEquals("2 W", getSingleVal(1, "primary", "val"));
         assertEquals(".green", getSingleVal(1, "primary", "color"));
     }
 
@@ -142,7 +142,7 @@ class LiveActivityServiceTest {
                 .sendLiveActivityToApns(eq("test"), argCaptorHighPriority.capture(), eq(false), argCaptorValueMap.capture());
 
         assertTrue(getSinglePriorityHigh(0));
-        assertEquals("500W", getSingleVal(0, "primary", "val"));
+        assertEquals("500 W", getSingleVal(0, "primary", "val"));
         assertEquals("", getSingleVal(0, "secondary", "val"));
     }
 
@@ -158,10 +158,10 @@ class LiveActivityServiceTest {
                 .sendLiveActivityToApns(eq("test"), argCaptorHighPriority.capture(), eq(false), argCaptorValueMap.capture());
 
         assertTrue(getSinglePriorityHigh(0));
-        assertEquals("500W", getSingleVal(0, "primary", "val"));
+        assertEquals("500 W", getSingleVal(0, "primary", "val"));
         assertEquals("45%", getSingleVal(0, "secondary", "val"));
         assertTrue(getSinglePriorityHigh(0));
-        assertEquals("500W", getSingleVal(1, "primary", "val"));
+        assertEquals("500 W", getSingleVal(1, "primary", "val"));
         assertEquals("55%", getSingleVal(1, "secondary", "val"));
     }
 

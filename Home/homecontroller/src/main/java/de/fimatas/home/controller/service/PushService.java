@@ -10,13 +10,11 @@ import com.eatthepath.pushy.apns.util.concurrent.PushNotificationFuture;
 import de.fimatas.home.controller.dao.LiveActivityDAO;
 import de.fimatas.home.controller.dao.PushMessageDAO;
 import de.fimatas.home.controller.domain.service.HouseService;
-import de.fimatas.home.controller.model.LiveActivityModel;
 import de.fimatas.home.controller.model.PushToken;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.util.HomeAppConstants;
 import de.fimatas.home.library.util.WeatherForecastConclusionTextFormatter;
-import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -32,7 +30,6 @@ import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.*;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -263,10 +260,6 @@ public class PushService {
     }
 
     public void sendLiveActivityToApns(String pushToken, boolean highPriority, boolean isEnd, Map<String, Object> contentState) {
-
-        if(pushToken.equalsIgnoreCase("test")) { // FIXME
-            return;
-        }
 
         Instant instantNow = LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant();
 
