@@ -33,16 +33,21 @@ public class UploadService {
     @Value("${application.homeAdapterEnabled:false}")
     private boolean homeAdapterEnabled;
 
+    @Value("${application.homeClientEnabled:false}")
+    private boolean homeClientEnabled;
+
     private final Map<String, Long> resourceNotAvailableCounter = new HashMap<>();
 
     @PostConstruct
     public void init() {
-        log.info("homeAdapterEnabled=" + homeAdapterEnabled);
+        log.info("homeAdapterEnabled=" + homeAdapterEnabled + ", homeClientEnabled=" + homeClientEnabled);
     }
 
     public void uploadToClient(Object object) {
-        String host = env.getProperty("client.hostName");
-        uploadBinaryToClient(host + "/upload" + object.getClass().getSimpleName(), object, true);
+        if(homeClientEnabled){
+            String host = env.getProperty("client.hostName");
+            uploadBinaryToClient(host + "/upload" + object.getClass().getSimpleName(), object, true);
+        }
     }
 
     @Async

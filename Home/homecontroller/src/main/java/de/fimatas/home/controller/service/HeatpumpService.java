@@ -12,6 +12,7 @@ import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -51,6 +52,9 @@ public class HeatpumpService {
 
     @Autowired
     private Environment env;
+
+    @Value("${application.externalServicesEnabled:false}")
+    private boolean externalServicesEnabled;
 
     private boolean isCallError = false; // prevent continous error calls
 
@@ -116,6 +120,10 @@ public class HeatpumpService {
     }
 
     private synchronized void refreshHeatpumpModel(boolean cachedData) {
+
+        if(!externalServicesEnabled){
+            return;
+        }
 
         if(!cachedData && isCallError){
             return;
