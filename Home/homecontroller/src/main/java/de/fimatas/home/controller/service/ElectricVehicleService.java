@@ -90,6 +90,10 @@ public class ElectricVehicleService {
 
     public void refreshModel() {
 
+        if(evChargingDAO.isSetupIsRunning()){
+            return;
+        }
+
         final List<State> states = stateHandlerDAO.readStates(STATEHANDLER_GROUPNAME_BATTERY);
 
         var newModel = new ElectricVehicleModel();

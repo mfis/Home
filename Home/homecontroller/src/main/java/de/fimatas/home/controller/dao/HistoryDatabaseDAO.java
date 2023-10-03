@@ -91,7 +91,7 @@ public class HistoryDatabaseDAO {
     public void persistEntries(Map<HomematicCommand, List<TimestampValuePair>> toInsert) {
 
         if (setupIsRunning) {
-            throw new IllegalStateException("connat persist entries - setup is still running");
+            throw new IllegalStateException("cannot persist entries - setup is still running");
         }
 
         for (Entry<HomematicCommand, List<TimestampValuePair>> entry : toInsert.entrySet()) {

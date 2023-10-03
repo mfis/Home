@@ -1,5 +1,6 @@
 package de.fimatas.home.controller.dao;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.util.Properties;
 
@@ -18,5 +19,13 @@ public class DaoUtils {
             throw new IllegalStateException("Properties could not be loaded", e);
         }
         return properties;
+    }
+
+    public static String getConfigRoot(){
+        if(new File("/opt/homecontroller").exists()){
+            return "/opt/homecontroller/";
+        }else{
+            return System.getProperty("user.home") + "/documents/config/homecontroller/";
+        }
     }
 }

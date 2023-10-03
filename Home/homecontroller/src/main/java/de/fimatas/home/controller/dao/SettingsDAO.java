@@ -15,7 +15,7 @@ import javax.annotation.PreDestroy;
 
 public class SettingsDAO {
 
-    public static final String PATH = System.getProperty("user.home") + "/documents/config/homecontrolleruser.properties";
+    public static final String PATH = DaoUtils.getConfigRoot() + "homecontrolleruser.properties";
     private static SettingsDAO instance;
 
     private Properties properties;

@@ -9,7 +9,7 @@ import java.util.Properties;
 
 public class TokenDAO {
 
-    public static final String PATH = System.getProperty("user.home") + "/documents/config/homecontrollertoken.properties";
+    public static final String PATH = DaoUtils.getConfigRoot() + "homecontrollertoken.properties";
     private static TokenDAO instance;
 
     private final Properties properties;

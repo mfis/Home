@@ -119,7 +119,7 @@
 				</configuration>
 			</plugin>
 		</plugins>
-		<finalName>HomeController</finalName>
+		<finalName>homecontroller</finalName>
 	</build>
 
 </project>

@@ -69,8 +69,33 @@ public class BackupService {
 
     private static final Log LOG = LogFactory.getLog(BackupService.class);
 
+    private int restoreRunCounter = 0;
+
     @PostConstruct
+    public void noRestore() {
+
+        long completeCount = historyDatabaseDAO.getCountOnStartup();
+
+        if(completeCount == -1) {
+            LOG.warn("!! COULD NOT CHECK DATABASE ROW COUNT");
+        } else if (completeCount > 0) {
+            LOG.info("database row count: " + completeCount);
+            historyDatabaseDAO.completeInit();
+            evChargingDAO.completeInit();
+            pushMessageDAO.completeInit();
+            stateHandlerDAO.completeInit();
+            restoreRunCounter++;
+        } else {
+            // waiting for restoreTables() ...
+        }
+    }
+
+    @Scheduled(initialDelay = 30_000L, fixedDelay=Long.MAX_VALUE)
     public void restoreTables() throws IOException {
+
+        if(restoreRunCounter > 0){
+            return;
+        }
 
         long completeCount = historyDatabaseDAO.getCountOnStartup();
 
@@ -95,6 +120,8 @@ public class BackupService {
         evChargingDAO.completeInit();
         pushMessageDAO.completeInit();
         stateHandlerDAO.completeInit();
+
+        restoreRunCounter++;
     }
 
     @PreDestroy

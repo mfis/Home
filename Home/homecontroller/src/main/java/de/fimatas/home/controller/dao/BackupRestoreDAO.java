@@ -1,10 +1,12 @@
 package de.fimatas.home.controller.dao;
 
 import de.fimatas.home.controller.database.mapper.*;
+import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,12 +17,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 @Repository
+@CommonsLog
 public class BackupRestoreDAO {
 
     @Autowired
@@ -74,9 +78,25 @@ public class BackupRestoreDAO {
         }
 
         StringTokenizer tokenizer = new StringTokenizer(sb.toString(), ";");
+        int statemantsExecuted = 0;
         while (tokenizer.hasMoreTokens()) {
-            jdbcTemplate.update(tokenizer.nextToken().trim() + ";");
+            var actualStatement = tokenizer.nextToken().trim();
+            var tableExisting = true;
+            if(actualStatement.startsWith("INSERT")){
+                var tableName = StringUtils.substringBetween(actualStatement, "INTO", "VALUES").trim();
+                try {
+                    final Map<String, Object> stringObjectMap = jdbcTemplate.queryForMap("select count(*) FROM " + tableName + ";");
+                }catch (BadSqlGrammarException e){
+                    tableExisting = false;
+                    log.warn("DB-Import - Table not existing: " + tableName);
+                }
+            }
+            if(tableExisting){
+                jdbcTemplate.update(actualStatement + ";");
+                statemantsExecuted++;
+            }
         }
+        log.info("DB-Import - Statemens executed: " + statemantsExecuted);
     }
 
     private boolean isNotCreateOrAlterStatement(String line) {

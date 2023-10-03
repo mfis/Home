@@ -6,6 +6,7 @@ import de.fimatas.home.controller.model.EvChargeDatabaseEntry;
 import de.fimatas.home.controller.service.*;
 import de.fimatas.home.library.domain.model.ElectricVehicle;
 import de.fimatas.home.library.domain.model.EvChargePoint;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -54,6 +55,11 @@ class EvChargingDAOTest {
 
     @MockBean
     private PushService pushService;
+
+    @BeforeEach
+    public void beforeEach(){
+        evChargingDAO.completeInit();
+    }
 
     @Test
     void testSimpleWriteRead(){

@@ -6,6 +6,7 @@ import de.fimatas.home.controller.model.EvChargeDatabaseEntry;
 import de.fimatas.home.controller.service.UniqueTimestampService;
 import de.fimatas.home.library.domain.model.ElectricVehicle;
 import de.fimatas.home.library.domain.model.EvChargePoint;
+import lombok.Getter;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -33,6 +34,7 @@ public class EvChargingDAO {
     @Autowired
     private UniqueTimestampService uniqueTimestampService;
 
+    @Getter
     private boolean setupIsRunning = true;
 
     public void completeInit(){

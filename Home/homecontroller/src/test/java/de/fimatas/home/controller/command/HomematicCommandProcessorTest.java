@@ -35,7 +35,7 @@ public class HomematicCommandProcessorTest {
     @Test
     public void testBuildCommandReadDeviceDatapoint() throws Exception {
         assertThat(processor.buildCommand(homematicCommandBuilder.read(Device.STROMZAEHLER_BEZUG, Datapoint.IEC_POWER)),
-            is("var VAR_BIDCOS_RF_<ID>_99_POWER = datapoints.Get('BidCos-RF.<ID>:99.POWER').Value();"));
+            is("var VAR_BIDCOS_RF_<ID>_99_IEC_POWER = datapoints.Get('BidCos-RF.<ID>:99.IEC_POWER').Value();"));
     }
 
     @Test
@@ -47,7 +47,7 @@ public class HomematicCommandProcessorTest {
     @Test
     public void testBuildCommandReadDeviceSuffix() throws Exception {
         assertThat(processor.buildCommand(homematicCommandBuilder.read(Device.STROMZAEHLER_BEZUG, "SUFFIX")),
-            is("var VAR_STROMHAUSSUFFIX = dom.GetObject('StromHausSUFFIX').Value();"));
+            is("var VAR_STROMBEZUGHAUSSUFFIX = dom.GetObject('StrombezugHausSUFFIX').Value();"));
     }
 
     @Test
@@ -59,20 +59,20 @@ public class HomematicCommandProcessorTest {
     @Test
     public void testBuildCommandReadTSDeviceDatapoint() throws Exception {
         assertThat(processor.buildCommand(homematicCommandBuilder.readTS(Device.STROMZAEHLER_BEZUG, Datapoint.IEC_POWER)),
-            is("var VAR_BIDCOS_RF_<ID>_99_POWER_TS = datapoints.Get('BidCos-RF.<ID>:99.POWER').Timestamp();"));
+            is("var VAR_BIDCOS_RF_<ID>_99_IEC_POWER_TS = datapoints.Get('BidCos-RF.<ID>:99.IEC_POWER').Timestamp();"));
     }
 
     @Test
     public void testBuildCommandWriteDeviceDatapointBoolean() throws Exception {
         assertThat(processor.buildCommand(homematicCommandBuilder.write(Device.STROMZAEHLER_BEZUG, Datapoint.IEC_POWER, true)),
-            is("var RC_BIDCOS_RF_<ID>_99_POWER = datapoints.Get('BidCos-RF.<ID>:99.POWER').State(true);"));
+            is("var RC_BIDCOS_RF_<ID>_99_IEC_POWER = datapoints.Get('BidCos-RF.<ID>:99.IEC_POWER').State(true);"));
     }
 
     @Test
     public void testBuildCommandWriteDeviceDatapointString() throws Exception {
         assertThat(
             processor.buildCommand(homematicCommandBuilder.write(Device.STROMZAEHLER_BEZUG, Datapoint.IEC_POWER, "NEWVALUE")),
-            is("var RC_BIDCOS_RF_<ID>_99_POWER = datapoints.Get('BidCos-RF.<ID>:99.POWER').State('NEWVALUE');"));
+            is("var RC_BIDCOS_RF_<ID>_99_IEC_POWER = datapoints.Get('BidCos-RF.<ID>:99.IEC_POWER').State('NEWVALUE');"));
     }
 
     @Test
@@ -85,13 +85,13 @@ public class HomematicCommandProcessorTest {
     @Test
     public void testBuildCommandWriteDeviceSuffixBoolean() throws Exception {
         assertThat(processor.buildCommand(homematicCommandBuilder.write(Device.STROMZAEHLER_BEZUG, "SUFFIX", true)),
-            is("var RC_STROMHAUSSUFFIX = dom.GetObject('StromHausSUFFIX').State(true);"));
+            is("var RC_STROMBEZUGHAUSSUFFIX = dom.GetObject('StrombezugHausSUFFIX').State(true);"));
     }
 
     @Test
     public void testBuildCommandWriteDeviceSuffixString() throws Exception {
         assertThat(processor.buildCommand(homematicCommandBuilder.write(Device.STROMZAEHLER_BEZUG, "SUFFIX", "NEWVALUE")),
-            is("var RC_STROMHAUSSUFFIX = dom.GetObject('StromHausSUFFIX').State('NEWVALUE');"));
+            is("var RC_STROMBEZUGHAUSSUFFIX = dom.GetObject('StrombezugHausSUFFIX').State('NEWVALUE');"));
     }
 
     @Test
@@ -103,7 +103,7 @@ public class HomematicCommandProcessorTest {
     @Test
     public void testBuildCommandExecDeviceSuffix() throws Exception {
         assertThat(processor.buildCommand(homematicCommandBuilder.exec(Device.STROMZAEHLER_BEZUG, "SUFFIX")),
-            is("var RC_STROMHAUSSUFFIX = dom.GetObject('StromHausSUFFIX').ProgramExecute();"));
+            is("var RC_STROMBEZUGHAUSSUFFIX = dom.GetObject('StrombezugHausSUFFIX').ProgramExecute();"));
     }
 
     @Test
