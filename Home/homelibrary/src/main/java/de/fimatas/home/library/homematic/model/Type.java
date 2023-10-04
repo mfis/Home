@@ -15,6 +15,7 @@ public enum Type {
     SWITCH_WINDOWLIGHT("Schalter Fensterlicht", "Fensterlicht", false, true), //
     SWITCH_FRONTDOOR_CAMERA("Schalter Kamera", "Kamera", false, true), //
     SWITCH_VENTILATION("Schalter Lüftung", "Lüftung", false, true), //
+    SWITCH_INFRARED_HEATING("Schalter Infrarotheizung", "Infrarotheizung", false, true), //
     DOORBELL("Türklingel", null, true, true), //
     DOORLOCK("Türschloss", null, true, true), //
     SWITCH_WALLBOX("Schalter", null, false, true), //

@@ -129,6 +129,7 @@ public class HouseViewService {
 
         formatSwitch(model, "switchKitchen", house.getKitchenWindowLightSwitch());
         formatSwitch(model, "switchWorkshopVentilation", house.getWorkshopVentilationSwitch());
+        formatSwitch(model, "infraredHeaterGuestroom", house.getGuestRoomInfraredHeater());
 
         formatFrontDoorBell(model, "frontDoor", house.getFrontDoorBell(), house.getFrontDoorCamera());
         formatFrontDoorLock(model, "frontDoorLock", house.getFrontDoorLock());
@@ -1061,6 +1062,8 @@ public class HouseViewService {
             view.setIcon("fas fa-fan");
         } else if (isLightSwitch(switchModel.getDevice())) {
             view.setIcon(switchModel.isState() ? "fas fa-lightbulb" : "far fa-lightbulb");
+        } else if (isHeatingSwitch(switchModel.getDevice())) {
+            view.setIcon("fab fa-hotjar");
         } else {
             view.setIcon(switchModel.isState() ? "fas fa-toggle-on" : "fas fa-toggle-off");
         }
@@ -1107,9 +1110,13 @@ public class HouseViewService {
     }
 
     private boolean isLightSwitch(Device device) {
-
         String name = device.getType().getTypeName();
         return StringUtils.containsIgnoreCase(name, "licht") || StringUtils.containsIgnoreCase(name, "lampe");
+    }
+
+    private boolean isHeatingSwitch(Device device) {
+        String name = device.getType().getTypeName();
+        return StringUtils.containsIgnoreCase(name, "heizung");
     }
 
     @SuppressWarnings("unused")

@@ -70,6 +70,9 @@ public enum Device {
     SCHALTER_WERKSTATT_LUEFTUNG(HomematicProtocol.HMIP, Type.SWITCH_VENTILATION, Place.WORKSHOP, true, Datapoint.LIST_SWITCH_HM,
         Type.VAR_PREFIXES_SWITCH_AUTO, Boolean.class, AutomationState.class), //
 
+    SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG(HomematicProtocol.HMIP, Type.SWITCH_INFRARED_HEATING, Place.GUESTROOM, true, Datapoint.LIST_SWITCH_HM,
+            Type.VAR_PREFIXES_SWITCH_AUTO, Boolean.class, AutomationState.class), //
+
     FENSTERSENSOR_GAESTEZIMMER(HomematicProtocol.HMIP, Type.WINDOW_SENSOR, Place.GUESTROOM, false, Datapoint.LIST_WINDOW_SENSOR,
         Type.VAR_PREFIXES_TIMESTAMP),
 

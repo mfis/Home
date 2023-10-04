@@ -53,6 +53,8 @@ public class HouseModel implements Serializable {
 
     private WindowSensor guestRoomWindowSensor;
 
+    private Switch guestRoomInfraredHeater;
+
     private WindowSensor workshopWindowSensor;
 
     @EnableHomekit(accessoryId = 1009)
