@@ -420,20 +420,20 @@
 			<nav id="navbar" class="navbar fixed-top navbar-expand-lg navbar-light py-1" style="border-bottom: 2px solid rgb(119,119,119);">
 				
 				<a class="navbar-brand" href="#">
-					<span><th:block th:replace="basics :: symbol (name=${selected.icon})"/></span>
+					<span><th:block th:replace="~{basics :: symbol (name=${selected.icon})}"/></span>
 					<span style="letter-spacing: 2px;" th:text="${selected.name}"></span>
 				</a>
 				<a id="statusline" class="text-muted font-weight-light ml-auto" style="font-size: 85%; margin-right:15px">
 					<span id="idHeaderStatusText" th:text="${status}"></span>
-					<span style="display:inline;" id="navbarcheck"><th:block th:replace="basics :: symbol (name='far fa-check-circle')"/></span>
-					<span style="display:none;" id="navbaroffline"><th:block th:replace="basics :: symbol (name='fas fa-exclamation-triangle text-danger')"/></span>
-					<span style="display:none;" id="navbarstop"><th:block th:replace="basics :: symbol (name='far fa-stop-circle text-warning')"/></span>
+					<span style="display:inline;" id="navbarcheck"><th:block th:replace="~{basics :: symbol (name='far fa-check-circle')}"/></span>
+					<span style="display:none;" id="navbaroffline"><th:block th:replace="~{basics :: symbol (name='fas fa-exclamation-triangle text-danger')}"/></span>
+					<span style="display:none;" id="navbarstop"><th:block th:replace="~{basics :: symbol (name='far fa-stop-circle text-warning')}"/></span>
 				</a>
 				<button class="navbar-toggler" type="button" data-toggle="collapse"
 					data-target="#navbarSupportedContent"
 					aria-controls="navbarSupportedContent" aria-expanded="false"
 					aria-label="Toggle navigation">
-					<span id="navbartoggle" class="navbar-toggler-icon-"><th:block th:replace="basics :: symbol (name='fas fa-bars')"/></span>
+					<span id="navbartoggle" class="navbar-toggler-icon-"><th:block th:replace="~{basics :: symbol (name='fas fa-bars')}"/></span>
 				</button>
 				<div class="collapse navbar-collapse" id="navbarSupportedContent">
 					<ul class="navbar-nav ml-auto">
@@ -457,9 +457,9 @@
 		      </div>
 		      <div class="modal-body">
 		      	<span><a>Anzeige der Differenz der absoluten Luftfeuchtigkeit dieses Raumes im Vergleich zu Draußen unter Berücksichtigung der jeweiligen Temperatur.<br/><br/></a></span>
-		      	<span><a><th:block th:replace="basics :: symbol (name='fas fa-tint')"/></a></span>
+		      	<span><a><th:block th:replace="~{basics :: symbol (name='fas fa-tint')}"/></a></span>
 		      	<span><a> - Höhere Raum-Luftfeuchtigkeit. Lüften würde den Wert verringern.<br/><br/></a></span>
-		      	<span><a><th:block th:replace="basics :: symbol (name='fas fa-tint-slash')"/></a></span>
+		      	<span><a><th:block th:replace="~{basics :: symbol (name='fas fa-tint-slash')}"/></a></span>
 		      	<span><a> - Niedrigere Raum-Luftfeuchtigkeit. Lüften würde den Wert erhöhen.<br/></a></span>
 		      </div>
 		    </div>

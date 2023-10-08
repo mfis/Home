@@ -14,7 +14,7 @@
 	<div th:fragment="elementname (icon, name, place, unreach)">
 		<div>
 			<a>
-				<span th:if="${!#strings.isEmpty(icon)}"><th:block th:replace="basics :: symbol (name=${icon})"/></span>		
+				<span th:if="${!#strings.isEmpty(icon)}"><th:block th:replace="~{basics :: symbol (name=${icon})}"/></span>
 				<span th:text="${name}"></span>
 				<span th:if="${#strings.startsWith(unreach, 'true')}" class="text-danger">&nbsp;- Aktualisierung ausstehend</span>
 			</a>
@@ -27,17 +27,17 @@
 			<a>
 				<span th:if="${!#strings.startsWith(unreach, 'true')}" th:id="${collapseLink} + 'ElementTitleState'" th:text="${elementTitleState}"></span>
 				<span th:if="${!#strings.isEmpty(collapseLink)}" style="display:inline; padding-left: 8px;" th:id="${collapseLink} + 'SymbolDown'">
-					<th:block th:replace="basics :: symbol (name='fas fa-chevron-circle-down')"/>
+					<th:block th:replace="~{basics :: symbol (name='fas fa-chevron-circle-down')}"/>
 				</span>
 				<span th:if="${!#strings.isEmpty(collapseLink)}" style="display:none; padding-left: 8px;" th:id="${collapseLink} + 'SymbolUp'">
-					<th:block th:replace="basics :: symbol (name='fas fa-chevron-circle-up')"/>
+					<th:block th:replace="~{basics :: symbol (name='fas fa-chevron-circle-up')}"/>
 				</span>
 			</a>			
 		</div>		
 		<div>
 			<a>
 				<span th:unless="${#strings.endsWith(icon, '.png')}">
-					<th:block th:replace="basics :: symbol (name=${icon})"/>
+					<th:block th:replace="~{basics :: symbol (name=${icon})}"/>
 					<span th:utext="'&hairsp;'"></span>
 				</span>
 				<span th:if="${#strings.endsWith(icon, '.png')}">
@@ -53,7 +53,7 @@
 
 	<!-- WindowSensor -->
 	<div th:fragment="windowsensor (model)" th:class="'alert alert-secondary callout callout-' + ${model.colorClass}">
-		<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState}, colorClass=${model.colorClass})"></div>
+		<div th:replace="~{fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState}, colorClass=${model.colorClass})}"></div>
 		<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
 			<h4><span th:text="${model.state}"></span><span th:text="${model.stateSuffix}" style="font-size: 80%;"></span></h4>
 		</div>
@@ -61,35 +61,35 @@
 
 	<!-- Switch -->
 	<div th:fragment="switch (model)" th:class="'alert alert-secondary callout callout-' + ${model.colorClass}">
-		<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState}, colorClass=${model.colorClass})"></div>
+		<div th:replace="~{fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState}, colorClass=${model.colorClass})}"></div>
 		<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
 			<h4><span th:text="${model.state}"></span><span th:text="${model.stateSuffix}" style="font-size: 80%;"></span></h4>
-			<div th:replace="fragments :: switchControls (model=${model})"></div>
+			<div th:replace="~{fragments :: switchControls (model=${model})}"></div>
 		</div>
 	</div>
 
 	<!-- wallbox-->
 	<div th:fragment="wallbox (modelMeter, modelSwitch)" th:class="'alert alert-' + ${modelSwitch.colorClass} + ' callout callout-' + ${modelSwitch.colorClass}">
-		<div th:replace="fragments :: elementnameCollapsable (icon=${modelMeter.icon}, name=${modelMeter.place}, place='', unreach=${modelSwitch.unreach}, collapseLink='collapse' + ${modelSwitch.id}, elementTitleState=${modelMeter.elementTitleState}, colorClass=${modelMeter.colorClass})"></div>
+		<div th:replace="~{fragments :: elementnameCollapsable (icon=${modelMeter.icon}, name=${modelMeter.place}, place='', unreach=${modelSwitch.unreach}, collapseLink='collapse' + ${modelSwitch.id}, elementTitleState=${modelMeter.elementTitleState}, colorClass=${modelMeter.colorClass})}"></div>
 		<div class="collapse collapse-preserve-state" th:id="'collapse' + ${modelSwitch.id}">
 			<th:block th:unless="${#strings.equals(modelSwitch.unreach, 'true')}">
 				<h4>
 					<span th:text="${modelMeter.state}"></span>
-					<th:block th:replace="fragments :: tendency (icon=${modelMeter.tendencyIcon})"></th:block>
+					<th:block th:replace="~{fragments :: tendency (icon=${modelMeter.tendencyIcon})}"></th:block>
 					<th:block th:if="${modelMeter.todayConsumption != null}">
 						<span th:utext="'&nbsp;&ndash;&nbsp;'"></span>
 						<span class="mb-1" th:text="${modelMeter.todayConsumption.label}">Gestern</span>
 						<span class="text-muted" style="font-size: 80%;" th:text="${modelMeter.todayConsumption.additionalLabel}">Summe</span>
-						<th:block th:replace="fragments :: historyLink (key=${modelMeter.historyKey}, name=${modelMeter.name}, place=${modelMeter.place})"></th:block>
+						<th:block th:replace="~{fragments :: historyLink (key=${modelMeter.historyKey}, name=${modelMeter.name}, place=${modelMeter.place})}"></th:block>
 					</th:block>
 				</h4>
 				<h4><span th:text="${modelSwitch.state}"></span><span th:text="${modelSwitch.stateSuffix}" style="font-size: 80%;"></span></h4>
 				<!-- on/off -->
 				<div class="btn-group" role="group" aria-label="wallboxswitch">
-					<button th:if="${#strings.startsWith(modelSwitch.linkOn, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${modelSwitch.activeSwitchColorClass}"><th:block th:replace="basics :: symbol (name='fas fa-check-circle')"/></span><span>&nbsp;</span></button>
-					<button th:if="${#strings.startsWith(modelSwitch.linkOn, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToOn' + ${modelSwitch.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-check-circle')"/></span><span>&nbsp;</span></button>
-					<button th:if="${#strings.startsWith(modelSwitch.linkOff, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${modelSwitch.activeSwitchColorClass}"><th:block th:replace="basics :: symbol (name='fas fa-power-off')"/></span><span>&nbsp;</span></button>
-					<button th:if="${#strings.startsWith(modelSwitch.linkOff, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToOff' + ${modelSwitch.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-power-off')"/></span><span>&nbsp;</span></button>
+					<button th:if="${#strings.startsWith(modelSwitch.linkOn, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${modelSwitch.activeSwitchColorClass}"><th:block th:replace="~{basics :: symbol (name='fas fa-check-circle')}"/></span><span>&nbsp;</span></button>
+					<button th:if="${#strings.startsWith(modelSwitch.linkOn, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToOn' + ${modelSwitch.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name='fas fa-check-circle')}"/></span><span>&nbsp;</span></button>
+					<button th:if="${#strings.startsWith(modelSwitch.linkOff, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${modelSwitch.activeSwitchColorClass}"><th:block th:replace="~{basics :: symbol (name='fas fa-power-off')}"/></span><span>&nbsp;</span></button>
+					<button th:if="${#strings.startsWith(modelSwitch.linkOff, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToOff' + ${modelSwitch.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name='fas fa-power-off')}"/></span><span>&nbsp;</span></button>
 				</div>
 				<input type="hidden" th:id="'val_model_linkOff_' + ${modelSwitch.id}" th:value="${modelSwitch.linkOff}">
 				<input type="hidden" th:id="'val_model_linkOn_' + ${modelSwitch.id}" th:value="${modelSwitch.linkOn}">
@@ -107,13 +107,13 @@
 					<div class="btn-group" role="group" aria-label="heating">
 						<button disabled th:if="${#strings.startsWith(modelSwitch.linkManual, '#')}" type="button" th:class="'btn btn-dark btn-sm text-' + ${modelSwitch.activeSwitchColorClass}">
 							<span>&nbsp;</span>
-							<span th:if="${#strings.isEmpty(modelSwitch.buttonCaptionManual)}"><th:block th:replace="basics :: symbol (name='fas fa-hand-paper')"/></span>
+							<span th:if="${#strings.isEmpty(modelSwitch.buttonCaptionManual)}"><th:block th:replace="~{basics :: symbol (name='fas fa-hand-paper')}"/></span>
 							<span th:if="${!#strings.isEmpty(modelSwitch.buttonCaptionManual)}"><th:block th:text="${modelSwitch.buttonCaptionManual}"/></span>
 							<span>&nbsp;</span>
 						</button>
 						<button disabled th:if="${#strings.startsWith(modelSwitch.linkManual, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToManual' + ${model.id} + '()'}">
 							<span>&nbsp;</span>
-							<span th:if="${#strings.isEmpty(modelSwitch.buttonCaptionManual)}"><th:block th:replace="basics :: symbol (name='fas fa-hand-paper')"/></span>
+							<span th:if="${#strings.isEmpty(modelSwitch.buttonCaptionManual)}"><th:block th:replace="~{basics :: symbol (name='fas fa-hand-paper')}"/></span>
 							<span th:if="${!#strings.isEmpty(modelSwitch.buttonCaptionManual)}"><th:block th:text="${modelSwitch.buttonCaptionManual}"/></span>
 							<span>&nbsp;</span>
 						</button>
@@ -148,10 +148,10 @@
 		<!-- on/off -->
 		<th:block th:unless="${#strings.equals(model.unreach, 'true')}">
 			<div class="btn-group" role="group" aria-label="heating">
-	  			<button th:if="${#strings.startsWith(model.linkOn, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${model.activeSwitchColorClass}"><th:block th:replace="basics :: symbol (name='fas fa-check-circle')"/></span><span>&nbsp;</span></button>
-	  			<button th:if="${#strings.startsWith(model.linkOn, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToOn' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-check-circle')"/></span><span>&nbsp;</span></button>
-	  			<button th:if="${#strings.startsWith(model.linkOff, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${model.activeSwitchColorClass}"><th:block th:replace="basics :: symbol (name='fas fa-power-off')"/></span><span>&nbsp;</span></button>
-	  			<button th:if="${#strings.startsWith(model.linkOff, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToOff' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-power-off')"/></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(model.linkOn, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${model.activeSwitchColorClass}"><th:block th:replace="~{basics :: symbol (name='fas fa-check-circle')}"/></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(model.linkOn, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToOn' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name='fas fa-check-circle')}"/></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(model.linkOff, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${model.activeSwitchColorClass}"><th:block th:replace="~{basics :: symbol (name='fas fa-power-off')}"/></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(model.linkOff, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToOff' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name='fas fa-power-off')}"/></span><span>&nbsp;</span></button>
 			</div>
 			<input type="hidden" th:id="'val_model_linkOff_' + ${model.id}" th:value="${model.linkOff}">
 			<input type="hidden" th:id="'val_model_linkOn_' + ${model.id}" th:value="${model.linkOn}">
@@ -171,25 +171,25 @@
 			<div class="btn-group" role="group" aria-label="heating">
 	  			<button th:if="${#strings.startsWith(model.linkAuto, '#')}" type="button" th:class="'btn btn-dark btn-sm text-' + ${model.activeSwitchColorClass}">
 	  				<span>&nbsp;</span>
-	  				<span th:if="${#strings.isEmpty(model.buttonCaptionAuto)}"><th:block th:replace="basics :: symbol (name='fas fa-cogs')"/></span>
+	  				<span th:if="${#strings.isEmpty(model.buttonCaptionAuto)}"><th:block th:replace="~{basics :: symbol (name='fas fa-cogs')}"/></span>
 	  				<span th:if="${!#strings.isEmpty(model.buttonCaptionAuto)}"><th:block th:text="${model.buttonCaptionAuto}"/></span>
   					<span>&nbsp;</span>
   				</button>
 	  			<button th:if="${#strings.startsWith(model.linkAuto, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToAuto' + ${model.id} + '()'}">
 	  				<span>&nbsp;</span>
-	  				<span th:if="${#strings.isEmpty(model.buttonCaptionAuto)}"><th:block th:replace="basics :: symbol (name='fas fa-cogs')"/></span>
+	  				<span th:if="${#strings.isEmpty(model.buttonCaptionAuto)}"><th:block th:replace="~{basics :: symbol (name='fas fa-cogs')}"/></span>
 	  				<span th:if="${!#strings.isEmpty(model.buttonCaptionAuto)}"><th:block th:text="${model.buttonCaptionAuto}"/></span>
   					<span>&nbsp;</span>
 				</button>
 	  			<button th:if="${#strings.startsWith(model.linkManual, '#')}" type="button" th:class="'btn btn-dark btn-sm text-' + ${model.activeSwitchColorClass}">
 	  				<span>&nbsp;</span>
-	  				<span th:if="${#strings.isEmpty(model.buttonCaptionManual)}"><th:block th:replace="basics :: symbol (name='fas fa-hand-paper')"/></span>
+	  				<span th:if="${#strings.isEmpty(model.buttonCaptionManual)}"><th:block th:replace="~{basics :: symbol (name='fas fa-hand-paper')}"/></span>
 	  				<span th:if="${!#strings.isEmpty(model.buttonCaptionManual)}"><th:block th:text="${model.buttonCaptionManual}"/></span>
 	  				<span>&nbsp;</span>
 	  			</button>
 	  			<button th:if="${#strings.startsWith(model.linkManual, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToManual' + ${model.id} + '()'}">
 	  				<span>&nbsp;</span>
-	  				<span th:if="${#strings.isEmpty(model.buttonCaptionManual)}"><th:block th:replace="basics :: symbol (name='fas fa-hand-paper')"/></span>
+	  				<span th:if="${#strings.isEmpty(model.buttonCaptionManual)}"><th:block th:replace="~{basics :: symbol (name='fas fa-hand-paper')}"/></span>
 	  				<span th:if="${!#strings.isEmpty(model.buttonCaptionManual)}"><th:block th:text="${model.buttonCaptionManual}"/></span>
 	  				<span>&nbsp;</span>
 	  			</button>
@@ -228,19 +228,19 @@
 	
 	<!-- Window -->
 	<div th:fragment="window (model)" th:class="'alert alert-secondary callout callout-secondary'">
-		<div th:replace="fragments :: elementname (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach})"></div>
+		<div th:replace="~{fragments :: elementname (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach})}"></div>
 		<h4><span th:text="${model.state}"></span><span th:text="${model.stateSuffix}" style="font-size: 80%;"></span></h4>
 		
 		<th:block th:unless="${#strings.equals(model.unreach, 'true')}">
 			<div class="btn-group" role="group" aria-label="shutterControl">
-	  			<button th:if="${#strings.startsWith(model.linkOpen, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name=${model.iconOpen})"/></span><span>&nbsp;</span></button>
-	  			<button th:if="${#strings.startsWith(model.linkOpen, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'openShutter' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name=${model.iconOpen})"/></span><span>&nbsp;</span></button>
-				<button th:if="${#strings.startsWith(model.linkHalf, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name=${model.iconHalf})"/></span><span>&nbsp;</span></button>
-	  			<button th:if="${#strings.startsWith(model.linkHalf, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'halfShutter' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name=${model.iconHalf})"/></span><span>&nbsp;</span></button>  			
-	  			<button th:if="${#strings.startsWith(model.linkSunshade, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name=${model.iconSUnshade})"/></span><span>&nbsp;</span></button>
-	  			<button th:if="${#strings.startsWith(model.linkSunshade, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'sunshadeShutter' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name=${model.iconSunshade})"/></span><span>&nbsp;</span></button>
-	  			<button th:if="${#strings.startsWith(model.linkClose, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name=${model.iconClose})"/></span><span>&nbsp;</span></button>
-	  			<button th:if="${#strings.startsWith(model.linkClose, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'closeShutter' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name=${model.iconClose})"/></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(model.linkOpen, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name=${model.iconOpen})}"/></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(model.linkOpen, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'openShutter' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name=${model.iconOpen})}"/></span><span>&nbsp;</span></button>
+				<button th:if="${#strings.startsWith(model.linkHalf, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name=${model.iconHalf})}"/></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(model.linkHalf, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'halfShutter' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name=${model.iconHalf})}"/></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(model.linkSunshade, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name=${model.iconSUnshade})}"/></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(model.linkSunshade, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'sunshadeShutter' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name=${model.iconSunshade})}"/></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(model.linkClose, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name=${model.iconClose})}"/></span><span>&nbsp;</span></button>
+	  			<button th:if="${#strings.startsWith(model.linkClose, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'closeShutter' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name=${model.iconClose})}"/></span><span>&nbsp;</span></button>
 			</div>		
 			
 			<input type="hidden" th:id="'val_model_linkOpen_' + ${model.id}" th:value="${model.linkOpen}">
@@ -265,10 +265,10 @@
 			<th:block th:if="${!#strings.startsWith(model.linkAuto, '#') or !#strings.startsWith(model.linkManual, '#')}">
 				<span>&nbsp;</span>
 				<div class="btn-group" role="group" aria-label="shutterMode">
-		  			<button th:if="${#strings.startsWith(model.linkAuto, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-cogs')"/></span><span>&nbsp;</span></button>
-		  			<button th:if="${#strings.startsWith(model.linkAuto, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleShutterToManual' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-cogs')"/></span><span>&nbsp;</span></button>
-		  			<button th:if="${#strings.startsWith(model.linkManual, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-hand-paper')"/></span><span>&nbsp;</span></button>
-		  			<button th:if="${#strings.startsWith(model.linkManual, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleShutterToAuto' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-hand-paper')"/></span><span>&nbsp;</span></button>
+		  			<button th:if="${#strings.startsWith(model.linkAuto, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name='fas fa-cogs')}"/></span><span>&nbsp;</span></button>
+		  			<button th:if="${#strings.startsWith(model.linkAuto, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleShutterToManual' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name='fas fa-cogs')}"/></span><span>&nbsp;</span></button>
+		  			<button th:if="${#strings.startsWith(model.linkManual, '#')}" type="button" class="btn btn-success btn-sm"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name='fas fa-hand-paper')}"/></span><span>&nbsp;</span></button>
+		  			<button th:if="${#strings.startsWith(model.linkManual, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleShutterToAuto' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name='fas fa-hand-paper')}"/></span><span>&nbsp;</span></button>
 				</div>
 				<input type="hidden" th:id="'val_model_linkManual_' + ${model.id}" th:value="${model.linkManual}">
 				<input type="hidden" th:id="'val_model_linkAuto_' + ${model.id}" th:value="${model.linkAuto}">
@@ -306,7 +306,7 @@
 	<!-- Frontdoor -->
 	<th:block th:fragment="frontDoor (model)">
 		<div th:class="'alert alert-' + ${model.colorClass} + ' callout callout-' + ${model.colorClass}">
-			<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name='Türklingel', place='', unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState}, colorClass=${model.colorClass})"></div>
+			<div th:replace="~{fragments :: elementnameCollapsable (icon=${model.icon}, name='Türklingel', place='', unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState}, colorClass=${model.colorClass})}"></div>
 			<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
 				<h4>
 					<span th:text="${model.lastDoorbells}"></span>
@@ -315,15 +315,15 @@
 		</div>
 		<th:block th:if="${#strings.equals('x', 'y') and #strings.equals(model.unreach, 'false')}">
 			<div th:class="'alert alert-secondary callout callout-secondary'">
-				<div th:replace="fragments :: elementname (icon='fas fa-camera', name='Kamera', place='', unreach='')"></div>
+				<div th:replace="~{fragments :: elementname (icon='fas fa-camera', name='Kamera', place='', unreach='')}"></div>
 				<div style="padding-top:6px;">
-					<button th:id="${model.idLive} + 'Button'" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'buttonOnclick' + ${model.idLive} + '()'}"><span><th:block th:replace="basics :: symbol (name='fas fa-eye')"/></span><span>&nbsp;Aktuell</span></button>
+					<button th:id="${model.idLive} + 'Button'" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'buttonOnclick' + ${model.idLive} + '()'}"><span><th:block th:replace="~{basics :: symbol (name='fas fa-eye')}"/></span><span>&nbsp;Aktuell</span></button>
 					<a>&nbsp;</a>
-					<button th:id="${model.idBell} + 'Button'" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'buttonOnclick' + ${model.idBell} + '()'}"><span><th:block th:replace="basics :: symbol (name='fas fa-eye')"/></span><span>&nbsp;Türklingel</span></button>
+					<button th:id="${model.idBell} + 'Button'" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'buttonOnclick' + ${model.idBell} + '()'}"><span><th:block th:replace="~{basics :: symbol (name='fas fa-eye')}"/></span><span>&nbsp;Türklingel</span></button>
 				</div>
 			</div>	
-			<th:block th:replace="fragments :: modalCamera (id=${model.idLive}, link=${model.linkLive}, linkRequest=${model.linkLiveRequest}, name='Aktuell', refresh='true')"></th:block>
-			<th:block th:replace="fragments :: modalCamera (id=${model.idBell}, link=${model.linkBell}, linkRequest='', name='Türklingel', refresh='false')"></th:block>
+			<th:block th:replace="~{fragments :: modalCamera (id=${model.idLive}, link=${model.linkLive}, linkRequest=${model.linkLiveRequest}, name='Aktuell', refresh='true')}"></th:block>
+			<th:block th:replace="~{fragments :: modalCamera (id=${model.idBell}, link=${model.linkBell}, linkRequest='', name='Türklingel', refresh='false')}"></th:block>
 		</th:block>
 	</th:block>	
 	
@@ -444,17 +444,17 @@
 	
 	<!-- Front door lock -->
 	<div th:fragment="doorLock (model)" th:class="'alert alert-' + ${model.colorClass} + ' callout callout-' + ${model.colorClass}">
-		<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState}, colorClass=${model.colorClass})"></div>
+		<div th:replace="~{fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState}, colorClass=${model.colorClass})}"></div>
 		<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
 				<h4 th:unless="${#strings.equals(model.busy,'true')}"><span th:text="${model.state}"></span><span th:text="${model.stateSuffix}" style="font-size: 80%;"></span></h4>
 				<th:block th:unless="${#strings.equals(model.busy,'true')}">	
 					<div class="btn-group" role="group" aria-label="lockcontrol">
-			  			<button th:if="${#strings.startsWith(model.linkLock, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${model.colorClass}"><th:block th:replace="basics :: symbol (name='fas fa-lock')"/></span><span>&nbsp;</span></button>
-			  			<button th:if="${#strings.startsWith(model.linkLock, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'openPin' + ${model.id} + '(lockModalLabel' + ${model.id} + ', lock' + ${model.id} + ')'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-lock')"/></span><span>&nbsp;</span></button>
-			  			<button th:if="${#strings.startsWith(model.linkUnlock, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${model.colorClass}"><th:block th:replace="basics :: symbol (name='fas fa-lock-open')"/></span><span>&nbsp;</span></button>
-			  			<button th:if="${#strings.startsWith(model.linkUnlock, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'openPin' + ${model.id} + '(unlockModalLabel' + ${model.id} + ', unlock' + ${model.id} + ')'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-lock-open')"/></span><span>&nbsp;</span></button>
-			  			<button th:if="${#strings.startsWith(model.linkOpen, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${model.colorClass}"><th:block th:replace="basics :: symbol (name='fas fa-door-open')"/></span><span>&nbsp;</span></button>
-			  			<button th:if="${#strings.startsWith(model.linkOpen, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'openPin' + ${model.id} + '(openModalLabel' + ${model.id} + ', open' + ${model.id} + ')'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-door-open')"/></span><span>&nbsp;</span></button>
+			  			<button th:if="${#strings.startsWith(model.linkLock, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${model.colorClass}"><th:block th:replace="~{basics :: symbol (name='fas fa-lock')}"/></span><span>&nbsp;</span></button>
+			  			<button th:if="${#strings.startsWith(model.linkLock, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'openPin' + ${model.id} + '(lockModalLabel' + ${model.id} + ', lock' + ${model.id} + ')'}"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name='fas fa-lock')}"/></span><span>&nbsp;</span></button>
+			  			<button th:if="${#strings.startsWith(model.linkUnlock, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${model.colorClass}"><th:block th:replace="~{basics :: symbol (name='fas fa-lock-open')}"/></span><span>&nbsp;</span></button>
+			  			<button th:if="${#strings.startsWith(model.linkUnlock, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'openPin' + ${model.id} + '(unlockModalLabel' + ${model.id} + ', unlock' + ${model.id} + ')'}"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name='fas fa-lock-open')}"/></span><span>&nbsp;</span></button>
+			  			<button th:if="${#strings.startsWith(model.linkOpen, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${model.colorClass}"><th:block th:replace="~{basics :: symbol (name='fas fa-door-open')}"/></span><span>&nbsp;</span></button>
+			  			<button th:if="${#strings.startsWith(model.linkOpen, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'openPin' + ${model.id} + '(openModalLabel' + ${model.id} + ', open' + ${model.id} + ')'}"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name='fas fa-door-open')}"/></span><span>&nbsp;</span></button>
 					</div>
 				</th:block>
 			<input type="hidden" th:id="'val_model_linkLock_' + ${model.id}" th:value="${model.linkLock}">
@@ -484,12 +484,12 @@
 			<span th:unless="${#strings.equals(model.unreach,'true')}">&nbsp;</span>
 			<th:block th:unless="${#strings.equals(model.busy,'true') or #strings.equals(model.unreach,'true')}">
 				<div class="btn-group" role="group" aria-label="lockauto">
-		  			<button th:if="${#strings.startsWith(model.linkAutoEvent, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${model.colorClass}"><th:block th:replace="basics :: symbol (name='fas fa-bell')"/></span><span>&nbsp;</span></button>
-		  			<button th:if="${#strings.startsWith(model.linkAutoEvent, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToAutoEvent' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-bell')"/></span><span>&nbsp;</span></button>
-		  			<button th:if="${#strings.startsWith(model.linkAuto, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${model.colorClass}"><th:block th:replace="basics :: symbol (name='fas fa-cogs')"/></span><span>&nbsp;</span></button>
-		  			<button th:if="${#strings.startsWith(model.linkAuto, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToAuto' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-cogs')"/></span><span>&nbsp;</span></button>
-		  			<button th:if="${#strings.startsWith(model.linkManual, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${model.colorClass}"><th:block th:replace="basics :: symbol (name='fas fa-hand-paper')"/></span><span>&nbsp;</span></button>
-		  			<button th:if="${#strings.startsWith(model.linkManual, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToManual' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-hand-paper')"/></span><span>&nbsp;</span></button>
+		  			<button th:if="${#strings.startsWith(model.linkAutoEvent, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${model.colorClass}"><th:block th:replace="~{basics :: symbol (name='fas fa-bell')}"/></span><span>&nbsp;</span></button>
+		  			<button th:if="${#strings.startsWith(model.linkAutoEvent, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToAutoEvent' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name='fas fa-bell')}"/></span><span>&nbsp;</span></button>
+		  			<button th:if="${#strings.startsWith(model.linkAuto, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${model.colorClass}"><th:block th:replace="~{basics :: symbol (name='fas fa-cogs')}"/></span><span>&nbsp;</span></button>
+		  			<button th:if="${#strings.startsWith(model.linkAuto, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToAuto' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name='fas fa-cogs')}"/></span><span>&nbsp;</span></button>
+		  			<button th:if="${#strings.startsWith(model.linkManual, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${model.colorClass}"><th:block th:replace="~{basics :: symbol (name='fas fa-hand-paper')}"/></span><span>&nbsp;</span></button>
+		  			<button th:if="${#strings.startsWith(model.linkManual, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToManual' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name='fas fa-hand-paper')}"/></span><span>&nbsp;</span></button>
 				</div>
 				<input type="hidden" th:id="'val_model_linkManual_' + ${model.id}" th:value="${model.linkManual}">
 				<input type="hidden" th:id="'val_model_linkAuto_' + ${model.id}" th:value="${model.linkAuto}">
@@ -527,30 +527,30 @@
 			</th:block>
 			
 			<th:block th:if="${#strings.equals(model.busy,'true')}">
-				<h4><span><th:block th:replace="basics :: symbol (name='fa fa-spinner fa-spin')"/></span></h4>
+				<h4><span><th:block th:replace="~{basics :: symbol (name='fa fa-spinner fa-spin')}"/></span></h4>
 			</th:block>
 		</div>
-		<div th:replace="pin :: pin (id=${model.id})"></div>
+		<div th:replace="~{pin :: pin (id=${model.id})}"></div>
 	</div>	
 	
 	<!-- Actual Power Consumption -->
 	<div th:fragment="actualPowerConsumption (model)" th:class="'alert alert-' + ${model.colorClass} + ' callout callout-' + ${model.colorClass}">
-		<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState}, colorClass=${model.colorClass})"></div>
+		<div th:replace="~{fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState}, colorClass=${model.colorClass})}"></div>
 		<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
 			<h4>
 				<span th:text="${model.state}"></span>
-				<th:block th:replace="fragments :: tendency (icon=${model.tendencyIcon})"></th:block>
+				<th:block th:replace="~{fragments :: tendency (icon=${model.tendencyIcon})}"></th:block>
 				<th:block th:if="${model.todayConsumption != null}">
 					<span th:utext="'&nbsp;&ndash;&nbsp;'"></span>
 					<span class="mb-1" th:text="${model.todayConsumption.label}">Gestern</span>
 					<span class="text-muted" style="font-size: 80%;" th:text="${model.todayConsumption.additionalLabel}">Summe</span>
-					<th:block th:replace="fragments :: historyLink (key=${model.historyKey}, name=${model.name} + ' Gesamt', place=${model.place})"></th:block>
+					<th:block th:replace="~{fragments :: historyLink (key=${model.historyKey}, name=${model.name} + ' Gesamt', place=${model.place})}"></th:block>
 				</th:block>		
 			</h4>
 			<th:block th:if="${model.todayConsumption != null}">
 				<div style="max-width:80%;">
 					<div style="max-width:400px;">
-						<div th:replace="fragments :: chartEntry (chart=${model.todayConsumption}, showCaption='false')"></div>
+						<div th:replace="~{fragments :: chartEntry (chart=${model.todayConsumption}, showCaption='false')}"></div>
 					</div>
 				</div>
 			</th:block>
@@ -562,7 +562,7 @@
 		<th:block th:if="${!#strings.isEmpty(key)}">
 			<span th:utext="'&hairsp;'"></span>
 			<span th:onclick="@{'openHistory' + ${key} + '()'}">
-				<th:block th:replace="basics :: symbolWithStyle (name='fas fa-history', style='font-size: 80%;')"/>
+				<th:block th:replace="~{basics :: symbolWithStyle (name='fas fa-history', style='font-size: 80%;')}"/>
 			</span>
 			<div class="modal fade" th:id="'modalHistory' + ${key}" tabindex="-1" role="dialog" th:aria-labelledby="'#modalCamera' + ${key}" aria-hidden="true">
 			  <div class="modal-dialog modal-dialog-centered" role="document">
@@ -597,33 +597,33 @@
 	
 	<!-- Tendency icon -->
 	<th:block th:fragment="tendency (icon)">
-	     <span th:if="${!#strings.isEmpty(icon)}"><th:block th:replace="basics :: symbolWithStyle (name=${icon}, style='font-size: 80%;')"/></span>
+	     <span th:if="${!#strings.isEmpty(icon)}"><th:block th:replace="~{basics :: symbolWithStyle (name=${icon}, style='font-size: 80%;')}"/></span>
 	</th:block>
 
 	<!-- Temperature -->
 	<div th:fragment="temperature (model)" th:class="'alert alert-' + ${model.colorClass} + ' callout callout-' + ${model.colorClass}">
-		<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name='Temperatur' + ${model.postfix}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState}, colorClass=${model.colorClass})"></div>
+		<div th:replace="~{fragments :: elementnameCollapsable (icon=${model.icon}, name='Temperatur' + ${model.postfix}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState}, colorClass=${model.colorClass})}"></div>
 		<th:block th:unless="${#strings.equals(model.unreach,'true')}">
 			<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
 				<h4 th:if="${!#strings.isEmpty(model.stateSecondLine)}" th:utext="${model.stateSecondLine}"></h4>
 				<h4>
 					<span th:if="${!#strings.isEmpty(model.stateTemperature)}" th:text="${model.stateTemperature}"></span>
-					<th:block th:replace="fragments :: tendency (icon=${model.tendencyIconTemperature})"></th:block>
-					<span th:if="${!#strings.isEmpty(model.statePostfixIconTemperature)}"><th:block th:replace="basics :: symbol (name=${model.statePostfixIconTemperature})"/></span>
+					<th:block th:replace="~{fragments :: tendency (icon=${model.tendencyIconTemperature})}"></th:block>
+					<span th:if="${!#strings.isEmpty(model.statePostfixIconTemperature)}"><th:block th:replace="~{basics :: symbol (name=${model.statePostfixIconTemperature})}"/></span>
 					<span th:if="${!#strings.isEmpty(model.stateHumidity)}" th:utext="'&nbsp;&ndash;&nbsp;'"></span>
 					<span th:if="${!#strings.isEmpty(model.stateHumidity)}" th:text="${model.stateHumidity}"></span>
-					<th:block th:replace="fragments :: tendency (icon=${model.tendencyIconHumidity})"></th:block>
-					<span th:if="${!#strings.isEmpty(model.statePostfixIconHumidity)}"><th:block th:replace="basics :: symbol (name=${model.statePostfixIconHumidity})"/></span>
+					<th:block th:replace="~{fragments :: tendency (icon=${model.tendencyIconHumidity})}"></th:block>
+					<span th:if="${!#strings.isEmpty(model.statePostfixIconHumidity)}"><th:block th:replace="~{basics :: symbol (name=${model.statePostfixIconHumidity})}"/></span>
 					<span th:if="${!#strings.isEmpty(model.absoluteHumidityIcon)}" th:utext="'&hairsp;'"></span>
-					<span onclick="$('#idDropSymbolMessage').modal();" th:if="${!#strings.isEmpty(model.absoluteHumidityIcon)}"><th:block th:replace="fragments :: tendency (icon=${model.absoluteHumidityIcon})"/></span>
-					<th:block th:replace="fragments :: historyLink (key=${model.historyKey}, name='Temperatur' + ${model.postfix}, place=${model.place})"></th:block>
+					<span onclick="$('#idDropSymbolMessage').modal();" th:if="${!#strings.isEmpty(model.absoluteHumidityIcon)}"><th:block th:replace="~{fragments :: tendency (icon=${model.absoluteHumidityIcon})}"/></span>
+					<th:block th:replace="~{fragments :: historyLink (key=${model.historyKey}, name='Temperatur' + ${model.postfix}, place=${model.place})}"></th:block>
 				</h4>
 					
 				<th:block th:each="hint : ${model.hints}">
 					<div>
 						<a th:class="'font-weight-light'" style="font-size: 85%; margin-right:10px;">
-							<span th:if="${#strings.startsWith(hint,'ggf')}"><th:block th:replace="basics :: symbol (name='far fa-hand-point-right')"/></span>
-							<span th:unless="${#strings.startsWith(hint,'ggf')}"><th:block th:replace="basics :: symbol (name='fas fa-hand-point-right')"/></span>
+							<span th:if="${#strings.startsWith(hint,'ggf')}"><th:block th:replace="~{basics :: symbol (name='far fa-hand-point-right')}"/></span>
+							<span th:unless="${#strings.startsWith(hint,'ggf')}"><th:block th:replace="~{basics :: symbol (name='fas fa-hand-point-right')}"/></span>
 							<span th:text="${hint}">hint</span>
 						</a>
 					</div>
@@ -635,10 +635,10 @@
 	<!-- Thermostat -->
 	<div th:fragment="thermostat (model)" th:class="'alert alert-' + ${model.colorClassHeating} + ' callout callout-' + ${model.colorClassHeating}">
 
-		<div th:replace="fragments :: elementnameCollapsable (icon=${model.heatericon}, name='Heizkörper', place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id} + 'Thermostat', elementTitleState=${model.heaterElementTitleState}, colorClass=${model.colorClass})"></div>
+		<div th:replace="~{fragments :: elementnameCollapsable (icon=${model.heatericon}, name='Heizkörper', place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id} + 'Thermostat', elementTitleState=${model.heaterElementTitleState}, colorClass=${model.colorClass})}"></div>
 
 		<th:block th:if="${#strings.equals(model.busy,'true')}">
-			<h4><span><th:block th:replace="basics :: symbol (name='fa fa-spinner fa-spin')"/></span></h4>
+			<h4><span><th:block th:replace="~{basics :: symbol (name='fa fa-spinner fa-spin')}"/></span></h4>
 		</th:block>
 
 		<th:block th:unless="${#strings.equals(model.busy,'true') or #strings.equals(model.unreach,'true')}">
@@ -649,12 +649,12 @@
 				<h4 th:if="${#strings.isEmpty(model.linkBoost)}"><span th:text="'Aufheizen - noch ' + ${model.boostTimeLeft} + ' Min.'"></span></h4>
 
 				<div class="btn-group" role="group" aria-label="thermostat">
-					<button th:if="${#strings.isEmpty(model.linkManual)}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${model.activeSwitchColorClass}"><th:block th:replace="basics :: symbol (name='fas fa-hand-paper')"/></span><span>&nbsp;</span></button>
-					<button th:if="${#strings.startsWith(model.linkManual, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToManual' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-hand-paper')"/></span><span>&nbsp;</span></button>
-					<button th:if="${#strings.isEmpty(model.linkAuto)}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${model.activeSwitchColorClass}"><th:block th:replace="basics :: symbol (name='fas fa-cogs')"/></span><span>&nbsp;</span></button>
-					<button th:if="${#strings.startsWith(model.linkAuto, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToAuto' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-cogs')"/></span><span>&nbsp;</span></button>
-					<button th:if="${#strings.isEmpty(model.linkBoost)}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${model.activeSwitchColorClass}"><th:block th:replace="basics :: symbol (name='fas fa-thermometer-full')"/></span><span>&nbsp;</span></button>
-					<button th:if="${#strings.startsWith(model.linkBoost, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToBoost' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="basics :: symbol (name='fas fa-thermometer-full')"/></span><span>&nbsp;</span></button>
+					<button th:if="${#strings.isEmpty(model.linkManual)}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${model.activeSwitchColorClass}"><th:block th:replace="~{basics :: symbol (name='fas fa-hand-paper')}"/></span><span>&nbsp;</span></button>
+					<button th:if="${#strings.startsWith(model.linkManual, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToManual' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name='fas fa-hand-paper')}"/></span><span>&nbsp;</span></button>
+					<button th:if="${#strings.isEmpty(model.linkAuto)}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${model.activeSwitchColorClass}"><th:block th:replace="~{basics :: symbol (name='fas fa-cogs')}"/></span><span>&nbsp;</span></button>
+					<button th:if="${#strings.startsWith(model.linkAuto, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToAuto' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name='fas fa-cogs')}"/></span><span>&nbsp;</span></button>
+					<button th:if="${#strings.isEmpty(model.linkBoost)}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${model.activeSwitchColorClass}"><th:block th:replace="~{basics :: symbol (name='fas fa-thermometer-full')}"/></span><span>&nbsp;</span></button>
+					<button th:if="${#strings.startsWith(model.linkBoost, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToBoost' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name='fas fa-thermometer-full')}"/></span><span>&nbsp;</span></button>
 				</div>
 
 				<input type="hidden" th:id="'val_model_targetTemp_' + ${model.id}" th:value="${model.targetTemp}">
@@ -703,14 +703,14 @@
 
 	<!-- Sonne -->
 	<div th:fragment="sunStatus (model)" th:if="${!#strings.isEmpty(model.stateTemperature)}" th:class="'alert alert-' + ${model.colorClass} + ' callout callout-' + ${model.colorClass}">
-		<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='', elementTitleState=${model.elementTitleState}, colorClass=${model.colorClass})"></div>
+		<div th:replace="~{fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='', elementTitleState=${model.elementTitleState}, colorClass=${model.colorClass})}"></div>
 	</div>
 
 	<!-- Licht -->
 	<th:block th:fragment="lights (model)">
 		<th:block th:if="${#lists.size(model.lights) &gt; 0}">
 			<div th:class="'alert alert-secondary callout callout-' + ${model.colorClass}">
-				<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState}, colorClass=${model.colorClass})"></div>
+				<div th:replace="~{fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState}, colorClass=${model.colorClass})}"></div>
 				<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
 					<h4 th:text="${model.state}"></h4>
 					<div class="d-flex flex-wrap">
@@ -744,11 +744,11 @@
 	<!-- PushBenachrichtigungen -->
 	<th:block th:fragment="pushMessages (model)">
 		<th:block th:if="${#lists.size(model) &gt; 0}">
-			<div th:replace="fragments :: title (name='Push-Benachrichtigungen')"></div>
+			<div th:replace="~{fragments :: title (name='Push-Benachrichtigungen')}"></div>
 		</th:block>
 		<th:block th:each="entry : ${model}">
 			<div th:class="'alert alert-dark callout callout-dark classHomeWarning'">
-				<h5 class="card-title"><span><th:block th:replace="basics :: symbol (name='fa-regular fa-envelope')"/></span> <span th:text="${entry.title}"></span></h5>
+				<h5 class="card-title"><span><th:block th:replace="~{basics :: symbol (name='fa-regular fa-envelope')}"/></span> <span th:text="${entry.title}"></span></h5>
 				<h6 class="card-subtitle mb-2 text-muted" th:text="${entry.timestamp}"></h6>
 				<p class="card-text" th:text="${entry.message}"></p>
 			</div>
@@ -758,12 +758,12 @@
 	<!-- AllgemeineWarnung -->
 	<th:block th:fragment="generalWarning (model)">
 		<th:block th:if="${#lists.size(model) &gt; 0}">
-			<div th:replace="fragments :: title (name='Achtung!')"></div>
+			<div th:replace="~{fragments :: title (name='Achtung!')}"></div>
 		</th:block>
 		<th:block th:each="entry : ${model}">
 			<div th:class="'alert alert-danger callout callout-danger classHomeWarning'">
 				<h4>
-					<span><th:block th:replace="basics :: symbol (name='fas fa-exclamation-triangle')"/></span> <span th:text="${entry}"></span>
+					<span><th:block th:replace="~{basics :: symbol (name='fas fa-exclamation-triangle')}"/></span> <span th:text="${entry}"></span>
 				</h4>
 			</div>
 		</th:block>	
@@ -772,12 +772,12 @@
 	<!-- Batterie-Warnung -->
 	<th:block th:fragment="deviceBatterieWarning (model)">
 		<th:block th:if="${#lists.size(model) &gt; 0}">
-			<div th:replace="fragments :: title (name='Bitte beachten:')"></div>
+			<div th:replace="~{fragments :: title (name='Bitte beachten:')}"></div>
 		</th:block>
 		<th:block th:each="entry : ${model}">
 			<div th:class="'alert alert-warning callout callout-warning classHomeWarning'">
 				<h4>
-					<span><th:block th:replace="basics :: symbol (name='fas fa-battery-quarter')"/></span> <span
+					<span><th:block th:replace="~{basics :: symbol (name='fas fa-battery-quarter')}"/></span> <span
 						th:text="'Batterie fast leer: ' + ${entry}"></span>
 				</h4>
 			</div>
@@ -809,7 +809,7 @@
 
 	<!-- Presence -->
 	<div th:fragment="presence (model)" th:class="'alert alert-' + ${model.colorClass} + ' callout callout-' + ${model.colorClass}">
-		<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState}, colorClass=${model.colorClass})"></div>
+		<div th:replace="~{fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState}, colorClass=${model.colorClass})}"></div>
 		<th:block th:unless="${#strings.equals(model.unreach,'true')}">
 			<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
 				<h4 th:text="${model.state}"></h4>
@@ -819,7 +819,7 @@
 
 	<!-- Heatpump -->
 	<div th:fragment="heatpump (model)" th:class="'alert alert-secondary callout callout-' + ${model.colorClass}">
-		<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState}, colorClass=${model.colorClass})"></div>
+		<div th:replace="~{fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState}, colorClass=${model.colorClass})}"></div>
 		<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
 
 			<th:block th:unless="${#strings.equals(model.busy,'true')}">
@@ -848,26 +848,26 @@
 				<div th:if="${#strings.startsWith(model.linkRefresh,'#')}">
 					<div>
 						<div class="btn-group prefixbutton" role="group" aria-label="heatpump-group-cool-auto-prefix">
-							<a style="font-size: 1.3rem;"><th:block th:replace="basics :: symbol (name='fa-solid fa-snowflake')"/></a>
+							<a style="font-size: 1.3rem;"><th:block th:replace="~{basics :: symbol (name='fa-solid fa-snowflake')}"/></a>
 						</div>
 						<div class="btn-group widebutton" role="group" aria-label="heatpump-group-cool-auto">
 							<button type="button" th:class="${#strings.startsWith(model.linkCoolAuto, '#')} ? 'btn btn-dark btn-sm btn-block' : 'btn btn-secondary btn-sm btn-block'" th:onclick="@{'heatpump' + ${model.id} + '(\''+ ${model.id} +'\', \'' + ${model.placeID} + '\', \'' + ${model.linkCoolAuto} + '\')'}">
 								<span th:class="${#strings.startsWith(model.linkCoolAuto, '#')} ? 'text-' + ${model.activeSwitchColorClass}">
-									<th:block th:replace="basics :: symbol (name='fas fa-cogs')"/>
+									<th:block th:replace="~{basics :: symbol (name='fas fa-cogs')}"/>
 								</span>
 							</button>
 						</div>
 						<div class="btn-group widebutton" role="group" aria-label="heatpump-group-cool-min">
 							<button type="button" th:class="${#strings.startsWith(model.linkCoolMin, '#')} ? 'btn btn-dark btn-sm btn-block' : 'btn btn-secondary btn-sm btn-block'" th:onclick="@{'heatpump' + ${model.id} + '(\''+ ${model.id} +'\', \'' + ${model.placeID} + '\', \'' + ${model.linkCoolMin} + '\')'}">
 								<span th:class="${#strings.startsWith(model.linkCoolMin, '#')} ? 'text-' + ${model.activeSwitchColorClass}">
-									<th:block th:replace="basics :: symbol (name='fa-solid fa-bed')"/>
+									<th:block th:replace="~{basics :: symbol (name='fa-solid fa-bed')}"/>
 								</span>
 							</button>
 						</div>
 						<div class="btn-group widebutton" role="group" aria-label="heatpump-group-cool-timer1">
 							<button type="button" th:class="${#strings.startsWith(model.linkCoolTimer1, '#')} ? 'btn btn-dark btn-sm btn-block' : 'btn btn-secondary btn-sm btn-block'" th:onclick="@{'heatpump' + ${model.id} + '(\''+ ${model.id} +'\', \'' + ${model.placeID} + '\', \'' + ${model.linkCoolTimer1} + '\')'}">
 								<span th:class="${#strings.startsWith(model.linkCoolTimer1, '#')} ? 'text-' + ${model.activeSwitchColorClass}">
-									<th:block th:replace="basics :: symbol (name='fa-solid fa-clock')"/>
+									<th:block th:replace="~{basics :: symbol (name='fa-solid fa-clock')}"/>
 								</span>
 								<span th:class="${#strings.startsWith(model.linkCoolTimer1, '#')} ? 'text-' + ${model.activeSwitchColorClass}">60′</span>
 							</button>
@@ -875,7 +875,7 @@
 						<div class="btn-group widebutton" role="group" aria-label="heatpump-group-cool-timer2">
 							<button type="button" th:class="${#strings.startsWith(model.linkCoolTimer2, '#')} ? 'btn btn-dark btn-sm btn-block' : 'btn btn-secondary btn-sm btn-block'" th:onclick="@{'heatpump' + ${model.id} + '(\''+ ${model.id} +'\', \'' + ${model.placeID} + '\', \'' + ${model.linkCoolTimer2} + '\')'}">
 								<span th:class="${#strings.startsWith(model.linkCoolTimer2, '#')} ? 'text-' + ${model.activeSwitchColorClass}">
-									<th:block th:replace="basics :: symbol (name='fa-solid fa-clock')"/>
+									<th:block th:replace="~{basics :: symbol (name='fa-solid fa-clock')}"/>
 								</span>
 								<span th:class="${#strings.startsWith(model.linkCoolTimer2, '#')} ? 'text-' + ${model.activeSwitchColorClass}">120′</span>
 							</button>
@@ -884,26 +884,26 @@
 
 					<div>
 						<div class="btn-group prefixbutton" role="group" aria-label="heatpump-group-heat-auto">
-							<a style="font-size: 1.3rem;"><th:block th:replace="basics :: symbol (name='fab fa-hotjar')"/></a>
+							<a style="font-size: 1.3rem;"><th:block th:replace="~{basics :: symbol (name='fab fa-hotjar')}"/></a>
 						</div>
 						<div class="btn-group widebutton" role="group" aria-label="heatpump-group-heat-auto">
 							<button type="button" th:class="${#strings.startsWith(model.linkHeatAuto, '#')} ? 'btn btn-dark btn-sm btn-block' : 'btn btn-secondary btn-sm btn-block'" th:onclick="@{'heatpump' + ${model.id} + '(\''+ ${model.id} +'\', \'' + ${model.placeID} + '\', \'' + ${model.linkHeatAuto} + '\')'}">
 								<span th:class="${#strings.startsWith(model.linkHeatAuto, '#')} ? 'text-' + ${model.activeSwitchColorClass}">
-									<th:block th:replace="basics :: symbol (name='fas fa-cogs')"/>
+									<th:block th:replace="~{basics :: symbol (name='fas fa-cogs')}"/>
 								</span>
 							</button>
 						</div>
 						<div class="btn-group widebutton" role="group" aria-label="heatpump-group-heat-min">
 							<button type="button" th:class="${#strings.startsWith(model.linkHeatMin, '#')} ? 'btn btn-dark btn-sm btn-block' : 'btn btn-secondary btn-sm btn-block'" th:onclick="@{'heatpump' + ${model.id} + '(\''+ ${model.id} +'\', \'' + ${model.placeID} + '\', \'' + ${model.linkHeatMin} + '\')'}">
 								<span th:class="${#strings.startsWith(model.linkHeatMin, '#')} ? 'text-' + ${model.activeSwitchColorClass}">
-									<th:block th:replace="basics :: symbol (name='fa-solid fa-bed')"/>
+									<th:block th:replace="~{basics :: symbol (name='fa-solid fa-bed')}"/>
 								</span>
 							</button>
 						</div>
 						<div class="btn-group widebutton" role="group" aria-label="heatpump-group-heat-timer1">
 							<button type="button" th:class="${#strings.startsWith(model.linkHeatTimer1, '#')} ? 'btn btn-dark btn-sm btn-block' : 'btn btn-secondary btn-sm btn-block'" th:onclick="@{'heatpump' + ${model.id} + '(\''+ ${model.id} +'\', \'' + ${model.placeID} + '\', \'' + ${model.linkHeatTimer1} + '\')'}">
 								<span th:class="${#strings.startsWith(model.linkHeatTimer1, '#')} ? 'text-' + ${model.activeSwitchColorClass}">
-									<th:block th:replace="basics :: symbol (name='fa-solid fa-clock')"/>
+									<th:block th:replace="~{basics :: symbol (name='fa-solid fa-clock')}"/>
 								</span>
 								<span th:class="${#strings.startsWith(model.linkHeatTimer1, '#')} ? 'text-' + ${model.activeSwitchColorClass}">60′</span>
 							</button>
@@ -911,7 +911,7 @@
 						<div class="btn-group widebutton" role="group" aria-label="heatpump-group-heat-timer2">
 							<button type="button" th:class="${#strings.startsWith(model.linkHeatTimer2, '#')} ? 'btn btn-dark btn-sm btn-block' : 'btn btn-secondary btn-sm btn-block'" th:onclick="@{'heatpump' + ${model.id} + '(\''+ ${model.id} +'\', \'' + ${model.placeID} + '\', \'' + ${model.linkHeatTimer2} + '\')'}">
 								<span th:class="${#strings.startsWith(model.linkHeatTimer2, '#')} ? 'text-' + ${model.activeSwitchColorClass}">
-									<th:block th:replace="basics :: symbol (name='fa-solid fa-clock')"/>
+									<th:block th:replace="~{basics :: symbol (name='fa-solid fa-clock')}"/>
 								</span>
 								<span th:class="${#strings.startsWith(model.linkHeatTimer2, '#')} ? 'text-' + ${model.activeSwitchColorClass}">120′</span>
 							</button>
@@ -920,26 +920,26 @@
 
 					<div>
 						<div class="btn-group prefixbutton" role="group" aria-label="heatpump-group-fan-auto-prefix">
-							<a style="font-size: 1.3rem;"><th:block th:replace="basics :: symbol (name='fa-solid fa-fan')"/></a>
+							<a style="font-size: 1.3rem;"><th:block th:replace="~{basics :: symbol (name='fa-solid fa-fan')}"/></a>
 						</div>
 						<div class="btn-group widebutton" role="group" aria-label="heatpump-group-fan-auto">
 							<button type="button" th:class="${#strings.startsWith(model.linkFanAuto, '#')} ? 'btn btn-dark btn-sm btn-block' : 'btn btn-secondary btn-sm btn-block'" th:onclick="@{'heatpump' + ${model.id} + '(\''+ ${model.id} +'\', \'' + ${model.placeID} + '\', \'' + ${model.linkFanAuto} + '\')'}">
 								<span th:class="${#strings.startsWith(model.linkFanAuto, '#')} ? 'text-' + ${model.activeSwitchColorClass}">
-									<th:block th:replace="basics :: symbol (name='fas fa-cogs')"/>
+									<th:block th:replace="~{basics :: symbol (name='fas fa-cogs')}"/>
 								</span>
 							</button>
 						</div>
 						<div class="btn-group widebutton" role="group" aria-label="heatpump-group-fan-min">
 							<button type="button" th:class="${#strings.startsWith(model.linkFanMin, '#')} ? 'btn btn-dark btn-sm btn-block' : 'btn btn-secondary btn-sm btn-block'" th:onclick="@{'heatpump' + ${model.id} + '(\''+ ${model.id} +'\', \'' + ${model.placeID} + '\', \'' + ${model.linkFanMin} + '\')'}">
 								<span th:class="${#strings.startsWith(model.linkFanMin, '#')} ? 'text-' + ${model.activeSwitchColorClass}">
-									<th:block th:replace="basics :: symbol (name='fa-solid fa-bed')"/>
+									<th:block th:replace="~{basics :: symbol (name='fa-solid fa-bed')}"/>
 								</span>
 							</button>
 						</div>
 						<div class="btn-group widebutton" role="group" aria-label="heatpump-group-drytimer">
 							<button type="button" th:class="${#strings.startsWith(model.linkDryTimer, '#')} ? 'btn btn-dark btn-sm btn-block' : 'btn btn-secondary btn-sm btn-block'" th:onclick="@{'heatpump' + ${model.id} + '(\''+ ${model.id} +'\', \'' + ${model.placeID} + '\', \'' + ${model.linkDryTimer} + '\')'}">
 								<span th:class="${#strings.startsWith(model.linkDryTimer, '#')} ? 'text-' + ${model.activeSwitchColorClass}">
-									<th:block th:replace="basics :: symbol (name='fa-solid fa-clock')"/>
+									<th:block th:replace="~{basics :: symbol (name='fa-solid fa-clock')}"/>
 								</span>
 								<span th:class="${#strings.startsWith(model.linkDryTimer, '#')} ? 'text-' + ${model.activeSwitchColorClass}">20′</span>
 							</button>
@@ -951,7 +951,7 @@
 						<div class="btn-group widebutton" role="group" aria-label="heatpump-group-off">
 							<button type="button" th:class="${#strings.startsWith(model.linkOff, '#')} ? 'btn btn-dark btn-sm btn-block' : 'btn btn-secondary btn-sm btn-block'" th:onclick="@{'heatpump' + ${model.id} + '(\''+ ${model.id} +'\', \'' + ${model.placeID} + '\', \'' + ${model.linkOff} + '\')'}">
 								<span th:class="${#strings.startsWith(model.linkOff, '#')} ? 'text-' + ${model.activeSwitchColorClass}">
-									<th:block th:replace="basics :: symbol (name='fas fa-power-off')"/>
+									<th:block th:replace="~{basics :: symbol (name='fas fa-power-off')}"/>
 								</span>
 							</button>
 						</div>
@@ -962,7 +962,7 @@
 					<div class="btn-group widebutton" role="group" aria-label="heatpump-group-refresh">
 						<button type="button" th:class="${#strings.startsWith(model.linkRefresh, '#')} ? 'btn btn-dark btn-sm btn-block' : 'btn btn-secondary btn-sm btn-block'" th:onclick="@{'heatpump' + ${model.id} + '(\''+ ${model.id} +'\', \'' + ${model.placeID} + '\', \'' + ${model.linkRefresh} + '\')'}">
 							<span th:class="${#strings.startsWith(model.linkRefresh, '#')} ? 'text-' + ${model.activeSwitchColorClass}">
-								<th:block th:replace="basics :: symbol (name='fa-solid fa-rotate')"/>
+								<th:block th:replace="~{basics :: symbol (name='fa-solid fa-rotate')}"/>
 							</span>
 						</button>
 					</div>
@@ -971,7 +971,7 @@
 			</th:block>
 
 			<th:block th:if="${#strings.equals(model.busy,'true')}">
-				<h4><span><th:block th:replace="basics :: symbol (name='fa fa-spinner fa-spin')"/></span></h4>
+				<h4><span><th:block th:replace="~{basics :: symbol (name='fa fa-spinner fa-spin')}"/></span></h4>
 			</th:block>
 
 			<script type="text/javascript">

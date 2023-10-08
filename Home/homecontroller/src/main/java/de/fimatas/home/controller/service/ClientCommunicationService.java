@@ -15,11 +15,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.env.Environment;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.*;
@@ -252,7 +248,7 @@ public class ClientCommunicationService {
         try {
             HttpEntity<ActionModel> request = new HttpEntity<>(new ActionModel(""), headers);
             ResponseEntity<Message> response = restTemplateLongPolling.postForEntity(url, request, Message.class);
-            HttpStatus statusCode = response.getStatusCode();
+            HttpStatusCode statusCode = response.getStatusCode();
 
             connectionEstablishedLogging();
             if (!statusCode.is2xxSuccessful()) {

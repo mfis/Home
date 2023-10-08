@@ -3,17 +3,14 @@ package de.fimatas.home.controller.api;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.env.Environment;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.web.client.RestTemplate;
@@ -93,7 +90,7 @@ public class HueAPI {
             return null;
         }
 
-        HttpStatus statusCode = responseEntity.getStatusCode();
+        HttpStatusCode statusCode = responseEntity.getStatusCode();
         if (!statusCode.is2xxSuccessful()) {
             LOG.error("Could not successful call hue API. RC=" + statusCode.value());
         }

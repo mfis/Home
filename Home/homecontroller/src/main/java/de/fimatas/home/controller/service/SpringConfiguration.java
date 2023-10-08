@@ -8,17 +8,21 @@ import java.security.Security;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.List;
+import java.util.Objects;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.sql.DataSource;
 
+import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.commons.net.util.SSLContextUtils;
 import org.apache.commons.net.util.TrustManagerUtils;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.io.HttpClientConnectionManager;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.core5.util.Timeout;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -68,7 +72,7 @@ public class SpringConfiguration implements WebMvcConfigurer {
     @Bean(name = "restTemplateCCU")
     public RestTemplate restTemplateCCU() throws IOException, GeneralSecurityException {
 
-        try (PEMParser pemParser = new PEMParser(new FileReader(env.getProperty("homematic.sslcert")))) {
+        try (PEMParser pemParser = new PEMParser(new FileReader(Objects.requireNonNull(env.getProperty("homematic.sslcert"))))) {
 
             pemParser.readObject();
             PemObject pemObject = pemParser.readPemObject();
@@ -85,11 +89,10 @@ public class SpringConfiguration implements WebMvcConfigurer {
 
             SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(sslContext);
 
-            RequestConfig config = RequestConfig.custom().setConnectTimeout(5 * 1000).setConnectionRequestTimeout(10 * 1000)
-                .setSocketTimeout(10 * 1000).build();
+            RequestConfig config = RequestConfig.custom().setConnectionRequestTimeout(Timeout.ofSeconds(10)).build();
+            HttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create().setSSLSocketFactory(socketFactory).build();
+            CloseableHttpClient httpClient = HttpClients.custom().setDefaultRequestConfig(config).setConnectionManager(connectionManager).build();
 
-            CloseableHttpClient httpClient =
-                HttpClients.custom().setDefaultRequestConfig(config).setSSLSocketFactory(socketFactory).build();
             HttpComponentsClientHttpRequestFactory httpComponentsClientHttpRequestFactory =
                 new HttpComponentsClientHttpRequestFactory(httpClient);
             return new RestTemplate(httpComponentsClientHttpRequestFactory);

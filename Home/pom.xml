@@ -11,7 +11,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.7.10</version>
+		<version>3.1.4</version>
 		<relativePath />
 	</parent>
 	
@@ -19,10 +19,10 @@
 		<!-- Encoding -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<!-- Java -->
-		<java.version>11</java.version>
+		<java.version>17</java.version>
 		<!-- Dependency versions -->
-		<spring-boot.version>2.7.10</spring-boot.version>
-		<files-api.version>2.3</files-api.version>
+		<spring-boot.version>3.1.4</spring-boot.version>
+		<files-api.version>3.0</files-api.version>
 		<commons-io.version>2.8.0</commons-io.version>
 		<commons-text.version>1.10.0</commons-text.version>
 		<commons-collections4.version>4.4</commons-collections4.version>
@@ -35,13 +35,13 @@
 		<font-awesome.version>6.1.2</font-awesome.version>
 		<soundar24-roundSlider.version>1.6.1-1</soundar24-roundSlider.version>
 		<!-- Plugin versions -->
-		<StaticResourceProcessing.version>1.5.2</StaticResourceProcessing.version>
+		<StaticResourceProcessing.version>1.5.3</StaticResourceProcessing.version>
 		<lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
 		<dependency-check-maven.version>7.0.4</dependency-check-maven.version>
-		<maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
+		<maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
 		<bouncycastle.version>1.70</bouncycastle.version>
 		<commons-net.version>3.9.0</commons-net.version>
-		<assertj.version>3.19.0</assertj.version>
+		<assertj.version>3.24.2</assertj.version>
 		<hap-java.version>2.0.1</hap-java.version>
 		<zxing.version>3.4.1</zxing.version>
 		<heatpumpdriver.version>1.0.1</heatpumpdriver.version>
@@ -132,6 +132,7 @@
 				<groupId>org.assertj</groupId>
 				<artifactId>assertj-core</artifactId>
 				<version>${assertj.version}</version>
+				<scope>test</scope>
 			</dependency>
 			<dependency>
 				<groupId>de.fimatas</groupId>

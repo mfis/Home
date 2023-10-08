@@ -7,7 +7,7 @@
 	<th:block th:fragment="weatherForecast (model)">
 		<th:block th:if="${#lists.size(model.forecasts) &gt; 0}">
 			<div th:class="'alert alert-secondary callout callout-' + ${model.colorClass}">
-				<div th:replace="fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState}, colorClass=${model.colorClass})"></div>
+				<div th:replace="~{fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState}, colorClass=${model.colorClass})}"></div>
 				<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
 					<h4 th:text="${model.state}"></h4>
 					<table class="table table-dark" style="background-color: #000 !important; border: 0px;">
@@ -18,7 +18,7 @@
 									<td th:class="'td-no-border text-' + ${entry.colorClass}" style="padding: .08rem;" th:text="${entry.time}"></td>
 									<td th:class="'td-no-border text-' + ${entry.colorClass}" style="padding: .08rem" >
 										<th:block th:each="icon : ${entry.icons}">
-											<div><span><th:block th:replace="basics :: symbol (name=${icon.value})"/></span><span>&nbsp;</span> <span th:text="${icon.caption}"></span></div>
+											<div><span><th:block th:replace="~{basics :: symbol (name=${icon.value})}"/></span><span>&nbsp;</span> <span th:text="${icon.caption}"></span></div>
 										</th:block>
 									</td>
 									<td th:class="'td-no-border text-' + ${entry.colorClass}" style="text-align: right; padding: .08rem 1.5rem .08rem .25rem;" th:text="${entry.temperature}"></td>

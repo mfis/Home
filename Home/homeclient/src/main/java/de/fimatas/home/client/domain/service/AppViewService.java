@@ -23,7 +23,7 @@ import de.fimatas.home.client.request.HomeRequestMapping;
 import de.fimatas.home.library.domain.model.Place;
 import de.fimatas.home.library.domain.model.Tendency;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 @Component
 public class AppViewService {

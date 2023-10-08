@@ -1,6 +1,6 @@
 package de.fimatas.home.client.request;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 public class ControllerUtil {
 

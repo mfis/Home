@@ -14,7 +14,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.*;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -79,7 +79,7 @@ public class UploadService {
             @SuppressWarnings("unchecked")
             HttpEntity<T> request = new HttpEntity<>((T) instance, headers);
             ResponseEntity<String> response = restTemplateModelUpload.postForEntity(url, request, String.class);
-            HttpStatus statusCode = response.getStatusCode();
+            HttpStatusCode statusCode = response.getStatusCode();
 
             connectionEstablishedLogging(modelName);
             if (!statusCode.is2xxSuccessful()) {

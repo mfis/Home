@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fimatas.home.library.model.SettingsModel;
 import org.springframework.scheduling.annotation.Async;
 
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PreDestroy;
 
 public class SettingsDAO {
 

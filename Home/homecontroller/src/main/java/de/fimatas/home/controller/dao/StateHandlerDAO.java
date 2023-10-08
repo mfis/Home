@@ -3,13 +3,13 @@ package de.fimatas.home.controller.dao;
 import de.fimatas.home.controller.database.mapper.StateRowMapper;
 import de.fimatas.home.controller.model.State;
 import de.fimatas.home.controller.service.UniqueTimestampService;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import javax.annotation.PostConstruct;
 import java.util.List;
 
 import static de.fimatas.home.controller.dao.DaoUtils.cleanSqlValue;

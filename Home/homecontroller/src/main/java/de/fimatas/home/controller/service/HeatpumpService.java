@@ -24,7 +24,7 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -379,7 +379,7 @@ public class HeatpumpService {
             HttpEntity<HeatpumpRequest> httpRequest = new HttpEntity<>(request);
             ResponseEntity<HeatpumpResponse> response = restTemplateHeatpumpDriver.postForEntity(
                     Objects.requireNonNull(env.getProperty("heatpump.driver.url")), httpRequest, HeatpumpResponse.class);
-            HttpStatus statusCode = response.getStatusCode();
+            HttpStatusCode statusCode = response.getStatusCode();
 
             if (!statusCode.is2xxSuccessful()) {
                 log.error("Could not call heatpump driver. RC=" + statusCode.value());

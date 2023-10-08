@@ -3,7 +3,7 @@ package de.fimatas.home.client.request;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 import de.fimatas.home.library.domain.model.*;
 import org.apache.commons.lang3.StringUtils;

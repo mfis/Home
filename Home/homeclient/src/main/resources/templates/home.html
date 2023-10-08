@@ -1,98 +1,98 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org" lang="de">
 
-	<head th:replace="basics :: head (name='Zuhause - Laden...')"><title></title></head>
+	<head th:replace="~{basics :: head (name='Zuhause - Laden...')}"><title></title></head>
 	
 	<body id="idbody">
 	
-		<div th:replace="basics :: navigation (selected=${MENU_SELECTED}, selectable=${MENU_SELECTABLE}, status=${SITE_REQUEST_TS}, isApp=${isApp})"></div>
+		<div th:replace="~{basics :: navigation (selected=${MENU_SELECTED}, selectable=${MENU_SELECTABLE}, status=${SITE_REQUEST_TS}, isApp=${isApp})}"></div>
 		<input type="hidden" th:id="'modelTimestamp'" th:value="${modelTimestamp}"></input>	
 		<input type="hidden" id="SITE_REQUEST_TS" th:value="${SITE_REQUEST_TS}" />
-		<div th:replace="fragments :: viewCorrelations (model=${viewCorrelations})"></div>
+		<div th:replace="~{fragments :: viewCorrelations (model=${viewCorrelations})}"></div>
 
 		<div class="container">
 		
-			<th:block th:if="${!#strings.isEmpty(userErrorMessageText)}"><th:block th:replace="basics :: userErrorMessage (text=${userErrorMessageText})"></th:block></th:block>
+			<th:block th:if="${!#strings.isEmpty(userErrorMessageText)}"><th:block th:replace="~{basics :: userErrorMessage (text=${userErrorMessageText})}"></th:block></th:block>
 	
 			<!-- Hinweise -->
-			<div th:replace="fragments :: pushMessages (model=${pushMessages})"></div>
-			<div th:replace="fragments :: generalWarning (model=${warnings})"></div>
-			<div th:replace="fragments :: deviceBatterieWarning (model=${lowBattery})"></div>
+			<div th:replace="~{fragments :: pushMessages (model=${pushMessages})}"></div>
+			<div th:replace="~{fragments :: generalWarning (model=${warnings})}"></div>
+			<div th:replace="~{fragments :: deviceBatterieWarning (model=${lowBattery})}"></div>
 
 			<!-- Draussen -->
-			<div th:replace="fragments :: title (name='Draußen')"></div>
-			<div th:replace="fragments :: temperature (model=${tempMinHouse})"></div>
-			<div th:replace="fragments :: sunStatus (model=${tempMaxHouse})"></div>
-			<div th:replace="fragments-weatherforecast :: weatherForecast (model=${weatherForecasts})"></div>
+			<div th:replace="~{fragments :: title (name='Draußen')}"></div>
+			<div th:replace="~{fragments :: temperature (model=${tempMinHouse})}"></div>
+			<div th:replace="~{fragments :: sunStatus (model=${tempMaxHouse})}"></div>
+			<div th:replace="~{fragments-weatherforecast :: weatherForecast (model=${weatherForecasts})}"></div>
 	
 			<!-- Haus -->
-			<div th:replace="fragments :: title (name='Haus')"></div>
-			<div th:replace="fragments :: frontDoor (model=${frontDoor})"></div>
-			<div th:replace="fragments :: doorLock (model=${frontDoorLock})"></div>
-			<div th:replace="fragments :: presence (model=${presence})"></div>
+			<div th:replace="~{fragments :: title (name='Haus')}"></div>
+			<div th:replace="~{fragments :: frontDoor (model=${frontDoor})}"></div>
+			<div th:replace="~{fragments :: doorLock (model=${frontDoorLock})}"></div>
+			<div th:replace="~{fragments :: presence (model=${presence})}"></div>
 	
 			<!-- Wohnzimmer -->
-			<div th:replace="fragments :: title (name='Wohnzimmer')"></div>
-			<div th:replace="fragments :: temperature (model=${tempLivingroom})"></div>
-			<div th:replace="fragments :: lights (model=${lightsLIVINGROOM})"></div>
+			<div th:replace="~{fragments :: title (name='Wohnzimmer')}"></div>
+			<div th:replace="~{fragments :: temperature (model=${tempLivingroom})}"></div>
+			<div th:replace="~{fragments :: lights (model=${lightsLIVINGROOM})}"></div>
 	
 			<!-- Küche -->
-			<div th:replace="fragments :: title (name='Küche')"></div>
-			<div th:replace="fragments :: switch (model=${switchKitchen})"></div>
+			<div th:replace="~{fragments :: title (name='Küche')}"></div>
+			<div th:replace="~{fragments :: switch (model=${switchKitchen})}"></div>
 	
 			<!-- Kinderzimmer 1 -->
-			<div th:replace="fragments :: title (name='Kinderzimmer ' + ${place_subtitle_KIDSROOM_1})"></div>
-			<div th:replace="fragments :: temperature (model=${tempKids1})"></div>
-			<div th:replace="fragments :: heatpump (model=${heatpumpKIDSROOM_1})"></div>
+			<div th:replace="~{fragments :: title (name='Kinderzimmer ' + ${place_subtitle_KIDSROOM_1})}"></div>
+			<div th:replace="~{fragments :: temperature (model=${tempKids1})}"></div>
+			<div th:replace="~{fragments :: heatpump (model=${heatpumpKIDSROOM_1})}"></div>
 
 			<!-- Kinderzimmer 2 -->
-			<div th:replace="fragments :: title (name='Kinderzimmer ' + ${place_subtitle_KIDSROOM_2})"></div>
-			<div th:replace="fragments :: temperature (model=${tempKids2})"></div>
-			<div th:replace="fragments :: heatpump (model=${heatpumpKIDSROOM_2})"></div>
-			<div th:replace="fragments :: lights (model=${lightsKIDSROOM_2})"></div>
+			<div th:replace="~{fragments :: title (name='Kinderzimmer ' + ${place_subtitle_KIDSROOM_2})}"></div>
+			<div th:replace="~{fragments :: temperature (model=${tempKids2})}"></div>
+			<div th:replace="~{fragments :: heatpump (model=${heatpumpKIDSROOM_2})}"></div>
+			<div th:replace="~{fragments :: lights (model=${lightsKIDSROOM_2})}"></div>
 
 			<!-- Schlafzimmer -->
-			<div th:replace="fragments :: title (name='Schlafzimmer')"></div>
-			<div th:replace="fragments :: temperature (model=${tempBedroom})"></div>
-			<div th:replace="fragments :: heatpump (model=${heatpumpBEDROOM})"></div>
-			<!-- <div th:replace="fragments :: window (model=${leftWindowBedroom})"></div> //NOSONAR -->
+			<div th:replace="~{fragments :: title (name='Schlafzimmer')}"></div>
+			<div th:replace="~{fragments :: temperature (model=${tempBedroom})}"></div>
+			<div th:replace="~{fragments :: heatpump (model=${heatpumpBEDROOM})}"></div>
+			<!-- <div th:replace="~{fragments :: window (model=${leftWindowBedroom})}"></div> //NOSONAR -->
 	
 			<!-- Badezimmer -->
-			<div th:replace="fragments :: title (name='Badezimmer')"></div>
-			<div th:replace="fragments :: temperature (model=${tempBathroom})"></div>
-			<div th:replace="fragments :: thermostat (model=${tempBathroom})"></div>
+			<div th:replace="~{fragments :: title (name='Badezimmer')}"></div>
+			<div th:replace="~{fragments :: temperature (model=${tempBathroom})}"></div>
+			<div th:replace="~{fragments :: thermostat (model=${tempBathroom})}"></div>
 	
 			<!-- Waschküche -->
-			<div th:replace="fragments :: title (name='Waschküche')"></div>
-			<div th:replace="fragments :: temperature (model=${tempLaundry})"></div>
-			<div th:replace="fragments :: windowsensor (model=${windowSensorLaundry})"></div>
+			<div th:replace="~{fragments :: title (name='Waschküche')}"></div>
+			<div th:replace="~{fragments :: temperature (model=${tempLaundry})}"></div>
+			<div th:replace="~{fragments :: windowsensor (model=${windowSensorLaundry})}"></div>
 
 			<!-- Gästezimmer -->
-			<div th:replace="fragments :: title (name='Gästezimmer')"></div>
-			<div th:replace="fragments :: windowsensor (model=${windowSensorGuestroom})"></div>
-			<div th:replace="fragments :: temperature (model=${tempGuestroom})"></div>
-			<div th:replace="fragments :: thermostat (model=${tempGuestroom})"></div>
-			<div th:replace="fragments :: switch (model=${infraredHeaterGuestroom})"></div>
+			<div th:replace="~{fragments :: title (name='Gästezimmer')}"></div>
+			<div th:replace="~{fragments :: windowsensor (model=${windowSensorGuestroom})}"></div>
+			<div th:replace="~{fragments :: temperature (model=${tempGuestroom})}"></div>
+			<div th:replace="~{fragments :: thermostat (model=${tempGuestroom})}"></div>
+			<div th:replace="~{fragments :: switch (model=${infraredHeaterGuestroom})}"></div>
 
 			<!-- Werkstatt -->
-			<div th:replace="fragments :: title (name='Werkstatt')"></div>
-			<div th:replace="fragments :: switch (model=${switchWorkshopVentilation})"></div>
-			<div th:replace="fragments :: windowsensor (model=${windowSensorWorkshop})"></div>
-			<div th:replace="fragments :: temperature (model=${tempWorkshop})"></div>
+			<div th:replace="~{fragments :: title (name='Werkstatt')}"></div>
+			<div th:replace="~{fragments :: switch (model=${switchWorkshopVentilation})}"></div>
+			<div th:replace="~{fragments :: windowsensor (model=${windowSensorWorkshop})}"></div>
+			<div th:replace="~{fragments :: temperature (model=${tempWorkshop})}"></div>
 	
 			<!-- Energie -->
-			<div th:replace="fragments :: title (name='Energie')"></div>
-			<div th:replace="fragments :: actualPowerConsumption (model=${GasHaus})"></div>
-			<div th:replace="fragments-overallElectricPower :: overallElectricPower (model=${overallElectricPowerHouse})"></div>
-			<div th:replace="fragments :: wallbox (modelMeter=${StromWallbox}, modelSwitch=${switchWallbox})"></div>
-			<div th:replace="fragments-evcharge :: evcharge (model=${evcharge_EUP})"></div>
+			<div th:replace="~{fragments :: title (name='Energie')}"></div>
+			<div th:replace="~{fragments :: actualPowerConsumption (model=${GasHaus})}"></div>
+			<div th:replace="~{fragments-overallElectricPower :: overallElectricPower (model=${overallElectricPowerHouse})}"></div>
+			<div th:replace="~{fragments :: wallbox (modelMeter=${StromWallbox}, modelSwitch=${switchWallbox})}"></div>
+			<div th:replace="~{fragments-evcharge :: evcharge (model=${evcharge_EUP})}"></div>
 			
 			<div style="height: 35px;"></div>
 		</div>
 
 	</body>
 	
-	<div th:replace="basics :: scriptresources"></div>
-	<div th:replace="basics :: autorefresh"></div>
+	<div th:replace="~{basics :: scriptresources}"></div>
+	<div th:replace="~{basics :: autorefresh}"></div>
 	
 </html>

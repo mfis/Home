@@ -6,7 +6,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import de.fimatas.home.controller.model.PushToken;
 import org.apache.commons.logging.LogFactory;

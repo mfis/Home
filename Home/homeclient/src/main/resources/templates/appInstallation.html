@@ -1,11 +1,11 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org" lang="de">
 
-	<head th:replace="basics :: head (name='Home - App-Installation')"><title></title></head>
+	<head th:replace="~{basics :: head (name='Home - App-Installation')}"><title></title></head>
 
 	<body id="idbody">
 
-		<div th:replace="basics :: navigation (selected=${MENU_SELECTED}, selectable=${MENU_SELECTABLE}, status=${SITE_REQUEST_TS}, isApp=${isApp})"></div>
+		<div th:replace="~{basics :: navigation (selected=${MENU_SELECTED}, selectable=${MENU_SELECTABLE}, status=${SITE_REQUEST_TS}, isApp=${isApp})}"></div>
 
 		<div class="container">
 			<div style="height: 20px;"></div>
@@ -18,6 +18,6 @@
 
 	</body>
 	
-	<div th:replace="basics :: scriptresources"></div>
+	<div th:replace="~{basics :: scriptresources}"></div>
 
 </html>

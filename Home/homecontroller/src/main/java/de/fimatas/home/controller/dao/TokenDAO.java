@@ -2,7 +2,7 @@ package de.fimatas.home.controller.dao;
 
 import org.springframework.scheduling.annotation.Async;
 
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PreDestroy;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;

@@ -9,7 +9,7 @@
 		<div class="list-group">
 			<div th:class="'list-group-item lgi' + ' flex-column align-items-start'">
 				<th:block th:each="chart : ${chartEntries}">
-					<div th:replace="fragments :: chartEntry (chart=${chart}, showCaption='true')"></div>
+					<div th:replace="~{fragments :: chartEntry (chart=${chart}, showCaption='true')}"></div>
 				</th:block>
 				<p class="text-center text-muted font-weight-light" style="margin-bottom: 0 !important; font-size: 80%;">Werte in kW/h bzw m³</p>
 				<p class="text-center text-muted font-weight-light" style="margin-bottom: 0 !important; font-size: 80%;">Nacht | Vormittag | Nachmittag | Abend</p>
@@ -30,14 +30,14 @@
 			      <a class="mb-1" th:text="${row.lineOneLabel}">List group item heading</a>
 			      <h4>
 			      	  <span th:text="${row.lineOneValue}">x kW/h</span>
-			      	  <span th:if="${!#strings.isEmpty(row.lineOneValueIcon)}"><th:block th:replace="basics :: symbolWithStyle (name=${row.lineOneValueIcon}, style='font-size: 80%;')"/></span>
+			      	  <span th:if="${!#strings.isEmpty(row.lineOneValueIcon)}"><th:block th:replace="~{basics :: symbolWithStyle (name=${row.lineOneValueIcon}, style='font-size: 80%;')}"/></span>
 			      </h4>
 			    </div>
 			    <div th:if="${!#strings.isEmpty(row.lineTwoValue)}" class="d-flex w-100 justify-content-between">
 			      <a class="mb-1" th:text="${row.lineTwoLabel}">Hochgerechnet</a>
 			      <h4>
 			      	  <span th:text="${row.lineTwoValue}">3 days ago</span>
-			      	  <span th:if="${!#strings.isEmpty(row.lineTwoValueIcon)}"><th:block th:replace="basics :: symbolWithStyle (name=${row.lineTwoValueIcon}, style='font-size: 80%;')"/></span>
+			      	  <span th:if="${!#strings.isEmpty(row.lineTwoValueIcon)}"><th:block th:replace="~{basics :: symbolWithStyle (name=${row.lineTwoValueIcon}, style='font-size: 80%;')}"/></span>
 			      </h4>
 			    </div> 
 			    <div th:if="${!#strings.isEmpty(row.badgeValue)}" class="d-flex w-100 justify-content-between">
