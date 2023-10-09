@@ -32,6 +32,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
+import static de.fimatas.home.controller.domain.service.HouseService.AUTOMATIC;
+
 @Component
 @CommonsLog
 public class ElectricVehicleService {
@@ -310,13 +312,20 @@ public class ElectricVehicleService {
     }
 
     private void switchWallboxOff() {
-        log.debug("switchWallboxOff() !!!");
+        log.debug("switchWallboxOff()");
         houseService.togglestate(WALLBOX_SWITCH_DEVICE, false);
+        if(isWallboxSwitchAutomatic()){
+            homematicAPI.executeCommand(homematicCommandBuilder.write(WALLBOX_SWITCH_DEVICE, AUTOMATIC, false));
+        }
         houseService.refreshHouseModel();
     }
 
     private boolean isWallboxSwitchOff(){
         return !homematicAPI.getAsBoolean(homematicCommandBuilder.read(WALLBOX_SWITCH_DEVICE, Datapoint.STATE));
+    }
+
+    private boolean isWallboxSwitchAutomatic(){
+        return homematicAPI.getAsBoolean(homematicCommandBuilder.read(WALLBOX_SWITCH_DEVICE, AUTOMATIC));
     }
 
     private long minSecondsNoChangeUntilSwitchOffWallbox(){
