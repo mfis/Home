@@ -1,6 +1,7 @@
 package de.fimatas.home.library.domain.model;
 
 import de.fimatas.home.library.annotation.EnableHomekit;
+import de.fimatas.home.library.annotation.EnablePhotovoltaicsOverflow;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -42,7 +43,8 @@ public class HouseModel implements Serializable {
 
     private Switch kitchenWindowLightSwitch;
 
-    private WallboxSwitch wallboxSwitch;
+    @EnablePhotovoltaicsOverflow(shortName = "Wallbox", defaultWattage = 2200, percentageMaxPowerFromGrid = 10, switchOnDelay = 4, switchOffDelay = 10)
+    private Switch wallboxSwitch;
 
     private Switch workshopVentilationSwitch;
 
@@ -53,6 +55,7 @@ public class HouseModel implements Serializable {
 
     private WindowSensor guestRoomWindowSensor;
 
+    @EnablePhotovoltaicsOverflow(shortName = "Hzg.Gaeste.", defaultWattage = 450, percentageMaxPowerFromGrid = 10, switchOnDelay = 0, switchOffDelay = 0)
     private Switch guestRoomInfraredHeater;
 
     private WindowSensor workshopWindowSensor;
@@ -131,7 +134,14 @@ public class HouseModel implements Serializable {
         } catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
             throw new IllegalArgumentException("Exception reading field '" + field + " of class" + clazz + "':", e);
         }
-
     }
 
+    @SuppressWarnings("unchecked")
+    public <T> T lookupField(Field field, Class<T> clazz) {
+        try {
+            return (T) field.get(this);
+        } catch (IllegalArgumentException | IllegalAccessException | SecurityException e) {
+            throw new IllegalArgumentException("Exception reading field '" + field + " of class" + clazz + "':", e);
+        }
+    }
 }

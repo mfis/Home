@@ -992,7 +992,7 @@ public class HouseViewService {
         formatSwitchInternal(model, viewKey, switchModel, view);
     }
 
-    private void formatWallboxSwitch(Model model, String viewKey, WallboxSwitch switchModel, PowerMeter wallboxElectricalPowerConsumption, ElectricVehicleModel electricVehicleModel) {
+    private void formatWallboxSwitch(Model model, String viewKey, Switch switchModel, PowerMeter wallboxElectricalPowerConsumption, ElectricVehicleModel electricVehicleModel) {
 
         WallboxSwitchView view = new WallboxSwitchView();
         formatSwitchInternal(model, viewKey, switchModel, view);

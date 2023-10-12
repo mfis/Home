@@ -57,7 +57,7 @@ public class HouseService {
 
     private static final BigDecimal SUN_INTENSITY_MEDIUM = new BigDecimal("15");
 
-    private static final String AUTOMATIC = "Automatic";
+    public static final String AUTOMATIC = "Automatic";
 
     private static final String EVENT = "Event";
 
@@ -93,6 +93,9 @@ public class HouseService {
 
     @Autowired
     private ElectricVehicleService electricVehicleService;
+
+    @Autowired
+    private PhotovoltaicsOverflowService photovoltaicsOverflowService;
 
     @Autowired
     private Environment env;
@@ -160,7 +163,7 @@ public class HouseService {
         newModel.setClimateGarden(readOutdoorClimate(Device.THERMOMETER_GARTEN, Device.THERMOMETER_EINFAHRT));
 
         newModel.setKitchenWindowLightSwitch(readSwitchState(Device.SCHALTER_KUECHE_LICHT));
-        newModel.setWallboxSwitch(readWallboxSwitchState(Device.SCHALTER_WALLBOX));
+        newModel.setWallboxSwitch(readSwitchState(Device.SCHALTER_WALLBOX));
         newModel.setWorkshopVentilationSwitch(readSwitchState(Device.SCHALTER_WERKSTATT_LUEFTUNG));
         newModel.setGuestRoomInfraredHeater(readSwitchState(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG));
 
@@ -176,6 +179,9 @@ public class HouseService {
 
         newModel.setWallboxElectricalPowerConsumption(readPowerConsumption(Device.STROMZAEHLER_WALLBOX));
         newModel.setGasConsumption(readPowerConsumption(Device.GASZAEHLER));
+
+        // associated devices
+        newModel.getWallboxSwitch().setAssociatedPowerMeter(newModel.getWallboxElectricalPowerConsumption());
 
         for (Device device : Device.values()) {
             checkLowBattery(newModel, device);
@@ -200,6 +206,7 @@ public class HouseService {
         if(oldModel==null || (oldModel.getWallboxSwitch().isState() != newModel.getWallboxSwitch().isState())){
             electricVehicleService.startNewChargingEntryAndRefreshModel();
         }
+        photovoltaicsOverflowService.houseModelRefreshed();
     }
 
     private void calculateConclusion(HouseModel oldModel, HouseModel newModel) {
@@ -716,13 +723,6 @@ public class HouseService {
     private Switch readSwitchState(Device device) {
         Switch switchModel = new Switch();
         readSwitchInternal(device, switchModel);
-        return switchModel;
-    }
-
-    private WallboxSwitch readWallboxSwitchState(Device device) {
-        WallboxSwitch switchModel = new WallboxSwitch();
-        readSwitchInternal(device, switchModel);
-        // FIXME: Timer, solar etc....
         return switchModel;
     }
 
