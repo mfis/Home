@@ -126,7 +126,7 @@ public class PhotovoltaicsOverflowService {
     }
 
     private void sortDevicesAccordingToPriority(){
-        // overflowControlledDevices.sort(...); TODO
+        overflowControlledDevices.sort(Comparator.comparingInt(c -> c.attributes.defaultPriority()));
     }
 
     private record OverflowControlledDevice (
@@ -134,7 +134,7 @@ public class PhotovoltaicsOverflowService {
             Field field
     ) {}
 
-    private class OverflowControlledDeviceState {
+    private static class OverflowControlledDeviceState {
         private int lastKnownWattage;
         private LocalDateTime controlStateTimestamp;
         private ControlState controlState;

@@ -13,4 +13,5 @@ public @interface EnablePhotovoltaicsOverflow {
     int percentageMaxPowerFromGrid();
     int switchOnDelay();
     int switchOffDelay();
+    int defaultPriority();
 }
