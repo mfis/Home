@@ -19,6 +19,8 @@ import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
@@ -29,9 +31,14 @@ public class PhotovoltaicsOverflowService {
     @Autowired
     private HouseService houseService;
 
-    private LinkedList<OverflowControlledDevice> overflowControlledDevices = new LinkedList<>();
+    @Autowired
+    private UniqueTimestampService uniqueTimestampService;
 
-    private Map<OverflowControlledDevice, OverflowControlledDeviceState> overflowControlledDeviceStates = new HashMap<>();
+    private final LinkedList<OverflowControlledDevice> overflowControlledDevices = new LinkedList<>();
+
+    private final Map<OverflowControlledDevice, OverflowControlledDeviceState> overflowControlledDeviceStates = new HashMap<>();
+
+    private long lastGridElectricStatusTime = -1;
 
     private static final Log LOG = LogFactory.getLog(PhotovoltaicsOverflowService.class);
 
@@ -55,12 +62,11 @@ public class PhotovoltaicsOverflowService {
 
     @Async
     public void houseModelRefreshed() {
+
         final var houseModel = ModelObjectDAO.getInstance().readHouseModel();
         var hasToRefreshHouseModel = false;
 
-        if(houseModel.getGridElectricalPower() == null
-                || houseModel.getGridElectricalPower().getActualConsumption() == null
-                || houseModel.getGridElectricalPower().getActualConsumption().getValue() == null){
+        if(!isActualGridDataAvailable(houseModel)){
             return;
         }
 
@@ -75,10 +81,21 @@ public class PhotovoltaicsOverflowService {
                 final var actualDeviceWattage = getActualDeviceWattage(ocd, deviceModel);
                 if (isAutoModeOn(deviceModel) && getActualDeviceSwitchState(deviceModel)) {
                     var maxWattsFromGrid = actualDeviceWattage * ocd.attributes.percentageMaxPowerFromGrid() / 100;
-                    if (wattage > maxWattsFromGrid) { // FIXME: delay
-                        houseService.togglestate(deviceModel.getDevice(), false);
-                        hasToRefreshHouseModel = true;
-                        wattage -= actualDeviceWattage;
+                    if (wattage > maxWattsFromGrid) {
+                        switch(overflowControlledDeviceStates.get(ocd).controlState){
+                            case STABLE -> setControlState(ocd, ControlState.PREPARE_TO_OFF);
+                            case PREPARE_TO_OFF -> {
+                                if(isSwitchOffDelayReached(ocd)){
+                                    LOG.info("switch OFF " + deviceModel.getDevice().name());
+                                    houseService.togglestate(deviceModel.getDevice(), false);
+                                    hasToRefreshHouseModel = true;
+                                    wattage -= actualDeviceWattage;
+                                }
+                            }
+                            case PREPARE_TO_ON -> LOG.warn("state confusion (off)!");
+                        }
+                    }else{
+                        setControlState(ocd, ControlState.STABLE);
                     }
                 }
             }
@@ -92,6 +109,32 @@ public class PhotovoltaicsOverflowService {
         if(hasToRefreshHouseModel){
             houseService.refreshHouseModel();
         }
+    }
+
+    private boolean isActualGridDataAvailable(HouseModel houseModel){
+        if(houseModel.getGridElectricalPower() == null
+                || houseModel.getGridElectricalPower().getActualConsumption() == null
+                || houseModel.getGridElectricalPower().getActualConsumption().getValue() == null){
+            return false;
+        }
+        long diffGridElectricStatusTime = Math.abs(houseModel.getGridElectricStatusTime() - lastGridElectricStatusTime);
+        if(diffGridElectricStatusTime < 5000){
+            return false;
+        }
+        lastGridElectricStatusTime = houseModel.getGridElectricStatusTime();
+        return true;
+    }
+
+    private boolean isSwitchOffDelayReached(OverflowControlledDevice ocd) {
+        long between = ChronoUnit.MINUTES.between(
+                uniqueTimestampService.getNonUnique(),
+                overflowControlledDeviceStates.get(ocd).controlStateTimestamp);
+        return Math.abs(between) >= ocd.attributes.switchOffDelay();
+    }
+
+    private void setControlState(OverflowControlledDevice ocd, ControlState controlState) {
+        overflowControlledDeviceStates.get(ocd).controlState = controlState;
+        overflowControlledDeviceStates.get(ocd).controlStateTimestamp = uniqueTimestampService.getNonUnique();
     }
 
     private AbstractDeviceModel getDeviceModel(HouseModel houseModel, OverflowControlledDevice ocd) {
@@ -115,6 +158,7 @@ public class PhotovoltaicsOverflowService {
         if(deviceModel instanceof Switch switchDevice){
             return switchDevice.isState();
         }
+        LOG.warn("unknown instance: " + deviceModel.getClass().getName());
         return false;
     }
 
@@ -122,6 +166,7 @@ public class PhotovoltaicsOverflowService {
         if(deviceModel instanceof Switch switchDevice){
             return switchDevice.getAutomation();
         }
+        LOG.warn("unknown instance: " + deviceModel.getClass().getName());
         return false;
     }
 

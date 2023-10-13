@@ -28,4 +28,8 @@ public class UniqueTimestampService {
     public static String getAsStringWithMillis(LocalDateTime ldt){
         return ldt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
     }
+
+    public LocalDateTime getNonUnique(){
+        return LocalDateTime.now();
+    }
 }

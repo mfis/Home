@@ -55,7 +55,7 @@ public class HouseModel implements Serializable {
 
     private WindowSensor guestRoomWindowSensor;
 
-    @EnablePhotovoltaicsOverflow(shortName = "Hzg.Gaeste.", defaultWattage = 450, percentageMaxPowerFromGrid = 10, switchOnDelay = 1, switchOffDelay = 3, defaultPriority = 2)
+    @EnablePhotovoltaicsOverflow(shortName = "Hzg.Gaeste.", defaultWattage = 450, percentageMaxPowerFromGrid = 10, switchOnDelay = 1, switchOffDelay = 1, defaultPriority = 2)
     private Switch guestRoomInfraredHeater;
 
     private WindowSensor workshopWindowSensor;
