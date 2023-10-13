@@ -43,7 +43,7 @@ public class HouseModel implements Serializable {
 
     private Switch kitchenWindowLightSwitch;
 
-    @EnablePhotovoltaicsOverflow(shortName = "Wallbox", defaultWattage = 2200, percentageMaxPowerFromGrid = 10, switchOnDelay = 4, switchOffDelay = 10, defaultPriority = 1)
+    @EnablePhotovoltaicsOverflow
     private Switch wallboxSwitch;
 
     private Switch workshopVentilationSwitch;
@@ -55,7 +55,7 @@ public class HouseModel implements Serializable {
 
     private WindowSensor guestRoomWindowSensor;
 
-    @EnablePhotovoltaicsOverflow(shortName = "Hzg.Gaeste.", defaultWattage = 450, percentageMaxPowerFromGrid = 10, switchOnDelay = 1, switchOffDelay = 1, defaultPriority = 2)
+    @EnablePhotovoltaicsOverflow
     private Switch guestRoomInfraredHeater;
 
     private WindowSensor workshopWindowSensor;

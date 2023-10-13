@@ -9,7 +9,9 @@ import org.apache.commons.collections4.iterators.ReverseListIterator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
@@ -26,6 +28,9 @@ public class PhotovoltaicsOverflowService {
     @Autowired
     private UniqueTimestampService uniqueTimestampService;
 
+    @Autowired
+    private Environment env;
+
     private final LinkedList<OverflowControlledDevice> overflowControlledDevices = new LinkedList<>();
 
     private final Map<OverflowControlledDevice, OverflowControlledDeviceState> overflowControlledDeviceStates = new HashMap<>();
@@ -40,16 +45,33 @@ public class PhotovoltaicsOverflowService {
             final var enablePhotovoltaicsOverflow = field.getAnnotation(EnablePhotovoltaicsOverflow.class);
             if(enablePhotovoltaicsOverflow != null){
                 final var overflowControlledDevice =
-                        new OverflowControlledDevice(enablePhotovoltaicsOverflow, field);
+                        new OverflowControlledDevice(field,
+                                getProperty(field, "shortName"),
+                                Integer.parseInt(getProperty(field, "defaultWattage")),
+                                Integer.parseInt(getProperty(field, "percentageMaxPowerFromGrid")),
+                                Integer.parseInt(getProperty(field, "switchOnDelay")),
+                                Integer.parseInt(getProperty(field, "switchOffDelay")),
+                                Integer.parseInt(getProperty(field, "defaultPriority")),
+                                Integer.parseInt(getProperty(field, "maxDailyOnSwitching"))
+                        );
                 overflowControlledDevices.add(overflowControlledDevice);
                 var ocds = new OverflowControlledDeviceState();
-                ocds.lastKnownWattage = enablePhotovoltaicsOverflow.defaultWattage();
+                ocds.lastKnownWattage = overflowControlledDevice.defaultWattage;
                 ocds.controlState = ControlState.STABLE;
                 ocds.controlStateTimestamp = LocalDateTime.now();
                 overflowControlledDeviceStates.put(overflowControlledDevice, ocds);
             }
         }
         sortDevicesAccordingToPriority();
+    }
+
+    private String getProperty(Field field, String name){
+        return env.getProperty("pvOverflow." + field.getName() + "." + name);
+    }
+
+    @Scheduled(cron = "0 00 00 * * *")
+    public void resetCounter() {
+        overflowControlledDeviceStates.values().forEach(ocds -> ocds.dailyOnSwitchingCounter = 0);
     }
 
     @Async
@@ -72,7 +94,7 @@ public class PhotovoltaicsOverflowService {
                 final var deviceModel = getDeviceModel(houseModel, ocd);
                 final var actualDeviceWattage = getActualDeviceWattage(ocd, deviceModel);
                 if (isAutoModeOn(deviceModel) && isActualDeviceSwitchState(deviceModel)) {
-                    var maxWattsFromGrid = actualDeviceWattage * ocd.attributes.percentageMaxPowerFromGrid() / 100;
+                    var maxWattsFromGrid = actualDeviceWattage * ocd.percentageMaxPowerFromGrid / 100;
                     if (wattage > maxWattsFromGrid) {
                         switch(overflowControlledDeviceStates.get(ocd).controlState){
                             case STABLE -> setControlState(ocd, ControlState.PREPARE_TO_OFF);
@@ -99,13 +121,14 @@ public class PhotovoltaicsOverflowService {
                 final var deviceModel = getDeviceModel(houseModel, ocd);
                 final var actualDeviceWattage = getActualDeviceWattage(ocd, deviceModel);
                 if (isAutoModeOn(deviceModel) && !isActualDeviceSwitchState(deviceModel)) {
-                    var minWattsFromPV = (actualDeviceWattage - (actualDeviceWattage * ocd.attributes.percentageMaxPowerFromGrid() / 100)) * -1;
+                    var minWattsFromPV = (actualDeviceWattage - (actualDeviceWattage * ocd.percentageMaxPowerFromGrid / 100)) * -1;
                     if (wattage <= minWattsFromPV) {
                         switch (overflowControlledDeviceStates.get(ocd).controlState) {
                             case STABLE -> setControlState(ocd, ControlState.PREPARE_TO_ON);
                             case PREPARE_TO_ON -> {
-                                if (isSwitchOnDelayReached(ocd)) {
-                                    LOG.info("switch ON " + deviceModel.getDevice().name());
+                                if (isSwitchOnDelayReachedAndAllowed(ocd)) {
+                                    LOG.info("switch ON " + deviceModel.getDevice().name() + " #" +
+                                            overflowControlledDeviceStates.get(ocd).dailyOnSwitchingCounter + "/" + ocd.maxDailyOnSwitching);
                                     houseService.togglestate(deviceModel.getDevice(), true);
                                     hasToRefreshHouseModel = true;
                                     wattage += actualDeviceWattage;
@@ -139,18 +162,19 @@ public class PhotovoltaicsOverflowService {
         return true;
     }
 
-    private boolean isSwitchOnDelayReached(OverflowControlledDevice ocd) {
-        long between = ChronoUnit.MINUTES.between(
+    private boolean isSwitchOnDelayReachedAndAllowed(OverflowControlledDevice ocd) {
+        long minutesBetween = ChronoUnit.MINUTES.between(
                 uniqueTimestampService.getNonUnique(),
                 overflowControlledDeviceStates.get(ocd).controlStateTimestamp);
-        return Math.abs(between) >= ocd.attributes.switchOnDelay();
+        return Math.abs(minutesBetween) >= ocd.switchOnDelay
+                && overflowControlledDeviceStates.get(ocd).dailyOnSwitchingCounter <= ocd.maxDailyOnSwitching;
     }
 
     private boolean isSwitchOffDelayReached(OverflowControlledDevice ocd) {
         long between = ChronoUnit.MINUTES.between(
                 uniqueTimestampService.getNonUnique(),
                 overflowControlledDeviceStates.get(ocd).controlStateTimestamp);
-        return Math.abs(between) >= ocd.attributes.switchOffDelay();
+        return Math.abs(between) >= ocd.switchOffDelay;
     }
 
     private void setControlState(OverflowControlledDevice ocd, ControlState controlState) {
@@ -192,18 +216,25 @@ public class PhotovoltaicsOverflowService {
     }
 
     private void sortDevicesAccordingToPriority(){
-        overflowControlledDevices.sort(Comparator.comparingInt(c -> c.attributes.defaultPriority()));
+        overflowControlledDevices.sort(Comparator.comparingInt(OverflowControlledDevice::defaultPriority));
     }
 
     private record OverflowControlledDevice (
-            EnablePhotovoltaicsOverflow attributes,
-            Field field
+            Field field,
+            String shortName,
+            int defaultWattage,
+            int percentageMaxPowerFromGrid,
+            int switchOnDelay,
+            int switchOffDelay,
+            int defaultPriority,
+            int maxDailyOnSwitching
     ) {}
 
     private static class OverflowControlledDeviceState {
         private int lastKnownWattage;
         private LocalDateTime controlStateTimestamp;
         private ControlState controlState;
+        private int dailyOnSwitchingCounter = 0;
     }
 
     private enum ControlState {
