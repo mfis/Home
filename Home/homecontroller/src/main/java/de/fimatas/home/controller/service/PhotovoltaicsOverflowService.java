@@ -41,6 +41,9 @@ public class PhotovoltaicsOverflowService {
 
     @PostConstruct
     public void init() {
+        overflowControlledDevices.clear();
+        overflowControlledDeviceStates.clear();
+        lastGridElectricStatusTime = -1;
         for(Field field : HouseModel.class.getDeclaredFields()){
             final var enablePhotovoltaicsOverflow = field.getAnnotation(EnablePhotovoltaicsOverflow.class);
             if(enablePhotovoltaicsOverflow != null){
@@ -149,7 +152,7 @@ public class PhotovoltaicsOverflowService {
     }
 
     private boolean isActualGridDataAvailable(HouseModel houseModel){
-        if(houseModel.getGridElectricalPower() == null
+        if(houseModel == null || houseModel.getGridElectricalPower() == null
                 || houseModel.getGridElectricalPower().getActualConsumption() == null
                 || houseModel.getGridElectricalPower().getActualConsumption().getValue() == null){
             return false;
