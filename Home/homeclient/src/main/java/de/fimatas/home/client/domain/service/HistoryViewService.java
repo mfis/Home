@@ -26,6 +26,8 @@ import de.fimatas.home.library.domain.model.HouseModel;
 import de.fimatas.home.library.domain.model.PowerConsumptionMonth;
 import de.fimatas.home.library.domain.model.TemperatureHistory;
 
+import static de.fimatas.home.library.util.HomeUtils.buildDecimalFormat;
+
 @Component
 @CommonsLog
 public class HistoryViewService {
@@ -156,7 +158,7 @@ public class HistoryViewService {
     void calculatePreviousYearDifference(HistoryEntry entry, PowerConsumptionMonth pcm,
             List<PowerConsumptionMonth> history, Long calculated) {
 
-        DecimalFormat decimalFormat = new DecimalFormat("+0;-0");
+        DecimalFormat decimalFormat = buildDecimalFormat("+0;-0");
         LocalDateTime baseDateTime = pcm.measurePointMaxDateTime();
         long baseValue = calculated != null ? calculated : (pcm.getPowerConsumption() != null? pcm.getPowerConsumption().longValue() : 0L);
         Long compareValue = null;

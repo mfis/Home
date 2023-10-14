@@ -32,6 +32,7 @@ import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.homematic.model.Type;
 import de.fimatas.home.library.util.HomeAppConstants;
 
+import static de.fimatas.home.library.util.HomeUtils.buildDecimalFormat;
 import static de.fimatas.home.library.util.WeatherForecastConclusionTextFormatter.*;
 
 @Component
@@ -457,13 +458,13 @@ public class HouseViewService {
 
         if (val != null) {
             if (onlyInteger) {
-                var formatted = new DecimalFormat(rounded ? "#" : "0").format(val);
+                var formatted = buildDecimalFormat(rounded ? "#" : "0").format(val);
                 if(formatted.equals("-0")){
                     formatted = "0";
                 }
                 return formatted;
             } else {
-                return new DecimalFormat("0." + (rounded ? "#" : "0")).format(val);
+                return buildDecimalFormat("0." + (rounded ? "#" : "0")).format(val);
             }
         } else {
             return null;
@@ -742,7 +743,7 @@ public class HouseViewService {
                         .divide(selfused, 4, RoundingMode.HALF_UP)
                         .multiply(ViewFormatter.HUNDRED);
                 BigDecimal percentageSelfused = ViewFormatter.HUNDRED.subtract(percentagePurchased);
-                // overallElectricPowerHouseView.setPvSelfConsumptionPercentage("PV-Anteil " + new DecimalFormat("0.0").format(percentageSelfused) + " %");
+                // overallElectricPowerHouseView.setPvSelfConsumptionPercentage("PV-Anteil " + buildDecimalFormat("0.0").format(percentageSelfused) + " %");
             }
         }
 
@@ -1165,7 +1166,7 @@ public class HouseViewService {
 
     private void formatWeatherForecast(Model model, WeatherForecastModel weatherForecastModel) {
 
-        var df = new DecimalFormat("0");
+        var df = buildDecimalFormat("0");
         df.setRoundingMode(RoundingMode.HALF_UP);
         var unreach = weatherForecastModel == null || weatherForecastModel.getForecasts().isEmpty() || weatherForecastModel.getConclusion24to48hours() == null;
 

@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -25,6 +26,8 @@ import de.fimatas.home.client.domain.model.ValueWithCaption;
 import de.fimatas.home.library.domain.model.PowerConsumptionDay;
 import de.fimatas.home.library.domain.model.TimeRange;
 import de.fimatas.home.library.util.HomeUtils;
+
+import static de.fimatas.home.library.util.HomeUtils.buildDecimalFormat;
 
 @Component
 public class ViewFormatter {
@@ -67,17 +70,17 @@ public class ViewFormatter {
 
     public static String powerInWattToKiloWatt(BigDecimal value){
         String format = value.compareTo(new BigDecimal("0.1")) < 0 ? "0" : "0.0";
-        return new DecimalFormat(format).format(value.divide(KWH_FACTOR, new MathContext(3, RoundingMode.HALF_UP)));
+        return buildDecimalFormat(format).format(value.divide(KWH_FACTOR, new MathContext(3, RoundingMode.HALF_UP)));
 
     }
 
     public static String powerConsumptionValueForView(Device device, BigDecimal value){
-        var decimalFormat = device.getType() == Type.GAS_POWER ? new DecimalFormat("0.0") : new DecimalFormat("0");
+        var decimalFormat = device.getType() == Type.GAS_POWER ? buildDecimalFormat("0.0") : buildDecimalFormat("0");
         return decimalFormat.format(powerConsumptionValue(device, value));
     }
 
     public static String actualPowerConsumptionValueForView(Device device, BigDecimal value){
-        var decimalFormat = device.getType() == Type.GAS_POWER ? new DecimalFormat("0.0") : new DecimalFormat("0");
+        var decimalFormat = device.getType() == Type.GAS_POWER ? buildDecimalFormat("0.0") : buildDecimalFormat("0");
         return decimalFormat.format(value);
     }
 
@@ -167,7 +170,7 @@ public class ViewFormatter {
 
     public String formatTemperature(BigDecimal value) {
 
-        DecimalFormat decimalFormat = new DecimalFormat("0");
+        DecimalFormat decimalFormat = buildDecimalFormat("0");
         String frmt = decimalFormat.format(value);
         if ("-0".equals(frmt)) { // special case: some negative value roundet to
                                  // zero has a leading '-'
@@ -178,7 +181,7 @@ public class ViewFormatter {
 
     public List<ChartEntry> fillPowerHistoryDayViewModel(Device device, List<PowerConsumptionDay> days, boolean historyView, boolean onlyToday) {
 
-        DecimalFormat decimalFormat = new DecimalFormat("0.#");
+        DecimalFormat decimalFormat = buildDecimalFormat("0.#");
         LocalDateTime today = LocalDateTime.now();
         TimeRange actualRange = TimeRange.fromDateTime(today);
         List<ChartEntry> chartEntries = new LinkedList<>();

@@ -1,6 +1,9 @@
 package de.fimatas.home.library.util;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.time.LocalDateTime;
+import java.util.Locale;
 
 public class HomeUtils {
 
@@ -33,5 +36,9 @@ public class HomeUtils {
 
     public static boolean isSameDay(LocalDateTime date1, LocalDateTime date2) {
         return isSameMonth(date1, date2) && date1.getDayOfMonth() == date2.getDayOfMonth();
+    }
+
+    public static DecimalFormat buildDecimalFormat(String format){
+        return new DecimalFormat(format, new DecimalFormatSymbols(Locale.GERMAN));
     }
 }

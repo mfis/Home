@@ -9,6 +9,8 @@ import java.text.DecimalFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static de.fimatas.home.library.util.HomeUtils.buildDecimalFormat;
+
 public class WeatherForecastConclusionTextFormatter {
 
     public static final int FORMAT_CONDITIONS_SHORT_1_MAX_INCL_UNSIGNIFICANT = 0;
@@ -111,7 +113,7 @@ public class WeatherForecastConclusionTextFormatter {
         if(conclusion.getSunshineInMin()==null){
             return "";
         }else if(conclusion.getSunshineInMin().intValue() > BD_60.intValue()){
-            return new DecimalFormat("0").format(conclusion.getSunshineInMin().divide(BD_60, 1, RoundingMode.HALF_UP))  + " Std";
+            return buildDecimalFormat("0").format(conclusion.getSunshineInMin().divide(BD_60, 1, RoundingMode.HALF_UP))  + " Std";
         }else{
             return conclusion.getSunshineInMin().intValue() + " Min";
         }
@@ -122,7 +124,7 @@ public class WeatherForecastConclusionTextFormatter {
             return "";
         }
         String pattern = conclusion.getPrecipitationInMM().compareTo(BigDecimal.TEN) < 0 && conclusion.getPrecipitationInMM().compareTo(BigDecimal.ZERO) > 0 ? "0.0" : "0";
-        return new DecimalFormat(pattern).format(conclusion.getPrecipitationInMM())  + " mm";
+        return buildDecimalFormat(pattern).format(conclusion.getPrecipitationInMM())  + " mm";
     }
 
     private static String plusIfMoreThenOne(Set<WeatherConditions> cond){

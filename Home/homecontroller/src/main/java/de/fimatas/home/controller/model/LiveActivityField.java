@@ -10,6 +10,8 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.function.Function;
 
+import static de.fimatas.home.library.util.HomeUtils.buildDecimalFormat;
+
 @Getter
 public enum LiveActivityField {
 
@@ -18,8 +20,8 @@ public enum LiveActivityField {
             "energygrid", "app",
             new BigDecimal(40),
             true,
-            val -> new DecimalFormat("0").format(val.abs()) + " W",
-            val -> new DecimalFormat("0.0").format(val.abs().divide(new BigDecimal(1000), new MathContext(3, RoundingMode.HALF_UP))),
+            val -> buildDecimalFormat("0").format(val.abs()) + " W",
+            val -> buildDecimalFormat("0.0").format(val.abs().divide(new BigDecimal(1000), new MathContext(3, RoundingMode.HALF_UP))),
             val -> ViewFormatterUtils.mapAppColorAccent(val.compareTo(BigDecimal.ZERO) > 0 ? ConditionColor.ORANGE.getUiClass() : ConditionColor.GREEN.getUiClass())
     ), //
 
