@@ -111,9 +111,11 @@ public class PhotovoltaicsOverflowService {
                             }
                             case PREPARE_TO_ON -> LOG.warn("state confusion (check off)!");
                         }
-                    }else{
+                    } else {
                         setControlState(ocd, ControlState.STABLE);
                     }
+                } else {
+                    setControlState(ocd, ControlState.STABLE);
                 }
             }
         }
@@ -142,6 +144,8 @@ public class PhotovoltaicsOverflowService {
                     } else {
                         setControlState(ocd, ControlState.STABLE);
                     }
+                } else {
+                    setControlState(ocd, ControlState.STABLE);
                 }
             }
         }

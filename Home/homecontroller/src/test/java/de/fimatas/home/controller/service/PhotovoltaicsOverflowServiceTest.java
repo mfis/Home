@@ -10,6 +10,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.env.Environment;
 
@@ -43,12 +44,116 @@ class PhotovoltaicsOverflowServiceTest {
     }
 
     @Test
-    void testAllOff() {
-        refreshHouseModelWithMinutesWattageAndAutomation(0, -3000, false, false);
+    void testAllStayingOffCausedByAutomation() {
+        refresh(0, -3000, false, false, false, false);
         verifySwitch(Device.SCHALTER_WALLBOX, null);
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
 
-        refreshHouseModelWithMinutesWattageAndAutomation(20, -3000, false, false);
+        refresh(20, -3000, false, false, false, false);
+        verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+    }
+
+    @Test
+    void testAllStayingOffCausedByPower() {
+        refresh(0, +3000, true, false, true, false);
+        verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+
+        refresh(20, +3000, false, true, true, false);
+        verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+    }
+
+    @Test
+    void testOnByPriority() {
+        refresh(0, -2100, true, false, true, false);
+        verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+
+        refresh(5, -2100, true, false, true, false);
+        verifySwitch(Device.SCHALTER_WALLBOX, true);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+    }
+
+    @Test
+    void testAllOnAfterDelay() {
+        refresh(0, -3000, true,  false, true, false);
+        verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+
+        refresh(3, -3000, true, false, true, false);
+        verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, true);
+
+        refresh(6, -3000, true, false, true, true);
+        verifySwitch(Device.SCHALTER_WALLBOX, true);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+    }
+
+    @Test
+    void testOffByPriority() {
+        refresh(0, +200, true,  true, true, true);
+        verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+
+        refresh(20, +200, true,  true, true, true);
+        verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, false);
+    }
+
+    @Test
+    void testAllOff() {
+        refresh(0, +3000, true,  true, true, true);
+        verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+
+        refresh(20, +3000, true,  true, true, true);
+        verifySwitch(Device.SCHALTER_WALLBOX, false);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, false);
+    }
+
+    @Test
+    void testOffAfterDelay() {
+        refresh(0, +500, true,  true, false, false);
+        verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+
+        refresh(7, +500, true,  true, false, false);
+        verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+
+        refresh(12, +500, true,  true, false, false);
+        verifySwitch(Device.SCHALTER_WALLBOX, false);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+    }
+
+    @Test
+    void testOnInterrupted() {
+        refresh(0, -2200, true, false, false, false);
+        verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+
+        refresh(3, +500, true, false, false, false);
+        verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+
+        refresh(6, -2200, true, false, false, false);
+        verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+    }
+
+    @Test
+    void testOffInterrupted() {
+        refresh(0, +600, true, true, false, false);
+        verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+
+        refresh(8, -200, true, true, false, false);
+        verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+
+        refresh(11, +600, true, true, false, false);
         verifySwitch(Device.SCHALTER_WALLBOX, null);
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
     }
@@ -61,10 +166,10 @@ class PhotovoltaicsOverflowServiceTest {
             verify(houseService, times(1)).togglestate(device, state);
             verify(houseService, times(0)).togglestate(device, !state);
         }
-
     }
 
-    private void refreshHouseModelWithMinutesWattageAndAutomation(int minutes, int wattage, boolean wallboxAutomatic, boolean heatingAutomatic) {
+    private void refresh(int minutes, int wattage, boolean wallboxAutomatic, boolean wallboxOn, boolean heatingAutomatic, boolean heatingOn) {
+        Mockito.reset(houseService);
         setDateTimeOffsetMinutes(minutes);
         HouseModel houseModel = new HouseModel();
         houseModel.setGridElectricalPower(new PowerMeter());
@@ -72,9 +177,13 @@ class PhotovoltaicsOverflowServiceTest {
         houseModel.getGridElectricalPower().getActualConsumption().setValue(new BigDecimal(wattage));
         houseModel.setGridElectricStatusTime(uniqueTimestampService.getNonUnique().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
         houseModel.setWallboxSwitch(new Switch());
+        houseModel.getWallboxSwitch().setDevice(Device.SCHALTER_WALLBOX);
         houseModel.getWallboxSwitch().setAutomation(wallboxAutomatic);
+        houseModel.getWallboxSwitch().setState(wallboxOn);
         houseModel.setGuestRoomInfraredHeater(new Switch());
+        houseModel.getGuestRoomInfraredHeater().setDevice(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG);
         houseModel.getGuestRoomInfraredHeater().setAutomation(heatingAutomatic);
+        houseModel.getGuestRoomInfraredHeater().setState(heatingOn);
         ModelObjectDAO.getInstance().write(houseModel);
         photovoltaicsOverflowService.houseModelRefreshed();
     }
