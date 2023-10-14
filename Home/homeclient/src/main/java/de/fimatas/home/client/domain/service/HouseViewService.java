@@ -1083,21 +1083,17 @@ public class HouseViewService {
                 view.setLinkManual(
                         TOGGLE_AUTOMATION + switchModel.getDevice().name() + AND_VALUE_IS + AutomationState.MANUAL.name());
                 if (ArrayUtils.isNotEmpty(buttonCaptions)) {
-                    view.setStateSuffix(PROGRAMMGESTEUERT + ", " + buttonCaptions[0]);
+                    view.setStateSuffix(", " + buttonCaptions[0]);
                     view.setElementTitleState(buttonCaptions[0]);
                 } else {
                     view.setStateSuffix(PROGRAMMGESTEUERT);
                     view.setElementTitleState(PROGRAMMGESTEUERT.replaceAll(REGEXP_NOT_ALPHANUMERIC, StringUtils.EMPTY));
                 }
             } else {
-                if(switchModel.getDevice() == Device.SCHALTER_WALLBOX){
-                    view.setLinkAuto(StringUtils.EMPTY);
-                }else{
-                    view.setLinkAuto(
-                            TOGGLE_AUTOMATION + switchModel.getDevice().name() + AND_VALUE_IS + AutomationState.AUTOMATIC.name());
-                }
+                view.setLinkAuto(
+                        TOGGLE_AUTOMATION + switchModel.getDevice().name() + AND_VALUE_IS + AutomationState.AUTOMATIC.name());
                 if (ArrayUtils.isNotEmpty(buttonCaptions)) {
-                    view.setStateSuffix(PROGRAMMGESTEUERT + ", " + buttonCaptions[1]);
+                    view.setStateSuffix(", " + buttonCaptions[1]);
                     view.setElementTitleState(buttonCaptions[1]);
                 } else {
                     view.setStateSuffix(StringUtils.EMPTY);
