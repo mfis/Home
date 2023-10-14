@@ -71,6 +71,12 @@ public class EvChargingDAO {
                 "select * FROM " + TABLE_NAME + " where ENDTS is null;", new EvChargingMapper()).isEmpty();
     }
 
+    @Transactional(readOnly = true)
+    public EvChargeDatabaseEntry readActiveCharging(ElectricVehicle ev){
+
+        return jdbcTemplate.queryForObject(
+                "select * FROM " + TABLE_NAME + " where EVNAME = ? and ENDTS is null;", new EvChargingMapper(), ev.name());
+    }
 
    @Transactional(readOnly = true)
     public LocalDateTime maxChangeTimestamp(){

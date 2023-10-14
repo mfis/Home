@@ -27,6 +27,7 @@ import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -89,6 +90,8 @@ public class ElectricVehicleService {
     private final BigDecimal MINUTES_A_HOUR = new BigDecimal(60);
 
     private boolean firstRun = true;
+
+    private List<String> sentChargingProblemPushTimestampCache = new ArrayList<>();
 
     public void refreshModel() {
 
@@ -223,6 +226,11 @@ public class ElectricVehicleService {
         state.setChargingTimestamp(entries.stream().map(EvChargeDatabaseEntry::getChangeTS).max(LocalDateTime::compareTo).orElse(null));
     }
 
+    @Scheduled(cron = "0 00 00 * * *")
+    public void resetCache() {
+        sentChargingProblemPushTimestampCache.clear();
+    }
+
     @Scheduled(initialDelay = 1000 * 20, fixedDelay = (1000 * HomeAppConstants.CHARGING_STATE_CHECK_INTERVAL_SECONDS) + 234)
     private void scheduledCheckChargingState() {
         if(firstRun){
@@ -257,6 +265,7 @@ public class ElectricVehicleService {
 
         // update
         evChargingDAO.write(connectedElectricVehicleState.getElectricVehicle(), readEnergyCounterValue(), EvChargePoint.WALLBOX1);
+        checkForChargingProblem(connectedElectricVehicleState.getElectricVehicle());
 
         var chargingFinishedState = isChargingFinished(connectedElectricVehicleState);
         if(chargingFinishedState != ChargingFinishedState.STILL_CHARGING){
@@ -271,6 +280,21 @@ public class ElectricVehicleService {
 
         refreshModel();
         return true;
+    }
+
+    private void checkForChargingProblem(ElectricVehicle electricVehicle) {
+        try {
+            final EvChargeDatabaseEntry activeCharging = evChargingDAO.readActiveCharging(electricVehicle);
+            String cacheKey = activeCharging.getStartTS().toString();
+            if(!sentChargingProblemPushTimestampCache.contains(cacheKey)
+                    && Math.abs(ChronoUnit.MINUTES.between(LocalDateTime.now(), activeCharging.getStartTS())) >= 8){
+                CompletableFuture.runAsync(() ->
+                        pushService.sendErrorMessage("Ladevorgang " + electricVehicle.getCaption() + " konnte nicht gestartet werden."));
+                sentChargingProblemPushTimestampCache.add(cacheKey);
+            }
+        }catch (Exception e){
+            log.error("checkForChargingProblem()", e);
+        }
     }
 
     private void sentPushNotification(ChargingFinishedState chargingFinishedState) {
