@@ -136,6 +136,7 @@ public class PhotovoltaicsOverflowService {
                                             overflowControlledDeviceStates.get(ocd).dailyOnSwitchingCounter + "/" + ocd.maxDailyOnSwitching);
                                     houseService.togglestate(deviceModel.getDevice(), true);
                                     hasToRefreshHouseModel = true;
+                                    overflowControlledDeviceStates.get(ocd).dailyOnSwitchingCounter += 1;
                                     wattage += actualDeviceWattage;
                                 }
                             }
