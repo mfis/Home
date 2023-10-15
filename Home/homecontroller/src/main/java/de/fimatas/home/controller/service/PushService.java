@@ -20,6 +20,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -164,6 +165,17 @@ public class PushService {
                     handleMessage(pushToken, PushNotifications.ERRORMESSAGE.getPushText(), message));
         } catch (Exception e) {
             LogFactory.getLog(PushService.class).error("Could not [sendErorMessage] push notifications:", e);
+        }
+    }
+
+    @Async
+    public void sendNotice(String message) {
+
+        try {
+            settingsService.listTokensWithEnabledSetting(PushNotifications.NOTICE).forEach(pushToken ->
+                    handleMessage(pushToken, PushNotifications.NOTICE.getPushText(), message));
+        } catch (Exception e) {
+            LogFactory.getLog(PushService.class).error("Could not [sendNotice] push notifications:", e);
         }
     }
 

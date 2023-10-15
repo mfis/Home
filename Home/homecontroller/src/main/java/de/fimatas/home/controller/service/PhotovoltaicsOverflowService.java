@@ -26,6 +26,9 @@ public class PhotovoltaicsOverflowService {
     private HouseService houseService;
 
     @Autowired
+    private PushService pushService;
+
+    @Autowired
     private UniqueTimestampService uniqueTimestampService;
 
     @Autowired
@@ -107,6 +110,7 @@ public class PhotovoltaicsOverflowService {
                                     houseService.togglestate(deviceModel.getDevice(), false);
                                     hasToRefreshHouseModel = true;
                                     wattage -= actualDeviceWattage;
+                                    pushService.sendNotice("PV-Überschuss: " + deviceModel.getDevice().getDescription() + " ausgeschaltet.");
                                 }
                             }
                             case PREPARE_TO_ON -> LOG.warn("state confusion (check off)!");
@@ -138,6 +142,7 @@ public class PhotovoltaicsOverflowService {
                                     hasToRefreshHouseModel = true;
                                     overflowControlledDeviceStates.get(ocd).dailyOnSwitchingCounter += 1;
                                     wattage += actualDeviceWattage;
+                                    pushService.sendNotice("PV-Überschuss: " + deviceModel.getDevice().getDescription() + " eingeschaltet.");
                                 }
                             }
                             case PREPARE_TO_OFF -> LOG.warn("state confusion (check on)!");

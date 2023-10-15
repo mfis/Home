@@ -9,6 +9,7 @@ public enum PushNotifications {
     CHARGELIMIT_OK("Ladevorgang abgeschlossen", "Ladevorgang OK",false), //
     CHARGELIMIT_ERROR("Ladevorgang unterbrochen", "Ladevorgang Fehler",false), //
     ERRORMESSAGE("Fehlermeldung", "Fehlermeldungen",false), //
+    NOTICE("Hinweis", "Hinweis",false), //
     ;
 
     private final String pushText;

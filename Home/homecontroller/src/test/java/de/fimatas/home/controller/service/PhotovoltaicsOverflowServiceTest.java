@@ -12,6 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import java.math.BigDecimal;
@@ -32,6 +33,9 @@ class PhotovoltaicsOverflowServiceTest {
 
     @Mock
     private UniqueTimestampService uniqueTimestampService;
+
+    @Mock
+    private PushService pushService;
 
     @Mock
     private Environment env;
