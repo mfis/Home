@@ -125,7 +125,10 @@ public class PhotovoltaicsOverflowService {
                                     pushService.sendNotice("PV-Überschuss: " + deviceModel.getDevice().getDescription() + " ausgeschaltet.");
                                 }
                             }
-                            case PREPARE_TO_ON -> LOG.warn("state confusion (check off)!");
+                            case PREPARE_TO_ON -> {
+                                LOG.warn("state confusion (check off)!");
+                                setControlState(ocd, ControlState.STABLE);
+                            }
                         }
                     } else {
                         setControlState(ocd, ControlState.STABLE);
@@ -158,7 +161,10 @@ public class PhotovoltaicsOverflowService {
                                     pushService.sendNotice("PV-Überschuss: " + deviceModel.getDevice().getDescription() + " eingeschaltet.");
                                 }
                             }
-                            case PREPARE_TO_OFF -> LOG.warn("state confusion (check on)!");
+                            case PREPARE_TO_OFF -> {
+                                LOG.warn("state confusion (check on)!");
+                                setControlState(ocd, ControlState.STABLE);
+                            }
                         }
                     } else {
                         setControlState(ocd, ControlState.STABLE);
