@@ -78,6 +78,17 @@ public class PhotovoltaicsOverflowService {
     @Scheduled(cron = "0 00 00 * * *")
     public void resetCounter() {
         overflowControlledDeviceStates.values().forEach(ocds -> ocds.dailyOnSwitchingCounter = 0);
+
+        final var houseModel = ModelObjectDAO.getInstance().readHouseModel();
+        for (OverflowControlledDevice ocd : overflowControlledDevices) {
+            final var deviceModel = getDeviceModel(houseModel, ocd);
+            if (isAutoModeOn(deviceModel)) {
+                houseService.toggleautomation(deviceModel.getDevice(), AutomationState.MANUAL);
+                if (isActualDeviceSwitchState(deviceModel)){
+                    houseService.togglestate(deviceModel.getDevice(), false);
+                }
+            }
+        }
     }
 
     @Async
@@ -108,6 +119,7 @@ public class PhotovoltaicsOverflowService {
                                 if(isSwitchOffDelayReached(ocd)){
                                     LOG.info("switch OFF " + deviceModel.getDevice().name());
                                     houseService.togglestate(deviceModel.getDevice(), false);
+                                    setControlState(ocd, ControlState.STABLE);
                                     hasToRefreshHouseModel = true;
                                     wattage -= actualDeviceWattage;
                                     pushService.sendNotice("PV-Überschuss: " + deviceModel.getDevice().getDescription() + " ausgeschaltet.");
@@ -139,6 +151,7 @@ public class PhotovoltaicsOverflowService {
                                     LOG.info("switch ON " + deviceModel.getDevice().name() + " #" +
                                             overflowControlledDeviceStates.get(ocd).dailyOnSwitchingCounter + "/" + ocd.maxDailyOnSwitching);
                                     houseService.togglestate(deviceModel.getDevice(), true);
+                                    setControlState(ocd, ControlState.STABLE);
                                     hasToRefreshHouseModel = true;
                                     overflowControlledDeviceStates.get(ocd).dailyOnSwitchingCounter += 1;
                                     wattage += actualDeviceWattage;

@@ -287,7 +287,8 @@ public class ElectricVehicleService {
             final EvChargeDatabaseEntry activeCharging = evChargingDAO.readActiveCharging(electricVehicle);
             String cacheKey = activeCharging.getStartTS().toString();
             if(!sentChargingProblemPushTimestampCache.contains(cacheKey)
-                    && Math.abs(ChronoUnit.MINUTES.between(LocalDateTime.now(), activeCharging.getStartTS())) >= 8){
+                    && Math.abs(ChronoUnit.MINUTES.between(LocalDateTime.now(), activeCharging.getStartTS())) >= 8
+                    && activeCharging.countValueAsKWH().compareTo(BigDecimal.ZERO) == 0){
                 CompletableFuture.runAsync(() ->
                         pushService.sendErrorMessage("Ladevorgang " + electricVehicle.getCaption() + " konnte nicht gestartet werden."));
                 sentChargingProblemPushTimestampCache.add(cacheKey);
