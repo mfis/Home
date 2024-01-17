@@ -8,20 +8,27 @@
 		<div th:replace="~{fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState}, colorClass=${model.colorClass})}"></div>
 		<th:block th:unless="${#strings.equals(model.unreach,'true')}">
 			<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
-				<h4>
-					<span th:id="${model.id} + '-label'"></span>
-					<span style="text-align: center;" th:id="${model.id} + '-status'"><i style="font-size: 0.8rem;" class="fa-solid fa-circle"></i></span>
-					<span th:text="${model.state}"></span>
-				</h4>
+				<table>
+					<tr>
+						<td valign="middle">
+							<div class="btn-group" role="group" aria-label="evenableslider" style="margin-right: 10px;">
+								<button style="margin-top: 10px; width: 40px" type="button" class="btn btn-block btn-secondary btn-sm" th:onclick="@{'enableSlider(\'' + ${model.id} + '\')'}"><span><i style="font-size: 0.8rem;" class="fa-solid fa-pencil"></i></span></button>
+							</div>
+						</td>
+						<td>
+							<h4>
+								<span th:id="${model.id} + '-label'"></span>
+								<span style="text-align: center;" th:id="${model.id} + '-status'"><i style="font-size: 0.8rem;" class="fa-solid fa-circle"></i></span>
+								<span th:text="${model.state}"></span>
+							</h4>
+						</td>
+					</tr>
+				</table>
 				<script>
 						sliderList.push('[[${model.id}]]');
 				</script>
 
-				<div class="btn-group" role="group" aria-label="evenableslider" style="margin-right: 10px;">
-					<button style="margin-top: 10px; width: 40px" type="button" class="btn btn-block btn-secondary btn-sm" th:onclick="@{'enableSlider(\'' + ${model.id} + '\')'}"><span><i style="font-size: 0.8rem;" class="fa-solid fa-pencil"></i></span></button>
-				</div>
-
-				<span style="height: 31px;" class="align-text-top"><a>Limit:</a></span>
+				<span style="height: 31px;" class="align-text-top"><a>Limit:&nbsp;</a></span>
 				<div class="btn-group" role="group" aria-label="evmaxcharge">
 					<th:block th:each="entry : ${model.chargeLimits}">
 						<button style="margin-top: 10px; width: 50px" type="button" th:class="${#strings.startsWith(entry.value, '#')} ? 'btn btn-dark btn-sm btn-block' : 'btn btn-secondary btn-sm btn-block'" th:onclick="@{'evChargeLimit(\''+ ${model.chargeLimitLink} +'\', \'' + ${entry.value} + '\')'}">
