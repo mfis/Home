@@ -1085,24 +1085,26 @@ public class HouseViewService {
                         TOGGLE_AUTOMATION + switchModel.getDevice().name() + AND_VALUE_IS + AutomationState.MANUAL.name());
                 if (ArrayUtils.isNotEmpty(buttonCaptions)) {
                     view.setStateSuffix(", " + buttonCaptions[0]);
-                    view.setElementTitleState(buttonCaptions[0]);
+                    view.setElementTitleState(StringUtils.capitalize(buttonCaptions[0]));
                 } else {
                     view.setStateSuffix(PROGRAMMGESTEUERT);
-                    view.setElementTitleState(PROGRAMMGESTEUERT.replaceAll(REGEXP_NOT_ALPHANUMERIC, StringUtils.EMPTY));
+                    view.setElementTitleState(StringUtils.capitalize(PROGRAMMGESTEUERT.replaceAll(REGEXP_NOT_ALPHANUMERIC, StringUtils.EMPTY)));
                 }
             } else {
                 view.setLinkAuto(
                         TOGGLE_AUTOMATION + switchModel.getDevice().name() + AND_VALUE_IS + AutomationState.AUTOMATIC.name());
                 if (ArrayUtils.isNotEmpty(buttonCaptions)) {
                     view.setStateSuffix(", " + buttonCaptions[1]);
-                    view.setElementTitleState(buttonCaptions[1]);
+                    view.setElementTitleState(StringUtils.capitalize(buttonCaptions[1]));
                 } else {
                     view.setStateSuffix(StringUtils.EMPTY);
-                    view.setElementTitleState(MANUELL.replaceAll(REGEXP_NOT_ALPHANUMERIC, StringUtils.EMPTY));
+                    view.setElementTitleState(StringUtils.capitalize(MANUELL.replaceAll(REGEXP_NOT_ALPHANUMERIC, StringUtils.EMPTY)));
                 }
             }
             view.setAutoInfoText(
                     StringUtils.trimToEmpty(RegExUtils.removeAll(switchModel.getAutomationInfoText(), "[\\x7b\\x7d]")));
+        } else {
+            view.setElementTitleState(switchModel.isState() ? "Eingeschaltet" : "Ausgeschaltet");
         }
     }
 

@@ -70,7 +70,7 @@
 
 	<!-- wallbox-->
 	<div th:fragment="wallbox (modelMeter, modelSwitch)" th:class="'alert alert-' + ${modelSwitch.colorClass} + ' callout callout-' + ${modelSwitch.colorClass}">
-		<div th:replace="~{fragments :: elementnameCollapsable (icon=${modelMeter.icon}, name=${modelMeter.place}, place='', unreach=${modelSwitch.unreach}, collapseLink='collapse' + ${modelSwitch.id}, elementTitleState=${modelMeter.elementTitleState} + ', ' + ${modelSwitch.elementTitleState}, colorClass=${modelMeter.colorClass})}"></div>
+		<div th:replace="~{fragments :: elementnameCollapsable (icon=${modelMeter.icon}, name=${modelMeter.place}, place='', unreach=${modelSwitch.unreach}, collapseLink='collapse' + ${modelSwitch.id}, elementTitleState=${modelMeter.elementTitleState} + ', ' + ${modelSwitch.elementTitleState.toLowerCase()}, colorClass=${modelMeter.colorClass})}"></div>
 		<div class="collapse collapse-preserve-state" th:id="'collapse' + ${modelSwitch.id}">
 			<th:block th:unless="${#strings.equals(modelSwitch.unreach, 'true')}">
 				<h4>
