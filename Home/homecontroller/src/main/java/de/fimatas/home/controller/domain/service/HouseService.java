@@ -734,8 +734,10 @@ public class HouseService {
         }
 
         switchModel.setState(hmApi.getAsBoolean(homematicCommandBuilder.read(device, Datapoint.STATE)));
-        switchModel.setAutomation(hmApi.getAsBoolean(homematicCommandBuilder.read(device, AUTOMATIC)));
-        switchModel.setAutomationInfoText(hmApi.getAsString(homematicCommandBuilder.read(device, AUTOMATIC + "InfoText")));
+        if(device.getSysVars() != null && device.getSysVars().contains(AUTOMATIC)){
+            switchModel.setAutomation(hmApi.getAsBoolean(homematicCommandBuilder.read(device, AUTOMATIC)));
+            switchModel.setAutomationInfoText(hmApi.getAsString(homematicCommandBuilder.read(device, AUTOMATIC + "InfoText")));
+        }
     }
 
     private WindowSensor readWindowSensorState(Device device) {
