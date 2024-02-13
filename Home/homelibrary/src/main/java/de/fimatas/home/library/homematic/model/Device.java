@@ -70,6 +70,9 @@ public enum Device {
     SCHALTER_WERKSTATT_LUEFTUNG(HomematicProtocol.HMIP, Type.SWITCH_VENTILATION, Place.WORKSHOP, true, Datapoint.LIST_SWITCH_HM,
         Type.VAR_PREFIXES_SWITCH_AUTO, Boolean.class, AutomationState.class), //
 
+    SCHALTER_LICHT_WERKSTATT(HomematicProtocol.HMIP, Type.SWITCH_LIGHT, Place.WORKSHOP, true, Datapoint.LIST_SWITCH_HM,
+            null, Boolean.class, null), //
+
     SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG(HomematicProtocol.HMIP, Type.SWITCH_INFRARED_HEATING, Place.GUESTROOM, true, Datapoint.LIST_SWITCH_HM,
             Type.VAR_PREFIXES_SWITCH_AUTO, Boolean.class, AutomationState.class), //
 
@@ -90,6 +93,9 @@ public enum Device {
 
     FENSTERSENSOR_WASCHKUECHE(HomematicProtocol.HMIP, Type.WINDOW_SENSOR, Place.LAUNDRY, false, Datapoint.LIST_WINDOW_SENSOR,
         Type.VAR_PREFIXES_TIMESTAMP),
+
+    TASTER_LICHT_WERKSTATT(HomematicProtocol.HMIP, Type.BUTTON, Place.WORKSHOP, false, Datapoint.LIST_EMPTY,
+            null),
 
     // ROLLLADE_SCHLAFZIMMER_LINKS(HomematicProtocol.HM, "D_U_M_M_Y", 1,
     // Type.SHUTTER_LEFT, Place.BEDROOM, false,

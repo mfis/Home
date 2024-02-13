@@ -1,5 +1,6 @@
 package de.fimatas.home.library.homematic.model;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -58,6 +59,8 @@ public enum Datapoint {
     protected static final List<Datapoint> LIST_CAMERA = Arrays.asList(Datapoint.STATE);
 
     protected static final List<Datapoint> LIST_WINDOW_SENSOR = Arrays.asList(Datapoint.STATE);
+
+    protected static final List<Datapoint> LIST_EMPTY = new ArrayList<>();
 
     protected static final List<Datapoint> LIST_DOORLOCK =
         Arrays.asList(Datapoint.STATE, Datapoint.STATE_UNCERTAIN, Datapoint.ERROR);

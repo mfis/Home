@@ -131,6 +131,7 @@ public class HouseViewService {
         formatSwitch(model, "switchKitchen", house.getKitchenWindowLightSwitch());
         formatSwitch(model, "switchWorkshopVentilation", house.getWorkshopVentilationSwitch());
         formatSwitch(model, "infraredHeaterGuestroom", house.getGuestRoomInfraredHeater());
+        formatSwitch(model, "switchWorkshopLight", house.getWorkshopLightSwitch());
 
         formatFrontDoorBell(model, "frontDoor", house.getFrontDoorBell(), house.getFrontDoorCamera());
         formatFrontDoorLock(model, "frontDoorLock", house.getFrontDoorLock());

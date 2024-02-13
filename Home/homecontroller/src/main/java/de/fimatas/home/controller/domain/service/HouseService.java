@@ -166,6 +166,7 @@ public class HouseService {
         newModel.setWallboxSwitch(readSwitchState(Device.SCHALTER_WALLBOX));
         newModel.setWorkshopVentilationSwitch(readSwitchState(Device.SCHALTER_WERKSTATT_LUEFTUNG));
         newModel.setGuestRoomInfraredHeater(readSwitchState(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG));
+        newModel.setWorkshopLightSwitch(readSwitchState(Device.SCHALTER_LICHT_WERKSTATT));
 
         newModel.setFrontDoorBell(readFrontDoorBell());
         newModel.setFrontDoorCamera(readFrontDoorCamera());

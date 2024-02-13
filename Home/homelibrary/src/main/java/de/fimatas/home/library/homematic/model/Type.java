@@ -15,6 +15,7 @@ public enum Type {
     SWITCH_WINDOWLIGHT("Schalter Fensterlicht", "Fensterlicht", false, true), //
     SWITCH_FRONTDOOR_CAMERA("Schalter Kamera", "Kamera", false, true), //
     SWITCH_VENTILATION("Schalter Lüftung", "Lüftung", false, true), //
+    SWITCH_LIGHT("Schalter Licht", "Licht", false, true), //
     SWITCH_INFRARED_HEATING("Schalter Infrarotheizung", "Infrarotheizung", false, true), //
     DOORBELL("Türklingel", null, true, true), //
     DOORLOCK("Türschloss", null, true, true), //
@@ -24,6 +25,7 @@ public enum Type {
     ELECTRIC_POWERPURCHASE("Strombezug", null, true, false), //
     GAS_POWER("Gas", null, true, false), //
     WINDOW_SENSOR("Fenster", "Fenster", true, false), //
+    BUTTON("Taster", "Taster", true, false), //
     // with sub-types
     THERMOSTAT("Thermostat", null, true, true, Type.THERMOMETER), //
     // pseudo-types
