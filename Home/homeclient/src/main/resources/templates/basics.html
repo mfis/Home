@@ -190,8 +190,12 @@
 		}
 
 		function nativeMessage(message){
-			if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers['homeMessageHandler']) {
-				window.webkit.messageHandlers['homeMessageHandler'].postMessage(message);
+			try {
+				if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers['homeMessageHandler']) {
+					window.webkit.messageHandlers['homeMessageHandler'].postMessage(message);
+				}
+			} catch(err) {
+				console.log('error sending nativeMessage: ' + err);
 			}
 		}
 
