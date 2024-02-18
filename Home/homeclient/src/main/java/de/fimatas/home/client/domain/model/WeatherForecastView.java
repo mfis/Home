@@ -13,8 +13,6 @@ public class WeatherForecastView extends View {
 
     private String dayNight = "";
 
-    private String dayNightSwitch = "false";
-
     private String stripeColorClass = ConditionColor.ROW_STRIPE_DEFAULT.getUiClass();
 
     private String time;
