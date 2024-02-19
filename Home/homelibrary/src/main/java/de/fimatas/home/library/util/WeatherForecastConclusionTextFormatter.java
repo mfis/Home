@@ -5,7 +5,6 @@ import de.fimatas.home.library.domain.model.WeatherForecastConclusion;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.text.DecimalFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -26,9 +25,17 @@ public class WeatherForecastConclusionTextFormatter {
     public static final int PRECIPATION_TEXT = 10;
     public static final int SUNDURATION_TEXT = 11;
 
-    private static BigDecimal BD_60 = new BigDecimal("60");
+    private static final BigDecimal BD_60 = new BigDecimal("60");
 
     public static Map<Integer, String> formatConclusionText(WeatherForecastConclusion conclusion){
+        return formatInternal(conclusion, false);
+    }
+
+    public String formatConditionColor(WeatherForecastConclusion conclusion){
+        return formatInternal(conclusion, true).get(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS);
+    }
+
+    private static LinkedHashMap<Integer, String> formatInternal(WeatherForecastConclusion conclusion, boolean conditionColorOnly) {
 
         var conditions = conclusion.getConditions().stream()
                 .sorted(Comparator.comparing(WeatherConditions::ordinal))
@@ -38,6 +45,13 @@ public class WeatherForecastConclusionTextFormatter {
 
         final var conditionsSortedBySignificance = conditions.stream()
                 .filter(WeatherConditions::isSignificant).sorted(Comparator.comparingInt(WeatherConditions::ordinal)).collect(Collectors.toCollection(LinkedHashSet::new));
+
+        texts.put(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS, conditionsSortedBySignificance.isEmpty() || firstElementOf(conditionsSortedBySignificance).getColor() == null ? "" : firstElementOf(conditionsSortedBySignificance).getColor().getUiClass());
+
+        if(conditionColorOnly){
+            return texts;
+        }
+
         final var usignificanceConditionWithHighestOrdinal = conditions.stream()
                 .filter(c -> !c.isSignificant()).min(Comparator.comparingInt(WeatherConditions::ordinal));
 
@@ -71,16 +85,14 @@ public class WeatherForecastConclusionTextFormatter {
         texts.put(FORMAT_FROM_TO_ONLY, fromToString);
         texts.put(FORMAT_CONDITIONS_SHORT_1_MAX, condOneMaxShort);
         texts.put(FORMAT_CONDITIONS_SHORT_1_MAX_INCL_UNSIGNIFICANT, condOneMaxInclUnsignificantShort);
-        texts.put(FORMAT_FROM_TO_PLUS_1_MAX, fromToString + (condOneMax.length() > 0 ? ", " + condOneMax : ""));
-        texts.put(FORMAT_FROM_TO_ALL_SIGNIFICANT_CONDITIONS, fromUntilToString + (allSignificantConditions.length() > 0 ? ", " + allSignificantConditions : ""));
+        texts.put(FORMAT_FROM_TO_PLUS_1_MAX, fromToString + (!condOneMax.isEmpty() ? ", " + condOneMax : ""));
+        texts.put(FORMAT_FROM_TO_ALL_SIGNIFICANT_CONDITIONS, fromUntilToString + (!allSignificantConditions.isEmpty() ? ", " + allSignificantConditions : ""));
         texts.put(FORMAT_LONGEST, fromUntilToWithCaptionAndTime.toString());
-        texts.put(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS, conditionsSortedBySignificance.isEmpty() || firstElementOf(conditionsSortedBySignificance).getColor() == null ? "" : firstElementOf(conditionsSortedBySignificance).getColor().getUiClass());
         texts.put(SIGNIFICANT_CONDITION_NATIVE_ICON, conditionsSortedBySignificance.isEmpty() ? (usignificanceConditionWithHighestOrdinal.isPresent()?usignificanceConditionWithHighestOrdinal.get().getSfSymbolsID():"") : firstElementOf(conditionsSortedBySignificance).getSfSymbolsID());
         texts.put(SIGNIFICANT_CONDITION_WEB_ICON, conditionsSortedBySignificance.isEmpty() ? (usignificanceConditionWithHighestOrdinal.isPresent()?usignificanceConditionWithHighestOrdinal.get().getFontAwesomeID():"") : firstElementOf(conditionsSortedBySignificance).getFontAwesomeID());
         texts.put(WIND_GUST_TEXT, windGustText(null, conclusion));
         texts.put(PRECIPATION_TEXT, precipationText(conclusion));
         texts.put(SUNDURATION_TEXT, sunDurationText(conclusion));
-
         return texts;
     }
 

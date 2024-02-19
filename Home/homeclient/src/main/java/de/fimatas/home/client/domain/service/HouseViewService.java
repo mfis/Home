@@ -1251,7 +1251,6 @@ public class HouseViewService {
         // FIXME
         var view = new WeatherForecastView();
         final Map<Integer, String> textMapSingleEntry = WeatherForecastConclusionTextFormatter.formatConclusionText(WeatherForecastConclusion.fromWeatherForecast(fc));
-        view.setStripeColorClass(ConditionColor.ROW_STRIPE_DEFAULT.getUiClass());
         view.setDayNight(fc.isDay() ? "day" : "night");
         view.setTime(fc.getTime().format(DateTimeFormatter.ofPattern("HH")) + " Uhr");
         view.setTemperature(fc.getTemperature()==null?"":df.format(fc.getTemperature()) + "°C");
@@ -1264,7 +1263,6 @@ public class HouseViewService {
     private void formatDailyWeatherForecast(LocalDate date, WeatherForecastConclusion conclusion, WeatherForecastsView forecasts) {
         final Map<Integer, String> textMapHeader = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion);
         var view = new WeatherForecastView();
-        view.setStripeColorClass(ConditionColor.ROW_STRIPE_DEFAULT.getUiClass());
         view.setTime(date.format(DateTimeFormatter.ofPattern("EEEE", Locale.GERMAN)));
         view.setTemperature(textMapHeader.get(FORMAT_FROM_TO_ONLY));
         if(StringUtils.isNotBlank(textMapHeader.get(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS))){

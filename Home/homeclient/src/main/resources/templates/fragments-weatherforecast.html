@@ -14,7 +14,7 @@
 						<tbody>
 						<th:block th:each="entry : ${model.forecasts}">
 							<th:block th:if="${#strings.equals(entry.header,'')}">
-								<tr th:class="'tr-dark-stripe-' + ${entry.stripeColorClass}" th:style="${#strings.equals(entry.dayNight, 'night')} ? 'opacity: 0.55 !important;' : ''">
+								<tr th:class="'tr-dark-stripe-default'" th:style="${#strings.equals(entry.dayNight, 'night')} ? 'opacity: 0.55 !important;' : ''">
 									<td th:class="'td-no-border text-' + ${entry.colorClass}" style="padding: .08rem;" th:text="${entry.time}"></td>
 									<td th:class="'td-no-border text-' + ${entry.colorClass}" style="padding: .08rem" >
 										<th:block th:each="icon : ${entry.icons}">
