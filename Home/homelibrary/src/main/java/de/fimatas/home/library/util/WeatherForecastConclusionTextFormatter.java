@@ -31,7 +31,7 @@ public class WeatherForecastConclusionTextFormatter {
         return formatInternal(conclusion, false);
     }
 
-    public String formatConditionColor(WeatherForecastConclusion conclusion){
+    public static String formatConditionColor(WeatherForecastConclusion conclusion){
         return formatInternal(conclusion, true).get(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS);
     }
 

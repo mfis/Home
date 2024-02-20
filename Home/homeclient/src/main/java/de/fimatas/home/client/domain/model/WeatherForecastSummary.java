@@ -50,10 +50,21 @@ public class WeatherForecastSummary {
     }
 
     public void integrateInSummary(WeatherForecast fc){
-        // FIXME: clone fc, integrate values
-        fromValues = fc;
-        toValues = fc; // FIXME!
         lastProcessedDate = fc.getTime().toLocalDate();
+        if(fromValues == null || toValues == null) {
+            fromValues = new WeatherForecast(fc);
+            toValues = new WeatherForecast(fc);
+            return;
+        }
+        // FIXME: INTEGRATE!
+        // time
+        // temperature
+        // wind
+        // gust
+        // isDay is same, see fitsInSummary()
+        // precipitationInMM
+        // sunshineInMin
+        // icons are same, see sameIcons()
     }
 
     public void reset(){
@@ -62,8 +73,8 @@ public class WeatherForecastSummary {
     }
 
     public boolean sameConditionColor(WeatherForecast fc){
-        return WeatherForecastConclusionTextFormatter.formatConclusionText(WeatherForecastConclusion.fromWeatherForecast(fromValues))
-                .equals(WeatherForecastConclusionTextFormatter.formatConclusionText(WeatherForecastConclusion.fromWeatherForecast(fc)));
+        return WeatherForecastConclusionTextFormatter.formatConditionColor(WeatherForecastConclusion.fromWeatherForecast(fromValues))
+                .equals(WeatherForecastConclusionTextFormatter.formatConditionColor(WeatherForecastConclusion.fromWeatherForecast(fc)));
     }
 
     public boolean temperatureRange(WeatherForecast fc){

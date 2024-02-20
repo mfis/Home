@@ -4,11 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.LinkedHashSet;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
 
 @Data
@@ -16,7 +16,19 @@ import java.util.Set;
 @AllArgsConstructor
 public class WeatherForecast implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
+
+    public WeatherForecast(WeatherForecast other){
+        this.time = LocalDateTime.from(other.time);
+        this.temperature = other.temperature;
+        this.wind = other.wind;
+        this.gust = other.gust;
+        this.isDay = other.isDay;
+        this.precipitationInMM = other.precipitationInMM;
+        this.sunshineInMin = other.sunshineInMin;
+        this.icons = new HashSet<>(other.icons);
+    }
 
     private LocalDateTime time;
 
