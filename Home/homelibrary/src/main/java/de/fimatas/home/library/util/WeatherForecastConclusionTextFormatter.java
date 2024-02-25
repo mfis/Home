@@ -25,6 +25,8 @@ public class WeatherForecastConclusionTextFormatter {
     public static final int PRECIPATION_TEXT = 10;
     public static final int SUNDURATION_TEXT = 11;
 
+    public static final String TEMPERATURE_UNIT = "°C";
+
     private static final BigDecimal BD_60 = new BigDecimal("60");
 
     public static Map<Integer, String> formatConclusionText(WeatherForecastConclusion conclusion){
@@ -58,8 +60,8 @@ public class WeatherForecastConclusionTextFormatter {
         final var formattedTempMin = formatTemperature(conclusion.getMinTemp());
         final var formattedTempMax = formatTemperature(conclusion.getMaxTemp());
         final var isMinMaxSame = formattedTempMin == formattedTempMax;
-        final var fromToString = formattedTempMin + (isMinMaxSame ? "" : ".." + formattedTempMax) + "°C";
-        final var fromUntilToString = formattedTempMin + (isMinMaxSame ? "" : " bis " + formattedTempMax) + "°C";
+        final var fromToString = formattedTempMin + (isMinMaxSame ? "" : ".." + formattedTempMax) + TEMPERATURE_UNIT;
+        final var fromUntilToString = formattedTempMin + (isMinMaxSame ? "" : " bis " + formattedTempMax) + TEMPERATURE_UNIT;
 
         final var conditionsForFormatLongest = conditions.stream()
                 .filter(WeatherConditions::isSignificant).collect(Collectors.toCollection(LinkedHashSet::new));
@@ -143,7 +145,7 @@ public class WeatherForecastConclusionTextFormatter {
         return cond.size() > 1 ? " +" : "";
     }
 
-    private static int formatTemperature(BigDecimal temperature){
+    public static int formatTemperature(BigDecimal temperature){
         return temperature.setScale(0, RoundingMode.HALF_UP).intValue();
     }
 

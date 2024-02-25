@@ -4,12 +4,13 @@ import de.fimatas.home.library.domain.model.WeatherConditions;
 import de.fimatas.home.library.domain.model.WeatherForecast;
 import de.fimatas.home.library.domain.model.WeatherForecastConclusion;
 import de.fimatas.home.library.util.WeatherForecastConclusionTextFormatter;
-import lombok.Data;
-import org.apache.commons.lang3.math.NumberUtils;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 
-@Data
 public class WeatherForecastSummary {
 
     public WeatherForecastSummary(){
@@ -20,29 +21,33 @@ public class WeatherForecastSummary {
 
     private WeatherForecast toValues;
 
+    private int singleForecastCounter = 0;
+
     private LocalDate lastProcessedDate; // never reset!
 
+    private static final BigDecimal TEMPERATURE_RANGE = new BigDecimal("1");
+
+    private static final BigDecimal TEMPERATURE_SUMMARY_LIMIT = new BigDecimal("10");
+
+    private static final BigDecimal PRECIPITATION_RANGE = new BigDecimal("0.3");
+
+    private static final BigDecimal GUST_RANGE = new BigDecimal("4");
+
+    private static final BigDecimal SUNSHINE_RANGE = new BigDecimal("7");
+
     public boolean hasData(){
-        return fromValues.getTime() != null && toValues.getTime() != null;
+        return singleForecastCounter > 0;
     }
 
-    private static final int TEMPERATURE_RANGE = 2;
-
-    private static final float PRECIPITATION_RANGE = 0.3f;
-
-    private static final float GUST_RANGE = 4f;
-
-    private static final int SUNSHINE_RANGE = 10;
-
     public boolean fitsInSummary(WeatherForecast fc){
-        return fromValues.isDay() == fc.isDay()
-                && sameDay(fc)
+        return (fromValues == null && toValues == null) ||
+                timeRange(fc, false)
                 && sameIcons(fc)
                 && sameConditionColor(fc)
-                && temperatureRange(fc)
-                && precipitationRange(fc)
-                && gustRange(fc)
-                && sunshineRange(fc);
+                && temperatureRange(fc, false)
+                && precipitationRange(fc, false)
+                && gustRange(fc, false)
+                && sunshineRange(fc, false);
     }
 
     public boolean sameDay(WeatherForecast fc){
@@ -51,25 +56,25 @@ public class WeatherForecastSummary {
 
     public void integrateInSummary(WeatherForecast fc){
         lastProcessedDate = fc.getTime().toLocalDate();
+        singleForecastCounter++;
         if(fromValues == null || toValues == null) {
             fromValues = new WeatherForecast(fc);
             toValues = new WeatherForecast(fc);
             return;
         }
-        // FIXME: INTEGRATE!
-        // time
-        // temperature
-        // wind
-        // gust
-        // isDay is same, see fitsInSummary()
-        // precipitationInMM
-        // sunshineInMin
-        // icons are same, see sameIcons()
+        timeRange(fc, true);
+        // sameIcons(fc); --> ignore
+        // sameConditionColor(fc); --> ignore
+        temperatureRange(fc, true);
+        precipitationRange(fc, true);
+        gustRange(fc, true);
+        sunshineRange(fc, true);
     }
 
     public void reset(){
-        fromValues = new WeatherForecast();
-        toValues = new WeatherForecast();
+        fromValues = null;
+        toValues = null;
+        singleForecastCounter = 0;
     }
 
     public boolean sameConditionColor(WeatherForecast fc){
@@ -77,30 +82,94 @@ public class WeatherForecastSummary {
                 .equals(WeatherForecastConclusionTextFormatter.formatConditionColor(WeatherForecastConclusion.fromWeatherForecast(fc)));
     }
 
-    public boolean temperatureRange(WeatherForecast fc){
-        var t = new int[]{fromValues.getTemperature().intValue(), toValues.getTemperature().intValue(), fc.getTemperature().intValue()};
-        return Math.abs(NumberUtils.min(t) - NumberUtils.max(t)) <= TEMPERATURE_RANGE;
+    public String formatSummaryTimeForView() {
+        var hourPattern = DateTimeFormatter.ofPattern("HH");
+        if(singleForecastCounter == 1){
+            return hourPattern.format(fromValues.getTime()) + " Uhr";
+        }else {
+            return hourPattern.format(fromValues.getTime()) + ".." + hourPattern.format(toValues.getTime()) + " Uhr je";
+        }
     }
 
-    public boolean precipitationRange(WeatherForecast fc){
-        var p = new float[]{fromValues.getPrecipitationInMM().floatValue(), toValues.getPrecipitationInMM().floatValue(), fc.getPrecipitationInMM().floatValue()};
-        return Math.abs(NumberUtils.min(p) - NumberUtils.max(p)) <= PRECIPITATION_RANGE;
+    public WeatherForecast getSummary(){
+        var summary = new WeatherForecast();
+        summary.setTime(null); // --> formatSummaryTimeForView
+        summary.setTemperature(fromValues.getTemperature().compareTo(TEMPERATURE_SUMMARY_LIMIT) < 0 ? fromValues.getTemperature() : toValues.getTemperature());
+        summary.setWind(toValues.getWind());
+        summary.setGust(toValues.getGust());
+        summary.setDay(fromValues.isDay());
+        summary.setPrecipitationInMM(toValues.getPrecipitationInMM());
+        summary.setSunshineInMin(BigDecimal.valueOf(fromValues.getSunshineInMin().intValue() + toValues.getSunshineInMin().intValue() / 2));
+        summary.setIcons(fromValues.getIcons());
+        return summary;
     }
 
-    public boolean gustRange(WeatherForecast fc){
+    private boolean timeRange(WeatherForecast fc, boolean integrate){
+        if(integrate){
+            var list = List.of(fc.getTime(), fromValues.getTime(), toValues.getTime());
+            var min = list.stream().min(LocalDateTime::compareTo).get();
+            var max = list.stream().max(LocalDateTime::compareTo).get();
+            fromValues.setTime(min);
+            toValues.setTime(max);
+        }
+        return fromValues.isDay() == fc.isDay() && sameDay(fc);
+    }
+
+    private boolean temperatureRange(WeatherForecast fc, boolean integrate){
+        var list = List.of(fc.getTemperature(), fromValues.getTemperature(), toValues.getTemperature());
+        var min = list.stream().min(BigDecimal::compareTo).get();
+        var max = list.stream().max(BigDecimal::compareTo).get();
+        if(integrate){
+            fromValues.setTemperature(min);
+            toValues.setTemperature(max);
+        }
+        return min.subtract(max).abs().compareTo(TEMPERATURE_RANGE) <= 0;
+    }
+
+    private boolean precipitationRange(WeatherForecast fc, boolean integrate){
+        var list = List.of(fc.getPrecipitationInMM(), fromValues.getPrecipitationInMM(), toValues.getPrecipitationInMM());
+        var min = list.stream().min(BigDecimal::compareTo).get();
+        var max = list.stream().max(BigDecimal::compareTo).get();
+        if(integrate){
+            fromValues.setPrecipitationInMM(min);
+            toValues.setPrecipitationInMM(max);
+        }
+        return min.subtract(max).abs().compareTo(PRECIPITATION_RANGE) <= 0;
+    }
+
+    private boolean gustRange(WeatherForecast fc, boolean integrate){
+        var listGust = List.of(fc.getGust(), fromValues.getGust(), toValues.getGust());
+        var minGust = listGust.stream().min(BigDecimal::compareTo).get();
+        var maxGust = listGust.stream().max(BigDecimal::compareTo).get();
+        if(integrate){
+            fromValues.setGust(minGust);
+            toValues.setGust(maxGust);
+            {
+                var listWind = List.of(fc.getGust(), fromValues.getGust(), toValues.getGust());
+                var minWind = listWind.stream().min(BigDecimal::compareTo).get();
+                var maxWind = listWind.stream().max(BigDecimal::compareTo).get();
+                fromValues.setWind(minWind);
+                toValues.setWind(maxWind);
+            }
+        }
         if(!fromValues.getIcons().contains(WeatherConditions.WIND) && !fc.getIcons().contains(WeatherConditions.WIND)){
             return true;
         }
-        var g = new float[]{fromValues.getGust().floatValue(), toValues.getGust().floatValue(), fc.getGust().floatValue()};
-        return Math.abs(NumberUtils.min(g) - NumberUtils.max(g)) <= GUST_RANGE;
+        return minGust.subtract(maxGust).abs().compareTo(GUST_RANGE) <= 0;
     }
 
-    public boolean sunshineRange(WeatherForecast fc){
-        var s = new int[]{fromValues.getSunshineInMin().intValue(), toValues.getSunshineInMin().intValue(), fc.getSunshineInMin().intValue()};
-        return Math.abs(NumberUtils.min(s) - NumberUtils.max(s)) <= SUNSHINE_RANGE;
+    private boolean sunshineRange(WeatherForecast fc, boolean integrate){
+        var list = List.of(fc.getSunshineInMin(), fromValues.getSunshineInMin(), toValues.getSunshineInMin());
+        var min = list.stream().min(BigDecimal::compareTo).get();
+        var max = list.stream().max(BigDecimal::compareTo).get();
+        if(integrate){
+            fromValues.setSunshineInMin(min);
+            toValues.setSunshineInMin(max);
+        }
+        return min.subtract(max).abs().compareTo(SUNSHINE_RANGE) <= 0;
     }
 
-    public boolean sameIcons(WeatherForecast fc){
+    private boolean sameIcons(WeatherForecast fc){
         return fromValues.getIcons().equals(fc.getIcons());
     }
 }

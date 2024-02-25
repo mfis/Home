@@ -1169,7 +1169,7 @@ public class HouseViewService {
     private void formatWeatherForecast(Model model, WeatherForecastModel weatherForecastModel) {
 
         var df = buildDecimalFormat("0");
-        df.setRoundingMode(RoundingMode.HALF_UP);
+        df.setRoundingMode(RoundingMode.HALF_UP); // FIXME: USE THIS TO COMPARE SUMMARY
         var unreach = weatherForecastModel == null || weatherForecastModel.getForecasts().isEmpty() || weatherForecastModel.getConclusion24to48hours() == null;
 
         var forecasts = new WeatherForecastsView();
@@ -1210,18 +1210,18 @@ public class HouseViewService {
         weatherForecastModel.getForecasts().forEach( fc -> {
             if(!summary.sameDay(fc)){
                 if(summary.hasData()){
-                    formatHourlyWeatherForecastSummary(summary, forecasts, df);
+                    formatHourlyWeatherForecastSummary(summary, forecasts);
                     summary.reset();
                 }
                 formatHourlyWeatherForecastHeader(weatherForecastModel, fc, forecasts);
             }else if(!summary.fitsInSummary(fc)){
-                formatHourlyWeatherForecastSummary(summary, forecasts, df);
+                formatHourlyWeatherForecastSummary(summary, forecasts);
                 summary.reset();
             }
             summary.integrateInSummary(fc);
         });
         if(summary.hasData()){
-            formatHourlyWeatherForecastSummary(summary, forecasts, df);
+            formatHourlyWeatherForecastSummary(summary, forecasts);
         }
 
         // Header 'next days'
@@ -1245,18 +1245,16 @@ public class HouseViewService {
         forecasts.getForecasts().add(view);
     }
 
-    private void formatHourlyWeatherForecastSummary(WeatherForecastSummary summary, WeatherForecastsView forecasts, DecimalFormat df) {
-        // FIXME
-        var fc = summary.getFromValues();
-        // FIXME
+    private void formatHourlyWeatherForecastSummary(WeatherForecastSummary weatherForecastSummary, WeatherForecastsView forecasts) {
+        var summary = weatherForecastSummary.getSummary();
         var view = new WeatherForecastView();
-        final Map<Integer, String> textMapSingleEntry = WeatherForecastConclusionTextFormatter.formatConclusionText(WeatherForecastConclusion.fromWeatherForecast(fc));
-        view.setDayNight(fc.isDay() ? "day" : "night");
-        view.setTime(fc.getTime().format(DateTimeFormatter.ofPattern("HH")) + " Uhr");
-        view.setTemperature(fc.getTemperature()==null?"":df.format(fc.getTemperature()) + "°C");
-        view.setColorClass(StringUtils.isNotBlank(textMapSingleEntry.get(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS)) ? textMapSingleEntry.get(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS) : ConditionColor.DEFAULT.getUiClass());
-        mapWeatherForecastConditionsAfterSettingColorClass(fc.getIcons(), view, fc.getTemperature(), fc.getTemperature());
-        fc.getIcons().forEach(i -> view.getIcons().add(new ValueWithCaption(i.getFontAwesomeID(), i.conditionValue(textMapSingleEntry), null)));
+        final Map<Integer, String> textMap = WeatherForecastConclusionTextFormatter.formatConclusionText(WeatherForecastConclusion.fromWeatherForecast(summary));
+        view.setDayNight(summary.isDay() ? "day" : "night");
+        view.setTime(weatherForecastSummary.formatSummaryTimeForView());
+        view.setTemperature(WeatherForecastConclusionTextFormatter.formatTemperature(summary.getTemperature()) + TEMPERATURE_UNIT);
+        view.setColorClass(StringUtils.isNotBlank(textMap.get(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS)) ? textMap.get(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS) : ConditionColor.DEFAULT.getUiClass());
+        // FIXME: mapWeatherForecastConditionsAfterSettingColorClass(fc.getIcons(), view, fc.getTemperature(), fc.getTemperature());
+        summary.getIcons().forEach(i -> view.getIcons().add(new ValueWithCaption(i.getFontAwesomeID(), i.conditionValue(textMap), null)));
         forecasts.getForecasts().add(view);
     }
 
