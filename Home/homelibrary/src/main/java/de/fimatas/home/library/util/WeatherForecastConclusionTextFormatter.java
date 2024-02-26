@@ -2,6 +2,7 @@ package de.fimatas.home.library.util;
 
 import de.fimatas.home.library.domain.model.WeatherConditions;
 import de.fimatas.home.library.domain.model.WeatherForecastConclusion;
+import de.fimatas.home.library.model.ConditionColor;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -24,10 +25,15 @@ public class WeatherForecastConclusionTextFormatter {
     public static final int WIND_GUST_TEXT = 9;
     public static final int PRECIPATION_TEXT = 10;
     public static final int SUNDURATION_TEXT = 11;
+    public static final int TEMPERATURE_ICON = 12;
 
     public static final String TEMPERATURE_UNIT = "°C";
 
     private static final BigDecimal BD_60 = new BigDecimal("60");
+    private static final BigDecimal HIGH_TEMP = new BigDecimal("25.5");
+    private static final BigDecimal MEDIUM_HIGH_TEMP = new BigDecimal("23.5");
+    private static final BigDecimal LOW_TEMP = new BigDecimal("17.5");
+    public static final BigDecimal FROST_TEMP = new BigDecimal("3.5");
 
     public static Map<Integer, String> formatConclusionText(WeatherForecastConclusion conclusion){
         return formatInternal(conclusion, false);
@@ -48,7 +54,7 @@ public class WeatherForecastConclusionTextFormatter {
         final var conditionsSortedBySignificance = conditions.stream()
                 .filter(WeatherConditions::isSignificant).sorted(Comparator.comparingInt(WeatherConditions::ordinal)).collect(Collectors.toCollection(LinkedHashSet::new));
 
-        texts.put(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS, conditionsSortedBySignificance.isEmpty() || firstElementOf(conditionsSortedBySignificance).getColor() == null ? "" : firstElementOf(conditionsSortedBySignificance).getColor().getUiClass());
+        conditionColorAndTemperatureIcon(conclusion, conditionsSortedBySignificance, texts);
 
         if(conditionColorOnly){
             return texts;
@@ -96,6 +102,48 @@ public class WeatherForecastConclusionTextFormatter {
         texts.put(PRECIPATION_TEXT, precipationText(conclusion));
         texts.put(SUNDURATION_TEXT, sunDurationText(conclusion));
         return texts;
+    }
+
+    private static void conditionColorAndTemperatureIcon(WeatherForecastConclusion conclusion, LinkedHashSet<WeatherConditions> conditionsSortedBySignificance, LinkedHashMap<Integer, String> texts) {
+
+        var colorByCondition = conditionsSortedBySignificance.isEmpty() ||
+                firstElementOf(conditionsSortedBySignificance).getColor() == null ?
+                null : firstElementOf(conditionsSortedBySignificance).getColor();
+
+        if(colorByCondition != null && colorByCondition != ConditionColor.DEFAULT && colorByCondition != ConditionColor.GRAY) {
+            texts.put(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS, colorByCondition.getUiClass());
+            return;
+        }
+
+        if(conclusion == null || conclusion.getMinTemp() == null || conclusion.getMaxTemp() == null){
+            return;
+        }
+
+        ConditionColor color = ConditionColor.GRAY;
+        String icon;
+        if (conclusion.getMaxTemp().compareTo(HIGH_TEMP) > 0) {
+            color = ConditionColor.RED;
+            icon = "fas fa-thermometer-full";
+        } else if (conclusion.getMaxTemp().compareTo(MEDIUM_HIGH_TEMP) > 0) {
+            color = ConditionColor.ORANGE;
+            icon = "fas fa-thermometer-half";
+        } else if (conclusion.getMinTemp().compareTo(FROST_TEMP) < 0 && conclusion.getMaxTemp().compareTo(MEDIUM_HIGH_TEMP) < 0) {
+            color = ConditionColor.COLD;
+            icon = "fas fa-thermometer-empty";
+        } else if (conclusion.getMaxTemp().compareTo(LOW_TEMP) < 0) {
+            color = ConditionColor.BLUE;
+            icon = "fas fa-thermometer-empty";
+        } else {
+            if(conclusion.getConditions().stream()
+                    .filter(WeatherConditions::isSignificant).noneMatch(WeatherConditions::isKindOfRain)){
+                color = ConditionColor.GREEN;
+            }else if (conclusion.isForecast()){ // forecast instead of actual measurement
+                color = ConditionColor.DEFAULT;
+            }
+            icon = "fas fa-thermometer-half";
+        }
+        texts.put(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS, color.getUiClass());
+        texts.put(TEMPERATURE_ICON, icon);
     }
 
     private static WeatherConditions firstElementOf(LinkedHashSet<WeatherConditions> set){

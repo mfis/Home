@@ -22,9 +22,11 @@ public class WeatherForecastConclusion implements Serializable {
     private BigDecimal sunshineInMin;
     private Set<WeatherConditions> conditions;
     private Map<WeatherConditions, LocalDateTime> firstOccurences = new HashMap<>();
+    private boolean forecast;
 
     public static WeatherForecastConclusion fromWeatherForecast(WeatherForecast wf){
         var conclusion = new WeatherForecastConclusion();
+        conclusion.setForecast(true);
         conclusion.setMinTemp(wf.getTemperature());
         conclusion.setMaxTemp(wf.getTemperature());
         conclusion.setMaxWind(wf.getWind().setScale(0, RoundingMode.HALF_UP).intValue());
@@ -32,6 +34,15 @@ public class WeatherForecastConclusion implements Serializable {
         conclusion.setPrecipitationInMM(wf.getPrecipitationInMM());
         conclusion.setSunshineInMin(wf.getSunshineInMin());
         conclusion.setConditions(wf.getIcons());
+        return conclusion;
+    }
+
+    public static WeatherForecastConclusion fromSingleTemperature(BigDecimal temperature){
+        var conclusion = new WeatherForecastConclusion();
+        conclusion.setForecast(false);
+        conclusion.setMinTemp(temperature);
+        conclusion.setMaxTemp(temperature);
+        conclusion.setConditions(Set.of());
         return conclusion;
     }
 
