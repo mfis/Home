@@ -101,7 +101,7 @@ public class WeatherService {
             forecast.setGust(nodeToBigDecimal(entry.get("wind_gust_speed")));
             forecast.setPrecipitationInMM(nodeToBigDecimal(entry.get("precipitation")));
             forecast.setSunshineInMin(nodeToBigDecimal(entry.get("sunshine")));
-            forecast.setIcons(addConditions(condition, icon, forecast.getWind(), forecast.getGust()));
+            forecast.setIcons(addConditions(condition, icon, forecast));
             forecasts.add(forecast);
         });
         return forecasts;
@@ -114,7 +114,7 @@ public class WeatherService {
         return new BigDecimal(node.asText());
     }
 
-    private Set<WeatherConditions> addConditions(BrightSkyCondition condition, BrightSkyIcon icon, BigDecimal windSpeed, BigDecimal gustSpeed) {
+    private Set<WeatherConditions> addConditions(BrightSkyCondition condition, BrightSkyIcon icon, WeatherForecast forecast) {
 
         var icons = new LinkedHashSet<WeatherConditions>();
         if (condition == null || icon == null) {
@@ -168,12 +168,18 @@ public class WeatherService {
                 break;
         }
 
-        if (windSpeed != null && windSpeed.compareTo(WIND_SPEED_STORM) > 0) {
+        if (forecast.getWind() != null && forecast.getWind().compareTo(WIND_SPEED_STORM) > 0) {
             icons.add(WeatherConditions.WIND);
         }
 
-        if (gustSpeed != null && gustSpeed.compareTo(WIND_SPEED_GUST_STORM) > 0) {
+        if (forecast.getGust() != null && forecast.getGust().compareTo(WIND_SPEED_GUST_STORM) > 0) {
             icons.add(WeatherConditions.GUST);
+        }
+
+        if(forecast.getPrecipitationInMM().compareTo(BigDecimal.ZERO) == 0){ // not showing "0.0mm rain"
+            if(icons.stream().anyMatch(i -> Set.of(WeatherConditions.SNOW, WeatherConditions.RAIN, WeatherConditions.CLOUD_RAIN, WeatherConditions.HAIL).contains(i))){
+                forecast.setPrecipitationInMM(new BigDecimal("0.1"));
+            }
         }
 
         return reduceConditions(icons);
