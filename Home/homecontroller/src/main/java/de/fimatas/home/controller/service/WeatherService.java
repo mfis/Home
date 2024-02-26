@@ -155,6 +155,8 @@ public class WeatherService {
             case SLEET:
             case SNOW:
                 icons.add(WeatherConditions.SNOW);
+                icons.remove(WeatherConditions.RAIN);
+                icons.remove(WeatherConditions.CLOUD_RAIN);
                 break;
             case HAIL:
                 icons.add(WeatherConditions.HAIL);
