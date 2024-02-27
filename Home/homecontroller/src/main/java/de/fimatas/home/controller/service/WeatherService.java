@@ -41,8 +41,8 @@ public class WeatherService {
     @Autowired
     private Environment env;
 
-    private static final BigDecimal WIND_SPEED_STORM = BigDecimal.valueOf(35);
-    private static final BigDecimal WIND_SPEED_GUST_STORM = BigDecimal.valueOf(60);
+    private static final BigDecimal WIND_SPEED_STORM = BigDecimal.valueOf(36);
+    private static final BigDecimal WIND_SPEED_GUST_STORM = BigDecimal.valueOf(70);
 
     @Retryable(value = Exception.class, maxAttempts = 4, backoff = @Backoff(delay = 5000))
     public void refreshFurtherDaysCache() {
