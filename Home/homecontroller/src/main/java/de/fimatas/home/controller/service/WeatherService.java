@@ -44,12 +44,12 @@ public class WeatherService {
     private static final BigDecimal WIND_SPEED_STORM = BigDecimal.valueOf(36);
     private static final BigDecimal WIND_SPEED_GUST_STORM = BigDecimal.valueOf(70);
 
-    @Retryable(value = Exception.class, maxAttempts = 4, backoff = @Backoff(delay = 5000))
+    @Retryable(retryFor = Exception.class, maxAttempts = 4, backoff = @Backoff(delay = 5000))
     public void refreshFurtherDaysCache() {
         brightSkyAPI.cachingCallForFurtherDays();
     }
 
-    @Retryable(value = Exception.class, maxAttempts = 4, backoff = @Backoff(delay = 5000))
+    @Retryable(retryFor = Exception.class, maxAttempts = 4, backoff = @Backoff(delay = 5000))
     public void refreshWeatherForecastModel() {
 
         var model = new WeatherForecastModel();
@@ -124,48 +124,29 @@ public class WeatherService {
         }
 
         switch (icon) {
-            case CLEAR_DAY:
-                icons.add(WeatherConditions.SUN);
-                break;
-            case CLEAR_NIGHT:
-                icons.add(WeatherConditions.MOON);
-                break;
-            case PARTLY_CLOUDY_DAY:
-                icons.add(WeatherConditions.SUN_CLOUD);
-                break;
-            case PARTLY_CLOUDY_NIGHT:
-                icons.add(WeatherConditions.MOON_CLOUD);
-                break;
-            case CLOUDY:
+            case CLEAR_DAY -> icons.add(WeatherConditions.SUN);
+            case CLEAR_NIGHT -> icons.add(WeatherConditions.MOON);
+            case PARTLY_CLOUDY_DAY -> icons.add(WeatherConditions.SUN_CLOUD);
+            case PARTLY_CLOUDY_NIGHT -> icons.add(WeatherConditions.MOON_CLOUD);
+            case CLOUDY -> {
                 if (condition == BrightSkyCondition.RAIN) {
                     icons.add(WeatherConditions.CLOUD_RAIN);
                 } else {
                     icons.add(WeatherConditions.CLOUD);
                 }
-                break;
-            case FOG:
-                icons.add(WeatherConditions.FOG);
-                break;
-            case WIND:
-                icons.add(WeatherConditions.WIND);
-                break;
-            case RAIN:
-                icons.add(WeatherConditions.RAIN);
-                break;
-            case SLEET:
-            case SNOW:
+            }
+            case FOG -> icons.add(WeatherConditions.FOG);
+            case WIND -> icons.add(WeatherConditions.WIND);
+            case RAIN -> icons.add(WeatherConditions.RAIN);
+            case SLEET, SNOW -> {
                 icons.add(WeatherConditions.SNOW);
                 icons.remove(WeatherConditions.RAIN);
                 icons.remove(WeatherConditions.CLOUD_RAIN);
-                break;
-            case HAIL:
-                icons.add(WeatherConditions.HAIL);
-                break;
-            case THUNDERSTORM:
-                icons.add(WeatherConditions.THUNDERSTORM);
-                break;
-            default:
-                break;
+            }
+            case HAIL -> icons.add(WeatherConditions.HAIL);
+            case THUNDERSTORM -> icons.add(WeatherConditions.THUNDERSTORM);
+            default -> {
+            }
         }
 
         if (forecast.getWind() != null && forecast.getWind().compareTo(WIND_SPEED_STORM) > 0) {
@@ -233,10 +214,7 @@ public class WeatherService {
 
         Arrays.stream(WeatherConditions.values()).forEach(c -> {
             final Optional<WeatherForecast> first = items.stream().filter(fc -> fc.getIcons().contains(c)).findFirst();
-            boolean add = true;
-            if(c == WeatherConditions.SUN && items.stream().filter(fc -> fc.getIcons().contains(WeatherConditions.SUN)).count() < 3){
-                add = false;
-            }
+            boolean add = c != WeatherConditions.SUN || items.stream().filter(fc -> fc.getIcons().contains(WeatherConditions.SUN)).count() >= 3;
             if(add){
                 first.ifPresent(weatherForecast -> addConclusionWeatherContition(conclusion, weatherForecast, c));
             }

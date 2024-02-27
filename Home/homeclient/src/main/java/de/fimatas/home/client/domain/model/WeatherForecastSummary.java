@@ -4,6 +4,7 @@ import de.fimatas.home.library.domain.model.WeatherConditions;
 import de.fimatas.home.library.domain.model.WeatherForecast;
 import de.fimatas.home.library.domain.model.WeatherForecastConclusion;
 import de.fimatas.home.library.util.WeatherForecastConclusionTextFormatter;
+import lombok.extern.apachecommons.CommonsLog;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+@CommonsLog
 public class WeatherForecastSummary {
 
     public WeatherForecastSummary(){
@@ -33,7 +35,7 @@ public class WeatherForecastSummary {
 
     private static final BigDecimal GUST_RANGE = new BigDecimal("4");
 
-    private static final BigDecimal SUNSHINE_RANGE = new BigDecimal("7");
+    private static final BigDecimal SUNSHINE_RANGE = new BigDecimal("8");
 
     public boolean hasData(){
         return singleForecastCounter > 0;
@@ -112,18 +114,33 @@ public class WeatherForecastSummary {
             fromValues.setTime(min);
             toValues.setTime(max);
         }
-        return fromValues.isDay() == fc.isDay() && sameDay(fc);
+        var result =  fromValues.isDay() == fc.isDay() && sameDay(fc);
+        if(log.isDebugEnabled() &&!result){
+            log.debug("not in timeRange " + fc.getTime());
+        }
+        return result;
     }
 
     private boolean temperatureRange(WeatherForecast fc, boolean integrate){
         var list = List.of(fc.getTemperature(), fromValues.getTemperature(), toValues.getTemperature());
         var min = list.stream().min(BigDecimal::compareTo).get();
         var max = list.stream().max(BigDecimal::compareTo).get();
+        var listRounded = List.of(
+                WeatherForecastConclusionTextFormatter.formatTemperature(fc.getTemperature()),
+                WeatherForecastConclusionTextFormatter.formatTemperature(fromValues.getTemperature()),
+                WeatherForecastConclusionTextFormatter.formatTemperature(toValues.getTemperature())
+        );
+        var minRounded = listRounded.stream().min(Integer::compareTo).get();
+        var maxRounded = listRounded.stream().max(Integer::compareTo).get();
         if(integrate){
             fromValues.setTemperature(min);
             toValues.setTemperature(max);
         }
-        return min.subtract(max).abs().compareTo(TEMPERATURE_RANGE) <= 0;
+        var result = (maxRounded - minRounded) <= TEMPERATURE_RANGE.intValue();
+        if(log.isDebugEnabled() &&!result) {
+            log.debug("not in temperatureRange " + fc.getTime() + "/" + minRounded + "/" + maxRounded);
+        }
+        return result;
     }
 
     private boolean precipitationRange(WeatherForecast fc, boolean integrate){
@@ -134,7 +151,11 @@ public class WeatherForecastSummary {
             fromValues.setPrecipitationInMM(min);
             toValues.setPrecipitationInMM(max);
         }
-        return min.subtract(max).abs().compareTo(PRECIPITATION_RANGE) <= 0;
+        var result =  min.subtract(max).abs().compareTo(PRECIPITATION_RANGE) <= 0;
+        if(log.isDebugEnabled() &&!result) {
+            log.debug("not in precipitationRange " + fc.getTime());
+        }
+        return result;
     }
 
     private boolean gustRange(WeatherForecast fc, boolean integrate){
@@ -155,7 +176,11 @@ public class WeatherForecastSummary {
         if(!fromValues.getIcons().contains(WeatherConditions.WIND) && !fc.getIcons().contains(WeatherConditions.WIND)){
             return true;
         }
-        return minGust.subtract(maxGust).abs().compareTo(GUST_RANGE) <= 0;
+        var result =  minGust.subtract(maxGust).abs().compareTo(GUST_RANGE) <= 0;
+        if(log.isDebugEnabled() &&!result) {
+            log.debug("not in gustRange " + fc.getTime());
+        }
+        return result;
     }
 
     private boolean sunshineRange(WeatherForecast fc, boolean integrate){
@@ -166,7 +191,11 @@ public class WeatherForecastSummary {
             fromValues.setSunshineInMin(min);
             toValues.setSunshineInMin(max);
         }
-        return min.subtract(max).abs().compareTo(SUNSHINE_RANGE) <= 0;
+        var result =   min.subtract(max).abs().compareTo(SUNSHINE_RANGE) <= 0;
+        if(log.isDebugEnabled() &&!result) {
+            log.debug("not in sunshineRange " + fc.getTime());
+        }
+        return result;
     }
 
     private boolean sameIcons(WeatherForecast fc){
