@@ -611,7 +611,7 @@ public class HouseViewService {
 
     private void formatClimateBackground(Climate climate, View view) {
 
-        mapWeatherForecastConditionsAfterSettingColorClass(view, WeatherForecastConclusion.fromSingleTemperature(climate.getTemperature().getValue()));
+        mapWeatherForecastConditionsColor(view, WeatherForecastConclusion.fromSingleTemperature(climate.getTemperature().getValue()));
 
         // for now only used in app
         if(view instanceof ClimateView){
@@ -1155,8 +1155,7 @@ public class HouseViewService {
         final Map<Integer, String> textMap3h = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion3hours);
 
         forecasts.setSource(weatherForecastModel.getSourceText());
-        forecasts.setColorClass(StringUtils.isNotBlank(textMap48h.get(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS)) ? textMap48h.get(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS) : ConditionColor.GRAY.getUiClass());
-        mapWeatherForecastConditionsAfterSettingColorClass(forecasts, conclusion24to48hours);
+        mapWeatherForecastConditionsColor(forecasts, conclusion24to48hours);
         forecasts.setStateShort(textMap48h.get(FORMAT_FROM_TO_ONLY));
         forecasts.setStateTemperatureWatch(textMap48h.get(FORMAT_FROM_TO_ONLY));
         forecasts.setElementTitleState(textMap48h.get(WeatherForecastConclusionTextFormatter.FORMAT_FROM_TO_PLUS_1_MAX));
@@ -1203,8 +1202,7 @@ public class HouseViewService {
         final WeatherForecastConclusion conclusionForHeader = weatherForecastModel.getConclusionForDate().get(fc.getTime().toLocalDate());
         final Map<Integer, String> textMapHeader = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusionForHeader);
         view.setHeader(viewFormatter.formatTimestamp(fc.getTime(), TimestampFormat.DATE) + " " + textMapHeader.get(WeatherForecastConclusionTextFormatter.FORMAT_FROM_TO_ALL_SIGNIFICANT_CONDITIONS));
-        view.setColorClass(StringUtils.isNotBlank(textMapHeader.get(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS)) ? textMapHeader.get(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS) : ConditionColor.DEFAULT.getUiClass());
-        mapWeatherForecastConditionsAfterSettingColorClass(view, conclusionForHeader);
+        mapWeatherForecastConditionsColor(view, conclusionForHeader);
         forecasts.getForecasts().add(view);
     }
 
@@ -1215,8 +1213,7 @@ public class HouseViewService {
         view.setDayNight(summary.isDay() ? "day" : "night");
         view.setTime(weatherForecastSummary.formatSummaryTimeForView());
         view.setTemperature(WeatherForecastConclusionTextFormatter.formatTemperature(summary.getTemperature()) + TEMPERATURE_UNIT);
-        view.setColorClass(StringUtils.isNotBlank(textMap.get(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS)) ? textMap.get(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS) : ConditionColor.DEFAULT.getUiClass());
-        mapWeatherForecastConditionsAfterSettingColorClass(view, WeatherForecastConclusion.fromWeatherForecast(summary));
+        mapWeatherForecastConditionsColor(view, WeatherForecastConclusion.fromWeatherForecast(summary));
         summary.getIcons().forEach(i -> view.getIcons().add(new ValueWithCaption(i.getFontAwesomeID(), i.conditionValue(textMap), null)));
         forecasts.getForecasts().add(view);
     }
@@ -1226,15 +1223,12 @@ public class HouseViewService {
         var view = new WeatherForecastView();
         view.setTime(date.format(DateTimeFormatter.ofPattern("EEEE", Locale.GERMAN)));
         view.setTemperature(textMapHeader.get(FORMAT_FROM_TO_ONLY));
-        if(StringUtils.isNotBlank(textMapHeader.get(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS))){
-            view.setColorClass(textMapHeader.get(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS));
-        }
-        mapWeatherForecastConditionsAfterSettingColorClass(view, conclusion);
+        mapWeatherForecastConditionsColor(view, conclusion);
         conclusion.getConditions().stream().filter(WeatherConditions::isSignificant).forEach(i -> view.getIcons().add(new ValueWithCaption(i.getFontAwesomeID(), i.conditionValue(textMapHeader), null)));
         forecasts.getForecasts().add(view);
     }
 
-    private void mapWeatherForecastConditionsAfterSettingColorClass(View view, WeatherForecastConclusion conclusion) {
+    private void mapWeatherForecastConditionsColor(View view, WeatherForecastConclusion conclusion) {
         var texts = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion);
         view.setColorClass(texts.get(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS));
         view.setIcon(texts.get(TEMPERATURE_ICON));
