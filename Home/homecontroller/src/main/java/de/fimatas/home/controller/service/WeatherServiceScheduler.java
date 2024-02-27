@@ -15,7 +15,7 @@ public class WeatherServiceScheduler {
     private WeatherService weatherService;
 
     @PostConstruct
-    @Scheduled(cron = "2 00 1-23 * * *") // two seconds after full hour
+    @Scheduled(cron = "02 03 01-23 * * *")
     private void scheduledRefreshWeatherModel() {
         try {
             weatherService.refreshWeatherForecastModel();
@@ -25,7 +25,7 @@ public class WeatherServiceScheduler {
     }
 
     @PostConstruct
-    @Scheduled(cron = "2 00 0 * * *") // two seconds after full hour
+    @Scheduled(cron = "02 05 05,15 * * *")
     private void scheduledRefreshWeatherModelWithFurtherDays() {
         try {
             weatherService.refreshFurtherDaysCache();
