@@ -35,15 +35,15 @@ public class WeatherForecastConclusionTextFormatter {
     private static final BigDecimal LOW_TEMP = new BigDecimal("17.5");
     public static final BigDecimal FROST_TEMP = new BigDecimal("3.5");
 
-    public static Map<Integer, String> formatConclusionText(WeatherForecastConclusion conclusion){
-        return formatInternal(conclusion, false);
+    public static Map<Integer, String> formatConclusionText(WeatherForecastConclusion conclusion, boolean roundText){
+        return formatInternal(conclusion, false, roundText);
     }
 
     public static String formatConditionColor(WeatherForecastConclusion conclusion){
-        return formatInternal(conclusion, true).get(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS);
+        return formatInternal(conclusion, true, false).get(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS);
     }
 
-    private static LinkedHashMap<Integer, String> formatInternal(WeatherForecastConclusion conclusion, boolean conditionColorOnly) {
+    private static LinkedHashMap<Integer, String> formatInternal(WeatherForecastConclusion conclusion, boolean conditionColorOnly, boolean roundText) {
 
         var conditions = conclusion.getConditions().stream()
                 .sorted(Comparator.comparing(WeatherConditions::ordinal))
@@ -100,7 +100,7 @@ public class WeatherForecastConclusionTextFormatter {
         texts.put(SIGNIFICANT_CONDITION_WEB_ICON, conditionsSortedBySignificance.isEmpty() ? (usignificanceConditionWithHighestOrdinal.isPresent()?usignificanceConditionWithHighestOrdinal.get().getFontAwesomeID():"") : firstElementOf(conditionsSortedBySignificance).getFontAwesomeID());
         texts.put(WIND_GUST_TEXT, windGustText(null, conclusion));
         texts.put(PRECIPATION_TEXT, precipationText(conclusion));
-        texts.put(SUNDURATION_TEXT, sunDurationText(conclusion));
+        texts.put(SUNDURATION_TEXT, sunDurationText(conclusion, roundText));
         return texts;
     }
 
@@ -171,11 +171,13 @@ public class WeatherForecastConclusionTextFormatter {
         }
     }
 
-    private static String sunDurationText(WeatherForecastConclusion conclusion) {
+    private static String sunDurationText(WeatherForecastConclusion conclusion, boolean roundText) {
         if(conclusion.getSunshineInMin()==null){
             return "";
-        }else if(conclusion.getSunshineInMin().intValue() > BD_60.intValue()){
-            return buildDecimalFormat("0").format(conclusion.getSunshineInMin().divide(BD_60, 1, RoundingMode.HALF_UP))  + " Std";
+        }else if(conclusion.getSunshineInMin().intValue() > BD_60.intValue()) {
+            return buildDecimalFormat("0").format(conclusion.getSunshineInMin().divide(BD_60, 1, RoundingMode.HALF_UP)) + " Std";
+        }else if (roundText && conclusion.getSunshineInMin().intValue() < BD_60.intValue()){
+            return "< 1 Std";
         }else{
             return conclusion.getSunshineInMin().intValue() + " Min";
         }

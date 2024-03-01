@@ -1149,10 +1149,10 @@ public class HouseViewService {
         }
 
         final WeatherForecastConclusion conclusion24to48hours = weatherForecastModel.getConclusion24to48hours();
-        final Map<Integer, String> textMap48h = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion24to48hours);
+        final Map<Integer, String> textMap48h = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion24to48hours, false);
 
         final WeatherForecastConclusion conclusion3hours = weatherForecastModel.getConclusion3hours();
-        final Map<Integer, String> textMap3h = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion3hours);
+        final Map<Integer, String> textMap3h = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion3hours, false);
 
         forecasts.setSource(weatherForecastModel.getSourceText());
         mapWeatherForecastConditionsColor(forecasts, conclusion24to48hours);
@@ -1200,7 +1200,7 @@ public class HouseViewService {
     private void formatHourlyWeatherForecastHeader(WeatherForecastModel weatherForecastModel, WeatherForecast fc, WeatherForecastsView forecasts) {
         var view = new WeatherForecastView();
         final WeatherForecastConclusion conclusionForHeader = weatherForecastModel.getConclusionForDate().get(fc.getTime().toLocalDate());
-        final Map<Integer, String> textMapHeader = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusionForHeader);
+        final Map<Integer, String> textMapHeader = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusionForHeader, false);
         view.setHeader(viewFormatter.formatTimestamp(fc.getTime(), TimestampFormat.DATE) + " " + textMapHeader.get(WeatherForecastConclusionTextFormatter.FORMAT_FROM_TO_ALL_SIGNIFICANT_CONDITIONS));
         mapWeatherForecastConditionsColor(view, conclusionForHeader);
         forecasts.getForecasts().add(view);
@@ -1209,7 +1209,7 @@ public class HouseViewService {
     private void formatHourlyWeatherForecastSummary(WeatherForecastSummary weatherForecastSummary, WeatherForecastsView forecasts) {
         var summary = weatherForecastSummary.getSummary();
         var view = new WeatherForecastView();
-        final Map<Integer, String> textMap = WeatherForecastConclusionTextFormatter.formatConclusionText(WeatherForecastConclusion.fromWeatherForecast(summary));
+        final Map<Integer, String> textMap = WeatherForecastConclusionTextFormatter.formatConclusionText(WeatherForecastConclusion.fromWeatherForecast(summary), false);
         view.setDayNight(summary.isDay() ? "day" : "night");
         var hourPoints = "\u2022".repeat(weatherForecastSummary.hourCount());
         view.setTime(weatherForecastSummary.formatSummaryTimeForView() + " " + hourPoints);
@@ -1222,7 +1222,7 @@ public class HouseViewService {
     }
 
     private void formatDailyWeatherForecast(LocalDate date, WeatherForecastConclusion conclusion, WeatherForecastsView forecasts) {
-        final Map<Integer, String> textMapHeader = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion);
+        final Map<Integer, String> textMapHeader = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion, true);
         var view = new WeatherForecastView();
         view.setTime(date.format(DateTimeFormatter.ofPattern("EEEE", Locale.GERMAN)));
         view.setTemperature(textMapHeader.get(FORMAT_FROM_TO_ONLY));
@@ -1232,7 +1232,7 @@ public class HouseViewService {
     }
 
     private void mapWeatherForecastConditionsColor(View view, WeatherForecastConclusion conclusion) {
-        var texts = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion);
+        var texts = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion, false);
         view.setColorClass(texts.get(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS));
         view.setIcon(texts.get(TEMPERATURE_ICON));
     }

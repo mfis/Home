@@ -236,7 +236,7 @@ public class PushService {
         }
 
         settingsService.listTokensWithEnabledSetting(PushNotifications.WEATHER_TODAY).forEach(pushToken -> {
-            var text = WeatherForecastConclusionTextFormatter.formatConclusionText(model.getConclusionToday()).get(WeatherForecastConclusionTextFormatter.FORMAT_LONGEST);
+            var text = WeatherForecastConclusionTextFormatter.formatConclusionText(model.getConclusionToday(), false).get(WeatherForecastConclusionTextFormatter.FORMAT_LONGEST);
             if(StringUtils.isNotBlank(text)){
                 handleMessage(pushToken, PushNotifications.WEATHER_TODAY.getPushText(), text);
             }

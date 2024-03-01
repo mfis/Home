@@ -25,7 +25,7 @@ class WeatherForecastConclusionTextFormatterTest {
         conclusion.setMaxGust(20);
         conclusion.setConditions(Set.of());
 
-        final Map<Integer, String> map = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion);
+        final Map<Integer, String> map = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion, false);
 
         assertEquals("18..23°C", map.get(FORMAT_FROM_TO_ONLY));
         assertEquals("", map.get(FORMAT_CONDITIONS_SHORT_1_MAX));
@@ -44,7 +44,7 @@ class WeatherForecastConclusionTextFormatterTest {
         conclusion.setMaxGust(30);
         conclusion.setConditions(Set.of(WeatherConditions.WIND));
 
-        final Map<Integer, String> map = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion);
+        final Map<Integer, String> map = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion, false);
 
         assertEquals("18..23°C", map.get(FORMAT_FROM_TO_ONLY));
         assertEquals("Wind", map.get(FORMAT_CONDITIONS_SHORT_1_MAX));
@@ -63,7 +63,7 @@ class WeatherForecastConclusionTextFormatterTest {
         conclusion.setMaxGust(80);
         conclusion.setConditions(Set.of(WeatherConditions.GUST));
 
-        final Map<Integer, String> map = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion);
+        final Map<Integer, String> map = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion, false);
 
         assertEquals("18..23°C", map.get(FORMAT_FROM_TO_ONLY));
         assertEquals("Böen", map.get(FORMAT_CONDITIONS_SHORT_1_MAX));
@@ -82,7 +82,7 @@ class WeatherForecastConclusionTextFormatterTest {
         conclusion.setMaxGust(25);
         conclusion.setConditions(Set.of(WeatherConditions.WIND, WeatherConditions.MOON));
 
-        final Map<Integer, String> map = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion);
+        final Map<Integer, String> map = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion, false);
 
         assertEquals("18..23°C", map.get(FORMAT_FROM_TO_ONLY));
         assertEquals("Wind", map.get(FORMAT_CONDITIONS_SHORT_1_MAX));
@@ -101,7 +101,7 @@ class WeatherForecastConclusionTextFormatterTest {
         conclusion.setMaxGust(20);
         conclusion.setConditions(Set.of(WeatherConditions.SUN));
 
-        final Map<Integer, String> map = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion);
+        final Map<Integer, String> map = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion, false);
 
         assertEquals("18..23°C", map.get(FORMAT_FROM_TO_ONLY));
         assertEquals("Sonne", map.get(FORMAT_CONDITIONS_SHORT_1_MAX));
@@ -120,7 +120,7 @@ class WeatherForecastConclusionTextFormatterTest {
         conclusion.setMaxGust(20);
         conclusion.setConditions(Set.of(WeatherConditions.RAIN, WeatherConditions.SUN, WeatherConditions.SUN_CLOUD));
 
-        final Map<Integer, String> map = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion);
+        final Map<Integer, String> map = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion, false);
 
         assertEquals("18..23°C", map.get(FORMAT_FROM_TO_ONLY));
         assertEquals("Regen +", map.get(FORMAT_CONDITIONS_SHORT_1_MAX));
@@ -139,7 +139,7 @@ class WeatherForecastConclusionTextFormatterTest {
         conclusion.setMaxGust(20);
         conclusion.setConditions(Set.of(WeatherConditions.RAIN, WeatherConditions.SNOW));
 
-        final Map<Integer, String> map = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion);
+        final Map<Integer, String> map = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion, false);
 
         assertEquals("Schnee +", map.get(FORMAT_CONDITIONS_SHORT_1_MAX));
         assertEquals("-5..5°C, Schnee +", map.get(FORMAT_FROM_TO_PLUS_1_MAX));
@@ -155,7 +155,7 @@ class WeatherForecastConclusionTextFormatterTest {
         conclusion.setMaxGust(20);
         conclusion.setConditions(Set.of(WeatherConditions.SUN_CLOUD, WeatherConditions.MOON));
 
-        final Map<Integer, String> map = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion);
+        final Map<Integer, String> map = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion, false);
 
         assertEquals("18..23°C", map.get(FORMAT_FROM_TO_ONLY));
         assertEquals("Leicht bewölkt", map.get(FORMAT_CONDITIONS_SHORT_1_MAX));
@@ -177,7 +177,7 @@ class WeatherForecastConclusionTextFormatterTest {
         conclusion.getFirstOccurences().put(WeatherConditions.SUN, LocalDateTime.of(2022,5,23,15,0));
         conclusion.getFirstOccurences().put(WeatherConditions.RAIN, LocalDateTime.of(2022,5,23,19,0));
 
-        final Map<Integer, String> map = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion);
+        final Map<Integer, String> map = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion, false);
 
         assertEquals("Temperatur 18 bis 23°C, Sonne ab 15 Uhr, Regen ab 19 Uhr", map.get(FORMAT_LONGEST));
     }
@@ -192,7 +192,7 @@ class WeatherForecastConclusionTextFormatterTest {
         conclusion.setMaxGust(20);
         conclusion.setConditions(Set.of());
 
-        final Map<Integer, String> map = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion);
+        final Map<Integer, String> map = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion, false);
 
         assertEquals("18°C", map.get(FORMAT_FROM_TO_ONLY));
         assertEquals("", map.get(FORMAT_CONDITIONS_SHORT_1_MAX));
