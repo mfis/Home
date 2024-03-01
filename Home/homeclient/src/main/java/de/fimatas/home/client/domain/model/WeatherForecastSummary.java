@@ -193,7 +193,7 @@ public class WeatherForecastSummary {
         }
         var result =   min.subtract(max).abs().compareTo(SUNSHINE_RANGE) <= 0;
         if(log.isDebugEnabled() &&!result) {
-            log.debug("not in sunshineRange " + fc.getTime());
+            log.debug("not in sunshineRange " + fc.getTime() + " " + fromValues.getSunshineInMin() + "/" + toValues.getSunshineInMin() + "/" + fc.getSunshineInMin());
         }
         return result;
     }

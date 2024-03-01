@@ -163,6 +163,14 @@ public class WeatherService {
             }
         }
 
+        if(forecast.getSunshineInMin().compareTo(BigDecimal.ZERO) == 0){ // not showing "0 minutes sun"
+            if(icons.stream().anyMatch(i -> Set.of(WeatherConditions.SUN_CLOUD, WeatherConditions.SUN).contains(i))){
+                icons.remove(WeatherConditions.SUN_CLOUD);
+                icons.remove(WeatherConditions.SUN);
+                icons.add(WeatherConditions.CLOUD);
+            }
+        }
+
         return reduceConditions(icons);
     }
 
@@ -265,6 +273,7 @@ public class WeatherService {
             if(!forecast.isDay()){
                 replaceCondition(forecast, WeatherConditions.SUN_CLOUD, WeatherConditions.MOON_CLOUD);
                 replaceCondition(forecast, WeatherConditions.SUN, WeatherConditions.MOON);
+                forecast.setSunshineInMin(BigDecimal.ZERO); // cut single minutes of sunshine in hours that are listed as night
             }
         }
     }
