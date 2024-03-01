@@ -41,6 +41,10 @@ public class WeatherForecastSummary {
         return singleForecastCounter > 0;
     }
 
+    public int hourCount(){
+        return singleForecastCounter;
+    }
+
     public boolean fitsInSummary(WeatherForecast fc){
         return (fromValues == null && toValues == null) ||
                 timeRange(fc, false)
@@ -89,7 +93,7 @@ public class WeatherForecastSummary {
         if(singleForecastCounter == 1){
             return hourPattern.format(fromValues.getTime()) + " Uhr";
         }else {
-            return hourPattern.format(fromValues.getTime()) + ".." + hourPattern.format(toValues.getTime()) + " Uhr je";
+            return hourPattern.format(fromValues.getTime()) + ".." + hourPattern.format(toValues.getTime()) + " Uhr";
         }
     }
 

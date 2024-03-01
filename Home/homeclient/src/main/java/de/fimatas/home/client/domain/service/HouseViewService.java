@@ -1211,10 +1211,13 @@ public class HouseViewService {
         var view = new WeatherForecastView();
         final Map<Integer, String> textMap = WeatherForecastConclusionTextFormatter.formatConclusionText(WeatherForecastConclusion.fromWeatherForecast(summary));
         view.setDayNight(summary.isDay() ? "day" : "night");
-        view.setTime(weatherForecastSummary.formatSummaryTimeForView());
+        var hourPoints = "\u2022".repeat(weatherForecastSummary.hourCount());
+        view.setTime(weatherForecastSummary.formatSummaryTimeForView() + " " + hourPoints);
         view.setTemperature(WeatherForecastConclusionTextFormatter.formatTemperature(summary.getTemperature()) + TEMPERATURE_UNIT);
         mapWeatherForecastConditionsColor(view, WeatherForecastConclusion.fromWeatherForecast(summary));
-        summary.getIcons().forEach(i -> view.getIcons().add(new ValueWithCaption(i.getFontAwesomeID(), i.conditionValue(textMap), null)));
+        summary.getIcons().forEach(i -> {
+            view.getIcons().add(new ValueWithCaption(i.getFontAwesomeID(), i.conditionValue(textMap), null));
+        });
         forecasts.getForecasts().add(view);
     }
 
