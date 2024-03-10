@@ -407,21 +407,28 @@
 	<div th:fragment="doorLock (model)" th:class="'alert alert-' + ${model.colorClass} + ' callout callout-' + ${model.colorClass}">
 		<div th:replace="~{fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState}, colorClass=${model.colorClass})}"></div>
 		<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
-				<h4 th:unless="${#strings.equals(model.busy,'true')}"><span th:text="${model.state}"></span><span th:text="${model.stateSuffix}" style="font-size: 80%;"></span></h4>
+				<h4 th:unless="${#strings.equals(model.busy,'true')}"><span id="frontdoorlockState" th:text="${model.state}"></span><span th:text="${model.stateSuffix}" style="font-size: 80%;"></span></h4>
 				<th:block th:unless="${#strings.equals(model.busy,'true')}">	
 					<div class="btn-group" role="group" aria-label="lockcontrol">
 			  			<button th:if="${#strings.startsWith(model.linkLock, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${model.colorClass}"><th:block th:replace="~{basics :: symbol (name='fas fa-lock')}"/></span><span>&nbsp;</span></button>
-			  			<button th:if="${#strings.startsWith(model.linkLock, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'openPin' + ${model.id} + '(lockModalLabel' + ${model.id} + ', lock' + ${model.id} + ')'}"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name='fas fa-lock')}"/></span><span>&nbsp;</span></button>
+			  			<button th:if="${#strings.startsWith(model.linkLock, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'openPin' + '(lockModalLabel' + ${model.id} + ', lock' + ${model.id} + ')'}"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name='fas fa-lock')}"/></span><span>&nbsp;</span></button>
 			  			<button th:if="${#strings.startsWith(model.linkUnlock, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${model.colorClass}"><th:block th:replace="~{basics :: symbol (name='fas fa-lock-open')}"/></span><span>&nbsp;</span></button>
-			  			<button th:if="${#strings.startsWith(model.linkUnlock, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'openPin' + ${model.id} + '(unlockModalLabel' + ${model.id} + ', unlock' + ${model.id} + ')'}"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name='fas fa-lock-open')}"/></span><span>&nbsp;</span></button>
+			  			<button th:if="${#strings.startsWith(model.linkUnlock, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'openPin' + '(unlockModalLabel' + ${model.id} + ', unlock' + ${model.id} + ')'}"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name='fas fa-lock-open')}"/></span><span>&nbsp;</span></button>
 			  			<button th:if="${#strings.startsWith(model.linkOpen, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${model.colorClass}"><th:block th:replace="~{basics :: symbol (name='fas fa-door-open')}"/></span><span>&nbsp;</span></button>
-			  			<button th:if="${#strings.startsWith(model.linkOpen, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'openPin' + ${model.id} + '(openModalLabel' + ${model.id} + ', open' + ${model.id} + ')'}"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name='fas fa-door-open')}"/></span><span>&nbsp;</span></button>
+			  			<button th:if="${#strings.startsWith(model.linkOpen, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'openPin' + '(openModalLabel' + ${model.id} + ', open' + ${model.id} + ')'}"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name='fas fa-door-open')}"/></span><span>&nbsp;</span></button>
+						<!-- <button type="button" class="btn btn-secondary btn-sm" th:onclick="@{'openPin(lockTestLabel, testPin)'}"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name='fa-regular fa-circle-question')}"/></span><span>&nbsp;</span></button> -->
 					</div>
 				</th:block>
 			<input type="hidden" th:id="'val_model_linkLock_' + ${model.id}" th:value="${model.linkLock}">
 			<input type="hidden" th:id="'val_model_linkUnlock_' + ${model.id}" th:value="${model.linkUnlock}">
 			<input type="hidden" th:id="'val_model_linkOpen_' + ${model.id}" th:value="${model.linkOpen}">
 	 		<script type="text/javascript">
+				function testPin(){
+					document.getElementById('frontdoorlockState').innerHTML = document.getElementById('val_pin').value + ' / ' + new Date().toLocaleTimeString();
+				}
+				function lockTestLabel(){
+					return 'TEST';
+				}
 				function lockModalLabel[[${model.id}]](){
 					return '[[${model.caption}]] verriegeln';
 				}
@@ -432,13 +439,13 @@
 					return '[[${model.caption}]] öffnen';
 				} 		
 				function lock[[${model.id}]](){
-					submitContentWithPin(document.getElementById('val_model_linkLock_[[${model.id}]]').value, document.getElementById('val_pin_[[${model.id}]]').value);
+					submitContentWithPin(document.getElementById('val_model_linkLock_[[${model.id}]]').value, document.getElementById('val_pin').value);
 				}
 				function unlock[[${model.id}]](){
-					submitContentWithPin(document.getElementById('val_model_linkUnlock_[[${model.id}]]').value, document.getElementById('val_pin_[[${model.id}]]').value);
+					submitContentWithPin(document.getElementById('val_model_linkUnlock_[[${model.id}]]').value, document.getElementById('val_pin').value);
 				}	
 				function open[[${model.id}]](){
-					submitContentWithPin(document.getElementById('val_model_linkOpen_[[${model.id}]]').value, document.getElementById('val_pin_[[${model.id}]]').value);
+					submitContentWithPin(document.getElementById('val_model_linkOpen_[[${model.id}]]').value, document.getElementById('val_pin').value);
 				}			
 			</script>		
 			
@@ -491,7 +498,7 @@
 				<h4><span><th:block th:replace="~{basics :: symbol (name='fa fa-spinner fa-spin')}"/></span></h4>
 			</th:block>
 		</div>
-		<div th:replace="~{pin :: pin (id=${model.id})}"></div>
+		<div th:replace="~{pin :: pinView}"></div>
 	</div>	
 	
 	<!-- Actual Power Consumption -->

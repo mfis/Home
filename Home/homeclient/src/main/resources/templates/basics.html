@@ -305,6 +305,58 @@
 			}
 		}
 
+		// PIN start
+
+		let pinCallback = null;
+		function openPin(label, cb){
+			pinCallback = cb;
+			document.getElementById('modalPinLabelId').innerHTML = label();
+			document.getElementById('val_pin').value = '';
+			pinPlaceholderStars(document.getElementById('val_pin').value);
+			document.getElementById('pin-biometry').style.display = 'none';
+			nativeMessage('checkBiometricAuthAvailableForPin=pinActivateBiometricAuthButton')
+			$("#modalPin").modal();
+		}
+		function resetPin(){
+			document.getElementById('val_pin').value = '';
+			pinPlaceholderStars('');
+		}
+		function addPin(i){
+			document.getElementById('val_pin').value += i;
+			pinPlaceholderStars(document.getElementById('val_pin').value);
+			if(document.getElementById('val_pin').value.length === 6){
+				pinCallback();
+				$("#modalPin").modal('hide');
+			}
+		}
+		function pinActivateBiometricAuthButton(){ // called from app
+			document.getElementById('pin-biometry').style.display = 'block';
+		}
+		function pinBiometryStart(){
+			nativeMessage('biometryGetPin=pinBiometryCallback');
+		}
+		function pinBiometryCallback(pin){
+			document.getElementById('val_pin').value = pin;
+			pinPlaceholderStars(pin);
+			if(pin.length > 0){
+				pinCallback();
+				$("#modalPin").modal('hide');
+			}
+		}
+		function pinPlaceholderStars(x){
+			let p = '';
+			for(let i = 1; i<=6; i++){
+				if(i<=x.length){
+					p += '* '
+				}else{
+					p += '_ ';
+				}
+			}
+			document.getElementById('modalPinStarId').innerHTML = p;
+		}
+
+		// PIN end
+
 		$(document).ready(function(){
 			setAppTitle(null);
 			registerCollapseListener();
