@@ -4,6 +4,7 @@ import de.fimatas.home.controller.domain.service.HouseService;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.homematic.model.Device;
+import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -12,7 +13,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import java.math.BigDecimal;
@@ -103,6 +103,25 @@ class PhotovoltaicsOverflowServiceTest {
 
         refresh(20, +200, true,  true, true, true);
         verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, false);
+    }
+
+    //@Test
+    private void testSwitchPriority() {
+        refresh(0, -500, true,  false, true, false);
+        verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+
+        refresh(10, -500, true,  false, true, false);
+        verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, true);
+
+        refresh(30, -2200, true,  false, true, true);
+        verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+
+        refresh(50, -2200, true,  false, true, true);
+        verifySwitch(Device.SCHALTER_WALLBOX, true);
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, false);
     }
 

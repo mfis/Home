@@ -3,8 +3,24 @@
 
 	<head><title></title></head>
 
-	<!-- EV-Charge -->
-	<div th:fragment="evcharge (model)" th:class="'alert alert-' + ${model.colorClass} + ' callout callout-' + ${model.colorClass}">
+
+	<!--
+#tooltip1  {
+    height: 160px !important;
+    width: 100% !important;
+    overflow: hidden;
+    padding: 10px;
+}
+#tooltip1 .rs-container  {
+    left: 50%;
+    margin-left: -300px;
+}
+#tooltip1 .rs-tooltip  {
+    top: 100px;
+}-->
+
+	<!-- PV Overflow -->
+	<div th:fragment="pv-overflow (model)" th:class="'alert alert-' + ${model.colorClass} + ' callout callout-' + ${model.colorClass}">
 		<div th:replace="~{fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState}, colorClass=${model.colorClass})}"></div>
 		<th:block th:unless="${#strings.equals(model.unreach,'true')}">
 			<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
@@ -25,7 +41,7 @@
 					</tr>
 				</table>
 				<script>
-						sliderList['[[${model.id}]]'] = 'initEvChargeSlider';
+					sliderList['[[${model.id}]]'] = 'initEvChargeSlider';
 				</script>
 
 				<span style="height: 31px;" class="align-text-top"><a>Limit:&nbsp;</a></span>

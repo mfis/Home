@@ -22,19 +22,16 @@
 	<link rel="icon" sizes="152x152" href="apple-touch-icon-152x152.png">
 	<link rel="icon" sizes="180x180" href="apple-touch-icon-180x180.png">
 	<link rel="shortcut icon" href="favicon.ico"></link>
-	
 	<link rel='stylesheet' href='style.v3_8_6.css'/>
-	
 	<link rel='stylesheet' href='/webjars/bootstrap/css/bootstrap.min.css'/>
-	
 	<link rel="stylesheet" href="/webjars/font-awesome/css/all.min.css" crossorigin="anonymous"/>
 	<script type="text/javascript" src="/webjars/jquery/jquery.min.js"></script>
 	<script>
-		var pushToken = '';
-		var clientName = '';
-		var sliderList = [];
-		var modelTimestampLastHandled = '';
-		var isFirstRefreshAfterAppBackgroundPending = false;
+		let pushToken = '';
+		let clientName = '';
+		let sliderList = [];
+		let modelTimestampLastHandled = '';
+		let isFirstRefreshAfterAppBackgroundPending = false;
 	</script>
 </head>
 
@@ -49,7 +46,7 @@
 		
 		function setPushToken(newTokenValue, newClientName){
 			clientName = newClientName;
-			var oldValue = pushToken;
+			let oldValue = pushToken;
 			pushToken = newTokenValue;
 			if(newTokenValue !== oldValue){
 				refreshContent();	
@@ -114,9 +111,10 @@
 		function doOnloadFunctions(){
 			if(sliderList){
 				prototypeSlider();
-				sliderList.forEach(function (e) {
-					initSlider(e);
-				})
+				let sliderKey;
+				for (sliderKey in sliderList) {
+					initSliderFunctionsByName[sliderList[sliderKey]](sliderKey);
+				}
 			}
 			nativeMessage("loadedView");
 		}
@@ -230,8 +228,8 @@
 		}
 		
 		function setAppTitle(httpRequest){
-			
-			var ts = null;
+
+			let ts = null;
 			if(httpRequest != null && httpRequest.getResponseHeader('SITE_REQUEST_TS')!=null){
 				ts = httpRequest.getResponseHeader('SITE_REQUEST_TS');
 			}else{
@@ -402,10 +400,10 @@
 	</script>	
 	
 	<script>
-		var element = document.getElementById('idbody');
-		
-		var autoRefresh = null;
-		var lastRefresh = (new Date).getTime();
+		let element = document.getElementById('idbody');
+
+		let autoRefresh = null;
+		let lastRefresh = (new Date).getTime();
 		setAutoRefresh();
 		
 		if (element !== null && element.value !== '' && !isApp()) {
