@@ -9,6 +9,7 @@ import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.homematic.model.*;
 import de.fimatas.home.library.homematic.model.Type;
 import de.fimatas.home.library.model.Message;
+import de.fimatas.home.library.model.PhotovoltaicsStringsStatus;
 import de.fimatas.home.library.util.HomeAppConstants;
 import lombok.extern.apachecommons.CommonsLog;
 import mfi.files.api.UserService;
@@ -96,6 +97,9 @@ public class HouseService {
 
     @Autowired
     private PhotovoltaicsOverflowService photovoltaicsOverflowService;
+
+    @Autowired
+    private SolarmanService solarmanService;
 
     @Autowired
     private Environment env;
@@ -893,6 +897,16 @@ public class HouseService {
 
         if (BooleanUtils.isFalse(hmApi.getCcuAuthActive())) {
             newModel.getWarnings().add("CCU Authentifizierung ist nicht aktiv!");
+        }
+
+        if(solarmanService.getStringsStatus() == PhotovoltaicsStringsStatus.ERROR_DETECTING){
+            newModel.getWarnings().add("Status der Photovoltaikanlage konnte nicht geprüft werden.");
+        } else if(solarmanService.getStringsStatus() == PhotovoltaicsStringsStatus.ONE_FAULTY){
+            newModel.getWarnings().add("Teilausfall der Photovoltaikanlage erkannt.");
+        }
+
+        if (solarmanService.getAlarm() != null) {
+            newModel.getWarnings().add("Photovoltaikanlage meldet Fehler: " + solarmanService.getAlarm());
         }
     }
 
