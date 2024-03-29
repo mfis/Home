@@ -30,6 +30,7 @@
 		let pushToken = '';
 		let clientName = '';
 		let sliderList = [];
+		let rangeIDs = [];
 		let modelTimestampLastHandled = '';
 		let isFirstRefreshAfterAppBackgroundPending = false;
 	</script>
@@ -116,7 +117,31 @@
 					initSliderFunctionsByName[sliderList[sliderKey]](sliderKey);
 				}
 			}
+			if(rangeIDs){
+				rangeIDs.forEach(initRangecontainer);
+			}
 			nativeMessage("loadedView");
+		}
+
+		function initRangecontainer(id, index, array){
+			document.getElementById("rangecontainer-rangeinput-" + id).oninput = function() {
+				rangelabels(id);
+			}
+			document.getElementById("rangecontainer-rangeinput-" + id).onmousedown = function() {
+				$('#rangecontainer-' + id).addClass('doNotRefresh');
+			}
+			document.getElementById("rangecontainer-rangeinput-" + id).onmouseup = function() {
+				$('#rangecontainer-' + id).removeClass('doNotRefresh');
+			}
+			rangelabels(id);
+		}
+
+		function rangelabels(id) {
+			let power = document.getElementById("rangecontainer-rangevalue-" + id).value;
+			let percentage = document.getElementById("rangecontainer-rangeinput-" + id).value;
+			document.getElementById("rangecontainer-label-2-" + id).innerHTML = percentage + "%";
+			document.getElementById("rangecontainer-label-1-" + id).innerHTML = "min " + (power * percentage / 100) + "W PV";
+			document.getElementById("rangecontainer-label-3-" + id).innerHTML = "max " + (power - (power * percentage / 100)) + "W Netz";
 		}
 
 		function submitContent(target){

@@ -86,59 +86,8 @@ function initEvChargeSlider(id){
     }, 10);
 }
 
-function initPvOverflowSlider(id){
-    let startValue = 100 - document.getElementById(id + '-startValue').value;
-    $('#' + id).roundSlider({
-        sliderType: "min-range",
-        circleShape: "custom-quarter",
-        min: 0,
-        max: 11,
-        value: 7,
-        startAngle: 45,
-        editableTooltip: false,
-        radius: 300,
-        width: 20,
-        handleShape: "dot",
-        tooltipFormat: function (e) {
-            return "tooltip->" + e;
-        },
-        beforeCreate: function (){
-            document.getElementById(id + '-label').innerHTML = (100 - startValue) + "%";
-            if(document.getElementById(id + "-isActual").value == "true"){
-                document.getElementById(id + '-status').style.color = "green";
-            }else{
-                document.getElementById(id + '-status').style.color = "yellow";
-            }
-        },
-        start: function (){
-            $('#' + id).addClass('doNotRefresh');
-            document.getElementById(id + "-eventState").value = 'drag';
-        },
-        stop: function (e){
-            updateEvSliderValue(id, (100 - e.value));
-            document.getElementById(id + "-eventState").value = '';
-        },
-        update: function (e){
-            $('#' + id).addClass('doNotRefresh');
-            document.getElementById(id + '-label').innerHTML = (100 - e.value) + "%";
-            nativeMessage('startButtonPress');
-            if(document.getElementById(id + "-eventState").value === 'drag'){
-                // waiting for 'stop' event
-            } else {
-                updateEvSliderValue(id, (100 - e.value));
-            }
-        }
-    });
-    $('#' + id).roundSlider("disable");
-    // prevent misaligned handle
-    setTimeout(function(){
-        document.getElementById(id).getElementsByClassName('rs-handle').item(0).style.display = 'block';
-    }, 10);
-}
-
 let initSliderFunctionsByName = [];
 initSliderFunctionsByName['initEvChargeSlider'] = initEvChargeSlider;
-initSliderFunctionsByName['initPvOverflowSlider'] = initPvOverflowSlider;
 
 function enableSlider(id){
     $('#' + id).addClass('doNotRefresh');

@@ -83,90 +83,21 @@
                     </div>
                 </div>
             </div>
-            <!-- TEST -->
+            <!-- Overflow Range -->
             <th:block th:if="${#strings.equals(model.overflowRange, 'true')}">
-                <style>
-                    .rangecontainer {
-                        width: 400px;
-                        margin-top: 10px;
-                        margin-bottom: 10px;
-                        padding: 5px;
-                        border: 2px solid grey;
-                        border-radius: 5px;
-                    }
-                    input[type="range"] {
-                        width: 100%;
-                    }
-                    @media screen and (-webkit-min-device-pixel-ratio:0) {
-                        input[type='range'] {
-                            overflow: hidden;
-                            -webkit-appearance: none;
-                            background-color: rgb(255,193,7);
-                        }
-                        input[type='range']::-webkit-slider-thumb {
-                            -webkit-appearance: none;
-                            cursor: ew-resize;
-                            background: red;
-                            color: rgb(40, 167, 69);
-                            height: 24px;
-                            width: 20px;
-                            border-left: 3px solid black;
-                            border-right: 3px solid black;
-                        }
-                        input[type="range"]::-webkit-slider-thumb { box-shadow: -500px 0 0 500px;}
-                    }
-                    input[type="range"]::-moz-range-progress {
-                        background-color: rgb(40, 167, 69);
-                    }
-                    input[type="range"]::-moz-range-track {
-                        background-color: rgb(255,193,7);
-                    }
-                    input[type="range"]::-ms-fill-lower {
-                        background-color: rgb(40, 167, 69);
-                    }
-                    input[type="range"]::-ms-fill-upper {
-                        background-color: rgb(255,193,7);
-                    }
-                    .rangecontainer-labels {
-                        display: flex;
-                        justify-content: space-between;
-                    }
-                    .rangecontainer-labels > div {
-                        color: white;
-                        margin-left: 4px;
-                    }
-                </style>
-                <input id="rangevalue" type="hidden" value="2000"/>
-                <div id="rangecontainer-xyz" class="rangecontainer">
+                <div th:id="'rangecontainer-div-' + ${model.id}" class="rangecontainer">
+                    <input th:id="'rangecontainer-rangevalue-' + ${model.id}" type="hidden" value="2000"/>
                     <div class="rangecontainer-labels">
-                        <div id="rl1" style="width: 40%; text-align: left;" class="text-success">1</div>
-                        <div id="rl2" style="width: 20%; text-align: center;" class="text-secondary">2</div>
-                        <div id="rl3" style="width: 40%; text-align: right;" class="text-warning">3</div>
+                        <div th:id="'rangecontainer-label-1-' + ${model.id}" style="width: 40%; text-align: left;" class="text-success"></div>
+                        <div th:id="'rangecontainer-label-2-' + ${model.id}" style="width: 20%; text-align: center;" class="text-secondary"></div>
+                        <div th:id="'rangecontainer-label-3-' + ${model.id}" style="width: 40%; text-align: right;" class="text-warning"></div>
                     </div>
-                    <input id="rangeinput" type="range" class="form-range" min="0" max="100"/>
+                    <input th:id="'rangecontainer-rangeinput-' + ${model.id}" type="range" class="form-range" min="0" max="100"/>
                 </div>
                 <script>
-                    document.getElementById("rangeinput").oninput = function() {
-                        rangelabels();
-                    }
-                    document.getElementById("rangeinput").onmousedown = function() {
-                        $('#rangecontainer-xyz').addClass('doNotRefresh');
-                    }
-                    document.getElementById("rangeinput").onmouseup = function() {
-                        $('#rangecontainer-xyz').removeClass('doNotRefresh');
-                    }
-                    rangelabels();
-                    function rangelabels() {
-                        let power = document.getElementById("rangevalue").value;
-                        let percentage = document.getElementById("rangeinput").value;
-                        // console.log(power + "   " + percentage);
-                        document.getElementById("rl2").innerHTML = percentage + "%";
-                        document.getElementById("rl1").innerHTML = "min " + (power * percentage / 100) + "W PV";
-                        document.getElementById("rl3").innerHTML = "max " + (power - (power * percentage / 100)) + "W Netz";
-                    }
+                    rangeIDs.push('[[${model.id}]]');
                 </script>
             </th:block>
-            <!-- TEST -->
         </th:block>
     </th:block>
 
