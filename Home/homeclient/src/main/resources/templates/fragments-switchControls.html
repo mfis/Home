@@ -64,10 +64,8 @@
                     submitContent(document.getElementById('val_model_linkManual_[[${model.id}]]').value);
                 }
             </script>
-            <button type="button" class="btn btn-link" data-toggle="modal" th:data-target="'#modalAuto' + ${model.id}">
-                    <span
-                            class="badge badge-secondary" th:text="'?'">
-                    </span>
+            <button th:unless="${#strings.equals(model.autoInfoText, '')}" type="button" class="btn btn-link" data-toggle="modal" th:data-target="'#modalAuto' + ${model.id}">
+                <span class="badge badge-secondary" th:text="'?'"></span>
             </button>
             <!-- Modal -->
             <div class="modal fade" th:id="'modalAuto' + ${model.id}" tabindex="-1" role="dialog" th:aria-labelledby="'#modalAutoLabel' + ${model.id}" aria-hidden="true">
