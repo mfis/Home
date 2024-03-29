@@ -1,0 +1,173 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html" lang="de">
+
+    <head><title></title></head>
+
+    <th:block th:fragment="switchControls (model)">
+
+        <!-- on/off -->
+        <th:block th:unless="${#strings.equals(model.unreach, 'true')}">
+            <div class="btn-group" role="group" aria-label="heating">
+                <button th:if="${#strings.startsWith(model.linkOn, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${model.activeSwitchColorClass}"><th:block th:replace="~{basics :: symbol (name='fas fa-check-circle')}"/></span><span>&nbsp;</span></button>
+                <button th:if="${#strings.startsWith(model.linkOn, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToOn' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name='fas fa-check-circle')}"/></span><span>&nbsp;</span></button>
+                <button th:if="${#strings.startsWith(model.linkOff, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${model.activeSwitchColorClass}"><th:block th:replace="~{basics :: symbol (name='fas fa-power-off')}"/></span><span>&nbsp;</span></button>
+                <button th:if="${#strings.startsWith(model.linkOff, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToOff' + ${model.id} + '()'}"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name='fas fa-power-off')}"/></span><span>&nbsp;</span></button>
+            </div>
+            <input type="hidden" th:id="'val_model_linkOff_' + ${model.id}" th:value="${model.linkOff}">
+            <input type="hidden" th:id="'val_model_linkOn_' + ${model.id}" th:value="${model.linkOn}">
+            <script type="text/javascript">
+                function toggleToOn[[${model.id}]](){
+                    submitContent(document.getElementById('val_model_linkOn_[[${model.id}]]').value);
+                }
+                function toggleToOff[[${model.id}]](){
+                    submitContent(document.getElementById('val_model_linkOff_[[${model.id}]]').value);
+                }
+            </script>
+        </th:block>
+
+        <!-- auto/manual -->
+        <th:block th:if="${!#strings.startsWith(model.linkAuto, '#') or !#strings.startsWith(model.linkManual, '#')}">
+            <span>&nbsp;</span>
+            <div class="btn-group" role="group" aria-label="heating">
+                <button th:if="${#strings.startsWith(model.linkAuto, '#')}" type="button" th:class="'btn btn-dark btn-sm text-' + ${model.activeSwitchColorClass}">
+                    <span>&nbsp;</span>
+                    <span th:if="${#strings.isEmpty(model.buttonCaptionAuto)}"><th:block th:replace="~{basics :: symbol (name='fas fa-cogs')}"/></span>
+                    <span th:if="${!#strings.isEmpty(model.buttonCaptionAuto)}"><th:block th:text="${model.buttonCaptionAuto}"/></span>
+                    <span>&nbsp;</span>
+                </button>
+                <button th:if="${#strings.startsWith(model.linkAuto, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToAuto' + ${model.id} + '()'}">
+                    <span>&nbsp;</span>
+                    <span th:if="${#strings.isEmpty(model.buttonCaptionAuto)}"><th:block th:replace="~{basics :: symbol (name='fas fa-cogs')}"/></span>
+                    <span th:if="${!#strings.isEmpty(model.buttonCaptionAuto)}"><th:block th:text="${model.buttonCaptionAuto}"/></span>
+                    <span>&nbsp;</span>
+                </button>
+                <button th:if="${#strings.startsWith(model.linkManual, '#')}" type="button" th:class="'btn btn-dark btn-sm text-' + ${model.activeSwitchColorClass}">
+                    <span>&nbsp;</span>
+                    <span th:if="${#strings.isEmpty(model.buttonCaptionManual)}"><th:block th:replace="~{basics :: symbol (name='fas fa-hand-paper')}"/></span>
+                    <span th:if="${!#strings.isEmpty(model.buttonCaptionManual)}"><th:block th:text="${model.buttonCaptionManual}"/></span>
+                    <span>&nbsp;</span>
+                </button>
+                <button th:if="${#strings.startsWith(model.linkManual, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'toggleToManual' + ${model.id} + '()'}">
+                    <span>&nbsp;</span>
+                    <span th:if="${#strings.isEmpty(model.buttonCaptionManual)}"><th:block th:replace="~{basics :: symbol (name='fas fa-hand-paper')}"/></span>
+                    <span th:if="${!#strings.isEmpty(model.buttonCaptionManual)}"><th:block th:text="${model.buttonCaptionManual}"/></span>
+                    <span>&nbsp;</span>
+                </button>
+            </div>
+            <input type="hidden" th:id="'val_model_linkManual_' + ${model.id}" th:value="${model.linkManual}">
+            <input type="hidden" th:id="'val_model_linkAuto_' + ${model.id}" th:value="${model.linkAuto}">
+            <script type="text/javascript">
+                function toggleToAuto[[${model.id}]](){
+                    submitContent(document.getElementById('val_model_linkAuto_[[${model.id}]]').value);
+                }
+                function toggleToManual[[${model.id}]](){
+                    submitContent(document.getElementById('val_model_linkManual_[[${model.id}]]').value);
+                }
+            </script>
+            <button type="button" class="btn btn-link" data-toggle="modal" th:data-target="'#modalAuto' + ${model.id}">
+                    <span
+                            class="badge badge-secondary" th:text="'?'">
+                    </span>
+            </button>
+            <!-- Modal -->
+            <div class="modal fade" th:id="'modalAuto' + ${model.id}" tabindex="-1" role="dialog" th:aria-labelledby="'#modalAutoLabel' + ${model.id}" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLongTitle" th:text="'Automatik: ' + ${model.name}"></h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body"><a th:utext="${model.autoInfoText}"></a></div>
+                    </div>
+                </div>
+            </div>
+            <!-- TEST -->
+            <th:block th:if="${#strings.equals(model.overflowRange, 'true')}">
+                <style>
+                    .rangecontainer {
+                        width: 400px;
+                        margin-top: 10px;
+                        margin-bottom: 10px;
+                        padding: 5px;
+                        border: 2px solid grey;
+                        border-radius: 5px;
+                    }
+                    input[type="range"] {
+                        width: 100%;
+                    }
+                    @media screen and (-webkit-min-device-pixel-ratio:0) {
+                        input[type='range'] {
+                            overflow: hidden;
+                            -webkit-appearance: none;
+                            background-color: rgb(255,193,7);
+                        }
+                        input[type='range']::-webkit-slider-thumb {
+                            -webkit-appearance: none;
+                            cursor: ew-resize;
+                            background: red;
+                            color: rgb(40, 167, 69);
+                            height: 24px;
+                            width: 20px;
+                            border-left: 3px solid black;
+                            border-right: 3px solid black;
+                        }
+                        input[type="range"]::-webkit-slider-thumb { box-shadow: -500px 0 0 500px;}
+                    }
+                    input[type="range"]::-moz-range-progress {
+                        background-color: rgb(40, 167, 69);
+                    }
+                    input[type="range"]::-moz-range-track {
+                        background-color: rgb(255,193,7);
+                    }
+                    input[type="range"]::-ms-fill-lower {
+                        background-color: rgb(40, 167, 69);
+                    }
+                    input[type="range"]::-ms-fill-upper {
+                        background-color: rgb(255,193,7);
+                    }
+                    .rangecontainer-labels {
+                        display: flex;
+                        justify-content: space-between;
+                    }
+                    .rangecontainer-labels > div {
+                        color: white;
+                        margin-left: 4px;
+                    }
+                </style>
+                <input id="rangevalue" type="hidden" value="2000"/>
+                <div id="rangecontainer-xyz" class="rangecontainer">
+                    <div class="rangecontainer-labels">
+                        <div id="rl1" style="width: 40%; text-align: left;" class="text-success">1</div>
+                        <div id="rl2" style="width: 20%; text-align: center;" class="text-secondary">2</div>
+                        <div id="rl3" style="width: 40%; text-align: right;" class="text-warning">3</div>
+                    </div>
+                    <input id="rangeinput" type="range" class="form-range" min="0" max="100"/>
+                </div>
+                <script>
+                    document.getElementById("rangeinput").oninput = function() {
+                        rangelabels();
+                    }
+                    document.getElementById("rangeinput").onmousedown = function() {
+                        $('#rangecontainer-xyz').addClass('doNotRefresh');
+                    }
+                    document.getElementById("rangeinput").onmouseup = function() {
+                        $('#rangecontainer-xyz').removeClass('doNotRefresh');
+                    }
+                    rangelabels();
+                    function rangelabels() {
+                        let power = document.getElementById("rangevalue").value;
+                        let percentage = document.getElementById("rangeinput").value;
+                        // console.log(power + "   " + percentage);
+                        document.getElementById("rl2").innerHTML = percentage + "%";
+                        document.getElementById("rl1").innerHTML = "min " + (power * percentage / 100) + "W PV";
+                        document.getElementById("rl3").innerHTML = "max " + (power - (power * percentage / 100)) + "W Netz";
+                    }
+                </script>
+            </th:block>
+            <!-- TEST -->
+        </th:block>
+    </th:block>
+
+</html>

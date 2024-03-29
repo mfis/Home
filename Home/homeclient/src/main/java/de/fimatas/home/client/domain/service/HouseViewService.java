@@ -989,6 +989,10 @@ public class HouseViewService {
             return;
         }
 
+        if(view instanceof  WallboxSwitchView){
+            view.setOverflowRange("true");
+        }
+
         view.setState(switchModel.isState() ? "Eingeschaltet" : "Ausgeschaltet");
         view.setStateShort(switchModel.isState() ? "Ein" : "Aus");
         formatSwitchColors(switchModel, view);
