@@ -82,7 +82,7 @@
                 </div>
             </div>
             <!-- Overflow Range -->
-            <th:block th:if="${#strings.equals(model.overflowRange, 'true')}">
+            <th:block th:if="${#strings.equals(model.overflowRange, 'true') && #strings.startsWith(model.linkAuto, '#')}">
                 <div th:id="'rangecontainer-div-' + ${model.id}" class="rangecontainer">
                     <input th:id="'rangecontainer-rangevalue-' + ${model.id}" type="hidden" value="2000"/>
                     <div class="rangecontainer-labels">

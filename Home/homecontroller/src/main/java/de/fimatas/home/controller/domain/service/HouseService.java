@@ -72,9 +72,6 @@ public class HouseService {
     private HomematicAPI hmApi;
 
     @Autowired
-    private CameraService cameraService;
-
-    @Autowired
     private PushService pushService;
 
     @Autowired
@@ -117,6 +114,8 @@ public class HouseService {
             return;
         }
 
+        photovoltaicsOverflowService.readOverflowWattageFields(newModel);
+
         calculateConclusion(oldModel, newModel);
         ModelObjectDAO.getInstance().write(newModel);
 
@@ -127,9 +126,7 @@ public class HouseService {
         liveActivityService.newModel(newModel);
         uploadService.uploadToAdapter(newModel);
 
-        // updateCameraPictures(oldModel, newModel); // async
         updateHomematicSystemVariables(oldModel, newModel);
-        cameraService.cleanUp();
 
         historyService.saveNewValues();
 
@@ -173,7 +170,6 @@ public class HouseService {
         newModel.setWorkshopLightSwitch(readSwitchState(Device.SCHALTER_LICHT_WERKSTATT));
 
         newModel.setFrontDoorBell(readFrontDoorBell());
-        newModel.setFrontDoorCamera(readFrontDoorCamera());
         newModel.setFrontDoorLock(readFrontDoorLock(oldModel));
 
         newModel.setGridElectricalPower(readPowerConsumption(Device.STROMZAEHLER_BEZUG));
@@ -780,13 +776,6 @@ public class HouseService {
             frontDoor.setTimestampLastDoorbell(Long.parseLong(ts) * 1000);
         }
 
-        return frontDoor;
-    }
-
-    private Camera readFrontDoorCamera() {
-
-        Camera frontDoor = new Camera();
-        frontDoor.setDevice(null); // for further use
         return frontDoor;
     }
 

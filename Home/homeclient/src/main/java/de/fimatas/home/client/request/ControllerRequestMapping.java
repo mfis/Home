@@ -32,12 +32,6 @@ public class ControllerRequestMapping {
     @Autowired
     private Environment env;
 
-    @PostMapping(value = UPLOAD_METHOD_PREFIX + "CameraModel")
-    public ActionModel uploadCameraModel(@RequestBody CameraModel cameraModel) {
-        ModelObjectDAO.getInstance().write(cameraModel);
-        return new ActionModel("OK");
-    }
-
     @PostMapping(value = UPLOAD_METHOD_PREFIX + "HouseModel")
     public ActionModel uploadHouseModel(@RequestBody HouseModel houseModel) {
         ModelObjectDAO.getInstance().write(houseModel);

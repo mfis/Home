@@ -13,7 +13,6 @@ public enum Type {
     SHUTTER_LEFT("Rolllade links", null, false, true), //
     SHUTTER_RIGHT("Rolllade rechts", null, false, true), //
     SWITCH_WINDOWLIGHT("Schalter Fensterlicht", "Fensterlicht", false, true), //
-    SWITCH_FRONTDOOR_CAMERA("Schalter Kamera", "Kamera", false, true), //
     SWITCH_VENTILATION("Schalter Lüftung", "Lüftung", false, true), //
     SWITCH_LIGHT("Schalter Licht", "Licht", false, true), //
     SWITCH_INFRARED_HEATING("Schalter Infrarotheizung", "Infrarotheizung", false, true), //

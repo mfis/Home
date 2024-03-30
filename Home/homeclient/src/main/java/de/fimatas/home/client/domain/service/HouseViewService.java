@@ -124,7 +124,7 @@ public class HouseViewService {
         formatSwitch(model, "infraredHeaterGuestroom", house.getGuestRoomInfraredHeater());
         formatSwitch(model, "switchWorkshopLight", house.getWorkshopLightSwitch());
 
-        formatFrontDoorBell(model, "frontDoor", house.getFrontDoorBell(), house.getFrontDoorCamera());
+        formatFrontDoorBell(model, "frontDoor", house.getFrontDoorBell());
         formatFrontDoorLock(model, "frontDoorLock", house.getFrontDoorLock());
 
         formatOverallElectricPowerHouse(model, house, historyModel);
@@ -298,7 +298,7 @@ public class HouseViewService {
         }
     }
 
-    private void formatFrontDoorBell(Model model, String id, Doorbell doorbell, Camera camera) {
+    private void formatFrontDoorBell(Model model, String id, Doorbell doorbell) {
 
         FrontDoorView frontDoorView = new FrontDoorView();
         frontDoorView.setId(id);
@@ -330,26 +330,7 @@ public class HouseViewService {
             frontDoorView.setColorClass(ConditionColor.GRAY.getUiClass());
         }
 
-
-        formatCamera(doorbell, camera, frontDoorView);
-
         model.addAttribute(id, frontDoorView);
-    }
-
-    private void formatCamera(Doorbell doorbell, Camera camera, FrontDoorView frontDoorView) {
-
-        if (camera == null || camera.getDevice() == null) {
-            return;
-        }
-
-        frontDoorView.setIdLive("frontdoorcameralive");
-        frontDoorView.setIdBell("frontdoorcamerabell");
-        frontDoorView
-                .setLinkLive("/cameraPicture?deviceName=" + camera.getDevice() + "&cameraMode=" + CameraMode.LIVE + "&ts=");
-        frontDoorView.setLinkLiveRequest("/cameraPictureRequest?type=" + MessageType.CAMERAPICTUREREQUEST + AND_DEVICE_IS
-                + camera.getDevice() + "&value=null");
-        frontDoorView.setLinkBell("/cameraPicture?deviceName=" + camera.getDevice() + "&cameraMode=" + CameraMode.EVENT + "&ts="
-                + doorbell.getTimestampLastDoorbell());
     }
 
     private void formatFrontDoorLock(Model model, String id, Doorlock doorlock) {

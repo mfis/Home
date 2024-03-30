@@ -19,8 +19,6 @@ public class ModelObjectDAO {
 
     private HistoryModel historyModel;
 
-    private CameraModel cameraModel;
-
     private LightsModel lightsModel;
 
     private PresenceModel presenceModel;
@@ -75,10 +73,6 @@ public class ModelObjectDAO {
     public void write(ElectricVehicleModel newModel) {
         electricVehicleModel = newModel;
         electricVehicleModel.setTimestamp(new Date().getTime());
-    }
-
-    public void write(CameraModel newModel) {
-        cameraModel = newModel;
     }
 
     public void write(LightsModel newModel) {
@@ -173,36 +167,6 @@ public class ModelObjectDAO {
         return electricVehicleModel;
     }
 
-    public CameraModel readCameraModel() {
-        if (cameraModel == null) {
-            cameraModel = new CameraModel();
-        }
-        return cameraModel;
-    }
-
-    public CameraPicture readCameraPicture(Device device, CameraMode cameraMode, long eventTimestamp) {
-
-        if (cameraModel == null) {
-            return null;
-        }
-        switch (cameraMode) {
-        case LIVE:
-            if (isActualLivePicture(eventTimestamp)) {
-                return cameraModel.getLivePicture();
-            }
-            return null;
-        case EVENT:
-            for (CameraPicture cameraPicture : cameraModel.getEventPictures()) {
-                if (cameraPicture.getDevice() == device && isActualEventPicture(eventTimestamp, cameraPicture)) {
-                    return cameraPicture;
-                }
-            }
-            return null;
-        default:
-            throw new IllegalArgumentException("Unknown CameraMode: " + cameraMode);
-        }
-    }
-
     public long calculateModelTimestamp(){
 
         HouseModel hm = readHouseModel();
@@ -233,14 +197,6 @@ public class ModelObjectDAO {
             return false;
         }
         return settingsContainer.getSettings().stream().anyMatch(model -> model.getToken().equals(pushToken));
-    }
-
-    private boolean isActualEventPicture(long eventTimestamp, CameraPicture cameraPicture) {
-        return Math.abs(cameraPicture.getTimestamp() - eventTimestamp) < 1000 * 30;
-    }
-
-    private boolean isActualLivePicture(long eventTimestamp) {
-        return cameraModel.getLivePicture() != null && cameraModel.getLivePicture().getTimestamp() >= eventTimestamp;
     }
 
     public String getLastHouseModelState() {

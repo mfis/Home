@@ -20,4 +20,8 @@ public class Switch extends AbstractDeviceModel implements Serializable {
     private String automationInfoText;
 
     private PowerMeter associatedPowerMeter;
+
+    private int minimalPhotovoltaicsWattageInOverflowAutomationMode;
+
+    private int defaultWattage;
 }

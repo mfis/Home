@@ -71,10 +71,6 @@ public class PhotovoltaicsOverflowService {
         sortDevicesAccordingToPriority();
     }
 
-    private String getProperty(Field field, String name){
-        return env.getProperty("pvOverflow." + field.getName() + "." + name);
-    }
-
     @Scheduled(cron = "0 00 00 * * *")
     public void resetCounter() {
         overflowControlledDeviceStates.values().forEach(ocds -> ocds.dailyOnSwitchingCounter = 0);
@@ -89,6 +85,11 @@ public class PhotovoltaicsOverflowService {
                 }
             }
         }
+    }
+
+    public HouseModel readOverflowWattageFields(HouseModel houseModel){
+
+        return houseModel;
     }
 
     @Async
@@ -249,6 +250,10 @@ public class PhotovoltaicsOverflowService {
 
     private void sortDevicesAccordingToPriority(){
         overflowControlledDevices.sort(Comparator.comparingInt(OverflowControlledDevice::defaultPriority));
+    }
+
+    private String getProperty(Field field, String name){
+        return env.getProperty("pvOverflow." + field.getName() + "." + name);
     }
 
     private record OverflowControlledDevice (

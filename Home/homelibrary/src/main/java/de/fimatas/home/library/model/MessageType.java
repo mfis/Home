@@ -14,7 +14,6 @@ public enum MessageType {
     SLIDERVALUE(Pages.PATH_HOME), //
     CHARGELIMIT(Pages.PATH_HOME), //
     CONTROL_HEATPUMP(Pages.PATH_HOME), //
-    CAMERAPICTUREREQUEST(null), //
     SETTINGS_NEW(null), //
     SETTINGS_EDIT(null), //
     WALLBOX_SELECTED_EV(Pages.PATH_HOME),

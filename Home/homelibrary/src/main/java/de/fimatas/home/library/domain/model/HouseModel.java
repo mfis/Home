@@ -83,8 +83,6 @@ public class HouseModel implements Serializable {
 
     private Doorbell frontDoorBell;
 
-    private Camera frontDoorCamera;
-
     private Doorlock frontDoorLock;
 
     private List<String> lowBatteryDevices;

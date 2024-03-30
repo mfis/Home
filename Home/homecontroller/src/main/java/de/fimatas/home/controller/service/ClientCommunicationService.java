@@ -38,9 +38,6 @@ public class ClientCommunicationService {
     private HistoryService historyService;
 
     @Autowired
-    private CameraService cameraService;
-
-    @Autowired
     private LightService lightService;
 
     @Autowired
@@ -119,9 +116,6 @@ public class ClientCommunicationService {
             case OPEN:
                 houseService.doorState(message);
                 houseService.refreshHouseModel();
-                break;
-            case CAMERAPICTUREREQUEST:
-                message.setResponse(cameraService.takeLivePicture(message.getDevice()));
                 break;
             case SHUTTERPOSITION:
                 houseService.shutterPosition(message.getDevice(), Integer.parseInt(message.getValue()));
@@ -223,8 +217,6 @@ public class ClientCommunicationService {
         } else {
             uploadService.uploadToClient(ModelObjectDAO.getInstance().readPushMessageModel());
         }
-
-        uploadService.uploadToClient(ModelObjectDAO.getInstance().readCameraModel());
 
         settingsService.refreshSettingsModelsComplete();
     }

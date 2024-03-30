@@ -50,8 +50,6 @@ public class HomeRequestMapping {
 
     private static final String DEVICE_ID = "deviceId";
 
-    // private static final String CAMERA_MODE = "cameraMode";
-
     private static final Log log = LogFactory.getLog(HomeRequestMapping.class);
 
     @Autowired

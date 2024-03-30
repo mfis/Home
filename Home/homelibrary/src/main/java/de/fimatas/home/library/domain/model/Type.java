@@ -13,7 +13,6 @@ public enum Type {
     SHUTTER_LEFT("Rolllade links", true), //
     SHUTTER_RIGHT("Rolllade rechts", true), //
     SWITCH_WINDOWLIGHT("Schalter Fensterlicht", true), //
-    SWITCH_FRONTDOOR_CAMERA("Schalter Kamera", true), //
     DOORBELL("Türklingel", true), //
     ELECTRIC_POWER("Stromverbrauch", false), //
     // with sub-types
