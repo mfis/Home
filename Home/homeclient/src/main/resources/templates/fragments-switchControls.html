@@ -82,7 +82,7 @@
                 </div>
             </div>
             <!-- Overflow Range -->
-            <th:block th:if="${#strings.equals(model.showOverflowRange, 'true') && #strings.startsWith(model.linkAuto, '#')}">
+            <th:block th:if="${#strings.equals(model.showOverflowRange, 'true') && !#strings.startsWith(model.linkAuto, '#')}">
                 <div th:id="'rangecontainer-div-' + ${model.id}" class="rangecontainer">
                     <input th:id="'rangecontainer-consumption-' + ${model.id}" type="hidden" th:value="${model.overflowConsumptionValue}"/>
                     <input th:id="'rangecontainer-rangemaxgridvalue-' + ${model.id}" type="hidden" th:value="${model.overflowMaxGridValue}"/>
@@ -93,10 +93,10 @@
                     </div>
                     <input th:id="'rangecontainer-rangeinput-' + ${model.id}" type="range" class="form-range" min="0" max="100"/>
                 </div>
-                <script>
-                    rangeIDs.push('[[${model.id}]]');
-                </script>
             </th:block>
+            <script>
+                rangeIDs.push('[[${model.id}]]');
+            </script>
         </th:block>
     </th:block>
 

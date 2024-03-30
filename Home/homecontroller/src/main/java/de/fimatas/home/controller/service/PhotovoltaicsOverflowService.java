@@ -65,7 +65,7 @@ public class PhotovoltaicsOverflowService {
                         new OverflowControlledDevice(field,
                                 getProperty(field, "shortName"),
                                 Integer.parseInt(getProperty(field, "defaultWattage")),
-                                readMaxGridWattage(getProperty(field, "shortName"), Integer.parseInt(getProperty(field, "defaultWattage"))),
+                                readMaxGridWattage(getProperty(field, "shortName")),
                                 Integer.parseInt(getProperty(field, "switchOnDelay")),
                                 Integer.parseInt(getProperty(field, "switchOffDelay")),
                                 Integer.parseInt(getProperty(field, "defaultPriority")),
@@ -271,17 +271,17 @@ public class PhotovoltaicsOverflowService {
         return env.getProperty("pvOverflow." + field.getName() + "." + name);
     }
 
-    private int readMaxGridWattage(String shortName, int defaultWattage){
+    private int readMaxGridWattage(String shortName){
         var state = stateHandlerDAO.readState(STATEHANDLER_GROUPNAME_PV_OVERFLOW, shortName);
         if(state != null){
             return Integer.parseInt(state.getValue());
         }
         int writeDelaySeconds = stateHandlerDAO.isSetupIsRunning()? 30 : 0;
         scheduler.schedule(() -> {
-            stateHandlerDAO.writeState(STATEHANDLER_GROUPNAME_PV_OVERFLOW, shortName, Integer.toString(defaultWattage));
+            stateHandlerDAO.writeState(STATEHANDLER_GROUPNAME_PV_OVERFLOW, shortName, Integer.toString(0));
         }, writeDelaySeconds, TimeUnit.SECONDS);
 
-        return defaultWattage;
+        return 0;
     }
 
     private record OverflowControlledDevice (

@@ -125,14 +125,18 @@
 
 		function initRangecontainer(id, index, array){
 			if(document.getElementById("rangecontainer-div-" + id)){ // nicht ausgeblendet
+				let consumption = document.getElementById("rangecontainer-consumption-" + id).value;
+				let maxGrid = document.getElementById("rangecontainer-rangemaxgridvalue-" + id).value;
+				document.getElementById("rangecontainer-rangeinput-" + id).value = 100 - Math.round(maxGrid * 100 / consumption);
 				document.getElementById("rangecontainer-rangeinput-" + id).oninput = function() {
 					rangelabels(id);
 				}
 				document.getElementById("rangecontainer-rangeinput-" + id).onmousedown = function() {
-					$('#rangecontainer-' + id).addClass('doNotRefresh');
+					$('#rangecontainer-div-' + id).addClass('doNotRefresh');
 				}
 				document.getElementById("rangecontainer-rangeinput-" + id).onmouseup = function() {
-					$('#rangecontainer-' + id).removeClass('doNotRefresh');
+					$('#rangecontainer-div-' + id).removeClass('doNotRefresh');
+					// FIXME: SUBMIT
 				}
 				rangelabels(id);
 			}
@@ -140,11 +144,13 @@
 
 		function rangelabels(id) {
 			let consumption = document.getElementById("rangecontainer-consumption-" + id).value;
-			let maxGrid = document.getElementById("rangecontainer-rangemaxgridvalue-" + id).value;
 			let percentage = document.getElementById("rangecontainer-rangeinput-" + id).value;
-			document.getElementById("rangecontainer-label-1-" + id).innerHTML = "min " + (consumption - maxGrid) + "W PV";
+			let minPV = Math.round(consumption * percentage / 100);
+			let maxGrid = Math.round(consumption - (consumption * percentage / 100));
 			document.getElementById("rangecontainer-label-2-" + id).innerHTML = percentage + "%";
-			document.getElementById("rangecontainer-label-3-" + id).innerHTML = "max " + maxGrid + "W Netz";
+			document.getElementById("rangecontainer-label-1-" + id).innerHTML = (minPV === 0 ? "" : "min ") + minPV + "W PV";
+			document.getElementById("rangecontainer-label-3-" + id).innerHTML = (maxGrid === 0 ? "" : "max ") + maxGrid + "W Netz";
+			document.getElementById("rangecontainer-rangemaxgridvalue-" + id).value = maxGrid;
 		}
 
 		function submitContent(target){
