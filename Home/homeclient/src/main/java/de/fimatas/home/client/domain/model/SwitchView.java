@@ -23,6 +23,10 @@ public class SwitchView extends View {
 
     private String buttonCaptionManual = "";
 
-    private String overflowRange = "";
+    private String showOverflowRange = "";
+
+    private String overflowConsumptionValue = "";
+
+    private String overflowMaxGridValue = "";
 
 }

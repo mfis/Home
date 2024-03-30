@@ -1,5 +1,6 @@
 package de.fimatas.home.controller.service;
 
+import de.fimatas.home.controller.dao.StateHandlerDAO;
 import de.fimatas.home.controller.domain.service.HouseService;
 import de.fimatas.home.library.annotation.EnablePhotovoltaicsOverflow;
 import de.fimatas.home.library.dao.ModelObjectDAO;
@@ -18,6 +19,9 @@ import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Component
 public class PhotovoltaicsOverflowService {
@@ -32,6 +36,9 @@ public class PhotovoltaicsOverflowService {
     private UniqueTimestampService uniqueTimestampService;
 
     @Autowired
+    private StateHandlerDAO stateHandlerDAO;
+
+    @Autowired
     private Environment env;
 
     private final LinkedList<OverflowControlledDevice> overflowControlledDevices = new LinkedList<>();
@@ -39,6 +46,10 @@ public class PhotovoltaicsOverflowService {
     private final Map<OverflowControlledDevice, OverflowControlledDeviceState> overflowControlledDeviceStates = new HashMap<>();
 
     private long lastGridElectricStatusTime = -1;
+
+    private final String STATEHANDLER_GROUPNAME_PV_OVERFLOW = "pv-overflow";
+
+    ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     private static final Log LOG = LogFactory.getLog(PhotovoltaicsOverflowService.class);
 
@@ -54,7 +65,7 @@ public class PhotovoltaicsOverflowService {
                         new OverflowControlledDevice(field,
                                 getProperty(field, "shortName"),
                                 Integer.parseInt(getProperty(field, "defaultWattage")),
-                                Integer.parseInt(getProperty(field, "percentageMaxPowerFromGrid")),
+                                readMaxGridWattage(getProperty(field, "shortName"), Integer.parseInt(getProperty(field, "defaultWattage"))),
                                 Integer.parseInt(getProperty(field, "switchOnDelay")),
                                 Integer.parseInt(getProperty(field, "switchOffDelay")),
                                 Integer.parseInt(getProperty(field, "defaultPriority")),
@@ -88,7 +99,12 @@ public class PhotovoltaicsOverflowService {
     }
 
     public HouseModel readOverflowWattageFields(HouseModel houseModel){
-
+        overflowControlledDeviceStates.keySet().forEach(ocd -> {
+            Switch switchModel = (Switch) getDeviceModel(houseModel, ocd);
+            switchModel.setPvOverflowConfigured(true);
+            switchModel.setDefaultWattage(ocd.defaultWattage);
+            switchModel.setMaxWattageFromGridInOverflowAutomationMode(ocd.maxGridWattage);
+        });
         return houseModel;
     }
 
@@ -112,8 +128,7 @@ public class PhotovoltaicsOverflowService {
                 final var deviceModel = getDeviceModel(houseModel, ocd);
                 final var actualDeviceWattage = getActualDeviceWattage(ocd, deviceModel);
                 if (isAutoModeOn(deviceModel) && isActualDeviceSwitchState(deviceModel)) {
-                    var maxWattsFromGrid = actualDeviceWattage * ocd.percentageMaxPowerFromGrid / 100;
-                    if (wattage > maxWattsFromGrid) {
+                    if (wattage > ocd.maxGridWattage) {
                         switch(overflowControlledDeviceStates.get(ocd).controlState){
                             case STABLE -> setControlState(ocd, ControlState.PREPARE_TO_OFF);
                             case PREPARE_TO_OFF -> {
@@ -146,7 +161,7 @@ public class PhotovoltaicsOverflowService {
                 final var deviceModel = getDeviceModel(houseModel, ocd);
                 final var actualDeviceWattage = getActualDeviceWattage(ocd, deviceModel);
                 if (isAutoModeOn(deviceModel) && !isActualDeviceSwitchState(deviceModel)) {
-                    var minWattsFromPV = (actualDeviceWattage - (actualDeviceWattage * ocd.percentageMaxPowerFromGrid / 100)) * -1;
+                    var minWattsFromPV = (actualDeviceWattage - ocd.maxGridWattage) * -1;
                     if (wattage <= minWattsFromPV) {
                         switch (overflowControlledDeviceStates.get(ocd).controlState) {
                             case STABLE -> setControlState(ocd, ControlState.PREPARE_TO_ON);
@@ -256,11 +271,24 @@ public class PhotovoltaicsOverflowService {
         return env.getProperty("pvOverflow." + field.getName() + "." + name);
     }
 
+    private int readMaxGridWattage(String shortName, int defaultWattage){
+        var state = stateHandlerDAO.readState(STATEHANDLER_GROUPNAME_PV_OVERFLOW, shortName);
+        if(state != null){
+            return Integer.parseInt(state.getValue());
+        }
+        int writeDelaySeconds = stateHandlerDAO.isSetupIsRunning()? 30 : 0;
+        scheduler.schedule(() -> {
+            stateHandlerDAO.writeState(STATEHANDLER_GROUPNAME_PV_OVERFLOW, shortName, Integer.toString(defaultWattage));
+        }, writeDelaySeconds, TimeUnit.SECONDS);
+
+        return defaultWattage;
+    }
+
     private record OverflowControlledDevice (
             Field field,
             String shortName,
             int defaultWattage,
-            int percentageMaxPowerFromGrid,
+            int maxGridWattage,
             int switchOnDelay,
             int switchOffDelay,
             int defaultPriority,

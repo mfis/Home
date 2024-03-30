@@ -970,10 +970,9 @@ public class HouseViewService {
             return;
         }
 
-        if(view instanceof  WallboxSwitchView){
-            view.setOverflowRange("true");
-        }
-
+        view.setShowOverflowRange(Boolean.toString(switchModel.isPvOverflowConfigured()));
+        view.setOverflowConsumptionValue(switchModel.isPvOverflowConfigured() ? Integer.toString(switchModel.getDefaultWattage()) : "");
+        view.setOverflowMaxGridValue(switchModel.isPvOverflowConfigured() ? Integer.toString(switchModel.getMaxWattageFromGridInOverflowAutomationMode()) : "");
         view.setState(switchModel.isState() ? "Eingeschaltet" : "Ausgeschaltet");
         view.setStateShort(switchModel.isState() ? "Ein" : "Aus");
         formatSwitchColors(switchModel, view);

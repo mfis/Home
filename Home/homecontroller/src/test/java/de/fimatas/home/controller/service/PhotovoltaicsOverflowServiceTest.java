@@ -1,6 +1,8 @@
 package de.fimatas.home.controller.service;
 
+import de.fimatas.home.controller.dao.StateHandlerDAO;
 import de.fimatas.home.controller.domain.service.HouseService;
+import de.fimatas.home.controller.model.State;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.homematic.model.Device;
@@ -13,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import java.math.BigDecimal;
@@ -39,6 +42,9 @@ class PhotovoltaicsOverflowServiceTest {
 
     @Mock
     private Environment env;
+
+    @Mock
+    private StateHandlerDAO stateHandlerDAO;
 
     @BeforeEach
     public void setup(){
@@ -217,20 +223,29 @@ class PhotovoltaicsOverflowServiceTest {
     }
 
     private void setProperties() {
+        // device 1
         lenient().when(env.getProperty("pvOverflow.wallboxSwitch.shortName")).thenReturn("Wallbox");
         lenient().when(env.getProperty("pvOverflow.wallboxSwitch.defaultWattage")).thenReturn("2200");
-        lenient().when(env.getProperty("pvOverflow.wallboxSwitch.percentageMaxPowerFromGrid")).thenReturn("10");
+        lenient().when(stateHandlerDAO.readState("pv-overflow", "Wallbox")).thenReturn(stateWithValue("220"));
         lenient().when(env.getProperty("pvOverflow.wallboxSwitch.switchOnDelay")).thenReturn("4");
         lenient().when(env.getProperty("pvOverflow.wallboxSwitch.switchOffDelay")).thenReturn("10");
         lenient().when(env.getProperty("pvOverflow.wallboxSwitch.defaultPriority")).thenReturn("1");
         lenient().when(env.getProperty("pvOverflow.wallboxSwitch.maxDailyOnSwitching")).thenReturn("25");
+
+        // device 2
         lenient().when(env.getProperty("pvOverflow.guestRoomInfraredHeater.shortName")).thenReturn("Hzg.Gaeste");
         lenient().when(env.getProperty("pvOverflow.guestRoomInfraredHeater.defaultWattage")).thenReturn("430");
-        lenient().when(env.getProperty("pvOverflow.guestRoomInfraredHeater.percentageMaxPowerFromGrid")).thenReturn("10");
+        lenient().when(stateHandlerDAO.readState("pv-overflow", "Hzg.Gaeste")).thenReturn(stateWithValue("43"));
         lenient().when(env.getProperty("pvOverflow.guestRoomInfraredHeater.switchOnDelay")).thenReturn("2");
         lenient().when(env.getProperty("pvOverflow.guestRoomInfraredHeater.switchOffDelay")).thenReturn("2");
         lenient().when(env.getProperty("pvOverflow.guestRoomInfraredHeater.defaultPriority")).thenReturn("2");
         lenient().when(env.getProperty("pvOverflow.guestRoomInfraredHeater.maxDailyOnSwitching")).thenReturn("999");
+    }
+
+    private State stateWithValue(String value){
+        var state = new State();
+        state.setValue(value);
+        return state;
     }
 
 }

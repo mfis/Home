@@ -4,6 +4,7 @@ import de.fimatas.home.controller.database.mapper.StateRowMapper;
 import de.fimatas.home.controller.model.State;
 import de.fimatas.home.controller.service.UniqueTimestampService;
 import jakarta.annotation.PostConstruct;
+import lombok.Getter;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -26,6 +27,7 @@ public class StateHandlerDAO {
     @Autowired
     private UniqueTimestampService uniqueTimestampService;
 
+    @Getter
     private boolean setupIsRunning = true;
 
     public void completeInit(){

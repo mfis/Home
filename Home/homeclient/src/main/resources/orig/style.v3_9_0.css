@@ -289,7 +289,7 @@ input[type="checkbox"]:checked ~ label .check-true{
 	position: absolute;
 	height: 28px;
 	width: 28px;
-	background: gray;
+	background: rgb(128, 128, 128);
 	right: -14px;
 	bottom: -14px;
 	border-radius: 100px;
@@ -315,7 +315,7 @@ input[type="checkbox"]:checked ~ label .check-true{
 	top: -7px;
 	left: +7px;
 	font-size: 10px;
-	color: gray;
+	color: rgb(128, 128, 128);
 }
 
 /* Range control (pv overflow) */
@@ -347,7 +347,7 @@ input[type="range"] {
 		border-left: 3px solid black;
 		border-right: 3px solid black;
 	}
-	input[type="range"]::-webkit-slider-thumb { box-shadow: -500px 0 0 500px;}
+	input[type="range"]::-webkit-slider-thumb { box-shadow: -600px 0 0 600px;}
 }
 input[type="range"]::-moz-range-progress {
 	background-color: rgb(40, 167, 69);

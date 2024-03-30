@@ -114,7 +114,7 @@ public class HouseService {
             return;
         }
 
-        photovoltaicsOverflowService.readOverflowWattageFields(newModel);
+        newModel = photovoltaicsOverflowService.readOverflowWattageFields(newModel);
 
         calculateConclusion(oldModel, newModel);
         ModelObjectDAO.getInstance().write(newModel);

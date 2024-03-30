@@ -124,24 +124,27 @@
 		}
 
 		function initRangecontainer(id, index, array){
-			document.getElementById("rangecontainer-rangeinput-" + id).oninput = function() {
+			if(document.getElementById("rangecontainer-div-" + id)){ // nicht ausgeblendet
+				document.getElementById("rangecontainer-rangeinput-" + id).oninput = function() {
+					rangelabels(id);
+				}
+				document.getElementById("rangecontainer-rangeinput-" + id).onmousedown = function() {
+					$('#rangecontainer-' + id).addClass('doNotRefresh');
+				}
+				document.getElementById("rangecontainer-rangeinput-" + id).onmouseup = function() {
+					$('#rangecontainer-' + id).removeClass('doNotRefresh');
+				}
 				rangelabels(id);
 			}
-			document.getElementById("rangecontainer-rangeinput-" + id).onmousedown = function() {
-				$('#rangecontainer-' + id).addClass('doNotRefresh');
-			}
-			document.getElementById("rangecontainer-rangeinput-" + id).onmouseup = function() {
-				$('#rangecontainer-' + id).removeClass('doNotRefresh');
-			}
-			rangelabels(id);
 		}
 
 		function rangelabels(id) {
-			let power = document.getElementById("rangecontainer-rangevalue-" + id).value;
+			let consumption = document.getElementById("rangecontainer-consumption-" + id).value;
+			let maxGrid = document.getElementById("rangecontainer-rangemaxgridvalue-" + id).value;
 			let percentage = document.getElementById("rangecontainer-rangeinput-" + id).value;
+			document.getElementById("rangecontainer-label-1-" + id).innerHTML = "min " + (consumption - maxGrid) + "W PV";
 			document.getElementById("rangecontainer-label-2-" + id).innerHTML = percentage + "%";
-			document.getElementById("rangecontainer-label-1-" + id).innerHTML = "min " + (power * percentage / 100) + "W PV";
-			document.getElementById("rangecontainer-label-3-" + id).innerHTML = "max " + (power - (power * percentage / 100)) + "W Netz";
+			document.getElementById("rangecontainer-label-3-" + id).innerHTML = "max " + maxGrid + "W Netz";
 		}
 
 		function submitContent(target){
@@ -177,14 +180,15 @@
 
 		function registerCollapseListener(){
 			// start transitions
-			$('.collapse-preserve-state').on('show.bs.collapse', function (event) {
+			let collapsePreserveState = $('.collapse-preserve-state');
+			collapsePreserveState.on('show.bs.collapse', function (event) {
 				if(document.getElementById(event.target.id + 'SymbolDown') !== null){
 					document.getElementById(event.target.id + 'SymbolDown').style.display = 'none';
 					document.getElementById(event.target.id + 'SymbolUp').style.display = 'inline';
 					nativeMessage('startTransition')
 				}
 			});
-			$('.collapse-preserve-state').on('hide.bs.collapse', function (event) {
+			collapsePreserveState.on('hide.bs.collapse', function (event) {
 				if(document.getElementById(event.target.id + 'SymbolDown') !== null){
 					document.getElementById(event.target.id + 'SymbolDown').style.display = 'inline';
 					document.getElementById(event.target.id + 'SymbolUp').style.display = 'none';
@@ -192,13 +196,13 @@
 				}
 			});
 			// end transitions
-			$('.collapse-preserve-state').on('shown.bs.collapse', function (event) {
+			collapsePreserveState.on('shown.bs.collapse', function (event) {
 				if(document.getElementById(event.target.id + 'ElementTitleState') !== null){
 					document.getElementById(event.target.id + 'ElementTitleState').innerHTML = '';
 					nativeMessage('endTransition')
 				}
 			});
-			$('.collapse-preserve-state').on('hidden.bs.collapse', function (event) {
+			collapsePreserveState.on('hidden.bs.collapse', function (event) {
 				if(document.getElementById(event.target.id + 'ElementTitleState') !== null){
 					document.getElementById(event.target.id + 'ElementTitleState').innerHTML = document.getElementById('val_ElementTitleState_' + event.target.id).value;
 					nativeMessage('endTransition')

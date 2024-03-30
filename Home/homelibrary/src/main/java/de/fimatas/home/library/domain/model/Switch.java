@@ -21,7 +21,9 @@ public class Switch extends AbstractDeviceModel implements Serializable {
 
     private PowerMeter associatedPowerMeter;
 
-    private int minimalPhotovoltaicsWattageInOverflowAutomationMode;
+    private boolean pvOverflowConfigured;
+
+    private int maxWattageFromGridInOverflowAutomationMode;
 
     private int defaultWattage;
 }
