@@ -20,6 +20,7 @@ public enum MessageType {
     PRESENCE_EDIT(null), //
     LIVEACTIVITY_START(null), //
     LIVEACTIVITY_END(null), //
+    PV_OVERFLOW_MAX_WATTS_GRID(Pages.PATH_HOME), //
     ;//
 
     private final String targetSite;

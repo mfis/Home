@@ -103,13 +103,13 @@ public class HouseService {
 
     @Scheduled(initialDelay = (1000 * 3), fixedDelay = (1000 * HomeAppConstants.MODEL_DEFAULT_INTERVAL_SECONDS))
     private void scheduledRefreshHouseModel() {
-        refreshHouseModel();
+        refreshHouseModel(false);
     }
 
-    public synchronized void refreshHouseModel() {
+    public synchronized void refreshHouseModel(boolean force) {
 
         HouseModel oldModel = ModelObjectDAO.getInstance().readHouseModel();
-        HouseModel newModel = refreshModel(oldModel);
+        HouseModel newModel = refreshModel(oldModel, force);
         if (newModel == null) {
             return;
         }
@@ -133,9 +133,9 @@ public class HouseService {
         informOtherServices(oldModel, newModel);
     }
 
-    private HouseModel refreshModel(HouseModel oldModel) {
+    private HouseModel refreshModel(HouseModel oldModel, boolean force) {
 
-        if (!hmApi.refresh()) {
+        if (!hmApi.refresh() && !force) {
             return null;
         }
 

@@ -5,6 +5,7 @@ import de.fimatas.home.controller.domain.service.HouseService;
 import de.fimatas.home.library.annotation.EnablePhotovoltaicsOverflow;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
+import de.fimatas.home.library.homematic.model.Device;
 import jakarta.annotation.PostConstruct;
 import org.apache.commons.collections4.iterators.ReverseListIterator;
 import org.apache.commons.logging.Log;
@@ -65,7 +66,6 @@ public class PhotovoltaicsOverflowService {
                         new OverflowControlledDevice(field,
                                 getProperty(field, "shortName"),
                                 Integer.parseInt(getProperty(field, "defaultWattage")),
-                                readMaxGridWattage(getProperty(field, "shortName")),
                                 Integer.parseInt(getProperty(field, "switchOnDelay")),
                                 Integer.parseInt(getProperty(field, "switchOffDelay")),
                                 Integer.parseInt(getProperty(field, "defaultPriority")),
@@ -103,9 +103,19 @@ public class PhotovoltaicsOverflowService {
             Switch switchModel = (Switch) getDeviceModel(houseModel, ocd);
             switchModel.setPvOverflowConfigured(true);
             switchModel.setDefaultWattage(ocd.defaultWattage);
-            switchModel.setMaxWattageFromGridInOverflowAutomationMode(ocd.maxGridWattage);
+            switchModel.setMaxWattageFromGridInOverflowAutomationMode(readMaxGridWattage(ocd.shortName));
         });
         return houseModel;
+    }
+
+    public void writeOverflowGridWattage(Device device, int value){
+        overflowControlledDeviceStates.keySet().forEach(ocd -> {
+            Switch switchModel = (Switch) getDeviceModel(ModelObjectDAO.getInstance().readHouseModel(), ocd);
+            if(switchModel.getDevice() == device){
+                stateHandlerDAO.writeState(STATEHANDLER_GROUPNAME_PV_OVERFLOW, ocd.shortName, Integer.toString(value));
+            }
+        });
+        houseService.refreshHouseModel(true);
     }
 
     @Async
@@ -128,12 +138,12 @@ public class PhotovoltaicsOverflowService {
                 final var deviceModel = getDeviceModel(houseModel, ocd);
                 final var actualDeviceWattage = getActualDeviceWattage(ocd, deviceModel);
                 if (isAutoModeOn(deviceModel) && isActualDeviceSwitchState(deviceModel)) {
-                    if (wattage > ocd.maxGridWattage) {
+                    if (wattage > readMaxGridWattage(ocd.shortName)) {
                         switch(overflowControlledDeviceStates.get(ocd).controlState){
                             case STABLE -> setControlState(ocd, ControlState.PREPARE_TO_OFF);
                             case PREPARE_TO_OFF -> {
                                 if(isSwitchOffDelayReached(ocd)){
-                                    LOG.info("switch OFF " + deviceModel.getDevice().name());
+                                    //LOG.info("switch OFF " + deviceModel.getDevice().name());
                                     houseService.togglestate(deviceModel.getDevice(), false);
                                     setControlState(ocd, ControlState.STABLE);
                                     hasToRefreshHouseModel = true;
@@ -161,14 +171,14 @@ public class PhotovoltaicsOverflowService {
                 final var deviceModel = getDeviceModel(houseModel, ocd);
                 final var actualDeviceWattage = getActualDeviceWattage(ocd, deviceModel);
                 if (isAutoModeOn(deviceModel) && !isActualDeviceSwitchState(deviceModel)) {
-                    var minWattsFromPV = (actualDeviceWattage - ocd.maxGridWattage) * -1;
+                    var minWattsFromPV = (actualDeviceWattage - readMaxGridWattage(ocd.shortName)) * -1;
                     if (wattage <= minWattsFromPV) {
                         switch (overflowControlledDeviceStates.get(ocd).controlState) {
                             case STABLE -> setControlState(ocd, ControlState.PREPARE_TO_ON);
                             case PREPARE_TO_ON -> {
                                 if (isSwitchOnDelayReachedAndAllowed(ocd)) {
-                                    LOG.info("switch ON " + deviceModel.getDevice().name() + " #" +
-                                            overflowControlledDeviceStates.get(ocd).dailyOnSwitchingCounter + "/" + ocd.maxDailyOnSwitching);
+                                    //LOG.info("switch ON " + deviceModel.getDevice().name() + " #" +
+                                      //      overflowControlledDeviceStates.get(ocd).dailyOnSwitchingCounter + "/" + ocd.maxDailyOnSwitching);
                                     houseService.togglestate(deviceModel.getDevice(), true);
                                     setControlState(ocd, ControlState.STABLE);
                                     hasToRefreshHouseModel = true;
@@ -192,7 +202,7 @@ public class PhotovoltaicsOverflowService {
         }
 
         if(hasToRefreshHouseModel){
-            houseService.refreshHouseModel();
+            houseService.refreshHouseModel(false);
         }
     }
 
@@ -277,10 +287,8 @@ public class PhotovoltaicsOverflowService {
             return Integer.parseInt(state.getValue());
         }
         int writeDelaySeconds = stateHandlerDAO.isSetupIsRunning()? 30 : 0;
-        scheduler.schedule(() -> {
-            stateHandlerDAO.writeState(STATEHANDLER_GROUPNAME_PV_OVERFLOW, shortName, Integer.toString(0));
-        }, writeDelaySeconds, TimeUnit.SECONDS);
-
+        scheduler.schedule(() -> stateHandlerDAO.writeState(
+                STATEHANDLER_GROUPNAME_PV_OVERFLOW, shortName, Integer.toString(0)), writeDelaySeconds, TimeUnit.SECONDS);
         return 0;
     }
 
@@ -288,7 +296,6 @@ public class PhotovoltaicsOverflowService {
             Field field,
             String shortName,
             int defaultWattage,
-            int maxGridWattage,
             int switchOnDelay,
             int switchOffDelay,
             int defaultPriority,

@@ -342,7 +342,7 @@ public class ElectricVehicleService {
         if(isWallboxSwitchAutomatic()){
             homematicAPI.executeCommand(homematicCommandBuilder.write(WALLBOX_SWITCH_DEVICE, AUTOMATIC, false));
         }
-        houseService.refreshHouseModel();
+        houseService.refreshHouseModel(false);
     }
 
     private boolean isWallboxSwitchOff(){

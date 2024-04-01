@@ -24,7 +24,7 @@ public class RequestMapping {
 
     @GetMapping("/controller/refresh")
     public ActionModel refresh() {
-        houseService.refreshHouseModel();
+        houseService.refreshHouseModel(false);
         return new ActionModel("OK");
     }
 

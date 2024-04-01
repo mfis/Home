@@ -29,4 +29,6 @@ public class SwitchView extends View {
 
     private String overflowMaxGridValue = "";
 
+    private String overflowMaxGridValueLink = "";
+
 }

@@ -136,7 +136,11 @@
 				}
 				document.getElementById("rangecontainer-rangeinput-" + id).onmouseup = function() {
 					$('#rangecontainer-div-' + id).removeClass('doNotRefresh');
-					// FIXME: SUBMIT
+					rangelabels(id);
+					let link = document.getElementById("rangecontainer-rangemaxgridvalue-link-" + id).value;
+					let value = document.getElementById("rangecontainer-rangemaxgridvalue-" + id).value;
+					console.log("SUBMIT " + link + value);
+					submitContent(link + value);
 				}
 				rangelabels(id);
 			}

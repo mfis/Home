@@ -973,6 +973,8 @@ public class HouseViewService {
         view.setShowOverflowRange(Boolean.toString(switchModel.isPvOverflowConfigured()));
         view.setOverflowConsumptionValue(switchModel.isPvOverflowConfigured() ? Integer.toString(switchModel.getDefaultWattage()) : "");
         view.setOverflowMaxGridValue(switchModel.isPvOverflowConfigured() ? Integer.toString(switchModel.getMaxWattageFromGridInOverflowAutomationMode()) : "");
+        view.setOverflowMaxGridValueLink(MESSAGEPATH + TYPE_IS + MessageType.PV_OVERFLOW_MAX_WATTS_GRID + AND_DEVICE_IS + switchModel.getDevice().name() + AND_VALUE_IS);
+
         view.setState(switchModel.isState() ? "Eingeschaltet" : "Ausgeschaltet");
         view.setStateShort(switchModel.isState() ? "Ein" : "Aus");
         formatSwitchColors(switchModel, view);

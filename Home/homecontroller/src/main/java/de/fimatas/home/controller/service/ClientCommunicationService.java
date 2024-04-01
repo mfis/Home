@@ -64,6 +64,9 @@ public class ClientCommunicationService {
     private LiveActivityService liveActivityService;
 
     @Autowired
+    private PhotovoltaicsOverflowService photovoltaicsOverflowService;
+
+    @Autowired
     @Qualifier("restTemplateLongPolling")
     private RestTemplate restTemplateLongPolling;
 
@@ -88,14 +91,14 @@ public class ClientCommunicationService {
                 break;
             case TOGGLEAUTOMATION:
                 houseService.toggleautomation(message.getDevice(), AutomationState.valueOf(message.getValue()));
-                houseService.refreshHouseModel();
+                houseService.refreshHouseModel(false);
                 break;
             case TOGGLESTATE:
                 if(message.getDevice()== Device.SCHALTER_WALLBOX && Boolean.parseBoolean(message.getValue())){
                     electricVehicleService.saveChargingUser(message.getUser());
                 }
                 houseService.togglestate(message.getDevice(), Boolean.parseBoolean(message.getValue()));
-                houseService.refreshHouseModel();
+                houseService.refreshHouseModel(false);
                 break;
             case TOGGLELIGHT:
                 lightService.toggleLight(message.getDeviceId(), Boolean.valueOf(message.getValue()));
@@ -103,23 +106,23 @@ public class ClientCommunicationService {
                 break;
             case HEATINGBOOST:
                 houseService.heatingBoost(message.getDevice());
-                houseService.refreshHouseModel();
+                houseService.refreshHouseModel(false);
                 break;
             case HEATINGMANUAL:
                 houseService.heatingManual(message.getDevice(), new BigDecimal(message.getValue()));
-                houseService.refreshHouseModel();
+                houseService.refreshHouseModel(false);
                 break;
             case HEATINGAUTO:
                 houseService.heatingAuto(message.getDevice());
-                houseService.refreshHouseModel();
+                houseService.refreshHouseModel(false);
                 break;
             case OPEN:
                 houseService.doorState(message);
-                houseService.refreshHouseModel();
+                houseService.refreshHouseModel(false);
                 break;
             case SHUTTERPOSITION:
                 houseService.shutterPosition(message.getDevice(), Integer.parseInt(message.getValue()));
-                houseService.refreshHouseModel();
+                houseService.refreshHouseModel(false);
                 break;
             case SETTINGS_NEW:
                 if(settingsService.createNewSettingsForToken(message.getToken(), message.getUser(), message.getClient())){
@@ -156,6 +159,9 @@ public class ClientCommunicationService {
             case LIVEACTIVITY_END:
                 liveActivityService.end(message.getToken());
                 break;
+            case PV_OVERFLOW_MAX_WATTS_GRID:
+                photovoltaicsOverflowService.writeOverflowGridWattage(message.getDevice(), Integer.parseInt(message.getValue()));
+                break;
             default:
                 throw new IllegalStateException("Unknown MessageType:" + message.getMessageType().name());
             }
@@ -171,7 +177,7 @@ public class ClientCommunicationService {
     private void refreshAll() {
 
         if (ModelObjectDAO.getInstance().readHouseModel() == null) {
-            houseService.refreshHouseModel();
+            houseService.refreshHouseModel(false);
         } else {
             uploadService.uploadToClient(ModelObjectDAO.getInstance().readHouseModel());
         }
