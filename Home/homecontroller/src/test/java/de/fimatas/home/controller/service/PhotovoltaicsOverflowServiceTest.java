@@ -112,8 +112,8 @@ class PhotovoltaicsOverflowServiceTest {
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, false);
     }
 
-    //@Test
-    private void testSwitchPriority() {
+    @Test
+    void testSwitchPriority() {
         refresh(0, -500, true,  false, true, false);
         verifySwitch(Device.SCHALTER_WALLBOX, null);
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
@@ -122,11 +122,11 @@ class PhotovoltaicsOverflowServiceTest {
         verifySwitch(Device.SCHALTER_WALLBOX, null);
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, true);
 
-        refresh(30, -2200, true,  false, true, true);
+        refresh(30, -1700, true,  false, true, true);
         verifySwitch(Device.SCHALTER_WALLBOX, null);
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
 
-        refresh(50, -2200, true,  false, true, true);
+        refresh(50, -1700, true,  false, true, true);
         verifySwitch(Device.SCHALTER_WALLBOX, true);
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, false);
     }

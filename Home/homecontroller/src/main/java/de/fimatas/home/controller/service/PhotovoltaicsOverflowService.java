@@ -172,19 +172,24 @@ public class PhotovoltaicsOverflowService {
                 final var actualDeviceWattage = getActualDeviceWattage(ocd, deviceModel);
                 if (isAutoModeOn(deviceModel) && !isActualDeviceSwitchState(deviceModel)) {
                     var minWattsFromPV = (actualDeviceWattage - readMaxGridWattage(ocd.shortName)) * -1;
-                    if (wattage <= minWattsFromPV) {
+                    var releaseable = sumOfReleaseablePvWattageWithLowerProprity(ocd, houseModel);
+                    if (wattage + releaseable <= minWattsFromPV) {
                         switch (overflowControlledDeviceStates.get(ocd).controlState) {
                             case STABLE -> setControlState(ocd, ControlState.PREPARE_TO_ON);
                             case PREPARE_TO_ON -> {
                                 if (isSwitchOnDelayReachedAndAllowed(ocd)) {
                                     //LOG.info("switch ON " + deviceModel.getDevice().name() + " #" +
                                       //      overflowControlledDeviceStates.get(ocd).dailyOnSwitchingCounter + "/" + ocd.maxDailyOnSwitching);
-                                    houseService.togglestate(deviceModel.getDevice(), true);
-                                    setControlState(ocd, ControlState.STABLE);
-                                    hasToRefreshHouseModel = true;
-                                    overflowControlledDeviceStates.get(ocd).dailyOnSwitchingCounter += 1;
-                                    wattage += actualDeviceWattage;
-                                    pushService.sendNotice("PV-Überschuss: " + deviceModel.getDevice().getDescription() + " eingeschaltet.");
+                                    var wattsToRelease = minWattsFromPV - wattage;
+                                    var releasedWatts = releasePvWatts(wattsToRelease, ocd, houseModel);
+                                    if(releasedWatts < wattsToRelease){ // both values negative!
+                                        houseService.togglestate(deviceModel.getDevice(), true);
+                                        setControlState(ocd, ControlState.STABLE);
+                                        hasToRefreshHouseModel = true;
+                                        overflowControlledDeviceStates.get(ocd).dailyOnSwitchingCounter += 1;
+                                        wattage += actualDeviceWattage;
+                                        pushService.sendNotice("PV-Überschuss: " + deviceModel.getDevice().getDescription() + " eingeschaltet.");
+                                    }
                                 }
                             }
                             case PREPARE_TO_OFF -> {
@@ -204,6 +209,43 @@ public class PhotovoltaicsOverflowService {
         if(hasToRefreshHouseModel){
             houseService.refreshHouseModel(false);
         }
+    }
+
+    private int releasePvWatts(int wattsToRelease, OverflowControlledDevice ocd, HouseModel houseModel) {
+        int released = 0;
+        var reverseIterator = new ReverseListIterator<>(overflowControlledDevices);
+        while (reverseIterator.hasNext()) {
+            var ocdToRelease = reverseIterator.next();
+            if(ocd.shortName.equals(ocdToRelease.shortName) || released <= wattsToRelease){
+                break;
+            }else{
+                final var deviceModel = getDeviceModel(houseModel, ocdToRelease);
+                if (isAutoModeOn(deviceModel) && isActualDeviceSwitchState(deviceModel)) {
+                    houseService.togglestate(deviceModel.getDevice(), false);
+                    setControlState(ocdToRelease, ControlState.STABLE);
+                    pushService.sendNotice("PV-Überschuss: " + deviceModel.getDevice().getDescription() + " für höher priorisiertes Gerät ausgeschaltet.");
+                    released -= getActualDeviceWattage(ocdToRelease, deviceModel);
+                }
+            }
+        }
+        return released;
+    }
+
+    private int sumOfReleaseablePvWattageWithLowerProprity(OverflowControlledDevice ocd, HouseModel houseModel){
+        int sum = 0;
+        var reverseIterator = new ReverseListIterator<>(overflowControlledDevices);
+        while (reverseIterator.hasNext()) {
+            var ocdToSum = reverseIterator.next();
+            if(ocd.shortName.equals(ocdToSum.shortName)){
+                break;
+            }else{
+                final var deviceModel = getDeviceModel(houseModel, ocdToSum);
+                if (isAutoModeOn(deviceModel) && isActualDeviceSwitchState(deviceModel)) {
+                    sum -= getActualDeviceWattage(ocdToSum, deviceModel);
+                }
+            }
+        }
+        return sum;
     }
 
     private boolean isActualGridDataAvailable(HouseModel houseModel){
