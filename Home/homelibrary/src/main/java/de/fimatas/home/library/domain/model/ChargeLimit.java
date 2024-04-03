@@ -5,9 +5,11 @@ import lombok.Getter;
 @Getter
 public enum ChargeLimit {
 
-    _60((short)60, "60%"), //
-    _70((short)70, "70%"), //
+    _25((short)25, "25%"), //
+    _40((short)40, "40%"), //
+    _50((short)50, "50%"), //
     _80((short)80, "80%"), //
+    _85((short)85, "85%"), //
     _90((short)90, "90%"), //
     MAX((short)100, "Max"), //
     ;

@@ -492,11 +492,7 @@ function initEvChargeSlider(id){
         },
         beforeCreate: function (){
             document.getElementById(id + '-label').innerHTML = (100 - startValue) + "%";
-            if(document.getElementById(id + "-isActual").value == "true"){
-                document.getElementById(id + '-status').style.color = "green";
-            }else{
-                document.getElementById(id + '-status').style.color = "yellow";
-            }
+            document.getElementById(id + '-status').style.color = "black";
         },
         start: function (){
             $('#' + id).addClass('doNotRefresh');
