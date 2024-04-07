@@ -762,11 +762,17 @@ public class HouseViewService {
             overallElectricPowerHouseView.setTimestampStateGrid(diffGrid==0?"jetzt" : "vor " + diffGrid + " Minute" + (diffGrid ==1?"":"n"));
         }
 
+        var df = buildDecimalFormat("0");
+        df.setRoundingMode(RoundingMode.HALF_UP);
+        var ets = Math.abs(houseModel.getGridElectricalPower().getActualConsumption().getValue().intValue()) + "W, PV " +
+                StringUtils.replace(overallElectricPowerHouseView.getPv().getElementTitleState(), " ", "") + ", Netz " +
+                StringUtils.replace(overallElectricPowerHouseView.getGridPurchase().getElementTitleState(), " ", "");
+
         // indicators
         overallElectricPowerHouseView.setState("");
         overallElectricPowerHouseView.setName("Strom");
         overallElectricPowerHouseView.setIcon("fas fa-bolt");
-        overallElectricPowerHouseView.setElementTitleState(overallElectricPowerHouseView.getConsumption().getElementTitleState());
+        overallElectricPowerHouseView.setElementTitleState(ets);
 
         // set model
         model.addAttribute("overallElectricPowerHouse", overallElectricPowerHouseView);
@@ -1122,8 +1128,6 @@ public class HouseViewService {
 
     private void formatWeatherForecast(Model model, WeatherForecastModel weatherForecastModel) {
 
-        var df = buildDecimalFormat("0");
-        df.setRoundingMode(RoundingMode.HALF_UP); // FIXME: USE THIS TO COMPARE SUMMARY
         var unreach = weatherForecastModel == null || weatherForecastModel.getForecasts().isEmpty() || weatherForecastModel.getConclusion24to48hours() == null;
 
         var forecasts = new WeatherForecastsView();
@@ -1442,9 +1446,6 @@ public class HouseViewService {
             view.setPlaceEnum(Place.ELECTROVEHICLE);
             view.setIcon("fa-solid fa-car");
             view.setUnreach(Boolean.toString(false));
-            if(new Object() == null){
-                return;
-            }
 
             var isChargedSinceReading = e.getValue().getChargingTimestamp() != null;
             var isStateNew = ChronoUnit.MINUTES.between(e.getValue().getBatteryPercentageTimestamp(), LocalDateTime.now()) < 2;
@@ -1458,7 +1459,10 @@ public class HouseViewService {
             view.setActiveSwitchColorClass(ViewFormatterUtils.calculateViewConditionColorEv(percentage).getUiClass());
             view.setStateShort(ViewFormatterUtils.calculateViewFormattedPercentageEv(e.getValue())); // watch etc
             view.setStateShortLabel(tsFormatted);
-            view.setElementTitleState(StringUtils.capitalize(tsFormatted) + " " + ViewFormatterUtils.calculateViewFormattedPercentageEv(e.getValue())); // collapsed top right
+            var etsTimestamp = StringUtils.capitalize(tsFormatted);
+            var etsPercent = ViewFormatterUtils.calculateViewFormattedPercentageEv(e.getValue());
+            var etsLimit = "Limit " + e.getValue().getChargeLimit().getCaption();
+            view.setElementTitleState(etsTimestamp + " " + etsPercent  + ", " + etsLimit); // collapsed top right
             if(e.getValue().isActiveCharging()){
                 if(wallboxPowerMeter.getActualConsumption().getValue().intValue() > 0){
                     view.setState("Lädt gerade");
