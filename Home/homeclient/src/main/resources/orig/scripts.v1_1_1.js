@@ -106,6 +106,7 @@ function initRangecontainer(id, index, array){
         let maxGrid = document.getElementById("rangecontainer-rangemaxgridvalue-" + id).value;
         document.getElementById("rangecontainer-rangeinput-" + id).value = 100 - Math.round(maxGrid * 100 / consumption);
         document.getElementById("rangecontainer-rangeinput-" + id).oninput = function() {
+            nativeMessage('startButtonPress');
             rangelabels(id);
         }
         document.getElementById("rangecontainer-rangeinput-" + id).onmousedown = function() {
