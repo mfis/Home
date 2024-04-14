@@ -107,21 +107,36 @@ function initRangecontainer(id, index, array){
         document.getElementById("rangecontainer-rangeinput-" + id).value = 100 - Math.round(maxGrid * 100 / consumption);
         document.getElementById("rangecontainer-rangeinput-" + id).oninput = function() {
             nativeMessage('startButtonPress');
+            let percentLabel = $('#rangecontainer-label-2-' + id);
+            percentLabel.removeClass('text-secondary');
+            percentLabel.addClass('text-danger');
             rangelabels(id);
         }
         document.getElementById("rangecontainer-rangeinput-" + id).onmousedown = function() {
+            nativeMessage('startButtonPress');
+            $('#rangecontainer-div-' + id).addClass('doNotRefresh');
+        }
+        document.getElementById("rangecontainer-rangeinput-" + id).ontouchstart = function() {
+            nativeMessage('startButtonPress');
             $('#rangecontainer-div-' + id).addClass('doNotRefresh');
         }
         document.getElementById("rangecontainer-rangeinput-" + id).onmouseup = function() {
-            $('#rangecontainer-div-' + id).removeClass('doNotRefresh');
-            rangelabels(id);
-            let link = document.getElementById("rangecontainer-rangemaxgridvalue-link-" + id).value;
-            let value = document.getElementById("rangecontainer-rangemaxgridvalue-" + id).value;
-            console.log("SUBMIT " + link + value);
-            submitContent(link + value);
+            rangecontainerSave(id);
+        }
+        document.getElementById("rangecontainer-rangeinput-" + id).ontouchend = function() {
+            rangecontainerSave(id);
         }
         rangelabels(id);
     }
+}
+
+function rangecontainerSave(id) {
+    nativeMessage('startButtonPress');
+    $('#rangecontainer-div-' + id).removeClass('doNotRefresh');
+    rangelabels(id);
+    let link = document.getElementById("rangecontainer-rangemaxgridvalue-link-" + id).value;
+    let value = document.getElementById("rangecontainer-rangemaxgridvalue-" + id).value;
+    submitContent(link + value);
 }
 
 function rangelabels(id) {
