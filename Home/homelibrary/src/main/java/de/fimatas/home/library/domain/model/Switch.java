@@ -26,4 +26,14 @@ public class Switch extends AbstractDeviceModel implements Serializable {
     private int maxWattageFromGridInOverflowAutomationMode;
 
     private int defaultWattage;
+
+    private int pvOverflowDelayOnMinutes;
+
+    private int pvOverflowDelayOffMinutes;
+
+    private int pvOverflowCounterActual;
+
+    private int pvOverflowCounterMax;
+
+    private int pvOverflowPriority;
 }

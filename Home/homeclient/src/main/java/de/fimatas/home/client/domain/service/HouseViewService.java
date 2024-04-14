@@ -977,9 +977,14 @@ public class HouseViewService {
         }
 
         view.setShowOverflowRange(Boolean.toString(switchModel.isPvOverflowConfigured()));
-        view.setOverflowConsumptionValue(switchModel.isPvOverflowConfigured() ? Integer.toString(switchModel.getDefaultWattage()) : "");
-        view.setOverflowMaxGridValue(switchModel.isPvOverflowConfigured() ? Integer.toString(switchModel.getMaxWattageFromGridInOverflowAutomationMode()) : "");
-        view.setOverflowMaxGridValueLink(MESSAGEPATH + TYPE_IS + MessageType.PV_OVERFLOW_MAX_WATTS_GRID + AND_DEVICE_IS + switchModel.getDevice().name() + AND_VALUE_IS);
+        if(switchModel.isPvOverflowConfigured()){
+            view.setOverflowConsumptionValue(Integer.toString(switchModel.getDefaultWattage()));
+            view.setOverflowMaxGridValue(Integer.toString(switchModel.getMaxWattageFromGridInOverflowAutomationMode()));
+            view.setOverflowMaxGridValueLink(MESSAGEPATH + TYPE_IS + MessageType.PV_OVERFLOW_MAX_WATTS_GRID + AND_DEVICE_IS + switchModel.getDevice().name() + AND_VALUE_IS);
+            view.setOverflowPriority(String.format("Priorität: %s", switchModel.getPvOverflowPriority()));
+            view.setOverflowDelayInfo(String.format("Ein-/Ausschaltverzögerung: %s/%s Minuten", switchModel.getPvOverflowDelayOnMinutes(), switchModel.getPvOverflowDelayOffMinutes()));
+            view.setOverflowCounterInfo(String.format("Einschaltvorgänge heute: %s von max %s", switchModel.getPvOverflowCounterActual(), switchModel.getPvOverflowCounterMax()));
+        }
 
         view.setState(switchModel.isState() ? "Eingeschaltet" : "Ausgeschaltet");
         view.setStateShort(switchModel.isState() ? "Ein" : "Aus");

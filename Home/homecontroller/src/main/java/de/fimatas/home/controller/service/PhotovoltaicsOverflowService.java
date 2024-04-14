@@ -98,12 +98,17 @@ public class PhotovoltaicsOverflowService {
         }
     }
 
-    public HouseModel readOverflowWattageFields(HouseModel houseModel){
+    public HouseModel readOverflowFields(HouseModel houseModel){
         overflowControlledDeviceStates.keySet().forEach(ocd -> {
             Switch switchModel = (Switch) getDeviceModel(houseModel, ocd);
             switchModel.setPvOverflowConfigured(true);
             switchModel.setDefaultWattage(ocd.defaultWattage);
             switchModel.setMaxWattageFromGridInOverflowAutomationMode(readMaxGridWattage(ocd.shortName));
+            switchModel.setPvOverflowPriority(ocd.defaultPriority);
+            switchModel.setPvOverflowCounterActual(overflowControlledDeviceStates.get(ocd).dailyOnSwitchingCounter);
+            switchModel.setPvOverflowCounterMax(ocd.maxDailyOnSwitching);
+            switchModel.setPvOverflowDelayOnMinutes(ocd.switchOnDelay);
+            switchModel.setPvOverflowDelayOffMinutes(ocd.switchOffDelay);
         });
         return houseModel;
     }

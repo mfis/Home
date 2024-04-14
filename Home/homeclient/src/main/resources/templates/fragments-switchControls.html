@@ -93,6 +93,9 @@
                         <div th:id="'rangecontainer-label-3-' + ${model.id}" style="width: 40%; text-align: right;" class="text-warning"></div>
                     </div>
                     <input th:id="'rangecontainer-rangeinput-' + ${model.id}" type="range" class="form-range" min="0" max="100"/>
+                    <div><a th:text="${model.overflowPriority}"></a></div>
+                    <div><a th:text="${model.overflowDelayInfo}"></a></div>
+                    <div><a th:text="${model.overflowCounterInfo}"></a></div>
                 </div>
             </th:block>
             <script>

@@ -31,4 +31,10 @@ public class SwitchView extends View {
 
     private String overflowMaxGridValueLink = "";
 
+    private String overflowDelayInfo = "";
+
+    private String overflowCounterInfo = "";
+
+    private String overflowPriority = "";
+
 }
