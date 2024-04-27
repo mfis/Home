@@ -7,6 +7,7 @@ import java.util.concurrent.CompletableFuture;
 
 import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.model.PresenceModel;
+import de.fimatas.home.library.model.TasksModel;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,6 +91,12 @@ public class ControllerRequestMapping {
     @PostMapping(value = UPLOAD_METHOD_PREFIX + "Message")
     public ActionModel controllerLongPollingForAsyncResponse(@RequestBody Message response) {
         MessageQueue.getInstance().addResponse(response);
+        return new ActionModel("OK");
+    }
+
+    @PostMapping(value = UPLOAD_METHOD_PREFIX + "TasksModel")
+    public ActionModel uploadTasksModel(@RequestBody TasksModel tasksModel) {
+        ModelObjectDAO.getInstance().write(tasksModel);
         return new ActionModel("OK");
     }
 

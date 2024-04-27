@@ -159,7 +159,6 @@ public class HomeRequestMapping {
     @GetMapping("/appInstallation")
     public String appInstallation(Model model,
                                   @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, HttpServletResponse response) {
-
         fillMenu(Pages.PATH_APP, model, response, false);
         fillUserAttributes(model, userCookie);
         String itmsLink = "itms-services://?action=download-manifest&url=" + appdistributionWebUrl + "manifest.plist";
@@ -198,7 +197,7 @@ public class HomeRequestMapping {
             } else {
                 String user = userService.userNameFromLoginCookie(userCookie);
                 houseView.fillViewModel(model, user, houseModel, ModelObjectDAO.getInstance().readHistoryModel(),
-                    ModelObjectDAO.getInstance().readLightsModel(), ModelObjectDAO.getInstance().readWeatherForecastModel(), ModelObjectDAO.getInstance().readPresenceModel(), ModelObjectDAO.getInstance().readHeatpumpModel(), ModelObjectDAO.getInstance().readElectricVehicleModel(), ModelObjectDAO.getInstance().readPushMessageModel());
+                    ModelObjectDAO.getInstance().readLightsModel(), ModelObjectDAO.getInstance().readWeatherForecastModel(), ModelObjectDAO.getInstance().readPresenceModel(), ModelObjectDAO.getInstance().readHeatpumpModel(), ModelObjectDAO.getInstance().readElectricVehicleModel(), ModelObjectDAO.getInstance().readPushMessageModel(), ModelObjectDAO.getInstance().readTasksModel());
                 returnTemplate =  Objects.requireNonNull(Pages.getEntry(Pages.PATH_HOME)).getTemplate();
             }
         } catch (Exception e) {
