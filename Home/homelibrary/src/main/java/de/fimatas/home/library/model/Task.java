@@ -15,7 +15,7 @@ public class Task {
 
     private Duration duration;
 
-    private long lastExecutionTime;
+    private Long lastExecutionTime;
 
     private TaskState state;
 

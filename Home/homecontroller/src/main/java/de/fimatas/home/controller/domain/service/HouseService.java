@@ -28,11 +28,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -97,6 +94,9 @@ public class HouseService {
 
     @Autowired
     private SolarmanService solarmanService;
+
+    @Autowired
+    private TasksService tasksService;
 
     @Autowired
     private Environment env;
@@ -208,6 +208,10 @@ public class HouseService {
             electricVehicleService.startNewChargingEntryAndRefreshModel();
         }
         photovoltaicsOverflowService.houseModelRefreshed();
+        if(oldModel != null &&
+                !Objects.equals(oldModel.getLaundryWindowSensor().getStateTimestamp(), newModel.getLaundryWindowSensor().getStateTimestamp())){
+            tasksService.refresh();
+        }
     }
 
     private void calculateConclusion(HouseModel oldModel, HouseModel newModel) {

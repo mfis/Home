@@ -67,6 +67,9 @@ public class ClientCommunicationService {
     private PhotovoltaicsOverflowService photovoltaicsOverflowService;
 
     @Autowired
+    private TasksService tasksService;
+
+    @Autowired
     @Qualifier("restTemplateLongPolling")
     private RestTemplate restTemplateLongPolling;
 
@@ -161,6 +164,9 @@ public class ClientCommunicationService {
                 break;
             case PV_OVERFLOW_MAX_WATTS_GRID:
                 photovoltaicsOverflowService.writeOverflowGridWattage(message.getDevice(), Integer.parseInt(message.getValue()));
+                break;
+            case TASKS_EXECUTION:
+                tasksService.markAsExecuted(message.getUid());
                 break;
             default:
                 throw new IllegalStateException("Unknown MessageType:" + message.getMessageType().name());

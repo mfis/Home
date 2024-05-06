@@ -1,5 +1,8 @@
 package de.fimatas.home.library.model;
 
+import lombok.Getter;
+
+@Getter
 public enum MessageType {
 
     REFRESH_ALL_MODELS(null), //
@@ -21,15 +24,13 @@ public enum MessageType {
     LIVEACTIVITY_START(null), //
     LIVEACTIVITY_END(null), //
     PV_OVERFLOW_MAX_WATTS_GRID(Pages.PATH_HOME), //
+    TASKS_EXECUTION(Pages.PATH_HOME), //
     ;//
 
     private final String targetSite;
 
-    private MessageType(String targetSite) {
+    MessageType(String targetSite) {
         this.targetSite = targetSite;
     }
 
-    public String getTargetSite() {
-        return targetSite;
-    }
 }
