@@ -388,7 +388,9 @@ function pinPlaceholderStars(x){
 
 function setAutoRefresh(){
     unsetAutoRefresh();
-    autoRefresh = setTimeout(doAutoRefresh, 1000 * 2);
+    if(window.location.pathname === '/'){
+        autoRefresh = setTimeout(doAutoRefresh, 1000 * 2);
+    }
 }
 function unsetAutoRefresh(){
     if(autoRefresh !== null){
