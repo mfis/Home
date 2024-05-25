@@ -148,6 +148,8 @@ public class HouseViewService {
 
         formatPresence(model, presenceModel);
 
+        formatTasks(model, tasksModel);
+
         // widget
         formatUpperFloorGroup(model, "widgetUpperFloor", Place.WIDGET_UPPER_FLOOR_TEMPERATURE, house);
         formatGridsGroup(model, "widgetGrids", Place.WIDGET_GRIDS, house, historyModel==null?null:historyModel.getPurchasedElectricPowerConsumptionDay(), historyModel==null?null:historyModel.getGasConsumptionDay());
@@ -1519,5 +1521,13 @@ public class HouseViewService {
         var upRoundedHours = LocalTime.now().getHour() + 1;
         var maxKwhPerHourForGreen = device.getType() == Type.GAS_POWER ? new BigDecimal("0.1") : new BigDecimal("0.7"); // TODO: constant
         return kwhDay.compareTo(maxKwhPerHourForGreen.multiply(new BigDecimal(upRoundedHours))) < 0 ? ConditionColor.GREEN : ConditionColor.ORANGE;
+    }
+
+    private void formatTasks(Model model, TasksModel tasksModel) {
+
+        tasksModel.getTasks().forEach(task -> {
+            System.out.println(task.getName() + ":" + task.getLastExecutionTime() + " -> " + task.getNextExecutionTime() + " (" +
+                    task.getDuration() + ") " + task.getState());
+        });
     }
 }

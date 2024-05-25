@@ -19,6 +19,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -31,6 +32,9 @@ public class TasksService {
 
     @Autowired
     private StateHandlerDAO stateHandlerDAO;
+
+    @Autowired
+    private UniqueTimestampService uniqueTimestampService;
 
     @Autowired
     private Environment env;
@@ -59,8 +63,8 @@ public class TasksService {
             task.setManual(Boolean.parseBoolean(Objects.requireNonNull(env.getProperty(String.format("tasks.%s.manual", id)))));
             task.setDuration(Duration.parse(Objects.requireNonNull(env.getProperty(String.format("tasks.%s.duration", id)))));
             task.setLastExecutionTime(task.isManual() ? readLastExecutionTimestampFromDatabase(id) : readLastExecutionTimestampFromDevice(id));
-            task.setRangeDistanceTime(computeDurationFrom(task.getLastExecutionTime()));
-            task.setState(computeTaskState(task.getRangeDistanceTime()));
+            task.setNextExecutionTime(task.getLastExecutionTime() != null ? task.getLastExecutionTime().plus(task.getDuration()) : null);
+            task.setState(computeTaskState(task.getDuration(), task.getLastExecutionTime()));
             tasks.getTasks().add(task);
         });
 
@@ -68,52 +72,43 @@ public class TasksService {
         uploadService.uploadToClient(tasks);
     }
 
-    private TaskState computeTaskState(Duration distance){
-        if(distance == null){
+    protected TaskState computeTaskState(Duration durationComplete, LocalDateTime nextExecutionTime){
+        if(nextExecutionTime == null){
             return TaskState.UNKNOWN;
         }
-        var now = LocalDateTime.now();
-        var next = now.plus(distance);
-        var nearby = distance.dividedBy(10);
-        if(distance.isNegative()){
+        var durationNowToNextExecution = Duration.between(uniqueTimestampService.getNonUnique(), nextExecutionTime);
+        var tenPercentOfDurationComplete = durationComplete.dividedBy(10);
+        if(durationNowToNextExecution.isNegative()){
+            // next execution in past arrived
+            if(durationNowToNextExecution.abs().compareTo(tenPercentOfDurationComplete) < 0){
+                return TaskState.LITTLE_OUT_OF_RANGE;
+            }
+            return TaskState.FAR_OUT_OF_RANGE;
+        } else {
             // execution in the future
-            if(now.plus(nearby).isAfter(next)){
+            if(durationNowToNextExecution.compareTo(tenPercentOfDurationComplete) < 0){
                 return TaskState.NEAR_BEFORE_EXECUTION;
             }
             return TaskState.IN_RANGE;
-        } else {
-            // next execution in past arrived
-          if(now.plus(nearby).isBefore(next)){
-              return TaskState.LITTLE_OUT_OF_RANGE;
-          }
-          return TaskState.FAR_OUT_OF_RANGE;
         }
     }
 
-    private Duration computeDurationFrom(Long millisLastExecution){
-        if(millisLastExecution == null) {
-            return null;
-        }
-        var from = Instant.ofEpochMilli(millisLastExecution).atZone(ZoneId.systemDefault()).toLocalDateTime();
-        return Duration.between(from, LocalDateTime.now());
-    }
-
-    private Long readLastExecutionTimestampFromDatabase(String id){
+    private LocalDateTime readLastExecutionTimestampFromDatabase(String id){
         var ts = stateHandlerDAO.readState(STATEHANDLER_GROUPNAME_TASKS, id);
-        return ts != null ? Long.parseLong(ts.getValue()) : null;
+        return ts != null ? LocalDateTime.parse(ts.getValue(), DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null;
     }
 
-    private Long readLastExecutionTimestampFromDevice(String id){
+    private LocalDateTime readLastExecutionTimestampFromDevice(String id){
         var fieldname = Objects.requireNonNull(env.getProperty(String.format("tasks.%s.field", id)));
         final var abstractDeviceModel = ModelObjectDAO.getInstance().readHouseModel().lookupField(fieldname, AbstractDeviceModel.class);
         if (abstractDeviceModel instanceof WindowSensor){
-            return ((WindowSensor)abstractDeviceModel).getStateTimestamp();
+            return Instant.ofEpochMilli(((WindowSensor)abstractDeviceModel).getStateTimestamp()).atZone(ZoneId.systemDefault()).toLocalDateTime();
         }
         throw new IllegalArgumentException("unsupported device model type: " + abstractDeviceModel.getClass().getName());
     }
 
     public void markAsExecuted(String id){
-        stateHandlerDAO.writeState(STATEHANDLER_GROUPNAME_TASKS, id, Long.toString(System.currentTimeMillis()));
+        stateHandlerDAO.writeState(STATEHANDLER_GROUPNAME_TASKS, id, uniqueTimestampService.getNonUnique().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         refresh();
     }
 
