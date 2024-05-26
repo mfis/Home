@@ -66,7 +66,7 @@ public class TasksService {
             task.setDuration(Duration.parse(Objects.requireNonNull(env.getProperty(String.format("tasks.%s.duration", id)))));
             task.setLastExecutionTime(task.isManual() ? readLastExecutionTimestampFromDatabase(id) : readLastExecutionTimestampFromDevice(id));
             task.setNextExecutionTime(task.getLastExecutionTime() != null ? task.getLastExecutionTime().plus(task.getDuration()) : null);
-            task.setState(computeTaskState(task.getDuration(), task.getLastExecutionTime()));
+            task.setState(computeTaskState(task.getDuration(), task.getNextExecutionTime()));
             task.setDurationPercentage(computePercentage(task.getDuration(), task.getLastExecutionTime()));
             tasks.getTasks().add(task);
         });

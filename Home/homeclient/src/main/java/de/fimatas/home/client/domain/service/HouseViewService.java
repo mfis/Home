@@ -1540,13 +1540,18 @@ public class HouseViewService {
         tasksView.setColorClass(ConditionColor.GREEN.getUiClass()); // FIXME
         tasksView.setStateShort("n/a");
         tasksView.setState("n/a");
-        tasksView.setElementTitleState("Nächste: morgen"); // FIXME
+        // tasksView.setElementTitleState("Nächste: morgen"); // FIXME
+
+        tasksModel.getTasks().stream().max(Comparator.comparingLong(
+                t -> Duration.between(t.getNextExecutionTime() == null ? LocalDateTime.now() : t.getNextExecutionTime(), LocalDateTime.now()).toMinutes())).ifPresent(t -> {
+                    tasksView.setElementTitleState(t.getName());
+        }); // FIXME filter auf executionrequired. unknown einbeziehen, dann auch null-abfrage raus. 'keine' default
 
         tasksModel.getTasks().forEach(task -> {
             TaskView taskView = new TaskView();
             taskView.setId("tasks-" + task.getId());
             taskView.setName(task.getName());
-            taskView.setProgressPercent(task.getDurationPercentage());
+            taskView.setProgressPercent(task.getDurationPercentage() == 0 ? 1 : task.getDurationPercentage());
             taskView.setColorClass(task.getState().getConditionColor().getUiClass());
             taskView.setManual(task.isManual());
             taskView.setState(task.getState().getStatePrefix() + ((task.getState() == TaskState.UNKNOWN) ? "" : " " + taskStateValueAndUnit(task)));

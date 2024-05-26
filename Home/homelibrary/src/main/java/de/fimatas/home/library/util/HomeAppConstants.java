@@ -52,9 +52,9 @@ public class HomeAppConstants {
 
     public static final int MODEL_HEATPUMP_OUTDATED_SECONDS = 60 * 32;
 
-    public static final int MODEL_TASKS_INTERVAL_SECONDS = 60 * 60;
+    public static final int MODEL_TASKS_INTERVAL_SECONDS = 60 * 3;
 
-    public static final int MODEL_TASKS_OUTDATED_SECONDS = 60 * 120;
+    public static final int MODEL_TASKS_OUTDATED_SECONDS = 60 * 10;
 
     //
 
