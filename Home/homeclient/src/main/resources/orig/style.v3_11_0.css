@@ -369,6 +369,18 @@ input[type="range"]::-ms-fill-upper {
 	margin-left: 4px;
 }
 
+.taskcontainer {
+	width: calc(100% - 10px);
+	margin-top: 10px;
+	margin-bottom: 15px;
+	padding: 5px;
+	border: 1px solid grey;
+	border-radius: 5px;
+}
+.taskprogress {
+	width: calc(100% - 50px);
+}
+
 /*
         START - Following CSS is based on: "Smooth arrow animation"
 

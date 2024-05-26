@@ -1,0 +1,38 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html" lang="de">
+
+    <head><title></title></head>
+
+    <div th:fragment="tasks (model)" th:class="'alert alert-' + ${model.colorClass} + ' callout callout-' + ${model.colorClass}">
+        <div th:replace="~{fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name},
+        place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState}, colorClass=${model.colorClass})}"></div>
+        <div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
+            <th:block th:unless="${#strings.equals(model.unreach, 'true')}">
+
+                <div class="btn-group" role="group" style="margin-right: 10px; padding-bottom: 10px;">
+                    <button style="margin-top: 0; width: 40px" type="button" class="btn btn-block btn-secondary btn-sm" th:onclick="">
+                        <span><i style="font-size: 0.8rem;" class="fa-solid fa-pencil"></i></span>
+                    </button>
+                </div>
+
+                <th:block th:each="task : ${model.list}">
+                    <div th:id="'taskcontainer-div-' + ${task.id}" class="taskcontainer">
+                        <div><a th:text="${task.name}"></a></div>
+                        <div style="display: flex;">
+                            <div class="progress taskprogress" role="progressbar">
+                                <div class="progress-bar bg-warning text-dark" th:style="'width: ' + ${task.progressPercent} + '%'"></div>
+                            </div>
+                            <div class="btn-group" role="group" style="margin-right: 10px; padding-bottom: 10px;">
+                                <button style="margin-top: 0; width: 40px" type="button" class="btn btn-block btn-secondary btn-sm" th:onclick="">
+                                    <span><i style="font-size: 0.8rem;" class="fa-solid fa-check"></i></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </th:block>
+
+            </th:block>
+        </div>
+    </div>
+
+</html>

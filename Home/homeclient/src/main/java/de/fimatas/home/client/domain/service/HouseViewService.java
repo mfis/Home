@@ -1328,13 +1328,13 @@ public class HouseViewService {
         String longText;
         if(countKnownState == 0){
             longText = "Unbekannt";
-        }else if(namesPresent.size() == 0){
+        }else if(namesPresent.isEmpty()){
             longText = "Keiner zu Hause";
         }else{
             longText = StringUtils.join(namesPresent, ", ");
         }
 
-        view.setColorClass(namesPresent.size() > 0 ? ConditionColor.GREEN.getUiClass() : ConditionColor.GRAY.getUiClass());
+        view.setColorClass(!namesPresent.isEmpty() ? ConditionColor.GREEN.getUiClass() : ConditionColor.GRAY.getUiClass());
         view.setStateShort(shortText);
         view.setElementTitleState(shortText);
         view.setState(shortText + " - " + longText);
@@ -1525,9 +1525,31 @@ public class HouseViewService {
 
     private void formatTasks(Model model, TasksModel tasksModel) {
 
+        TasksView tasksView = new TasksView();
+        tasksView.setName("Aufgaben");
+        tasksView.setId("tasks");
+        tasksView.setPlaceEnum(Place.HOUSE);
+        tasksView.setIcon("fa-solid fa-list-check");
+        model.addAttribute("tasks", tasksView);
+        tasksView.setUnreach(Boolean.toString(tasksModel == null));
+
+        if(tasksModel == null){
+            return;
+        }
+
+        tasksView.setColorClass(ConditionColor.GREEN.getUiClass()); // FIXME
+        tasksView.setStateShort("n/a");
+        tasksView.setState("n/a");
+        tasksView.setElementTitleState("Nächste: morgen"); // FIXME
+
         tasksModel.getTasks().forEach(task -> {
-            System.out.println(task.getName() + ":" + task.getLastExecutionTime() + " -> " + task.getNextExecutionTime() + " (" +
-                    task.getDuration() + ") " + task.getState());
+            TaskView taskView = new TaskView();
+            taskView.setId("tasks-" + task.getId());
+            taskView.setName(task.getName());
+            taskView.setProgressPercent(task.getDurationPercentage());
+
+
+            tasksView.getList().add(taskView);
         });
     }
 }
