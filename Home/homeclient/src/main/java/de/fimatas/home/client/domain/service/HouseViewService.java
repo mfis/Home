@@ -1547,9 +1547,33 @@ public class HouseViewService {
             taskView.setId("tasks-" + task.getId());
             taskView.setName(task.getName());
             taskView.setProgressPercent(task.getDurationPercentage());
-
-
+            taskView.setColorClass(task.getState().getConditionColor().getUiClass());
+            taskView.setManual(task.isManual());
+            taskView.setState(task.getState().getStatePrefix() + ((task.getState() == TaskState.UNKNOWN) ? "" : " " + taskStateValueAndUnit(task)));
+            taskView.setDurationInfoText("Alle " + task.getDuration().toDays() +
+                    " Tage, zuletzt " + viewFormatter.formatTimestamp(task.getLastExecutionTime(), TimestampFormat.DATE));
             tasksView.getList().add(taskView);
         });
+    }
+
+    private String taskStateValueAndUnit(Task task) {
+        var duration = Duration.between(task.getNextExecutionTime(), LocalDateTime.now()).abs();
+        var days = duration.toDays();
+        if(days == 0){
+            // Stunden
+            var hours = duration.toHours();
+            if(hours < 2){
+                return "jetzt";
+            }else{
+                return hours + " Stunden";
+            }
+        } else {
+            // Tage
+            if(days == 1){
+                return days + " Tag";
+            } else{
+                return days + " Tagen";
+            }
+        }
     }
 }

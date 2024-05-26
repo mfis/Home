@@ -10,24 +10,53 @@
             <th:block th:unless="${#strings.equals(model.unreach, 'true')}">
 
                 <div class="btn-group" role="group" style="margin-right: 10px; padding-bottom: 10px;">
-                    <button style="margin-top: 0; width: 40px" type="button" class="btn btn-block btn-secondary btn-sm" th:onclick="">
+                    <button style="margin-top: 0; width: 40px" type="button" class="btn btn-block btn-secondary btn-sm" th:onclick="enableTaskCheckButton()">
                         <span><i style="font-size: 0.8rem;" class="fa-solid fa-pencil"></i></span>
                     </button>
                 </div>
 
                 <th:block th:each="task : ${model.list}">
                     <div th:id="'taskcontainer-div-' + ${task.id}" class="taskcontainer">
-                        <div><a th:text="${task.name}"></a></div>
+
+                        <div class="rangecontainer-labels">
+                            <div style="text-align: left;" th:class="'text-' + ${task.colorClass}" th:text="${task.name}"></div>
+                            <div style="text-align: right; margin-right: 10px;" th:class="'text-' + ${task.colorClass}" th:text="${task.state}"></div>
+                        </div>
+
                         <div style="display: flex;">
-                            <div class="progress taskprogress" role="progressbar">
-                                <div class="progress-bar bg-warning text-dark" th:style="'width: ' + ${task.progressPercent} + '%'"></div>
+                            <div style="width: 100%;">
+                                <div class="progress taskprogress" role="progressbar" style="width: 100%">
+                                    <div th:class="'progress-bar bg-' + ${task.colorClass}" th:style="'width: ' + ${task.progressPercent} + '%'"></div>
+                                </div>
+                                <div style="margin-left: 5px; margin-top: 3px; font-size: 0.8rem;" th:class="'text-default'" th:text="${task.durationInfoText}"></div>
                             </div>
                             <div class="btn-group" role="group" style="margin-right: 10px; padding-bottom: 10px;">
-                                <button style="margin-top: 0; width: 40px" type="button" class="btn btn-block btn-secondary btn-sm" th:onclick="">
+                                <button th:if="${task.manual}" style="margin-top: 0; margin-left: 15px; width: 35px" type="button"
+                                        class="btn btn-block btn-secondary btn-sm disabled taskCheck" th:onclick="">
                                     <span><i style="font-size: 0.8rem;" class="fa-solid fa-check"></i></span>
+                                </button>
+                                <button th:unless="${task.manual}" style="margin-top: 0; margin-left: 15px; width: 35px" type="button"
+                                        class="btn btn-block btn-secondary btn-sm disabled">
+                                    <span><i style="font-size: 0.8rem;" class="fas fa-cogs"></i></span>
                                 </button>
                             </div>
                         </div>
+
+                        <script>
+                            function enableTaskCheckButton(){
+                                let arrayTaskCheck = Array.from(document.getElementsByClassName("taskCheck"));
+                                arrayTaskCheck.forEach( el => {
+                                    el.classList.add('doNotRefresh');
+                                    el.classList.remove("disabled");
+                                });
+                                setTimeout(function(){
+                                    arrayTaskCheck.forEach( el => {
+                                        el.classList.remove('doNotRefresh');
+                                        el.classList.add("disabled");
+                                    });
+                                }, 6000);
+                            }
+                        </script>
                     </div>
                 </th:block>
 
