@@ -10,4 +10,6 @@ public class TaskView extends View {
     private boolean manual;
 
     private String durationInfoText;
+
+    private String resetLink;
 }

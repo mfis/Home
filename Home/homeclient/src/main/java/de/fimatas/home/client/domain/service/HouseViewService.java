@@ -1552,6 +1552,7 @@ public class HouseViewService {
             taskView.setState(task.getState().getStatePrefix() + ((task.getState() == TaskState.UNKNOWN) ? "" : " " + taskStateValueAndUnit(task)));
             taskView.setDurationInfoText("Alle " + task.getDuration().toDays() +
                     " Tage, zuletzt " + viewFormatter.formatTimestamp(task.getLastExecutionTime(), TimestampFormat.DATE));
+            taskView.setResetLink(MESSAGEPATH + TYPE_IS + MessageType.TASKS_EXECUTION + AND_DEVICE_ID_IS + task.getId() + AND_VALUE_IS);
             tasksView.getList().add(taskView);
         });
     }

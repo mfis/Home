@@ -166,7 +166,7 @@ public class ClientCommunicationService {
                 photovoltaicsOverflowService.writeOverflowGridWattage(message.getDevice(), Integer.parseInt(message.getValue()));
                 break;
             case TASKS_EXECUTION:
-                tasksService.markAsExecuted(message.getUid());
+                tasksService.markAsExecuted(message.getDeviceId());
                 break;
             default:
                 throw new IllegalStateException("Unknown MessageType:" + message.getMessageType().name());

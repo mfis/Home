@@ -41,6 +41,8 @@ public class TasksService {
 
     private final String STATEHANDLER_GROUPNAME_TASKS = "tasks";
 
+    private static final DateTimeFormatter DATABASE_DATETIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
     @Scheduled(initialDelay = 8 * 1000, fixedDelay = (1000 * HomeAppConstants.MODEL_TASKS_INTERVAL_SECONDS) + 400)
     private void scheduledRefresh() {
         refresh();
@@ -105,7 +107,7 @@ public class TasksService {
 
     private LocalDateTime readLastExecutionTimestampFromDatabase(String id){
         var ts = stateHandlerDAO.readState(STATEHANDLER_GROUPNAME_TASKS, id);
-        return ts != null ? LocalDateTime.parse(ts.getValue(), DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null;
+        return ts != null ? LocalDateTime.parse(ts.getValue(), DATABASE_DATETIME_FORMATTER) : null;
     }
 
     private LocalDateTime readLastExecutionTimestampFromDevice(String id){
@@ -118,7 +120,7 @@ public class TasksService {
     }
 
     public void markAsExecuted(String id){
-        stateHandlerDAO.writeState(STATEHANDLER_GROUPNAME_TASKS, id, uniqueTimestampService.getNonUnique().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        stateHandlerDAO.writeState(STATEHANDLER_GROUPNAME_TASKS, id, uniqueTimestampService.getNonUnique().format(DATABASE_DATETIME_FORMATTER));
         refresh();
     }
 
