@@ -65,11 +65,21 @@ public class TasksService {
             task.setLastExecutionTime(task.isManual() ? readLastExecutionTimestampFromDatabase(id) : readLastExecutionTimestampFromDevice(id));
             task.setNextExecutionTime(task.getLastExecutionTime() != null ? task.getLastExecutionTime().plus(task.getDuration()) : null);
             task.setState(computeTaskState(task.getDuration(), task.getLastExecutionTime()));
+            task.setDurationPercentage(computePercentage(task.getDuration(), task.getLastExecutionTime()));
             tasks.getTasks().add(task);
         });
 
         ModelObjectDAO.getInstance().write(tasks);
         uploadService.uploadToClient(tasks);
+    }
+
+    protected int computePercentage(Duration duration, LocalDateTime lastExecutionTime) {
+        if(lastExecutionTime == null) {
+            return 100;
+        }
+        var pastDuration = Duration.between(lastExecutionTime, uniqueTimestampService.getNonUnique());
+        var computed = (int) ((100 * pastDuration.toMinutes()) / duration.toMinutes());
+        return Math.min(computed, 100);
     }
 
     protected TaskState computeTaskState(Duration durationComplete, LocalDateTime nextExecutionTime){

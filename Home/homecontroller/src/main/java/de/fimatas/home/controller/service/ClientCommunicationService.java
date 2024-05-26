@@ -230,6 +230,12 @@ public class ClientCommunicationService {
             uploadService.uploadToClient(ModelObjectDAO.getInstance().readPushMessageModel());
         }
 
+        if (ModelObjectDAO.getInstance().readTasksModel() == null) {
+            tasksService.refresh();
+        } else {
+            uploadService.uploadToClient(ModelObjectDAO.getInstance().readTasksModel());
+        }
+
         settingsService.refreshSettingsModelsComplete();
     }
 

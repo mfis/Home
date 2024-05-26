@@ -20,6 +20,8 @@ public class Task {
 
     private Duration duration;
 
+    private int durationPercentage;
+
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime lastExecutionTime;

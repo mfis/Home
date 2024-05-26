@@ -64,4 +64,38 @@ class TasksServiceTest {
         var duration = Duration.ofDays(60);
         assertEquals(TaskState.FAR_OUT_OF_RANGE, tasksService.computeTaskState(duration, next));
     }
+
+    @Test
+    void computePercentage_10() {
+        var last = LocalDateTime.of(2024, 4, 30, 12, 0, 0);
+        var duration = Duration.ofDays(10);
+        assertEquals(10, tasksService.computePercentage(duration, last));
+    }
+
+    @Test
+    void computePercentage_50() {
+        var last = LocalDateTime.of(2024, 4, 26, 12, 0, 0);
+        var duration = Duration.ofDays(10);
+        assertEquals(50, tasksService.computePercentage(duration, last));
+    }
+
+    @Test
+    void computePercentage_90() {
+        var last = LocalDateTime.of(2024, 4, 22, 12, 0, 0);
+        var duration = Duration.ofDays(10);
+        assertEquals(90, tasksService.computePercentage(duration, last));
+    }
+
+    @Test
+    void computePercentage_max100() {
+        var last = LocalDateTime.of(2024, 1, 1, 12, 0, 0);
+        var duration = Duration.ofDays(10);
+        assertEquals(100, tasksService.computePercentage(duration, last));
+    }
+
+    @Test
+    void computePercentage_unknown100() {
+        var duration = Duration.ofDays(10);
+        assertEquals(100, tasksService.computePercentage(duration, null));
+    }
 }
