@@ -5,10 +5,10 @@ import lombok.Getter;
 @Getter
 public enum TaskState {
     IN_RANGE(ConditionColor.GREEN, "in"),
-    NEAR_BEFORE_EXECUTION(ConditionColor.ORANGE, "in"),
+    NEAR_BEFORE_EXECUTION(ConditionColor.GREEN, "in"),
     LITTLE_OUT_OF_RANGE(ConditionColor.ORANGE, "seit"),
     FAR_OUT_OF_RANGE(ConditionColor.RED, "seit"),
-    UNKNOWN(ConditionColor.GRAY, "unbekannt"),
+    UNKNOWN(ConditionColor.RED, "unbekannt"),
     ;
 
     private final ConditionColor conditionColor;

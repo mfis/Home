@@ -9,6 +9,8 @@
         <div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
             <th:block th:unless="${#strings.equals(model.unreach, 'true')}">
 
+                <h4 th:text="${model.state}"></h4>
+
                 <div class="btn-group" role="group" style="margin-top: 5px; margin-right: 10px; padding-bottom: 10px;">
                     <button style="margin-top: 0; width: 40px" type="button" class="btn btn-block btn-secondary btn-sm" th:onclick="enableTaskCheckButton()">
                         <span><i style="font-size: 0.8rem;" class="fa-solid fa-pencil"></i></span>

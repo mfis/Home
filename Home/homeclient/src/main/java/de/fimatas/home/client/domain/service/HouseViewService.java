@@ -1537,15 +1537,21 @@ public class HouseViewService {
             return;
         }
 
-        tasksView.setColorClass(ConditionColor.GREEN.getUiClass()); // FIXME
+        // defaults
+        tasksView.setColorClass(ConditionColor.GREEN.getUiClass());
+        tasksView.setElementTitleState("Keine");
+        tasksView.setState("Keine fälligen Aufgaben");
         tasksView.setStateShort("n/a");
-        tasksView.setState("n/a");
-        // tasksView.setElementTitleState("Nächste: morgen"); // FIXME
 
-        tasksModel.getTasks().stream().max(Comparator.comparingLong(
-                t -> Duration.between(t.getNextExecutionTime() == null ? LocalDateTime.now() : t.getNextExecutionTime(), LocalDateTime.now()).toMinutes())).ifPresent(t -> {
+        tasksModel.getTasks().stream()
+                .filter(t -> t.getState().getConditionColor() != ConditionColor.GREEN)
+                .max(Comparator.comparingLong(
+                t -> Duration.between(t.getNextExecutionTime() == null ? LocalDateTime.MIN : t.getNextExecutionTime(), LocalDateTime.now()).toMinutes()))
+                .ifPresent(t -> {
                     tasksView.setElementTitleState(t.getName());
-        }); // FIXME filter auf executionrequired. unknown einbeziehen, dann auch null-abfrage raus. 'keine' default
+                    tasksView.setState("Fällig: " + t.getName());
+                    tasksView.setColorClass(t.getState().getConditionColor().getUiClass());
+        });
 
         tasksModel.getTasks().forEach(task -> {
             TaskView taskView = new TaskView();
@@ -1575,11 +1581,21 @@ public class HouseViewService {
             }
         } else {
             // Tage
-            if(days == 1){
-                return days + " Tag";
+            var daysRounded = roundToFullDays(duration).toDays();
+            if(daysRounded == 1){
+                return daysRounded + " Tag";
             } else{
-                return days + " Tagen";
+                return daysRounded + " Tagen";
             }
         }
+    }
+
+    private Duration roundToFullDays(Duration duration) {
+        if(duration.isNegative()) return duration;
+        long totalDays = duration.toDays();
+        if (duration.minusDays(totalDays).toHours() > 18) {
+            totalDays += 1;
+        }
+        return Duration.ofDays(totalDays);
     }
 }
