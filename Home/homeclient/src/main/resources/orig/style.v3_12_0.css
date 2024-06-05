@@ -298,8 +298,8 @@ input[type="checkbox"]:checked ~ label .check-true{
 }
 .evBatterySlider span.rs-marker {
 	position: absolute;
-	top: -13px;
-	left: -25px;
+	top: -10px;
+	left: 18px;
 	font-size: 15px;color: lightgray;
 	font-family: Arial, Helvetica, sans-serif;
 }
