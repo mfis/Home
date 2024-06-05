@@ -1560,7 +1560,7 @@ public class HouseViewService {
             taskView.setProgressPercent(task.getDurationPercentage() == 0 ? 1 : task.getDurationPercentage());
             taskView.setColorClass(task.getState().getConditionColor().getUiClass());
             taskView.setManual(task.isManual());
-            taskView.setState(task.getState().getStatePrefix() + ((task.getState() == TaskState.UNKNOWN) ? "" : " " + taskStateValueAndUnit(task)));
+            taskView.setState(taskStateValueAndUnit(task));
             taskView.setDurationInfoText("Alle " + task.getDuration().toDays() +
                     " Tage, zuletzt " + viewFormatter.formatTimestamp(task.getLastExecutionTime(), TimestampFormat.DATE));
             taskView.setResetLink(MESSAGEPATH + TYPE_IS + MessageType.TASKS_EXECUTION + AND_DEVICE_ID_IS + task.getId() + AND_VALUE_IS);
@@ -1569,25 +1569,29 @@ public class HouseViewService {
     }
 
     private String taskStateValueAndUnit(Task task) {
+        var prefix = true;
+        String unit;
         var duration = Duration.between(task.getNextExecutionTime(), LocalDateTime.now()).abs();
         var days = duration.toDays();
         if(days == 0){
             // Stunden
             var hours = duration.toHours();
             if(hours < 2){
-                return "jetzt";
+                prefix = false;
+                unit = "jetzt";
             }else{
-                return hours + " Stunden";
+                unit = hours + " Stunden";
             }
         } else {
             // Tage
             var daysRounded = roundToFullDays(duration).toDays();
             if(daysRounded == 1){
-                return daysRounded + " Tag";
+                unit = daysRounded + " Tag";
             } else{
-                return daysRounded + " Tagen";
+                unit = daysRounded + " Tagen";
             }
         }
+        return (prefix ? task.getState().getStatePrefix() : "") + (task.getState() == TaskState.UNKNOWN ? "" : " ") + unit;
     }
 
     private Duration roundToFullDays(Duration duration) {
