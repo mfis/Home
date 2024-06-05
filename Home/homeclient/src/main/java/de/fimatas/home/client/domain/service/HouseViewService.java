@@ -1569,6 +1569,9 @@ public class HouseViewService {
     }
 
     private String taskStateValueAndUnit(Task task) {
+        if(task.getNextExecutionTime() == null){
+            return "unbekannt";
+        }
         var prefix = true;
         String unit;
         var duration = Duration.between(task.getNextExecutionTime(), LocalDateTime.now()).abs();
