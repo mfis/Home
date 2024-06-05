@@ -106,8 +106,14 @@ public class TasksService {
     }
 
     private LocalDateTime readLastExecutionTimestampFromDatabase(String id){
+        String tsString;
         var ts = stateHandlerDAO.readState(STATEHANDLER_GROUPNAME_TASKS, id);
-        return ts != null ? LocalDateTime.parse(ts.getValue(), DATABASE_DATETIME_FORMATTER) : null;
+        if(ts == null){
+            tsString = StringUtils.trimToNull(env.getProperty(String.format("tasks.%s.defaultLastExecution", id)));
+        } else {
+            tsString = ts.getValue();
+        }
+        return tsString != null ? LocalDateTime.parse(tsString, DATABASE_DATETIME_FORMATTER) : null;
     }
 
     private LocalDateTime readLastExecutionTimestampFromDevice(String id){
