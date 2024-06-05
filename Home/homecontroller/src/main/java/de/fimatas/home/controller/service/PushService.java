@@ -13,7 +13,10 @@ import de.fimatas.home.controller.domain.service.HouseService;
 import de.fimatas.home.controller.model.PushToken;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
+import de.fimatas.home.library.model.TaskState;
+import de.fimatas.home.library.model.TasksModel;
 import de.fimatas.home.library.util.HomeAppConstants;
+import de.fimatas.home.library.util.HomeUtils;
 import de.fimatas.home.library.util.WeatherForecastConclusionTextFormatter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -143,6 +146,15 @@ public class PushService {
         }
     }
 
+    @Scheduled(cron = "0 0 16 * * *")
+    public void sendTaskNotifications() {
+        try {
+            taskNotifications(ModelObjectDAO.getInstance().readTasksModel());
+        } catch (Exception e) {
+            LogFactory.getLog(PushService.class).error("Could not [sendTaskNotifications] push notifications:", e);
+        }
+    }
+
     public void sendRegistrationConfirmation(String user, String token, String client) {
 
         handleMessage(new PushToken(user, token), "Registrierung erfolgreich",
@@ -243,6 +255,23 @@ public class PushService {
         });
     }
 
+    private void taskNotifications(TasksModel model) {
+
+        if(model==null){
+            return;
+        }
+
+        settingsService.listTokensWithEnabledSetting(PushNotifications.TASKS).forEach(pushToken -> {
+            model.getTasks().forEach(task -> {
+                if(HomeUtils.isSameDay(task.getNextExecutionTime(), LocalDateTime.now())){
+                    handleMessage(pushToken, "Heute fällige Aufgabe", task.getName());
+                } else if (task.getState() == TaskState.FAR_OUT_OF_RANGE){
+                    handleMessage(pushToken, "Überfällige Aufgabe", task.getName());
+                }
+            });
+        });
+    }
+
     private void handleMessage(PushToken pushToken, String title, String message) {
 
         LocalDateTime ts = uniqueTimestampService.get();
@@ -319,7 +348,7 @@ public class PushService {
 
         if(pushMessageDAO.readMessagesFromLastThreeSeconds().stream().anyMatch(pm ->
                 pm.getUsername().equalsIgnoreCase(token.getUsername()) && pm.getTitle().equals(title) && pm.getTextMessage().equals(text))){
-            LOG.warn("Duplicate message for user " + token.getUsername() + ". Check token settings!");
+            LOG.warn("Duplicate message for user " + token.getUsername() + ". Check token settings! " + title + " - " + text);
             return;
         }
 
@@ -330,5 +359,4 @@ public class PushService {
         ModelObjectDAO.getInstance().write(pmm);
         uploadService.uploadToClient(pmm);
     }
-
 }

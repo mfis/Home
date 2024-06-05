@@ -1,5 +1,7 @@
 package de.fimatas.home.library.domain.model;
 
+import lombok.Getter;
+
 public enum PushNotifications {
 
     DOORBELL("Haustür", "Türklingel",true), //
@@ -10,10 +12,13 @@ public enum PushNotifications {
     CHARGELIMIT_ERROR("Ladevorgang unterbrochen", "Ladevorgang Fehler",false), //
     ERRORMESSAGE("Fehlermeldung", "Fehlermeldungen",false), //
     NOTICE("Hinweise", "Hinweise",false), //
+    TASKS("", "Aufgaben",true), //
     ;
 
+    @Getter
     private final String pushText;
 
+    @Getter
     private final String settingsText;
 
     private final boolean defaultSetting;
@@ -22,14 +27,6 @@ public enum PushNotifications {
         this.pushText = pushText;
         this.settingsText = settingsText;
         this.defaultSetting = defaultSetting;
-    }
-
-    public String getPushText() {
-        return pushText;
-    }
-
-    public String getSettingsText() {
-        return settingsText;
     }
 
     public boolean getDefaultSetting() {
