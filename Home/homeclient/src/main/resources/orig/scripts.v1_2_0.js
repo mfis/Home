@@ -564,3 +564,22 @@ function updateEvSliderValue(id, value) {
     submitContent(document.getElementById('val_update_slider_' + id).value + value);
     $('#' + id).removeClass('doNotRefresh');
 }
+
+function enableTaskCheckButton(){
+    let arrayTaskCheck = Array.from(document.getElementsByClassName("taskCheck"));
+    arrayTaskCheck.forEach( el => {
+        el.classList.add('doNotRefresh');
+        el.classList.remove("disabled");
+    });
+    setTimeout(function(){
+        arrayTaskCheck.forEach( el => {
+            el.classList.remove('doNotRefresh');
+            el.classList.add("disabled");
+        });
+    }, 6000);
+}
+function resetTask(id, resetLink){
+    if(!document.getElementById('resetTask_' + id).classList.contains('disabled')){
+        submitContent(resetLink);
+    }
+}

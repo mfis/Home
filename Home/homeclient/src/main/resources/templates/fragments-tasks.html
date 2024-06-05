@@ -34,7 +34,8 @@
                             </div>
                             <div class="btn-group" role="group" style="margin-right: 10px; padding-bottom: 10px;">
                                 <button th:if="${task.manual}" style="margin-top: 0; margin-left: 15px; width: 35px" type="button"
-                                        class="btn btn-block btn-secondary btn-sm disabled taskCheck" th:onclick="@{'resetTask(\'' + ${task.resetLink} + '\')'}">
+                                        th:id="'resetTask_' + ${task.id}"
+                                        class="btn btn-block btn-secondary btn-sm disabled taskCheck" th:onclick="@{'resetTask(\'' + ${task.id} + '\',\'' + ${task.resetLink} + '\')'}">
                                     <span><i style="font-size: 0.8rem;" class="fa-solid fa-check"></i></span>
                                 </button>
                                 <button th:unless="${task.manual}" style="margin-top: 0; margin-left: 15px; width: 35px" type="button"
@@ -43,25 +44,6 @@
                                 </button>
                             </div>
                         </div>
-
-                        <script>
-                            function enableTaskCheckButton(){
-                                let arrayTaskCheck = Array.from(document.getElementsByClassName("taskCheck"));
-                                arrayTaskCheck.forEach( el => {
-                                    el.classList.add('doNotRefresh');
-                                    el.classList.remove("disabled");
-                                });
-                                setTimeout(function(){
-                                    arrayTaskCheck.forEach( el => {
-                                        el.classList.remove('doNotRefresh');
-                                        el.classList.add("disabled");
-                                    });
-                                }, 6000);
-                            }
-                            function resetTask(resetLink){
-                                submitContent(resetLink);
-                            }
-                        </script>
                     </div>
                 </th:block>
 
