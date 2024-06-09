@@ -154,7 +154,7 @@ public class HouseViewService {
         formatUpperFloorGroup(model, "widgetUpperFloor", Place.WIDGET_UPPER_FLOOR_TEMPERATURE, house);
         formatGridsGroup(model, "widgetGrids", Place.WIDGET_GRIDS, house, historyModel==null?null:historyModel.getPurchasedElectricPowerConsumptionDay(), historyModel==null?null:historyModel.getGasConsumptionDay());
         formatEnergyGroup(model, "widgetEnergy", Place.WIDGET_ENERGY, electricVehicleModel, house.getProducedElectricalPower(), house.getGridElectricalPower());
-        formatSymbolsGroup(model, "widgetSymbols", Place.WIDGET_SYMBOLS, presenceModel, heatpumpModel);
+        formatSymbolsGroup(model, presenceModel, heatpumpModel, lightsModel, house, tasksModel);
     }
 
     private void formatUpperFloorGroup(Model model, String viewKey, Place place, HouseModel house) {
@@ -270,10 +270,10 @@ public class HouseViewService {
         });
     }
 
-    private void formatSymbolsGroup(Model model, String viewKey, Place place, PresenceModel presenceModel, HeatpumpModel heatpumpModel) {
+    private void formatSymbolsGroup(Model model, PresenceModel presenceModel, HeatpumpModel heatpumpModel, LightsModel lightsModel, HouseModel houseModel, TasksModel tasksModel) {
 
-        WidgetGroupView view = new WidgetGroupView(viewKey, place);
-        model.addAttribute(viewKey, view);
+        WidgetGroupView view = new WidgetGroupView("widgetSymbols", Place.WIDGET_SYMBOLS);
+        model.addAttribute("widgetSymbols", view);
 
         if(heatpumpModel != null){
             var countUnknwn = heatpumpModel.getHeatpumpMap().values().stream().filter(h -> h.getHeatpumpPreset() == HeatpumpPreset.UNKNOWN).count();
@@ -296,6 +296,42 @@ public class HouseViewService {
             v.setId("symbols-presence" + lookupGroupitemIdPostfix(true));
             v.setIconNativeClient(Integer.toString(presenceCounter) + ".circle"); // TODO: centralize
             view.getCaptionAndValue().put("presence", v);
+        }
+
+        if(lightsModel != null){
+            if(lightsModel.getLightsMap().entrySet().stream().anyMatch(pl -> pl.getValue().stream().anyMatch(l -> l.getState() == LightState.ON))){
+                var v = new View();
+                v.setId("symbols-light" + lookupGroupitemIdPostfix(true));
+                v.setIconNativeClient("lightbulb"); // TODO: centralize
+                view.getCaptionAndValue().put("lights", v);
+            }
+        }
+
+        if(houseModel != null && !houseModel.getFrontDoorLock().isUnreach()){
+            if(!houseModel.getFrontDoorLock().isLockState()){
+                var v = new View();
+                v.setId("symbols-frontdoor" + lookupGroupitemIdPostfix(true));
+                v.setIconNativeClient("door.left.hand.open"); // TODO: centralize
+                view.getCaptionAndValue().put("frontdoor", v);
+            }
+        }
+
+        if(houseModel != null) {
+            if(houseModel.lookupFields(WindowSensor.class).entrySet().stream().anyMatch(w -> w.getValue().isState())){
+                var v = new View();
+                v.setId("symbols-window" + lookupGroupitemIdPostfix(true));
+                v.setIconNativeClient("window.casement"); // TODO: centralize
+                view.getCaptionAndValue().put("window", v);
+            }
+        }
+
+        if(tasksModel != null){
+            if(tasksModel.getTasks().stream().anyMatch(t -> t.getState().getConditionColor() == ConditionColor.RED)){
+                var v = new View();
+                v.setId("symbols-tasks" + lookupGroupitemIdPostfix(true));
+                v.setIconNativeClient("checklist"); // TODO: centralize
+                view.getCaptionAndValue().put("tasks", v);
+            }
         }
     }
 
