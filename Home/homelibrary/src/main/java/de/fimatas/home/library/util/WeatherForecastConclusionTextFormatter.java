@@ -187,8 +187,9 @@ public class WeatherForecastConclusionTextFormatter {
         if(conclusion.getPrecipitationInMM()==null){
             return "";
         }
-        String pattern = conclusion.getPrecipitationInMM().compareTo(BigDecimal.TEN) < 0 && conclusion.getPrecipitationInMM().compareTo(BigDecimal.ZERO) > 0 ? "0.0" : "0";
-        return buildDecimalFormat(pattern).format(conclusion.getPrecipitationInMM())  + " mm";
+        String probability = conclusion.getPrecipitationProbability() == null ? "" : conclusion.getPrecipitationProbability() + "%, ";
+        String mm = HomeUtils.roundAndFormatPrecipitation(conclusion.getPrecipitationInMM());
+        return probability + mm;
     }
 
     private static String plusIfMoreThenOne(Set<WeatherConditions> cond){

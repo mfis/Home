@@ -9,6 +9,7 @@ import de.fimatas.home.library.domain.model.WeatherConditions;
 import de.fimatas.home.library.domain.model.WeatherForecast;
 import de.fimatas.home.library.domain.model.WeatherForecastConclusion;
 import de.fimatas.home.library.domain.model.WeatherForecastModel;
+import de.fimatas.home.library.util.HomeUtils;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,6 +101,7 @@ public class WeatherService {
             forecast.setWind(nodeToBigDecimal(entry.get("wind_speed")));
             forecast.setGust(nodeToBigDecimal(entry.get("wind_gust_speed")));
             forecast.setPrecipitationInMM(nodeToBigDecimal(entry.get("precipitation")));
+            forecast.setPrecipitationProbability(HomeUtils.roundPercentageToNearestTen(nodeToInteger(entry.get("precipitation_probability"))));
             forecast.setSunshineInMin(nodeToBigDecimal(entry.get("sunshine")));
             forecast.setIcons(addConditions(condition, icon, forecast));
             forecasts.add(forecast);
@@ -112,6 +114,13 @@ public class WeatherService {
             return null;
         }
         return new BigDecimal(node.asText());
+    }
+
+    private Integer nodeToInteger(JsonNode node){
+        if(node == null || StringUtils.isBlank(node.asText())){
+            return null;
+        }
+        return Integer.parseInt(node.asText());
     }
 
     private Set<WeatherConditions> addConditions(BrightSkyCondition condition, BrightSkyIcon icon, WeatherForecast forecast) {
@@ -218,6 +227,7 @@ public class WeatherService {
         conclusion.setMaxWind(items.stream().filter(fc -> fc.getWind()!=null).map(fc -> fc.getWind().setScale(0, RoundingMode.HALF_UP).intValue()).max(Integer::compare).orElse(null));
         conclusion.setMaxGust(items.stream().filter(fc -> fc.getGust()!=null).map(fc -> fc.getGust().setScale(0, RoundingMode.HALF_UP).intValue()).max(Integer::compare).orElse(null));
         conclusion.setPrecipitationInMM(items.stream().map(WeatherForecast::getPrecipitationInMM).reduce(BigDecimal.ZERO, BigDecimal::add));
+        conclusion.setPrecipitationProbability(items.stream().map(WeatherForecast::getPrecipitationProbability).filter(Objects::nonNull).max(Integer::compareTo).orElse(null));
         conclusion.setSunshineInMin(items.stream().map(WeatherForecast::getSunshineInMin).reduce(BigDecimal.ZERO, BigDecimal::add));
 
         Arrays.stream(WeatherConditions.values()).forEach(c -> {

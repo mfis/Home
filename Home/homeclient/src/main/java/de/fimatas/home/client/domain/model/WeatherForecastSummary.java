@@ -3,6 +3,7 @@ package de.fimatas.home.client.domain.model;
 import de.fimatas.home.library.domain.model.WeatherConditions;
 import de.fimatas.home.library.domain.model.WeatherForecast;
 import de.fimatas.home.library.domain.model.WeatherForecastConclusion;
+import de.fimatas.home.library.util.HomeUtils;
 import de.fimatas.home.library.util.WeatherForecastConclusionTextFormatter;
 import lombok.extern.apachecommons.CommonsLog;
 
@@ -11,6 +12,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
 
 @CommonsLog
 public class WeatherForecastSummary {
@@ -31,7 +33,7 @@ public class WeatherForecastSummary {
 
     private static final BigDecimal TEMPERATURE_SUMMARY_LIMIT = new BigDecimal("10");
 
-    private static final BigDecimal PRECIPITATION_RANGE = new BigDecimal("0.3");
+    private static final Integer PRECIPITATION_PROBABILITY_RANGE = Integer.parseInt("25");
 
     private static final BigDecimal GUST_RANGE = new BigDecimal("4");
 
@@ -51,7 +53,8 @@ public class WeatherForecastSummary {
                 && sameIcons(fc)
                 && sameConditionColor(fc)
                 && temperatureRange(fc, false)
-                && precipitationRange(fc, false)
+                && precipitationMmRange(fc, false)
+                && precipitationProbabilityRange(fc, false)
                 && gustRange(fc, false)
                 && sunshineRange(fc, false);
     }
@@ -72,7 +75,8 @@ public class WeatherForecastSummary {
         // sameIcons(fc); --> ignore
         // sameConditionColor(fc); --> ignore
         temperatureRange(fc, true);
-        precipitationRange(fc, true);
+        precipitationMmRange(fc, true);
+        precipitationProbabilityRange(fc, true);
         gustRange(fc, true);
         sunshineRange(fc, true);
     }
@@ -105,6 +109,7 @@ public class WeatherForecastSummary {
         summary.setGust(toValues.getGust());
         summary.setDay(fromValues.isDay());
         summary.setPrecipitationInMM(toValues.getPrecipitationInMM());
+        summary.setPrecipitationProbability(toValues.getPrecipitationProbability());
         summary.setSunshineInMin(BigDecimal.valueOf(fromValues.getSunshineInMin().intValue() + toValues.getSunshineInMin().intValue() / 2));
         summary.setIcons(fromValues.getIcons());
         return summary;
@@ -147,7 +152,7 @@ public class WeatherForecastSummary {
         return result;
     }
 
-    private boolean precipitationRange(WeatherForecast fc, boolean integrate){
+    private boolean precipitationMmRange(WeatherForecast fc, boolean integrate){
         var list = List.of(fc.getPrecipitationInMM(), fromValues.getPrecipitationInMM(), toValues.getPrecipitationInMM());
         var min = list.stream().min(BigDecimal::compareTo).get();
         var max = list.stream().max(BigDecimal::compareTo).get();
@@ -155,9 +160,24 @@ public class WeatherForecastSummary {
             fromValues.setPrecipitationInMM(min);
             toValues.setPrecipitationInMM(max);
         }
-        var result =  min.subtract(max).abs().compareTo(PRECIPITATION_RANGE) <= 0;
+        var result =  HomeUtils.roundAndFormatPrecipitation(min).equals(HomeUtils.roundAndFormatPrecipitation(max));
         if(log.isDebugEnabled() &&!result) {
             log.debug("not in precipitationRange " + fc.getTime());
+        }
+        return result;
+    }
+
+    private boolean precipitationProbabilityRange(WeatherForecast fc, boolean integrate){
+        var list = List.of(fc.getPrecipitationProbability(), fromValues.getPrecipitationProbability(), toValues.getPrecipitationProbability());
+        var min = list.stream().filter(Objects::nonNull).min(Integer::compareTo).orElse(0);
+        var max = list.stream().filter(Objects::nonNull).max(Integer::compareTo).orElse(0);
+        if(integrate){
+            fromValues.setPrecipitationProbability(min);
+            toValues.setPrecipitationProbability(max);
+        }
+        var result =  Math.abs(max - min) < PRECIPITATION_PROBABILITY_RANGE && !(min == 0 && max > 0);
+        if(log.isDebugEnabled() &&!result) {
+            log.debug("not in precipitationProbability " + fc.getTime());
         }
         return result;
     }

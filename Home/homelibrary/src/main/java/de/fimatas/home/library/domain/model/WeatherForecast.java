@@ -26,6 +26,7 @@ public class WeatherForecast implements Serializable {
         this.gust = other.gust;
         this.isDay = other.isDay;
         this.precipitationInMM = other.precipitationInMM;
+        this.precipitationProbability = other.precipitationProbability;
         this.sunshineInMin = other.sunshineInMin;
         this.icons = new HashSet<>(other.icons);
     }
@@ -41,6 +42,8 @@ public class WeatherForecast implements Serializable {
     private boolean isDay;
 
     private BigDecimal precipitationInMM;
+
+    private Integer precipitationProbability;
 
     private BigDecimal sunshineInMin;
 
