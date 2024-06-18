@@ -45,6 +45,8 @@ public class WeatherService {
     private static final BigDecimal WIND_SPEED_STORM = BigDecimal.valueOf(36);
     private static final BigDecimal WIND_SPEED_GUST_STORM = BigDecimal.valueOf(70);
 
+    private static final BigDecimal HEAVY_RAIN_MM = BigDecimal.valueOf(10);
+
     @Retryable(retryFor = Exception.class, maxAttempts = 4, backoff = @Backoff(delay = 5000))
     public void refreshFurtherDaysCache() {
         brightSkyAPI.cachingCallForFurtherDays();
@@ -139,7 +141,7 @@ public class WeatherService {
             case PARTLY_CLOUDY_NIGHT -> icons.add(WeatherConditions.MOON_CLOUD);
             case CLOUDY -> {
                 if (condition == BrightSkyCondition.RAIN) {
-                    icons.add(WeatherConditions.CLOUD_RAIN);
+                    icons.add(WeatherConditions.RAIN);
                 } else {
                     icons.add(WeatherConditions.CLOUD);
                 }
@@ -150,7 +152,7 @@ public class WeatherService {
             case SLEET, SNOW -> {
                 icons.add(WeatherConditions.SNOW);
                 icons.remove(WeatherConditions.RAIN);
-                icons.remove(WeatherConditions.CLOUD_RAIN);
+                icons.remove(WeatherConditions.HEAVY_RAIN);
             }
             case HAIL -> icons.add(WeatherConditions.HAIL);
             case THUNDERSTORM -> icons.add(WeatherConditions.THUNDERSTORM);
@@ -167,9 +169,14 @@ public class WeatherService {
         }
 
         if(forecast.getPrecipitationInMM().compareTo(BigDecimal.ZERO) == 0){ // not showing "0.0mm rain"
-            if(icons.stream().anyMatch(i -> Set.of(WeatherConditions.SNOW, WeatherConditions.RAIN, WeatherConditions.CLOUD_RAIN, WeatherConditions.HAIL).contains(i))){
+            if(icons.stream().anyMatch(i -> Set.of(WeatherConditions.SNOW, WeatherConditions.HEAVY_RAIN, WeatherConditions.RAIN, WeatherConditions.HAIL).contains(i))){
                 forecast.setPrecipitationInMM(new BigDecimal("0.1"));
             }
+        }
+
+        if(forecast.getPrecipitationInMM().compareTo(HEAVY_RAIN_MM) > 0){
+            icons.remove(WeatherConditions.RAIN);
+            icons.add(WeatherConditions.HEAVY_RAIN);
         }
 
         if(forecast.getSunshineInMin().compareTo(BigDecimal.ZERO) == 0){ // not showing "0 minutes sun"
@@ -189,8 +196,8 @@ public class WeatherService {
             set.remove(WeatherConditions.WIND);
         }
 
-        if (set.contains(WeatherConditions.RAIN)) {
-            set.remove(WeatherConditions.CLOUD_RAIN);
+        if (set.contains(WeatherConditions.HEAVY_RAIN)) {
+            set.remove(WeatherConditions.RAIN);
             set.remove(WeatherConditions.SUN);
             set.remove(WeatherConditions.SUN_CLOUD);
             set.remove(WeatherConditions.MOON);

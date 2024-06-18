@@ -19,8 +19,8 @@ class WeatherServiceTest {
     void testCalculateConclusionForTimerange_MinMax(){
 
         List<WeatherForecast> items = new LinkedList<>();
-        items.add(new WeatherForecast(LocalDateTime.of(2022, 5, 21, 20, 0), new BigDecimal(20L), new BigDecimal(5L), new BigDecimal(6L), true, BigDecimal.ONE, BigDecimal.ONE, Set.of()));
-        items.add(new WeatherForecast(LocalDateTime.of(2022, 5, 21, 21, 0), new BigDecimal(19L), new BigDecimal(4L), new BigDecimal(6L), false, BigDecimal.ONE, BigDecimal.ONE, Set.of()));
+        items.add(new WeatherForecast(LocalDateTime.of(2022, 5, 21, 20, 0), new BigDecimal(20L), new BigDecimal(5L), new BigDecimal(6L), true, BigDecimal.ONE, 100, BigDecimal.ONE, Set.of()));
+        items.add(new WeatherForecast(LocalDateTime.of(2022, 5, 21, 21, 0), new BigDecimal(19L), new BigDecimal(4L), new BigDecimal(6L), false, BigDecimal.ONE, 100, BigDecimal.ONE, Set.of()));
 
         final WeatherForecastConclusion conclusion = WeatherService.calculateConclusionForTimerange(items);
 
@@ -33,9 +33,9 @@ class WeatherServiceTest {
     void testCalculateConclusionForTimerange_Snow(){
 
         List<WeatherForecast> items = new LinkedList<>();
-        items.add(new WeatherForecast(LocalDateTime.of(2022, 5, 21, 20, 0), new BigDecimal(20L), new BigDecimal(5L), new BigDecimal(6L), true, BigDecimal.ONE, BigDecimal.ONE, Set.of(WeatherConditions.RAIN)));
-        items.add(new WeatherForecast(LocalDateTime.of(2022, 5, 21, 21, 0), new BigDecimal(19L), new BigDecimal(4L), new BigDecimal(6L), false, BigDecimal.ONE, BigDecimal.ONE, Set.of(WeatherConditions.SNOW)));
-        items.add(new WeatherForecast(LocalDateTime.of(2022, 5, 21, 22, 0), new BigDecimal(19L), new BigDecimal(4L), new BigDecimal(6L), false, BigDecimal.ONE, BigDecimal.ONE, Set.of(WeatherConditions.SNOW)));
+        items.add(new WeatherForecast(LocalDateTime.of(2022, 5, 21, 20, 0), new BigDecimal(20L), new BigDecimal(5L), new BigDecimal(6L), true, BigDecimal.ONE, 100, BigDecimal.ONE, Set.of(WeatherConditions.HEAVY_RAIN)));
+        items.add(new WeatherForecast(LocalDateTime.of(2022, 5, 21, 21, 0), new BigDecimal(19L), new BigDecimal(4L), new BigDecimal(6L), false, BigDecimal.ONE, 100, BigDecimal.ONE, Set.of(WeatherConditions.SNOW)));
+        items.add(new WeatherForecast(LocalDateTime.of(2022, 5, 21, 22, 0), new BigDecimal(19L), new BigDecimal(4L), new BigDecimal(6L), false, BigDecimal.ONE, 100, BigDecimal.ONE, Set.of(WeatherConditions.SNOW)));
 
         final WeatherForecastConclusion conclusion = WeatherService.calculateConclusionForTimerange(items);
 
@@ -47,14 +47,14 @@ class WeatherServiceTest {
     void testCalculateConclusionForTimerange_KindOfRain_NotEnoughSun(){
 
         List<WeatherForecast> items = new LinkedList<>();
-        items.add(new WeatherForecast(LocalDateTime.of(2022, 5, 21, 20, 0), new BigDecimal(20L), new BigDecimal(5L), new BigDecimal(6L), true, BigDecimal.ONE, BigDecimal.ONE, Set.of(WeatherConditions.SUN)));
-        items.add(new WeatherForecast(LocalDateTime.of(2022, 5, 21, 21, 0), new BigDecimal(19L), new BigDecimal(4L), new BigDecimal(6L), false, BigDecimal.ONE, BigDecimal.ONE, Set.of(WeatherConditions.CLOUD_RAIN)));
-        items.add(new WeatherForecast(LocalDateTime.of(2022, 5, 21, 22, 0), new BigDecimal(19L), new BigDecimal(4L), new BigDecimal(6L), false, BigDecimal.ONE, BigDecimal.ONE, Set.of(WeatherConditions.CLOUD_RAIN)));
+        items.add(new WeatherForecast(LocalDateTime.of(2022, 5, 21, 20, 0), new BigDecimal(20L), new BigDecimal(5L), new BigDecimal(6L), true, BigDecimal.ONE, 100, BigDecimal.ONE, Set.of(WeatherConditions.SUN)));
+        items.add(new WeatherForecast(LocalDateTime.of(2022, 5, 21, 21, 0), new BigDecimal(19L), new BigDecimal(4L), new BigDecimal(6L), false, BigDecimal.ONE, 100, BigDecimal.ONE, Set.of(WeatherConditions.RAIN)));
+        items.add(new WeatherForecast(LocalDateTime.of(2022, 5, 21, 22, 0), new BigDecimal(19L), new BigDecimal(4L), new BigDecimal(6L), false, BigDecimal.ONE, 100, BigDecimal.ONE, Set.of(WeatherConditions.RAIN)));
 
         final WeatherForecastConclusion conclusion = WeatherService.calculateConclusionForTimerange(items);
 
-        assertTrue(conclusion.getConditions().contains(WeatherConditions.CLOUD_RAIN));
-        assertEquals(21, conclusion.getFirstOccurences().get(WeatherConditions.CLOUD_RAIN).getHour());
+        assertTrue(conclusion.getConditions().contains(WeatherConditions.RAIN));
+        assertEquals(21, conclusion.getFirstOccurences().get(WeatherConditions.RAIN).getHour());
         assertFalse(conclusion.getConditions().contains(WeatherConditions.SUN));
     }
 
@@ -62,9 +62,9 @@ class WeatherServiceTest {
     void testCalculateConclusionForTimerange_Sun(){
 
         List<WeatherForecast> items = new LinkedList<>();
-        items.add(new WeatherForecast(LocalDateTime.of(2022, 5, 21, 20, 0), new BigDecimal(20L), new BigDecimal(5L), new BigDecimal(6L), true, BigDecimal.ONE, BigDecimal.ONE, Set.of(WeatherConditions.SUN)));
-        items.add(new WeatherForecast(LocalDateTime.of(2022, 5, 21, 21, 0), new BigDecimal(19L), new BigDecimal(4L), new BigDecimal(6L), false, BigDecimal.ONE, BigDecimal.ONE, Set.of(WeatherConditions.SUN)));
-        items.add(new WeatherForecast(LocalDateTime.of(2022, 5, 21, 22, 0), new BigDecimal(19L), new BigDecimal(4L), new BigDecimal(6L), false, BigDecimal.ONE, BigDecimal.ONE, Set.of(WeatherConditions.SUN)));
+        items.add(new WeatherForecast(LocalDateTime.of(2022, 5, 21, 20, 0), new BigDecimal(20L), new BigDecimal(5L), new BigDecimal(6L), true, BigDecimal.ONE, 100, BigDecimal.ONE, Set.of(WeatherConditions.SUN)));
+        items.add(new WeatherForecast(LocalDateTime.of(2022, 5, 21, 21, 0), new BigDecimal(19L), new BigDecimal(4L), new BigDecimal(6L), false, BigDecimal.ONE, 100, BigDecimal.ONE, Set.of(WeatherConditions.SUN)));
+        items.add(new WeatherForecast(LocalDateTime.of(2022, 5, 21, 22, 0), new BigDecimal(19L), new BigDecimal(4L), new BigDecimal(6L), false, BigDecimal.ONE, 100, BigDecimal.ONE, Set.of(WeatherConditions.SUN)));
 
         final WeatherForecastConclusion conclusion = WeatherService.calculateConclusionForTimerange(items);
 

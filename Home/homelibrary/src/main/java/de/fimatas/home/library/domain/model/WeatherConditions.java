@@ -14,8 +14,8 @@ public enum WeatherConditions {
     SNOW("fa-solid fa-snowflake", "snowflake", "Schnee", true, ConditionColor.COLD),
     HAIL("fa-solid fa-cloud-meatball", "cloud.hail", "Hagel", true, null),
     THUNDERSTORM("fa-solid fa-cloud-bolt", "bolt", "Gewitter", true, null),
-    RAIN("fa-solid fa-cloud-showers-heavy", "cloud.heavyrain", "Regen", true, null),
-    CLOUD_RAIN("fa-solid fa-cloud-rain", "cloud.rain", "Leichter Regen", true, null),
+    HEAVY_RAIN("fa-solid fa-cloud-showers-heavy", "cloud.heavyrain", "Starkregen", true, ConditionColor.RED),
+    RAIN("fa-solid fa-cloud-rain", "cloud.rain", "Regen", true, null),
     SUN("fa-solid fa-sun", "sun.max", "Sonne", true, null),
     FOG("fa-solid fa-smog", "cloud.fog", "Nebel", false, null),
     SUN_CLOUD("fa-solid fa-cloud-sun", "cloud.sun", "Leicht bewölkt", true, null),
@@ -50,8 +50,8 @@ public enum WeatherConditions {
                 return textMap.get(WIND_GUST_TEXT);
             case SNOW:
             case THUNDERSTORM:
+            case HEAVY_RAIN:
             case RAIN:
-            case CLOUD_RAIN:
                 return textMap.get(PRECIPATION_TEXT);
             case SUN:
             case SUN_CLOUD:
@@ -84,6 +84,6 @@ public enum WeatherConditions {
     }
 
     public boolean isKindOfRain(){
-        return this == RAIN || this == CLOUD_RAIN || this == HAIL || this == THUNDERSTORM;
+        return this == HEAVY_RAIN || this == RAIN || this == HAIL || this == THUNDERSTORM;
     }
 }

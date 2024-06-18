@@ -30,9 +30,9 @@ public class HomeUtilsTest {
 
     @Test
     public void testRoundAndFormatPrecipitation(){
-        assertThat(HomeUtils.roundAndFormatPrecipitation(new BigDecimal("0.2")), is("< 1 mm"));
-        assertThat(HomeUtils.roundAndFormatPrecipitation(new BigDecimal("0.5")), is("1 mm"));
-        assertThat(HomeUtils.roundAndFormatPrecipitation(new BigDecimal("1.4")), is("1 mm"));
-        assertThat(HomeUtils.roundAndFormatPrecipitation(new BigDecimal("1.7")), is("2 mm"));
+        assertThat(HomeUtils.roundAndFormatPrecipitation(new BigDecimal("0.2")), is("<1mm"));
+        assertThat(HomeUtils.roundAndFormatPrecipitation(new BigDecimal("0.5")), is("1mm"));
+        assertThat(HomeUtils.roundAndFormatPrecipitation(new BigDecimal("1.4")), is("1mm"));
+        assertThat(HomeUtils.roundAndFormatPrecipitation(new BigDecimal("1.7")), is("2mm"));
     }
 }

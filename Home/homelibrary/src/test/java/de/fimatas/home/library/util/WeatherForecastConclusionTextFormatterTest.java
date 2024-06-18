@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -118,15 +117,15 @@ class WeatherForecastConclusionTextFormatterTest {
         conclusion.setMaxTemp(new BigDecimal(23L));
         conclusion.setMaxWind(10);
         conclusion.setMaxGust(20);
-        conclusion.setConditions(Set.of(WeatherConditions.RAIN, WeatherConditions.SUN, WeatherConditions.SUN_CLOUD));
+        conclusion.setConditions(Set.of(WeatherConditions.HEAVY_RAIN, WeatherConditions.SUN, WeatherConditions.SUN_CLOUD));
 
         final Map<Integer, String> map = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion, false);
 
         assertEquals("18..23°C", map.get(FORMAT_FROM_TO_ONLY));
-        assertEquals("Regen +", map.get(FORMAT_CONDITIONS_SHORT_1_MAX));
-        assertEquals("18..23°C, Regen +", map.get(FORMAT_FROM_TO_PLUS_1_MAX));
-        assertEquals("18 bis 23°C, Regen, Sonne, Leicht bewölkt", map.get(FORMAT_FROM_TO_ALL_SIGNIFICANT_CONDITIONS));
-        assertEquals("Temperatur 18 bis 23°C, Regen, Sonne, Leicht bewölkt", map.get(FORMAT_LONGEST));
+        assertEquals("Starkregen +", map.get(FORMAT_CONDITIONS_SHORT_1_MAX));
+        assertEquals("18..23°C, Starkregen +", map.get(FORMAT_FROM_TO_PLUS_1_MAX));
+        assertEquals("18 bis 23°C, Starkregen, Sonne, Leicht bewölkt", map.get(FORMAT_FROM_TO_ALL_SIGNIFICANT_CONDITIONS));
+        assertEquals("Temperatur 18 bis 23°C, Starkregen, Sonne, Leicht bewölkt", map.get(FORMAT_LONGEST));
     }
 
     @Test
@@ -137,7 +136,7 @@ class WeatherForecastConclusionTextFormatterTest {
         conclusion.setMaxTemp(new BigDecimal(5L));
         conclusion.setMaxWind(10);
         conclusion.setMaxGust(20);
-        conclusion.setConditions(Set.of(WeatherConditions.RAIN, WeatherConditions.SNOW));
+        conclusion.setConditions(Set.of(WeatherConditions.HEAVY_RAIN, WeatherConditions.SNOW));
 
         final Map<Integer, String> map = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion, false);
 
@@ -173,13 +172,13 @@ class WeatherForecastConclusionTextFormatterTest {
         conclusion.setMaxTemp(new BigDecimal(23L));
         conclusion.setMaxWind(10);
         conclusion.setMaxGust(20);
-        conclusion.setConditions(Set.of(WeatherConditions.SUN, WeatherConditions.RAIN));
+        conclusion.setConditions(Set.of(WeatherConditions.SUN, WeatherConditions.HEAVY_RAIN));
         conclusion.getFirstOccurences().put(WeatherConditions.SUN, LocalDateTime.of(2022,5,23,15,0));
-        conclusion.getFirstOccurences().put(WeatherConditions.RAIN, LocalDateTime.of(2022,5,23,19,0));
+        conclusion.getFirstOccurences().put(WeatherConditions.HEAVY_RAIN, LocalDateTime.of(2022,5,23,19,0));
 
         final Map<Integer, String> map = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion, false);
 
-        assertEquals("Temperatur 18 bis 23°C, Sonne ab 15 Uhr, Regen ab 19 Uhr", map.get(FORMAT_LONGEST));
+        assertEquals("Temperatur 18 bis 23°C, Sonne ab 15 Uhr, Starkregen ab 19 Uhr", map.get(FORMAT_LONGEST));
     }
 
     @Test
