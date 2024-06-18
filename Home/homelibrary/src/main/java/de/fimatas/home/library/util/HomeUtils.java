@@ -60,8 +60,8 @@ public class HomeUtils {
         }
         BigDecimal rounded = precipitation.setScale(0, RoundingMode.HALF_UP);
         if(rounded.compareTo(BigDecimal.ZERO) == 0){
-            return "< 1 mm";
+            return "<1mm";
         }
-        return rounded + " mm";
+        return rounded + "mm";
     }
 }
