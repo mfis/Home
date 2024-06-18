@@ -32,20 +32,13 @@ public class ViewFormatterUtils {
             return "";
         }
 
-        switch (conditionColor) {
-            case GREEN:
-                return ".green";
-            case ORANGE:
-                return ".orange";
-            case RED:
-                return ".red";
-            case BLUE:
-                return ".blue";
-            case LIGHT:
-            case COLD:
-                return ".purple";
-            default:
-                return "";
-        }
+        return switch (conditionColor) {
+            case GREEN -> ".green";
+            case ORANGE -> ".orange";
+            case RED -> ".red";
+            case BLUE -> ".blue";
+            case LIGHT, COLD -> ".purple";
+            default -> "";
+        };
     }
 }

@@ -32,7 +32,7 @@ public class View {
 
     private String unreach = "";
 
-    private String colorClass = "secondary";
+    private String colorClass = "default";
 
     private String activeSwitchColorClass = "light";
 

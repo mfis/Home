@@ -119,7 +119,7 @@ public class WeatherForecastConclusionTextFormatter {
             return;
         }
 
-        ConditionColor color = ConditionColor.GRAY;
+        ConditionColor color = ConditionColor.DEFAULT;
         String icon;
         if (conclusion.getMaxTemp().compareTo(HIGH_TEMP) > 0) {
             color = ConditionColor.RED;

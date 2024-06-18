@@ -364,7 +364,7 @@ public class HouseViewService {
         } else if (minutesSinceLastDoorbellRing < 60) {
             frontDoorView.setColorClass(ConditionColor.ORANGE.getUiClass());
         } else {
-            frontDoorView.setColorClass(ConditionColor.GRAY.getUiClass());
+            frontDoorView.setColorClass(ConditionColor.DEFAULT.getUiClass());
         }
 
         model.addAttribute(id, frontDoorView);
@@ -606,7 +606,7 @@ public class HouseViewService {
     private void lookupHeaterColorClass(Heating heating, Climate climate, ClimateView view) {
 
         var switchColorClass = ConditionColor.ACTIVE_BUTTON.getUiClass();
-        var elementColorClass = ConditionColor.GRAY.getUiClass();
+        var elementColorClass = ConditionColor.DEFAULT.getUiClass();
 
         if (heating.isBoostActive()) {
             switchColorClass = ConditionColor.RED.getUiClass();
@@ -643,7 +643,7 @@ public class HouseViewService {
                     cv.setColorClassHumidity(ConditionColor.GREEN.getUiClass());
                 }
             } else {
-                cv.setColorClassHumidity(ConditionColor.GRAY.getUiClass());
+                cv.setColorClassHumidity(ConditionColor.DEFAULT.getUiClass());
             }
         }
     }
@@ -668,7 +668,7 @@ public class HouseViewService {
             switch (house.getConclusionClimateFacadeMax().getSunBeamIntensity()) {
                 case NO:
                     viewMax.setIcon("fas fa-cloud");
-                    viewMax.setColorClass(ConditionColor.GRAY.getUiClass());
+                    viewMax.setColorClass(ConditionColor.DEFAULT.getUiClass());
                     break;
                 case LOW:
                     viewMax.setColorClass(ConditionColor.GREEN.getUiClass());
@@ -755,7 +755,7 @@ public class HouseViewService {
         overallElectricPowerHouseView.getPv().setColorClass(houseModel.getProducedElectricalPower().getActualConsumption() != null &&
                 houseModel.getProducedElectricalPower().getActualConsumption().getValue() != null ?
                 houseModel.getProducedElectricalPower().getActualConsumption().getValue().compareTo(BigDecimal.TEN) > 0 ? ConditionColor.GREEN.getUiClass() :
-                        ConditionColor.GRAY.getUiClass() : ConditionColor.GRAY.getUiClass());
+                        ConditionColor.DEFAULT.getUiClass() : ConditionColor.DEFAULT.getUiClass());
 
         if (houseModel.getProducedElectricalPower().getActualConsumption() != null
                 && houseModel.getProducedElectricalPower().getActualConsumption().getValue() != null){
@@ -763,10 +763,10 @@ public class HouseViewService {
                 overallElectricPowerHouseView.getPv().setColorClass(ConditionColor.GREEN.getUiClass());
                 overallElectricPowerHouseView.getPv().setDirectionArrowClass("225");
             }else{
-                overallElectricPowerHouseView.getPv().setColorClass(ConditionColor.GRAY.getUiClass());
+                overallElectricPowerHouseView.getPv().setColorClass(ConditionColor.DEFAULT.getUiClass());
             }
         }else{
-            overallElectricPowerHouseView.getPv().setColorClass(ConditionColor.GRAY.getUiClass());
+            overallElectricPowerHouseView.getPv().setColorClass(ConditionColor.DEFAULT.getUiClass());
         }
 
         // color classes consumption
@@ -779,12 +779,12 @@ public class HouseViewService {
                 && houseModel.getGridElectricalPower().getActualConsumption().getValue().compareTo(BigDecimal.ZERO) < 0){
             overallElectricPowerHouseView.getConsumption().setColorClass(ConditionColor.GREEN.getUiClass());
         }else{
-            overallElectricPowerHouseView.getConsumption().setColorClass(ConditionColor.LIGHT.getUiClass());
+            overallElectricPowerHouseView.getConsumption().setColorClass(ConditionColor.DEFAULT.getUiClass());
         }
 
         // color class callout
         overallElectricPowerHouseView.setColorClass(overallElectricPowerHouseView.getConsumption().getColorClass().equals(ConditionColor.LIGHT.getUiClass())?
-                ConditionColor.GRAY.getUiClass() : overallElectricPowerHouseView.getConsumption().getColorClass());
+                ConditionColor.DEFAULT.getUiClass() : overallElectricPowerHouseView.getConsumption().getColorClass());
 
         // status time
         // TODO: Extract method
@@ -1178,7 +1178,7 @@ public class HouseViewService {
         forecasts.setName("2-Tage");
         forecasts.setPlaceEnum(Place.OUTSIDE);
         forecasts.setId(lookupWeatherForecastId(Place.OUTSIDE, false));
-        forecasts.setColorClass(ConditionColor.GRAY.getUiClass());
+        forecasts.setColorClass(ConditionColor.DEFAULT.getUiClass());
         forecasts.setUnreach(Boolean.toString(unreach));
 
         if(unreach){
@@ -1202,7 +1202,7 @@ public class HouseViewService {
         forecasts.setState(StringUtils.EMPTY); // setting state for every day instead
 
         forecasts.setShortTermText(textMap3h.get(FORMAT_CONDITIONS_SHORT_1_MAX_INCL_UNSIGNIFICANT));
-        forecasts.setShortTermColorClass(StringUtils.isNotBlank(textMap3h.get(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS)) ? textMap3h.get(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS) : ConditionColor.GRAY.getUiClass());
+        forecasts.setShortTermColorClass(StringUtils.isNotBlank(textMap3h.get(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS)) ? textMap3h.get(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS) : ConditionColor.DEFAULT.getUiClass());
 
         // hourly forecast for two days
         final var summary = new WeatherForecastSummary();
@@ -1370,7 +1370,7 @@ public class HouseViewService {
             longText = StringUtils.join(namesPresent, ", ");
         }
 
-        view.setColorClass(!namesPresent.isEmpty() ? ConditionColor.GREEN.getUiClass() : ConditionColor.GRAY.getUiClass());
+        view.setColorClass(!namesPresent.isEmpty() ? ConditionColor.GREEN.getUiClass() : ConditionColor.DEFAULT.getUiClass());
         view.setStateShort(shortText);
         view.setElementTitleState(shortText);
         view.setState(shortText + " - " + longText);

@@ -78,6 +78,9 @@ button{
 .callout-light {
 	border-color: rgb(238,238,238) !important;
 }
+.callout-default {
+	border-color: rgb(238,238,238,0.8) !important
+}
 .callout-cold {
 	border-color: rgb(244,190,238) !important;
 }
@@ -135,6 +138,9 @@ h4{
 .callout-light {
 	background: #000 !important;
 }
+.callout-default {
+	background: #000 !important;
+}
 .callout-cold {
 	background: #000 !important;
 }
@@ -158,6 +164,9 @@ h4{
 }
 .callout-light h4, .callout-light a{
 	color: rgb(238,238,238) !important;
+}
+.callout-default h4, .callout-default a{
+	color: rgb(238,238,238,0.8) !important;
 }
 .callout-cold h4, .callout-cold a{
 	color: rgb(244,190,238) !important;
@@ -269,6 +278,9 @@ input[type="checkbox"]:checked ~ label .check-true{
 }
 .img-light {
 	background: rgb(244,190,238); /* fixme based on text color */
+}
+.img-default {
+	background: rgb(244,190,238,0.8); /* fixme based on text color */
 }
 .img-cold {
 	background: rgb(244,190,238); /* fixme based on text color */
