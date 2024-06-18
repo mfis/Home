@@ -219,7 +219,7 @@ label, legend{
 	color: rgb(244,190,238) !important
 }
 .bg-default {
-	background-color: rgb(238,238,238,0.65) !important
+	background-color: rgb(238,238,238,0.6) !important
 }
 .widebutton {
 	width: 65px !important;
@@ -393,9 +393,12 @@ input[type="range"]::-ms-fill-upper {
 	border-radius: 5px;
 }
 .taskprogress {
-	width: calc(100% - 50px);
+	width: calc(100% - 55px);
+	margin-left: 5px;
 }
-
+.progress {
+	height: 0.85rem !important;
+}
 /*
         START - Following CSS is based on: "Smooth arrow animation"
 
