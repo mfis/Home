@@ -12,4 +12,6 @@ public class TaskView extends View {
     private String durationInfoText;
 
     private String resetLink;
+
+    private String colorClassProgressBar;
 }

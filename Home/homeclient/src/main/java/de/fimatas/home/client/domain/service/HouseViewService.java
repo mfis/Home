@@ -1595,6 +1595,7 @@ public class HouseViewService {
             taskView.setName(task.getName());
             taskView.setProgressPercent(task.getDurationPercentage() == 0 ? 1 : task.getDurationPercentage());
             taskView.setColorClass(task.getState().getConditionColor().getUiClass());
+            taskView.setColorClassProgressBar(task.getState().getConditionColor() == ConditionColor.GREEN ? ConditionColor.DEFAULT.getUiClass(): task.getState().getConditionColor().getUiClass());
             taskView.setManual(task.isManual());
             taskView.setState(taskStateValueAndUnit(task));
             taskView.setDurationInfoText("Alle " + task.getDuration().toDays() +

@@ -28,7 +28,7 @@
                         <div style="display: flex;">
                             <div style="width: 100%;">
                                 <div class="progress taskprogress" role="progressbar" style="width: 100%">
-                                    <div th:class="'progress-bar bg-' + ${task.colorClass}" th:style="'width: ' + ${task.progressPercent} + '%'"></div>
+                                    <div th:class="'progress-bar bg-' + ${task.colorClassProgressBar}" th:style="'width: ' + ${task.progressPercent} + '%'"></div>
                                 </div>
                                 <div style="margin-left: 5px; margin-top: 3px; font-size: 0.8rem;" th:class="'text-default'" th:text="${task.durationInfoText}"></div>
                             </div>
