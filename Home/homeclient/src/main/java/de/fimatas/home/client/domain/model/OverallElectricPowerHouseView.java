@@ -33,4 +33,6 @@ public class OverallElectricPowerHouseView extends View {
     private String batteryColorClass;
 
     private String batteryIcon;
+
+    private String batteryDirectionArrowClass = "#";
 }

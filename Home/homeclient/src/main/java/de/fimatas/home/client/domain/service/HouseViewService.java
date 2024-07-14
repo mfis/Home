@@ -757,27 +757,36 @@ public class HouseViewService {
                 houseModel.getProducedElectricalPower().getActualConsumption().getValue().compareTo(BigDecimal.TEN) > 0 ? ConditionColor.GREEN.getUiClass() :
                         ConditionColor.DEFAULT.getUiClass() : ConditionColor.DEFAULT.getUiClass());
 
-        if (houseModel.getProducedElectricalPower().getActualConsumption() != null
-                && houseModel.getProducedElectricalPower().getActualConsumption().getValue() != null){
-            if(houseModel.getProducedElectricalPower().getActualConsumption().getValue().compareTo(BigDecimal.TEN) > 0){
-                overallElectricPowerHouseView.getPv().setColorClass(ConditionColor.GREEN.getUiClass());
-                overallElectricPowerHouseView.getPv().setDirectionArrowClass("225");
+        if(houseModel.getProducedElectricalPower().getActualConsumption() != null
+                && houseModel.getProducedElectricalPower().getActualConsumption().getValue() != null && houseModel.getProducedElectricalPower().getActualConsumption().getValue().compareTo(BigDecimal.TEN) > 0){
+            overallElectricPowerHouseView.getPv().setColorClass(ConditionColor.GREEN.getUiClass());
+            overallElectricPowerHouseView.getPv().setDirectionArrowClass("225");
+            if(isFeedingPowerConsumptionByPvBattery(pvAdditionalDataModel)) {
+                overallElectricPowerHouseView.setBatteryDirectionArrowClass("225");
+            }
+        }else{
+            if(isFeedingPowerConsumptionByPvBattery(pvAdditionalDataModel)){
+                overallElectricPowerHouseView.getPv().setColorClass(ConditionColor.BLUE.getUiClass());
+                overallElectricPowerHouseView.setBatteryDirectionArrowClass("225");
             }else{
                 overallElectricPowerHouseView.getPv().setColorClass(ConditionColor.DEFAULT.getUiClass());
             }
-        }else{
-            overallElectricPowerHouseView.getPv().setColorClass(ConditionColor.DEFAULT.getUiClass());
         }
 
         // color classes consumption
         if(houseModel.getProducedElectricalPower().getActualConsumption() != null &&
                 houseModel.getProducedElectricalPower().getActualConsumption().getValue() != null &&
-                houseModel.getProducedElectricalPower().getActualConsumption().getValue().compareTo(BigDecimal.ZERO) <= 0){
+                houseModel.getProducedElectricalPower().getActualConsumption().getValue().compareTo(BigDecimal.ZERO) <= 0 &&
+                !isFeedingPowerConsumptionByPvBattery(pvAdditionalDataModel)){
             overallElectricPowerHouseView.getConsumption().setColorClass(ConditionColor.ORANGE.getUiClass());
         }else if (houseModel.getGridElectricalPower().getActualConsumption() != null
                 && houseModel.getGridElectricalPower().getActualConsumption().getValue() != null
-                && houseModel.getGridElectricalPower().getActualConsumption().getValue().compareTo(BigDecimal.ZERO) < 0){
-            overallElectricPowerHouseView.getConsumption().setColorClass(ConditionColor.GREEN.getUiClass());
+                && houseModel.getGridElectricalPower().getActualConsumption().getValue().compareTo(BigDecimal.ZERO) < 0) {
+            if(isFeedingPowerConsumptionByPvBattery(pvAdditionalDataModel)){
+                overallElectricPowerHouseView.getConsumption().setColorClass(ConditionColor.BLUE.getUiClass());
+            }else{
+                overallElectricPowerHouseView.getConsumption().setColorClass(ConditionColor.GREEN.getUiClass());
+            }
         }else{
             overallElectricPowerHouseView.getConsumption().setColorClass(ConditionColor.DEFAULT.getUiClass());
         }
@@ -845,6 +854,11 @@ public class HouseViewService {
 
         // set model
         model.addAttribute("overallElectricPowerHouse", overallElectricPowerHouseView);
+    }
+
+    private static boolean isFeedingPowerConsumptionByPvBattery(PvAdditionalDataModel pvAdditionalDataModel) {
+        return pvAdditionalDataModel != null && pvAdditionalDataModel.getPvBatteryState() == PvBatteryState.DISCHARGING &&
+                Math.abs(pvAdditionalDataModel.getWattage()) > 10; // FIXME: check value !
     }
 
     private void formatPower(Model model, PowerMeter powerMeter, List<PowerConsumptionDay> pcd) {

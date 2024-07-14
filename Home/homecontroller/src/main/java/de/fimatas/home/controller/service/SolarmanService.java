@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -126,7 +127,7 @@ public class SolarmanService {
         lastStateOfCharge = actualStateOfCharge;
 
         if(BATTERY_KEYS.size() != batteryKeysAndValues.size()){
-            log.error("Battery keys and values do not match"); // FIXME
+            log.warn("Battery keys and values do not match");
             return null;
         }
 
@@ -136,15 +137,29 @@ public class SolarmanService {
         try {
             FileUtils.writeStringToFile(new File(batteryFileLogPath), logEntry, StandardCharsets.UTF_8, true);
         } catch (IOException e) {
-            log.warn("Unable to write battery log to " + batteryFileLogPath, e); // FIXME
+            log.warn("Unable to write battery log to " + batteryFileLogPath, e);
         }
 
-        // pvAdditionalDataModel.setBatteryStateOfCharge(Integer.parseInt(actualStateOfCharge)); // FIXME
-        pvAdditionalDataModel.setBatteryStateOfCharge(20); // FIXME
-        pvAdditionalDataModel.setBatteryCapacity(BigDecimal.ONE); // FIXME
-        pvAdditionalDataModel.setPvBatteryState(PvBatteryState.DISCHARGING); // FIXME
-        pvAdditionalDataModel.setWattage(100);
+        pvAdditionalDataModel.setBatteryStateOfCharge(Integer.parseInt(actualStateOfCharge));
+        pvAdditionalDataModel.setBatteryCapacity(new BigDecimal("5") // FIXME: Config
+                .multiply(new BigDecimal(actualStateOfCharge))
+                .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP));
+        pvAdditionalDataModel.setPvBatteryState(solarmanBatteryStateToInternalBatteryState(batteryKeysAndValues.get("B_ST1")));
+        pvAdditionalDataModel.setWattage(new BigDecimal(batteryKeysAndValues.get("B_P1")).intValue());
         return pvAdditionalDataModel;
+    }
+
+    private PvBatteryState solarmanBatteryStateToInternalBatteryState(String solarmanState){
+        if(solarmanState == null){
+            return null;
+        } else if(solarmanState.equalsIgnoreCase("Static")){
+            return PvBatteryState.STABLE;
+        }else if(solarmanState.equalsIgnoreCase("???_CHARGING_???")){ // FIXME
+            return PvBatteryState.CHARGING;
+        }else if(solarmanState.equalsIgnoreCase("???_DISCHARGING_???")){ // FIXME
+            return PvBatteryState.DISCHARGING;
+        }
+        return null;
     }
 
     private void checkStringsStatus(StringAmps stringAmps){
