@@ -3,6 +3,7 @@ package de.fimatas.home.client.domain.model;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class OverallElectricPowerHouseView extends View {
@@ -22,4 +23,14 @@ public class OverallElectricPowerHouseView extends View {
     private String timestampStateGrid = "unbekannt";
 
     private String pvSelfConsumptionPercentage = null;
+
+    private String batteryStateOfCharge;
+
+    private String batteryCapacity;
+
+    private String batteryState;
+
+    private String batteryColorClass;
+
+    private String batteryIcon;
 }

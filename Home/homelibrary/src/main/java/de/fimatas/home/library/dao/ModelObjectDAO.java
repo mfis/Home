@@ -5,10 +5,7 @@ import java.util.Date;
 import java.util.stream.Stream;
 
 import de.fimatas.home.library.domain.model.*;
-import de.fimatas.home.library.model.PresenceModel;
-import de.fimatas.home.library.model.SettingsContainer;
-import de.fimatas.home.library.model.SettingsModel;
-import de.fimatas.home.library.model.TasksModel;
+import de.fimatas.home.library.model.*;
 import de.fimatas.home.library.util.HomeAppConstants;
 import lombok.Getter;
 
@@ -35,6 +32,8 @@ public class ModelObjectDAO {
     private TasksModel tasksModel;
 
     private SettingsContainer settingsContainer;
+
+    private PvAdditionalDataModel pvAdditionalDataModel;
 
     @Getter
     private String lastHouseModelState;
@@ -82,6 +81,11 @@ public class ModelObjectDAO {
     public void write(TasksModel newModel) {
         tasksModel = newModel;
         tasksModel.setDateTime(new Date().getTime());
+    }
+
+    public void write(PvAdditionalDataModel newModel) {
+        pvAdditionalDataModel = newModel;
+        pvAdditionalDataModel.setDateTime(new Date().getTime());
     }
 
     public void write(LightsModel newModel) {
@@ -177,6 +181,15 @@ public class ModelObjectDAO {
         }
     }
 
+    public PvAdditionalDataModel readPvAdditionalDataModel() {
+        long newestTimestamp = pvAdditionalDataModel == null ? 0 : pvAdditionalDataModel.getDateTime();
+        if (pvAdditionalDataModel == null || new Date().getTime() - newestTimestamp > 1000 * HomeAppConstants.MODEL_PV_OUTDATED_SECONDS) {
+            return null; // Too old. Should never happen
+        } else {
+            return pvAdditionalDataModel;
+        }
+    }
+
     public PushMessageModel readPushMessageModel() {
         return pushMessageModel;
     }
@@ -195,6 +208,7 @@ public class ModelObjectDAO {
         ElectricVehicleModel evm = readElectricVehicleModel();
         PushMessageModel pmm = readPushMessageModel();
         TasksModel tm = readTasksModel();
+        PvAdditionalDataModel padm = readPvAdditionalDataModel();
 
         return  Stream.of(
                 hm==null?0:hm.getDateTime(),
@@ -204,7 +218,8 @@ public class ModelObjectDAO {
                 hpm==null?0:hpm.getTimestamp(),
                 evm==null?0:evm.getTimestamp(),
                 pmm==null?0:pmm.getTimestamp(),
-                tm==null?0:tm.getDateTime()
+                tm==null?0:tm.getDateTime(),
+                padm==null?0:padm.getDateTime()
         ).max(Long::compare).get();
     }
 

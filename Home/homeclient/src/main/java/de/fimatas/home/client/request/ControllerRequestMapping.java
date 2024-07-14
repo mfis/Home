@@ -6,8 +6,7 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 import de.fimatas.home.library.domain.model.*;
-import de.fimatas.home.library.model.PresenceModel;
-import de.fimatas.home.library.model.TasksModel;
+import de.fimatas.home.library.model.*;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
 import de.fimatas.home.client.model.MessageQueue;
 import de.fimatas.home.library.dao.ModelObjectDAO;
-import de.fimatas.home.library.model.Message;
-import de.fimatas.home.library.model.SettingsContainer;
 
 @RestController
 @CommonsLog
@@ -97,6 +94,12 @@ public class ControllerRequestMapping {
     @PostMapping(value = UPLOAD_METHOD_PREFIX + "TasksModel")
     public ActionModel uploadTasksModel(@RequestBody TasksModel tasksModel) {
         ModelObjectDAO.getInstance().write(tasksModel);
+        return new ActionModel("OK");
+    }
+
+    @PostMapping(value = UPLOAD_METHOD_PREFIX + "PvAdditionalDataModel")
+    public ActionModel uploadPvAdditionalDataModel(@RequestBody PvAdditionalDataModel pvAdditionalDataModel) {
+        ModelObjectDAO.getInstance().write(pvAdditionalDataModel);
         return new ActionModel("OK");
     }
 

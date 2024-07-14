@@ -130,6 +130,7 @@ public class SolarmanAPI {
         if(responseEntity.getStatusCode() == FORBIDDEN || responseEntity.getStatusCode() == UNAUTHORIZED){
             throw new IllegalAccessException("response code " + responseEntity.getStatusCode());
         }
+        //log.info("SOLARMAN:" + responseEntity.getBody());
         final JsonNode tree = jsonObjectMapper.readTree(responseEntity.getBody());
         if(tree.get("success").asText().equalsIgnoreCase("false")){
             throw new IllegalStateException("call not successful: " + tree.get("msg").asText());

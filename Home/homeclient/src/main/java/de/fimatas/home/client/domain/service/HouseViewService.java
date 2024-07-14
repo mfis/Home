@@ -94,7 +94,7 @@ public class HouseViewService {
         });
     }
 
-    public void fillViewModel(Model model, String username, HouseModel house, HistoryModel historyModel, LightsModel lightsModel, WeatherForecastModel weatherForecastModel, PresenceModel presenceModel, HeatpumpModel heatpumpModel, ElectricVehicleModel electricVehicleModel, PushMessageModel pushMessageModel, TasksModel tasksModel) {
+    public void fillViewModel(Model model, String username, HouseModel house, HistoryModel historyModel, LightsModel lightsModel, WeatherForecastModel weatherForecastModel, PresenceModel presenceModel, HeatpumpModel heatpumpModel, ElectricVehicleModel electricVehicleModel, PushMessageModel pushMessageModel, TasksModel tasksModel, PvAdditionalDataModel pvAdditionalDataModel) {
 
         model.addAttribute("modelTimestamp", ModelObjectDAO.getInstance().calculateModelTimestamp());
 
@@ -126,7 +126,7 @@ public class HouseViewService {
         formatFrontDoorBell(model, "frontDoor", house.getFrontDoorBell());
         formatFrontDoorLock(model, "frontDoorLock", house.getFrontDoorLock());
 
-        formatOverallElectricPowerHouse(model, house, historyModel);
+        formatOverallElectricPowerHouse(model, house, historyModel, pvAdditionalDataModel);
         formatPower(model, house.getGasConsumption(), historyModel==null?null:historyModel.getGasConsumptionDay());
         formatWallboxSwitch(model, lookupWallboxId(), house.getWallboxSwitch(), house.getWallboxElectricalPowerConsumption(), electricVehicleModel);
         formatPower(model, house.getWallboxElectricalPowerConsumption(), historyModel==null?null:historyModel.getWallboxElectricPowerConsumptionDay());
@@ -688,7 +688,7 @@ public class HouseViewService {
         model.addAttribute(viewKeyMax, viewMax);
     }
 
-    private void formatOverallElectricPowerHouse(Model model, HouseModel houseModel, HistoryModel historyModel) {
+    private void formatOverallElectricPowerHouse(Model model, HouseModel houseModel, HistoryModel historyModel, PvAdditionalDataModel pvAdditionalDataModel) {
 
         OverallElectricPowerHouseView overallElectricPowerHouseView = new OverallElectricPowerHouseView();
         Device baseDevice = Device.STROMZAEHLER_BEZUG;
@@ -787,7 +787,6 @@ public class HouseViewService {
                 ConditionColor.DEFAULT.getUiClass() : overallElectricPowerHouseView.getConsumption().getColorClass());
 
         // status time
-        // TODO: Extract method
         if(houseModel.getPvStatusTime() > 0){
             LocalDateTime timestampPV = Instant.ofEpochMilli(houseModel.getPvStatusTime()).atZone(ZoneId.systemDefault()).toLocalDateTime();
             long diffPV = ChronoUnit.MINUTES.between(timestampPV, LocalDateTime.now());
@@ -810,6 +809,39 @@ public class HouseViewService {
         overallElectricPowerHouseView.setName("Strom");
         overallElectricPowerHouseView.setIcon("fas fa-bolt");
         overallElectricPowerHouseView.setElementTitleState(ets);
+
+        // battery
+        if(pvAdditionalDataModel != null){
+            overallElectricPowerHouseView.setBatteryStateOfCharge(pvAdditionalDataModel.getBatteryStateOfCharge() + "%");
+            if (pvAdditionalDataModel.getPvBatteryState() == null) {
+                overallElectricPowerHouseView.setBatteryState("Unbekannt");
+                overallElectricPowerHouseView.setBatteryColorClass(ConditionColor.RED.getUiClass());
+            } else if(pvAdditionalDataModel.getPvBatteryState() == PvBatteryState.STABLE){
+                overallElectricPowerHouseView.setBatteryState("Inaktiv");
+                overallElectricPowerHouseView.setBatteryColorClass(ConditionColor.GRAY.getUiClass());
+            }else if(pvAdditionalDataModel.getPvBatteryState() == PvBatteryState.CHARGING){
+                overallElectricPowerHouseView.setBatteryState("Lädt " + pvAdditionalDataModel.getWattage() + " W");
+                overallElectricPowerHouseView.setBatteryColorClass(ConditionColor.GREEN.getUiClass());
+            }else {
+                overallElectricPowerHouseView.setBatteryState("Speist " + pvAdditionalDataModel.getWattage() + " W");
+                overallElectricPowerHouseView.setBatteryColorClass(ConditionColor.BLUE.getUiClass());
+            }
+            if(pvAdditionalDataModel.getBatteryStateOfCharge() < 15){
+                overallElectricPowerHouseView.setBatteryIcon("fa-solid fa-battery-empty");
+            } else if(pvAdditionalDataModel.getBatteryStateOfCharge() < 40){
+                overallElectricPowerHouseView.setBatteryIcon("fa-solid fa-battery-quarter");
+            } else if(pvAdditionalDataModel.getBatteryStateOfCharge() < 65){
+                overallElectricPowerHouseView.setBatteryIcon("fa-solid fa-battery-half");
+            } else if(pvAdditionalDataModel.getBatteryStateOfCharge() < 90){
+                overallElectricPowerHouseView.setBatteryIcon("fa-solid fa-battery-three-quarters");
+            } else {
+                overallElectricPowerHouseView.setBatteryIcon("fa-solid fa-battery-full");
+            }
+        } else{
+            overallElectricPowerHouseView.setBatteryState("Speicher: Unbekannt");
+            overallElectricPowerHouseView.setBatteryStateOfCharge("");
+            overallElectricPowerHouseView.setBatteryColorClass(ConditionColor.GRAY.getUiClass());
+        }
 
         // set model
         model.addAttribute("overallElectricPowerHouse", overallElectricPowerHouseView);

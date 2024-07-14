@@ -9,11 +9,11 @@
 		<div class="collapse collapse-preserve-state w-100" th:id="'collapse' + ${model.id}">
 
 			<div style="max-width: 400px;">
-				<table style="width: 98%; margin-top: 10px;">
+				<table style="width: 98%; margin-top: 10px; border: 0">
 					<tr align="center" style="margin-top: 10px;">
 						<!-- COL PLUG -->
 						<td colspan="2">
-							<table border="0" width="100%">
+							<table width="100%" style=" border: 0">
 								<tr align="center">
 									<td th:class="'text-' + ${model.consumption.colorClass}">
 										<th:block th:replace="~{basics :: symbolWithStyle (name=${model.consumption.icon}, style='font-size: 150%;')}"/>
@@ -52,13 +52,16 @@
 					<tr align="center">
 						<!-- COL PV -->
 						<td>
-							<table border="0" width="100%" >
+							<table width="100%" style=" border: 0">
 								<tr align="left">
 									<td height="35px" th:class="'text-' + ${model.pv.colorClass}">
 										<table width="50%" border="0">
 											<tr>
-												<td th:class="'text-' + ${model.pv.colorClass}">
+												<td th:class="'text-' + ${model.pv.colorClass}" style="padding-right: 7px;">
 													<th:block th:replace="~{basics :: symbolWithStyle (name=${model.pv.icon}, style='font-size: 150%;')}"/>
+												</td>
+												<td th:class="'text-' + ${model.batteryColorClass}" width="65%">
+													<th:block th:replace="~{basics :: symbolWithStyle (name=${model.batteryIcon}, style='font-size: 150%;')}"/>
 												</td>
 												<td align="right">
 													<th:block th:unless="${#strings.equals(model.pv.directionArrowClass,'#')}">
@@ -74,7 +77,7 @@
 									</td>
 								</tr>
 								<tr align="left">
-									<td th:class="'text-' + ${model.pv.colorClass}">Produktion</td>
+									<td th:class="'text-' + ${model.pv.colorClass}">PV + Speicher</td>
 								</tr>
 								<tr align="left">
 									<td th:class="'text-' + ${model.pv.colorClass}">
@@ -91,12 +94,17 @@
 										</th:block>
 									</td>
 								</tr>
-								<tr><td height="100%">&nbsp;</td></tr>
+								<tr>
+									<td th:class="'text-' + ${model.batteryColorClass}">
+										<span><th:block th:replace="~{basics :: symbol (name=${model.batteryIcon})}"/></span>
+										<span th:text="${model.batteryState} + ', ' + ${model.batteryStateOfCharge}"></span>
+									</td>
+								</tr>
 							</table>
 						</td>
 						<!-- COL GRID -->
 						<td>
-							<table border="0" width="100%">
+							<table width="100%" style=" border: 0">
 								<tr align="right">
 									<td height="35px">
 										<table border="0" width="50%">

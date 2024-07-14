@@ -70,6 +70,9 @@ public class ClientCommunicationService {
     private TasksService tasksService;
 
     @Autowired
+    private SolarmanService solarmanService;
+
+    @Autowired
     @Qualifier("restTemplateLongPolling")
     private RestTemplate restTemplateLongPolling;
 
@@ -234,6 +237,12 @@ public class ClientCommunicationService {
             tasksService.refresh();
         } else {
             uploadService.uploadToClient(ModelObjectDAO.getInstance().readTasksModel());
+        }
+
+        if (ModelObjectDAO.getInstance().readPvAdditionalDataModel() == null) {
+            solarmanService.refresh();
+        } else {
+            uploadService.uploadToClient(ModelObjectDAO.getInstance().readPvAdditionalDataModel());
         }
 
         settingsService.refreshSettingsModelsComplete();
