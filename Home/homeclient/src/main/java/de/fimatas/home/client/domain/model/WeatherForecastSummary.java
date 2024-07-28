@@ -110,7 +110,7 @@ public class WeatherForecastSummary {
         summary.setDay(fromValues.isDay());
         summary.setPrecipitationInMM(toValues.getPrecipitationInMM());
         summary.setPrecipitationProbability(toValues.getPrecipitationProbability());
-        summary.setSunshineInMin(BigDecimal.valueOf(fromValues.getSunshineInMin().intValue() + toValues.getSunshineInMin().intValue() / 2));
+        summary.setSunshineInMin(BigDecimal.valueOf((fromValues.getSunshineInMin().intValue() + toValues.getSunshineInMin().intValue()) / 2));
         summary.setIcons(fromValues.getIcons());
         return summary;
     }

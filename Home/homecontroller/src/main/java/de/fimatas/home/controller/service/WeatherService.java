@@ -204,6 +204,10 @@ public class WeatherService {
             set.remove(WeatherConditions.MOON_CLOUD);
         }
 
+        if (set.contains(WeatherConditions.SUN)) {
+            set.remove(WeatherConditions.SUN_CLOUD);
+        }
+
         return set.stream()
                 .sorted(Comparator.comparing(WeatherConditions::ordinalAsInteger))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
