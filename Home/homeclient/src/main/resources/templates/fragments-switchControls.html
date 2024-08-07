@@ -83,11 +83,7 @@
             </div>
             <!-- Overflow Range -->
             <th:block th:if="${#strings.equals(model.showOverflowRange, 'true') && #strings.startsWith(model.linkAuto, '#')}">
-                <div th:id="'rangecontainer-div-' + ${model.id}" class="rangecontainer" > <!-- style="display: flex;" -->
-                    <!--<div class="btn-group-vertical">
-                        <button type="button" class="btn btn-secondary btn-sm">Eins</button>
-                        <button type="button" class="btn btn-secondary btn-sm">Zwei</button>
-                    </div>-->
+                <div th:id="'rangecontainer-div-' + ${model.id}" class="rangecontainer" >
                     <div>
                         <input th:id="'rangecontainer-consumption-' + ${model.id}" type="hidden" th:value="${model.overflowConsumptionValue}"/>
                         <input th:id="'rangecontainer-rangemaxgridvalue-' + ${model.id}" type="hidden" th:value="${model.overflowMaxGridValue}"/>
@@ -98,6 +94,13 @@
                             <div th:id="'rangecontainer-label-3-' + ${model.id}" style="width: 40%; text-align: right;" class="text-warning"></div>
                         </div>
                         <input th:id="'rangecontainer-rangeinput-' + ${model.id}" type="range" class="form-range" min="0" max="100"/>
+                        <div><a>Einschalten ab Ladezustand PV-Batterie:</a></div>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-dark btn-sm">0%</button> <!-- <button type="button" class="btn btn-secondary btn-sm">0%</button> -->
+                            <button type="button" class="btn btn-dark btn-sm">20%</button>
+                            <button type="button" class="btn btn-dark btn-sm">50%</button>
+                            <button type="button" class="btn btn-dark btn-sm">80%</button>
+                        </div>
                         <div><a th:text="${model.overflowPriority}"></a></div>
                         <div><a th:text="${model.overflowDelayInfo}"></a></div>
                         <div><a th:text="${model.overflowCounterInfo}"></a></div>
