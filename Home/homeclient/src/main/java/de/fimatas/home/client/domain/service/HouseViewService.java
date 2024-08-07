@@ -1444,8 +1444,9 @@ public class HouseViewService {
 
         HeatpumpPreset actualPreset = isUnreachable ? null : heatpumpModel.getHeatpumpMap().get(place).getHeatpumpPreset();
 
+        view.setLinkRefresh(buildHeatpumpPresetLink(place, HeatpumpPreset.UNKNOWN, actualPreset));
         if(actualPreset==HeatpumpPreset.UNKNOWN){
-            view.setLinkRefresh(buildHeatpumpPresetLink(place, HeatpumpPreset.UNKNOWN, actualPreset));
+            view.setStateUnknown(true);
         }else{
             view.setLinkCoolAuto(buildHeatpumpPresetLink(place, HeatpumpPreset.COOL_AUTO, actualPreset));
             view.setLinkCoolMin(buildHeatpumpPresetLink(place, HeatpumpPreset.COOL_MIN, actualPreset));
