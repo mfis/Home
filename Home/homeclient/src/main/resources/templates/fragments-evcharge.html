@@ -32,7 +32,7 @@
 				<div><a>Ladezeit bis Limit:</a></div>
 				<div class="btn-group" role="group" aria-label="evmaxcharge">
 					<th:block th:each="entry : ${model.chargeLimits}">
-						<button style="margin-top: 8px; width: 49px" type="button" th:class="${#strings.startsWith(entry.value, '#')} ? 'btn btn-dark btn-sm btn-block' : 'btn btn-secondary btn-sm btn-block'" th:onclick="@{'evChargeLimit(\''+ ${model.chargeLimitLink} +'\', \'' + ${entry.value} + '\')'}">
+						<button style="margin-top: 8px; width: 49px" type="button" th:class="${#strings.startsWith(entry.value, '#')} ? 'btn btn-dark btn-sm btn-block' : 'btn btn-secondary btn-sm btn-block'" th:onclick="@{'submitLinkWithValue(\''+ ${model.chargeLimitLink} +'\', \'' + ${entry.value} + '\')'}">
 							<span th:class="${#strings.startsWith(entry.value, '#')} ? 'text-' + ${model.activeSwitchColorClass}"th:text="${entry.caption}"></span>
 						</button>
 					</th:block>

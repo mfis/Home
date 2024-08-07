@@ -1067,6 +1067,11 @@ public class HouseViewService {
             view.setOverflowPriority(String.format("Priorität: %s", switchModel.getPvOverflowPriority()));
             view.setOverflowDelayInfo(String.format("Ein-/Ausschaltverzögerung: %s/%s Minuten", switchModel.getPvOverflowDelayOnMinutes(), switchModel.getPvOverflowDelayOffMinutes()));
             view.setOverflowCounterInfo(String.format("Einschaltvorgänge heute: %s von max %s", switchModel.getPvOverflowCounterActual(), switchModel.getPvOverflowCounterMax()));
+            view.setLinkMinPvBattery(MESSAGEPATH + TYPE_IS + MessageType.PV_OVERFLOW_MIN_PATTERY_PERCENTAGE + AND_DEVICE_IS + switchModel.getDevice().name() + AND_VALUE_IS);
+            Stream.of(PvBatteryMinCharge.values()).forEach(cl -> {
+                var value = cl.getPercentage()==switchModel.getMinPvBatteryPercentageInOverflowAutomationMode() ? "#" : Short.toString(cl.getPercentage());
+                view.getMinPvBatteryPercentages().add(new ValueWithCaption(value, cl.getCaption(), null));
+            });
         }
 
         view.setState(switchModel.isState() ? "Eingeschaltet" : "Ausgeschaltet");

@@ -50,6 +50,8 @@ public class PhotovoltaicsOverflowService {
 
     private final String STATEHANDLER_GROUPNAME_PV_OVERFLOW = "pv-overflow";
 
+    private final String STATEHANDLER_GROUPNAME_PV_MIN_BATTERY = "pv-min-bat";
+
     ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     private static final Log LOG = LogFactory.getLog(PhotovoltaicsOverflowService.class);
@@ -104,6 +106,7 @@ public class PhotovoltaicsOverflowService {
             switchModel.setPvOverflowConfigured(true);
             switchModel.setDefaultWattage(ocd.defaultWattage);
             switchModel.setMaxWattageFromGridInOverflowAutomationMode(readMaxGridWattage(ocd.shortName));
+            switchModel.setMinPvBatteryPercentageInOverflowAutomationMode(readMinBatteryPercentage(ocd.shortName));
             switchModel.setPvOverflowPriority(ocd.defaultPriority);
             switchModel.setPvOverflowCounterActual(overflowControlledDeviceStates.get(ocd).dailyOnSwitchingCounter);
             switchModel.setPvOverflowCounterMax(ocd.maxDailyOnSwitching);
@@ -118,6 +121,16 @@ public class PhotovoltaicsOverflowService {
             Switch switchModel = (Switch) getDeviceModel(ModelObjectDAO.getInstance().readHouseModel(), ocd);
             if(switchModel.getDevice() == device){
                 stateHandlerDAO.writeState(STATEHANDLER_GROUPNAME_PV_OVERFLOW, ocd.shortName, Integer.toString(value));
+            }
+        });
+        houseService.refreshHouseModel(true);
+    }
+
+    public void writeOverflowMinBatteryPercentage(Device device, int percentage){
+        overflowControlledDeviceStates.keySet().forEach(ocd -> {
+            Switch switchModel = (Switch) getDeviceModel(ModelObjectDAO.getInstance().readHouseModel(), ocd);
+            if(switchModel.getDevice() == device){
+                stateHandlerDAO.writeState(STATEHANDLER_GROUPNAME_PV_MIN_BATTERY, ocd.shortName, Integer.toString(percentage));
             }
         });
         houseService.refreshHouseModel(true);
@@ -143,7 +156,7 @@ public class PhotovoltaicsOverflowService {
                 final var deviceModel = getDeviceModel(houseModel, ocd);
                 final var actualDeviceWattage = getActualDeviceWattage(ocd, deviceModel);
                 if (isAutoModeOn(deviceModel) && isActualDeviceSwitchState(deviceModel)) {
-                    if (wattage > readMaxGridWattage(ocd.shortName)) {
+                    if (wattage > readMaxGridWattage(ocd.shortName)) { // FIXME: MIN_PV_BATTERY
                         switch(overflowControlledDeviceStates.get(ocd).controlState){
                             case STABLE -> setControlState(ocd, ControlState.PREPARE_TO_OFF);
                             case PREPARE_TO_OFF -> {
@@ -176,7 +189,7 @@ public class PhotovoltaicsOverflowService {
                 final var deviceModel = getDeviceModel(houseModel, ocd);
                 final var actualDeviceWattage = getActualDeviceWattage(ocd, deviceModel);
                 if (isAutoModeOn(deviceModel) && !isActualDeviceSwitchState(deviceModel)) {
-                    var minWattsFromPV = (actualDeviceWattage - readMaxGridWattage(ocd.shortName)) * -1;
+                    var minWattsFromPV = (actualDeviceWattage - readMaxGridWattage(ocd.shortName)) * -1; // FIXME: MIN_PV_BATTERY
                     var releaseable = sumOfReleaseablePvWattageWithLowerProprity(ocd, houseModel);
                     if (wattage + releaseable <= minWattsFromPV) {
                         switch (overflowControlledDeviceStates.get(ocd).controlState) {
@@ -337,6 +350,18 @@ public class PhotovoltaicsOverflowService {
         scheduler.schedule(() -> stateHandlerDAO.writeState(
                 STATEHANDLER_GROUPNAME_PV_OVERFLOW, shortName, Integer.toString(0)), writeDelaySeconds, TimeUnit.SECONDS);
         return 0;
+    }
+
+    private int readMinBatteryPercentage(String shortName){
+        var state = stateHandlerDAO.readState(STATEHANDLER_GROUPNAME_PV_MIN_BATTERY, shortName);
+        if(state != null){
+            return Integer.parseInt(state.getValue());
+        }
+        int writeDelaySeconds = stateHandlerDAO.isSetupIsRunning()? 30 : 0;
+        int defaultValue = PvBatteryMinCharge._00.getPercentage();
+        scheduler.schedule(() -> stateHandlerDAO.writeState(
+                STATEHANDLER_GROUPNAME_PV_MIN_BATTERY, shortName, Integer.toString(defaultValue)), writeDelaySeconds, TimeUnit.SECONDS);
+        return defaultValue;
     }
 
     private record OverflowControlledDevice (

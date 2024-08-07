@@ -552,7 +552,7 @@ function enableSlider(id){
     }, 6000);
 }
 
-function evChargeLimit(link, value){
+function submitLinkWithValue(link, value){
     if(!value.startsWith('#')){
         let linkComplete = link + value;
         submitContent(linkComplete);

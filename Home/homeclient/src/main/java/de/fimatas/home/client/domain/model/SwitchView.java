@@ -2,6 +2,9 @@ package de.fimatas.home.client.domain.model;
 
 import lombok.Data;
 
+import java.util.LinkedList;
+import java.util.List;
+
 @Data
 public class SwitchView extends View {
 
@@ -16,6 +19,8 @@ public class SwitchView extends View {
     private String linkAuto = "#";
 
     private String linkManual = "#";
+
+    private String linkMinPvBattery = "#";
 
     private String autoInfoText = "";
 
@@ -36,5 +41,7 @@ public class SwitchView extends View {
     private String overflowCounterInfo = "";
 
     private String overflowPriority = "";
+
+    private List<ValueWithCaption> minPvBatteryPercentages = new LinkedList<>();
 
 }

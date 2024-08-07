@@ -168,6 +168,9 @@ public class ClientCommunicationService {
             case PV_OVERFLOW_MAX_WATTS_GRID:
                 photovoltaicsOverflowService.writeOverflowGridWattage(message.getDevice(), Integer.parseInt(message.getValue()));
                 break;
+                case PV_OVERFLOW_MIN_PATTERY_PERCENTAGE:
+                photovoltaicsOverflowService.writeOverflowMinBatteryPercentage(message.getDevice(), Integer.parseInt(message.getValue()));
+                break;
             case TASKS_EXECUTION:
                 tasksService.markAsExecuted(message.getDeviceId());
                 break;
