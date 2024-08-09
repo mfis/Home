@@ -54,6 +54,7 @@ public class SolarmanService {
     private String alarm = null;
 
     private static final BigDecimal STRING_CHECK_LOWER_LIMIT_AMPS = new BigDecimal("0.5");
+    private static final BigDecimal _100 = new BigDecimal("100");
 
     private String lastStateOfCharge = "";
 
@@ -141,9 +142,9 @@ public class SolarmanService {
         }
 
         pvAdditionalDataModel.setBatteryStateOfCharge(Integer.parseInt(actualStateOfCharge));
-        pvAdditionalDataModel.setBatteryCapacity(new BigDecimal("5") // FIXME: Config
+        pvAdditionalDataModel.setBatteryCapacity(new BigDecimal("4.75") // FIXME: Config
                 .multiply(new BigDecimal(actualStateOfCharge))
-                .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP));
+                .divide(_100, 2, RoundingMode.HALF_UP));
         pvAdditionalDataModel.setPvBatteryState(solarmanBatteryStateToInternalBatteryState(batteryKeysAndValues.get("B_ST1")));
         pvAdditionalDataModel.setWattage(new BigDecimal(batteryKeysAndValues.get("B_P1")).intValue());
         return pvAdditionalDataModel;

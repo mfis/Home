@@ -6,6 +6,7 @@ import de.fimatas.home.controller.model.State;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.homematic.model.Device;
+import de.fimatas.home.library.model.PvAdditionalDataModel;
 import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -198,8 +199,10 @@ class PhotovoltaicsOverflowServiceTest {
     }
 
     private void refresh(int minutes, int wattage, boolean wallboxAutomatic, boolean wallboxOn, boolean heatingAutomatic, boolean heatingOn) {
+
         Mockito.reset(houseService);
         setDateTimeOffsetMinutes(minutes);
+
         HouseModel houseModel = new HouseModel();
         houseModel.setGridElectricalPower(new PowerMeter());
         houseModel.getGridElectricalPower().setActualConsumption(new ValueWithTendency<>());
@@ -214,6 +217,11 @@ class PhotovoltaicsOverflowServiceTest {
         houseModel.getGuestRoomInfraredHeater().setAutomation(heatingAutomatic);
         houseModel.getGuestRoomInfraredHeater().setState(heatingOn);
         ModelObjectDAO.getInstance().write(houseModel);
+
+        PvAdditionalDataModel pvAdditionalDataModel = new PvAdditionalDataModel();
+        pvAdditionalDataModel.setBatteryStateOfCharge(0);
+        ModelObjectDAO.getInstance().write(pvAdditionalDataModel);
+
         photovoltaicsOverflowService.houseModelRefreshed();
     }
 

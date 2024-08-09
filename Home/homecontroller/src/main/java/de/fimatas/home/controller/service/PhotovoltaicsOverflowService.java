@@ -146,26 +146,26 @@ public class PhotovoltaicsOverflowService {
             return;
         }
 
-        int wattage = houseModel.getGridElectricalPower().getActualConsumption().getValue().intValue();
+        int pvBatteryPercentage = ModelObjectDAO.getInstance().readPvAdditionalDataModel().getBatteryStateOfCharge();
+        int wattageGrid = houseModel.getGridElectricalPower().getActualConsumption().getValue().intValue();
 
         // assume grid-powered - turn something off? starting with lowest priotity
         var reverseIterator = new ReverseListIterator<>(overflowControlledDevices);
         while (reverseIterator.hasNext()) {
             var ocd = reverseIterator.next();
-            if(wattage >= 0) {
+            if(wattageGrid >= 0) {
                 final var deviceModel = getDeviceModel(houseModel, ocd);
                 final var actualDeviceWattage = getActualDeviceWattage(ocd, deviceModel);
                 if (isAutoModeOn(deviceModel) && isActualDeviceSwitchState(deviceModel)) {
-                    if (wattage > readMaxGridWattage(ocd.shortName)) { // FIXME: MIN_PV_BATTERY
+                    if (wattageGrid > readMaxGridWattage(ocd.shortName)) { // FIXME: MIN_PV_BATTERY
                         switch(overflowControlledDeviceStates.get(ocd).controlState){
                             case STABLE -> setControlState(ocd, ControlState.PREPARE_TO_OFF);
                             case PREPARE_TO_OFF -> {
                                 if(isSwitchOffDelayReached(ocd)){
-                                    //LOG.info("switch OFF " + deviceModel.getDevice().name());
                                     houseService.togglestate(deviceModel.getDevice(), false);
                                     setControlState(ocd, ControlState.STABLE);
                                     hasToRefreshHouseModel = true;
-                                    wattage -= actualDeviceWattage;
+                                    wattageGrid -= actualDeviceWattage;
                                     pushService.sendNotice("PV-Überschuss: " + deviceModel.getDevice().getDescription() + " ausgeschaltet.");
                                 }
                             }
@@ -185,27 +185,25 @@ public class PhotovoltaicsOverflowService {
 
         // assume pv overflow - turn something on? starting with highest priority
         for (OverflowControlledDevice ocd : overflowControlledDevices) {
-            if (wattage < 0) {
+            if (wattageGrid < 0) {
                 final var deviceModel = getDeviceModel(houseModel, ocd);
                 final var actualDeviceWattage = getActualDeviceWattage(ocd, deviceModel);
                 if (isAutoModeOn(deviceModel) && !isActualDeviceSwitchState(deviceModel)) {
                     var minWattsFromPV = (actualDeviceWattage - readMaxGridWattage(ocd.shortName)) * -1; // FIXME: MIN_PV_BATTERY
                     var releaseable = sumOfReleaseablePvWattageWithLowerProprity(ocd, houseModel);
-                    if (wattage + releaseable <= minWattsFromPV) {
+                    if (wattageGrid + releaseable <= minWattsFromPV) {
                         switch (overflowControlledDeviceStates.get(ocd).controlState) {
                             case STABLE -> setControlState(ocd, ControlState.PREPARE_TO_ON);
                             case PREPARE_TO_ON -> {
                                 if (isSwitchOnDelayReachedAndAllowed(ocd)) {
-                                    //LOG.info("switch ON " + deviceModel.getDevice().name() + " #" +
-                                      //      overflowControlledDeviceStates.get(ocd).dailyOnSwitchingCounter + "/" + ocd.maxDailyOnSwitching);
-                                    var wattsToRelease = minWattsFromPV - wattage;
+                                    var wattsToRelease = minWattsFromPV - wattageGrid;
                                     var releasedWatts = releasePvWatts(wattsToRelease, ocd, houseModel);
                                     if(releasedWatts < wattsToRelease){ // both values negative!
                                         houseService.togglestate(deviceModel.getDevice(), true);
                                         setControlState(ocd, ControlState.STABLE);
                                         hasToRefreshHouseModel = true;
                                         overflowControlledDeviceStates.get(ocd).dailyOnSwitchingCounter += 1;
-                                        wattage += actualDeviceWattage;
+                                        wattageGrid += actualDeviceWattage;
                                         pushService.sendNotice("PV-Überschuss: " + deviceModel.getDevice().getDescription() + " eingeschaltet.");
                                     }
                                 }
