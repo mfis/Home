@@ -9,11 +9,17 @@ public class PvAdditionalDataModel {
 
     private long dateTime;
 
-    private int batteryStateOfCharge;
+    private int batteryStateOfCharge; // percent SOC
 
-    private BigDecimal batteryCapacity;
+    private BigDecimal batteryCapacity; // kW/h
 
-    private PvBatteryState pvBatteryState;
+    private PvBatteryState pvBatteryState; // charging/discharging
 
-    private int wattage;
+    private int batteryWattage; // charging/feeding 'pvBatteryState' Watt
+
+    private int maxChargeWattage; // maximum watt to charge
+
+    private int minChargingWattageForOverflowControl; // keep left this wattage for charging if target percentage is not reached
+
+    private int batteryPercentageEmptyForOverflowControl; // minimum percent SOC
 }

@@ -7,7 +7,7 @@ import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.model.PvAdditionalDataModel;
-import org.junit.Ignore;
+import de.fimatas.home.library.model.PvBatteryState;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -16,7 +16,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import java.math.BigDecimal;
@@ -204,22 +203,34 @@ class PhotovoltaicsOverflowServiceTest {
         setDateTimeOffsetMinutes(minutes);
 
         HouseModel houseModel = new HouseModel();
+
         houseModel.setGridElectricalPower(new PowerMeter());
         houseModel.getGridElectricalPower().setActualConsumption(new ValueWithTendency<>());
         houseModel.getGridElectricalPower().getActualConsumption().setValue(new BigDecimal(wattage));
         houseModel.setGridElectricStatusTime(uniqueTimestampService.getNonUnique().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
+
         houseModel.setWallboxSwitch(new Switch());
         houseModel.getWallboxSwitch().setDevice(Device.SCHALTER_WALLBOX);
         houseModel.getWallboxSwitch().setAutomation(wallboxAutomatic);
         houseModel.getWallboxSwitch().setState(wallboxOn);
+        houseModel.getWallboxSwitch().setMinPvBatteryPercentageInOverflowAutomationMode(10);
+
         houseModel.setGuestRoomInfraredHeater(new Switch());
         houseModel.getGuestRoomInfraredHeater().setDevice(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG);
         houseModel.getGuestRoomInfraredHeater().setAutomation(heatingAutomatic);
         houseModel.getGuestRoomInfraredHeater().setState(heatingOn);
+        houseModel.getGuestRoomInfraredHeater().setMinPvBatteryPercentageInOverflowAutomationMode(5);
+
         ModelObjectDAO.getInstance().write(houseModel);
 
-        PvAdditionalDataModel pvAdditionalDataModel = new PvAdditionalDataModel();
+        var pvAdditionalDataModel = new PvAdditionalDataModel();
         pvAdditionalDataModel.setBatteryStateOfCharge(0);
+        pvAdditionalDataModel.setMinChargingWattageForOverflowControl(2000);
+        pvAdditionalDataModel.setBatteryCapacity(new BigDecimal(4750));
+        pvAdditionalDataModel.setMaxChargeWattage(2500);
+        pvAdditionalDataModel.setPvBatteryState(PvBatteryState.STABLE);
+        pvAdditionalDataModel.setBatteryWattage(0);
+        pvAdditionalDataModel.setBatteryPercentageEmptyForOverflowControl(5);
         ModelObjectDAO.getInstance().write(pvAdditionalDataModel);
 
         photovoltaicsOverflowService.houseModelRefreshed();

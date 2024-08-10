@@ -829,10 +829,10 @@ public class HouseViewService {
                 overallElectricPowerHouseView.setBatteryState("Inaktiv");
                 overallElectricPowerHouseView.setBatteryColorClass(ConditionColor.GRAY.getUiClass());
             }else if(pvAdditionalDataModel.getPvBatteryState() == PvBatteryState.CHARGING){
-                overallElectricPowerHouseView.setBatteryState("Lädt " + pvAdditionalDataModel.getWattage() + " W");
+                overallElectricPowerHouseView.setBatteryState("Lädt " + pvAdditionalDataModel.getBatteryWattage() + " W");
                 overallElectricPowerHouseView.setBatteryColorClass(ConditionColor.GREEN.getUiClass());
             }else {
-                overallElectricPowerHouseView.setBatteryState("Speist " + pvAdditionalDataModel.getWattage() + " W");
+                overallElectricPowerHouseView.setBatteryState("Speist " + pvAdditionalDataModel.getBatteryWattage() + " W");
                 overallElectricPowerHouseView.setBatteryColorClass(ConditionColor.BLUE.getUiClass());
             }
             if(pvAdditionalDataModel.getBatteryStateOfCharge() < 15){
@@ -858,7 +858,7 @@ public class HouseViewService {
 
     private static boolean isFeedingPowerConsumptionByPvBattery(PvAdditionalDataModel pvAdditionalDataModel) {
         return pvAdditionalDataModel != null && pvAdditionalDataModel.getPvBatteryState() == PvBatteryState.DISCHARGING &&
-                Math.abs(pvAdditionalDataModel.getWattage()) > 10; // FIXME: check value !
+                pvAdditionalDataModel.getBatteryWattage() >= 10;
     }
 
     private void formatPower(Model model, PowerMeter powerMeter, List<PowerConsumptionDay> pcd) {

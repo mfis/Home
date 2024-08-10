@@ -8,6 +8,7 @@ import de.fimatas.home.controller.command.HomematicCommand;
 import de.fimatas.home.controller.command.HomematicCommandBuilder;
 import de.fimatas.home.controller.dao.DaoUtils;
 import de.fimatas.home.library.dao.ModelObjectDAO;
+import de.fimatas.home.library.domain.model.PvBatteryMinCharge;
 import de.fimatas.home.library.homematic.model.Datapoint;
 import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.model.PhotovoltaicsStringsStatus;
@@ -142,17 +143,23 @@ public class SolarmanService {
         }
 
         pvAdditionalDataModel.setBatteryStateOfCharge(Integer.parseInt(actualStateOfCharge));
+        pvAdditionalDataModel.setMaxChargeWattage(2500); // FIXME: Config
+        pvAdditionalDataModel.setMinChargingWattageForOverflowControl((int) ((double)pvAdditionalDataModel.getMaxChargeWattage() * 0.75)); // FIXME: Config
+        pvAdditionalDataModel.setBatteryPercentageEmptyForOverflowControl(5); // FIXME: Config
+        if(pvAdditionalDataModel.getBatteryPercentageEmptyForOverflowControl() > PvBatteryMinCharge.getLowest().getPercentage()){
+            log.error("PvBatteryMinCharge too low: " + PvBatteryMinCharge.getLowest().getPercentage());
+        }
         pvAdditionalDataModel.setBatteryCapacity(new BigDecimal("4.75") // FIXME: Config
                 .multiply(new BigDecimal(actualStateOfCharge))
                 .divide(_100, 2, RoundingMode.HALF_UP));
         pvAdditionalDataModel.setPvBatteryState(solarmanBatteryStateToInternalBatteryState(batteryKeysAndValues.get("B_ST1")));
-        pvAdditionalDataModel.setWattage(new BigDecimal(batteryKeysAndValues.get("B_P1")).intValue());
+        pvAdditionalDataModel.setBatteryWattage(Math.abs(new BigDecimal(batteryKeysAndValues.get("B_P1")).intValue()));
         return pvAdditionalDataModel;
     }
 
     private PvBatteryState solarmanBatteryStateToInternalBatteryState(String solarmanState){
         if(solarmanState == null){
-            return null;
+            return PvBatteryState.STABLE;
         } else if(solarmanState.equalsIgnoreCase("Static")){
             return PvBatteryState.STABLE;
         }else if(solarmanState.equalsIgnoreCase("???_CHARGING_???")){ // FIXME
@@ -160,7 +167,7 @@ public class SolarmanService {
         }else if(solarmanState.equalsIgnoreCase("???_DISCHARGING_???")){ // FIXME
             return PvBatteryState.DISCHARGING;
         }
-        return null;
+        return PvBatteryState.STABLE;
     }
 
     private void checkStringsStatus(StringAmps stringAmps){
