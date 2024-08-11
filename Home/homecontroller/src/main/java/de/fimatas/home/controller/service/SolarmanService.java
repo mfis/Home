@@ -20,6 +20,7 @@ import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -47,6 +48,9 @@ public class SolarmanService {
 
     @Autowired
     private UploadService uploadService;
+
+    @Autowired
+    private Environment env;
 
     @Getter
     private PhotovoltaicsStringsStatus stringsStatus = PhotovoltaicsStringsStatus.UNKNOWN;
@@ -143,13 +147,15 @@ public class SolarmanService {
         }
 
         pvAdditionalDataModel.setBatteryStateOfCharge(Integer.parseInt(actualStateOfCharge));
-        pvAdditionalDataModel.setMaxChargeWattage(2500); // FIXME: Config
-        pvAdditionalDataModel.setMinChargingWattageForOverflowControl((int) ((double)pvAdditionalDataModel.getMaxChargeWattage() * 0.75)); // FIXME: Config
-        pvAdditionalDataModel.setBatteryPercentageEmptyForOverflowControl(5); // FIXME: Config
+        pvAdditionalDataModel.setMaxChargeWattage(Integer.parseInt(Objects.requireNonNull(env.getProperty("solarman.maxChargeWattage"))));
+        pvAdditionalDataModel.setMinChargingWattageForOverflowControl((int) ((double)pvAdditionalDataModel.getMaxChargeWattage() *
+                Double.parseDouble(Objects.requireNonNull(env.getProperty("solarman.minChargingWattageForOverflowControl.factor")))));
+        pvAdditionalDataModel.setBatteryPercentageEmptyForOverflowControl(Integer.parseInt(
+                Objects.requireNonNull(env.getProperty("solarman.batteryPercentageEmptyForOverflowControl"))));
         if(pvAdditionalDataModel.getBatteryPercentageEmptyForOverflowControl() > PvBatteryMinCharge.getLowest().getPercentage()){
             log.error("PvBatteryMinCharge too low: " + PvBatteryMinCharge.getLowest().getPercentage());
         }
-        pvAdditionalDataModel.setBatteryCapacity(new BigDecimal("4.75") // FIXME: Config
+        pvAdditionalDataModel.setBatteryCapacity(new BigDecimal(Objects.requireNonNull(env.getProperty("solarman.batteryCapacityNetto")))
                 .multiply(new BigDecimal(actualStateOfCharge))
                 .divide(_100, 2, RoundingMode.HALF_UP));
         pvAdditionalDataModel.setPvBatteryState(solarmanBatteryStateToInternalBatteryState(batteryKeysAndValues.get("B_ST1")));
