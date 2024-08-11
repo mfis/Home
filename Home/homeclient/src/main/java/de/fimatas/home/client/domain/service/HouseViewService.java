@@ -110,8 +110,10 @@ public class HouseViewService {
         formatClimate(model, "tempGuestroom", house.getClimateGuestRoom(), house.getHeatingGuestRoom(), false);
         formatClimate(model, "tempWorkshop", house.getClimateWorkshop(), null, false);
 
-        // formatWindow(model, "leftWindowBedroom", // NOSONAR
-        // house.getLeftWindowBedRoom()); // NOSONAR
+        /*
+         formatWindow(model, "leftWindowBedroom", // NOSONAR
+         house.getLeftWindowBedRoom()); // NOSONAR
+        */
 
         formatFacadeTemperatures(model, "tempMinHouse", "tempMaxHouse", house);
 
@@ -708,13 +710,13 @@ public class HouseViewService {
         }
 
         // sources / targets
-        overallElectricPowerHouseView.setConsumption(formatPowerView(model, houseModel.getConsumedElectricalPower(), historyModel==null?null:historyModel.getSelfusedElectricPowerConsumptionDay(), offsetConsumption, false));
-        overallElectricPowerHouseView.setPv(formatPowerView(model, houseModel.getProducedElectricalPower(), historyModel==null?null:historyModel.getProducedElectricPowerDay(), offsetConsumption, false));
-        overallElectricPowerHouseView.setGridPurchase(formatPowerView(model, houseModel.getGridElectricalPower(), historyModel==null?null:historyModel.getPurchasedElectricPowerConsumptionDay(), BigDecimal.ZERO, false));
-        overallElectricPowerHouseView.setGridFeed(formatPowerView(model, houseModel.getGridElectricalPower(), historyModel==null?null:historyModel.getFeedElectricPowerConsumptionDay(), BigDecimal.ZERO, true));
+        overallElectricPowerHouseView.setConsumption(formatPowerView(houseModel.getConsumedElectricalPower(), historyModel==null?null:historyModel.getSelfusedElectricPowerConsumptionDay(), offsetConsumption, false));
+        overallElectricPowerHouseView.setPv(formatPowerView(houseModel.getProducedElectricalPower(), historyModel==null?null:historyModel.getProducedElectricPowerDay(), offsetConsumption, false));
+        overallElectricPowerHouseView.setGridPurchase(formatPowerView(houseModel.getGridElectricalPower(), historyModel==null?null:historyModel.getPurchasedElectricPowerConsumptionDay(), BigDecimal.ZERO, false));
+        overallElectricPowerHouseView.setGridFeed(formatPowerView(houseModel.getGridElectricalPower(), historyModel==null?null:historyModel.getFeedElectricPowerConsumptionDay(), BigDecimal.ZERO, true));
 
         // consumption pv percentage
-        if(overallElectricPowerHouseView.getGridPurchase().getTodayConsumption() != null
+        /*if(overallElectricPowerHouseView.getGridPurchase().getTodayConsumption() != null
                 && overallElectricPowerHouseView.getPv().getTodayConsumption() != null
                 && overallElectricPowerHouseView.getGridFeed().getTodayConsumption() != null){
             BigDecimal selfused = overallElectricPowerHouseView.getPv().getTodayConsumption().getNumericValue()
@@ -724,9 +726,9 @@ public class HouseViewService {
                         .divide(selfused, 4, RoundingMode.HALF_UP)
                         .multiply(ViewFormatter.HUNDRED);
                 BigDecimal percentageSelfused = ViewFormatter.HUNDRED.subtract(percentagePurchased);
-                // overallElectricPowerHouseView.setPvSelfConsumptionPercentage("PV-Anteil " + buildDecimalFormat("0.0").format(percentageSelfused) + " %");
+                overallElectricPowerHouseView.setPvSelfConsumptionPercentage("PV-Anteil " + buildDecimalFormat("0.0").format(percentageSelfused) + " %");
             }
-        }
+        }*/
 
         // history keys
         overallElectricPowerHouseView.getGridPurchase().setHistoryKey(Device.STROMZAEHLER_BEZUG.historyKeyPrefix());
@@ -862,11 +864,11 @@ public class HouseViewService {
     }
 
     private void formatPower(Model model, PowerMeter powerMeter, List<PowerConsumptionDay> pcd) {
-        PowerView power = formatPowerView(model, powerMeter, pcd, BigDecimal.ZERO, false);
+        PowerView power = formatPowerView(powerMeter, pcd, BigDecimal.ZERO, false);
         model.addAttribute(powerMeter.getDevice().programNamePrefix(), power);
     }
 
-    private PowerView formatPowerView(Model model, PowerMeter powerMeter, List<PowerConsumptionDay> pcd, BigDecimal valueOffset, boolean abs) {
+    private PowerView formatPowerView(PowerMeter powerMeter, List<PowerConsumptionDay> pcd, BigDecimal valueOffset, boolean abs) {
 
         PowerView power = new PowerView();
         power.setId(lookupTodayPowerId(powerMeter.getDevice(), false));
@@ -1039,7 +1041,7 @@ public class HouseViewService {
             if(electricVehicleModel.getEvMap().get(ev).isConnectedToWallbox()){
                evView.setActiveSwitchColorClass(ConditionColor.ACTIVE_BUTTON.getUiClass());
             }else{
-                evView.setLink(MESSAGEPATH + TYPE_IS + MessageType.WALLBOX_SELECTED_EV + AND_DEVICE_ID_IS + ev.name() + AND_VALUE_IS + Boolean.TRUE.toString());
+                evView.setLink(MESSAGEPATH + TYPE_IS + MessageType.WALLBOX_SELECTED_EV + AND_DEVICE_ID_IS + ev.name() + AND_VALUE_IS + Boolean.TRUE);
                 evView.setActiveSwitchColorClass(view.getColorClass());
             }
             view.getEvs().add(evView);
@@ -1280,9 +1282,7 @@ public class HouseViewService {
         viewH.setColorClass(ConditionColor.DEFAULT.getUiClass());
         forecasts.getForecasts().add(viewH);
 
-        weatherForecastModel.getFurtherDays().forEach((date, conclusion) -> {
-            formatDailyWeatherForecast(date, conclusion, forecasts);
-        });
+        weatherForecastModel.getFurtherDays().forEach((date, conclusion) -> formatDailyWeatherForecast(date, conclusion, forecasts));
     }
 
     private void formatHourlyWeatherForecastHeader(WeatherForecastModel weatherForecastModel, WeatherForecast fc, WeatherForecastsView forecasts) {
@@ -1299,13 +1299,11 @@ public class HouseViewService {
         var view = new WeatherForecastView();
         final Map<Integer, String> textMap = WeatherForecastConclusionTextFormatter.formatConclusionText(WeatherForecastConclusion.fromWeatherForecast(summary), false);
         view.setDayNight(summary.isDay() ? "day" : "night");
-        var hourPoints = "\u2022".repeat(weatherForecastSummary.hourCount());
+        @SuppressWarnings("UnnecessaryUnicodeEscape") var hourPoints = "\u2022".repeat(weatherForecastSummary.hourCount());
         view.setTime(weatherForecastSummary.formatSummaryTimeForView() + " " + hourPoints);
         view.setTemperature(WeatherForecastConclusionTextFormatter.formatTemperature(summary.getTemperature()) + TEMPERATURE_UNIT);
         mapWeatherForecastConditionsColor(view, WeatherForecastConclusion.fromWeatherForecast(summary));
-        summary.getIcons().forEach(i -> {
-            view.getIcons().add(new ValueWithCaption(i.getFontAwesomeID(), i.conditionValue(textMap), null));
-        });
+        summary.getIcons().forEach(i -> view.getIcons().add(new ValueWithCaption(i.getFontAwesomeID(), i.conditionValue(textMap), null)));
         forecasts.getForecasts().add(view);
     }
 
@@ -1345,6 +1343,7 @@ public class HouseViewService {
         return lights;
     }
 
+    @SuppressWarnings("ExtractMethodRecommender")
     private void formatLightsInPlace(Place place, List<Light> lightsInPlace, Model model) {
 
         var lights = new LightsView();
@@ -1409,7 +1408,8 @@ public class HouseViewService {
         }
 
         var countKnownState = presenceModel.getPresenceStates().values().stream().filter(s -> s != PresenceState.UNKNOWN).count();
-        var namesPresent = presenceModel.getPresenceStates().entrySet().stream().filter(e -> e.getValue() == PresenceState.PRESENT).map(e -> e.getKey()).collect(Collectors.toList());
+        var namesPresent = presenceModel.getPresenceStates().entrySet().stream()
+                .filter(e -> e.getValue() == PresenceState.PRESENT).map(Map.Entry::getKey).collect(Collectors.toList());
         var shortText = namesPresent.size() + " / " + countKnownState;
 
         String longText;
@@ -1442,7 +1442,7 @@ public class HouseViewService {
         view.setId(lookupHeatpumpId(place, false));
         view.setUnreach(Boolean.toString(isUnreachable));
 
-        List.of(Place.KIDSROOM_1, Place.KIDSROOM_2, Place.BEDROOM).stream().filter(p -> p != place).forEach(a -> {
+        Stream.of(Place.KIDSROOM_1, Place.KIDSROOM_2, Place.BEDROOM).filter(p -> p != place).forEach(a -> {
             String title = house.getPlaceSubtitles().containsKey(a) ? house.getPlaceSubtitles().get(a) : a.getPlaceName();
             view.getOtherPlaces().add(new ValueWithCaption(a.name(), title, null));
         });
@@ -1475,16 +1475,18 @@ public class HouseViewService {
 
         var timerInfo = "";
         if(heatpumpModel.getHeatpumpMap().get(place).getTimer() != null){
-            timerInfo = " bis " + viewFormatter.formatTimestamp(heatpumpModel.getHeatpumpMap().get(place).getTimer(), TimestampFormat.ONLY_TIME);;
+            timerInfo = " bis " + viewFormatter.formatTimestamp(heatpumpModel.getHeatpumpMap().get(place).getTimer(), TimestampFormat.ONLY_TIME);
         }
 
-        ConditionColor color = actualPreset == null ? ConditionColor.RED: actualPreset.getConditionColor();
+        HeatpumpPreset presetForView = actualPreset == null ? HeatpumpPreset.UNKNOWN : actualPreset;
+        ConditionColor color = presetForView.getConditionColor();
         view.setColorClass(color.getUiClass());
         view.setActiveSwitchColorClass(color.getUiClass());
-        view.setStateShort(actualPreset.getShortText());
-        view.setElementTitleState(heatpumpModel.isBusy()? "Ansteuerung..." : actualPreset.getMode() + (actualPreset.getIntensity()!=null ? ", " + actualPreset.getIntensity() : ""));
-        view.setState(actualPreset.getMode());
-        view.setStateSuffix(actualPreset.getIntensity()!=null ? (", " + actualPreset.getIntensity() + timerInfo) : "");
+        view.setStateShort(presetForView.getShortText());
+        view.setElementTitleState(heatpumpModel.isBusy()? "Ansteuerung..." : presetForView.getMode()
+                + (presetForView.getIntensity()!=null ? ", " + presetForView.getIntensity() : ""));
+        view.setState(presetForView.getMode());
+        view.setStateSuffix(presetForView.getIntensity()!=null ? (", " + presetForView.getIntensity() + timerInfo) : "");
     }
 
     private static String lookupHeatpumpId(Place place, boolean isGroupItem) {
