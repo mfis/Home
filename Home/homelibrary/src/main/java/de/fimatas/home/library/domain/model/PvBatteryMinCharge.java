@@ -5,22 +5,25 @@ import lombok.Getter;
 @Getter
 public enum PvBatteryMinCharge {
 
-    _10((short)10, "10%"), //
-    _20((short)20, "20%"), //
-    _50((short)50, "50%"), //
-    _90((short)90, "90%"), //
+    LOW(15, 5, "15% (5%)"), //
+    MEDIUM(30, 20, "30% (20%)"), //
+    HIGH(60, 50, "60% (50%)"), //
+    FULL(95, 85, "95% (85%)"), //
     ;
 
-    private final short percentage;
+    private final int percentageSwitchOn;
+
+    private final int percentageSwitchOff;
 
     private final String caption;
 
     public static PvBatteryMinCharge getLowest(){
-        return _10;
+        return LOW;
     }
 
-    PvBatteryMinCharge(short percentage, String caption) {
-        this.percentage = percentage;
+    PvBatteryMinCharge(int percentageSwitchOn, int percentageSwitchOff, String caption) {
+        this.percentageSwitchOn = percentageSwitchOn;
+        this.percentageSwitchOff = percentageSwitchOff;
         this.caption = caption;
         if(this.name().length()>8) throw new IllegalArgumentException("name too long: " + this.name());
     }

@@ -213,13 +213,13 @@ class PhotovoltaicsOverflowServiceTest {
         houseModel.getWallboxSwitch().setDevice(Device.SCHALTER_WALLBOX);
         houseModel.getWallboxSwitch().setAutomation(wallboxAutomatic);
         houseModel.getWallboxSwitch().setState(wallboxOn);
-        houseModel.getWallboxSwitch().setMinPvBatteryPercentageInOverflowAutomationMode(10);
+        houseModel.getWallboxSwitch().setMinPvBatteryPercentageInOverflowAutomationMode(PvBatteryMinCharge.LOW);
 
         houseModel.setGuestRoomInfraredHeater(new Switch());
         houseModel.getGuestRoomInfraredHeater().setDevice(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG);
         houseModel.getGuestRoomInfraredHeater().setAutomation(heatingAutomatic);
         houseModel.getGuestRoomInfraredHeater().setState(heatingOn);
-        houseModel.getGuestRoomInfraredHeater().setMinPvBatteryPercentageInOverflowAutomationMode(5);
+        houseModel.getGuestRoomInfraredHeater().setMinPvBatteryPercentageInOverflowAutomationMode(PvBatteryMinCharge.LOW);
 
         ModelObjectDAO.getInstance().write(houseModel);
 

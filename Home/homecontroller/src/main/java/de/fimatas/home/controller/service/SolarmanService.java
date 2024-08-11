@@ -152,8 +152,8 @@ public class SolarmanService {
                 Double.parseDouble(Objects.requireNonNull(env.getProperty("solarman.minChargingWattageForOverflowControl.factor")))));
         pvAdditionalDataModel.setBatteryPercentageEmptyForOverflowControl(Integer.parseInt(
                 Objects.requireNonNull(env.getProperty("solarman.batteryPercentageEmptyForOverflowControl"))));
-        if(pvAdditionalDataModel.getBatteryPercentageEmptyForOverflowControl() > PvBatteryMinCharge.getLowest().getPercentage()){
-            log.error("PvBatteryMinCharge too low: " + PvBatteryMinCharge.getLowest().getPercentage());
+        if(pvAdditionalDataModel.getBatteryPercentageEmptyForOverflowControl() > PvBatteryMinCharge.getLowest().getPercentageSwitchOff()){
+            log.error("PvBatteryMinCharge too low: " + PvBatteryMinCharge.getLowest().getPercentageSwitchOff());
         }
         pvAdditionalDataModel.setBatteryCapacity(new BigDecimal(Objects.requireNonNull(env.getProperty("solarman.batteryCapacityNetto")))
                 .multiply(new BigDecimal(actualStateOfCharge))

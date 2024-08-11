@@ -25,7 +25,7 @@ public class Switch extends AbstractDeviceModel implements Serializable {
 
     private int maxWattageFromGridInOverflowAutomationMode;
 
-    private int minPvBatteryPercentageInOverflowAutomationMode;
+    private PvBatteryMinCharge minPvBatteryPercentageInOverflowAutomationMode;
 
     private int defaultWattage;
 
