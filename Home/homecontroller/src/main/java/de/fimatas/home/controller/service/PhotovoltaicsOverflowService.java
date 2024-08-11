@@ -260,6 +260,7 @@ public class PhotovoltaicsOverflowService {
         // -> check if it could charge faster when switching off
         if(pvAdditionalDataModel.getBatteryStateOfCharge() < deviceModelSwitch.getMinPvBatteryPercentageInOverflowAutomationMode()){
             // charging fast enough -> NOT switch off
+            // noinspection RedundantIfStatement
             if(pvAdditionalDataModel.getPvBatteryState() == PvBatteryState.CHARGING
                     && pvAdditionalDataModel.getBatteryWattage() >= deviceModelSwitch.getMinPvBatteryPercentageInOverflowAutomationMode()){
                         return false;
