@@ -33,6 +33,7 @@ import de.fimatas.home.library.util.HomeAppConstants;
 import static de.fimatas.home.library.util.HomeUtils.buildDecimalFormat;
 import static de.fimatas.home.library.util.WeatherForecastConclusionTextFormatter.*;
 
+@SuppressWarnings("SameParameterValue")
 @Component
 public class HouseViewService {
 
@@ -291,10 +292,10 @@ public class HouseViewService {
         }
 
         if(presenceModel != null){
-            var presenceCounter = presenceModel.getPresenceStates().entrySet().stream().filter(e -> e.getValue() == PresenceState.PRESENT).map(e -> e.getKey()).collect(Collectors.toList()).size();
+            var presenceCounter = presenceModel.getPresenceStates().entrySet().stream().filter(e -> e.getValue() == PresenceState.PRESENT).map(Map.Entry::getKey).toList().size();
             var v = new View();
             v.setId("symbols-presence" + lookupGroupitemIdPostfix(true));
-            v.setIconNativeClient(Integer.toString(presenceCounter) + ".circle"); // TODO: centralize
+            v.setIconNativeClient(presenceCounter + ".circle"); // TODO: centralize
             view.getCaptionAndValue().put("presence", v);
         }
 
@@ -482,11 +483,11 @@ public class HouseViewService {
     }
 
     private void formatClimate(Model model, String viewKey, Climate climate, Heating heating, boolean history) {
-        ClimateView view = formatClimate(climate, heating, viewKey, history);
+        ClimateView view = formatClimate(climate, heating, history);
         model.addAttribute(viewKey, view);
     }
 
-    private ClimateView formatClimate(Climate climate, Heating heating, String viewKey, boolean history) {
+    private ClimateView formatClimate(Climate climate, Heating heating, boolean history) {
 
         ClimateView view = new ClimateView();
         view.setId(lookupClimateId(climate.getDevice().getPlace(), false));
@@ -632,8 +633,7 @@ public class HouseViewService {
         mapWeatherForecastConditionsColor(view, WeatherForecastConclusion.fromSingleTemperature(climate.getTemperature().getValue()));
 
         // for now only used in app
-        if(view instanceof ClimateView){
-            ClimateView cv = (ClimateView) view;
+        if(view instanceof ClimateView cv){
             if (climate instanceof RoomClimate && climate.getHumidity() != null) {
                 if (climate.getHumidity().getValue().compareTo(HomeAppConstants.TARGET_HUMIDITY_MAX_INSIDE) > 0) {
                     cv.setColorClassHumidity(ConditionColor.ORANGE.getUiClass());
@@ -650,7 +650,7 @@ public class HouseViewService {
 
     private void formatFacadeTemperatures(Model model, String viewKeyMin, String viewKeyMax, HouseModel house) {
 
-        ClimateView viewMin = formatClimate(house.getConclusionClimateFacadeMin(), null, viewKeyMin, false);
+        ClimateView viewMin = formatClimate(house.getConclusionClimateFacadeMin(), null, false);
         ClimateView viewMax = new ClimateView();
         viewMax.setId(viewKeyMax);
 
