@@ -213,8 +213,14 @@ class PhotovoltaicsOverflowServiceTest {
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
     }
 
-    //@Test
+    @Test
     void testOnCausedByHighPvBattery() {
+        refreshDevicesWithBatteryDefault(0, 0, true,  false, false, false);
+        refreshPvBattery(30, PvBatteryState.CHARGING, 200);
+        callService();
+        verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+
         refreshDevicesWithBatteryDefault(10, 0, true,  false, false, false);
         refreshPvBattery(30, PvBatteryState.CHARGING, 200);
         callService();

@@ -160,8 +160,8 @@ public class PhotovoltaicsOverflowService {
             if (shouldSwitchOff) {
                 final var deviceModel = getDeviceModel(houseModel, ocd);
                 final var actualDeviceWattage = getActualDeviceWattage(ocd, deviceModel);
-                if (isAutoModeOn(deviceModel) && isActualDeviceSwitchState(deviceModel)) {
-                    LOG.info("isAutoModeOn(deviceModel) && isActualDeviceSwitchState(deviceModel)");
+                //if (isAutoModeOn(deviceModel) && isActualDeviceSwitchState(deviceModel)) {
+                    //LOG.info("isAutoModeOn(deviceModel) && isActualDeviceSwitchState(deviceModel)");
                     //if (shouldSwitchOff(wattageGrid, ocd, houseModel)) {
                     LOG.info("controlState = " + overflowControlledDeviceStates.get(ocd).controlState);
                         switch(overflowControlledDeviceStates.get(ocd).controlState){
@@ -183,10 +183,10 @@ public class PhotovoltaicsOverflowService {
                     //} else {
                     //    setControlState(ocd, ControlState.STABLE);
                     //}
-                } else {
-                    LOG.info("NOT isAutoModeOn(deviceModel) && isActualDeviceSwitchState(deviceModel)");
-                    setControlState(ocd, ControlState.STABLE);
-                }
+                //} else {
+                //    LOG.info("NOT isAutoModeOn(deviceModel) && isActualDeviceSwitchState(deviceModel)");
+                //    setControlState(ocd, ControlState.STABLE);
+                // }
             } else if (overflowControlledDeviceStates.get(ocd).controlState == ControlState.PREPARE_TO_OFF){
                 setControlState(ocd, ControlState.STABLE);
             }
@@ -201,8 +201,8 @@ public class PhotovoltaicsOverflowService {
             boolean shouldSwitchOn = shouldSwitchOn(wattageGrid, minWattsFromPV, ocd, houseModel);
             LOG.info("shouldSwitchOn = " + shouldSwitchOn);
             if (shouldSwitchOn) {
-                if (isAutoModeOn(deviceModel) && !isActualDeviceSwitchState(deviceModel)) {
-                    LOG.info("isAutoModeOn(deviceModel) && !isActualDeviceSwitchState(deviceModel)");
+                //if (isAutoModeOn(deviceModel) && !isActualDeviceSwitchState(deviceModel)) {
+                    //LOG.info("isAutoModeOn(deviceModel) && !isActualDeviceSwitchState(deviceModel)");
                     //if (shouldSwitchOn(wattageGrid, minWattsFromPV, ocd, houseModel)) {
                     LOG.info("controlState = " + overflowControlledDeviceStates.get(ocd).controlState);
                         switch (overflowControlledDeviceStates.get(ocd).controlState) {
@@ -211,7 +211,7 @@ public class PhotovoltaicsOverflowService {
                                 if (isSwitchOnDelayReachedAndAllowed(ocd)) {
                                     var wattsToRelease = minWattsFromPV - wattageGrid;
                                     var releasedWatts = releasePvWatts(wattsToRelease, ocd, houseModel);
-                                    if(releasedWatts < wattsToRelease){ // both values negative!
+                                    if(releasedWatts < wattsToRelease){ // both values negative! // FIXME: battery
                                         houseService.togglestate(deviceModel.getDevice(), true);
                                         setControlState(ocd, ControlState.STABLE);
                                         hasToRefreshHouseModel = true;
@@ -229,10 +229,10 @@ public class PhotovoltaicsOverflowService {
                     //} else {
                      //   setControlState(ocd, ControlState.STABLE);
                     //}
-                } else {
-                    LOG.info("NOT isAutoModeOn(deviceModel) && !isActualDeviceSwitchState(deviceModel)");
-                    setControlState(ocd, ControlState.STABLE);
-                }
+                //} else {
+                //    LOG.info("NOT isAutoModeOn(deviceModel) && !isActualDeviceSwitchState(deviceModel)");
+                //    setControlState(ocd, ControlState.STABLE);
+                //}
             } else if (overflowControlledDeviceStates.get(ocd).controlState == ControlState.PREPARE_TO_ON){
                 setControlState(ocd, ControlState.STABLE);
             }
@@ -248,6 +248,10 @@ public class PhotovoltaicsOverflowService {
         final int actualPvBatteryPercentage = ModelObjectDAO.getInstance().readPvAdditionalDataModel().getBatteryStateOfCharge();
         final Switch deviceModelSwitch = (Switch) getDeviceModel(houseModel, ocd);
         final var releaseableWattsFromLowerPriorities = sumOfReleaseablePvWattageWithLowerProprity(ocd, houseModel);
+
+        if(!isAutoModeOn(deviceModelSwitch) || isActualDeviceSwitchState(deviceModelSwitch)){
+            return false;
+        }
 
         // enough pv watts left (automatically including battery charge) -> switch on
         if(wattageGrid + releaseableWattsFromLowerPriorities <= minWattsFromPV){
@@ -267,6 +271,10 @@ public class PhotovoltaicsOverflowService {
 
         final var pvAdditionalDataModel = ModelObjectDAO.getInstance().readPvAdditionalDataModel();
         final Switch deviceModelSwitch = (Switch) getDeviceModel(houseModel, ocd);
+
+        if(!isAutoModeOn(deviceModelSwitch) || !isActualDeviceSwitchState(deviceModelSwitch)){
+            return false;
+        }
 
         // too much watts from grid (battery charge already hat automatically stopped) -> switch off
         if(wattageGrid >= readMaxGridWattage(ocd.shortName)){
