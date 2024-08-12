@@ -211,7 +211,8 @@ public class PhotovoltaicsOverflowService {
                                 if (isSwitchOnDelayReachedAndAllowed(ocd)) {
                                     var wattsToRelease = minWattsFromPV - wattageGrid;
                                     var releasedWatts = releasePvWatts(wattsToRelease, ocd, houseModel);
-                                    if(releasedWatts < wattsToRelease){ // both values negative! // FIXME: battery
+                                    if((releasedWatts < wattsToRelease) // both values negative!
+                                            || isPvBatterySocHighEnoughToSwitchOn((Switch)deviceModel)){
                                         houseService.togglestate(deviceModel.getDevice(), true);
                                         setControlState(ocd, ControlState.STABLE);
                                         hasToRefreshHouseModel = true;
@@ -245,7 +246,6 @@ public class PhotovoltaicsOverflowService {
 
     private boolean shouldSwitchOn(int wattageGrid, int minWattsFromPV, OverflowControlledDevice ocd, HouseModel houseModel) {
 
-        final int actualPvBatteryPercentage = ModelObjectDAO.getInstance().readPvAdditionalDataModel().getBatteryStateOfCharge();
         final Switch deviceModelSwitch = (Switch) getDeviceModel(houseModel, ocd);
         final var releaseableWattsFromLowerPriorities = sumOfReleaseablePvWattageWithLowerProprity(ocd, houseModel);
 
@@ -259,12 +259,15 @@ public class PhotovoltaicsOverflowService {
         }
 
         // not enough pv watts left, but battery charging state high enough -> switch on
-        if(actualPvBatteryPercentage >= deviceModelSwitch.getMinPvBatteryPercentageInOverflowAutomationMode().getPercentageSwitchOn()){
-            return true;
-        }
+        if (isPvBatterySocHighEnoughToSwitchOn(deviceModelSwitch)) return true;
 
         // NOT switch on
         return false;
+    }
+
+    private static boolean isPvBatterySocHighEnoughToSwitchOn(Switch deviceModelSwitch) {
+        final int actualPvBatteryPercentage = ModelObjectDAO.getInstance().readPvAdditionalDataModel().getBatteryStateOfCharge();
+        return actualPvBatteryPercentage >= deviceModelSwitch.getMinPvBatteryPercentageInOverflowAutomationMode().getPercentageSwitchOn();
     }
 
     private boolean shouldSwitchOff(int wattageGrid, OverflowControlledDevice ocd, HouseModel houseModel) {
@@ -278,13 +281,11 @@ public class PhotovoltaicsOverflowService {
 
         // too much watts from grid (battery charge already hat automatically stopped) -> switch off
         if(wattageGrid >= readMaxGridWattage(ocd.shortName)){
-            return true;
-        }
-
-        // too low battery -> switch off... eventually
-        if(pvAdditionalDataModel.getBatteryStateOfCharge() < deviceModelSwitch.getMinPvBatteryPercentageInOverflowAutomationMode().getPercentageSwitchOff()){
+            // battery soc high enough
+            if(pvAdditionalDataModel.getBatteryStateOfCharge() >= deviceModelSwitch.getMinPvBatteryPercentageInOverflowAutomationMode().getPercentageSwitchOff()){
+                return false;
+            }
             // charging fast enough -> NOT switch off
-            // noinspection RedundantIfStatement
             if (pvAdditionalDataModel.getPvBatteryState() == PvBatteryState.CHARGING
                     && pvAdditionalDataModel.getBatteryWattage() >= pvAdditionalDataModel.getMinChargingWattageForOverflowControl()) {
                 return false;
@@ -292,7 +293,7 @@ public class PhotovoltaicsOverflowService {
             return true;
         }
 
-        // switch off
+        // NOT switch off
         return false;
 
     }
