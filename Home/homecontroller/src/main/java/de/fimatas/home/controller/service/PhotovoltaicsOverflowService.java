@@ -252,7 +252,7 @@ public class PhotovoltaicsOverflowService {
         final Switch deviceModelSwitch = (Switch) getDeviceModel(houseModel, ocd);
 
         // too much watts from grid (battery charge already hat automatically stopped) -> switch off
-        if(wattageGrid > readMaxGridWattage(ocd.shortName)){
+        if(wattageGrid >= readMaxGridWattage(ocd.shortName)){
             return true;
         }
 
