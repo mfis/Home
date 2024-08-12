@@ -258,7 +258,7 @@ class PhotovoltaicsOverflowServiceTest {
 
         ModelObjectDAO.getInstance().write(houseModel);
 
-        refreshPvBattery(0, PvBatteryState.STABLE, 0);
+        refreshPvBattery(10, PvBatteryState.STABLE, 0);
     }
 
     private void refreshPvBattery(int soc, PvBatteryState state, int wattage) {
