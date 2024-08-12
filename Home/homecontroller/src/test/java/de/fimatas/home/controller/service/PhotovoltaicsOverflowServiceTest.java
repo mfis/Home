@@ -55,135 +55,170 @@ class PhotovoltaicsOverflowServiceTest {
 
     @Test
     void testAllStayingOffCausedByAutomation() {
-        refresh(0, -3000, false, false, false, false);
+        refreshDevicesWithBatteryDefault(0, -3000, false, false, false, false);
+        callService();
         verifySwitch(Device.SCHALTER_WALLBOX, null);
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
 
-        refresh(20, -3000, false, false, false, false);
+        refreshDevicesWithBatteryDefault(20, -3000, false, false, false, false);
+        callService();
         verifySwitch(Device.SCHALTER_WALLBOX, null);
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
     }
 
     @Test
     void testAllStayingOffCausedByPower() {
-        refresh(0, +3000, true, false, true, false);
+        refreshDevicesWithBatteryDefault(0, +3000, true, false, true, false);
+        callService();
         verifySwitch(Device.SCHALTER_WALLBOX, null);
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
 
-        refresh(20, +3000, false, true, true, false);
+        refreshDevicesWithBatteryDefault(20, +3000, false, true, true, false);
+        callService();
         verifySwitch(Device.SCHALTER_WALLBOX, null);
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
     }
 
     @Test
     void testOnByPriority() {
-        refresh(0, -2100, true, false, true, false);
+        refreshDevicesWithBatteryDefault(0, -2100, true, false, true, false);
+        callService();
         verifySwitch(Device.SCHALTER_WALLBOX, null);
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
 
-        refresh(5, -2100, true, false, true, false);
+        refreshDevicesWithBatteryDefault(5, -2100, true, false, true, false);
+        callService();
         verifySwitch(Device.SCHALTER_WALLBOX, true);
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
     }
 
     @Test
     void testAllOnAfterDelay() {
-        refresh(0, -3000, true,  false, true, false);
+        refreshDevicesWithBatteryDefault(0, -3000, true,  false, true, false);
+        callService();
         verifySwitch(Device.SCHALTER_WALLBOX, null);
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
 
-        refresh(3, -3000, true, false, true, false);
+        refreshDevicesWithBatteryDefault(3, -3000, true, false, true, false);
+        callService();
         verifySwitch(Device.SCHALTER_WALLBOX, null);
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, true);
 
-        refresh(6, -3000, true, false, true, true);
+        refreshDevicesWithBatteryDefault(6, -3000, true, false, true, true);
+        callService();
         verifySwitch(Device.SCHALTER_WALLBOX, true);
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
     }
 
     @Test
     void testOffByPriority() {
-        refresh(0, +200, true,  true, true, true);
+        refreshDevicesWithBatteryDefault(0, +200, true,  true, true, true);
+        callService();
         verifySwitch(Device.SCHALTER_WALLBOX, null);
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
 
-        refresh(20, +200, true,  true, true, true);
+        refreshDevicesWithBatteryDefault(20, +200, true,  true, true, true);
+        callService();
         verifySwitch(Device.SCHALTER_WALLBOX, null);
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, false);
     }
 
     @Test
     void testSwitchPriority() {
-        refresh(0, -500, true,  false, true, false);
+        refreshDevicesWithBatteryDefault(0, -500, true,  false, true, false);
+        callService();
         verifySwitch(Device.SCHALTER_WALLBOX, null);
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
 
-        refresh(10, -500, true,  false, true, false);
+        refreshDevicesWithBatteryDefault(10, -500, true,  false, true, false);
+        callService();
         verifySwitch(Device.SCHALTER_WALLBOX, null);
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, true);
 
-        refresh(30, -1700, true,  false, true, true);
+        refreshDevicesWithBatteryDefault(30, -1700, true,  false, true, true);
+        callService();
         verifySwitch(Device.SCHALTER_WALLBOX, null);
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
 
-        refresh(50, -1700, true,  false, true, true);
+        refreshDevicesWithBatteryDefault(50, -1700, true,  false, true, true);
+        callService();
         verifySwitch(Device.SCHALTER_WALLBOX, true);
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, false);
     }
 
     @Test
     void testAllOff() {
-        refresh(0, +3000, true,  true, true, true);
+        refreshDevicesWithBatteryDefault(0, +3000, true,  true, true, true);
+        callService();
         verifySwitch(Device.SCHALTER_WALLBOX, null);
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
 
-        refresh(20, +3000, true,  true, true, true);
+        refreshDevicesWithBatteryDefault(20, +3000, true,  true, true, true);
+        callService();
         verifySwitch(Device.SCHALTER_WALLBOX, false);
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, false);
     }
 
     @Test
     void testOffAfterDelay() {
-        refresh(0, +500, true,  true, false, false);
+        refreshDevicesWithBatteryDefault(0, +500, true,  true, false, false);
+        callService();
         verifySwitch(Device.SCHALTER_WALLBOX, null);
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
 
-        refresh(7, +500, true,  true, false, false);
+        refreshDevicesWithBatteryDefault(7, +500, true,  true, false, false);
+        callService();
         verifySwitch(Device.SCHALTER_WALLBOX, null);
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
 
-        refresh(12, +500, true,  true, false, false);
+        refreshDevicesWithBatteryDefault(12, +500, true,  true, false, false);
+        callService();
         verifySwitch(Device.SCHALTER_WALLBOX, false);
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
     }
 
     @Test
     void testOnInterrupted() {
-        refresh(0, -2200, true, false, false, false);
+        refreshDevicesWithBatteryDefault(0, -2200, true, false, false, false);
+        callService();
         verifySwitch(Device.SCHALTER_WALLBOX, null);
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
 
-        refresh(3, +500, true, false, false, false);
+        refreshDevicesWithBatteryDefault(3, +500, true, false, false, false);
+        callService();
         verifySwitch(Device.SCHALTER_WALLBOX, null);
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
 
-        refresh(6, -2200, true, false, false, false);
+        refreshDevicesWithBatteryDefault(6, -2200, true, false, false, false);
+        callService();
         verifySwitch(Device.SCHALTER_WALLBOX, null);
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
     }
 
     @Test
     void testOffInterrupted() {
-        refresh(0, +600, true, true, false, false);
+        refreshDevicesWithBatteryDefault(0, +600, true, true, false, false);
+        callService();
         verifySwitch(Device.SCHALTER_WALLBOX, null);
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
 
-        refresh(8, -200, true, true, false, false);
+        refreshDevicesWithBatteryDefault(8, -200, true, true, false, false);
+        callService();
         verifySwitch(Device.SCHALTER_WALLBOX, null);
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
 
-        refresh(11, +600, true, true, false, false);
+        refreshDevicesWithBatteryDefault(11, +600, true, true, false, false);
+        callService();
         verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+    }
+
+    //@Test
+    void testOnCausedByHighPvBattery() {
+        refreshDevicesWithBatteryDefault(10, 0, true,  false, false, false);
+        refreshPvBattery(30, PvBatteryState.CHARGING, 200);
+        callService();
+        verifySwitch(Device.SCHALTER_WALLBOX, true);
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
     }
 
@@ -197,7 +232,7 @@ class PhotovoltaicsOverflowServiceTest {
         }
     }
 
-    private void refresh(int minutes, int wattage, boolean wallboxAutomatic, boolean wallboxOn, boolean heatingAutomatic, boolean heatingOn) {
+    private void refreshDevicesWithBatteryDefault(int minutes, int wattage, boolean wallboxAutomatic, boolean wallboxOn, boolean heatingAutomatic, boolean heatingOn) {
 
         Mockito.reset(houseService);
         setDateTimeOffsetMinutes(minutes);
@@ -223,16 +258,23 @@ class PhotovoltaicsOverflowServiceTest {
 
         ModelObjectDAO.getInstance().write(houseModel);
 
+        refreshPvBattery(0, PvBatteryState.STABLE, 0);
+    }
+
+    private void refreshPvBattery(int soc, PvBatteryState state, int wattage) {
+
         var pvAdditionalDataModel = new PvAdditionalDataModel();
-        pvAdditionalDataModel.setBatteryStateOfCharge(0);
+        pvAdditionalDataModel.setBatteryStateOfCharge(soc);
         pvAdditionalDataModel.setMinChargingWattageForOverflowControl(2000);
         pvAdditionalDataModel.setBatteryCapacity(new BigDecimal(4750));
         pvAdditionalDataModel.setMaxChargeWattage(2500);
-        pvAdditionalDataModel.setPvBatteryState(PvBatteryState.STABLE);
-        pvAdditionalDataModel.setBatteryWattage(0);
+        pvAdditionalDataModel.setPvBatteryState(state);
+        pvAdditionalDataModel.setBatteryWattage(wattage);
         pvAdditionalDataModel.setBatteryPercentageEmptyForOverflowControl(5);
         ModelObjectDAO.getInstance().write(pvAdditionalDataModel);
+    }
 
+    private void callService() {
         photovoltaicsOverflowService.houseModelRefreshed();
     }
 
@@ -266,5 +308,4 @@ class PhotovoltaicsOverflowServiceTest {
         state.setValue(value);
         return state;
     }
-
 }
