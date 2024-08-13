@@ -94,10 +94,10 @@
                             <div th:id="'rangecontainer-label-3-' + ${model.id}" style="width: 40%; text-align: right;" class="text-warning"></div>
                         </div>
                         <input th:id="'rangecontainer-rangeinput-' + ${model.id}" type="range" class="form-range" min="0" max="100"/>
-                        <div><a>Einschalten ab Mindest-Ladestand PV-Batterie:</a></div>
+                        <div><a>Einschalten ab Ladestand PV-Batterie:</a></div>
                         <div class="btn-group">
                             <th:block th:each="entry : ${model.minPvBatteryPercentages}">
-                                <button style="margin-top: 8px; width: 49px" type="button" th:class="${#strings.startsWith(entry.value, '#')} ? 'btn btn-dark btn-sm btn-block' : 'btn btn-secondary btn-sm btn-block'" th:onclick="@{'submitLinkWithValue(\''+ ${model.linkMinPvBattery} +'\', \'' + ${entry.value} + '\')'}">
+                                <button style="margin-top: 8px; width: 55px" type="button" th:class="${#strings.startsWith(entry.value, '#')} ? 'btn btn-dark btn-sm btn-block' : 'btn btn-secondary btn-sm btn-block'" th:onclick="@{'submitLinkWithValue(\''+ ${model.linkMinPvBattery} +'\', \'' + ${entry.value} + '\')'}">
                                     <span th:class="${#strings.startsWith(entry.value, '#')} ? 'text-' + ${model.activeSwitchColorClass}" th:text="${entry.caption}"></span>
                                 </button>
                             </th:block>

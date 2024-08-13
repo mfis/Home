@@ -335,7 +335,6 @@ public class PhotovoltaicsOverflowService {
     }
 
     private void setControlState(OverflowControlledDevice ocd, ControlState controlState) {
-        LOG.info("setControlState = " + controlState);
         overflowControlledDeviceStates.get(ocd).controlState = controlState;
         overflowControlledDeviceStates.get(ocd).controlStateTimestamp = uniqueTimestampService.getNonUnique();
     }
