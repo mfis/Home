@@ -139,7 +139,6 @@ public class PhotovoltaicsOverflowService {
 
     @Async
     public void houseModelRefreshed() {
-        LOG.info("");
 
         final var houseModel = ModelObjectDAO.getInstance().readHouseModel();
         var hasToRefreshHouseModel = false;
@@ -153,40 +152,25 @@ public class PhotovoltaicsOverflowService {
         // assume grid-powered - turn something off? starting with lowest priotity
         var reverseIterator = new ReverseListIterator<>(overflowControlledDevices);
         while (reverseIterator.hasNext()) {
-            LOG.info("--- CHECK TURN OFF ---");
             var ocd = reverseIterator.next();
-            boolean shouldSwitchOff = shouldSwitchOff(wattageGrid, ocd, houseModel);
-            LOG.info("shouldSwitchOff = " + shouldSwitchOff);
-            if (shouldSwitchOff) {
+            if (shouldSwitchOff(wattageGrid, ocd, houseModel)) {
                 final var deviceModel = getDeviceModel(houseModel, ocd);
-                final var actualDeviceWattage = getActualDeviceWattage(ocd, deviceModel);
-                //if (isAutoModeOn(deviceModel) && isActualDeviceSwitchState(deviceModel)) {
-                    //LOG.info("isAutoModeOn(deviceModel) && isActualDeviceSwitchState(deviceModel)");
-                    //if (shouldSwitchOff(wattageGrid, ocd, houseModel)) {
-                    LOG.info("controlState = " + overflowControlledDeviceStates.get(ocd).controlState);
-                        switch(overflowControlledDeviceStates.get(ocd).controlState){
-                            case STABLE -> setControlState(ocd, ControlState.PREPARE_TO_OFF);
-                            case PREPARE_TO_OFF -> {
-                                if(isSwitchOffDelayReached(ocd)){
-                                    houseService.togglestate(deviceModel.getDevice(), false);
-                                    setControlState(ocd, ControlState.STABLE);
-                                    hasToRefreshHouseModel = true;
-                                    wattageGrid -= actualDeviceWattage;
-                                    pushService.sendNotice("PV-Überschuss: " + deviceModel.getDevice().getDescription() + " ausgeschaltet.");
-                                }
-                            }
-                            case PREPARE_TO_ON -> {
-                                LOG.warn("state confusion (check off)!");
-                                setControlState(ocd, ControlState.STABLE);
-                            }
+                switch(overflowControlledDeviceStates.get(ocd).controlState){
+                    case STABLE -> setControlState(ocd, ControlState.PREPARE_TO_OFF);
+                    case PREPARE_TO_OFF -> {
+                        if(isSwitchOffDelayReached(ocd)){
+                            houseService.togglestate(deviceModel.getDevice(), false);
+                            setControlState(ocd, ControlState.STABLE);
+                            hasToRefreshHouseModel = true;
+                            wattageGrid -= getActualDeviceWattage(ocd, deviceModel);
+                            pushService.sendNotice("PV-Überschuss: " + deviceModel.getDevice().getDescription() + " ausgeschaltet.");
                         }
-                    //} else {
-                    //    setControlState(ocd, ControlState.STABLE);
-                    //}
-                //} else {
-                //    LOG.info("NOT isAutoModeOn(deviceModel) && isActualDeviceSwitchState(deviceModel)");
-                //    setControlState(ocd, ControlState.STABLE);
-                // }
+                    }
+                    case PREPARE_TO_ON -> {
+                        LOG.warn("state confusion (check off)!");
+                        setControlState(ocd, ControlState.STABLE);
+                    }
+                }
             } else if (overflowControlledDeviceStates.get(ocd).controlState == ControlState.PREPARE_TO_OFF){
                 setControlState(ocd, ControlState.STABLE);
             }
@@ -194,46 +178,32 @@ public class PhotovoltaicsOverflowService {
 
         // assume pv overflow - turn something on? starting with highest priority
         for (OverflowControlledDevice ocd : overflowControlledDevices) {
-            LOG.info("--- CHECK TURN ON ---");
             final var deviceModel = getDeviceModel(houseModel, ocd);
             final var actualDeviceWattage = getActualDeviceWattage(ocd, deviceModel);
             final var minWattsFromPV = (actualDeviceWattage - readMaxGridWattage(ocd.shortName)) * -1;
-            boolean shouldSwitchOn = shouldSwitchOn(wattageGrid, minWattsFromPV, ocd, houseModel);
-            LOG.info("shouldSwitchOn = " + shouldSwitchOn);
-            if (shouldSwitchOn) {
-                //if (isAutoModeOn(deviceModel) && !isActualDeviceSwitchState(deviceModel)) {
-                    //LOG.info("isAutoModeOn(deviceModel) && !isActualDeviceSwitchState(deviceModel)");
-                    //if (shouldSwitchOn(wattageGrid, minWattsFromPV, ocd, houseModel)) {
-                    LOG.info("controlState = " + overflowControlledDeviceStates.get(ocd).controlState);
-                        switch (overflowControlledDeviceStates.get(ocd).controlState) {
-                            case STABLE -> setControlState(ocd, ControlState.PREPARE_TO_ON);
-                            case PREPARE_TO_ON -> {
-                                if (isSwitchOnDelayReachedAndAllowed(ocd)) {
-                                    var wattsToRelease = minWattsFromPV - wattageGrid;
-                                    var releasedWatts = releasePvWatts(wattsToRelease, ocd, houseModel);
-                                    if((releasedWatts < wattsToRelease) // both values negative!
-                                            || isPvBatterySocHighEnoughToSwitchOn((Switch)deviceModel)){
-                                        houseService.togglestate(deviceModel.getDevice(), true);
-                                        setControlState(ocd, ControlState.STABLE);
-                                        hasToRefreshHouseModel = true;
-                                        overflowControlledDeviceStates.get(ocd).dailyOnSwitchingCounter += 1;
-                                        wattageGrid += actualDeviceWattage;
-                                        pushService.sendNotice("PV-Überschuss: " + deviceModel.getDevice().getDescription() + " eingeschaltet.");
-                                    }
-                                }
-                            }
-                            case PREPARE_TO_OFF -> {
-                                LOG.warn("state confusion (check on)!");
+            if (shouldSwitchOn(wattageGrid, minWattsFromPV, ocd, houseModel)) {
+                switch (overflowControlledDeviceStates.get(ocd).controlState) {
+                    case STABLE -> setControlState(ocd, ControlState.PREPARE_TO_ON);
+                    case PREPARE_TO_ON -> {
+                        if (isSwitchOnDelayReachedAndAllowed(ocd)) {
+                            var wattsToRelease = minWattsFromPV - wattageGrid;
+                            var releasedWatts = releasePvWatts(wattsToRelease, ocd, houseModel);
+                            if((releasedWatts < wattsToRelease) // both values negative!
+                                    || isPvBatterySocHighEnoughToSwitchOn((Switch)deviceModel)){
+                                houseService.togglestate(deviceModel.getDevice(), true);
                                 setControlState(ocd, ControlState.STABLE);
+                                hasToRefreshHouseModel = true;
+                                overflowControlledDeviceStates.get(ocd).dailyOnSwitchingCounter += 1;
+                                wattageGrid += actualDeviceWattage;
+                                pushService.sendNotice("PV-Überschuss: " + deviceModel.getDevice().getDescription() + " eingeschaltet.");
                             }
                         }
-                    //} else {
-                     //   setControlState(ocd, ControlState.STABLE);
-                    //}
-                //} else {
-                //    LOG.info("NOT isAutoModeOn(deviceModel) && !isActualDeviceSwitchState(deviceModel)");
-                //    setControlState(ocd, ControlState.STABLE);
-                //}
+                    }
+                    case PREPARE_TO_OFF -> {
+                        LOG.warn("state confusion (check on)!");
+                        setControlState(ocd, ControlState.STABLE);
+                    }
+                }
             } else if (overflowControlledDeviceStates.get(ocd).controlState == ControlState.PREPARE_TO_ON){
                 setControlState(ocd, ControlState.STABLE);
             }
