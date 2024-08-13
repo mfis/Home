@@ -228,6 +228,120 @@ class PhotovoltaicsOverflowServiceTest {
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
     }
 
+    @Test
+    void testOnCausedByFullPvBattery() {
+        refreshDevicesWithBatteryDefault(0, 0, true,  false, false, false);
+        refreshPvBattery(100, PvBatteryState.CHARGING, 200);
+        callService();
+        verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+
+        refreshDevicesWithBatteryDefault(10, 0, true,  false, false, false);
+        refreshPvBattery(100, PvBatteryState.CHARGING, 200);
+        callService();
+        verifySwitch(Device.SCHALTER_WALLBOX, true);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+    }
+
+    @Test
+    void testOnCausedByHighPvBatteryButNotCharging() {
+        refreshDevicesWithBatteryDefault(0, 0, true,  false, false, false);
+        refreshPvBattery(PvBatteryMinCharge.FULL.getPercentageSwitchOn(), PvBatteryState.DISCHARGING, 200);
+        callService();
+        verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+
+        refreshDevicesWithBatteryDefault(10, 0, true,  false, false, false);
+        refreshPvBattery(PvBatteryMinCharge.FULL.getPercentageSwitchOn(), PvBatteryState.DISCHARGING, 200);
+        callService();
+        verifySwitch(Device.SCHALTER_WALLBOX, true);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+    }
+
+    @Test
+    void testOnCausedByHighPvBatteryPlusSolar() {
+        refreshDevicesWithBatteryDefault(0, -3000, true,  false, false, false);
+        refreshPvBattery(PvBatteryMinCharge.FULL.getPercentageSwitchOn(), PvBatteryState.CHARGING, 200);
+        callService();
+        verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+
+        refreshDevicesWithBatteryDefault(10, -3000, true,  false, false, false);
+        refreshPvBattery(PvBatteryMinCharge.FULL.getPercentageSwitchOn(), PvBatteryState.CHARGING, 200);
+        callService();
+        verifySwitch(Device.SCHALTER_WALLBOX, true);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+    }
+
+    @Test
+    void testOffCausedByLowPvBattery() {
+        refreshDevicesWithBatteryDefault(0, 3000, true,  false, false, false);
+        refreshPvBattery(PvBatteryMinCharge.FULL.getPercentageSwitchOn() - 1, PvBatteryState.CHARGING, 200);
+        callService();
+        verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+
+        refreshDevicesWithBatteryDefault(10, 3000, true,  false, false, false);
+        refreshPvBattery(PvBatteryMinCharge.FULL.getPercentageSwitchOn() - 1, PvBatteryState.CHARGING, 200);
+        callService();
+        verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+    }
+
+    @Test
+    void testOnAndOffCausedByPvBatteryHysteresis() {
+        refreshDevicesWithBatteryDefault(0, 3000, true, false, false, false);
+        refreshPvBattery(PvBatteryMinCharge.FULL.getPercentageSwitchOn(), PvBatteryState.CHARGING, 200);
+        callService();
+        verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+
+        refreshDevicesWithBatteryDefault(10, 3000, true, false, false, false);
+        refreshPvBattery(PvBatteryMinCharge.FULL.getPercentageSwitchOn(), PvBatteryState.CHARGING, 200);
+        callService();
+        verifySwitch(Device.SCHALTER_WALLBOX, true);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+
+        refreshDevicesWithBatteryDefault(20, 3000, true, true, false, false);
+        refreshPvBattery(PvBatteryMinCharge.FULL.getPercentageSwitchOff() - 1, PvBatteryState.CHARGING, 200);
+        callService();
+        verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+
+        refreshDevicesWithBatteryDefault(35, 3000, true, true, false, false);
+        refreshPvBattery(PvBatteryMinCharge.FULL.getPercentageSwitchOff() - 1, PvBatteryState.CHARGING, 200);
+        callService();
+        verifySwitch(Device.SCHALTER_WALLBOX, false);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+    }
+
+    @Test
+    void testOnCausedBySolarAndTakeoverByPvBattery() {
+        refreshDevicesWithBatteryDefault(0, -4000, true, false, false, false);
+        refreshPvBattery(PvBatteryMinCharge.MEDIUM.getPercentageSwitchOff(), PvBatteryState.CHARGING, 200);
+        callService();
+        verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+
+        refreshDevicesWithBatteryDefault(10, -4000, true, false, false, false);
+        refreshPvBattery(PvBatteryMinCharge.MEDIUM.getPercentageSwitchOff(), PvBatteryState.CHARGING, 200);
+        callService();
+        verifySwitch(Device.SCHALTER_WALLBOX, true);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+
+        refreshDevicesWithBatteryDefault(20, -500, true, true, false, false);
+        refreshPvBattery(PvBatteryMinCharge.FULL.getPercentageSwitchOn() - 5, PvBatteryState.CHARGING, 200);
+        callService();
+        verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+
+        refreshDevicesWithBatteryDefault(35, -500, true, true, false, false);
+        refreshPvBattery(PvBatteryMinCharge.FULL.getPercentageSwitchOn() - 5, PvBatteryState.CHARGING, 200);
+        callService();
+        verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+    }
+
     private void verifySwitch(Device device, Boolean state){
         if(state==null){
             verify(houseService, times(0)).togglestate(device, false);
