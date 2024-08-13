@@ -52,6 +52,9 @@ public class SolarmanService {
     @Autowired
     private Environment env;
 
+    @Autowired
+    private LiveActivityService liveActivityService;
+
     @Getter
     private PhotovoltaicsStringsStatus stringsStatus = PhotovoltaicsStringsStatus.UNKNOWN;
 
@@ -121,6 +124,7 @@ public class SolarmanService {
         if(pvAdditionalDataModel != null){
             ModelObjectDAO.getInstance().write(pvAdditionalDataModel);
             uploadService.uploadToClient(pvAdditionalDataModel);
+            liveActivityService.newModel(pvAdditionalDataModel);
         }
     }
 

@@ -7,6 +7,7 @@ import de.fimatas.home.controller.model.LiveActivityType;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.ElectricVehicleModel;
 import de.fimatas.home.library.domain.model.HouseModel;
+import de.fimatas.home.library.model.PvAdditionalDataModel;
 import de.fimatas.home.library.util.ViewFormatterUtils;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -53,6 +54,10 @@ public class LiveActivityService {
             priorities.add(processValue(valueElectricGrid((HouseModel) model), liveActivity));
         }
 
+        if(model instanceof PvAdditionalDataModel) {
+            priorities.add(processValue(valuePvBattery((PvAdditionalDataModel) model), liveActivity));
+        }
+
         if(model instanceof ElectricVehicleModel) {
             priorities.add(processValue(valueElectricVehicle((ElectricVehicleModel) model), liveActivity));
         }
@@ -73,6 +78,10 @@ public class LiveActivityService {
         return new FieldValue(houseModel.getGridElectricalPower() != null
                 && houseModel.getGridElectricalPower().getActualConsumption() != null ?
                 houseModel.getGridElectricalPower().getActualConsumption().getValue() : null, LiveActivityField.ELECTRIC_GRID);
+    }
+
+    private FieldValue valuePvBattery(PvAdditionalDataModel pvAdditionalDataModel) {
+        return new FieldValue(new BigDecimal(ViewFormatterUtils.calculateViewPercentagePvBattery(pvAdditionalDataModel)), LiveActivityField.PV_BATTERY);
     }
 
     private FieldValue valueElectricVehicle(ElectricVehicleModel electricVehicleModel) {
@@ -135,6 +144,7 @@ public class LiveActivityService {
         LiveActivityDAO.getInstance().getActiveLiveActivities().put(token, liveActivity);
 
         processNewModelForSingleUser(ModelObjectDAO.getInstance().readHouseModel(), liveActivity);
+        processNewModelForSingleUser(ModelObjectDAO.getInstance().readPvAdditionalDataModel(), liveActivity);
         processNewModelForSingleUser(ModelObjectDAO.getInstance().readElectricVehicleModel(), liveActivity);
         sendToApns(liveActivity.getToken(), MessagePriority.HIGH_PRIORITY);
     }
@@ -210,7 +220,7 @@ public class LiveActivityService {
         var state = new SingleState();
         state.val = field.formatValue(value);
         state.valShort = field.formatShort(value);
-        state.symbolName = field.getSymbolName();
+        state.symbolName = field.getSymbolName().apply(value);
         state.symbolType = field.getSymbolType();
         state.color = field.color(value);
         return state;

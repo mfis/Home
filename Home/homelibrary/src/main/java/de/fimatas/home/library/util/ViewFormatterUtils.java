@@ -2,6 +2,7 @@ package de.fimatas.home.library.util;
 
 import de.fimatas.home.library.domain.model.ElectricVehicleState;
 import de.fimatas.home.library.model.ConditionColor;
+import de.fimatas.home.library.model.PvAdditionalDataModel;
 
 public class ViewFormatterUtils {
 
@@ -18,6 +19,15 @@ public class ViewFormatterUtils {
             return s>100?100:s;
         } else {
             return evs.getBatteryPercentage();
+        }
+    }
+
+    public static short calculateViewPercentagePvBattery(PvAdditionalDataModel pvAdditionalDataModel) {
+        if (pvAdditionalDataModel != null) {
+            var s = (short) pvAdditionalDataModel.getBatteryStateOfCharge();
+            return s>100?100:s;
+        } else {
+            return 0;
         }
     }
 

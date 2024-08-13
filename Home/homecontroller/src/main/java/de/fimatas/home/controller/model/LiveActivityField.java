@@ -1,5 +1,6 @@
 package de.fimatas.home.controller.model;
 
+import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.model.ConditionColor;
 import de.fimatas.home.library.util.ViewFormatterUtils;
 import lombok.Getter;
@@ -17,7 +18,8 @@ public enum LiveActivityField {
 
     // TODO: Re-use View Formatter
     ELECTRIC_GRID(
-            "energygrid", "app",
+            val -> "energygrid",
+            "app",
             new BigDecimal(40),
             true,
             val -> buildDecimalFormat("0").format(val.abs()) + " W",
@@ -26,16 +28,53 @@ public enum LiveActivityField {
     ), //
 
     EV_CHARGE(
-            "bolt.car", "sys",
+            val -> "bolt.car",
+            "sys",
             new BigDecimal(1),
             false,
             val -> val.intValue() + "%",
             val -> val.intValue() + "%",
             val -> ViewFormatterUtils.mapAppColorAccent(ViewFormatterUtils.calculateViewConditionColorEv(val.shortValue()).getUiClass())
     ), //
+
+    PV_BATTERY(
+            val -> {
+                final int soc = ModelObjectDAO.getInstance().readPvAdditionalDataModel().getBatteryStateOfCharge();
+                if(soc < 15){
+                    return "battery.0percent";
+                } else if(soc < 40){
+                    return "battery.25percent";
+                } else if(soc < 65){
+                    return "battery.50percent";
+                } else if(soc < 90){
+                    return "battery.75percent";
+                } else {
+                    return "battery.100percent";
+                }
+            },
+            "sys",
+            new BigDecimal(1),
+            false,
+            val -> val.intValue() + "%",
+            val -> val.intValue() + "%",
+            val -> {
+                switch (ModelObjectDAO.getInstance().readPvAdditionalDataModel().getPvBatteryState()){
+                    case CHARGING -> {
+                        return ConditionColor.GREEN.getUiClass();
+                    }
+                    case DISCHARGING -> {
+                        return ConditionColor.BLUE.getUiClass();
+                    }
+                    default -> {
+                        return ConditionColor.GRAY.getUiClass();
+                    }
+                }
+            }
+    ), //
+
     ;
 
-    private final String symbolName;
+    private final Function<BigDecimal, String> symbolName;
 
     private final String symbolType;
 
@@ -49,7 +88,7 @@ public enum LiveActivityField {
 
     private final Function<BigDecimal, String> color;
 
-    LiveActivityField(String symbolName, String symbolType, BigDecimal thresholdMin, boolean allowsHighPriority, Function<BigDecimal, String> formatterValue, Function<BigDecimal, String> formatterShort, Function<BigDecimal, String> color){
+    LiveActivityField(Function<BigDecimal, String> symbolName, String symbolType, BigDecimal thresholdMin, boolean allowsHighPriority, Function<BigDecimal, String> formatterValue, Function<BigDecimal, String> formatterShort, Function<BigDecimal, String> color){
         this.symbolName = symbolName;
         this.symbolType = symbolType;
         this.thresholdMin = thresholdMin;
