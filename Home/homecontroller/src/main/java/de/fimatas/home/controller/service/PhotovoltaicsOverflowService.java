@@ -251,14 +251,16 @@ public class PhotovoltaicsOverflowService {
 
         // too much watts from grid (battery charge already hat automatically stopped) -> switch off
         if(wattageGrid >= readMaxGridWattage(ocd.shortName)){
-            // battery soc high enough
-            if(pvAdditionalDataModel.getBatteryStateOfCharge() >= deviceModelSwitch.getMinPvBatteryPercentageInOverflowAutomationMode().getPercentageSwitchOff()){
-                return false;
-            }
-            // charging fast enough -> NOT switch off
-            if (pvAdditionalDataModel.getPvBatteryState() == PvBatteryState.CHARGING
-                    && pvAdditionalDataModel.getBatteryWattage() >= pvAdditionalDataModel.getMinChargingWattageForOverflowControl()) {
-                return false;
+            if(pvAdditionalDataModel != null) {
+                // battery soc high enough
+                if (pvAdditionalDataModel.getBatteryStateOfCharge() >= deviceModelSwitch.getMinPvBatteryPercentageInOverflowAutomationMode().getPercentageSwitchOff()) {
+                    return false;
+                }
+                // charging fast enough -> NOT switch off
+                if (pvAdditionalDataModel.getPvBatteryState() == PvBatteryState.CHARGING
+                        && pvAdditionalDataModel.getBatteryWattage() >= pvAdditionalDataModel.getMinChargingWattageForOverflowControl()) {
+                    return false;
+                }
             }
             return true;
         }

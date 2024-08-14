@@ -140,7 +140,7 @@ public class HouseViewService {
         formatHeatpump(model, house, heatpumpModel, Place.KIDSROOM_2);
 
         formatLowBattery(model, house.getLowBatteryDevices());
-        formatWarnings(model, house, lightsModel, weatherForecastModel, historyModel);
+        formatWarnings(model, house, lightsModel, weatherForecastModel, historyModel, pvAdditionalDataModel);
         formatPushMessages(model, username, pushMessageModel);
 
         formatPlaceSubtitles(model, house);
@@ -933,7 +933,7 @@ public class HouseViewService {
         model.addAttribute("lowBattery", lowBatteryDevices);
     }
 
-    private void formatWarnings(Model model, HouseModel houseModel, LightsModel lightsModel, WeatherForecastModel weatherForecastModel, HistoryModel historyModel) {
+    private void formatWarnings(Model model, HouseModel houseModel, LightsModel lightsModel, WeatherForecastModel weatherForecastModel, HistoryModel historyModel, PvAdditionalDataModel pvAdditionalDataModel) {
 
         List<String> copy = new ArrayList<>(houseModel.getWarnings());
 
@@ -957,6 +957,10 @@ public class HouseViewService {
 
         if(historyModel==null){
             copy.add("Historiendaten unbekannt!");
+        }
+
+        if(pvAdditionalDataModel==null){
+            copy.add("PV-Speicher Status unbekannt!");
         }
 
         model.addAttribute("warnings", copy);
