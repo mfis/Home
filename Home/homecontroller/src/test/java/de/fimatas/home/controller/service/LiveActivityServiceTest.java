@@ -183,10 +183,10 @@ class LiveActivityServiceTest {
 
         assertTrue(getSinglePriorityHigh(0));
         assertEquals("500 W", getSingleVal(0, "primary", "val"));
-        assertEquals("45%", getSingleVal(0, "secondary", "val"));
+        assertEquals("45%", getSingleVal(0, "tertiary", "val"));
         assertTrue(getSinglePriorityHigh(0));
         assertEquals("500 W", getSingleVal(1, "primary", "val"));
-        assertEquals("55%", getSingleVal(1, "secondary", "val"));
+        assertEquals("55%", getSingleVal(1, "tertiary", "val"));
     }
 
     @Test

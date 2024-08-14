@@ -274,7 +274,7 @@ class PhotovoltaicsOverflowServiceTest {
     }
 
     @Test
-    void testOffCausedByLowPvBattery() {
+    void testStayOffCausedByLowPvBattery() {
         refreshDevicesWithBatteryDefault(0, 3000, true,  false, false, false);
         refreshPvBattery(PvBatteryMinCharge.FULL.getPercentageSwitchOn() - 1, PvBatteryState.CHARGING, 200);
         callService();
@@ -285,6 +285,23 @@ class PhotovoltaicsOverflowServiceTest {
         refreshPvBattery(PvBatteryMinCharge.FULL.getPercentageSwitchOn() - 1, PvBatteryState.CHARGING, 200);
         callService();
         verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+    }
+
+    @Test
+    void testSwitchOffCausedByLowPvBatteryZeroPercentSoc() {
+        refreshDevicesWithBatteryDefault(0, 3000, true,  true, false, false);
+        changeMinCharge(PvBatteryMinCharge.OFF);
+        refreshPvBattery(0, PvBatteryState.STABLE, 0);
+        callService();
+        verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+
+        refreshDevicesWithBatteryDefault(10, 3000, true,  true, false, false);
+        changeMinCharge(PvBatteryMinCharge.OFF);
+        refreshPvBattery(0, PvBatteryState.STABLE, 0);
+        callService();
+        verifySwitch(Device.SCHALTER_WALLBOX, false);
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
     }
 
@@ -379,6 +396,14 @@ class PhotovoltaicsOverflowServiceTest {
         ModelObjectDAO.getInstance().write(houseModel);
 
         refreshPvBattery(10, PvBatteryState.STABLE, 0);
+    }
+
+    private void changeMinCharge(PvBatteryMinCharge pvBatteryMinCharge) {
+
+        HouseModel houseModel = ModelObjectDAO.getInstance().readHouseModel();
+        houseModel.getWallboxSwitch().setMinPvBatteryPercentageInOverflowAutomationMode(pvBatteryMinCharge);
+        houseModel.getGuestRoomInfraredHeater().setMinPvBatteryPercentageInOverflowAutomationMode(pvBatteryMinCharge);
+        ModelObjectDAO.getInstance().write(houseModel);
     }
 
     private void refreshPvBattery(int soc, PvBatteryState state, int wattage) {
