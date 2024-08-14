@@ -172,7 +172,7 @@ public class WeatherForecastConclusionTextFormatter {
     }
 
     private static String sunDurationText(WeatherForecastConclusion conclusion, boolean roundText) {
-        if(conclusion.getSunshineInMin()==null){
+        if(conclusion.getSunshineInMin()==null|| conclusion.getSunshineInMin().intValue() == 0){
             return "";
         }else if(conclusion.getSunshineInMin().intValue() > BD_60.intValue()) {
             return buildDecimalFormat("0").format(conclusion.getSunshineInMin().divide(BD_60, 1, RoundingMode.HALF_UP)) + " Std";
