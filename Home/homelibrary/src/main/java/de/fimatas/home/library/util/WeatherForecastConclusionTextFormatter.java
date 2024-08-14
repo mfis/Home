@@ -137,9 +137,8 @@ public class WeatherForecastConclusionTextFormatter {
             if(conclusion.getConditions().stream()
                     .filter(WeatherConditions::isSignificant).noneMatch(WeatherConditions::isKindOfRain)){
                 color = ConditionColor.GREEN;
-            }else if (conclusion.isForecast()){ // forecast instead of actual measurement
-                color = ConditionColor.DEFAULT;
-            }
+            } // forecast instead of actual measurement
+
             icon = "fas fa-thermometer-half";
         }
         texts.put(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS, color.getUiClass());
