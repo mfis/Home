@@ -8,7 +8,6 @@ import lombok.Getter;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
-import java.text.DecimalFormat;
 import java.util.function.Function;
 
 import static de.fimatas.home.library.util.HomeUtils.buildDecimalFormat;
@@ -60,13 +59,13 @@ public enum LiveActivityField {
             val -> {
                 switch (ModelObjectDAO.getInstance().readPvAdditionalDataModel().getPvBatteryState()){
                     case CHARGING -> {
-                        return ConditionColor.GREEN.getUiClass();
+                        return ViewFormatterUtils.mapAppColorAccent(ConditionColor.GREEN.getUiClass());
                     }
                     case DISCHARGING -> {
-                        return ConditionColor.BLUE.getUiClass();
+                        return ViewFormatterUtils.mapAppColorAccent(ConditionColor.BLUE.getUiClass());
                     }
                     default -> {
-                        return ConditionColor.GRAY.getUiClass();
+                        return ViewFormatterUtils.mapAppColorAccent(ConditionColor.GRAY.getUiClass());
                     }
                 }
             }

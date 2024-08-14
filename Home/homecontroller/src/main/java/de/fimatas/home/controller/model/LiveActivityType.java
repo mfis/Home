@@ -8,7 +8,7 @@ import java.util.List;
 @Getter
 public enum LiveActivityType {
 
-    ELECTRICITY("Strom / PV", LiveActivityField.ELECTRIC_GRID, LiveActivityField.EV_CHARGE, null)
+    ELECTRICITY("Strom / PV", LiveActivityField.ELECTRIC_GRID, LiveActivityField.PV_BATTERY, LiveActivityField.EV_CHARGE)
     ;
 
     private final String name;

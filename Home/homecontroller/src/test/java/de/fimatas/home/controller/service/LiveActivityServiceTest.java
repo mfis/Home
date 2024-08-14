@@ -3,6 +3,8 @@ package de.fimatas.home.controller.service;
 import de.fimatas.home.controller.dao.LiveActivityDAO;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
+import de.fimatas.home.library.model.PvAdditionalDataModel;
+import de.fimatas.home.library.model.PvBatteryState;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -61,6 +63,28 @@ class LiveActivityServiceTest {
         assertEquals("0,1", getSingleVal(0, "primary", "valShort"));
         assertEquals("energygrid", getSingleVal(0, "primary", "symbolName"));
         assertEquals("", getSingleVal(0, "secondary", "val"));
+    }
+
+    @Test
+    void testStartWithPvBattery() {
+        ModelObjectDAO.getInstance().write(houseModelWithElectricGridValue(100));
+        ModelObjectDAO.getInstance().write(pvAdditionalDataModel(20, PvBatteryState.CHARGING));
+        liveActivityService.start("test", "user", "device");
+
+        verify(pushService, times(1))
+                .sendLiveActivityToApns(eq("test"), argCaptorHighPriority.capture(), eq(false), argCaptorValueMap.capture());
+
+        assertNotNull(argCaptorValueMap.getValue());
+        assertNotNull(argCaptorValueMap.getValue().get("timestamp"));
+        assertTrue(getSinglePriorityHigh(0));
+        assertEquals("100 W", getSingleVal(0, "primary", "val"));
+        assertEquals(".orange", getSingleVal(0, "primary", "color"));
+        assertEquals("0,1", getSingleVal(0, "primary", "valShort"));
+        assertEquals("energygrid", getSingleVal(0, "primary", "symbolName"));
+        assertEquals("20%", getSingleVal(0, "secondary", "val"));
+        assertEquals(".green", getSingleVal(0, "secondary", "color"));
+        assertEquals("20%", getSingleVal(0, "secondary", "valShort"));
+        assertEquals("battery.25percent", getSingleVal(0, "secondary", "symbolName"));
     }
 
     @Test
@@ -165,6 +189,29 @@ class LiveActivityServiceTest {
         assertEquals("55%", getSingleVal(1, "secondary", "val"));
     }
 
+    @Test
+    void testNewModelsHouseAndElectricVehicleChargingAndBattery() {
+        ModelObjectDAO.getInstance().write(houseModelWithElectricGridValue(500));
+        ModelObjectDAO.getInstance().write(electricVehicleModelWithValue(40, 5));
+        ModelObjectDAO.getInstance().write(pvAdditionalDataModel(100, PvBatteryState.DISCHARGING));
+
+        liveActivityService.start("test", "user", "device");
+
+        liveActivityService.newModel(electricVehicleModelWithValue(40, 15));
+
+        verify(pushService, times(2))
+                .sendLiveActivityToApns(eq("test"), argCaptorHighPriority.capture(), eq(false), argCaptorValueMap.capture());
+
+        assertTrue(getSinglePriorityHigh(0));
+        assertEquals("500 W", getSingleVal(0, "primary", "val"));
+        assertEquals("100%", getSingleVal(0, "secondary", "val"));
+        assertEquals("45%", getSingleVal(0, "tertiary", "val"));
+        assertTrue(getSinglePriorityHigh(0));
+        assertEquals("500 W", getSingleVal(1, "primary", "val"));
+        assertEquals("100%", getSingleVal(1, "secondary", "val"));
+        assertEquals("55%", getSingleVal(1, "tertiary", "val"));
+    }
+
     private boolean getSinglePriorityHigh(int number) {
         return argCaptorHighPriority.getAllValues().get(number);
     }
@@ -180,6 +227,18 @@ class LiveActivityServiceTest {
         houseModel.getGridElectricalPower().setActualConsumption(new ValueWithTendency<>());
         houseModel.getGridElectricalPower().getActualConsumption().setValue(new BigDecimal(value));
         return houseModel;
+    }
+
+    private PvAdditionalDataModel pvAdditionalDataModel(int soc, PvBatteryState pvBatteryState) {
+        var pvAdditionalDataModel = new PvAdditionalDataModel();
+        pvAdditionalDataModel.setBatteryStateOfCharge(soc);
+        pvAdditionalDataModel.setMinChargingWattageForOverflowControl(2000);
+        pvAdditionalDataModel.setBatteryCapacity(new BigDecimal(4750));
+        pvAdditionalDataModel.setMaxChargeWattage(2500);
+        pvAdditionalDataModel.setPvBatteryState(pvBatteryState);
+        pvAdditionalDataModel.setBatteryWattage(0);
+        pvAdditionalDataModel.setBatteryPercentageEmptyForOverflowControl(5);
+        return pvAdditionalDataModel;
     }
 
     private ElectricVehicleModel electricVehicleModelWithValue(int base, int charge){
