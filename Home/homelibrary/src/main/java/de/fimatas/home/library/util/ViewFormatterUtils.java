@@ -6,11 +6,11 @@ import de.fimatas.home.library.model.PvAdditionalDataModel;
 
 public class ViewFormatterUtils {
 
-    public static String calculateViewFormattedPercentageEv(ElectricVehicleState evs) {
+    public static String calculateViewFormattedPercentageEv(ElectricVehicleState evs, boolean withPrefix) {
         var isChargedSinceReading = evs.getChargingTimestamp() != null;
         var percentagePrefix = isChargedSinceReading?"~":"";
         var percentage = calculateViewPercentageEv(evs);
-        return percentagePrefix + percentage + "%";
+        return (withPrefix ? percentagePrefix : "") + percentage + "%";
     }
 
     public static short calculateViewPercentageEv(ElectricVehicleState evs) {

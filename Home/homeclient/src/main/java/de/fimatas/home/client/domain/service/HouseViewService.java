@@ -203,7 +203,7 @@ public class HouseViewService {
         if (pcdElectric != null &&!pcdElectric.isEmpty()) {
             List<ChartEntry> dayViewModel = viewFormatter.fillPowerHistoryDayViewModel(house.getGridElectricalPower().getDevice(), pcdElectric, false, true);
             if (dayViewModel != null && !dayViewModel.isEmpty()) {
-                electric.setState(dayViewModel.get(0).getLabel().replace(ViewFormatter.SUM_SIGN, "").trim());
+                electric.setState(dayViewModel.get(0).getLabel().replace(ViewFormatter.SUM_SIGN, "").replace(" ", ""));
                 electric.setColorClass(ConditionColor.ORANGE.getUiClass());
             }
         }
@@ -254,13 +254,13 @@ public class HouseViewService {
             battery.setColorClass(ModelObjectDAO.getInstance().readPvAdditionalDataModel().getPvBatteryState() == PvBatteryState.CHARGING ? ConditionColor.GREEN.getUiClass() :
                     (ModelObjectDAO.getInstance().readPvAdditionalDataModel().getPvBatteryState() == PvBatteryState.DISCHARGING ? ConditionColor.BLUE.getUiClass() : ConditionColor.GRAY.getUiClass()));
         }
-        view.getCaptionAndValue().put("Speicher", battery);
+        view.getCaptionAndValue().put("PvSp", battery);
 
         electricVehicleModel.getEvMap().entrySet().stream().filter(e -> !e.getKey().isOther()).forEach(e -> {
             if(!e.getValue().getElectricVehicle().isOther()){
                 var ev = new View();
                 ev.setId(lookupEvChargeId(e.getKey(), true));
-                ev.setState(ViewFormatterUtils.calculateViewFormattedPercentageEv(e.getValue()));
+                ev.setState(ViewFormatterUtils.calculateViewFormattedPercentageEv(e.getValue(), false));
                 ev.setColorClass(ViewFormatterUtils.calculateViewConditionColorEv(ViewFormatterUtils.calculateViewPercentageEv(e.getValue())).getUiClass());
                 if(e.getValue().isActiveCharging()){
                     ev.setIconNativeClient("powerplug");
@@ -1554,10 +1554,10 @@ public class HouseViewService {
             view.setLinkUpdate(MESSAGEPATH + TYPE_IS + MessageType.SLIDERVALUE + AND_DEVICE_ID_IS + e.getKey().name() + AND_VALUE_IS);
             view.setColorClass(ViewFormatterUtils.calculateViewConditionColorEv(percentage).getUiClass());
             view.setActiveSwitchColorClass(ViewFormatterUtils.calculateViewConditionColorEv(percentage).getUiClass());
-            view.setStateShort(ViewFormatterUtils.calculateViewFormattedPercentageEv(e.getValue())); // watch etc
+            view.setStateShort(ViewFormatterUtils.calculateViewFormattedPercentageEv(e.getValue(), true)); // watch etc
             view.setStateShortLabel(tsFormatted);
             var etsTimestamp = StringUtils.capitalize(tsFormatted);
-            var etsPercent = ViewFormatterUtils.calculateViewFormattedPercentageEv(e.getValue());
+            var etsPercent = ViewFormatterUtils.calculateViewFormattedPercentageEv(e.getValue(), true);
             var etsLimit = "Limit " + e.getValue().getChargeLimit().getCaption();
             view.setElementTitleState(etsTimestamp + " " + etsPercent  + ", " + etsLimit); // collapsed top right
             if(e.getValue().isActiveCharging()){
