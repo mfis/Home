@@ -105,6 +105,7 @@ public class AppViewService {
                 mapPowerView(placeDirectives, ((OverallElectricPowerHouseView) view).getGridFeed(), placeModel, Optional.of("Ein"), ConditionColor.GREEN.getUiClass());
                 mapPV(((OverallElectricPowerHouseView) view).getPv(), placeModel, "PV");
                 mapPV(((OverallElectricPowerHouseView) view).getGridFeed(), placeModel, "Stromnetz");
+                mapPVBattery(((OverallElectricPowerHouseView) view), placeModel);
             } else if (view instanceof LockView) {
                 mapLockView(placeDirectives, (LockView) view, placeModel, viewTarget);
             } else if (view instanceof SwitchView) {
@@ -160,6 +161,16 @@ public class AppViewService {
     private void mapPV(PowerView view, HomeViewPlaceModel placeModel, String caption) {
 
         placeModel.getValues().add(mapActualPV(view, caption));
+    }
+
+    private void mapPVBattery(OverallElectricPowerHouseView view, HomeViewPlaceModel placeModel) {
+
+        HomeViewValueModel hvm = new HomeViewValueModel();
+        hvm.setId("pvbattery");
+        hvm.setKey("Speicher");
+        hvm.setValue(view.getBatteryStateOfCharge());
+        hvm.setAccent(ViewFormatterUtils.mapAppColorAccent(view.getBatteryColorClass()));
+        placeModel.getValues().add(hvm);
     }
 
     private void mapClimateView(PlaceDirectives placeDirectives, ClimateView view, HomeViewPlaceModel placeModel, AppViewTarget viewTarget) {
