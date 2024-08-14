@@ -244,7 +244,7 @@ public class HouseViewService {
             pv.setState(ViewFormatter.powerInWattToKiloWatt(grid) + "kW");
             pv.setColorClass(grid.compareTo(BigDecimal.ZERO) == 0 ? ConditionColor.ORANGE.getUiClass() : ConditionColor.GREEN.getUiClass());
         }
-        view.getCaptionAndValue().put("Über.", pv);
+        view.getCaptionAndValue().put("Übers.", pv);
 
         var battery = new View();
         battery.setId(lookupTodayPowerId(Device.STROMZAEHLER_BEZUG, true) + "3");
@@ -254,7 +254,7 @@ public class HouseViewService {
             battery.setColorClass(ModelObjectDAO.getInstance().readPvAdditionalDataModel().getPvBatteryState() == PvBatteryState.CHARGING ? ConditionColor.GREEN.getUiClass() :
                     (ModelObjectDAO.getInstance().readPvAdditionalDataModel().getPvBatteryState() == PvBatteryState.DISCHARGING ? ConditionColor.BLUE.getUiClass() : ConditionColor.GRAY.getUiClass()));
         }
-        view.getCaptionAndValue().put("Batt.", battery);
+        view.getCaptionAndValue().put("Speicher", battery);
 
         electricVehicleModel.getEvMap().entrySet().stream().filter(e -> !e.getKey().isOther()).forEach(e -> {
             if(!e.getValue().getElectricVehicle().isOther()){
@@ -826,7 +826,7 @@ public class HouseViewService {
                 overallElectricPowerHouseView.setBatteryColorClass(ConditionColor.RED.getUiClass());
             } else if(pvAdditionalDataModel.getPvBatteryState() == PvBatteryState.STABLE){
                 overallElectricPowerHouseView.setBatteryState("Inaktiv");
-                overallElectricPowerHouseView.setBatteryColorClass(ConditionColor.GRAY.getUiClass());
+                overallElectricPowerHouseView.setBatteryColorClass(ConditionColor.DEFAULT.getUiClass());
             }else if(pvAdditionalDataModel.getPvBatteryState() == PvBatteryState.CHARGING){
                 overallElectricPowerHouseView.setBatteryState("Lädt " + pvAdditionalDataModel.getBatteryWattage() + " W");
                 overallElectricPowerHouseView.setBatteryColorClass(ConditionColor.GREEN.getUiClass());

@@ -65,7 +65,7 @@ public enum LiveActivityField {
                         return ViewFormatterUtils.mapAppColorAccent(ConditionColor.BLUE.getUiClass());
                     }
                     default -> {
-                        return ViewFormatterUtils.mapAppColorAccent(ConditionColor.GRAY.getUiClass());
+                        return ViewFormatterUtils.mapAppColorAccent(ConditionColor.DEFAULT.getUiClass());
                     }
                 }
             }

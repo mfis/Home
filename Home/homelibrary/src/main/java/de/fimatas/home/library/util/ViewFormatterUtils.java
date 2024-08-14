@@ -48,6 +48,7 @@ public class ViewFormatterUtils {
             case RED -> ".red";
             case BLUE -> ".blue";
             case LIGHT, COLD -> ".purple";
+            case DEFAULT -> ".white";
             default -> "";
         };
     }
