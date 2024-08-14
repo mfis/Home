@@ -263,7 +263,7 @@ public class HouseViewService {
                 ev.setState(ViewFormatterUtils.calculateViewFormattedPercentageEv(e.getValue()));
                 ev.setColorClass(ViewFormatterUtils.calculateViewConditionColorEv(ViewFormatterUtils.calculateViewPercentageEv(e.getValue())).getUiClass());
                 if(e.getValue().isActiveCharging()){
-                    ev.setIconNativeClient("bolt");
+                    ev.setIconNativeClient("powerplug");
                 }
                 view.getCaptionAndValue().put(e.getKey().getCaption(), ev);
             }
