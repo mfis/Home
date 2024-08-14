@@ -291,14 +291,14 @@ class PhotovoltaicsOverflowServiceTest {
     @Test
     void testSwitchOffCausedByLowPvBatteryZeroPercentSoc() {
         refreshDevicesWithBatteryDefault(0, 3000, true,  true, false, false);
-        changeMinCharge(PvBatteryMinCharge.OFF);
+        changeMinChargeToZero();
         refreshPvBattery(0, PvBatteryState.STABLE, 0);
         callService();
         verifySwitch(Device.SCHALTER_WALLBOX, null);
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
 
         refreshDevicesWithBatteryDefault(10, 3000, true,  true, false, false);
-        changeMinCharge(PvBatteryMinCharge.OFF);
+        changeMinChargeToZero();
         refreshPvBattery(0, PvBatteryState.STABLE, 0);
         callService();
         verifySwitch(Device.SCHALTER_WALLBOX, false);
@@ -398,11 +398,11 @@ class PhotovoltaicsOverflowServiceTest {
         refreshPvBattery(10, PvBatteryState.STABLE, 0);
     }
 
-    private void changeMinCharge(PvBatteryMinCharge pvBatteryMinCharge) {
+    private void changeMinChargeToZero() {
 
         HouseModel houseModel = ModelObjectDAO.getInstance().readHouseModel();
-        houseModel.getWallboxSwitch().setMinPvBatteryPercentageInOverflowAutomationMode(pvBatteryMinCharge);
-        houseModel.getGuestRoomInfraredHeater().setMinPvBatteryPercentageInOverflowAutomationMode(pvBatteryMinCharge);
+        houseModel.getWallboxSwitch().setMinPvBatteryPercentageInOverflowAutomationMode(PvBatteryMinCharge.OFF);
+        houseModel.getGuestRoomInfraredHeater().setMinPvBatteryPercentageInOverflowAutomationMode(PvBatteryMinCharge.OFF);
         ModelObjectDAO.getInstance().write(houseModel);
     }
 
