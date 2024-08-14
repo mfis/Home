@@ -232,32 +232,29 @@ public class HouseViewService {
         }
 
         var pv = new View();
-        pv.setId(lookupTodayPowerId(Device.STROMZAEHLER_BEZUG, true) + "2" /* FIXME */);
+        pv.setId(lookupTodayPowerId(Device.STROMZAEHLER_BEZUG, true) + "2");
         pv.setState("?");
-        if(producedElectricalPower != null && !producedElectricalPower.isUnreach() && gridElectricalPower != null && !gridElectricalPower.isUnreach()){
+        if(producedElectricalPower != null && !producedElectricalPower.isUnreach() && gridElectricalPower != null
+                && !gridElectricalPower.isUnreach() && ModelObjectDAO.getInstance().readPvAdditionalDataModel() != null){
             BigDecimal grid = gridElectricalPower.getActualConsumption().getValue();
             if(grid.compareTo(BigDecimal.ZERO) > 0){
                 grid = BigDecimal.ZERO;
             }
             grid = grid.abs();
-            BigDecimal production = producedElectricalPower.getActualConsumption().getValue();
-            if(production.compareTo(BigDecimal.ZERO) < 0){
-                production = BigDecimal.ZERO;
-            }
-
-            if(production.compareTo(BigDecimal.ZERO) == 0){
-                pv.setState(ViewFormatter.powerInWattToKiloWatt(grid) + " kW");
-            }else{
-                if(production.compareTo(grid) < 0){
-                    // older production value
-                    pv.setState(ViewFormatter.powerInWattToKiloWatt(grid) + "/>" + ViewFormatter.powerInWattToKiloWatt(grid) + " kW");
-                }else{
-                    pv.setState(ViewFormatter.powerInWattToKiloWatt(grid) + "/" + ViewFormatter.powerInWattToKiloWatt(production) + " kW");
-                }
-            }
+            pv.setState(ViewFormatter.powerInWattToKiloWatt(grid) + "kW");
             pv.setColorClass(grid.compareTo(BigDecimal.ZERO) == 0 ? ConditionColor.ORANGE.getUiClass() : ConditionColor.GREEN.getUiClass());
         }
-        view.getCaptionAndValue().put("Überschuss", pv);
+        view.getCaptionAndValue().put("Über.", pv);
+
+        var battery = new View();
+        battery.setId(lookupTodayPowerId(Device.STROMZAEHLER_BEZUG, true) + "3");
+        battery.setState("?");
+        if(ModelObjectDAO.getInstance().readPvAdditionalDataModel() != null){
+            battery.setState(ModelObjectDAO.getInstance().readPvAdditionalDataModel().getBatteryStateOfCharge() + "%");
+            battery.setColorClass(ModelObjectDAO.getInstance().readPvAdditionalDataModel().getPvBatteryState() == PvBatteryState.CHARGING ? ConditionColor.GREEN.getUiClass() :
+                    (ModelObjectDAO.getInstance().readPvAdditionalDataModel().getPvBatteryState() == PvBatteryState.DISCHARGING ? ConditionColor.BLUE.getUiClass() : ConditionColor.GRAY.getUiClass()));
+        }
+        view.getCaptionAndValue().put("Batt.", battery);
 
         electricVehicleModel.getEvMap().entrySet().stream().filter(e -> !e.getKey().isOther()).forEach(e -> {
             if(!e.getValue().getElectricVehicle().isOther()){
@@ -266,7 +263,7 @@ public class HouseViewService {
                 ev.setState(ViewFormatterUtils.calculateViewFormattedPercentageEv(e.getValue()));
                 ev.setColorClass(ViewFormatterUtils.calculateViewConditionColorEv(ViewFormatterUtils.calculateViewPercentageEv(e.getValue())).getUiClass());
                 if(e.getValue().isActiveCharging()){
-                    ev.setIconNativeClient("bolt"); // TODO: centralize
+                    ev.setIconNativeClient("bolt");
                 }
                 view.getCaptionAndValue().put(e.getKey().getCaption(), ev);
             }
