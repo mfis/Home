@@ -252,8 +252,8 @@ public class PhotovoltaicsOverflowService {
         // too much watts from grid (battery charge already hat automatically stopped) -> switch off
         if(wattageGrid >= readMaxGridWattage(ocd.shortName)){
             if(pvAdditionalDataModel != null) {
-                // battery soc high enough
-                if (pvAdditionalDataModel.getBatteryStateOfCharge() >= deviceModelSwitch.getMinPvBatteryPercentageInOverflowAutomationMode().getPercentageSwitchOff()) {
+                // battery soc high enough?
+                if (pvAdditionalDataModel.getBatteryStateOfCharge() > deviceModelSwitch.getMinPvBatteryPercentageInOverflowAutomationMode().getPercentageSwitchOff()) {
                     return false;
                 }
                 // charging fast enough -> NOT switch off
