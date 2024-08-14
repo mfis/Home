@@ -131,9 +131,6 @@ public class SolarmanService {
     private PvAdditionalDataModel processBatteryData(Map<String, String> batteryKeysAndValues) {
 
         String actualStateOfCharge = batteryKeysAndValues.get("B_left_cap1");
-        if(StringUtils.equals(lastStateOfCharge, actualStateOfCharge)){
-            return null;
-        }
         lastStateOfCharge = actualStateOfCharge;
 
         if(BATTERY_KEYS.size() != batteryKeysAndValues.size()){
@@ -141,15 +138,17 @@ public class SolarmanService {
             return null;
         }
 
-        var pvAdditionalDataModel = new PvAdditionalDataModel();
-        String batteryFileLogPath = DaoUtils.getConfigRoot() + "pvBattery.log";
-        String logEntry = LocalDateTime.now() + " - " + batteryKeysAndValues + "\n";
-        try {
-            FileUtils.writeStringToFile(new File(batteryFileLogPath), logEntry, StandardCharsets.UTF_8, true);
-        } catch (IOException e) {
-            log.warn("Unable to write battery log to " + batteryFileLogPath, e);
+        if(!StringUtils.equals(lastStateOfCharge, actualStateOfCharge)) {
+            String batteryFileLogPath = DaoUtils.getConfigRoot() + "pvBattery.log";
+            String logEntry = LocalDateTime.now() + " - " + batteryKeysAndValues + "\n";
+            try {
+                FileUtils.writeStringToFile(new File(batteryFileLogPath), logEntry, StandardCharsets.UTF_8, true);
+            } catch (IOException e) {
+                log.warn("Unable to write battery log to " + batteryFileLogPath, e);
+            }
         }
 
+        var pvAdditionalDataModel = new PvAdditionalDataModel();
         pvAdditionalDataModel.setBatteryStateOfCharge(Integer.parseInt(actualStateOfCharge));
         pvAdditionalDataModel.setMaxChargeWattage(Integer.parseInt(Objects.requireNonNull(env.getProperty("solarman.maxChargeWattage"))));
         pvAdditionalDataModel.setMinChargingWattageForOverflowControl((int) ((double)pvAdditionalDataModel.getMaxChargeWattage() *
