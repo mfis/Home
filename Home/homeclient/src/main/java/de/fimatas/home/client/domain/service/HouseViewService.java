@@ -51,7 +51,7 @@ public class HouseViewService {
 
     private static final String MANUELL = ", Manuell";
 
-    private static final String AND_VALUE_IS = "&value=";
+    public static final String AND_VALUE_IS = "&value=";
 
     private static final String AND_DEVICE_IS = "&deviceName=";
 
@@ -63,7 +63,7 @@ public class HouseViewService {
 
     private static final String NEEDS_PIN = "&needsPin";
 
-    private static final String TYPE_IS = "type=";
+    public static final String TYPE_IS = "type=";
 
     public static final String MESSAGEPATH = "/message?"; // NOSONAR
 

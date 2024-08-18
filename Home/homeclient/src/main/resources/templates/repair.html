@@ -1,0 +1,26 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" lang="de">
+
+	<head th:replace="~{basics :: head (name='Home - App-Installation')}"><title></title></head>
+
+	<body id="idbody">
+
+		<div th:replace="~{basics :: navigation (selected=${MENU_SELECTED}, selectable=${MENU_SELECTABLE}, status=${SITE_REQUEST_TS}, isApp=${isApp})}"></div>
+
+		<div class="container">
+			<div style="height: 20px;"></div>
+			<h4>Reparatur-Optionen</h4>
+			<div th:class="'alert alert-danger callout callout-danger'">
+				<th:block th:each="entry : ${repairLinks}">
+					<a style="text-decoration:none; color: #000 !important; margin: 15px;" th:class="'btn btn-' + ${entry.cssClass}" th:onclick="@{'openPin(function () {return `LABELME`}, function () {alert(`ababab`)})'}" th:text="@{${entry.caption}}"></a>
+					<br/>
+				</th:block>
+			</div>
+			<div th:replace="~{pin :: pinView}"></div>
+		</div>
+
+	</body>
+	
+	<div th:replace="~{basics :: scriptresources}"></div>
+
+</html>

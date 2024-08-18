@@ -2,7 +2,13 @@ package de.fimatas.home.client.request;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
+
+import de.fimatas.home.client.domain.model.ValueWithCaption;
+import de.fimatas.home.library.model.RepairValues;
 import jakarta.servlet.http.HttpServletResponse;
 
 import de.fimatas.home.library.domain.model.*;
@@ -32,6 +38,8 @@ import de.fimatas.home.library.model.Message;
 import de.fimatas.home.library.model.MessageType;
 import de.fimatas.home.library.model.Pages;
 import mfi.files.api.UserService;
+
+import static de.fimatas.home.client.domain.service.HouseViewService.*;
 
 @Controller
 public class HomeRequestMapping {
@@ -164,6 +172,22 @@ public class HomeRequestMapping {
         String itmsLink = "itms-services://?action=download-manifest&url=" + appdistributionWebUrl + "manifest.plist";
         model.addAttribute("itmsLink", itmsLink);
         return "appInstallation";
+    }
+
+    @GetMapping("/repair")
+    public String repair(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, HttpServletResponse response) {
+        fillMenu(Pages.PATH_REPAIR, model, response, false);
+        fillUserAttributes(model, userCookie);
+        List<ValueWithCaption> list = new LinkedList<>();
+        Arrays.stream(RepairValues.values()).forEach(rv -> {
+            var vwc = new ValueWithCaption();
+            vwc.setCaption(rv.name());
+            vwc.setValue(MESSAGEPATH + TYPE_IS + MessageType.REPAIR + AND_VALUE_IS + rv.name());
+            vwc.setCssClass(rv.getConditionColor().getUiClass());
+            list.add(vwc);
+        });
+        model.addAttribute("repairLinks", list);
+        return "repair";
     }
 
     @RequestMapping(Pages.PATH_HOME) // NOSONAR: POST after login, all other GET
