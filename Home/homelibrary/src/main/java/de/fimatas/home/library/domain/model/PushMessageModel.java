@@ -1,14 +1,17 @@
 package de.fimatas.home.library.domain.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.LinkedList;
 import java.util.List;
 
-public class PushMessageModel {
+@Getter
+public class PushMessageModel extends AbstractSystemModel{
 
-    private List<PushMessage> list = new LinkedList<>();
+    private final List<PushMessage> list = new LinkedList<>();
 
-    private long timestamp;
-
+    @Setter
     private boolean additionalEntries;
 
     public PushMessageModel() {
@@ -23,17 +26,5 @@ public class PushMessageModel {
         this.timestamp = timestamp;
     }
 
-    public List<PushMessage> getList() {
-        return list;
-    }
-
-
-    public boolean isAdditionalEntries() {
-        return additionalEntries;
-    }
-
-    public void setAdditionalEntries(boolean additionalEntries) {
-        this.additionalEntries = additionalEntries;
-    }
 
 }

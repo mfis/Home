@@ -1,15 +1,18 @@
 package de.fimatas.home.library.domain.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.EnumMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class LightsModel {
+@Setter
+@Getter
+public class LightsModel extends AbstractSystemModel{
 
     private Map<Place, List<Light>> lightsMap = new EnumMap<>(Place.class);
-
-    private long timestamp;
 
     public LightsModel() {
         setTimestamp(System.currentTimeMillis());
@@ -28,14 +31,6 @@ public class LightsModel {
         } else {
             return lightsMap.get(place);
         }
-    }
-
-    public Map<Place, List<Light>> getLightsMap() {
-        return lightsMap;
-    }
-
-    public void setLightsMap(Map<Place, List<Light>> lightsMap) {
-        this.lightsMap = lightsMap;
     }
 
     public long getTimestamp() {

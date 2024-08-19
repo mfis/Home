@@ -9,11 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 @Data
-public class HistoryModel implements Serializable {
-
-    private static final long serialVersionUID = 1L;
-
-    private long dateTime;
+public class HistoryModel extends AbstractSystemModel {
 
     private List<PowerConsumptionMonth> purchasedElectricPowerConsumptionMonth;
 
@@ -56,7 +52,7 @@ public class HistoryModel implements Serializable {
     // ----------
 
     public void updateDateTime() {
-        dateTime = new Date().getTime();
+        timestamp = new Date().getTime();
     }
 
     public HistoryModel() {

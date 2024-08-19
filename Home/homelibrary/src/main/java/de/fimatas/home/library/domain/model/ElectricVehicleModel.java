@@ -1,22 +1,19 @@
 package de.fimatas.home.library.domain.model;
 
+import lombok.Getter;
+
 import java.util.EnumMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class ElectricVehicleModel {
+@Getter
+public class ElectricVehicleModel extends AbstractSystemModel{
 
     private Map<ElectricVehicle, ElectricVehicleState> evMap = new EnumMap<>(ElectricVehicle.class);
 
-    private long timestamp;
-
     public ElectricVehicleModel() {
         setTimestamp(System.currentTimeMillis());
-    }
-
-    public Map<ElectricVehicle, ElectricVehicleState> getEvMap() {
-        return evMap;
     }
 
     public long getTimestamp() {

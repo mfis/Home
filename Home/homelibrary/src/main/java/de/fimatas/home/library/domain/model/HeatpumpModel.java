@@ -9,16 +9,14 @@ import java.util.List;
 import java.util.Map;
 
 @Data
-public class HeatpumpModel implements Serializable {
+public class HeatpumpModel extends AbstractSystemModel {
 
     private Map<Place, Heatpump> heatpumpMap = new EnumMap<>(Place.class);
-
-    private long timestamp;
 
     private boolean busy;
 
     public HeatpumpModel() {
-        setTimestamp(System.currentTimeMillis());
+        timestamp = System.currentTimeMillis();
     }
 
 }

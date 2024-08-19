@@ -57,7 +57,7 @@ public class WeatherService {
 
         var model = new WeatherForecastModel();
         model.setForecasts(mapApiResponse(brightSkyAPI.callTwoDays()));
-        model.setDateTime(System.currentTimeMillis());
+        model.setTimestamp(System.currentTimeMillis());
         model.setSourceText(env.getProperty("weatherForecast.sourcetext"));
 
         calculateSunriseSunset(model.getForecasts());

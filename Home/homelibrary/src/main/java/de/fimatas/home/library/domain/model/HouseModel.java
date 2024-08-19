@@ -9,11 +9,7 @@ import java.lang.reflect.Field;
 import java.util.*;
 
 @Data
-public class HouseModel implements Serializable {
-
-    private static final long serialVersionUID = 1L;
-
-    private long dateTime;
+public class HouseModel extends AbstractSystemModel {
 
     @EnableHomekit(accessoryId = 1001)
     private RoomClimate climateKidsRoom1;
@@ -102,7 +98,7 @@ public class HouseModel implements Serializable {
 
     public HouseModel() {
         super();
-        dateTime = new Date().getTime();
+        timestamp = new Date().getTime();
         lowBatteryDevices = new LinkedList<>();
         warnings = new LinkedList<>();
         placeSubtitles = new LinkedHashMap<>();

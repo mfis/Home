@@ -937,7 +937,7 @@ public class HouseViewService {
 
         List<String> copy = new ArrayList<>(houseModel.getWarnings());
 
-        long diffHm = new Date().getTime() - houseModel.getDateTime();
+        long diffHm = new Date().getTime() - houseModel.getTimestamp();
         if (diffHm > 1000 * HomeAppConstants.MODEL_UPDATE_WARNING_SECONDS) {
             copy.add("Letzte Homematic Aktualisierung vor " + (diffHm / 1000 / 60) + " Min.");
         }

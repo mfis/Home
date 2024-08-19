@@ -1,13 +1,12 @@
 package de.fimatas.home.library.model;
 
+import de.fimatas.home.library.domain.model.AbstractSystemModel;
 import lombok.Data;
 
 import java.math.BigDecimal;
 
 @Data
-public class PvAdditionalDataModel {
-
-    private long dateTime;
+public class PvAdditionalDataModel extends AbstractSystemModel {
 
     private int batteryStateOfCharge; // percent SOC
 

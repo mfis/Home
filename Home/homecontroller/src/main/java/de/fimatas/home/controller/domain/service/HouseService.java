@@ -269,16 +269,16 @@ public class HouseService {
         }
 
         // Power consumption
-        calculatePowerConsumptionTendencies(newModel.getDateTime(),
+        calculatePowerConsumptionTendencies(newModel.getTimestamp(),
             oldModel == null ? null : oldModel.getGridElectricalPower(),
             newModel.getGridElectricalPower());
-        calculatePowerConsumptionTendencies(newModel.getDateTime(),
+        calculatePowerConsumptionTendencies(newModel.getTimestamp(),
                 oldModel == null ? null : oldModel.getProducedElectricalPower(),
                 newModel.getProducedElectricalPower());
-        calculatePowerConsumptionTendencies(newModel.getDateTime(),
+        calculatePowerConsumptionTendencies(newModel.getTimestamp(),
                 oldModel == null ? null : oldModel.getConsumedElectricalPower(),
                 newModel.getConsumedElectricalPower());
-        calculatePowerConsumptionTendencies(newModel.getDateTime(),
+        calculatePowerConsumptionTendencies(newModel.getTimestamp(),
             oldModel == null ? null : oldModel.getWallboxElectricalPowerConsumption(),
             newModel.getWallboxElectricalPowerConsumption());
     }
@@ -314,7 +314,7 @@ public class HouseService {
             } else {
                 referenceTemperature = climateOld.getTemperature();
             }
-            calculateTendency(newModel.getDateTime(), referenceTemperature, climateNew.getTemperature(),
+            calculateTendency(newModel.getTimestamp(), referenceTemperature, climateNew.getTemperature(),
                 TEMPERATURE_TENDENCY_DIFF);
         }
 
@@ -327,7 +327,7 @@ public class HouseService {
             } else {
                 referenceHumidity = climateOld.getHumidity();
             }
-            calculateTendency(newModel.getDateTime(), referenceHumidity, climateNew.getHumidity(), HUMIDITY_TENDENCY_DIFF);
+            calculateTendency(newModel.getTimestamp(), referenceHumidity, climateNew.getHumidity(), HUMIDITY_TENDENCY_DIFF);
         }
     }
 
@@ -361,17 +361,17 @@ public class HouseService {
 
         try {
             lookupHint(oldModel != null ? oldModel.getClimateKidsRoom1() : null, newModel.getClimateKidsRoom1(), null,
-                newModel.getClimateEntrance(), newModel.getDateTime());
+                newModel.getClimateEntrance(), newModel.getTimestamp());
             lookupHint(oldModel != null ? oldModel.getClimateKidsRoom2() : null, newModel.getClimateKidsRoom2(), null,
-                    newModel.getClimateEntrance(), newModel.getDateTime());
+                    newModel.getClimateEntrance(), newModel.getTimestamp());
             lookupHint(oldModel != null ? oldModel.getClimateBathRoom() : null, newModel.getClimateBathRoom(),
-                newModel.getHeatingBathRoom(), newModel.getClimateGarden(), newModel.getDateTime());
+                newModel.getHeatingBathRoom(), newModel.getClimateGarden(), newModel.getTimestamp());
             lookupHint(oldModel != null ? oldModel.getClimateBedRoom() : null, newModel.getClimateBedRoom(), null,
-                newModel.getClimateGarden(), newModel.getDateTime());
+                newModel.getClimateGarden(), newModel.getTimestamp());
             lookupHint(oldModel != null ? oldModel.getClimateLivingRoom() : null, newModel.getClimateLivingRoom(), null,
-                newModel.getClimateGarden(), newModel.getDateTime());
+                newModel.getClimateGarden(), newModel.getTimestamp());
             lookupHint(oldModel != null ? oldModel.getClimateLaundry() : null, newModel.getClimateLaundry(), null, null,
-                newModel.getDateTime());
+                newModel.getTimestamp());
         } catch (RuntimeException re) {
             LogFactory.getLog(HouseService.class).error("Could not calculate hints:", re);
         }

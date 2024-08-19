@@ -10,11 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 @Data
-public class WeatherForecastModel implements Serializable {
-
-    private static final long serialVersionUID = 1L;
-
-    private long dateTime;
+public class WeatherForecastModel extends AbstractSystemModel {
 
     private String sourceText;
 

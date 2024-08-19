@@ -1,7 +1,7 @@
 package de.fimatas.home.library.dao;
 
-import java.util.Collection;
-import java.util.Date;
+import java.lang.reflect.Field;
+import java.util.*;
 import java.util.stream.Stream;
 
 import de.fimatas.home.library.domain.model.*;
@@ -55,17 +55,17 @@ public class ModelObjectDAO {
 
     public void write(HouseModel newModel) {
         houseModel = newModel;
-        houseModel.setDateTime(new Date().getTime());
+        houseModel.setTimestamp(new Date().getTime());
     }
 
     public void write(HistoryModel newModel) {
         historyModel = newModel;
-        historyModel.setDateTime(new Date().getTime());
+        historyModel.setTimestamp(new Date().getTime());
     }
 
     public void write(PresenceModel newModel) {
         presenceModel = newModel;
-        presenceModel.setDateTime(new Date().getTime());
+        presenceModel.setTimestamp(new Date().getTime());
     }
 
     public void write(HeatpumpModel newModel) {
@@ -80,12 +80,12 @@ public class ModelObjectDAO {
 
     public void write(TasksModel newModel) {
         tasksModel = newModel;
-        tasksModel.setDateTime(new Date().getTime());
+        tasksModel.setTimestamp(new Date().getTime());
     }
 
     public void write(PvAdditionalDataModel newModel) {
         pvAdditionalDataModel = newModel;
-        pvAdditionalDataModel.setDateTime(new Date().getTime());
+        pvAdditionalDataModel.setTimestamp(new Date().getTime());
     }
 
     public void write(LightsModel newModel) {
@@ -110,7 +110,7 @@ public class ModelObjectDAO {
     }
 
     public HouseModel readHouseModel() {
-        long newestTimestamp = houseModel == null ? 0 : houseModel.getDateTime();
+        long newestTimestamp = houseModel == null ? 0 : houseModel.getTimestamp();
         if (houseModel == null) {
             lastHouseModelState = "No data-model set.";
             return null;
@@ -128,7 +128,7 @@ public class ModelObjectDAO {
     }
 
     public HistoryModel readHistoryModel() {
-        long newestTimestamp = historyModel == null ? 0 : historyModel.getDateTime();
+        long newestTimestamp = historyModel == null ? 0 : historyModel.getTimestamp();
         if (historyModel == null || new Date().getTime() - newestTimestamp > 1000 * HomeAppConstants.HISTORY_OUTDATED_SECONDS) {
             return null; // Too old. Should never happen
         } else {
@@ -146,7 +146,7 @@ public class ModelObjectDAO {
     }
 
     public PresenceModel readPresenceModel() {
-        long newestTimestamp = presenceModel == null ? 0 : presenceModel.getDateTime();
+        long newestTimestamp = presenceModel == null ? 0 : presenceModel.getTimestamp();
         if (presenceModel == null || new Date().getTime() - newestTimestamp > 1000 * HomeAppConstants.MODEL_PRESENCE_OUTDATED_SECONDS) {
             return null; // Too old. Should never happen
         } else {
@@ -164,7 +164,7 @@ public class ModelObjectDAO {
     }
 
     public WeatherForecastModel readWeatherForecastModel() {
-        long newestTimestamp = weatherForecastModel == null ? 0 : weatherForecastModel.getDateTime();
+        long newestTimestamp = weatherForecastModel == null ? 0 : weatherForecastModel.getTimestamp();
         if (weatherForecastModel == null || new Date().getTime() - newestTimestamp > 1000 * 60 * 70) {
             return null; // Too old. Should never happen
         } else {
@@ -173,7 +173,7 @@ public class ModelObjectDAO {
     }
 
     public TasksModel readTasksModel() {
-        long newestTimestamp = tasksModel == null ? 0 : tasksModel.getDateTime();
+        long newestTimestamp = tasksModel == null ? 0 : tasksModel.getTimestamp();
         if (tasksModel == null || new Date().getTime() - newestTimestamp > 1000 * HomeAppConstants.MODEL_TASKS_OUTDATED_SECONDS) {
             return null; // Too old. Should never happen
         } else {
@@ -182,7 +182,7 @@ public class ModelObjectDAO {
     }
 
     public PvAdditionalDataModel readPvAdditionalDataModel() {
-        long newestTimestamp = pvAdditionalDataModel == null ? 0 : pvAdditionalDataModel.getDateTime();
+        long newestTimestamp = pvAdditionalDataModel == null ? 0 : pvAdditionalDataModel.getTimestamp();
         if (pvAdditionalDataModel == null || new Date().getTime() - newestTimestamp > 1000 * HomeAppConstants.MODEL_PV_OUTDATED_SECONDS) {
             return null; // Too old. Should never happen
         } else {
@@ -199,28 +199,7 @@ public class ModelObjectDAO {
     }
 
     public long calculateModelTimestamp(){
-
-        HouseModel hm = readHouseModel();
-        LightsModel lm = readLightsModel();
-        WeatherForecastModel wfm = readWeatherForecastModel();
-        PresenceModel pm = readPresenceModel();
-        HeatpumpModel hpm = readHeatpumpModel();
-        ElectricVehicleModel evm = readElectricVehicleModel();
-        PushMessageModel pmm = readPushMessageModel();
-        TasksModel tm = readTasksModel();
-        PvAdditionalDataModel padm = readPvAdditionalDataModel();
-
-        return  Stream.of(
-                hm==null?0:hm.getDateTime(),
-                lm==null?0:lm.getTimestamp(),
-                wfm==null?0:wfm.getDateTime(),
-                pm==null?0:pm.getDateTime(),
-                hpm==null?0:hpm.getTimestamp(),
-                evm==null?0:evm.getTimestamp(),
-                pmm==null?0:pmm.getTimestamp(),
-                tm==null?0:tm.getDateTime(),
-                padm==null?0:padm.getDateTime()
-        ).max(Long::compare).get();
+        return models().values().stream().map(AbstractSystemModel::getTimestamp).max(Long::compare).orElse(0L);
     }
 
     public Collection<SettingsModel> readAllSettings() {
@@ -232,6 +211,24 @@ public class ModelObjectDAO {
             return false;
         }
         return settingsContainer.getSettings().stream().anyMatch(model -> model.getToken().equals(pushToken));
+    }
+
+    private Map<String, AbstractSystemModel> models() {
+
+        Field[] fields = this.getClass().getDeclaredFields();
+        Map<String, AbstractSystemModel> modelList = new LinkedHashMap<>();
+        try {
+            for (Field field : fields) {
+                if ((field.getType().equals(AbstractSystemModel.class)
+                        || (field.getType().getSuperclass() != null && field.getType().getSuperclass().equals(AbstractSystemModel.class)))
+                        && field.get(this) != null) {
+                    modelList.put(field.getName(), (AbstractSystemModel) field.get(this));
+                }
+            }
+        } catch (IllegalArgumentException | IllegalAccessException e) {
+            throw new IllegalArgumentException("Exception collecting fields:", e);
+        }
+        return modelList;
     }
 
 }
