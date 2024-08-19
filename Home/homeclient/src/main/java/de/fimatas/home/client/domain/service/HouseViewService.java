@@ -99,6 +99,14 @@ public class HouseViewService {
 
         model.addAttribute("modelTimestamp", ModelObjectDAO.getInstance().calculateModelTimestamp());
 
+        formatWarnings(model, house, lightsModel, weatherForecastModel, historyModel, pvAdditionalDataModel);
+        formatPushMessages(model, username, pushMessageModel);
+
+        model.addAttribute("houseModelAvailable", house != null);
+        if(house == null) {
+            return;
+        }
+
         formatViewCorrelations(model);
 
         formatClimate(model, "tempBathroom", house.getClimateBathRoom(), house.getHeatingBathRoom(), false);
@@ -109,11 +117,6 @@ public class HouseViewService {
         formatClimate(model, "tempLaundry", house.getClimateLaundry(), null, true);
         formatClimate(model, "tempGuestroom", house.getClimateGuestRoom(), house.getHeatingGuestRoom(), false);
         formatClimate(model, "tempWorkshop", house.getClimateWorkshop(), null, false);
-
-        /*
-         formatWindow(model, "leftWindowBedroom", // NOSONAR
-         house.getLeftWindowBedRoom()); // NOSONAR
-        */
 
         formatFacadeTemperatures(model, "tempMinHouse", "tempMaxHouse", house);
 
@@ -135,15 +138,13 @@ public class HouseViewService {
         formatPower(model, house.getWallboxElectricalPowerConsumption(), historyModel==null?null:historyModel.getWallboxElectricPowerConsumptionDay());
         formatEVCharge(model, electricVehicleModel, house.getWallboxElectricalPowerConsumption());
 
-        formatHeatpump(model, house, heatpumpModel, Place.BEDROOM);
-        formatHeatpump(model, house, heatpumpModel, Place.KIDSROOM_1);
-        formatHeatpump(model, house, heatpumpModel, Place.KIDSROOM_2);
+        formatHeatpump(model, heatpumpModel, Place.BEDROOM);
+        formatHeatpump(model, heatpumpModel, Place.KIDSROOM_1);
+        formatHeatpump(model, heatpumpModel, Place.KIDSROOM_2);
 
         formatLowBattery(model, house.getLowBatteryDevices());
-        formatWarnings(model, house, lightsModel, weatherForecastModel, historyModel, pvAdditionalDataModel);
-        formatPushMessages(model, username, pushMessageModel);
 
-        formatPlaceSubtitles(model, house);
+        formatPlaceSubtitles(model);
 
         formatLights(lightsModel, model);
 
@@ -935,11 +936,15 @@ public class HouseViewService {
 
     private void formatWarnings(Model model, HouseModel houseModel, LightsModel lightsModel, WeatherForecastModel weatherForecastModel, HistoryModel historyModel, PvAdditionalDataModel pvAdditionalDataModel) {
 
-        List<String> copy = new ArrayList<>(houseModel.getWarnings());
+        List<String> copy = new ArrayList<>(houseModel==null? new LinkedList<>() : houseModel.getWarnings());
 
-        long diffHm = new Date().getTime() - houseModel.getTimestamp();
-        if (diffHm > 1000 * HomeAppConstants.MODEL_UPDATE_WARNING_SECONDS) {
-            copy.add("Letzte Homematic Aktualisierung vor " + (diffHm / 1000 / 60) + " Min.");
+        if(houseModel==null){
+            copy.add("Homematic Status unbekannt!");
+        }else{
+            long diffHm = new Date().getTime() - houseModel.getTimestamp();
+            if (diffHm > 1000 * HomeAppConstants.MODEL_UPDATE_WARNING_SECONDS) {
+                copy.add("Letzte Homematic Aktualisierung vor " + (diffHm / 1000 / 60) + " Min.");
+            }
         }
 
         if(lightsModel==null){
@@ -984,8 +989,8 @@ public class HouseViewService {
         model.addAttribute("pushMessages", list);
     }
 
-    private void formatPlaceSubtitles(Model model, HouseModel house) {
-        for (Map.Entry<Place, String> entry : house.getPlaceSubtitles().entrySet()) {
+    private void formatPlaceSubtitles(Model model) {
+        for (Map.Entry<Place, String> entry : ModelObjectDAO.getInstance().readHouseModelIgnoringAge().getPlaceSubtitles().entrySet()) {
             model.addAttribute(PLACE_SUBTITLE_PREFIX + entry.getKey().name(), entry.getValue());
         }
     }
@@ -1429,22 +1434,24 @@ public class HouseViewService {
     }
 
 
-    private void formatHeatpump(Model model, HouseModel house, HeatpumpModel heatpumpModel, Place place) {
+    private void formatHeatpump(Model model, HeatpumpModel heatpumpModel, Place place) {
 
         var isUnreachable = heatpumpModel == null ||
                 heatpumpModel.getHeatpumpMap() == null || heatpumpModel.getHeatpumpMap().get(place) == null;
+
+        var houseModel = ModelObjectDAO.getInstance().readHouseModelIgnoringAge();
 
         var view = new HeatpumpView();
         model.addAttribute("heatpump" + place.name(), view);
         view.setName("Wärmepumpe");
         view.setIcon("aircon.png");
         view.setPlaceEnum(place);
-        view.setPlaceSubtitle(house.getPlaceSubtitles().containsKey(place) ? house.getPlaceSubtitles().get(place) : place.getPlaceName());
+        view.setPlaceSubtitle(houseModel.getPlaceSubtitles().containsKey(place) ? houseModel.getPlaceSubtitles().get(place) : place.getPlaceName());
         view.setId(lookupHeatpumpId(place, false));
         view.setUnreach(Boolean.toString(isUnreachable));
 
         Stream.of(Place.KIDSROOM_1, Place.KIDSROOM_2, Place.BEDROOM).filter(p -> p != place).forEach(a -> {
-            String title = house.getPlaceSubtitles().containsKey(a) ? house.getPlaceSubtitles().get(a) : a.getPlaceName();
+            String title = houseModel.getPlaceSubtitles().containsKey(a) ? houseModel.getPlaceSubtitles().get(a) : a.getPlaceName();
             view.getOtherPlaces().add(new ValueWithCaption(a.name(), title, null));
         });
 

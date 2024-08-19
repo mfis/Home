@@ -19,7 +19,7 @@
 				   th:onclick="window.location.reload(true)">Reload</a>
 			</div>
 
-			<h4>Wartungs-Optionen</h4>
+			<h4 style="margin-top: 10px;">Wartungs-Optionen</h4>
 			<div th:class="'alert alert-danger callout callout-danger'">
 				<th:block th:each="entry : ${maintenanceLinks}">
 					<a style="text-decoration:none; color: #000 !important; margin: 15px;"
@@ -30,6 +30,7 @@
 				</th:block>
 			</div>
 			<div th:replace="~{pin :: pinView}"></div>
+			<button style="margin-top: 15px;" type="button" onclick="window.location.href='/'"  class="btn btn-secondary" th:text="'Zurück'"></button>
 		</div>
 
 	</body>

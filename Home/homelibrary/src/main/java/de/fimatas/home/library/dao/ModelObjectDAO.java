@@ -201,7 +201,7 @@ public class ModelObjectDAO {
     }
 
     public long calculateModelTimestamp(){
-        return models().values().stream().map(AbstractSystemModel::getTimestamp).max(Long::compare).orElse(0L);
+        return models().values().stream().filter(Objects::nonNull).map(AbstractSystemModel::getTimestamp).max(Long::compare).orElse(0L);
     }
 
     public Collection<SettingsModel> readAllSettings() {

@@ -6,7 +6,7 @@ import lombok.Getter;
 public enum MaintenanceOptions {
 
     REFRESH_MODELS(ConditionColor.ORANGE),
-    CONTROLLER_REBOOT(ConditionColor.RED),
+    REBOOT_CONTROLLER(ConditionColor.RED),
     ;
 
     private final ConditionColor conditionColor;

@@ -7,7 +7,7 @@
 	
 		<div class="container">
 			<div style="height: 20px;"></div>
-			<div th:class="'alert alert-danger callout-danger'">
+			<div th:class="'alert alert-danger callout-danger text-danger'">
 				<h4>Es ist ein Fehler aufgetreten.</h4>
 				<br/>
 				<p th:text="'Timestamp: ' + ${timestamp}"></p>
@@ -20,7 +20,8 @@
 					<p th:text="'Exception: ' + ${exception}"></p>
 				</th:block>				
 			</div>
-			<button type="button" th:onclick="@{'back()'}"  class="btn btn-secondary" th:text="'zurück'"></button>
+			<button type="button" onclick="window.location.href='/'"  class="btn btn-secondary" th:text="'Zurück'"></button>
+			<button type="button" onclick="window.location.href='/maintenance'"  class="btn btn-secondary" th:text="'Wartung'"></button>
 		</div>
 	
 		<script type="text/javascript">

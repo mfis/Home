@@ -213,10 +213,7 @@ public class HomeRequestMapping {
 
         String returnTemplate;
         try {
-            if (houseModel == null) {
-                mappingErrorAttributes(model, response, "Keine aktuellen Daten vorhanden - " + ModelObjectDAO.getInstance().getLastHouseModelState(), null);
-                returnTemplate = "error";
-            } else if (isModelUnchanged(etag) && !isNewMessage) {
+            if (isModelUnchanged(etag) && !isNewMessage) {
                 response.setStatus(HttpStatus.NOT_MODIFIED.value());
                 returnTemplate =  "empty";
             } else {

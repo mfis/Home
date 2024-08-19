@@ -28,7 +28,7 @@ public class MaintenanceService {
             log.warn("DO_MAINTENANCE: " + maintenanceOption);
             switch (maintenanceOption){
                 case REFRESH_MODELS -> clientCommunicationService.refreshAll();
-                case CONTROLLER_REBOOT -> controllerReboot();
+                case REBOOT_CONTROLLER -> controllerReboot();
             }
         }
     }
