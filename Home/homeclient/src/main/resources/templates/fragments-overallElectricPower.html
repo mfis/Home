@@ -106,7 +106,7 @@
 								<tr>
 									<td th:class="'text-' + ${model.batteryColorClass}">
 										<span><th:block th:replace="~{basics :: symbol (name=${model.batteryIcon})}"/></span>
-										<span th:text="${model.batteryState} + ', ' + ${model.batteryStateOfCharge}"></span>
+										<span th:text="${model.batteryState} + ${model.batteryStateOfCharge}"></span>
 									</td>
 								</tr>
 							</table>
