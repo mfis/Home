@@ -7,11 +7,13 @@
 
 		<div th:replace="~{basics :: navigation (selected=${MENU_SELECTED}, selectable=${MENU_SELECTABLE}, status=${SITE_REQUEST_TS}, isApp=${isApp})}"></div>
 
+		<th:block th:if="${!#strings.isEmpty(userErrorMessageText)}"><th:block th:replace="~{basics :: userErrorMessage (text=${userErrorMessageText})}"></th:block></th:block>
+
 		<div class="container">
 			<div style="height: 20px;"></div>
-			<h4>Reparatur-Optionen</h4>
+			<h4>Wartungs-Optionen</h4>
 			<div th:class="'alert alert-danger callout callout-danger'">
-				<th:block th:each="entry : ${repairLinks}">
+				<th:block th:each="entry : ${maintenanceLinks}">
 					<a style="text-decoration:none; color: #000 !important; margin: 15px;"
 					   th:class="'btn btn-' + ${entry.cssClass}"
 					   th:onclick="@{'openPin(function () {return `' + ${entry.caption} + '`}, function () {submitContentWithPin(`' + ${entry.value} + '`, document.getElementById(`val_pin`).value)})'}"

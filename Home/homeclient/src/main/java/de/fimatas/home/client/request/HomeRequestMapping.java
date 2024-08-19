@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Objects;
 
 import de.fimatas.home.client.domain.model.ValueWithCaption;
-import de.fimatas.home.library.model.RepairValues;
+import de.fimatas.home.library.model.MaintenanceOptions;
 import jakarta.servlet.http.HttpServletResponse;
 
 import de.fimatas.home.library.domain.model.*;
@@ -174,20 +174,20 @@ public class HomeRequestMapping {
         return "appInstallation";
     }
 
-    @GetMapping("/repair")
+    @GetMapping("/maintenance")
     public String repair(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, HttpServletResponse response) {
-        fillMenu(Pages.PATH_REPAIR, model, response, false);
+        fillMenu(Pages.PATH_MAINTENANCE, model, response, false);
         fillUserAttributes(model, userCookie);
         List<ValueWithCaption> list = new LinkedList<>();
-        Arrays.stream(RepairValues.values()).forEach(rv -> {
+        Arrays.stream(MaintenanceOptions.values()).forEach(mo -> {
             var vwc = new ValueWithCaption();
-            vwc.setCaption(rv.name());
-            vwc.setValue(MESSAGEPATH + TYPE_IS + MessageType.REPAIR + AND_VALUE_IS + rv.name());
-            vwc.setCssClass(rv.getConditionColor().getUiClass());
+            vwc.setCaption(mo.name());
+            vwc.setValue(MESSAGEPATH + TYPE_IS + MessageType.MAINTENANCE + AND_VALUE_IS + mo.name());
+            vwc.setCssClass(mo.getConditionColor().getUiClass());
             list.add(vwc);
         });
-        model.addAttribute("repairLinks", list);
-        return "repair";
+        model.addAttribute("maintenanceLinks", list);
+        return "maintenance";
     }
 
     @RequestMapping(Pages.PATH_HOME) // NOSONAR: POST after login, all other GET
