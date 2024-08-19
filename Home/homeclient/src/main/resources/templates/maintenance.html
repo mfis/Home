@@ -14,9 +14,11 @@
 			<h4>Modell-Status</h4>
 			<div th:class="'alert alert-secondary callout callout-secondary'">
 				<pre style="text-decoration:none; color: #FFDB94 !important;" th:text="${modelState}"></pre>
-				<a style="text-decoration:none; color: #000 !important; margin: 15px;"
-				   th:class="'btn btn-secondary'"
-				   th:onclick="window.location.reload(true)">Reload</a>
+			</div>
+
+			<h4>Controller-Status</h4>
+			<div th:class="'alert alert-secondary callout callout-secondary'">
+				<pre style="text-decoration:none; color: #FFDB94 !important;" th:text="${controllerState}"></pre>
 			</div>
 
 			<h4 style="margin-top: 10px;">Wartungs-Optionen</h4>
@@ -30,6 +32,7 @@
 				</th:block>
 			</div>
 			<div th:replace="~{pin :: pinView}"></div>
+			<button style="margin-top: 15px;" type="button" onclick="window.location.reload(true)"  class="btn btn-secondary" th:text="'Aktualisieren'"></button>
 			<button style="margin-top: 15px;" type="button" onclick="window.location.href='/'"  class="btn btn-secondary" th:text="'Zurück'"></button>
 		</div>
 

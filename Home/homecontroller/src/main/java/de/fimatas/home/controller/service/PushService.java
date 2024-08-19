@@ -102,7 +102,7 @@ public class PushService {
         }
     }
 
-    @Scheduled(cron = "0 00 00 * * *")
+    @Scheduled(cron = "0 00 * * * *")
     public void cleanUpDatabase() {
         pushMessageDAO.deleteMessagesOlderAsNDays(92);
         refreshModel();

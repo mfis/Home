@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 
 import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.homematic.model.Device;
+import de.fimatas.home.library.model.ControllerStateModel;
 import de.fimatas.home.library.model.PresenceState;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
@@ -74,6 +75,9 @@ public class ClientCommunicationService {
 
     @Autowired
     private MaintenanceService maintenanceService;
+
+    @Autowired
+    private ControllerStateService controllerStateService;
 
     @Autowired
     @Qualifier("restTemplateLongPolling")
@@ -252,6 +256,12 @@ public class ClientCommunicationService {
             solarmanService.refresh();
         } else {
             uploadService.uploadToClient(ModelObjectDAO.getInstance().readPvAdditionalDataModel());
+        }
+
+        if (ModelObjectDAO.getInstance().readControllerStateModel() == null) {
+            controllerStateService.refresh();
+        } else {
+            uploadService.uploadToClient(ModelObjectDAO.getInstance().readControllerStateModel());
         }
 
         settingsService.refreshSettingsModelsComplete();

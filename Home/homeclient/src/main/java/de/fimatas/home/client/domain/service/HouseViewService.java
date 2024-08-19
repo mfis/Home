@@ -965,7 +965,7 @@ public class HouseViewService {
         }
 
         if(pvAdditionalDataModel==null){
-            copy.add("PV-Speicher Status unbekannt!");
+            copy.add("PV Produktion- und Speicher-Status unbekannt!");
         }
 
         model.addAttribute("warnings", copy);

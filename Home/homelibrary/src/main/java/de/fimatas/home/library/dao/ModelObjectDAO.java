@@ -37,6 +37,8 @@ public class ModelObjectDAO {
 
     private PvAdditionalDataModel pvAdditionalDataModel;
 
+    private ControllerStateModel controllerStateModel;
+
     @Getter
     private String lastHouseModelState;
 
@@ -88,6 +90,11 @@ public class ModelObjectDAO {
     public void write(PvAdditionalDataModel newModel) {
         pvAdditionalDataModel = newModel;
         pvAdditionalDataModel.setTimestamp(new Date().getTime());
+    }
+
+    public void write(ControllerStateModel newModel) {
+        controllerStateModel = newModel;
+        controllerStateModel.setTimestamp(new Date().getTime());
     }
 
     public void write(LightsModel newModel) {
@@ -198,6 +205,10 @@ public class ModelObjectDAO {
 
     public ElectricVehicleModel readElectricVehicleModel() {
         return electricVehicleModel;
+    }
+
+    public ControllerStateModel readControllerStateModel() {
+        return controllerStateModel;
     }
 
     public long calculateModelTimestamp(){

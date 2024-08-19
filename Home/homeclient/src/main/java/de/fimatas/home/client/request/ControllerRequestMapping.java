@@ -97,6 +97,12 @@ public class ControllerRequestMapping {
         return new ActionModel("OK");
     }
 
+    @PostMapping(value = UPLOAD_METHOD_PREFIX + "ControllerStateModel")
+    public ActionModel uploadTasksModel(@RequestBody ControllerStateModel controllerStateModel) {
+        ModelObjectDAO.getInstance().write(controllerStateModel);
+        return new ActionModel("OK");
+    }
+
     @PostMapping(value = UPLOAD_METHOD_PREFIX + "PvAdditionalDataModel")
     public ActionModel uploadPvAdditionalDataModel(@RequestBody PvAdditionalDataModel pvAdditionalDataModel) {
         ModelObjectDAO.getInstance().write(pvAdditionalDataModel);
