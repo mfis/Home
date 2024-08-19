@@ -9,7 +9,7 @@ public class Pages {
 
     public static final String PATH_APP = "/appInstallation";
 
-    public static final String PATH_REPAIR = "/repair";
+    public static final String PATH_MAINTENANCE = "/maintenance";
 
     public static final String PATH_LOGOFF = "/logoff"; // NOSONAR
 
@@ -18,7 +18,7 @@ public class Pages {
     static {
         ENTRIES.add(new PageEntry("Zuhause", PATH_HOME, "fas fa-home", "home"));
         ENTRIES.add(new PageEntry("iOS App", PATH_APP, "fab fa-app-store-ios", "appInstallation"));
-        ENTRIES.add(new PageEntry("Reparatur", PATH_REPAIR, "fa-solid fa-screwdriver-wrench", "repair"));
+        ENTRIES.add(new PageEntry("Wartung", PATH_MAINTENANCE, "fa-solid fa-screwdriver-wrench", "maintenance"));
         ENTRIES.add(new PageEntry("abmelden", PATH_LOGOFF, "", ""));
     }
 

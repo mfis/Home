@@ -26,7 +26,7 @@ public enum MessageType {
     PV_OVERFLOW_MAX_WATTS_GRID(Pages.PATH_HOME), //
     PV_OVERFLOW_MIN_PATTERY_PERCENTAGE(Pages.PATH_HOME), //
     TASKS_EXECUTION(Pages.PATH_HOME), //
-    REPAIR(Pages.PATH_REPAIR), //
+    MAINTENANCE(Pages.PATH_MAINTENANCE), //
     ;//
 
     private final String targetSite;

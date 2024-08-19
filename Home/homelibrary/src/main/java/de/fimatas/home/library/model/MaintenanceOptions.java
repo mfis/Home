@@ -3,7 +3,7 @@ package de.fimatas.home.library.model;
 import lombok.Getter;
 
 @Getter
-public enum RepairValues {
+public enum MaintenanceOptions {
 
     REFRESH_MODELS(ConditionColor.ORANGE),
     CONTROLLER_REBOOT(ConditionColor.RED),
@@ -11,7 +11,7 @@ public enum RepairValues {
 
     private final ConditionColor conditionColor;
 
-    RepairValues(ConditionColor conditionColor){
+    MaintenanceOptions(ConditionColor conditionColor){
         this.conditionColor = conditionColor;
     }
 }

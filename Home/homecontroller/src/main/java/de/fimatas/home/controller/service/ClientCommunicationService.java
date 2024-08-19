@@ -73,6 +73,9 @@ public class ClientCommunicationService {
     private SolarmanService solarmanService;
 
     @Autowired
+    private MaintenanceService maintenanceService;
+
+    @Autowired
     @Qualifier("restTemplateLongPolling")
     private RestTemplate restTemplateLongPolling;
 
@@ -174,6 +177,9 @@ public class ClientCommunicationService {
             case TASKS_EXECUTION:
                 tasksService.markAsExecuted(message.getDeviceId());
                 break;
+            case MAINTENANCE:
+                maintenanceService.doMaintenance(message);
+                break;
             default:
                 throw new IllegalStateException("Unknown MessageType:" + message.getMessageType().name());
             }
@@ -186,7 +192,7 @@ public class ClientCommunicationService {
         uploadService.uploadToClient(message);
     }
 
-    private void refreshAll() {
+    public void refreshAll() {
 
         if (ModelObjectDAO.getInstance().readHouseModel() == null) {
             houseService.refreshHouseModel(false);
