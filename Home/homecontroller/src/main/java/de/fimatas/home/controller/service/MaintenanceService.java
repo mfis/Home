@@ -8,6 +8,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+
 @Component
 @CommonsLog
 public class MaintenanceService {
@@ -33,5 +35,12 @@ public class MaintenanceService {
 
     private void controllerReboot() {
         log.warn("MAINTENANCE: Rebooting controller");
+        try {
+            String command = "sudo /sbin/reboot";
+            ProcessBuilder processBuilder = new ProcessBuilder("bash", "-c", command);
+            processBuilder.start();
+        } catch (IOException e) {
+            log.error("Reboot konnte nicht ausgeloest werden.", e);
+        }
     }
 }
