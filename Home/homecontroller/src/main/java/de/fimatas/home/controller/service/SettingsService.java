@@ -6,15 +6,15 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
-import jakarta.annotation.PostConstruct;
+
+import de.fimatas.home.library.util.HomeAppConstants;
 
 import de.fimatas.home.controller.model.PushToken;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import de.fimatas.home.controller.dao.SettingsDAO;
-import de.fimatas.home.controller.domain.service.HistoryService;
 import de.fimatas.home.library.domain.model.PushNotifications;
 import de.fimatas.home.library.model.SettingsContainer;
 import de.fimatas.home.library.model.SettingsModel;
@@ -28,19 +28,11 @@ public class SettingsService {
     @Autowired
     private Environment env;
 
-    @PostConstruct
-    public void init() {
-
-        try {
-            refreshSettingsModelsComplete();
-        } catch (Exception e) {
-            LogFactory.getLog(HistoryService.class).error("Could not initialize SettingsService completly.", e);
-        }
-    }
-
+    @Scheduled(initialDelay = 7 * 1000, fixedDelay = (1000 * HomeAppConstants.MODEL_SETTINGS_INTERVAL_SECONDS) + 456)
     public void refreshSettingsModelsComplete() {
 
         SettingsContainer container = new SettingsContainer();
+        container.setTimestamp(System.currentTimeMillis());
         // SettingsContainer
         SettingsDAO.getInstance().read().forEach(model -> {
             // migrate up to new version if available
@@ -124,13 +116,6 @@ public class SettingsService {
     public PushToken tokenWithEnabledSettingForUser(PushNotifications pushNotifications, String user) {
         return SettingsDAO.getInstance().read().stream()
                 .filter(model -> model.getPushNotifications().get(pushNotifications))
-                .filter(settings -> settings.getUser().equals(user))
-                .map(settingsModel -> new PushToken(settingsModel.getUser(), settingsModel.getToken()))
-                .findFirst().orElse(null);
-    }
-
-    public PushToken tokenForUser(String user) {
-        return SettingsDAO.getInstance().read().stream()
                 .filter(settings -> settings.getUser().equals(user))
                 .map(settingsModel -> new PushToken(settingsModel.getUser(), settingsModel.getToken()))
                 .findFirst().orElse(null);

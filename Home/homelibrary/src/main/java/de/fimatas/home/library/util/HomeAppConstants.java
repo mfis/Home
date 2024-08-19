@@ -58,6 +58,8 @@ public class HomeAppConstants {
 
     public static final int MODEL_PV_OUTDATED_SECONDS = 60 * 60;
 
+    public static final int MODEL_SETTINGS_INTERVAL_SECONDS = 60 * 60;
+
     //
 
     public static final int DEVICE_STATE_INTERVAL_SECONDS = 60 * 3;

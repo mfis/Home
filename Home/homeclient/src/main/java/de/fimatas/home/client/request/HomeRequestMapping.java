@@ -187,6 +187,7 @@ public class HomeRequestMapping {
             list.add(vwc);
         });
         model.addAttribute("maintenanceLinks", list);
+        model.addAttribute("modelState", ModelObjectDAO.getInstance().printModelState());
         return "maintenance";
     }
 

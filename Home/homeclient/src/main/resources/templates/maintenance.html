@@ -6,15 +6,19 @@
 	<body id="idbody">
 
 		<div th:replace="~{basics :: navigation (selected=${MENU_SELECTED}, selectable=${MENU_SELECTABLE}, status=${SITE_REQUEST_TS}, isApp=${isApp})}"></div>
-
 		<th:block th:if="${!#strings.isEmpty(userErrorMessageText)}"><th:block th:replace="~{basics :: userErrorMessage (text=${userErrorMessageText})}"></th:block></th:block>
 
 		<div class="container">
 			<div style="height: 20px;"></div>
-			<a style="text-decoration:none; color: #000 !important; margin: 15px;"
-			   th:class="'btn btn-secondary'"
-			   th:onclick="window.location.reload(true)">Reload</a>
-			<br/>
+
+			<h4>Modell-Status</h4>
+			<div th:class="'alert alert-secondary callout callout-secondary'">
+				<pre style="text-decoration:none; color: #FFDB94 !important;" th:text="${modelState}"></pre>
+				<a style="text-decoration:none; color: #000 !important; margin: 15px;"
+				   th:class="'btn btn-secondary'"
+				   th:onclick="window.location.reload(true)">Reload</a>
+			</div>
+
 			<h4>Wartungs-Optionen</h4>
 			<div th:class="'alert alert-danger callout callout-danger'">
 				<th:block th:each="entry : ${maintenanceLinks}">

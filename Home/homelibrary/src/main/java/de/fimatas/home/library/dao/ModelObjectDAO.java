@@ -1,13 +1,15 @@
 package de.fimatas.home.library.dao;
 
 import java.lang.reflect.Field;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
-import java.util.stream.Stream;
 
 import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.model.*;
 import de.fimatas.home.library.util.HomeAppConstants;
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 
 public class ModelObjectDAO {
 
@@ -219,9 +221,7 @@ public class ModelObjectDAO {
         Map<String, AbstractSystemModel> modelList = new LinkedHashMap<>();
         try {
             for (Field field : fields) {
-                if ((field.getType().equals(AbstractSystemModel.class)
-                        || (field.getType().getSuperclass() != null && field.getType().getSuperclass().equals(AbstractSystemModel.class)))
-                        && field.get(this) != null) {
+                if (field.getType().getSuperclass() != null && field.getType().getSuperclass().equals(AbstractSystemModel.class)) {
                     modelList.put(field.getName(), (AbstractSystemModel) field.get(this));
                 }
             }
@@ -229,6 +229,25 @@ public class ModelObjectDAO {
             throw new IllegalArgumentException("Exception collecting fields:", e);
         }
         return modelList;
+    }
+
+    public String printModelState(){
+        Instant now = Instant.now();
+        StringBuilder sb = new StringBuilder();
+        var models = models();
+        int maxLength = models.keySet().stream().mapToInt(String::length).max().orElse(0);
+        models.keySet().forEach(m -> {
+            sb.append(StringUtils.rightPad(m, maxLength, '.')).append(": ");
+            if(models.get(m) != null){
+                Instant givenTime = Instant.ofEpochMilli(models.get(m).getTimestamp());
+                var minutes = Duration.between(givenTime, now).toMinutes();
+                sb.append(StringUtils.leftPad(Long.toString(minutes), 5)).append(" Minute").append(minutes == 1 ? "" : "n");
+            }else {
+                sb.append("null");
+            }
+            sb.append("\n");
+        });
+        return sb.toString();
     }
 
 }
