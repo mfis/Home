@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import de.fimatas.home.controller.dao.TokenDAO;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,7 @@ public class SolarmanAPI {
 
     private static int loginCounter = 0;
 
+    @CircuitBreaker(name = "solarman", fallbackMethod = "fallbackResponse")
     public JsonNode callForCurrentData(){
 
         if(accessFailureCounter > 1 || loginCounter > 1 || !Boolean.parseBoolean(env.getProperty("solarman.enabled"))){
@@ -51,8 +53,8 @@ public class SolarmanAPI {
         } catch (IllegalStateException | IllegalAccessException e){
             log.warn("first call (access): " + e.getMessage());
         } catch (Exception e){
-            log.error("first call (other): ", e);
-            return null;
+            log.error("first call (other): " + e.getMessage());
+            throw new RuntimeException(e);
         }
 
         // if login failure occured, try to login
@@ -61,12 +63,12 @@ public class SolarmanAPI {
             log.warn("solarman login");
             login();
         } catch (IllegalStateException | IllegalAccessException e){
-            log.error("login call (access): ", e);
+            log.error("login call (access): " + e.getMessage());
             accessFailureCounter++;
-            return null;
+            throw new RuntimeException(e);
         } catch (Exception e){
-            log.error("login call (other): ", e);
-            return null;
+            log.error("login call (other): " + e.getMessage());
+            throw new RuntimeException(e);
         }
 
         // then try to load current data second time
@@ -74,11 +76,17 @@ public class SolarmanAPI {
             return currentData();
         } catch (IllegalStateException | IllegalAccessException e){
             log.error("second call (access): " + e.getMessage());
-            return null;
+            throw new RuntimeException(e);
         } catch (Exception e){
-            log.error("second call (other): ", e);
-            return null;
+            log.error("second call (other): " + e.getMessage());
+            throw new RuntimeException(e);
         }
+    }
+
+    @SuppressWarnings("unused") // used by resilience4j
+    public JsonNode fallbackResponse(Throwable t) {
+        log.warn("fallbackResponse null");
+        return null;
     }
 
     private void login() throws Exception {
@@ -139,7 +147,7 @@ public class SolarmanAPI {
     }
 
     @Scheduled(cron = "0 0 * * * *")
-    private void resetCounter() {
+    protected void resetCounter() {
         accessFailureCounter = 0;
         loginCounter = 0;
     }
