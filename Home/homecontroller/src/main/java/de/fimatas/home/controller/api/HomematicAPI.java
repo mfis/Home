@@ -323,7 +323,8 @@ public class HomematicAPI {
 
     private boolean executeCommands(CallType callType, HomematicCommand... commands) {
 
-        if(!testCcuAuthIsActive(callType)){
+        var ccuAuthIsActive = testCcuAuthIsActive(callType);
+        if(ccuAuthIsActive != null && !ccuAuthIsActive){
             throw new IllegalStateException("Cannot execute commands because testCcuAuthIsActive is false");
         }
 
