@@ -29,6 +29,8 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
@@ -64,7 +66,7 @@ public class SolarmanService {
     private static final BigDecimal STRING_CHECK_LOWER_LIMIT_AMPS = new BigDecimal("0.5");
     private static final BigDecimal _100 = new BigDecimal("100");
 
-    private String lastStateOfCharge = "";
+    private long lastCollectionTimeRead = 0;
 
     private static final Map<String, Device> SOLARMAN_KEY_TO_HM_DEVICE  = new HashMap<>() {{
         put("Et_ge0", Device.ELECTRIC_POWER_PRODUCTION_COUNTER_HOUSE); // Summe PV
@@ -85,15 +87,21 @@ public class SolarmanService {
     @Scheduled(fixedDelay = (1000 * HomeAppConstants.SOLARMAN_INTERVAL_SECONDS) + 111, initialDelay = 12000)
     public void refresh() {
 
+        Instant givenTime = Instant.ofEpochMilli(lastCollectionTimeRead);
+        var seconds = Duration.between(givenTime, Instant.now()).toSeconds();
+        if(seconds < ((60 * 5) - 5)){ // inverter send update every 5 minutes
+            return;
+        }
+
         final JsonNode currentData = solarmanAPI.callForCurrentData();
         if (currentData == null){
             return;
         }
 
         List<HomematicCommand> updateCommands = new ArrayList<>();
-        long millis = Long.parseLong(currentData.get("collectionTime").asText()) * 1000L;
+        lastCollectionTimeRead = Long.parseLong(currentData.get("collectionTime").asText()) * 1000L;
         var stringAmps = new StringAmps();
-        updateCommands.add(homematicCommandBuilder.write(Device.ELECTRIC_POWER_ACTUAL_TIMESTAMP_HOUSE, Datapoint.SYSVAR_DUMMY, Long.toString(millis / 1000)));
+        updateCommands.add(homematicCommandBuilder.write(Device.ELECTRIC_POWER_ACTUAL_TIMESTAMP_HOUSE, Datapoint.SYSVAR_DUMMY, Long.toString(lastCollectionTimeRead / 1000)));
         Map<String, String> batteryKeysAndValues = new HashMap<>();
 
         final ArrayNode dataList = (ArrayNode) currentData.get("dataList");
@@ -131,14 +139,14 @@ public class SolarmanService {
     private PvAdditionalDataModel processBatteryData(Map<String, String> batteryKeysAndValues) {
 
         String actualStateOfCharge = batteryKeysAndValues.get("B_left_cap1");
-        lastStateOfCharge = actualStateOfCharge;
 
         if(BATTERY_KEYS.size() != batteryKeysAndValues.size()){
             log.warn("Battery keys and values do not match");
             return null;
         }
 
-        if(!StringUtils.equals(lastStateOfCharge, actualStateOfCharge)) {
+        //noinspection ConstantValue
+        if(false) {
             String batteryFileLogPath = DaoUtils.getConfigRoot() + "pvBattery.log";
             String logEntry = LocalDateTime.now() + " - " + batteryKeysAndValues + "\n";
             try {
