@@ -2,7 +2,6 @@ package de.fimatas.home.controller.domain.service;
 
 import static org.junit.Assert.assertEquals;
 
-import java.lang.reflect.Field;
 import java.math.BigDecimal;
 
 import org.junit.Test;
@@ -23,30 +22,28 @@ public class HouseServiceTest {
     private HouseService houseService;
 
     @Test
-    public void testCalculateTendenciesNoReference() throws Exception {
-
-        HouseModel oldModel = null;
+    public void testCalculateTendenciesNoReference() {
 
         HouseModel newModel = new HouseModel();
         newModel.setClimateBathRoom(new RoomClimate());
-        newModel.getClimateBathRoom().setTemperature(new ValueWithTendency<BigDecimal>(new BigDecimal("20")));
+        newModel.getClimateBathRoom().setTemperature(new ValueWithTendency<>(new BigDecimal("20")));
 
-        houseService.calculateTendencies(oldModel, newModel);
+        houseService.calculateTendencies(null, newModel);
 
         assertEquals(Tendency.EQUAL, newModel.getClimateBathRoom().getTemperature().getTendency());
     }
 
     @Test
-    public void testCalculateTendenciesEqualsExact() throws Exception {
+    public void testCalculateTendenciesEqualsExact() {
 
         HouseModel oldModel = new HouseModel();
         oldModel.setClimateBathRoom(new RoomClimate());
-        oldModel.getClimateBathRoom().setTemperature(new ValueWithTendency<BigDecimal>());
+        oldModel.getClimateBathRoom().setTemperature(new ValueWithTendency<>());
         oldModel.getClimateBathRoom().getTemperature().setReferenceValue(new BigDecimal("20"));
 
         HouseModel newModel = new HouseModel();
         newModel.setClimateBathRoom(new RoomClimate());
-        newModel.getClimateBathRoom().setTemperature(new ValueWithTendency<BigDecimal>(new BigDecimal("20")));
+        newModel.getClimateBathRoom().setTemperature(new ValueWithTendency<>(new BigDecimal("20")));
 
         houseService.calculateTendencies(oldModel, newModel);
 
@@ -54,16 +51,16 @@ public class HouseServiceTest {
     }
 
     @Test
-    public void testCalculateTendenciesMinimalVariancePlus() throws Exception {
+    public void testCalculateTendenciesMinimalVariancePlus() {
 
         HouseModel oldModel = new HouseModel();
         oldModel.setConclusionClimateFacadeMin(new OutdoorClimate());
-        oldModel.getConclusionClimateFacadeMin().setTemperature(new ValueWithTendency<BigDecimal>());
+        oldModel.getConclusionClimateFacadeMin().setTemperature(new ValueWithTendency<>());
         oldModel.getConclusionClimateFacadeMin().getTemperature().setReferenceValue(new BigDecimal("20"));
 
         HouseModel newModel = new HouseModel();
         newModel.setConclusionClimateFacadeMin(new OutdoorClimate());
-        newModel.getConclusionClimateFacadeMin().setTemperature(new ValueWithTendency<BigDecimal>(new BigDecimal("20.1")));
+        newModel.getConclusionClimateFacadeMin().setTemperature(new ValueWithTendency<>(new BigDecimal("20.1")));
 
         houseService.calculateTendencies(oldModel, newModel);
 
@@ -71,16 +68,16 @@ public class HouseServiceTest {
     }
 
     @Test
-    public void testCalculateTendenciesMinimalVarianceMinus() throws Exception {
+    public void testCalculateTendenciesMinimalVarianceMinus() {
 
         HouseModel oldModel = new HouseModel();
         oldModel.setConclusionClimateFacadeMin(new OutdoorClimate());
-        oldModel.getConclusionClimateFacadeMin().setTemperature(new ValueWithTendency<BigDecimal>());
+        oldModel.getConclusionClimateFacadeMin().setTemperature(new ValueWithTendency<>());
         oldModel.getConclusionClimateFacadeMin().getTemperature().setReferenceValue(new BigDecimal("20"));
 
         HouseModel newModel = new HouseModel();
         newModel.setConclusionClimateFacadeMin(new OutdoorClimate());
-        newModel.getConclusionClimateFacadeMin().setTemperature(new ValueWithTendency<BigDecimal>(new BigDecimal("19.9")));
+        newModel.getConclusionClimateFacadeMin().setTemperature(new ValueWithTendency<>(new BigDecimal("19.9")));
 
         houseService.calculateTendencies(oldModel, newModel);
 
@@ -88,16 +85,16 @@ public class HouseServiceTest {
     }
 
     @Test
-    public void testCalculateTendenciesBoundaryVariancePlus() throws Exception {
+    public void testCalculateTendenciesBoundaryVariancePlus() {
 
         HouseModel oldModel = new HouseModel();
         oldModel.setConclusionClimateFacadeMin(new OutdoorClimate());
-        oldModel.getConclusionClimateFacadeMin().setTemperature(new ValueWithTendency<BigDecimal>());
+        oldModel.getConclusionClimateFacadeMin().setTemperature(new ValueWithTendency<>());
         oldModel.getConclusionClimateFacadeMin().getTemperature().setReferenceValue(new BigDecimal("20"));
 
         HouseModel newModel = new HouseModel();
         newModel.setConclusionClimateFacadeMin(new OutdoorClimate());
-        newModel.getConclusionClimateFacadeMin().setTemperature(new ValueWithTendency<BigDecimal>(new BigDecimal("20.2")));
+        newModel.getConclusionClimateFacadeMin().setTemperature(new ValueWithTendency<>(new BigDecimal("20.2")));
 
         houseService.calculateTendencies(oldModel, newModel);
 
@@ -105,16 +102,16 @@ public class HouseServiceTest {
     }
 
     @Test
-    public void testCalculateTendenciesBoundaryVarianceMinus() throws Exception {
+    public void testCalculateTendenciesBoundaryVarianceMinus() {
 
         HouseModel oldModel = new HouseModel();
         oldModel.setConclusionClimateFacadeMin(new OutdoorClimate());
-        oldModel.getConclusionClimateFacadeMin().setTemperature(new ValueWithTendency<BigDecimal>());
+        oldModel.getConclusionClimateFacadeMin().setTemperature(new ValueWithTendency<>());
         oldModel.getConclusionClimateFacadeMin().getTemperature().setReferenceValue(new BigDecimal("20"));
 
         HouseModel newModel = new HouseModel();
         newModel.setConclusionClimateFacadeMin(new OutdoorClimate());
-        newModel.getConclusionClimateFacadeMin().setTemperature(new ValueWithTendency<BigDecimal>(new BigDecimal("19.8")));
+        newModel.getConclusionClimateFacadeMin().setTemperature(new ValueWithTendency<>(new BigDecimal("19.8")));
 
         houseService.calculateTendencies(oldModel, newModel);
 
@@ -122,189 +119,187 @@ public class HouseServiceTest {
     }
 
     @Test
-    public void testCalculateTendenciesCourseRise() throws Exception {
+    public void testCalculateTendenciesCourseRise() {
 
         HouseModel modelA = new HouseModel();
         setDateTime(modelA, 0);
         modelA.setConclusionClimateFacadeMin(new OutdoorClimate());
-        modelA.getConclusionClimateFacadeMin().setTemperature(new ValueWithTendency<BigDecimal>(new BigDecimal("20")));
+        modelA.getConclusionClimateFacadeMin().setTemperature(new ValueWithTendency<>(new BigDecimal("20")));
 
         houseService.calculateTendencies(null, modelA);
         assertEquals(Tendency.EQUAL, modelA.getConclusionClimateFacadeMin().getTemperature().getTendency());
 
         HouseModel modelB = new HouseModel();
-        setDateTime(modelB, modelA.getDateTime() + Tendency.Constants.ONE_MINUTE);
+        setDateTime(modelB, modelA.getTimestamp() + Tendency.Constants.ONE_MINUTE);
         modelB.setConclusionClimateFacadeMin(new OutdoorClimate());
-        modelB.getConclusionClimateFacadeMin().setTemperature(new ValueWithTendency<BigDecimal>(new BigDecimal("20.1")));
+        modelB.getConclusionClimateFacadeMin().setTemperature(new ValueWithTendency<>(new BigDecimal("20.1")));
 
         houseService.calculateTendencies(modelA, modelB);
         assertEquals(Tendency.EQUAL, modelB.getConclusionClimateFacadeMin().getTemperature().getTendency());
 
         HouseModel modelC = new HouseModel();
-        setDateTime(modelC, modelB.getDateTime() + Tendency.Constants.ONE_MINUTE);
+        setDateTime(modelC, modelB.getTimestamp() + Tendency.Constants.ONE_MINUTE);
         modelC.setConclusionClimateFacadeMin(new OutdoorClimate());
-        modelC.getConclusionClimateFacadeMin().setTemperature(new ValueWithTendency<BigDecimal>(new BigDecimal("20.2")));
+        modelC.getConclusionClimateFacadeMin().setTemperature(new ValueWithTendency<>(new BigDecimal("20.2")));
 
         houseService.calculateTendencies(modelB, modelC);
         assertEquals(Tendency.RISE, modelC.getConclusionClimateFacadeMin().getTemperature().getTendency());
 
         HouseModel modelD = new HouseModel();
-        setDateTime(modelD, modelC.getDateTime() + Tendency.Constants.ONE_MINUTE);
+        setDateTime(modelD, modelC.getTimestamp() + Tendency.Constants.ONE_MINUTE);
         modelD.setConclusionClimateFacadeMin(new OutdoorClimate());
-        modelD.getConclusionClimateFacadeMin().setTemperature(new ValueWithTendency<BigDecimal>(new BigDecimal("20.2")));
+        modelD.getConclusionClimateFacadeMin().setTemperature(new ValueWithTendency<>(new BigDecimal("20.2")));
 
         houseService.calculateTendencies(modelC, modelD);
         assertEquals(Tendency.RISE, modelD.getConclusionClimateFacadeMin().getTemperature().getTendency());
 
         HouseModel modelE = new HouseModel();
-        setDateTime(modelE, modelD.getDateTime() + Tendency.RISE_SLIGHT.getTimeDiff());
+        setDateTime(modelE, modelD.getTimestamp() + Tendency.RISE_SLIGHT.getTimeDiff());
         modelE.setConclusionClimateFacadeMin(new OutdoorClimate());
-        modelE.getConclusionClimateFacadeMin().setTemperature(new ValueWithTendency<BigDecimal>(new BigDecimal("20.2")));
+        modelE.getConclusionClimateFacadeMin().setTemperature(new ValueWithTendency<>(new BigDecimal("20.2")));
 
         houseService.calculateTendencies(modelC, modelE);
         assertEquals(Tendency.RISE_SLIGHT, modelE.getConclusionClimateFacadeMin().getTemperature().getTendency());
 
         HouseModel modelF = new HouseModel();
-        setDateTime(modelF, modelE.getDateTime() + Tendency.EQUAL.getTimeDiff() - Tendency.RISE_SLIGHT.getTimeDiff());
+        setDateTime(modelF, modelE.getTimestamp() + Tendency.EQUAL.getTimeDiff() - Tendency.RISE_SLIGHT.getTimeDiff());
         modelF.setConclusionClimateFacadeMin(new OutdoorClimate());
-        modelF.getConclusionClimateFacadeMin().setTemperature(new ValueWithTendency<BigDecimal>(new BigDecimal("20.2")));
+        modelF.getConclusionClimateFacadeMin().setTemperature(new ValueWithTendency<>(new BigDecimal("20.2")));
 
         houseService.calculateTendencies(modelE, modelF);
         assertEquals(Tendency.EQUAL, modelF.getConclusionClimateFacadeMin().getTemperature().getTendency());
 
         HouseModel modelG = new HouseModel();
-        setDateTime(modelG, modelF.getDateTime() + Tendency.EQUAL.getTimeDiff());
+        setDateTime(modelG, modelF.getTimestamp() + Tendency.EQUAL.getTimeDiff());
         modelG.setConclusionClimateFacadeMin(new OutdoorClimate());
-        modelG.getConclusionClimateFacadeMin().setTemperature(new ValueWithTendency<BigDecimal>(new BigDecimal("20.2")));
+        modelG.getConclusionClimateFacadeMin().setTemperature(new ValueWithTendency<>(new BigDecimal("20.2")));
 
         houseService.calculateTendencies(modelF, modelG);
         assertEquals(Tendency.EQUAL, modelG.getConclusionClimateFacadeMin().getTemperature().getTendency());
     }
 
     @Test
-    public void testCalculateHumidityTendencies() throws Exception {
+    public void testCalculateHumidityTendencies() {
 
         HouseModel modelA = new HouseModel();
         setDateTime(modelA, 0);
         modelA.setConclusionClimateFacadeMin(new OutdoorClimate());
-        modelA.getConclusionClimateFacadeMin().setHumidity(new ValueWithTendency<BigDecimal>(new BigDecimal("50")));
+        modelA.getConclusionClimateFacadeMin().setHumidity(new ValueWithTendency<>(new BigDecimal("50")));
 
         houseService.calculateTendencies(null, modelA);
         assertEquals(Tendency.EQUAL, modelA.getConclusionClimateFacadeMin().getHumidity().getTendency());
 
         HouseModel modelB = new HouseModel();
-        setDateTime(modelB, modelA.getDateTime() + Tendency.Constants.ONE_MINUTE);
+        setDateTime(modelB, modelA.getTimestamp() + Tendency.Constants.ONE_MINUTE);
         modelB.setConclusionClimateFacadeMin(new OutdoorClimate());
-        modelB.getConclusionClimateFacadeMin().setHumidity(new ValueWithTendency<BigDecimal>(new BigDecimal("51")));
+        modelB.getConclusionClimateFacadeMin().setHumidity(new ValueWithTendency<>(new BigDecimal("51")));
 
         houseService.calculateTendencies(modelA, modelB);
         assertEquals(Tendency.EQUAL, modelB.getConclusionClimateFacadeMin().getHumidity().getTendency());
 
         HouseModel modelC = new HouseModel();
-        setDateTime(modelC, modelB.getDateTime() + Tendency.Constants.ONE_MINUTE);
+        setDateTime(modelC, modelB.getTimestamp() + Tendency.Constants.ONE_MINUTE);
         modelC.setConclusionClimateFacadeMin(new OutdoorClimate());
-        modelC.getConclusionClimateFacadeMin().setHumidity(new ValueWithTendency<BigDecimal>(new BigDecimal("52")));
+        modelC.getConclusionClimateFacadeMin().setHumidity(new ValueWithTendency<>(new BigDecimal("52")));
 
         houseService.calculateTendencies(modelB, modelC);
         assertEquals(Tendency.RISE, modelC.getConclusionClimateFacadeMin().getHumidity().getTendency());
 
         HouseModel modelD = new HouseModel();
-        setDateTime(modelD, modelC.getDateTime() + Tendency.Constants.ONE_MINUTE);
+        setDateTime(modelD, modelC.getTimestamp() + Tendency.Constants.ONE_MINUTE);
         modelD.setConclusionClimateFacadeMin(new OutdoorClimate());
-        modelD.getConclusionClimateFacadeMin().setHumidity(new ValueWithTendency<BigDecimal>(new BigDecimal("52")));
+        modelD.getConclusionClimateFacadeMin().setHumidity(new ValueWithTendency<>(new BigDecimal("52")));
 
         houseService.calculateTendencies(modelC, modelD);
         assertEquals(Tendency.RISE, modelD.getConclusionClimateFacadeMin().getHumidity().getTendency());
 
         HouseModel modelE = new HouseModel();
-        setDateTime(modelE, modelD.getDateTime() + Tendency.RISE_SLIGHT.getTimeDiff());
+        setDateTime(modelE, modelD.getTimestamp() + Tendency.RISE_SLIGHT.getTimeDiff());
         modelE.setConclusionClimateFacadeMin(new OutdoorClimate());
-        modelE.getConclusionClimateFacadeMin().setHumidity(new ValueWithTendency<BigDecimal>(new BigDecimal("52")));
+        modelE.getConclusionClimateFacadeMin().setHumidity(new ValueWithTendency<>(new BigDecimal("52")));
 
         houseService.calculateTendencies(modelC, modelE);
         assertEquals(Tendency.RISE_SLIGHT, modelE.getConclusionClimateFacadeMin().getHumidity().getTendency());
 
         HouseModel modelF = new HouseModel();
-        setDateTime(modelF, modelE.getDateTime() + Tendency.EQUAL.getTimeDiff() - Tendency.RISE_SLIGHT.getTimeDiff());
+        setDateTime(modelF, modelE.getTimestamp() + Tendency.EQUAL.getTimeDiff() - Tendency.RISE_SLIGHT.getTimeDiff());
         modelF.setConclusionClimateFacadeMin(new OutdoorClimate());
-        modelF.getConclusionClimateFacadeMin().setHumidity(new ValueWithTendency<BigDecimal>(new BigDecimal("52")));
+        modelF.getConclusionClimateFacadeMin().setHumidity(new ValueWithTendency<>(new BigDecimal("52")));
 
         houseService.calculateTendencies(modelE, modelF);
         assertEquals(Tendency.EQUAL, modelF.getConclusionClimateFacadeMin().getHumidity().getTendency());
 
         HouseModel modelG = new HouseModel();
-        setDateTime(modelG, modelF.getDateTime() + Tendency.EQUAL.getTimeDiff());
+        setDateTime(modelG, modelF.getTimestamp() + Tendency.EQUAL.getTimeDiff());
         modelG.setConclusionClimateFacadeMin(new OutdoorClimate());
-        modelG.getConclusionClimateFacadeMin().setHumidity(new ValueWithTendency<BigDecimal>(new BigDecimal("52")));
+        modelG.getConclusionClimateFacadeMin().setHumidity(new ValueWithTendency<>(new BigDecimal("52")));
 
         houseService.calculateTendencies(modelF, modelG);
         assertEquals(Tendency.EQUAL, modelG.getConclusionClimateFacadeMin().getHumidity().getTendency());
     }
 
     @Test
-    public void testCalculateHumidityTendenciesLongRise() throws Exception {
+    public void testCalculateHumidityTendenciesLongRise() {
 
         HouseModel modelA = new HouseModel();
         setDateTime(modelA, 0);
         modelA.setConclusionClimateFacadeMin(new OutdoorClimate());
-        modelA.getConclusionClimateFacadeMin().setHumidity(new ValueWithTendency<BigDecimal>(new BigDecimal("50")));
+        modelA.getConclusionClimateFacadeMin().setHumidity(new ValueWithTendency<>(new BigDecimal("50")));
 
         houseService.calculateTendencies(null, modelA);
         assertEquals(Tendency.EQUAL, modelA.getConclusionClimateFacadeMin().getHumidity().getTendency());
 
         HouseModel modelB = new HouseModel();
-        setDateTime(modelB, modelA.getDateTime() + Tendency.Constants.ONE_MINUTE);
+        setDateTime(modelB, modelA.getTimestamp() + Tendency.Constants.ONE_MINUTE);
         modelB.setConclusionClimateFacadeMin(new OutdoorClimate());
-        modelB.getConclusionClimateFacadeMin().setHumidity(new ValueWithTendency<BigDecimal>(new BigDecimal("51")));
+        modelB.getConclusionClimateFacadeMin().setHumidity(new ValueWithTendency<>(new BigDecimal("51")));
 
         houseService.calculateTendencies(modelA, modelB);
         assertEquals(Tendency.EQUAL, modelB.getConclusionClimateFacadeMin().getHumidity().getTendency());
 
         HouseModel modelC = new HouseModel();
-        setDateTime(modelC, modelB.getDateTime() + Tendency.Constants.ONE_MINUTE);
+        setDateTime(modelC, modelB.getTimestamp() + Tendency.Constants.ONE_MINUTE);
         modelC.setConclusionClimateFacadeMin(new OutdoorClimate());
-        modelC.getConclusionClimateFacadeMin().setHumidity(new ValueWithTendency<BigDecimal>(new BigDecimal("52")));
+        modelC.getConclusionClimateFacadeMin().setHumidity(new ValueWithTendency<>(new BigDecimal("52")));
 
         houseService.calculateTendencies(modelB, modelC);
         assertEquals(Tendency.RISE, modelC.getConclusionClimateFacadeMin().getHumidity().getTendency());
 
         HouseModel modelD = new HouseModel();
-        setDateTime(modelD, modelC.getDateTime() + Tendency.Constants.ONE_MINUTE);
+        setDateTime(modelD, modelC.getTimestamp() + Tendency.Constants.ONE_MINUTE);
         modelD.setConclusionClimateFacadeMin(new OutdoorClimate());
-        modelD.getConclusionClimateFacadeMin().setHumidity(new ValueWithTendency<BigDecimal>(new BigDecimal("52")));
+        modelD.getConclusionClimateFacadeMin().setHumidity(new ValueWithTendency<>(new BigDecimal("52")));
 
         houseService.calculateTendencies(modelC, modelD);
         assertEquals(Tendency.RISE, modelD.getConclusionClimateFacadeMin().getHumidity().getTendency());
 
         HouseModel modelE = new HouseModel();
-        setDateTime(modelE, modelD.getDateTime() + Tendency.RISE_SLIGHT.getTimeDiff());
+        setDateTime(modelE, modelD.getTimestamp() + Tendency.RISE_SLIGHT.getTimeDiff());
         modelE.setConclusionClimateFacadeMin(new OutdoorClimate());
-        modelE.getConclusionClimateFacadeMin().setHumidity(new ValueWithTendency<BigDecimal>(new BigDecimal("52")));
+        modelE.getConclusionClimateFacadeMin().setHumidity(new ValueWithTendency<>(new BigDecimal("52")));
 
         houseService.calculateTendencies(modelC, modelE);
         assertEquals(Tendency.RISE_SLIGHT, modelE.getConclusionClimateFacadeMin().getHumidity().getTendency());
 
         HouseModel modelF = new HouseModel();
-        setDateTime(modelF, modelE.getDateTime() + Tendency.EQUAL.getTimeDiff() - Tendency.RISE_SLIGHT.getTimeDiff());
+        setDateTime(modelF, modelE.getTimestamp() + Tendency.EQUAL.getTimeDiff() - Tendency.RISE_SLIGHT.getTimeDiff());
         modelF.setConclusionClimateFacadeMin(new OutdoorClimate());
-        modelF.getConclusionClimateFacadeMin().setHumidity(new ValueWithTendency<BigDecimal>(new BigDecimal("52")));
+        modelF.getConclusionClimateFacadeMin().setHumidity(new ValueWithTendency<>(new BigDecimal("52")));
 
         houseService.calculateTendencies(modelE, modelF);
         assertEquals(Tendency.EQUAL, modelF.getConclusionClimateFacadeMin().getHumidity().getTendency());
 
         HouseModel modelG = new HouseModel();
-        setDateTime(modelG, modelF.getDateTime() + Tendency.EQUAL.getTimeDiff());
+        setDateTime(modelG, modelF.getTimestamp() + Tendency.EQUAL.getTimeDiff());
         modelG.setConclusionClimateFacadeMin(new OutdoorClimate());
-        modelG.getConclusionClimateFacadeMin().setHumidity(new ValueWithTendency<BigDecimal>(new BigDecimal("52")));
+        modelG.getConclusionClimateFacadeMin().setHumidity(new ValueWithTendency<>(new BigDecimal("52")));
 
         houseService.calculateTendencies(modelF, modelG);
         assertEquals(Tendency.EQUAL, modelG.getConclusionClimateFacadeMin().getHumidity().getTendency());
     }
 
-    private void setDateTime(HouseModel model, long dateTime) throws Exception {
-        Field fieldDateTime = HouseModel.class.getDeclaredField("dateTime");
-        fieldDateTime.setAccessible(true);
-        fieldDateTime.setLong(model, dateTime);
+    private void setDateTime(HouseModel model, long dateTime) {
+        model.setTimestamp(dateTime);
     }
 
 }
