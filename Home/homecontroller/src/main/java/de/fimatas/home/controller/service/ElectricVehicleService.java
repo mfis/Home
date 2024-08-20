@@ -15,12 +15,10 @@ import de.fimatas.home.library.util.HomeAppConstants;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import jakarta.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.MessageFormat;
@@ -91,8 +89,9 @@ public class ElectricVehicleService {
 
     private boolean firstRun = true;
 
-    private List<String> sentChargingProblemPushTimestampCache = new ArrayList<>();
+    private final List<String> sentChargingProblemPushTimestampCache = new ArrayList<>();
 
+    @Scheduled(initialDelay = 1000 * 30, fixedDelay = (1000 * HomeAppConstants.MODEL_EV_INTERVAL_SECONDS) + 110)
     public void refreshModel() {
 
         if(evChargingDAO.isSetupIsRunning()){
@@ -123,10 +122,11 @@ public class ElectricVehicleService {
             newModel.getEvMap().get(connected).setConnectedToWallbox(true);
         }
 
-        // debug
-        var actual = newModel.getEvMap().get(connected).getBatteryPercentage() + newModel.getEvMap().get(connected).getAdditionalChargingPercentage();
-        var limit = newModel.getEvMap().get(connected).getChargeLimit() == null ? 100 : newModel.getEvMap().get(connected).getChargeLimit().getPercentage();
-        log.debug("refreshModel() actual=" + actual + " limit=" + limit);
+        if(log.isDebugEnabled()){
+            var actual = newModel.getEvMap().get(connected).getBatteryPercentage() + newModel.getEvMap().get(connected).getAdditionalChargingPercentage();
+            var limit = newModel.getEvMap().get(connected).getChargeLimit() == null ? 100 : newModel.getEvMap().get(connected).getChargeLimit().getPercentage();
+            log.debug("refreshModel() actual=" + actual + " limit=" + limit);
+        }
 
         ModelObjectDAO.getInstance().write(newModel);
         uploadService.uploadToClient(newModel);
@@ -181,9 +181,7 @@ public class ElectricVehicleService {
     }
 
     public void saveChargingUser(String user){
-        CompletableFuture.runAsync(() -> {
-            stateHandlerDAO.writeState(STATEHANDLER_GROUPNAME_CHARGING_USER, STATEHANDLER_GROUPNAME_CHARGING_USER, user);
-        });
+        CompletableFuture.runAsync(() -> stateHandlerDAO.writeState(STATEHANDLER_GROUPNAME_CHARGING_USER, STATEHANDLER_GROUPNAME_CHARGING_USER, user));
     }
 
     public void updateSelectedEvForWallbox(ElectricVehicle electricVehicle){

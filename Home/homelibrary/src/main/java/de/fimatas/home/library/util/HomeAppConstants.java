@@ -60,6 +60,8 @@ public class HomeAppConstants {
 
     public static final int MODEL_SETTINGS_INTERVAL_SECONDS = 60 * 60;
 
+    public static final int MODEL_EV_INTERVAL_SECONDS = 60 * 59;
+
     public static final int MODEL_CONTROLLERSTATE_INTERVAL_SECONDS = 60 * 10;
 
     //
@@ -80,5 +82,6 @@ public class HomeAppConstants {
 
     //
 
+    @SuppressWarnings("PointlessArithmeticExpression")
     public static final int CHARGING_STATE_CHECK_INTERVAL_SECONDS = 60 * 1;
 }
