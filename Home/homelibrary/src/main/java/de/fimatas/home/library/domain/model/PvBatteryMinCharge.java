@@ -5,7 +5,7 @@ import lombok.Getter;
 @Getter
 public enum PvBatteryMinCharge {
 
-    OFF(0, 0, "0%"), //
+    OFF(0, 0, "Aus (0%)"), //
     LOW(15, 5, "15% (5%)"), //
     MEDIUM(30, 20, "30% (20%)"), //
     HIGH(60, 50, "60% (50%)"), //

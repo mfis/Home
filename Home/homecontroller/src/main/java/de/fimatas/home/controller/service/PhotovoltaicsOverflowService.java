@@ -158,7 +158,7 @@ public class PhotovoltaicsOverflowService {
                 switch(overflowControlledDeviceStates.get(ocd).controlState){
                     case STABLE -> setControlState(ocd, ControlState.PREPARE_TO_OFF);
                     case PREPARE_TO_OFF -> {
-                        if(isSwitchOffDelayReached(ocd)){
+                        if(isSwitchOffDelayReached(ocd, (Switch) deviceModel)){
                             houseService.togglestate(deviceModel.getDevice(), false);
                             setControlState(ocd, ControlState.STABLE);
                             hasToRefreshHouseModel = true;
@@ -329,7 +329,10 @@ public class PhotovoltaicsOverflowService {
                 && overflowControlledDeviceStates.get(ocd).dailyOnSwitchingCounter <= ocd.maxDailyOnSwitching;
     }
 
-    private boolean isSwitchOffDelayReached(OverflowControlledDevice ocd) {
+    private boolean isSwitchOffDelayReached(OverflowControlledDevice ocd, Switch deviceModel) {
+        if(deviceModel.getMinPvBatteryPercentageInOverflowAutomationMode() != PvBatteryMinCharge.OFF){
+            return true;
+        }
         long between = ChronoUnit.MINUTES.between(
                 uniqueTimestampService.getNonUnique(),
                 overflowControlledDeviceStates.get(ocd).controlStateTimestamp);

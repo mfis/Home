@@ -160,7 +160,7 @@ class PhotovoltaicsOverflowServiceTest {
     }
 
     @Test
-    void testOffAfterDelay() {
+    void testOffAfterZeroDelayCausedByMinBatteryChargeGreaterZero() {
         refreshDevicesWithBatteryDefault(0, +500, true,  true, false, false);
         callService();
         verifySwitch(Device.SCHALTER_WALLBOX, null);
@@ -168,10 +168,30 @@ class PhotovoltaicsOverflowServiceTest {
 
         refreshDevicesWithBatteryDefault(7, +500, true,  true, false, false);
         callService();
+        verifySwitch(Device.SCHALTER_WALLBOX, false);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+    }
+
+    @Test
+    void testOffAfterConfiguredDelayCausedByMinBerreryChargeIsZero() {
+
+        refreshDevicesWithBatteryDefault(0, +500, true,  true, false, false);
+        changeMinChargeToZero();
+        refreshPvBattery(0, PvBatteryState.STABLE, 0);
+        callService();
         verifySwitch(Device.SCHALTER_WALLBOX, null);
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
 
-        refreshDevicesWithBatteryDefault(12, +500, true,  true, false, false);
+        refreshDevicesWithBatteryDefault(7, +500, true,  true, false, false);
+        changeMinChargeToZero();
+        refreshPvBattery(0, PvBatteryState.STABLE, 0);
+        callService();
+        verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+
+        refreshDevicesWithBatteryDefault(20, +500, true,  true, false, false);
+        changeMinChargeToZero();
+        refreshPvBattery(0, PvBatteryState.STABLE, 0);
         callService();
         verifySwitch(Device.SCHALTER_WALLBOX, false);
         verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
