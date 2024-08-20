@@ -7,6 +7,7 @@ import com.eatthepath.pushy.apns.util.LiveActivityEvent;
 import com.eatthepath.pushy.apns.util.SimpleApnsPayloadBuilder;
 import com.eatthepath.pushy.apns.util.SimpleApnsPushNotification;
 import com.eatthepath.pushy.apns.util.concurrent.PushNotificationFuture;
+import de.fimatas.home.controller.api.HomematicAPI;
 import de.fimatas.home.controller.dao.LiveActivityDAO;
 import de.fimatas.home.controller.dao.PushMessageDAO;
 import de.fimatas.home.controller.domain.service.HouseService;
@@ -70,6 +71,9 @@ public class PushService {
 
     @Autowired
     private UniqueTimestampService uniqueTimestampService;
+
+    @Autowired
+    private HomematicAPI homematicAPI;
 
     private static LocalDateTime timestampLastDoorbellPushMessage = LocalDateTime.now();
 
@@ -152,6 +156,18 @@ public class PushService {
             taskNotifications(ModelObjectDAO.getInstance().readTasksModel());
         } catch (Exception e) {
             LogFactory.getLog(PushService.class).error("Could not [sendTaskNotifications] push notifications:", e);
+        }
+    }
+
+    @Scheduled(cron = "11 01 8,13,18 * * *")
+    public void sendHomematicApiFailure() {
+        try {
+            if(homematicAPI.isRequestFailure(true)){
+                settingsService.listTokensWithEnabledSetting(PushNotifications.ERRORMESSAGE)
+                        .forEach(pushToken -> handleMessage(pushToken, PushNotifications.ERRORMESSAGE.getPushText(), "Homematic CCU nicht erreichbar!"));
+            }
+        } catch (Exception e) {
+            LogFactory.getLog(PushService.class).error("Could not [sendHomematicApiFailure] push notifications:", e);
         }
     }
 
@@ -261,15 +277,13 @@ public class PushService {
             return;
         }
 
-        settingsService.listTokensWithEnabledSetting(PushNotifications.TASKS).forEach(pushToken -> {
-            model.getTasks().forEach(task -> {
-                if(HomeUtils.isSameDay(task.getNextExecutionTime(), LocalDateTime.now())){
-                    handleMessage(pushToken, "Heute fällige Aufgabe", task.getName());
-                } else if (task.getState() == TaskState.FAR_OUT_OF_RANGE){
-                    handleMessage(pushToken, "Überfällige Aufgabe", task.getName());
-                }
-            });
-        });
+        settingsService.listTokensWithEnabledSetting(PushNotifications.TASKS).forEach(pushToken -> model.getTasks().forEach(task -> {
+            if(HomeUtils.isSameDay(task.getNextExecutionTime(), LocalDateTime.now())){
+                handleMessage(pushToken, "Heute fällige Aufgabe", task.getName());
+            } else if (task.getState() == TaskState.FAR_OUT_OF_RANGE){
+                handleMessage(pushToken, "Überfällige Aufgabe", task.getName());
+            }
+        }));
     }
 
     private void handleMessage(PushToken pushToken, String title, String message) {

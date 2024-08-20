@@ -9,7 +9,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -20,6 +19,8 @@ import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -81,6 +82,7 @@ public class HomematicAPI {
 
     // current response
 
+    @Getter
     private LocalDateTime currentValuesTimestamp;
 
     private String currentValuesCompareString;
@@ -97,6 +99,7 @@ public class HomematicAPI {
 
     private long lastCCUAuthTestTimestamp = 0;
 
+    @Getter
     private Boolean ccuAuthActive;
 
     private DocumentBuilder documentBuilder;
@@ -148,9 +151,7 @@ public class HomematicAPI {
         if (datapointWithTimestamp.isPresent()) {
             LocalDateTime datapointTimestamp =
                 getTimestamp(homematicCommandBuilder.readTS(device, datapointWithTimestamp.get()));
-            if (datapointTimestamp.getYear() <= YEAR_OF_UNIX_TIMESTAMP_START) {
-                return true;
-            }
+            return datapointTimestamp.getYear() <= YEAR_OF_UNIX_TIMESTAMP_START;
         }
 
         return false;
@@ -161,14 +162,16 @@ public class HomematicAPI {
     }
 
     public boolean getAsBoolean(HomematicCommand command) {
-        return Boolean.valueOf(readValue(command));
+        return Boolean.parseBoolean(readValue(command));
     }
 
     public BigDecimal getAsBigDecimal(HomematicCommand command) {
+        //noinspection DataFlowIssue
         return new BigDecimal(readValue(command));
     }
 
     private LocalDateTime getTimestamp(HomematicCommand command) { // internal use only
+        //noinspection DataFlowIssue
         return LocalDateTime.parse(readValue(command), UPTIME_FORMATTER);
     }
 
@@ -192,9 +195,9 @@ public class HomematicAPI {
         } else {
             StringBuilder sb = new StringBuilder();
             for (HomematicCommand cmd : currentValues.keySet()) {
-                sb.append(cmd.getCashedVarName() + "\n");
+                sb.append(cmd.getCashedVarName()).append("\n");
             }
-            LOG.error("Key/Value unknown: " + command.getCashedVarName() + " / known keys: \n" + sb.toString());
+            LOG.error("Key/Value unknown: " + command.getCashedVarName() + " / known keys: \n" + sb);
             return null;
         }
     }
@@ -214,7 +217,7 @@ public class HomematicAPI {
                 callReGaAPI(body, callType, false);
                 ccuAuthActive = false;
             } catch (HttpClientErrorException e) {
-                if (e.getRawStatusCode() == 401) {
+                if (e.getStatusCode().value() == 401) {
                     ccuAuthActive = true;
                 }
             } catch (Exception e) {
@@ -253,7 +256,7 @@ public class HomematicAPI {
             }
         }
 
-        boolean refreshed = executeCommands(CallType.REFRESH, commands.toArray(new HomematicCommand[commands.size()]));
+        boolean refreshed = executeCommands(CallType.REFRESH, commands.toArray(new HomematicCommand[0]));
 
         if (refreshed) {
             refreshed = hasChangedValues();
@@ -307,7 +310,7 @@ public class HomematicAPI {
         commands.add(homematicCommandBuilder.read(VAR_CCU_REBOOT));
         commands.add(homematicCommandBuilder.read(VAR_CCU_UPTIME));
 
-        if (executeCommands(CallType.DEVICE_STATE, commands.toArray(new HomematicCommand[commands.size()]))) {
+        if (executeCommands(CallType.DEVICE_STATE, commands.toArray(new HomematicCommand[0]))) {
             lookupInitState();
             logRuntime("readDeviceState", timeStart);
             isInitialDeviceStateSet = true;
@@ -320,7 +323,9 @@ public class HomematicAPI {
 
     private boolean executeCommands(CallType callType, HomematicCommand... commands) {
 
-        testCcuAuthIsActive(callType);
+        if(!testCcuAuthIsActive(callType)){
+            throw new IllegalStateException("Cannot execute commands because testCcuAuthIsActive is false");
+        }
 
         String body = buildReGaRequestBody(commands);
         return extractCommandResults(callType, callReGaAPI(body, callType, true), commands);
@@ -413,7 +418,7 @@ public class HomematicAPI {
         if (withAuthentication) {
             httpHeaders.setBasicAuth(ccuUser, ccuPass, StandardCharsets.UTF_8);
         }
-        httpHeaders.setAccept(Arrays.asList(MediaType.ALL));
+        httpHeaders.setAccept(List.of(MediaType.ALL));
         httpHeaders.setAcceptCharset(List.of(StandardCharsets.UTF_8));
         httpHeaders.setCacheControl(CacheControl.noCache());
         httpHeaders.setContentLength(contentLength);
@@ -427,7 +432,7 @@ public class HomematicAPI {
         if (LOG.isTraceEnabled()) {
             LOG.trace("REQUEST=" + body);
         }
-        ResponseEntity<String> responseEntity = null;
+        ResponseEntity<String> responseEntity;
         try {
             responseEntity = restTemplateCCU.postForEntity(host + REGA_HTTPS_PORT_AND_URI, requestEntity, String.class);
             resourceNotAvailableCounter = 0;
@@ -448,7 +453,8 @@ public class HomematicAPI {
         }
 
         try {
-            Document newDoc = null;
+            Document newDoc;
+            //noinspection SynchronizeOnNonFinalField
             synchronized (documentBuilder) {
                 newDoc =
                     documentBuilder.parse(new ByteArrayInputStream(responseEntity.getBody().getBytes(StandardCharsets.UTF_8))); // NOSONAR
@@ -491,15 +497,11 @@ public class HomematicAPI {
             return true;
         }
         resourceNotAvailableCounter++;
-        return resourceNotAvailableCounter > 2;
+        return isRequestFailure(false);
     }
 
-    public LocalDateTime getCurrentValuesTimestamp() {
-        return currentValuesTimestamp;
-    }
-
-    public Boolean getCcuAuthActive() {
-        return ccuAuthActive;
+    public boolean isRequestFailure(boolean massive) {
+        return resourceNotAvailableCounter > (massive? 60 : 2);
     }
 
     private void logRuntime(String cpt, long start) {
