@@ -236,7 +236,8 @@ public class PhotovoltaicsOverflowService {
     }
 
     private static boolean isPvBatterySocHighEnoughToSwitchOn(Switch deviceModelSwitch) {
-        final int actualPvBatteryPercentage = ModelObjectDAO.getInstance().readPvAdditionalDataModel().getBatteryStateOfCharge();
+        final int actualPvBatteryPercentage = ModelObjectDAO.getInstance().readPvAdditionalDataModel() == null ?
+                0 :ModelObjectDAO.getInstance().readPvAdditionalDataModel().getBatteryStateOfCharge();
         return actualPvBatteryPercentage >= deviceModelSwitch.getMinPvBatteryPercentageInOverflowAutomationMode().getPercentageSwitchOn();
     }
 
