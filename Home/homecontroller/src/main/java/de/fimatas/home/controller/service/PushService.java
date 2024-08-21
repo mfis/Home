@@ -76,9 +76,6 @@ public class PushService {
     @Autowired
     private HomematicAPI homematicAPI;
 
-    @Autowired
-    //private SolarmanService solarmanService;
-
     private static LocalDateTime timestampLastDoorbellPushMessage = LocalDateTime.now();
 
     private static final Log LOG = LogFactory.getLog(PushService.class);
