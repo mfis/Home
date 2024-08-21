@@ -77,7 +77,7 @@ public class PushService {
     private HomematicAPI homematicAPI;
 
     @Autowired
-    private SolarmanService solarmanService;
+    //private SolarmanService solarmanService;
 
     private static LocalDateTime timestampLastDoorbellPushMessage = LocalDateTime.now();
 
@@ -175,13 +175,20 @@ public class PushService {
         }
     }
 
-    @Scheduled(cron = "30 08 11,16 * * *")
+    @Scheduled(cron = "30 25 11,16 * * *")
     public void sendPvStringFailure() {
         try {
-            if(solarmanService.getStringsStatus() == PhotovoltaicsStringsStatus.ONE_FAULTY){
-                settingsService.listTokensWithEnabledSetting(PushNotifications.ERRORMESSAGE)
-                        .forEach(pushToken -> handleMessage(pushToken, PushNotifications.ERRORMESSAGE.getPushText(),
-                                "Teilausfall der Photovoltaikanlage erkannt."));
+            if(ModelObjectDAO.getInstance().readPvAdditionalDataModel() != null){
+                if(ModelObjectDAO.getInstance().readPvAdditionalDataModel().getAlarm() != null){
+                    settingsService.listTokensWithEnabledSetting(PushNotifications.ERRORMESSAGE)
+                            .forEach(pushToken -> handleMessage(pushToken, PushNotifications.ERRORMESSAGE.getPushText(),
+                                    "Photovoltaikanlage meldet Fehler: " + ModelObjectDAO.getInstance().readPvAdditionalDataModel().getAlarm()));
+                }
+                if(ModelObjectDAO.getInstance().readPvAdditionalDataModel().getStringsStatus() == PhotovoltaicsStringsStatus.ONE_FAULTY){
+                    settingsService.listTokensWithEnabledSetting(PushNotifications.ERRORMESSAGE)
+                            .forEach(pushToken -> handleMessage(pushToken, PushNotifications.ERRORMESSAGE.getPushText(),
+                                    "Teilausfall der Photovoltaikanlage erkannt."));
+                }
             }
         } catch (Exception e) {
             LogFactory.getLog(PushService.class).error("Could not [sendPvStringFailure] push notifications:", e);

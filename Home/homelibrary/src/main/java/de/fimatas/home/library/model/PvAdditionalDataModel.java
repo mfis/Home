@@ -8,6 +8,10 @@ import java.math.BigDecimal;
 @Data
 public class PvAdditionalDataModel extends AbstractSystemModel {
 
+    private PhotovoltaicsStringsStatus stringsStatus = PhotovoltaicsStringsStatus.UNKNOWN;
+
+    private String alarm;
+
     private int batteryStateOfCharge; // percent SOC
 
     private BigDecimal batteryCapacity; // kW/h

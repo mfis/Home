@@ -974,6 +974,16 @@ public class HouseViewService {
 
         if(pvAdditionalDataModel==null){
             copy.add("PV Produktion- und Speicher-Status unbekannt!");
+        }else{
+            if(pvAdditionalDataModel.getStringsStatus() == PhotovoltaicsStringsStatus.ERROR_DETECTING){
+                copy.add("Status der Photovoltaikanlage konnte nicht geprüft werden.");
+            } else if(pvAdditionalDataModel.getStringsStatus() == PhotovoltaicsStringsStatus.ONE_FAULTY){
+                copy.add("Teilausfall der Photovoltaikanlage erkannt.");
+            }
+
+            if (pvAdditionalDataModel.getAlarm() != null) {
+                copy.add("Photovoltaikanlage meldet Fehler: " + pvAdditionalDataModel.getAlarm());
+            }
         }
 
         model.addAttribute("warnings", copy);

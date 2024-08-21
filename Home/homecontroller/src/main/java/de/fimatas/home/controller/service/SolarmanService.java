@@ -15,7 +15,6 @@ import de.fimatas.home.library.model.PhotovoltaicsStringsStatus;
 import de.fimatas.home.library.model.PvAdditionalDataModel;
 import de.fimatas.home.library.model.PvBatteryState;
 import de.fimatas.home.library.util.HomeAppConstants;
-import lombok.Getter;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -57,12 +56,6 @@ public class SolarmanService {
     @Autowired
     private LiveActivityService liveActivityService;
 
-    @Getter
-    private PhotovoltaicsStringsStatus stringsStatus = PhotovoltaicsStringsStatus.UNKNOWN;
-
-    @Getter
-    private String alarm = null;
-
     private static final BigDecimal STRING_CHECK_LOWER_LIMIT_AMPS = new BigDecimal("0.5");
     private static final BigDecimal _100 = new BigDecimal("100");
 
@@ -101,6 +94,7 @@ public class SolarmanService {
         List<HomematicCommand> updateCommands = new ArrayList<>();
         lastCollectionTimeRead = Long.parseLong(currentData.get("collectionTime").asText()) * 1000L;
         var stringAmps = new StringAmps();
+        String alarm = null;
         updateCommands.add(homematicCommandBuilder.write(Device.ELECTRIC_POWER_ACTUAL_TIMESTAMP_HOUSE, Datapoint.SYSVAR_DUMMY, Long.toString(lastCollectionTimeRead / 1000)));
         Map<String, String> batteryKeysAndValues = new HashMap<>();
 
@@ -126,9 +120,8 @@ public class SolarmanService {
         }
 
         hmApi.executeCommand(updateCommands.toArray(new HomematicCommand[0]));
-        checkStringsStatus(stringAmps);
 
-        PvAdditionalDataModel pvAdditionalDataModel = processBatteryData(batteryKeysAndValues);
+        PvAdditionalDataModel pvAdditionalDataModel = processPvAdditionalDataModel(batteryKeysAndValues, stringAmps, alarm);
         if(pvAdditionalDataModel != null){
             ModelObjectDAO.getInstance().write(pvAdditionalDataModel);
             uploadService.uploadToClient(pvAdditionalDataModel);
@@ -136,7 +129,7 @@ public class SolarmanService {
         }
     }
 
-    private PvAdditionalDataModel processBatteryData(Map<String, String> batteryKeysAndValues) {
+    private PvAdditionalDataModel processPvAdditionalDataModel(Map<String, String> batteryKeysAndValues, StringAmps stringAmps, String alarm) {
 
         String actualStateOfCharge = batteryKeysAndValues.get("B_left_cap1");
 
@@ -171,7 +164,45 @@ public class SolarmanService {
                 .divide(_100, 2, RoundingMode.HALF_UP));
         pvAdditionalDataModel.setPvBatteryState(solarmanBatteryStateToInternalBatteryState(batteryKeysAndValues.get("B_ST1")));
         pvAdditionalDataModel.setBatteryWattage(Math.abs(new BigDecimal(batteryKeysAndValues.get("B_P1")).intValue()));
+
+        pvAdditionalDataModel.setAlarm(alarm);
+        processFailures(stringAmps, pvAdditionalDataModel);
+
         return pvAdditionalDataModel;
+    }
+
+    private void processFailures(StringAmps stringAmps, PvAdditionalDataModel pvAdditionalDataModel) {
+
+        boolean setPreviousStringStatus = false;
+
+        if(stringAmps.string1 == null || stringAmps.string2 == null){
+            pvAdditionalDataModel.setStringsStatus(PhotovoltaicsStringsStatus.ERROR_DETECTING);
+            return;
+        }
+
+        if(stringAmps.string1.compareTo(BigDecimal.ZERO) > 0 && stringAmps.string2.compareTo(BigDecimal.ZERO) > 0) {
+            pvAdditionalDataModel.setStringsStatus(PhotovoltaicsStringsStatus.OKAY);
+            return;
+        }
+
+        if(stringAmps.string1.compareTo(BigDecimal.ZERO) == 0 && stringAmps.string2.compareTo(BigDecimal.ZERO) == 0) {
+            // currently not detectable
+            setPreviousStringStatus = true;
+        }
+
+        var min = stringAmps.string1.min(stringAmps.string2);
+        var max = stringAmps.string1.max(stringAmps.string2);
+
+        if(min.compareTo(BigDecimal.ZERO) == 0 && max.compareTo(STRING_CHECK_LOWER_LIMIT_AMPS) > 0
+                && LocalTime.now().getHour() >= 11 && LocalTime.now().getHour() <= 16 ) {
+            pvAdditionalDataModel.setStringsStatus(PhotovoltaicsStringsStatus.ONE_FAULTY);
+        }else{
+            setPreviousStringStatus = true;
+        }
+
+        if(setPreviousStringStatus && ModelObjectDAO.getInstance().readPvAdditionalDataModel() != null){
+            pvAdditionalDataModel.setStringsStatus(ModelObjectDAO.getInstance().readPvAdditionalDataModel().getStringsStatus());
+        }
     }
 
     private PvBatteryState solarmanBatteryStateToInternalBatteryState(String solarmanState){
@@ -185,32 +216,6 @@ public class SolarmanService {
             return PvBatteryState.DISCHARGING;
         }
         return PvBatteryState.STABLE;
-    }
-
-    private void checkStringsStatus(StringAmps stringAmps){
-
-        if(stringAmps.string1 == null || stringAmps.string2 == null){
-            stringsStatus = PhotovoltaicsStringsStatus.ERROR_DETECTING;
-            return;
-        }
-
-        if(stringAmps.string1.compareTo(BigDecimal.ZERO) > 0 && stringAmps.string2.compareTo(BigDecimal.ZERO) > 0) {
-            stringsStatus = PhotovoltaicsStringsStatus.OKAY;
-            return;
-        }
-
-        if(stringAmps.string1.compareTo(BigDecimal.ZERO) == 0 && stringAmps.string2.compareTo(BigDecimal.ZERO) == 0) {
-            // currently not detectable
-            return;
-        }
-
-        var min = stringAmps.string1.min(stringAmps.string2);
-        var max = stringAmps.string1.max(stringAmps.string2);
-
-        if(min.compareTo(BigDecimal.ZERO) == 0 && max.compareTo(STRING_CHECK_LOWER_LIMIT_AMPS) > 0
-                && LocalTime.now().getHour() > 11 /* && LocalTime.now().getHour() < 16 */) {
-            stringsStatus = PhotovoltaicsStringsStatus.ONE_FAULTY;
-        }
     }
 
     private static class StringAmps {

@@ -891,16 +891,6 @@ public class HouseService {
         if (BooleanUtils.isFalse(hmApi.getCcuAuthActive())) {
             newModel.getWarnings().add("CCU Authentifizierung ist nicht aktiv!");
         }
-
-        if(solarmanService.getStringsStatus() == PhotovoltaicsStringsStatus.ERROR_DETECTING){
-            newModel.getWarnings().add("Status der Photovoltaikanlage konnte nicht geprüft werden.");
-        } else if(solarmanService.getStringsStatus() == PhotovoltaicsStringsStatus.ONE_FAULTY){
-            newModel.getWarnings().add("Teilausfall der Photovoltaikanlage erkannt.");
-        }
-
-        if (solarmanService.getAlarm() != null) {
-            newModel.getWarnings().add("Photovoltaikanlage meldet Fehler: " + solarmanService.getAlarm());
-        }
     }
 
 }
