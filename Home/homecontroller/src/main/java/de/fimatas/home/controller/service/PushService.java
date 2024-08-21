@@ -14,6 +14,7 @@ import de.fimatas.home.controller.domain.service.HouseService;
 import de.fimatas.home.controller.model.PushToken;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
+import de.fimatas.home.library.model.PhotovoltaicsStringsStatus;
 import de.fimatas.home.library.model.TaskState;
 import de.fimatas.home.library.model.TasksModel;
 import de.fimatas.home.library.util.HomeAppConstants;
@@ -74,6 +75,9 @@ public class PushService {
 
     @Autowired
     private HomematicAPI homematicAPI;
+
+    @Autowired
+    private SolarmanService solarmanService;
 
     private static LocalDateTime timestampLastDoorbellPushMessage = LocalDateTime.now();
 
@@ -168,6 +172,19 @@ public class PushService {
             }
         } catch (Exception e) {
             LogFactory.getLog(PushService.class).error("Could not [sendHomematicApiFailure] push notifications:", e);
+        }
+    }
+
+    @Scheduled(cron = "30 08 11,16 * * *")
+    public void sendPvStringFailure() {
+        try {
+            if(solarmanService.getStringsStatus() == PhotovoltaicsStringsStatus.ONE_FAULTY){
+                settingsService.listTokensWithEnabledSetting(PushNotifications.ERRORMESSAGE)
+                        .forEach(pushToken -> handleMessage(pushToken, PushNotifications.ERRORMESSAGE.getPushText(),
+                                "Teilausfall der Photovoltaikanlage erkannt."));
+            }
+        } catch (Exception e) {
+            LogFactory.getLog(PushService.class).error("Could not [sendPvStringFailure] push notifications:", e);
         }
     }
 
