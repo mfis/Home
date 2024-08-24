@@ -3,14 +3,14 @@ package de.fimatas.home.controller.service;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.model.ControllerStateModel;
 import de.fimatas.home.library.util.HomeAppConstants;
+import de.fimatas.home.library.util.HomeUtils;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.apachecommons.CommonsLog;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import oshi.SystemInfo;
+import java.time.Instant;
 
 @Component
 @CommonsLog
@@ -18,6 +18,13 @@ public class ControllerStateService {
 
     @Autowired
     private UploadService uploadService;
+
+    private Instant appUptime;
+
+    @PostConstruct
+    private void init() {
+        appUptime = Instant.now();
+    }
 
     @Scheduled(initialDelay = 1000, fixedDelay = (1000 * HomeAppConstants.MODEL_CONTROLLERSTATE_INTERVAL_SECONDS) + 831)
     private void scheduledRefresh() {
@@ -27,22 +34,11 @@ public class ControllerStateService {
     public void refresh() {
 
         var model = new ControllerStateModel();
-        model.setUptime(getSystemUptime());
+        model.setSystemUptime(HomeUtils.durationSinceFormatted(Instant.ofEpochSecond(new SystemInfo().getOperatingSystem().getSystemBootTime()), true));
+        model.setAppUptime(HomeUtils.durationSinceFormatted(appUptime, true));
 
         ModelObjectDAO.getInstance().write(model);
         uploadService.uploadToClient(model);
     }
 
-    public static String getSystemUptime() {
-        try {
-            var uptimeOption = System.getProperty("os.name").toLowerCase().contains("mac") ? "" : " -p";
-            Process uptimeProc = Runtime.getRuntime().exec("uptime" + uptimeOption);
-            BufferedReader in = new BufferedReader(new InputStreamReader(uptimeProc.getInputStream()));
-            var line = in.readLine();
-            line = StringUtils.remove(line, "up ");
-            return line;
-        } catch (Exception e) {
-            return "unknown...";
-        }
-    }
 }

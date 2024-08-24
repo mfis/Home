@@ -1,13 +1,13 @@
 package de.fimatas.home.library.dao;
 
 import java.lang.reflect.Field;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 
 import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.model.*;
 import de.fimatas.home.library.util.HomeAppConstants;
+import de.fimatas.home.library.util.HomeUtils;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
@@ -243,7 +243,6 @@ public class ModelObjectDAO {
     }
 
     public String printModelState(){
-        Instant now = Instant.now();
         StringBuilder sb = new StringBuilder();
         var models = models();
         int maxLength = models.keySet().stream().mapToInt(String::length).max().orElse(0);
@@ -251,8 +250,7 @@ public class ModelObjectDAO {
             sb.append(StringUtils.rightPad(m, maxLength, '.')).append(": ");
             if(models.get(m) != null){
                 Instant givenTime = Instant.ofEpochMilli(models.get(m).getTimestamp());
-                var minutes = Duration.between(givenTime, now).toMinutes();
-                sb.append(StringUtils.leftPad(Long.toString(minutes), 5)).append(" Minute").append(minutes == 1 ? "" : "n");
+                sb.append(HomeUtils.durationSinceFormatted(givenTime, true));
             }else {
                 sb.append("null");
             }

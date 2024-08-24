@@ -1,14 +1,15 @@
 package de.fimatas.home.library.util;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.math.BigDecimal;
-import java.math.MathContext;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Locale;
-
-import static java.lang.Math.round;
 
 public class HomeUtils {
 
@@ -63,5 +64,21 @@ public class HomeUtils {
             return "<1mm";
         }
         return rounded + "mm";
+    }
+
+    public static String durationSinceFormatted(Instant instant, boolean padded){
+        var duration = Duration.between(instant, Instant.now());
+        if(duration.toHours() >= 5){
+            if(duration.toDays() >= 5){
+                var days = duration.toDays();
+                return StringUtils.leftPad(Long.toString(days), padded ? 5 : 0) + " Tage";
+            }else{
+                var hours = duration.toHours();
+                return StringUtils.leftPad(Long.toString(hours), padded ? 5 : 0) + " Stunden";
+            }
+        }else {
+            var minutes = duration.toMinutes();
+            return StringUtils.leftPad(Long.toString(minutes), padded ? 5 : 0) + " Minute" + (minutes == 1 ? "" : "n");
+        }
     }
 }

@@ -9,14 +9,19 @@ import org.apache.commons.lang3.StringUtils;
 @Data
 public class ControllerStateModel extends AbstractSystemModel {
 
-    private String uptime;
+    private String systemUptime;
+
+    private String appUptime;
 
     @SuppressWarnings("StringBufferReplaceableByString")
     public String print(){
         StringBuilder sb = new StringBuilder();
-        int maxLength = 10;
-        sb.append(StringUtils.rightPad("Uptime", maxLength, '.')).append(": ");
-        sb.append(uptime);
+        int maxLength = 21;
+        sb.append(StringUtils.rightPad("System-Uptime", maxLength, '.')).append(": ");
+        sb.append(systemUptime);
+        sb.append("\n");
+        sb.append(StringUtils.rightPad("Application-Uptime", maxLength, '.')).append(": ");
+        sb.append(appUptime);
         sb.append("\n");
         return sb.toString();
     }
