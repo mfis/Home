@@ -34,8 +34,8 @@ public class ControllerStateService {
     public void refresh() {
 
         var model = new ControllerStateModel();
-        model.setSystemUptime(HomeUtils.durationSinceFormatted(Instant.ofEpochSecond(new SystemInfo().getOperatingSystem().getSystemBootTime()), true));
-        model.setAppUptime(HomeUtils.durationSinceFormatted(appUptime, true));
+        model.setSystemUptime(HomeUtils.durationSinceFormatted(Instant.ofEpochSecond(new SystemInfo().getOperatingSystem().getSystemBootTime()), true, false, false));
+        model.setAppUptime(HomeUtils.durationSinceFormatted(appUptime, true, false, false));
 
         ModelObjectDAO.getInstance().write(model);
         uploadService.uploadToClient(model);

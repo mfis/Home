@@ -9,14 +9,14 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import de.fimatas.home.library.util.*;
 import jakarta.annotation.PostConstruct;
 
 import de.fimatas.home.client.domain.model.*;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.model.*;
-import de.fimatas.home.library.util.ViewFormatterUtils;
-import de.fimatas.home.library.util.WeatherForecastConclusionTextFormatter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -28,7 +28,6 @@ import de.fimatas.home.client.domain.service.ViewFormatter.TimestampFormat;
 import de.fimatas.home.client.model.MessageQueue;
 import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.homematic.model.Type;
-import de.fimatas.home.library.util.HomeAppConstants;
 
 import static de.fimatas.home.library.util.HomeUtils.buildDecimalFormat;
 import static de.fimatas.home.library.util.WeatherForecastConclusionTextFormatter.*;
@@ -709,25 +708,25 @@ public class HouseViewService {
         }
 
         // sources / targets
-        overallElectricPowerHouseView.setConsumption(formatPowerView(houseModel.getConsumedElectricalPower(), historyModel==null?null:historyModel.getSelfusedElectricPowerConsumptionDay(), offsetConsumption, false, pvDataUnreachable));
-        overallElectricPowerHouseView.setPv(formatPowerView(houseModel.getProducedElectricalPower(), historyModel==null?null:historyModel.getProducedElectricPowerDay(), offsetConsumption, false, pvDataUnreachable));
         overallElectricPowerHouseView.setGridPurchase(formatPowerView(houseModel.getGridElectricalPower(), historyModel==null?null:historyModel.getPurchasedElectricPowerConsumptionDay(), BigDecimal.ZERO, false, false));
         overallElectricPowerHouseView.setGridFeed(formatPowerView(houseModel.getGridElectricalPower(), historyModel==null?null:historyModel.getFeedElectricPowerConsumptionDay(), BigDecimal.ZERO, true, false));
+        overallElectricPowerHouseView.setPv(formatPowerView(houseModel.getProducedElectricalPower(), historyModel==null?null:historyModel.getProducedElectricPowerDay(), offsetConsumption, false, pvDataUnreachable));
+        overallElectricPowerHouseView.setConsumption(formatPowerView(houseModel.getConsumedElectricalPower(), historyModel==null?null:historyModel.getSelfusedElectricPowerConsumptionDay(), offsetConsumption, false, pvDataUnreachable));
+        if(overallElectricPowerHouseView.getConsumption().getTodayConsumption()==null && pvDataUnreachable){
+            // whole day no consumption data - use grid instead
+            overallElectricPowerHouseView.setConsumption(formatPowerView(houseModel.getGridElectricalPower(), historyModel==null?null:historyModel.getPurchasedElectricPowerConsumptionDay(), offsetConsumption, false, false));
+            overallElectricPowerHouseView.getConsumption().setIcon("fa-solid fa-plug");
+        }
 
         // consumption pv percentage
-        /*if(overallElectricPowerHouseView.getGridPurchase().getTodayConsumption() != null
-                && overallElectricPowerHouseView.getPv().getTodayConsumption() != null
-                && overallElectricPowerHouseView.getGridFeed().getTodayConsumption() != null){
-            BigDecimal selfused = overallElectricPowerHouseView.getPv().getTodayConsumption().getNumericValue()
-                    .subtract(overallElectricPowerHouseView.getGridFeed().getTodayConsumption().getNumericValue());
-            if(selfused.compareTo(BigDecimal.ZERO) != 0) {
-                BigDecimal percentagePurchased = overallElectricPowerHouseView.getGridPurchase().getTodayConsumption().getNumericValue()
-                        .divide(selfused, 4, RoundingMode.HALF_UP)
-                        .multiply(ViewFormatter.HUNDRED);
-                BigDecimal percentageSelfused = ViewFormatter.HUNDRED.subtract(percentagePurchased);
-                overallElectricPowerHouseView.setPvSelfConsumptionPercentage("PV-Anteil " + buildDecimalFormat("0.0").format(percentageSelfused) + " %");
-            }
-        }*/
+        var consumptionDay = overallElectricPowerHouseView.getConsumption() != null
+                && overallElectricPowerHouseView.getConsumption().getTodayConsumption() != null
+                ? overallElectricPowerHouseView.getConsumption().getTodayConsumption().getNumericValue() : null;
+        var gridDay = overallElectricPowerHouseView.getGridPurchase() != null
+                && overallElectricPowerHouseView.getGridPurchase().getTodayConsumption() != null
+                ? overallElectricPowerHouseView.getGridPurchase().getTodayConsumption().getNumericValue() : null;
+        int autarky = PhotovoltaicsAutarkyCalculator.calculateAutarkyPercentage(consumptionDay, gridDay);
+        overallElectricPowerHouseView.setPvSelfConsumptionPercentage(autarky + "% Autarkie");
 
         // history keys
         overallElectricPowerHouseView.getGridPurchase().setHistoryKey(Device.STROMZAEHLER_BEZUG.historyKeyPrefix());
@@ -800,14 +799,12 @@ public class HouseViewService {
 
         // status time
         if(houseModel.getPvStatusTime() > 0){
-            LocalDateTime timestampPV = Instant.ofEpochMilli(houseModel.getPvStatusTime()).atZone(ZoneId.systemDefault()).toLocalDateTime();
-            long diffPV = ChronoUnit.MINUTES.between(timestampPV, LocalDateTime.now());
-            overallElectricPowerHouseView.setTimestampStatePV(diffPV==0?"jetzt" : "vor " + diffPV + " Minute" + (diffPV ==1?"":"n"));
+            var timestampPV = Instant.ofEpochMilli(houseModel.getPvStatusTime());
+            overallElectricPowerHouseView.setTimestampStatePV(HomeUtils.durationSinceFormatted(timestampPV, false, true, true));
         }
         if(houseModel.getGridElectricStatusTime() > 0){
-            LocalDateTime timestampGrid = Instant.ofEpochMilli(houseModel.getGridElectricStatusTime()).atZone(ZoneId.systemDefault()).toLocalDateTime();
-            long diffGrid = ChronoUnit.MINUTES.between(timestampGrid, LocalDateTime.now());
-            overallElectricPowerHouseView.setTimestampStateGrid(diffGrid==0?"jetzt" : "vor " + diffGrid + " Minute" + (diffGrid ==1?"":"n"));
+            var timestampGrid = Instant.ofEpochMilli(houseModel.getGridElectricStatusTime());
+            overallElectricPowerHouseView.setTimestampStateGrid(HomeUtils.durationSinceFormatted(timestampGrid, false, true, true));
         }
 
         var df = buildDecimalFormat("0");

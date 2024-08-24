@@ -250,7 +250,7 @@ public class ModelObjectDAO {
             sb.append(StringUtils.rightPad(m, maxLength, '.')).append(": ");
             if(models.get(m) != null){
                 Instant givenTime = Instant.ofEpochMilli(models.get(m).getTimestamp());
-                sb.append(HomeUtils.durationSinceFormatted(givenTime, true));
+                sb.append(HomeUtils.durationSinceFormatted(givenTime, true, false, false));
             }else {
                 sb.append("null");
             }

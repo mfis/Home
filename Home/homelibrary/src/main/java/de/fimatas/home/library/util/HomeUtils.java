@@ -66,19 +66,23 @@ public class HomeUtils {
         return rounded + "mm";
     }
 
-    public static String durationSinceFormatted(Instant instant, boolean padded){
+    public static String durationSinceFormatted(Instant instant, boolean padded, boolean useNow, boolean useAgo){
         var duration = Duration.between(instant, Instant.now());
+        var prefix = useAgo ? "vor " : "";
         if(duration.toHours() >= 5){
             if(duration.toDays() >= 5){
                 var days = duration.toDays();
-                return StringUtils.leftPad(Long.toString(days), padded ? 5 : 0) + " Tage";
+                return prefix + StringUtils.leftPad(Long.toString(days), padded ? 5 : 0) + " Tage";
             }else{
                 var hours = duration.toHours();
-                return StringUtils.leftPad(Long.toString(hours), padded ? 5 : 0) + " Stunden";
+                return prefix + StringUtils.leftPad(Long.toString(hours), padded ? 5 : 0) + " Stunden";
             }
         }else {
             var minutes = duration.toMinutes();
-            return StringUtils.leftPad(Long.toString(minutes), padded ? 5 : 0) + " Minute" + (minutes == 1 ? "" : "n");
+            if(minutes == 0 && useNow){
+                return "jetzt";
+            }
+            return prefix + StringUtils.leftPad(Long.toString(minutes), padded ? 5 : 0) + " Minute" + (minutes == 1 ? "" : "n");
         }
     }
 }
