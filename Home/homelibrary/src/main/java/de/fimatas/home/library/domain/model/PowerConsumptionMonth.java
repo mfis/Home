@@ -1,5 +1,9 @@
 package de.fimatas.home.library.domain.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
+import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -8,35 +12,17 @@ import java.time.ZoneId;
 
 public class PowerConsumptionMonth implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
+    @Setter
+    @Getter
     private BigDecimal powerConsumption;
 
-    private long measurePointMin;
-
+    @Getter
     private long measurePointMax;
 
     private transient LocalDateTime measurePointMaxDateTime = null;
-
-    public BigDecimal getPowerConsumption() {
-        return powerConsumption;
-    }
-
-    public void setPowerConsumption(BigDecimal powerConsumption) {
-        this.powerConsumption = powerConsumption;
-    }
-
-    public long getMeasurePointMin() {
-        return measurePointMin;
-    }
-
-    public void setMeasurePointMin(long measurePointMin) {
-        this.measurePointMin = measurePointMin;
-    }
-
-    public long getMeasurePointMax() {
-        return measurePointMax;
-    }
 
     public LocalDateTime measurePointMaxDateTime() {
         if (measurePointMaxDateTime == null) {

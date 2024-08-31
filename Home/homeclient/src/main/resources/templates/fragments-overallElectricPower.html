@@ -42,6 +42,7 @@
 									<tr align="center">
 										<td th:class="'text-' + ${model.consumption.colorClass}">
 											<span th:text="${model.pvSelfConsumptionPercentage}"></span>
+											<th:block th:replace="~{fragments :: historyLink (key=${model.pvSelfConsumptionPercentageHistoryKey}, name='Netz-Autarkie ', place=${model.consumption.place})}"></th:block>
 										</td>
 									</tr>
 								</th:block>

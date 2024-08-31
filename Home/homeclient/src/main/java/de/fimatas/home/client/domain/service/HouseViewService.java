@@ -716,6 +716,7 @@ public class HouseViewService {
             // whole day no consumption data - use grid instead
             overallElectricPowerHouseView.setConsumption(formatPowerView(houseModel.getGridElectricalPower(), historyModel==null?null:historyModel.getPurchasedElectricPowerConsumptionDay(), offsetConsumption, false, false));
             overallElectricPowerHouseView.getConsumption().setIcon("fa-solid fa-plug");
+            overallElectricPowerHouseView.getConsumption().setHistoryKey(houseModel.getConsumedElectricalPower().getDevice().historyKeyPrefix());
         }
 
         // consumption pv percentage
@@ -727,6 +728,7 @@ public class HouseViewService {
                 ? overallElectricPowerHouseView.getGridPurchase().getTodayConsumption().getNumericValue() : null;
         int autarky = PhotovoltaicsAutarkyCalculator.calculateAutarkyPercentage(consumptionDay, gridDay);
         overallElectricPowerHouseView.setPvSelfConsumptionPercentage(autarky + "% Autarkie");
+        overallElectricPowerHouseView.setPvSelfConsumptionPercentageHistoryKey(HistoryViewService.PV_AUTARKY_HISTORY_KEY);
 
         // history keys
         overallElectricPowerHouseView.getGridPurchase().setHistoryKey(Device.STROMZAEHLER_BEZUG.historyKeyPrefix());

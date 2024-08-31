@@ -1,5 +1,9 @@
 package de.fimatas.home.library.domain.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
+import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -10,16 +14,24 @@ import java.util.Map;
 
 public class PowerConsumptionDay implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     private transient LocalDateTime measurePointMaxDateTime = null;
 
+    @Getter
     private long measurePointMax;
 
+    @Setter
+    @Getter
     private Map<TimeRange, BigDecimal> values;
 
     public PowerConsumptionDay() {
         values = new LinkedHashMap<>();
+    }
+
+    public BigDecimal getSum(){
+        return values.values().stream().reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     public LocalDateTime measurePointMaxDateTime() {
@@ -29,29 +41,8 @@ public class PowerConsumptionDay implements Serializable {
         return measurePointMaxDateTime;
     }
 
-    public LocalDateTime getMeasurePointMaxDateTime() {
-        return measurePointMaxDateTime;
-    }
-
-    public void setMeasurePointMaxDateTime(LocalDateTime measurePointMaxDateTime) {
-        this.measurePointMaxDateTime = measurePointMaxDateTime;
-    }
-
-    public long getMeasurePointMax() {
-        return measurePointMax;
-    }
-
     public void setMeasurePointMax(long measurePointMax) {
         this.measurePointMax = measurePointMax;
         measurePointMaxDateTime = null;
     }
-
-    public Map<TimeRange, BigDecimal> getValues() {
-        return values;
-    }
-
-    public void setValues(Map<TimeRange, BigDecimal> values) {
-        this.values = values;
-    }
-
 }

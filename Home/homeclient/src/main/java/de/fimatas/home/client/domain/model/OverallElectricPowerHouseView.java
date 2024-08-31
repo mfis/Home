@@ -24,6 +24,8 @@ public class OverallElectricPowerHouseView extends View {
 
     private String pvSelfConsumptionPercentage = null;
 
+    private String pvSelfConsumptionPercentageHistoryKey = null;
+
     private String batteryStateOfCharge;
 
     private String batteryCapacity;

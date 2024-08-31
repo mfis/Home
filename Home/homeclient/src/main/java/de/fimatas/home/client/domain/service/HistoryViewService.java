@@ -9,11 +9,13 @@ import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
+import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.homematic.model.Device;
+import de.fimatas.home.library.util.HomeUtils;
+import de.fimatas.home.library.util.PhotovoltaicsAutarkyCalculator;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,10 +23,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.ui.Model;
 import de.fimatas.home.client.domain.model.ChartEntry;
 import de.fimatas.home.client.domain.model.HistoryEntry;
-import de.fimatas.home.library.domain.model.HistoryModel;
-import de.fimatas.home.library.domain.model.HouseModel;
-import de.fimatas.home.library.domain.model.PowerConsumptionMonth;
-import de.fimatas.home.library.domain.model.TemperatureHistory;
 
 import static de.fimatas.home.library.util.HomeUtils.buildDecimalFormat;
 
@@ -41,6 +39,8 @@ public class HistoryViewService {
     private static final int COMPARE_PERCENTAGE_GRAY_UNTIL = 2;
 
     private static final int COMPARE_PERCENTAGE_ORANGE_UNTIL = 15;
+
+    public final static String PV_AUTARKY_HISTORY_KEY = "pvAutarkyHistory";
 
     @Autowired
     private ViewFormatter viewFormatter;
@@ -98,9 +98,62 @@ public class HistoryViewService {
         } else if (key.equals(house.getClimateLaundry().getDevice().historyKeyPrefix())) {
             fillTemperatureHistoryViewModel(model, history.getLaundryTemperature());
 
+        } else if (key.equals(PV_AUTARKY_HISTORY_KEY)) {
+            fillPvAutarkyHistoryViewModel(model, history);
+
         } else {
             log.warn("unknown history key: " + key);
         }
+    }
+
+    private void fillPvAutarkyHistoryViewModel(Model model, HistoryModel history) {
+
+        var now = LocalDateTime.now();
+        var gridDayList = history.getPurchasedElectricPowerConsumptionDay();
+        var consDayList = history.getSelfusedElectricPowerConsumptionDay();
+
+        var listDay = new LinkedList<HistoryEntry>();
+        for (PowerConsumptionDay gridDay : gridDayList) {
+            var gridDayDateTime = gridDay.measurePointMaxDateTime();
+            var optionalConsDay = consDayList.stream()
+                    .filter(cm -> cm.measurePointMaxDateTime().equals(gridDayDateTime)).findFirst();
+            if (gridDay.getValues() != null && optionalConsDay.isPresent()) {
+                HistoryEntry entry = new HistoryEntry();
+                entry.setLineOneLabel(StringUtils.capitalize(viewFormatter.formatTimestamp(gridDay.getMeasurePointMax(), ViewFormatter.TimestampFormat.DATE)));
+                entry.setLineOneValue(PhotovoltaicsAutarkyCalculator.calculateAutarkyPercentage(optionalConsDay.get().getSum(), gridDay.getSum()) + "%");
+                entry.setLineTwoValue(Arrays.stream(TimeRange.values()).map(tr -> {
+                    boolean isToday = HomeUtils.isSameDay(gridDay.measurePointMaxDateTime(), now);
+                    boolean comingTimeRange = tr.ordinal() > TimeRange.fromDateTime(now).ordinal();
+                    return isToday && comingTimeRange ? null : (tr.hoursFormToLabel() + ": "
+                            + PhotovoltaicsAutarkyCalculator.calculateAutarkyPercentage(optionalConsDay.get().getValues().get(tr), gridDay.getValues().get(tr)) + "%");
+                }).filter(Objects::nonNull).collect(Collectors.joining(", ")));
+                listDay.add(entry);
+            }
+        }
+
+        var gridMonthList = history.getPurchasedElectricPowerConsumptionMonth();
+        var consMonthList = history.getSelfusedElectricPowerConsumptionMonth();
+
+        var listMonth = new LinkedList<HistoryEntry>();
+        for (PowerConsumptionMonth gridMonth : gridMonthList) {
+            var gridMonthDateTime = gridMonth.measurePointMaxDateTime();
+            var optionalConsMonth = consMonthList.stream()
+                    .filter(cm -> YearMonth.from(cm.measurePointMaxDateTime()).equals(YearMonth.from(gridMonthDateTime))).findFirst();
+            if (gridMonth.getPowerConsumption() != null && optionalConsMonth.isPresent()) {
+                HistoryEntry entry = new HistoryEntry();
+                entry.setLineOneLabel(MONTH_YEAR_FORMATTER.format(gridMonthDateTime));
+                entry.setLineOneValue(PhotovoltaicsAutarkyCalculator.calculateAutarkyPercentage(optionalConsMonth.get().getPowerConsumption(), gridMonth.getPowerConsumption()) + "%");
+                listMonth.add(entry);
+            }
+        }
+
+        Collections.reverse(listDay);
+        listDay.subList(3, listDay.size()).forEach(e -> e.setCollapse(" collapse multi-collapse detailTarget"));
+        model.addAttribute("detailEntries", listDay);
+
+        Collections.reverse(listMonth);
+        listMonth.subList(3, listMonth.size()).forEach(e -> e.setCollapse(" collapse multi-collapse historyTarget"));
+        model.addAttribute("historyEntries", listMonth);
     }
 
     private void fillPowerHistoryMonthViewModel(Model model, Device device, List<PowerConsumptionMonth> pcms) {
@@ -114,7 +167,7 @@ public class HistoryViewService {
                 entry.setLineOneLabel(MONTH_YEAR_FORMATTER.format(pcm.measurePointMaxDateTime()));
                 entry.setLineOneValue(
                         ViewFormatter.powerConsumptionValueForView(device, pcm.getPowerConsumption()) + ViewFormatter.powerConsumptionUnit(device));
-                lookupCollapsablePowerMonth(pcms, index, entry);
+                lookupCollapsablePowerMonth(pcms.size(), index, entry);
                 boolean calculateDifference = true;
                 if (index == pcms.size() - 1) {
                     if (pcm.measurePointMaxDateTime().getDayOfMonth() > 1) {
@@ -192,8 +245,8 @@ public class HistoryViewService {
         }
     }
 
-    private void lookupCollapsablePowerMonth(List<PowerConsumptionMonth> pcm, int index, HistoryEntry entry) {
-        if (index < pcm.size() - 3) {
+    private void lookupCollapsablePowerMonth(int size, int index, HistoryEntry entry) {
+        if (index < size - 3) {
             entry.setCollapse(" collapse multi-collapse historyTarget");
         }
     }

@@ -425,7 +425,7 @@ public class HistoryService {
             dest = new PowerConsumptionMonth();
             if (!powerConsumptionMonth.isEmpty()) {
                 dest.setPowerConsumption(BigDecimal.ZERO);
-                dest.setMeasurePointMin(powerConsumptionMonth.get(powerConsumptionMonth.size() - 1).getMeasurePointMax());
+                //dest.setMeasurePointMin(powerConsumptionMonth.get(powerConsumptionMonth.size() - 1).getMeasurePointMax());
             }
             powerConsumptionMonth.add(dest);
         }
@@ -557,20 +557,12 @@ public class HistoryService {
             }
         }
 
-        TimestampValuePair result;
-        switch (historyValueType) {
-        case MIN:
-            result = min(combined);
-            break;
-        case MAX:
-            result = max(combined);
-            break;
-        case AVG:
-            result = avg(combined);
-            break;
-        default:
-            throw new IllegalArgumentException("HistoryValueType not expected:" + historyValueType);
-        }
+        TimestampValuePair result = switch (historyValueType) {
+            case MIN -> min(combined);
+            case MAX -> max(combined);
+            case AVG -> avg(combined);
+            default -> throw new IllegalArgumentException("HistoryValueType not expected:" + historyValueType);
+        };
         if (result == null) {
             return null;
         } else {
