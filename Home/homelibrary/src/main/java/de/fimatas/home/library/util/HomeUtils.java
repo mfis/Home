@@ -72,7 +72,7 @@ public class HomeUtils {
         if(duration.toHours() >= 5){
             if(duration.toDays() >= 5){
                 var days = duration.toDays();
-                return prefix + StringUtils.leftPad(Long.toString(days), padded ? 5 : 0) + " Tage";
+                return prefix + StringUtils.leftPad(Long.toString(days), padded ? 5 : 0) + " Tage" + (useAgo ? "n" : "");
             }else{
                 var hours = duration.toHours();
                 return prefix + StringUtils.leftPad(Long.toString(hours), padded ? 5 : 0) + " Stunden";
