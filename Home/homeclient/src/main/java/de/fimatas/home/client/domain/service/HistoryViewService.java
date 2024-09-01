@@ -116,7 +116,7 @@ public class HistoryViewService {
         for (PowerConsumptionDay gridDay : gridDayList) {
             var gridDayDateTime = gridDay.measurePointMaxDateTime();
             var optionalConsDay = consDayList.stream()
-                    .filter(cm -> cm.measurePointMaxDateTime().equals(gridDayDateTime)).findFirst();
+                    .filter(cm -> cm.measurePointMaxDateTime().toLocalDate().equals(gridDayDateTime.toLocalDate())).findFirst();
             if (gridDay.getValues() != null && optionalConsDay.isPresent()) {
                 HistoryEntry entry = new HistoryEntry();
                 entry.setLineOneLabel(StringUtils.capitalize(viewFormatter.formatTimestamp(gridDay.getMeasurePointMax(), ViewFormatter.TimestampFormat.DATE)));
@@ -148,11 +148,11 @@ public class HistoryViewService {
         }
 
         Collections.reverse(listDay);
-        listDay.subList(3, listDay.size()).forEach(e -> e.setCollapse(" collapse multi-collapse detailTarget"));
+        listDay.subList(Math.min(3, listDay.size()), listDay.size()).forEach(e -> e.setCollapse(" collapse multi-collapse detailTarget"));
         model.addAttribute("detailEntries", listDay);
 
         Collections.reverse(listMonth);
-        listMonth.subList(3, listMonth.size()).forEach(e -> e.setCollapse(" collapse multi-collapse historyTarget"));
+        listMonth.subList(Math.min(3, listMonth.size()), listMonth.size()).forEach(e -> e.setCollapse(" collapse multi-collapse historyTarget"));
         model.addAttribute("historyEntries", listMonth);
     }
 
