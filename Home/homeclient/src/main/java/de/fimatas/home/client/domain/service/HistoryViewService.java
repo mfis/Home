@@ -234,13 +234,13 @@ public class HistoryViewService {
                 entry.setBadgeValue(decimalFormat.format(percentage) + "%");
             }
             if (percentage.intValue() <= COMPARE_PERCENTAGE_GREEN_UNTIL) {
-                entry.setBadgeClass("badge-success");
+                entry.setBadgeClass("text-bg-success");
             } else if (percentage.intValue() <= COMPARE_PERCENTAGE_GRAY_UNTIL) {
-                entry.setBadgeClass("badge-secondary");
+                entry.setBadgeClass("text-bg-secondary");
             } else if (percentage.intValue() <= COMPARE_PERCENTAGE_ORANGE_UNTIL) {
-                entry.setBadgeClass("badge-warning");
+                entry.setBadgeClass("text-bg-warning");
             } else {
-                entry.setBadgeClass("badge-danger");
+                entry.setBadgeClass("text-bg-danger");
             }
         }
     }

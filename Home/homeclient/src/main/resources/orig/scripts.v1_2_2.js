@@ -344,7 +344,9 @@ function openPin(label, cb){
     pinPlaceholderStars(document.getElementById('val_pin').value);
     document.getElementById('pin-biometry').style.display = 'none';
     nativeMessage('checkBiometricAuthAvailableForPin=pinActivateBiometricAuthButton');
-    $("#modalPin").modal();
+    let modalElement = document.getElementById("modalPin");
+    let bootstrapModal = bootstrap.Modal.getOrCreateInstance(modalElement);
+    bootstrapModal.show();
 }
 function resetPin(){
     document.getElementById('val_pin').value = '';
@@ -355,7 +357,9 @@ function addPin(i){
     pinPlaceholderStars(document.getElementById('val_pin').value);
     if(document.getElementById('val_pin').value.length === 6){
         pinCallback();
-        $("#modalPin").modal('hide');
+        let modalElement = document.getElementById("modalPin");
+        let bootstrapModal = bootstrap.Modal.getOrCreateInstance(modalElement);
+        bootstrapModal.hide();
     }
 }
 function pinActivateBiometricAuthButton(){ // called from app
@@ -369,7 +373,9 @@ function pinBiometryCallback(pin){
     pinPlaceholderStars(pin);
     if(pin.length > 0){
         pinCallback();
-        $("#modalPin").modal('hide');
+        let modalElement = document.getElementById("modalPin");
+        let bootstrapModal = bootstrap.Modal.getOrCreateInstance(modalElement);
+        bootstrapModal.hide();
     }
 }
 function pinPlaceholderStars(x){

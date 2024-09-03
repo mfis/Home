@@ -327,8 +327,8 @@
 			    <div class="modal-content">
 			      <div class="modal-header">
 			        <h5 class="modal-title text-dark" th:id="'modalHistoryId' + ${key}" th:text="${name} + ' ' + ${place}"></h5>
-			        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-			          <span aria-hidden="true">&times;</span>
+			        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+						<span class="text-secondary" aria-hidden="true">&times;</span>
 			        </button>
 			      </div>
 			      <div th:id="'modalHistoryBody' + ${key}" class="modal-body" style="max-height: calc(100vh - 200px); overflow-y: auto;"></div>
@@ -540,7 +540,7 @@
 			<a th:class="${chart.collapse}">
 				<span class="mb-1" th:text="${chart.label}">Gestern</span>
 				<span>&nbsp;</span>
-				<span class="text-muted" style="font-size: 80%;" th:text="${chart.additionalLabel}">Summe</span>
+				<span class="text-secondary" style="font-size: 80%;" th:text="${chart.additionalLabel}">Summe</span>
 			</a>
 		</th:block>
 		<div th:class="'progress' + ${chart.collapse}" style="margin-bottom: 10px !important; margin-top: 4px !important">
