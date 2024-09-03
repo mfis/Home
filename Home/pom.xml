@@ -30,7 +30,7 @@
 		<b2-sdk.version>3.1.0</b2-sdk.version>
 		<!-- Webjars versions -->
 		<webjars-locator.version>0.45</webjars-locator.version>
-		<bootstrap.version>4.6.1</bootstrap.version>
+		<bootstrap.version>5.3.3</bootstrap.version>
 		<jquery.version>3.6.4</jquery.version>
 		<font-awesome.version>6.1.2</font-awesome.version>
 		<soundar24-roundSlider.version>1.6.1-1</soundar24-roundSlider.version>

@@ -22,7 +22,7 @@
 	</div>	
 	
 	<!-- Collapsable ElementName -->
-	<div th:fragment="elementnameCollapsable (icon, name, place, unreach, collapseLink, elementTitleState, colorClass)" data-toggle="collapse" th:data-target="'#' + ${collapseLink}" aria-expanded="false" th:aria-controls="${collapseLink}">
+	<div th:fragment="elementnameCollapsable (icon, name, place, unreach, collapseLink, elementTitleState, colorClass)" data-bs-toggle="collapse" th:data-bs-target="'#' + ${collapseLink}" aria-expanded="false" th:aria-controls="${collapseLink}">
 		<div style="float:right; position:relative; padding-right: 10px; padding-left: 0px; padding-bottom: 0px;">
 			<a>
 				<span th:if="${!#strings.startsWith(unreach, 'true')}" th:id="${collapseLink} + 'ElementTitleState'" th:text="${elementTitleState}"></span>
@@ -158,7 +158,7 @@
 						submitContent(document.getElementById('val_model_linkAuto_[[${model.id}]]').value);
 					}					
 				</script>
-					<button type="button" class="btn btn-link" data-toggle="modal" th:data-target="'#modalAuto' + ${model.id}">
+					<button type="button" class="btn btn-link" data-bs-toggle="modal" th:data-bs-target="'#modalAuto' + ${model.id}">
 						<span 
 							class="badge badge-secondary" th:text="'?'">
 						</span>
@@ -263,7 +263,7 @@
 						submitContent(document.getElementById('val_model_linkManual_[[${model.id}]]').value);
 					}	
 				</script>
-				<button type="button" class="btn btn-link" data-toggle="modal" th:data-target="'#modalAuto' + ${model.id}">
+				<button type="button" class="btn btn-link" data-bs-toggle="modal" th:data-bs-target="'#modalAuto' + ${model.id}">
 					<span 
 						class="badge badge-secondary" th:text="'?'">
 					</span>
