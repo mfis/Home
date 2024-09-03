@@ -302,8 +302,8 @@
 					<span th:utext="'&nbsp;&ndash;&nbsp;'"></span>
 					<span class="mb-1" th:text="${model.todayConsumption.label}">Gestern</span>
 					<span class="text-muted" style="font-size: 80%;" th:text="${model.todayConsumption.additionalLabel}">Summe</span>
-					<th:block th:replace="~{fragments :: historyLink (key=${model.historyKey}, name=${model.name} + ' Gesamt', place=${model.place})}"></th:block>
-				</th:block>		
+				</th:block>
+				<th:block th:replace="~{fragments :: historyLink (key=${model.historyKey}, name=${model.name} + ' Gesamt', place=${model.place})}"></th:block>
 			</h4>
 			<th:block th:if="${model.todayConsumption != null}">
 				<div style="max-width:80%;">

@@ -429,8 +429,10 @@ function setAppInForegroundMarker(val){
 }
 
 function openHistory(key){
-    $("#modalHistory" + key).modal();
-    var httpRequest = new XMLHttpRequest();
+    let modalElement = document.getElementById("modalHistory" + key);
+    let bootstrapModal = bootstrap.Modal.getOrCreateInstance(modalElement);
+    bootstrapModal.show();
+    let httpRequest = new XMLHttpRequest();
     httpRequest.open("GET", "/history?key=" + key);
     httpRequest.setRequestHeader('Cache-Control', 'no-cache');
     httpRequest.setRequestHeader('isAjaxRequest', 'true');
