@@ -357,8 +357,9 @@ input[type="range"] {
 		width: 20px;
 		border-left: 3px solid black;
 		border-right: 3px solid black;
+		border-radius: 0;
 	}
-	input[type="range"]::-webkit-slider-thumb { box-shadow: -600px 0 0 600px;}
+	input[type="range"]::-webkit-slider-thumb { box-shadow: -700px 0 0 700px;}
 }
 input[type="range"]::-moz-range-progress {
 	background-color: rgb(40, 167, 69);
