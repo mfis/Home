@@ -309,6 +309,40 @@ class PhotovoltaicsOverflowServiceTest {
     }
 
     @Test
+    void testStayOffCausedByLowPvBatteryZeroPercent() {
+        refreshDevicesWithBatteryDefault(0, 3000, true,  false, false, false);
+        refreshPvBattery(0, PvBatteryState.CHARGING, 200);
+        changeMinChargeToZero();
+        callService();
+        verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+
+        refreshDevicesWithBatteryDefault(10, 3000, true,  false, false, false);
+        refreshPvBattery(0, PvBatteryState.CHARGING, 200);
+        changeMinChargeToZero();
+        callService();
+        verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+    }
+
+    @Test
+    void testSwitchOnLowPvBatteryZeroPercent() {
+        refreshDevicesWithBatteryDefault(0, -3000, true,  false, false, false);
+        refreshPvBattery(0, PvBatteryState.CHARGING, 200);
+        changeMinChargeToZero();
+        callService();
+        verifySwitch(Device.SCHALTER_WALLBOX, null);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+
+        refreshDevicesWithBatteryDefault(10, -3000, true,  false, false, false);
+        refreshPvBattery(0, PvBatteryState.CHARGING, 200);
+        changeMinChargeToZero();
+        callService();
+        verifySwitch(Device.SCHALTER_WALLBOX, true);
+        verifySwitch(Device.SCHALTER_GAESTEZIMMER_INFRAROTHEIZUNG, null);
+    }
+
+    @Test
     void testSwitchOffCausedByLowPvBatteryZeroPercentSoc() {
         refreshDevicesWithBatteryDefault(0, 3000, true,  true, false, false);
         changeMinChargeToZero();
