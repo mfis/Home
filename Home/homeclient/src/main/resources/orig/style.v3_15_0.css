@@ -343,29 +343,39 @@ input[type="range"] {
 	width: 100%;
 }
 @media screen and (-webkit-min-device-pixel-ratio:0) {
-	input[type='range'] {
+	input[type="range"] {
 		overflow: hidden;
 		-webkit-appearance: none;
 		background-color: rgb(255,193,7);
 	}
-	input[type='range']::-webkit-slider-thumb {
+	input[type="range"]::-webkit-slider-thumb {
 		-webkit-appearance: none;
 		cursor: ew-resize;
 		background: red;
 		color: rgb(40, 167, 69);
-		height: 24px;
+		height: 34px;
 		width: 20px;
 		border-left: 3px solid black;
 		border-right: 3px solid black;
 		border-radius: 0;
+		box-shadow: -700px 0 0 700px;
+		margin-top: -10px;
 	}
-	input[type="range"]::-webkit-slider-thumb { box-shadow: -700px 0 0 700px;}
+	input[type="range"]::-webkit-slider-thumb:active {
+		background: red;
+	}
 }
 input[type="range"]::-moz-range-progress {
 	background-color: rgb(40, 167, 69);
 }
 input[type="range"]::-moz-range-track {
 	background-color: rgb(255,193,7);
+}
+input[type="range"]::-ms-track {
+	background-color: rgb(255,193,7);
+}
+input[type="range"]::-webkit-slider-runnable-track {
+	background: rgb(255,193,7);
 }
 input[type="range"]::-ms-fill-lower {
 	background-color: rgb(40, 167, 69);
