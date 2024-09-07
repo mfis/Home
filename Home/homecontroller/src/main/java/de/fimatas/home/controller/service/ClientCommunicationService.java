@@ -7,7 +7,6 @@ import java.util.concurrent.TimeUnit;
 
 import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.homematic.model.Device;
-import de.fimatas.home.library.model.ControllerStateModel;
 import de.fimatas.home.library.model.PresenceState;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;

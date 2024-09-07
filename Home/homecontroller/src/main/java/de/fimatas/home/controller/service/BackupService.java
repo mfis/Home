@@ -78,7 +78,8 @@ public class BackupService {
 
         if(completeCount == -1) {
             LOG.warn("!! COULD NOT CHECK DATABASE ROW COUNT");
-        } else if (completeCount > 0) {
+        } else //noinspection StatementWithEmptyBody
+            if (completeCount > 0) {
             LOG.info("database row count: " + completeCount);
             historyDatabaseDAO.completeInit();
             evChargingDAO.completeInit();

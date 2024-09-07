@@ -17,10 +17,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
 
@@ -122,7 +120,7 @@ public class LightService {
                 model.addLight(mapLight(allLights, groupLight.asText(), place));
             } else {
                 List<String> token = List.of(StringUtils.split(groupName, ' '));
-                placesToNameAndSubtitle.entrySet().stream().filter(e -> e.getKey().containsAll(token)).
+                placesToNameAndSubtitle.entrySet().stream().filter(e -> new HashSet<>(e.getKey()).containsAll(token)).
                         findAny().ifPresent(e -> model.addLight(mapLight(allLights, groupLight.asText(), e.getValue())));
             }
         }

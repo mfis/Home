@@ -20,7 +20,7 @@ public class DeviceQualifier {
 
     private static final String PROPERTY_SEPARATOR = ":";
 
-    private HashMap<String, HomematicQualifiers> map = new HashMap<>();
+    private final HashMap<String, HomematicQualifiers> map = new HashMap<>();
 
     public String idFrom(Device device) {
         return get(device).id;
@@ -32,12 +32,10 @@ public class DeviceQualifier {
 
     private HomematicQualifiers get(Device device) {
 
-        if (map.containsKey(device.name())) {
-            return map.get(device.name());
-        } else {
+        if (!map.containsKey(device.name())) {
             read(device);
-            return map.get(device.name());
         }
+        return map.get(device.name());
     }
 
     private void read(Device device) {
@@ -51,7 +49,7 @@ public class DeviceQualifier {
         map.put(device.name(), hq);
     }
 
-    private class HomematicQualifiers {
+    private static class HomematicQualifiers {
         private String id;
 
         private Integer channel;

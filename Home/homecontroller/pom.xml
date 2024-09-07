@@ -86,7 +86,8 @@
 		</dependency>
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcpkix-jdk15on</artifactId>
+			<artifactId>bcpkix-jdk18on</artifactId>
+			<!--suppress PackageUpdate -->
 			<version>${bouncycastle.version}</version>
 		</dependency>
 		<dependency>

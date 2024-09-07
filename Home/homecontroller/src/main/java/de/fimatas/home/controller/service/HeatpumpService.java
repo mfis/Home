@@ -112,7 +112,7 @@ public class HeatpumpService {
         if(StringUtils.isNotBlank(serverRestartCron)) {
             CronExpression cronExpression = CronExpression.parse(serverRestartCron);
             final LocalDateTime next = cronExpression.next(LocalDateTime.now());
-            final LocalDateTime previous = cronExpression.next(LocalDateTime.now().minus(1, ChronoUnit.DAYS));
+            final LocalDateTime previous = cronExpression.next(LocalDateTime.now().minusDays(1));
             return Math.abs(ChronoUnit.MINUTES.between(Objects.requireNonNull(next), LocalDateTime.now())) <= minutes
                     || Math.abs(ChronoUnit.MINUTES.between(Objects.requireNonNull(previous), LocalDateTime.now())) <= minutes ;
         }
@@ -345,32 +345,17 @@ public class HeatpumpService {
     }
 
     private HeatpumpProgram presetToProgram(HeatpumpPreset preset){
-        switch (preset){
-            case COOL_AUTO:
-                return HeatpumpProgram.COOLING_AUTO;
-            case COOL_MIN:
-            case COOL_TIMER1:
-            case COOL_TIMER2:
-                return HeatpumpProgram.COOLING_MIN;
-            case HEAT_AUTO:
-                return HeatpumpProgram.HEATING_AUTO;
-            case HEAT_MIN:
-            case HEAT_TIMER1:
-            case HEAT_TIMER2:
-                return HeatpumpProgram.HEATING_MIN;
-            case FAN_AUTO:
-                return HeatpumpProgram.FAN_AUTO;
-            case FAN_MIN:
-                return HeatpumpProgram.FAN_MIN;
-            case DRY_TIMER:
-                return HeatpumpProgram.FAN_DRY;
-            case OFF:
-                return HeatpumpProgram.OFF;
-            case UNKNOWN:
-                return null; // refresh only
-            default:
-                throw new IllegalArgumentException("unknown preset: " + preset);
-        }
+        return switch (preset) {
+            case COOL_AUTO -> HeatpumpProgram.COOLING_AUTO;
+            case COOL_MIN, COOL_TIMER1, COOL_TIMER2 -> HeatpumpProgram.COOLING_MIN;
+            case HEAT_AUTO -> HeatpumpProgram.HEATING_AUTO;
+            case HEAT_MIN, HEAT_TIMER1, HEAT_TIMER2 -> HeatpumpProgram.HEATING_MIN;
+            case FAN_AUTO -> HeatpumpProgram.FAN_AUTO;
+            case FAN_MIN -> HeatpumpProgram.FAN_MIN;
+            case DRY_TIMER -> HeatpumpProgram.FAN_DRY;
+            case OFF -> HeatpumpProgram.OFF;
+            case UNKNOWN -> null; // refresh only
+        };
     }
 
     private synchronized HeatpumpResponse callDriver(HeatpumpRequest request){

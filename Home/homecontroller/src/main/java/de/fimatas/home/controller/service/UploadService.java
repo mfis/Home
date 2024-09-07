@@ -3,7 +3,6 @@ package de.fimatas.home.controller.service;
 import de.fimatas.home.library.util.HomeAppConstants;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
