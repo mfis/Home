@@ -575,7 +575,7 @@ public class HouseViewService {
         if (heating != null) {
 
             view.setTargetTemp(format(heating.getTargetTemperature(), false, false));
-            view.setHeatericon("fab fa-hotjar");
+            view.setHeatericon("fa-solid fa-fire-flame-curved");
             view.setBusy(Boolean.toString(heating.isBusy()));
 
             view.setLinkManual(MESSAGEPATH + TYPE_IS + MessageType.HEATINGMANUAL + AND_DEVICE_IS + heating.getDevice().name());
@@ -1137,7 +1137,7 @@ public class HouseViewService {
         } else if (isLightSwitch(switchModel.getDevice())) {
             view.setIcon(switchModel.isState() ? "fas fa-lightbulb" : "far fa-lightbulb");
         } else if (isHeatingSwitch(switchModel.getDevice())) {
-            view.setIcon("fab fa-hotjar");
+            view.setIcon("fa-solid fa-fire-flame-curved");
         } else {
             view.setIcon(switchModel.isState() ? "fas fa-toggle-on" : "fas fa-toggle-off");
         }
