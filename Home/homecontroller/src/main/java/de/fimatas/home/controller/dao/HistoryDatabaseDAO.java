@@ -1,11 +1,6 @@
 package de.fimatas.home.controller.dao;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -13,27 +8,19 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.StringTokenizer;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-import java.util.zip.ZipOutputStream;
 
 import jakarta.annotation.PostConstruct;
 
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import de.fimatas.home.controller.command.HomematicCommand;
 import de.fimatas.home.controller.database.mapper.BigDecimalRowMapper;
 import de.fimatas.home.controller.database.mapper.LongRowMapper;
-import de.fimatas.home.controller.database.mapper.StringRowMapper;
 import de.fimatas.home.controller.database.mapper.TimestampValuePair;
 import de.fimatas.home.controller.database.mapper.TimestampValueRowMapper;
 import de.fimatas.home.controller.model.History;
@@ -41,6 +28,7 @@ import de.fimatas.home.controller.model.HistoryElement;
 import de.fimatas.home.controller.model.HistoryValueType;
 import de.fimatas.home.library.domain.model.TimeRange;
 
+@SuppressWarnings("SqlSourceToSinkFlow")
 @Repository
 public class HistoryDatabaseDAO {
 
@@ -54,18 +42,14 @@ public class HistoryDatabaseDAO {
     @Autowired
     private History history;
 
-    private static final Log LOG = LogFactory.getLog(HistoryDatabaseDAO.class);
-
+    @Getter
     private long countOnStartup = -1;
 
+    @Getter
     private boolean setupIsRunning = true;
 
     public void completeInit(){
         setupIsRunning = false;
-    }
-
-    public long getCountOnStartup() {
-        return countOnStartup;
     }
 
     @Transactional
@@ -81,8 +65,8 @@ public class HistoryDatabaseDAO {
                 .update("CREATE UNIQUE INDEX IF NOT EXISTS " + "IDX1_" + varName + " ON " + varName + " (TS, TYP);");
 
             String countQuery = "SELECT COUNT(TS) AS CNT FROM " + varName + ";";
-            long result = jdbcTemplate.queryForObject(countQuery, new Object[] {}, new LongRowMapper("CNT"));
-            completeCount += result;
+            Long result = jdbcTemplate.queryForObject(countQuery, new LongRowMapper("CNT"), new Object[] {});
+            completeCount += (result == null ? 0 : result);
         }
         countOnStartup = completeCount;
     }
@@ -120,7 +104,7 @@ public class HistoryDatabaseDAO {
             + (fromDateTime != null ? ("ts >= '" + formatTimestamp(fromDateTime) + "'") : "") + and
             + (untilDateTime != null ? ("ts < '" + formatTimestamp(untilDateTime) + "'") : "") + ";";
 
-        BigDecimal result = jdbcTemplate.queryForObject(query, new Object[] {}, new BigDecimalRowMapper(VALUE));
+        BigDecimal result = jdbcTemplate.queryForObject(query, new BigDecimalRowMapper(VALUE), new Object[] {});
         if (result == null) {
             return null;
         } else {
@@ -136,7 +120,7 @@ public class HistoryDatabaseDAO {
             + command.getCashedVarName() + " where ts >= '" + formatTimestamp(fromDateTime) + "' and ts < '"
             + formatTimestamp(untilDateTime) + "'" + " and hour(ts) " + TimeRange.hoursSqlQueryString(timeranges) + ";";
 
-        BigDecimal result = jdbcTemplate.queryForObject(query, new Object[] {}, new BigDecimalRowMapper(VALUE));
+        BigDecimal result = jdbcTemplate.queryForObject(query, new BigDecimalRowMapper(VALUE), new Object[] {});
         if (result == null) {
             return null;
         } else {
@@ -151,7 +135,7 @@ public class HistoryDatabaseDAO {
             "select val FROM " + command.getCashedVarName() + " where ts <= '" + formatTimestamp(localDateTime) + "' and ts > '"
                 + formatTimestamp(localDateTime.minusHours(maxHoursReverse)) + "' order by ts desc fetch first row only;";
 
-        List<BigDecimal> result = jdbcTemplate.query(query, new Object[] {}, new BigDecimalRowMapper(VALUE));
+        List<BigDecimal> result = jdbcTemplate.query(query, new BigDecimalRowMapper(VALUE), new Object[] {});
         if (result.isEmpty()) {
             return null;
         } else {
@@ -165,7 +149,7 @@ public class HistoryDatabaseDAO {
         var varName = command.getCashedVarName();
         String query = "SELECT * FROM " + varName + " where ts = (select max(ts) from " + varName + ");";
 
-        List<TimestampValuePair> result = jdbcTemplate.query(query, new Object[] {}, new TimestampValueRowMapper());
+        List<TimestampValuePair> result = jdbcTemplate.query(query, new TimestampValueRowMapper(), new Object[] {});
         if (result.isEmpty()) {
             return null;
         } else {
@@ -181,12 +165,13 @@ public class HistoryDatabaseDAO {
             String startTs = formatTimestamp(optionalFromDateTime);
             whereClause = " where ts > '" + startTs + "'";
         }
-        return jdbcTemplate.query("select * FROM " + command.getCashedVarName() + whereClause + " order by ts asc;",
-            new Object[] {}, new TimestampValueRowMapper());
+        return jdbcTemplate.query("select * FROM " + command.getCashedVarName() + whereClause + " order by ts;",
+                new TimestampValueRowMapper(), new Object[] {});
     }
 
     private String formatTimestamp(LocalDateTime optionalFromDateTime) {
         String startTs;
+        //noinspection ReplaceNullCheck
         if (optionalFromDateTime == null) {
             startTs = SQL_TIMESTAMP_FORMATTER.format(LocalDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault()));
         } else {

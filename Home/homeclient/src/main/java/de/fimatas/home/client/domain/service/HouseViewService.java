@@ -1061,7 +1061,7 @@ public class HouseViewService {
         Arrays.stream(ElectricVehicle.values()).forEach(ev -> {
             ElectroVehicleView evView = new ElectroVehicleView();
             evView.setCaption(ev.getCaption());
-            if(electricVehicleModel.getEvMap().get(ev).isConnectedToWallbox()){
+            if(electricVehicleModel != null && electricVehicleModel.getEvMap().get(ev).isConnectedToWallbox()){
                evView.setActiveSwitchColorClass(ConditionColor.ACTIVE_BUTTON.getUiClass());
             }else{
                 evView.setLink(MESSAGEPATH + TYPE_IS + MessageType.WALLBOX_SELECTED_EV + AND_DEVICE_ID_IS + ev.name() + AND_VALUE_IS + Boolean.TRUE);
@@ -1557,78 +1557,85 @@ public class HouseViewService {
 
     private void formatEVCharge(Model model, ElectricVehicleModel electricVehicleModel, PowerMeter wallboxPowerMeter) {
 
-        electricVehicleModel.getEvMap().entrySet().stream().filter(e -> !e.getKey().isOther()).forEach(e -> {
+        Arrays.stream(ElectricVehicle.values()).toList().stream().filter(e -> !e.isOther()).forEach(e -> {
 
             var view = new ChargingView();
-            model.addAttribute("evcharge_" + e.getKey().name(), view);
+            model.addAttribute("evcharge_" + e.name(), view);
 
-            view.setName(e.getKey().getCaption());
-            view.setId(lookupEvChargeId(e.getKey(), false));
+            final ElectricVehicleState state = electricVehicleModel == null ? null : electricVehicleModel.getEvMap().get(e);
+            view.setName(e.getCaption());
+            view.setId(lookupEvChargeId(e, false));
             view.setPlaceEnum(Place.ELECTROVEHICLE);
             view.setIcon("fa-solid fa-car");
-            view.setUnreach(Boolean.toString(false));
+            view.setUnreach(Boolean.toString(state == null));
 
-            var isChargedSinceReading = e.getValue().getChargingTimestamp() != null;
-            var isStateNew = ChronoUnit.MINUTES.between(e.getValue().getBatteryPercentageTimestamp(), LocalDateTime.now()) < 2;
-            short percentage = ViewFormatterUtils.calculateViewPercentageEv(e.getValue());
-            LocalDateTime timestamp = calculateViewTimestampEv(e);
-
-            var tsFormatted = StringUtils.capitalize(viewFormatter.formatTimestamp(timestamp, TimestampFormat.SHORT_WITH_TIME));
-
-            view.setLinkUpdate(MESSAGEPATH + TYPE_IS + MessageType.SLIDERVALUE + AND_DEVICE_ID_IS + e.getKey().name() + AND_VALUE_IS);
-            view.setColorClass(ViewFormatterUtils.calculateViewConditionColorEv(percentage).getUiClass());
-            view.setActiveSwitchColorClass(ViewFormatterUtils.calculateViewConditionColorEv(percentage).getUiClass());
-            view.setStateShort(ViewFormatterUtils.calculateViewFormattedPercentageEv(e.getValue(), true)); // watch etc
-            view.setStateShortLabel(tsFormatted);
-            var etsTimestamp = StringUtils.capitalize(tsFormatted);
-            var etsPercent = ViewFormatterUtils.calculateViewFormattedPercentageEv(e.getValue(), true);
-            var etsLimit = "Limit " + e.getValue().getChargeLimit().getCaption();
-            view.setElementTitleState(etsTimestamp + " " + etsPercent  + ", " + etsLimit); // collapsed top right
-            if(e.getValue().isActiveCharging()){
-                if(wallboxPowerMeter.getActualConsumption().getValue().intValue() > 0){
-                    view.setState("Lädt gerade");
-                }else{
-                    if(isChargedSinceReading){
-                        view.setState("Bereit zum Laden...");
-                    }else{
-                        view.setState("Laden starten...");
-                    }
-                }
-            }else if(isChargedSinceReading){
-                view.setState("Geladen " + tsFormatted);
-            }else{
-                view.setState("Gesetzt " + tsFormatted);
+            if (state != null){
+                mapElectricVehicle(wallboxPowerMeter, e, state, view);
             }
-            view.setNumericValue(Short.toString(percentage));
-            view.setStateActualFlag(Boolean.toString(isStateNew && !isChargedSinceReading));
-
-            view.setChargeLimitLink(MESSAGEPATH + TYPE_IS + MessageType.CHARGELIMIT + AND_DEVICE_ID_IS + e.getKey().name() + AND_VALUE_IS);
-            Stream.of(ChargeLimit.values()).forEach(cl -> {
-                var value = cl==e.getValue().getChargeLimit() ? "#" : cl.name();
-                view.getChargeLimits().add(new ValueWithCaption(value, cl.getCaption(), null));
-            });
-
-            e.getValue().getChargingTime().forEach(ct -> {
-                var wattage = ct.getPhaseCount() * ct.getAmperage() * ct.getVoltage();
-                var caption = wattage + " W (" + ct.getPhaseCount() + "*" + ct.getAmperage() + "A)";
-                int hours = ct.getMinutes() / 60;
-                int restMinutes = ct.getMinutes() - (hours * 60);
-                var clockTime = LocalTime.now().plusMinutes(ct.getMinutes()).format(ViewFormatter.TIME_FORMATTER);
-                var value = ct.getMinutes() <= 0 ? "keine" :
-                        (hours>0?hours+" Std":"")
-                                + (restMinutes>0 && hours>0 ? ", ":"")
-                                + (restMinutes>0?restMinutes + " Min":"");
-                var clock = ct.getMinutes() <= 0 ? "" : " - " + clockTime + " Uhr";
-                view.getChargingTime().add(new ValueWithCaption(value, caption, clock));
-            });
         });
     }
 
-    private LocalDateTime calculateViewTimestampEv(Map.Entry<ElectricVehicle, ElectricVehicleState> e) {
-        if (e.getValue().getChargingTimestamp() != null) {
-            return e.getValue().getChargingTimestamp();
+    private void mapElectricVehicle(PowerMeter wallboxPowerMeter, ElectricVehicle e, ElectricVehicleState state, ChargingView view) {
+        var isChargedSinceReading = state.getChargingTimestamp() != null;
+        var isStateNew = ChronoUnit.MINUTES.between(state.getBatteryPercentageTimestamp(), LocalDateTime.now()) < 2;
+        short percentage = ViewFormatterUtils.calculateViewPercentageEv(state);
+        LocalDateTime timestamp = calculateViewTimestampEv(state);
+
+        var tsFormatted = StringUtils.capitalize(viewFormatter.formatTimestamp(timestamp, TimestampFormat.SHORT_WITH_TIME));
+
+        view.setLinkUpdate(MESSAGEPATH + TYPE_IS + MessageType.SLIDERVALUE + AND_DEVICE_ID_IS + e.name() + AND_VALUE_IS);
+        view.setColorClass(ViewFormatterUtils.calculateViewConditionColorEv(percentage).getUiClass());
+        view.setActiveSwitchColorClass(ViewFormatterUtils.calculateViewConditionColorEv(percentage).getUiClass());
+        view.setStateShort(ViewFormatterUtils.calculateViewFormattedPercentageEv(state, true)); // watch etc
+        view.setStateShortLabel(tsFormatted);
+        var etsTimestamp = StringUtils.capitalize(tsFormatted);
+        var etsPercent = ViewFormatterUtils.calculateViewFormattedPercentageEv(state, true);
+        var etsLimit = "Limit " + state.getChargeLimit().getCaption();
+        view.setElementTitleState(etsTimestamp + " " + etsPercent  + ", " + etsLimit); // collapsed top right
+        if(state.isActiveCharging()){
+            if(wallboxPowerMeter.getActualConsumption().getValue().intValue() > 0){
+                view.setState("Lädt gerade");
+            }else{
+                if(isChargedSinceReading){
+                    view.setState("Bereit zum Laden...");
+                }else{
+                    view.setState("Laden starten...");
+                }
+            }
+        }else if(isChargedSinceReading){
+            view.setState("Geladen " + tsFormatted);
+        }else{
+            view.setState("Gesetzt " + tsFormatted);
+        }
+        view.setNumericValue(Short.toString(percentage));
+        view.setStateActualFlag(Boolean.toString(isStateNew && !isChargedSinceReading));
+
+        view.setChargeLimitLink(MESSAGEPATH + TYPE_IS + MessageType.CHARGELIMIT + AND_DEVICE_ID_IS + e.name() + AND_VALUE_IS);
+        Stream.of(ChargeLimit.values()).forEach(cl -> {
+            var value = cl== state.getChargeLimit() ? "#" : cl.name();
+            view.getChargeLimits().add(new ValueWithCaption(value, cl.getCaption(), null));
+        });
+
+        state.getChargingTime().forEach(ct -> {
+            var wattage = ct.getPhaseCount() * ct.getAmperage() * ct.getVoltage();
+            var caption = wattage + " W (" + ct.getPhaseCount() + "*" + ct.getAmperage() + "A)";
+            int hours = ct.getMinutes() / 60;
+            int restMinutes = ct.getMinutes() - (hours * 60);
+            var clockTime = LocalTime.now().plusMinutes(ct.getMinutes()).format(ViewFormatter.TIME_FORMATTER);
+            var value = ct.getMinutes() <= 0 ? "keine" :
+                    (hours>0?hours+" Std":"")
+                            + (restMinutes>0 && hours>0 ? ", ":"")
+                            + (restMinutes>0?restMinutes + " Min":"");
+            var clock = ct.getMinutes() <= 0 ? "" : " - " + clockTime + " Uhr";
+            view.getChargingTime().add(new ValueWithCaption(value, caption, clock));
+        });
+    }
+
+    private LocalDateTime calculateViewTimestampEv(ElectricVehicleState state) {
+        if (state.getChargingTimestamp() != null) {
+            return state.getChargingTimestamp();
         } else {
-            return e.getValue().getBatteryPercentageTimestamp();
+            return state.getBatteryPercentageTimestamp();
         }
     }
 

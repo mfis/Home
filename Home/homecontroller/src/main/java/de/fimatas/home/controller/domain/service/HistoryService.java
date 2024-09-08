@@ -106,6 +106,11 @@ public class HistoryService {
     @Scheduled(cron = "0 0 * * * *")
     public void persistCashedValues() {
 
+        if(historyDAO.isSetupIsRunning()){
+            LOG.warn("Could not run 'persistCashedValues()' because DB-setup is already running.");
+            return;
+        }
+
         Map<HomematicCommand, List<TimestampValuePair>> toInsert = new HashMap<>();
         for (HistoryElement historyElement : history.list()) {
 

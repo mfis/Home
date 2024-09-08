@@ -7,7 +7,7 @@ import org.springframework.jdbc.core.RowMapper;
 
 public class LongRowMapper implements RowMapper<Long> {
 
-    private String colName;
+    private final String colName;
 
     public LongRowMapper(String colName) {
         this.colName = colName;
