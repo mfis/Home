@@ -1,6 +1,5 @@
 package de.fimatas.home.controller.dao;
 
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.LinkedList;
@@ -18,7 +17,7 @@ public class SettingsDAO {
     public static final String PATH = DaoUtils.getConfigRoot() + "homecontrolleruser.properties";
     private static SettingsDAO instance;
 
-    private Properties properties;
+    private final Properties properties;
 
     private final ObjectMapper objectMapper;
 
@@ -54,6 +53,7 @@ public class SettingsDAO {
         }
     }
 
+    @SuppressWarnings("unused")
     public void delete(SettingsModel settingsModel) {
         properties.remove(PUSHTOKEN_PREFIX + settingsModel.getToken());
     }

@@ -50,7 +50,7 @@ public class StateHandlerDAO {
         String query =
                 "select * FROM " + TABLE_NAME + " where GROUPNAME = ?;";
 
-        return jdbcTemplate.query(query, new String[]{groupname}, new StateRowMapper());
+        return jdbcTemplate.query(query, new StateRowMapper(), groupname);
     }
 
     @Transactional(readOnly = true)
@@ -59,8 +59,8 @@ public class StateHandlerDAO {
         String query =
                 "select * FROM " + TABLE_NAME + " where GROUPNAME = ? and statename = ?;";
 
-        var result = jdbcTemplate.query(query, new StateRowMapper(), groupname, cleanSqlValue(statename));
-        if(result == null || result.isEmpty()){
+        var result = jdbcTemplate.query(query, new StateRowMapper(), cleanSqlValue(groupname), cleanSqlValue(statename));
+        if(result.isEmpty()){
             return null;
         }else if(result.size()==1){
             return result.get(0);
@@ -78,6 +78,6 @@ public class StateHandlerDAO {
 
         jdbcTemplate
                 .update("MERGE INTO " + TABLE_NAME + " KEY (GROUPNAME, STATENAME) VALUES (?, ?, ?, ?)",
-                        groupname, cleanSqlValue(statename), uniqueTimestampService.getAsStringWithMillis(), cleanSqlValue(value));
+                        cleanSqlValue(groupname), cleanSqlValue(statename), uniqueTimestampService.getAsStringWithMillis(), cleanSqlValue(value));
     }
 }

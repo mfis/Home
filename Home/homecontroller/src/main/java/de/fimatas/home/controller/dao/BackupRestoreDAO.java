@@ -17,7 +17,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -35,14 +34,14 @@ public class BackupRestoreDAO {
     @Transactional
     public void backupDatabase(String filename) {
 
-        List<String> scriptQueries = jdbcTemplate.query("SCRIPT;", new Object[] {}, new StringRowMapper("SCRIPT"));
+        List<String> scriptQueries = jdbcTemplate.query("SCRIPT;", new StringRowMapper("SCRIPT"));
 
         try (FileOutputStream fos = new FileOutputStream(filename); ZipOutputStream zipOut = new ZipOutputStream(fos)) {
 
             ZipEntry zipEntry = new ZipEntry(new File(filename).getName().replace(".zip", ""));
             zipOut.putNextEntry(zipEntry);
 
-            scriptQueries.stream().forEach(e -> {
+            scriptQueries.forEach(e -> {
                 String line = StringUtils.trimToEmpty(e);
                 if (isNotCreateOrAlterStatement(line)) {
                     byte[] cmdBytes = line.concat("\n").getBytes(StandardCharsets.UTF_8);
@@ -61,6 +60,29 @@ public class BackupRestoreDAO {
     @Transactional
     public void restoreDatabase(String filename) throws IOException {
 
+        final StringTokenizer tokenizer = getStringTokenizer(filename);
+        int statemantsExecuted = 0;
+        while (tokenizer.hasMoreTokens()) {
+            var actualStatement = tokenizer.nextToken().trim();
+            var tableExisting = true;
+            if(actualStatement.startsWith("INSERT")){
+                var tableName = StringUtils.substringBetween(actualStatement, "INTO", "VALUES").trim();
+                try {
+                    jdbcTemplate.queryForMap("select count(*) FROM " + tableName + ";");
+                }catch (BadSqlGrammarException e){
+                    tableExisting = false;
+                    log.warn("DB-Import - Table not existing: " + tableName);
+                }
+            }
+            if(tableExisting){
+                jdbcTemplate.update(actualStatement + ";");
+                statemantsExecuted++;
+            }
+        }
+        log.info("DB-Import - Statemens executed: " + statemantsExecuted);
+    }
+
+    private static StringTokenizer getStringTokenizer(String filename) throws IOException {
         StringBuilder sb = new StringBuilder();
 
         try (ZipInputStream zis = new ZipInputStream(new FileInputStream(filename))) {
@@ -77,26 +99,7 @@ public class BackupRestoreDAO {
             zis.closeEntry();
         }
 
-        StringTokenizer tokenizer = new StringTokenizer(sb.toString(), ";");
-        int statemantsExecuted = 0;
-        while (tokenizer.hasMoreTokens()) {
-            var actualStatement = tokenizer.nextToken().trim();
-            var tableExisting = true;
-            if(actualStatement.startsWith("INSERT")){
-                var tableName = StringUtils.substringBetween(actualStatement, "INTO", "VALUES").trim();
-                try {
-                    final Map<String, Object> stringObjectMap = jdbcTemplate.queryForMap("select count(*) FROM " + tableName + ";");
-                }catch (BadSqlGrammarException e){
-                    tableExisting = false;
-                    log.warn("DB-Import - Table not existing: " + tableName);
-                }
-            }
-            if(tableExisting){
-                jdbcTemplate.update(actualStatement + ";");
-                statemantsExecuted++;
-            }
-        }
-        log.info("DB-Import - Statemens executed: " + statemantsExecuted);
+        return new StringTokenizer(sb.toString(), ";");
     }
 
     private boolean isNotCreateOrAlterStatement(String line) {

@@ -3,7 +3,6 @@ package de.fimatas.home.controller.dao;
 import de.fimatas.home.controller.database.mapper.PushMessageRowMapper;
 import de.fimatas.home.controller.service.UniqueTimestampService;
 import de.fimatas.home.library.domain.model.PushMessage;
-import de.fimatas.home.library.domain.model.PushMessageModel;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -51,7 +50,7 @@ public class PushMessageDAO {
         String query =
                 "select * FROM " + TABLE_NAME + " ORDER BY TS DESC;";
 
-        return jdbcTemplate.query(query, new String[]{}, new PushMessageRowMapper());
+        return jdbcTemplate.query(query, new PushMessageRowMapper());
     }
 
     @Transactional(readOnly = true)
@@ -60,7 +59,7 @@ public class PushMessageDAO {
         String query =
                 "select * FROM " + TABLE_NAME + " WHERE TS > ? ORDER BY TS DESC;";
 
-        return jdbcTemplate.query(query, new String[]{UniqueTimestampService.getAsStringWithMillis(LocalDateTime.now().minusSeconds(3))}, new PushMessageRowMapper());
+        return jdbcTemplate.query(query, new PushMessageRowMapper(), UniqueTimestampService.getAsStringWithMillis(LocalDateTime.now().minusSeconds(3)));
     }
 
     @Transactional
