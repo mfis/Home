@@ -128,18 +128,16 @@ public class HomematicCommandProcessor {
     private String datapointAdress(HomematicCommand command) {
 
         // format: BidCos-RF.OEQ0854602:4.ACTUAL_TEMPERATURE"
-        StringBuilder sb = new StringBuilder(63);
-        sb.append(command.getDevice().getHomematicProtocol().getKey());
-        sb.append("-");
-        sb.append(HomematicProtocol.RF);
-        sb.append(".");
-        sb.append(deviceQualifier.idFrom(command.getDevice()));
-        sb.append(":");
-        sb.append(command.getDatapoint().getFixedChannel() == null ? deviceQualifier.channelFrom(command.getDevice()).toString()
-            : command.getDatapoint().getFixedChannel().toString());
-        sb.append(".");
-        sb.append(command.getDatapoint().name());
-        return sb.toString();
+        return command.getDevice().getHomematicProtocol().getKey() +
+                "-" +
+                HomematicProtocol.RF +
+                "." +
+                deviceQualifier.idFrom(command.getDevice()) +
+                ":" +
+                (command.getDatapoint().getFixedChannel() == null ? deviceQualifier.channelFrom(command.getDevice()).toString()
+                        : command.getDatapoint().getFixedChannel().toString()) +
+                "." +
+                command.getDatapoint().name();
     }
 
     private String varSetExpression(HomematicCommand command) {

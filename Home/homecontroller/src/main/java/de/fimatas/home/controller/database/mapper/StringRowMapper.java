@@ -7,7 +7,7 @@ import org.springframework.jdbc.core.RowMapper;
 
 public class StringRowMapper implements RowMapper<String> {
 
-    private String colName;
+    private final String colName;
 
     public StringRowMapper(String colName) {
         this.colName = colName;

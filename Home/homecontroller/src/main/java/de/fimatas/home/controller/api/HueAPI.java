@@ -74,7 +74,7 @@ public class HueAPI {
 
     private JsonNode callHueAPI(String path, Optional<String> body, boolean refresh) {
 
-        ResponseEntity<String> responseEntity = null;
+        ResponseEntity<String> responseEntity;
         try {
             if (body.isPresent()) {
                 HttpEntity<String> request = new HttpEntity<>(body.get());

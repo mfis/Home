@@ -1,7 +1,5 @@
 package de.fimatas.home.controller.database.mapper;
 
-import de.fimatas.home.controller.model.EvChargeDatabaseEntry;
-import de.fimatas.home.library.domain.model.ElectricVehicle;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.sql.ResultSet;

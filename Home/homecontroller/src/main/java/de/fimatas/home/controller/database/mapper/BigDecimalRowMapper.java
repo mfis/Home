@@ -8,7 +8,7 @@ import org.springframework.jdbc.core.RowMapper;
 
 public class BigDecimalRowMapper implements RowMapper<BigDecimal> {
 
-    private String colName;
+    private final String colName;
 
     public BigDecimalRowMapper(String colName) {
         this.colName = colName;

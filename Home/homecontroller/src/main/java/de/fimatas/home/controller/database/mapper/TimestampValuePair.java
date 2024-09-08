@@ -4,9 +4,13 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import de.fimatas.home.controller.model.HistoryValueType;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
 public class TimestampValuePair {
 
+    @Setter
     private LocalDateTime timestamp;
 
     private final BigDecimal value;
@@ -20,25 +24,9 @@ public class TimestampValuePair {
         this.type = type;
     }
 
-    public LocalDateTime getTimestamp() {
-        return timestamp;
-    }
-
-    public BigDecimal getValue() {
-        return value;
-    }
-
-    public HistoryValueType getType() {
-        return type;
-    }
-
     @Override
     public String toString() {
         return "TimestampValuePair [timestamp=" + timestamp + ", value=" + value + ", type=" + type + "]";
-    }
-
-    public void setTimestamp(LocalDateTime timestamp) {
-        this.timestamp = timestamp;
     }
 
 }

@@ -2,11 +2,13 @@ package de.fimatas.home.controller.command;
 
 import static de.fimatas.home.controller.command.HomematicCommandConstants.EMPTY;
 
+import lombok.Getter;
 import org.springframework.util.Assert;
 
 import de.fimatas.home.library.homematic.model.Datapoint;
 import de.fimatas.home.library.homematic.model.Device;
 
+@Getter
 public class HomematicCommand {
 
     private CommandType commandType;
@@ -29,34 +31,6 @@ public class HomematicCommand {
 
     public boolean isProgramRunCommand() {
         return commandType == CommandType.RUN_PROGRAM;
-    }
-
-    public Device getDevice() {
-        return device;
-    }
-
-    public Datapoint getDatapoint() {
-        return datapoint;
-    }
-
-    public String getSuffix() {
-        return suffix;
-    }
-
-    public Boolean getStateToSet() {
-        return stateToSet;
-    }
-
-    public String getStringToSet() {
-        return stringToSet;
-    }
-
-    public String getCashedVarName() {
-        return cashedVarName;
-    }
-
-    public CommandType getCommandType() {
-        return commandType;
     }
 
     protected void setCommandType(CommandType commandType) {
@@ -113,6 +87,7 @@ public class HomematicCommand {
             return false;
         HomematicCommand other = (HomematicCommand) obj;
         Assert.notNull(other.cashedVarName, "other.cashedVarName is null!");
+        //noinspection EqualsWithItself
         return cashedVarName.equals(cashedVarName);
     }
 

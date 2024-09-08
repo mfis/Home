@@ -9,7 +9,6 @@ import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.homematic.model.*;
 import de.fimatas.home.library.homematic.model.Type;
 import de.fimatas.home.library.model.Message;
-import de.fimatas.home.library.model.PhotovoltaicsStringsStatus;
 import de.fimatas.home.library.util.HomeAppConstants;
 import lombok.extern.apachecommons.CommonsLog;
 import mfi.files.api.UserService;
@@ -33,6 +32,7 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@SuppressWarnings("StatementWithEmptyBody")
 @Component
 @CommonsLog
 public class HouseService {
@@ -91,9 +91,6 @@ public class HouseService {
 
     @Autowired
     private PhotovoltaicsOverflowService photovoltaicsOverflowService;
-
-    @Autowired
-    private SolarmanService solarmanService;
 
     @Autowired
     private TasksService tasksService;
@@ -244,11 +241,9 @@ public class HouseService {
         }
 
         if (maxTemperature.isPresent()) {
-            if (minTemperature.isPresent()) {
-                BigDecimal diffOutside = maxTemperature.get().getTemperature().getValue()
-                    .subtract(minTemperature.get().getTemperature().getValue()).abs();
-                maxTemperature.get().setSunBeamIntensity(lookupIntensity(diffOutside));
-            }
+            BigDecimal diffOutside = maxTemperature.get().getTemperature().getValue()
+                .subtract(minTemperature.get().getTemperature().getValue()).abs();
+            maxTemperature.get().setSunBeamIntensity(lookupIntensity(diffOutside));
             newModel.setConclusionClimateFacadeMax(SerializationUtils.clone(maxTemperature.get()));
         } else {
             var empty = new OutdoorClimate();
@@ -642,7 +637,7 @@ public class HouseService {
     public Optional<String> readSubtitleFor(Place place){
         var key = "place." + place.name() + ".subtitle";
         if(env.containsProperty(key)){
-            return Optional.of(env.getProperty(key));
+            return Optional.ofNullable(env.getProperty(key));
         }
         return Optional.empty();
     }
@@ -721,6 +716,7 @@ public class HouseService {
         return shutter;
     }
 
+    @SuppressWarnings("unused")
     public void shutterPosition(Device device, int parseInt) {
         // for further use
     }
