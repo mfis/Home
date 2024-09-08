@@ -26,7 +26,7 @@ public class ControllerStateService {
         appUptime = Instant.now();
     }
 
-    @Scheduled(initialDelay = 1000, fixedDelay = (1000 * HomeAppConstants.MODEL_CONTROLLERSTATE_INTERVAL_SECONDS) + 831)
+    @Scheduled(initialDelay = 9000, fixedDelay = ((1000 * HomeAppConstants.MODEL_CONTROLLERSTATE_INTERVAL_SECONDS)) + 831)
     private void scheduledRefresh() {
         refresh();
     }
