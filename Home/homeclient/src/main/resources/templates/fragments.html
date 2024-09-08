@@ -627,7 +627,7 @@
 
 					<div>
 						<div class="btn-group prefixbutton" role="group" aria-label="heatpump-group-heat-auto">
-							<a style="font-size: 1.3rem;"><th:block th:replace="~{basics :: symbol (name='fab fa-hotjar')}"/></a>
+							<a style="font-size: 1.3rem;"><th:block th:replace="~{basics :: symbol (name='fa-solid fa-fire-flame-curved')}"/></a>
 						</div>
 						<div class="btn-group widebutton" role="group" aria-label="heatpump-group-heat-auto">
 							<button type="button" th:class="${#strings.startsWith(model.linkHeatAuto, '#')} ? 'btn btn-dark btn-sm btn-block' : 'btn btn-secondary btn-sm btn-block'" th:onclick="@{'heatpump(\''+ ${model.id} +'\', \'' + ${model.placeID} + '\', \'' + ${model.linkHeatAuto} + '\')'}">
