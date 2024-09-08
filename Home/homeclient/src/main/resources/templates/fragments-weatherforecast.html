@@ -10,7 +10,7 @@
 				<div th:replace="~{fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState}, colorClass=${model.colorClass})}"></div>
 				<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
 					<h4 th:text="${model.state}"></h4>
-					<table style="border: 0; width: 100%;">
+					<table style="border: 0; width: 100%; margin-bottom: 10px;">
 						<tbody>
 						<th:block th:each="entry : ${model.forecasts}">
 							<th:block th:if="${#strings.equals(entry.header,'')}">
@@ -32,7 +32,7 @@
 						</th:block>
 						</tbody>
 					</table>
-					<a><span class="text-secondary" style="font-size: 80%;" th:text="${model.source}"></span></a>
+					<a style="padding-left: 2px;"><span class="text-secondary" style="font-size: 75%;" th:text="${model.source}"></span></a>
 				</div>
 			</div>
 		</th:block>
