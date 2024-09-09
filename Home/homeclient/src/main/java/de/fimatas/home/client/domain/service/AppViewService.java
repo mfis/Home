@@ -25,6 +25,7 @@ import de.fimatas.home.library.domain.model.Tendency;
 
 import jakarta.annotation.PostConstruct;
 
+@SuppressWarnings({"unused", "ExtractMethodRecommender"})
 @Component
 public class AppViewService {
 
@@ -186,10 +187,11 @@ public class AppViewService {
         view.getCaptionAndValue().forEach((k, v) -> {
             var hvm = new HomeViewValueModel();
             hvm.setId(v.getId());
+            //noinspection StatementWithEmptyBody
             if(StringUtils.isBlank(v.getState()) && StringUtils.isNotBlank(v.getIconNativeClient())){
                 // widget symbol header
             }else{
-                hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP).map(Enum::name).collect(Collectors.toList()));
+                hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP).map(Enum::name).toList());
             }
             hvm.setKey(k);
             hvm.setValue(v.getState());
@@ -262,7 +264,7 @@ public class AppViewService {
         if (placeModel == null) {
             placeModel = new HomeViewPlaceModel();
             placeModel.setId(placeDirectives.place.name());
-            placeModel.getPlaceDirectives().addAll(placeDirectives.directives.stream().map(Enum::name).collect(Collectors.toList()));
+            placeModel.getPlaceDirectives().addAll(placeDirectives.directives.stream().map(Enum::name).toList());
             var subtitleKey = HouseViewService.PLACE_SUBTITLE_PREFIX + placeDirectives.place.name();
             if(completeModel.getAttribute(subtitleKey)!=null){
                 placeModel.setName((String) completeModel.getAttribute(subtitleKey));
@@ -287,7 +289,7 @@ public class AppViewService {
     private HomeViewValueModel mapTemperature(PlaceDirectives placeDirectives, ClimateView view) {
         HomeViewValueModel hvm = new HomeViewValueModel();
         hvm.setId(view.getId());
-        hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP).map(Enum::name).collect(Collectors.toList()));
+        hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP).map(Enum::name).toList());
         hvm.setKey("Wärme");
         hvm.setValue(view.getStateTemperature());
         hvm.setValueShort(view.getStateShort());
@@ -300,7 +302,7 @@ public class AppViewService {
     private HomeViewValueModel mapHumidity(PlaceDirectives placeDirectives, ClimateView view) {
         HomeViewValueModel hvm = new HomeViewValueModel();
         hvm.setId(placeDirectives.place.name() + "-humi");
-        hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP, ValueDirective.WIDGET_SKIP, ValueDirective.LOCKSCREEN_SKIP).map(Enum::name).collect(Collectors.toList()));
+        hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP, ValueDirective.WIDGET_SKIP, ValueDirective.LOCKSCREEN_SKIP).map(Enum::name).toList());
         hvm.setKey("Feuchte");
         hvm.setValue(view.getStateHumidity());
         hvm.setAccent(ViewFormatterUtils.mapAppColorAccent(view.getColorClassHumidity()));
@@ -311,7 +313,7 @@ public class AppViewService {
     private HomeViewValueModel mapForecastTemperature(PlaceDirectives placeDirectives, WeatherForecastsView view) {
         HomeViewValueModel hvm = new HomeViewValueModel();
         hvm.setId(view.getId());
-        hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP).map(Enum::name).collect(Collectors.toList()));
+        hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP).map(Enum::name).toList());
         hvm.setKey("2-Tage");
         hvm.setValue(view.getStateTemperatureWatch());
         hvm.setAccent(ViewFormatterUtils.mapAppColorAccent(view.getColorClass()));
@@ -322,7 +324,7 @@ public class AppViewService {
     private HomeViewValueModel mapForecastShortTerm(PlaceDirectives placeDirectives, WeatherForecastsView view) {
         HomeViewValueModel hvm = new HomeViewValueModel();
         hvm.setId(placeDirectives.place.name() + "-fcShortTerm");
-        hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP, ValueDirective.WIDGET_SKIP, ValueDirective.LOCKSCREEN_SKIP).map(Enum::name).collect(Collectors.toList()));
+        hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP, ValueDirective.WIDGET_SKIP, ValueDirective.LOCKSCREEN_SKIP).map(Enum::name).toList());
         hvm.setKey("3-Stunden");
         hvm.setValue(view.getShortTermText());
         hvm.setAccent(ViewFormatterUtils.mapAppColorAccent(view.getShortTermColorClass()));
@@ -338,6 +340,7 @@ public class AppViewService {
         return hvm;
     }
 
+    @SuppressWarnings("UnnecessaryUnicodeEscape")
     private HomeViewValueModel mapHeatpump(PlaceDirectives placeDirectives, HeatpumpView view) {
         HomeViewValueModel hvm = new HomeViewValueModel();
         hvm.setId(view.getId());
@@ -372,7 +375,7 @@ public class AppViewService {
     private HomeViewValueModel mapForecastEvent(PlaceDirectives placeDirectives, WeatherForecastsView view) {
         HomeViewValueModel hvm = new HomeViewValueModel();
         hvm.setId(placeDirectives.place.name() + "-fcEvent");
-        hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP, ValueDirective.WIDGET_SKIP).map(Enum::name).collect(Collectors.toList()));
+        hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP, ValueDirective.WIDGET_SKIP).map(Enum::name).toList());
         hvm.setKey("Ereignis");
         hvm.setValue(view.getStateEventWatch());
         hvm.setAccent(ViewFormatterUtils.mapAppColorAccent(view.getColorClass()));
@@ -489,7 +492,7 @@ public class AppViewService {
 
     private HomeViewValueModel mapSwitchStatus(PlaceDirectives placeDirectives, SwitchView view) {
         HomeViewValueModel hvm = new HomeViewValueModel();
-        hvm.setId(placeDirectives.place.name() + "-switchStatus");
+        hvm.setId(placeDirectives.place.name() + "-switchStatus-" + view.getId());
         hvm.setKey(view.getShortName());
         hvm.setValue(view.getStateShort());
         hvm.setAccent(ViewFormatterUtils.mapAppColorAccent(view.getColorClass()));
@@ -514,7 +517,7 @@ public class AppViewService {
         List<HomeViewActionModel> actionsOnOff = new LinkedList<>();
         HomeViewActionModel actionSwitchCaption = new HomeViewActionModel();
         actionSwitchCaption.setId(placeDirectives.place.name() + "-switchStateCaption");
-        actionSwitchCaption.setName("Schalter Status");
+        actionSwitchCaption.setName(view.getShortName() + " Schalter Status");
         actionSwitchCaption.setLink(Strings.EMPTY);
         actionsOnOff.add(actionSwitchCaption);
         HomeViewActionModel actionOn = new HomeViewActionModel();
@@ -530,7 +533,7 @@ public class AppViewService {
         List<HomeViewActionModel> actionsControl = new LinkedList<>();
         HomeViewActionModel actionModeCaption = new HomeViewActionModel();
         actionModeCaption.setId(placeDirectives.place.name() + "-switchModeCaption");
-        actionModeCaption.setName("Schalter Modus");
+        actionModeCaption.setName(view.getShortName() + " Schalter Modus");
         actionModeCaption.setLink(Strings.EMPTY);
         actionsControl.add(actionModeCaption);
         if(StringUtils.isNotBlank(view.getLinkAuto())){
@@ -603,27 +606,15 @@ public class AppViewService {
         HomeViewActionModel hpActionSwitch = new HomeViewActionModel();
         hpActionSwitch.setId(placeDirectives.place.name() + "-hpSwitch-" + preset + "-" + idSuffix);
         hpActionSwitch.setName(preset.getShortText());
-        var link = "#";
-        switch (preset){
-            case COOL_AUTO:
-                link = view.getLinkCoolAuto();
-                break;
-            case COOL_MIN:
-                link = view.getLinkCoolMin();
-                break;
-            case HEAT_AUTO:
-                link = view.getLinkHeatAuto();
-                break;
-            case HEAT_MIN:
-                link = view.getLinkHeatMin();
-                break;
-            case DRY_TIMER:
-                link = view.getLinkDryTimer();
-                break;
-            case OFF:
-                link = view.getLinkOff();
-                break;
-        }
+        var link = switch (preset) {
+            case COOL_AUTO -> view.getLinkCoolAuto();
+            case COOL_MIN -> view.getLinkCoolMin();
+            case HEAT_AUTO -> view.getLinkHeatAuto();
+            case HEAT_MIN -> view.getLinkHeatMin();
+            case DRY_TIMER -> view.getLinkDryTimer();
+            case OFF -> view.getLinkOff();
+            default -> "#";
+        };
         hpActionSwitch.setLink(link);
         if(!other.isEmpty() && !link.equals("#")){
             other.forEach(o -> hpActionSwitch.setLink(hpActionSwitch.getLink() + o.getValue() + ","));
