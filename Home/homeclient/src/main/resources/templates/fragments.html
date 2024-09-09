@@ -537,7 +537,7 @@
 	<!-- Chart Entry -->
 	<th:block th:fragment="chartEntry (chart, showCaption)">	
 		<th:block th:if="${#strings.equals(showCaption,'true')}">
-			<a th:class="${chart.collapse}">
+			<a th:class="${chart.collapse} + ' text-decoration-none'">
 				<span class="mb-1" th:text="${chart.label}">Gestern</span>
 				<span>&nbsp;</span>
 				<span class="text-secondary" style="font-size: 80%;" th:text="${chart.additionalLabel}">Summe</span>
