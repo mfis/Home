@@ -41,7 +41,7 @@
 					<span th:utext="'&hairsp;'"></span>
 				</span>
 				<span th:if="${#strings.endsWith(icon, '.png')}">
-					<div th:style="'-webkit-mask:url(' + ${icon} + ') center/contain; mask:url(' + ${icon} + ') center/contain'" th:class="'img-icon img-' + ${colorClass}"></div>
+					<div th:style="'mask:url(' + ${icon} + ') center/contain; mask-repeat: no-repeat; mask-size: contain;'" th:class="'img-icon img-' + ${colorClass}"></div>
 					<span th:utext="'&nbsp;'"></span>
 				</span>
 				<span th:text="${name}"></span>

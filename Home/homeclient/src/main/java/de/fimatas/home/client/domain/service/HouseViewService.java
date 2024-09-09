@@ -1040,8 +1040,11 @@ public class HouseViewService {
         view.setStateShort((windowSensor.isState() ? "Geöffnet" : "Geschlossen"));
         if (windowSensor.isState()) {
             view.setColorClass(ConditionColor.ORANGE.getUiClass());
+        }else{
+            view.setColorClass(ConditionColor.GRAY.getUiClass());
         }
-        view.setIcon(windowSensor.isState() ? "fas fa-folder-open" : "fas fa-folder");
+        //noinspection ConditionalExpressionWithIdenticalBranches
+        view.setIcon(windowSensor.isState() ? "window.png" : "window.png");
         model.addAttribute(viewKey, view);
     }
 
