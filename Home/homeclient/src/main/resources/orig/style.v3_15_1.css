@@ -57,6 +57,9 @@ button{
 	padding-left:5px;
 	padding-right:5px;
 }
+.placeTitle{
+	scroll-margin-top: 8px;
+}
 .modal-content h5, .modal-content a, .modal-body a, .modal-body h4 {
 	color: #000 !important;
 }

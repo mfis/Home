@@ -322,12 +322,7 @@ function fastLinkTo(id){
                 elementById = elementById.previousElementSibling;
             }
             if(elementById && elementById.classList.contains('placeTitle') ){
-                elementById.scrollIntoView();
-                let navbarHeight = 0;
-                if(document.getElementById('navbar')){
-                    navbarHeight = document.getElementById('navbar').offsetHeight;
-                }
-                window.scrollBy(0, (navbarHeight + 6) * -1);
+                elementById.scrollIntoView({ behavior: "instant" });
             }
         }
     }finally{
