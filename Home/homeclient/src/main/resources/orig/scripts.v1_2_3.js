@@ -60,6 +60,9 @@ function submitContentWithPin(target, pin){
                     showCheck();
                 }else if(httpRequest.status === 200){
                     let doc = new DOMParser().parseFromString(httpRequest.responseText, "text/html");
+                    if(shouldReloadForNewerAssets(document, doc)){
+                        window.location.reload();
+                    }
                     preserveStatus(document, doc);
                     document.getElementById('idbody').innerHTML = doc.getElementById('idbody').innerHTML;
                     lastRefresh = (new Date).getTime();
@@ -84,6 +87,15 @@ function submitContentWithPin(target, pin){
     }else{
         showOffline();
     }
+}
+
+function shouldReloadForNewerAssets(docOld, docNew){
+    return getAssetId(docOld) !== getAssetId(docNew);
+}
+
+function getAssetId(document){
+    return document.getElementById('main_js').getAttribute('src')
+        + "#" + document.getElementById('main_css').getAttribute('href');
 }
 
 function doOnloadFunctions(){
