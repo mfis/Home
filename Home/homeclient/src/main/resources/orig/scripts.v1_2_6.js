@@ -56,11 +56,12 @@ function submitContentWithPin(target, pin){
         httpRequest.onreadystatechange=(e)=>{
             if (httpRequest.readyState === 4) {
                 if(target===window.location.href && !isViewStatePermittingRefresh()){
-                    // do not replace content while gui transition is running
+                    /* do not replace content while gui transition is running */
                     showCheck();
                 }else if(httpRequest.status === 200){
                     let doc = new DOMParser().parseFromString(httpRequest.responseText, "text/html");
                     if(shouldReloadForNewerAssets(document, doc)){
+                        nativeMessage('log=trigger reload for newer assets');
                         window.location.reload();
                     }
                     preserveStatus(document, doc);
@@ -412,6 +413,10 @@ function unsetAutoRefresh(){
     }
 }
 function doAutoRefresh(){
+
+    if(window.location.pathname !== '/'){
+        return;
+    }
 
     // focus handling in app: app webview only gets focus after first touch event
     if((document.hasFocus() || isAppInForeground()) &&
