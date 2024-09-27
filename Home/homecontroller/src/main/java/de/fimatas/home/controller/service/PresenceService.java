@@ -26,7 +26,7 @@ public class PresenceService {
     private final String STATEHANDLER_GROUPNAME_PERSONS = "presence-persons";
 
     @Scheduled(initialDelay = 22 * 1000, fixedDelay = (1000 * HomeAppConstants.MODEL_PRESENCE_INTERVAL_SECONDS) + 200)
-    private void scheduledRefresh() {
+    public void scheduledRefresh() {
         refresh();
     }
 

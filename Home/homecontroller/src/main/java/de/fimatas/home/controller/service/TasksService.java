@@ -44,7 +44,7 @@ public class TasksService {
     private static final DateTimeFormatter DATABASE_DATETIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     @Scheduled(initialDelay = 8 * 1000, fixedDelay = (1000 * HomeAppConstants.MODEL_TASKS_INTERVAL_SECONDS) + 400)
-    private void scheduledRefresh() {
+    public void scheduledRefresh() {
         refresh();
     }
 

@@ -69,7 +69,7 @@ public class LightService {
     }
 
     @Scheduled(fixedDelay = (1000 * HomeAppConstants.MODEL_DEFAULT_INTERVAL_SECONDS) + 400)
-    private void scheduledRefreshLightModel() {
+    public void scheduledRefreshLightModel() {
         refreshLightsModel();
     }
 

@@ -98,7 +98,7 @@ public class HeatpumpService {
     }
 
     @Scheduled(cron = "42 15 4,13 * * *")
-    private void scheduledRefreshFromDriverNoCache() {
+    public void scheduledRefreshFromDriverNoCache() {
         isCallError = false;
         if(isRestartInTimerangeMinutes(60 * 3)) {
             // no non-cache call if server restarts within +- three hours (and resets cache)

@@ -1,4 +1,4 @@
-package de.fimatas.home.controller.service;
+package de.fimatas.home.controller.configuration;
 
 import java.io.FileReader;
 import java.io.IOException;

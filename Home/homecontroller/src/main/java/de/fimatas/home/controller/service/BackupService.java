@@ -126,17 +126,17 @@ public class BackupService {
     }
 
     @PreDestroy
-    private void backupDatabaseOnShutdown() {
+    public void backupDatabaseOnShutdown() {
         backupRestoreDAO.backupDatabase(backupFilename(BACKUP_ADHOC_TIMESTAMP_FORMATTER, false));
     }
 
     @Scheduled(cron = "0 45 01 * * *")
-    private void backupDatabaseCreateNew() {
+    public void backupDatabaseCreateNew() {
         backupRestoreDAO.backupDatabase(backupFilename(BACKUP_DAILY_TIMESTAMP_FORMATTER, false));
     }
 
     @Scheduled(cron = "0 50 01 * * *")
-    private void backupDatabaseUpload() {
+    public void backupDatabaseUpload() {
 
         Path path = Paths.get(backupFilename(BACKUP_DAILY_TIMESTAMP_FORMATTER, false));
 

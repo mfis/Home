@@ -230,7 +230,7 @@ public class ElectricVehicleService {
     }
 
     @Scheduled(initialDelay = 1000 * 20, fixedDelay = (1000 * HomeAppConstants.CHARGING_STATE_CHECK_INTERVAL_SECONDS) + 234)
-    private void scheduledCheckChargingState() {
+    public void scheduledCheckChargingState() {
         if(firstRun){
             try {
                 refreshModel();

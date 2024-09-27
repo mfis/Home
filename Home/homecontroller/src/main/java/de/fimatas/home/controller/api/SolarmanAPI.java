@@ -163,7 +163,7 @@ public class SolarmanAPI {
     }
 
     @Scheduled(cron = "0 0 * * * *")
-    protected void resetCounter() {
+    public void resetCounter() {
         accessFailureCounter = 0;
         loginCounter = 0;
     }

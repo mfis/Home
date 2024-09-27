@@ -27,7 +27,7 @@ public class ControllerStateService {
     }
 
     @Scheduled(initialDelay = 9000, fixedDelay = ((1000 * HomeAppConstants.MODEL_CONTROLLERSTATE_INTERVAL_SECONDS)) + 831)
-    private void scheduledRefresh() {
+    public void scheduledRefresh() {
         refresh();
     }
 

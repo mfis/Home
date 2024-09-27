@@ -99,7 +99,7 @@ public class HouseService {
     private Environment env;
 
     @Scheduled(initialDelay = (1000 * 3), fixedDelay = (1000 * HomeAppConstants.MODEL_DEFAULT_INTERVAL_SECONDS))
-    private void scheduledRefreshHouseModel() {
+    public void scheduledRefreshHouseModel() {
         refreshHouseModel(false);
     }
 
