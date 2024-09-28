@@ -44,7 +44,6 @@ import de.fimatas.home.library.domain.model.TemperatureHistory;
 import de.fimatas.home.library.domain.model.TimeRange;
 import de.fimatas.home.library.homematic.model.Datapoint;
 import de.fimatas.home.library.homematic.model.Device;
-import de.fimatas.home.library.util.HomeAppConstants;
 import de.fimatas.home.library.util.HomeUtils;
 
 @Component
@@ -104,7 +103,7 @@ public class HistoryService {
 
     @PreDestroy
     @Scheduled(cron = "0 0 * * * *")
-    public void persistCashedValues() {
+    public synchronized void persistCashedValues() {
 
         if(historyDAO.isSetupIsRunning()){
             LOG.warn("Could not run 'persistCashedValues()' because DB-setup is already running.");
@@ -142,19 +141,9 @@ public class HistoryService {
         }
     }
 
-    private void increaseTimestamps(Map<HomematicCommand, List<TimestampValuePair>> toInsert) {
-
-        for (Entry<HomematicCommand, List<TimestampValuePair>> entry : toInsert.entrySet()) {
-            for (TimestampValuePair pair : entry.getValue()) {
-                if (pair != null) {
-                    pair.setTimestamp(pair.getTimestamp().plusSeconds(1));
-                }
-            }
-        }
-    }
-
-    @Scheduled(cron = "5 10 0 * * *")
+    @Scheduled(cron = "30 0 * * * *")
     public synchronized void refreshHistoryModelComplete() {
+
         HistoryModel oldModel = ModelObjectDAO.getInstance().readHistoryModel();
         if (oldModel != null) {
             oldModel.setInitialized(false);
@@ -187,36 +176,18 @@ public class HistoryService {
         calculateTemperatureHistory(newModel.getLaundryTemperature(), Device.THERMOMETER_WASCHKUECHE,
             Datapoint.ACTUAL_TEMPERATURE);
 
+        BigDecimal maxValue =
+                readExtremValueBetweenWithCache(homematicCommandBuilder.read(Device.AUSSENTEMPERATUR, Datapoint.VALUE),
+                        HistoryValueType.MAX, LocalDateTime.now().minusHours(HIGHEST_OUTSIDE_TEMPERATURE_PERIOD_HOURS), null, null);
+        newModel.setHighestOutsideTemperatureInLast24Hours(maxValue);
+
         newModel.setInitialized(true);
         ModelObjectDAO.getInstance().write(newModel);
-
         refreshHistoryModel();
     }
 
-    private void addEntry(HomematicCommand command, TimestampValuePair pair) {
-        if (pair != null && pair.getValue() != null) {
-            if (!entryCache.containsKey(command)) {
-                entryCache.put(command, new LinkedList<>());
-            }
-            entryCache.get(command).add(pair);
-        }
-    }
-
-    @Scheduled(fixedDelay = ((1000 * HomeAppConstants.HISTORY_DEFAULT_INTERVAL_SECONDS) + 13))
-    private synchronized void refreshExtremValues() {
-        HistoryModel model = ModelObjectDAO.getInstance().readHistoryModel();
-        if (model == null) {
-            return;
-        }
-
-        BigDecimal maxValue =
-            readExtremValueBetweenWithCache(homematicCommandBuilder.read(Device.AUSSENTEMPERATUR, Datapoint.VALUE),
-                HistoryValueType.MAX, LocalDateTime.now().minusHours(HIGHEST_OUTSIDE_TEMPERATURE_PERIOD_HOURS), null, null);
-        model.setHighestOutsideTemperatureInLast24Hours(maxValue);
-    }
-
-    @Scheduled(fixedDelay = (1000 * 60))
-    private synchronized void refreshHistoryModel() {
+    @Scheduled(cron = "30 1-59 * * * *")
+    public synchronized void refreshHistoryModel() {
         HistoryModel model = ModelObjectDAO.getInstance().readHistoryModel();
         if (model == null || !model.isInitialized()) {
             return;
@@ -260,6 +231,26 @@ public class HistoryService {
 
         model.updateDateTime();
         uploadService.uploadToClient(model);
+    }
+
+    private void increaseTimestamps(Map<HomematicCommand, List<TimestampValuePair>> toInsert) {
+
+        for (Entry<HomematicCommand, List<TimestampValuePair>> entry : toInsert.entrySet()) {
+            for (TimestampValuePair pair : entry.getValue()) {
+                if (pair != null) {
+                    pair.setTimestamp(pair.getTimestamp().plusSeconds(1));
+                }
+            }
+        }
+    }
+
+    private void addEntry(HomematicCommand command, TimestampValuePair pair) {
+        if (pair != null && pair.getValue() != null) {
+            if (!entryCache.containsKey(command)) {
+                entryCache.put(command, new LinkedList<>());
+            }
+            entryCache.get(command).add(pair);
+        }
     }
 
     private void updateTemperatureHistory(List<TemperatureHistory> history, Device device, Datapoint datapoint) {
