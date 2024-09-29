@@ -87,7 +87,7 @@ public class SpringConfiguration implements WebMvcConfigurer {
             TrustManager trustManager = TrustManagerUtils.getDefaultTrustManager(keyStore);
             SSLContext sslContext = SSLContextUtils.createSSLContext("TLS", null, trustManager);
 
-            SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(sslContext);
+            SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(sslContext); //
 
             RequestConfig config = RequestConfig.custom().setConnectionRequestTimeout(Timeout.ofMilliseconds(1500)).setResponseTimeout(Timeout.ofSeconds(2)).build();
             HttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create().setSSLSocketFactory(socketFactory).build();
