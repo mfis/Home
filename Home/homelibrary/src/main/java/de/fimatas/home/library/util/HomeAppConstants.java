@@ -38,35 +38,13 @@ public class HomeAppConstants {
 
     public static final int MODEL_UPDATE_WARNING_SECONDS = 60 * 6;
 
-    //
-
-    public static final int SOLARMAN_INTERVAL_SECONDS = 60;
-
-    //
-
-    public static final int MODEL_PRESENCE_INTERVAL_SECONDS = 60 * 10;
-
     public static final int MODEL_PRESENCE_OUTDATED_SECONDS = 60 * 15;
 
-    public static final int MODEL_HEATPUMP_INTERVAL_SECONDS = 60 * 10;
-
     public static final int MODEL_HEATPUMP_OUTDATED_SECONDS = 60 * 32;
-
-    public static final int MODEL_TASKS_INTERVAL_SECONDS = 60 * 3;
 
     public static final int MODEL_TASKS_OUTDATED_SECONDS = 60 * 10;
 
     public static final int MODEL_PV_OUTDATED_SECONDS = 60 * 36;
-
-    public static final int MODEL_SETTINGS_INTERVAL_SECONDS = 60 * 60;
-
-    public static final int MODEL_EV_INTERVAL_SECONDS = 60 * 59;
-
-    public static final int MODEL_CONTROLLERSTATE_INTERVAL_SECONDS = 60 * 10;
-
-    //
-
-    public static final int DEVICE_STATE_INTERVAL_SECONDS = 60 * 3;
 
     //
 
@@ -77,8 +55,6 @@ public class HomeAppConstants {
     //
 
     public static final int HISTORY_OUTDATED_SECONDS = 60 * 15;
-
-    public static final int HISTORY_DEFAULT_INTERVAL_SECONDS = 60 * 5;
 
     //
 

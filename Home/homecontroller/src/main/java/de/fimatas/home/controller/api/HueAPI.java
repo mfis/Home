@@ -27,7 +27,7 @@ public class HueAPI {
     private Environment env;
 
     @Autowired
-    @Qualifier("restTemplate")
+    @Qualifier("restTemplateHue")
     private RestTemplate restTemplateHue;
 
     private String host;

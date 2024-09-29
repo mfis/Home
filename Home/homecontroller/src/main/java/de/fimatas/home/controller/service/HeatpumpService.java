@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fimatas.heatpumpdriver.api.*;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
-import de.fimatas.home.library.util.HomeAppConstants;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.apachecommons.CommonsLog;
@@ -90,7 +89,7 @@ public class HeatpumpService {
         dictPlaceToRoomNameInDriver.keySet().forEach(place -> placeScheduler.put(place, Optional.empty()));
     }
 
-    @Scheduled(initialDelay = 1000 * 10, fixedDelay = (1000 * HomeAppConstants.MODEL_HEATPUMP_INTERVAL_SECONDS) + 180)
+    @Scheduled(cron = "50 4/10 * * * *")
     public void scheduledRefreshFromDriverCache() {
         if(!isRestartInTimerangeMinutes(10)) {
             refreshHeatpumpModel(true);

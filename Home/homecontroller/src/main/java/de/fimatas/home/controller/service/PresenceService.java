@@ -5,7 +5,6 @@ import de.fimatas.home.controller.model.State;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.model.PresenceModel;
 import de.fimatas.home.library.model.PresenceState;
-import de.fimatas.home.library.util.HomeAppConstants;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -25,7 +24,7 @@ public class PresenceService {
 
     private final String STATEHANDLER_GROUPNAME_PERSONS = "presence-persons";
 
-    @Scheduled(initialDelay = 22 * 1000, fixedDelay = (1000 * HomeAppConstants.MODEL_PRESENCE_INTERVAL_SECONDS) + 200)
+    @Scheduled(cron = "20 13 * * * *")
     public void scheduledRefresh() {
         refresh();
     }

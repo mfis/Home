@@ -2,7 +2,6 @@ package de.fimatas.home.controller.service;
 
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.model.ControllerStateModel;
-import de.fimatas.home.library.util.HomeAppConstants;
 import de.fimatas.home.library.util.HomeUtils;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.apachecommons.CommonsLog;
@@ -26,7 +25,7 @@ public class ControllerStateService {
         appUptime = Instant.now();
     }
 
-    @Scheduled(initialDelay = 9000, fixedDelay = ((1000 * HomeAppConstants.MODEL_CONTROLLERSTATE_INTERVAL_SECONDS)) + 831)
+    @Scheduled(cron = "30 2/10 * * * *")
     public void scheduledRefresh() {
         refresh();
     }

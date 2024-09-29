@@ -7,8 +7,6 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-import de.fimatas.home.library.util.HomeAppConstants;
-
 import de.fimatas.home.controller.model.PushToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -28,7 +26,7 @@ public class SettingsService {
     @Autowired
     private Environment env;
 
-    @Scheduled(initialDelay = 7 * 1000, fixedDelay = (1000 * HomeAppConstants.MODEL_SETTINGS_INTERVAL_SECONDS) + 456)
+    @Scheduled(cron = "40 00 * * * *")
     public void refreshSettingsModelsComplete() {
 
         SettingsContainer container = new SettingsContainer();

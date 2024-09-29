@@ -290,7 +290,7 @@ public class HomematicAPI {
         return true;
     }
 
-    @Scheduled(fixedDelay = (1000 * HomeAppConstants.DEVICE_STATE_INTERVAL_SECONDS))
+    @Scheduled(cron = "0 1/3 * * * *")
     public synchronized void readDeviceState() {
 
         long timeStart = System.nanoTime();

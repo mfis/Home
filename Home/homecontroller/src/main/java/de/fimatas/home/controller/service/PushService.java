@@ -111,7 +111,6 @@ public class PushService {
     public void cleanUpDatabase() {
         pushMessageDAO.deleteMessagesOlderAsNDays(92);
         refreshModel();
-
     }
 
     public void refreshModel() {

@@ -8,7 +8,6 @@ import de.fimatas.home.library.domain.model.Light;
 import de.fimatas.home.library.domain.model.LightState;
 import de.fimatas.home.library.domain.model.LightsModel;
 import de.fimatas.home.library.domain.model.Place;
-import de.fimatas.home.library.util.HomeAppConstants;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -68,7 +67,7 @@ public class LightService {
                 p -> houseService.readSubtitleFor(p).ifPresent(s -> placesToNameAndSubtitle.put(List.of(p.getPlaceName(), s), p)));
     }
 
-    @Scheduled(fixedDelay = (1000 * HomeAppConstants.MODEL_DEFAULT_INTERVAL_SECONDS) + 400)
+    @Scheduled(cron = "7/10 * * * * *")
     public void scheduledRefreshLightModel() {
         refreshLightsModel();
     }

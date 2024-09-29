@@ -7,7 +7,6 @@ import de.fimatas.home.library.domain.model.WindowSensor;
 import de.fimatas.home.library.model.Task;
 import de.fimatas.home.library.model.TaskState;
 import de.fimatas.home.library.model.TasksModel;
-import de.fimatas.home.library.util.HomeAppConstants;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +42,7 @@ public class TasksService {
 
     private static final DateTimeFormatter DATABASE_DATETIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
-    @Scheduled(initialDelay = 8 * 1000, fixedDelay = (1000 * HomeAppConstants.MODEL_TASKS_INTERVAL_SECONDS) + 400)
+    @Scheduled(cron = "58 8/10 * * * *")
     public void scheduledRefresh() {
         refresh();
     }

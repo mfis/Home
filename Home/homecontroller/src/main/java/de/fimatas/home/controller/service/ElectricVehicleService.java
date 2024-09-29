@@ -91,7 +91,7 @@ public class ElectricVehicleService {
 
     private final List<String> sentChargingProblemPushTimestampCache = new ArrayList<>();
 
-    @Scheduled(initialDelay = 1000 * 30, fixedDelay = (1000 * HomeAppConstants.MODEL_EV_INTERVAL_SECONDS) + 110)
+    @Scheduled(cron = "10 59 * * * *")
     public void refreshModel() {
 
         if(evChargingDAO.isSetupIsRunning()){
@@ -229,7 +229,7 @@ public class ElectricVehicleService {
         sentChargingProblemPushTimestampCache.clear();
     }
 
-    @Scheduled(initialDelay = 1000 * 20, fixedDelay = (1000 * HomeAppConstants.CHARGING_STATE_CHECK_INTERVAL_SECONDS) + 234)
+    @Scheduled(cron = "5 * * * * *")
     public void scheduledCheckChargingState() {
         if(firstRun){
             try {

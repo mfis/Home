@@ -14,7 +14,6 @@ import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.model.PhotovoltaicsStringsStatus;
 import de.fimatas.home.library.model.PvAdditionalDataModel;
 import de.fimatas.home.library.model.PvBatteryState;
-import de.fimatas.home.library.util.HomeAppConstants;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -77,7 +76,7 @@ public class SolarmanService {
         put("t_dcg_n1", "kWh"); // Total Discharging Energy
     }};
 
-    @Scheduled(fixedDelay = (1000 * HomeAppConstants.SOLARMAN_INTERVAL_SECONDS) + 111, initialDelay = 12000)
+    @Scheduled(cron = "10 * * * * *")
     public void refresh() {
 
         Instant givenTime = Instant.ofEpochMilli(lastCollectionTimeRead);
