@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.model.PresenceState;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -16,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.env.Environment;
 import org.springframework.http.*;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.*;
 import de.fimatas.home.controller.domain.service.HistoryService;
@@ -86,12 +86,17 @@ public class ClientCommunicationService {
 
     private static final Log LOG = LogFactory.getLog(ClientCommunicationService.class);
 
-    @Scheduled(fixedDelay = 40)
+    @CircuitBreaker(name = "reverseconnection", fallbackMethod = "fallbackResponse")
     public void longPolling() {
         Message message = pollForMessage();
         if (message != null) {
             handle(message);
         }
+    }
+
+    @SuppressWarnings("unused") // used by resilience4j
+    public void fallbackResponse(Throwable t) {
+        // noop
     }
 
     private void handle(Message message) {

@@ -47,12 +47,12 @@ public class WeatherService {
 
     private static final BigDecimal HEAVY_RAIN_MM = BigDecimal.valueOf(10);
 
-    @Retryable(retryFor = Exception.class, maxAttempts = 4, backoff = @Backoff(delay = 5000))
+    @Retryable(retryFor = Exception.class, maxAttempts = 5, backoff = @Backoff(delay = 60000))
     public void refreshFurtherDaysCache() {
         brightSkyAPI.cachingCallForFurtherDays();
     }
 
-    @Retryable(retryFor = Exception.class, maxAttempts = 4, backoff = @Backoff(delay = 5000))
+    @Retryable(retryFor = Exception.class, maxAttempts = 5, backoff = @Backoff(delay = 60000))
     public void refreshWeatherForecastModel() {
 
         var model = new WeatherForecastModel();

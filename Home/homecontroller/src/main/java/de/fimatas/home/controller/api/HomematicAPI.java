@@ -14,6 +14,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jakarta.annotation.PostConstruct;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
@@ -231,6 +233,7 @@ public class HomematicAPI {
         return ccuAuthActive;
     }
 
+    @CircuitBreaker(name = "homematic", fallbackMethod = "fallbackResponse")
     public synchronized boolean refresh() {
 
         long timeStart = System.nanoTime();
@@ -265,6 +268,11 @@ public class HomematicAPI {
         lookupInitState();
         logRuntime("refresh", timeStart);
         return refreshed;
+    }
+
+    @SuppressWarnings("unused") // used by resilience4j
+    public boolean fallbackResponse(Throwable t) {
+        return false;
     }
 
     private boolean hasChangedValues() {

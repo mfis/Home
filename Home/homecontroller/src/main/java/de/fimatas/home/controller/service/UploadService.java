@@ -1,6 +1,7 @@
 package de.fimatas.home.controller.service;
 
 import de.fimatas.home.library.util.HomeAppConstants;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.LogFactory;
@@ -42,6 +43,7 @@ public class UploadService {
         log.info("homeAdapterEnabled=" + homeAdapterEnabled + ", homeClientEnabled=" + homeClientEnabled);
     }
 
+    @CircuitBreaker(name = "upload", fallbackMethod = "fallbackResponse")
     public void uploadToClient(Object object) {
         if(homeClientEnabled){
             String host = env.getProperty("client.hostName");
@@ -54,6 +56,11 @@ public class UploadService {
         if(homeAdapterEnabled){
             uploadBinaryToClient("http://localhost:8097/upload" + object.getClass().getSimpleName(), object, false);
         }
+    }
+
+    @SuppressWarnings("unused") // used by resilience4j
+    public void fallbackResponse(Throwable t) {
+        // noop
     }
 
     private <T> void uploadBinaryToClient(String url, Object instance, boolean credentials) {

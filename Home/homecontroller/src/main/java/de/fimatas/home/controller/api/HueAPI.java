@@ -3,6 +3,8 @@ package de.fimatas.home.controller.api;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
+
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jakarta.annotation.PostConstruct;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -60,12 +62,18 @@ public class HueAPI {
         Assert.notNull(host, "host not set");
     }
 
+    @CircuitBreaker(name = "hue", fallbackMethod = "fallbackResponse")
     public synchronized boolean refresh() {
 
         String path = host + PATH_API + hueUser;
 
         JsonNode response = callHueAPI(path, Optional.empty(), true);
         return response != null;
+    }
+
+    @SuppressWarnings("unused") // used by resilience4j
+    public boolean fallbackResponse(Throwable t) {
+        return false;
     }
 
     public JsonNode getRootNode() {
