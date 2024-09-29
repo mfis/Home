@@ -89,7 +89,7 @@ public class SpringConfiguration implements WebMvcConfigurer {
 
             SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(sslContext);
 
-            RequestConfig config = RequestConfig.custom().setConnectionRequestTimeout(Timeout.ofSeconds(3)).setResponseTimeout(Timeout.ofSeconds(5)).build();
+            RequestConfig config = RequestConfig.custom().setConnectionRequestTimeout(Timeout.ofMilliseconds(1500)).setResponseTimeout(Timeout.ofSeconds(2)).build();
             HttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create().setSSLSocketFactory(socketFactory).build();
             CloseableHttpClient httpClient = HttpClients.custom().setDefaultRequestConfig(config).setConnectionManager(connectionManager).build();
 
@@ -125,12 +125,12 @@ public class SpringConfiguration implements WebMvcConfigurer {
 
     @Bean(name = "restTemplateModelUpload")
     public RestTemplate restTemplateModelUpload(RestTemplateBuilder restTemplateBuilder) {
-        return restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(5)).setReadTimeout(Duration.ofSeconds(8)).build();
+        return restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(2)).setReadTimeout(Duration.ofSeconds(4)).build();
     }
 
     @Bean(name = "restTemplateHue")
     public RestTemplate restTemplateHue(RestTemplateBuilder restTemplateBuilder) {
-        return restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(2)).setReadTimeout(Duration.ofSeconds(3)).build();
+        return restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(1)).setReadTimeout(Duration.ofSeconds(2)).build();
     }
 
     @Bean
