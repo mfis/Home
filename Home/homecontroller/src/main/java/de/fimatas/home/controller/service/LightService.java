@@ -19,7 +19,6 @@ import jakarta.annotation.PostConstruct;
 
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.concurrent.CompletableFuture;
 
 @Component
 public class LightService {
@@ -52,13 +51,6 @@ public class LightService {
     @PostConstruct
     public void init() {
         prepareSubtitleMap();
-        CompletableFuture.runAsync(() -> {
-            try {
-                refreshLightsModel();
-            } catch (Exception e) {
-                LOG.error("Could not initialize LightService completly.", e);
-            }
-        });
     }
 
     private void prepareSubtitleMap(){

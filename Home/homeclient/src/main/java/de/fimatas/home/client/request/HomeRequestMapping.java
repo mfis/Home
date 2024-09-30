@@ -175,8 +175,10 @@ public class HomeRequestMapping {
     }
 
     @GetMapping("/maintenance")
-    public String repair(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, HttpServletResponse response) {
-        fillMenu(Pages.PATH_MAINTENANCE, model, response, false);
+    public String repair(Model model, @RequestHeader(name = "User-Agent", required = false) String userAgent,
+                         @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, HttpServletResponse response) {
+        boolean isWebViewApp = StringUtils.equals(userAgent, ControllerUtil.USER_AGENT_APP_WEB_VIEW);
+        fillMenu(Pages.PATH_MAINTENANCE, model, response, isWebViewApp);
         fillUserAttributes(model, userCookie);
         List<ValueWithCaption> list = new LinkedList<>();
         Arrays.stream(MaintenanceOptions.values()).forEach(mo -> {

@@ -16,7 +16,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.CompletableFuture;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
@@ -82,14 +81,6 @@ public class HistoryService {
                 entryCache.put(historyElement.getCommand(), new LinkedList<>());
             }
         }
-
-        CompletableFuture.runAsync(() -> {
-            try {
-                refreshHistoryModelComplete();
-            } catch (Exception e) {
-                LogFactory.getLog(HistoryService.class).error("Could not initialize HistoryService completly.", e);
-            }
-        });
     }
 
     public void saveNewValues() {
