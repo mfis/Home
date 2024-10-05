@@ -119,6 +119,9 @@ public class TasksService {
         var fieldname = Objects.requireNonNull(env.getProperty(String.format("tasks.%s.field", id)));
         final var abstractDeviceModel = ModelObjectDAO.getInstance().readHouseModel().lookupField(fieldname, AbstractDeviceModel.class);
         if (abstractDeviceModel instanceof WindowSensor){
+            if(((WindowSensor)abstractDeviceModel).getStateTimestamp() == null){
+                return null;
+            }
             return Instant.ofEpochMilli(((WindowSensor)abstractDeviceModel).getStateTimestamp()).atZone(ZoneId.systemDefault()).toLocalDateTime();
         }
         throw new IllegalArgumentException("unsupported device model type: " + abstractDeviceModel.getClass().getName());
