@@ -153,7 +153,7 @@ public class HomematicAPI {
         if (datapointWithTimestamp.isPresent()) {
             LocalDateTime datapointTimestamp =
                 getTimestamp(homematicCommandBuilder.readTS(device, datapointWithTimestamp.get()));
-            return datapointTimestamp.getYear() <= YEAR_OF_UNIX_TIMESTAMP_START;
+            return datapointTimestamp == null || datapointTimestamp.getYear() <= YEAR_OF_UNIX_TIMESTAMP_START;
         }
 
         return false;
@@ -173,8 +173,12 @@ public class HomematicAPI {
     }
 
     private LocalDateTime getTimestamp(HomematicCommand command) { // internal use only
-        //noinspection DataFlowIssue
-        return LocalDateTime.parse(readValue(command), UPTIME_FORMATTER);
+        var value = readValue(command);
+        if(value != null){
+            return LocalDateTime.parse(value, UPTIME_FORMATTER);
+        }else{
+            return null;
+        }
     }
 
     public void executeCommand(HomematicCommand... commands) {
@@ -199,7 +203,7 @@ public class HomematicAPI {
             for (HomematicCommand cmd : currentValues.keySet()) {
                 sb.append(cmd.getCashedVarName()).append("\n");
             }
-            LOG.error("Key/Value unknown: " + command.getCashedVarName() + " / known keys: \n" + sb);
+            LOG.warn("Key/Value unknown: " + command.getCashedVarName() + " / known keys: \n" + sb);
             return null;
         }
     }
