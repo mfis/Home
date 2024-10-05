@@ -38,7 +38,7 @@ public class HomeAppConstants {
 
     public static final int MODEL_UPDATE_WARNING_SECONDS = 60 * 6;
 
-    public static final int MODEL_PRESENCE_OUTDATED_SECONDS = 60 * 15;
+    public static final int MODEL_PRESENCE_OUTDATED_SECONDS = 60 * 20;
 
     public static final int MODEL_HEATPUMP_OUTDATED_SECONDS = 60 * 32;
 
