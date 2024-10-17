@@ -72,7 +72,7 @@ public class MaintenanceService {
 
     private void restartDnsResolver() {
         try {
-            String command = "sudo systemctl restart systemd-resolved";
+            String command = "sudo /bin/systemctl restart systemd-resolved.service";
             ProcessBuilder processBuilder = new ProcessBuilder("bash", "-c", command);
             processBuilder.start();
         } catch (IOException e) {
