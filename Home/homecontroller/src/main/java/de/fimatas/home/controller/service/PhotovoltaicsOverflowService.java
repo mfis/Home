@@ -375,7 +375,7 @@ public class PhotovoltaicsOverflowService {
 
     private boolean isAutoModeOn(AbstractDeviceModel deviceModel) {
         if(deviceModel instanceof Switch switchDevice){
-            return switchDevice.getAutomation();
+            return !switchDevice.isUnreach() && switchDevice.getAutomation();
         }
         LOG.warn("unknown instance: " + deviceModel.getClass().getName());
         return false;

@@ -1,5 +1,9 @@
 package de.fimatas.home.controller.service;
 
+import de.fimatas.home.controller.api.HomematicAPI;
+import de.fimatas.home.controller.command.HomematicCommandBuilder;
+import de.fimatas.home.library.dao.ModelObjectDAO;
+import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.model.MaintenanceOptions;
 import de.fimatas.home.library.model.Message;
 import lombok.extern.apachecommons.CommonsLog;
@@ -30,6 +34,12 @@ public class MaintenanceService {
 
     @Autowired
     private Environment env;
+
+    @Autowired
+    private HomematicCommandBuilder homematicCommandBuilder;
+
+    @Autowired
+    private HomematicAPI hmApi;
 
     public void doMaintenance(Message message){
         if (StringUtils.isNotBlank(message.getSecurityPin())
@@ -70,6 +80,15 @@ public class MaintenanceService {
         }
     }
 
+    @Scheduled(cron = "59 0/10 * * * *")
+    public void checkSwichWallboxIsUnreachable() {
+        var houseModel = ModelObjectDAO.getInstance().readHouseModel();
+        if(houseModel != null && houseModel.getWallboxSwitch().isUnreach()) {
+            log.warn("WallboxSwitch is unreachable!");
+            switchWallboxOffViaCcuProgramToGetAck();
+        }
+    }
+
     private void restartDnsResolver() {
         try {
             String command = "sudo /bin/systemctl restart systemd-resolved.service";
@@ -78,5 +97,9 @@ public class MaintenanceService {
         } catch (IOException e) {
             log.error("restart systemd-resolved konnte nicht ausgeloest werden.", e);
         }
+    }
+
+    private void switchWallboxOffViaCcuProgramToGetAck() {
+        hmApi.executeCommand(homematicCommandBuilder.exec(Device.SCHALTER_WALLBOX, "GetAck"));
     }
 }
