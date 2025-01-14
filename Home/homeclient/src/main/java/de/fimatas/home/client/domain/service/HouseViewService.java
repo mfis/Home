@@ -542,9 +542,6 @@ public class HouseViewService {
             view.setAbsoluteHumidityIcon(
                     ((RoomClimate) climate).getHumidityWetterThanOutdoor() ? "fas fa-tint" : "fas fa-tint-slash");
         }
-        if (climate.getTemperature().getValue().compareTo(FROST_TEMP) < 0) {
-            view.setStatePostfixIconTemperature("far fa-snowflake");
-        }
     }
 
     public void formatClimateHints(Climate climate, ClimateView view) {
