@@ -14,14 +14,14 @@
 						<tbody>
 						<th:block th:each="entry : ${model.forecasts}">
 							<th:block th:if="${#strings.equals(entry.header,'')}">
-								<tr th:class="'tr-dark-stripe-default'" th:style="${#strings.equals(entry.dayNight, 'night')} ? 'opacity: 0.55 !important;' : ''">
-									<td th:class="'td-no-border text-' + ${entry.colorClass}" style="padding: .08rem;" th:text="${entry.time}"></td>
+								<tr th:class="'tr-dark-stripe-default'" th:style="'border-bottom: 0.5px dotted #222222; ' + (${#strings.equals(entry.dayNight, 'night')} ? 'opacity: 0.55 !important;' : '')">
+									<td th:class="'td-no-border text-' + ${entry.colorClass}" style="padding: .08rem; vertical-align: top" th:text="${entry.time}"></td>
 									<td th:class="'td-no-border text-' + ${entry.colorClass}" style="padding: .08rem" >
 										<th:block th:each="icon : ${entry.icons}">
 											<div><span><th:block th:replace="~{basics :: symbol (name=${icon.value})}"/></span><span>&nbsp;</span> <span th:text="${icon.caption}"></span></div>
 										</th:block>
 									</td>
-									<td th:class="'td-no-border text-' + ${entry.colorClass}" style="text-align: right; padding: .08rem 1.5rem .08rem .25rem;" th:text="${entry.temperature}"></td>
+									<td th:class="'td-no-border text-' + ${entry.colorClass}" style="text-align: right; padding: .08rem 1.5rem .08rem .25rem; vertical-align: top" th:text="${entry.temperature}"></td>
 								</tr>
 							</th:block>
 							<th:block th:unless="${#strings.equals(entry.header,'')}">
