@@ -1336,8 +1336,20 @@ public class HouseViewService {
         view.setTime(date.format(DateTimeFormatter.ofPattern("EEEE", Locale.GERMAN)));
         view.setTemperature(textMapHeader.get(FORMAT_FROM_TO_ONLY));
         mapWeatherForecastConditionsColor(view, conclusion);
-        conclusion.getConditions().stream().filter(WeatherConditions::isSignificant).forEach(i -> view.getIcons().add(new ValueWithCaption(i.getFontAwesomeID(), i.conditionValue(textMapHeader), null)));
+        view.getIcons().addAll(lookupDailyForecastConditionIcons(conclusion, textMapHeader));
         forecasts.getForecasts().add(view);
+    }
+
+    private List<ValueWithCaption> lookupDailyForecastConditionIcons(WeatherForecastConclusion conclusion, Map<Integer, String> textMapHeader){
+        // atleast one significant, fallback to unsignificant
+        var list = new LinkedList<ValueWithCaption>();
+        conclusion.getConditions().stream().filter(WeatherConditions::isSignificant)
+                .forEach(i -> list.add(new ValueWithCaption(i.getFontAwesomeID(), i.conditionValue(textMapHeader), null)));
+        if(list.isEmpty()){
+            conclusion.getConditions().stream().filter(WeatherConditions::isLessSignificant).findFirst()
+                    .ifPresent(i -> list.add(new ValueWithCaption(i.getFontAwesomeID(), i.conditionValue(textMapHeader), null)));
+        }
+        return list;
     }
 
     private void mapWeatherForecastConditionsColor(View view, WeatherForecastConclusion conclusion) {
