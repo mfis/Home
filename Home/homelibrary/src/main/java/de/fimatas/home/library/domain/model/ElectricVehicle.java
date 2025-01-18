@@ -6,7 +6,8 @@ import lombok.Getter;
 public enum ElectricVehicle {
 
     EUP("e-Up", false), //
-    OTHER("Anderes", true), //
+    OTHER_EV("Anderes Fahrzeug", true), //
+    SMALL("Kleingerät", true), //
     ;
 
     private final String caption;

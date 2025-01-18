@@ -12,6 +12,7 @@ import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.homematic.model.Datapoint;
 import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.util.HomeAppConstants;
+import lombok.Getter;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,6 +87,9 @@ public class ElectricVehicleService {
     private final BigDecimal THOUSAND = new BigDecimal(1000);
 
     private final BigDecimal MINUTES_A_HOUR = new BigDecimal(60);
+
+    @SuppressWarnings("FieldCanBeLocal")
+    private final int MAX_WATTAGE_SMALL_CONSUMER = 2000;
 
     private boolean firstRun = true;
 
@@ -266,7 +270,7 @@ public class ElectricVehicleService {
         checkForChargingProblem(connectedElectricVehicleState.getElectricVehicle());
 
         var chargingFinishedState = isChargingFinished(connectedElectricVehicleState);
-        if(chargingFinishedState != ChargingFinishedState.STILL_CHARGING){
+        if(chargingFinishedState.isSwitchWallboxOff()){
             switchWallboxOff();
             sentPushNotification(chargingFinishedState);
         }
@@ -282,6 +286,15 @@ public class ElectricVehicleService {
 
     private void checkForChargingProblem(ElectricVehicle electricVehicle) {
         try {
+            if(electricVehicle == ElectricVehicle.SMALL && !isWallboxSwitchOff()){
+                var wallboxPowerMeter = ModelObjectDAO.getInstance().readHouseModel().getWallboxElectricalPowerConsumption();
+                if(!wallboxPowerMeter.isUnreach() && wallboxPowerMeter.getActualConsumption().getValue().intValue() > MAX_WATTAGE_SMALL_CONSUMER){
+                    CompletableFuture.runAsync(() ->
+                            pushService.sendErrorMessage("Zu hohe Stromabnahme von Kleinverbraucher an Wallbox!"));
+                    switchWallboxOff();
+                }
+                return;
+            }
             final EvChargeDatabaseEntry activeCharging = evChargingDAO.readActiveCharging(electricVehicle);
             String cacheKey = activeCharging.getStartTS().toString();
             if(!sentChargingProblemPushTimestampCache.contains(cacheKey)
@@ -313,6 +326,10 @@ public class ElectricVehicleService {
     }
 
     private ChargingFinishedState isChargingFinished(ElectricVehicleState connectedElectricVehicleState){
+
+        if(connectedElectricVehicleState.getElectricVehicle() == ElectricVehicle.SMALL) {
+            return ChargingFinishedState.NO_CHARGING_ONLY_CONSUMING;
+        }
 
         readAdditionalChargingPercentage(connectedElectricVehicleState);
         var actual = connectedElectricVehicleState.getBatteryPercentage() + connectedElectricVehicleState.getAdditionalChargingPercentage();
@@ -400,7 +417,16 @@ public class ElectricVehicleService {
         startNewChargingEntryAndRefreshModel();
     }
 
+    @Getter
     private enum ChargingFinishedState{
-        FINISHED_NORMAL, FINISHED_EARLY, STILL_CHARGING
+        FINISHED_NORMAL(true),
+        FINISHED_EARLY(true),
+        STILL_CHARGING(false),
+        NO_CHARGING_ONLY_CONSUMING(false),
+        ;
+        private final boolean switchWallboxOff;
+        ChargingFinishedState(boolean switchWallboxOff){
+            this.switchWallboxOff = switchWallboxOff;
+        }
     }
 }
