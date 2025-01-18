@@ -15,7 +15,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -29,7 +28,7 @@ import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 public class SolarmanAPI {
 
     @Autowired
-    private RestTemplate restTemplate;
+    private ExternalServiceHttpAPI externalServiceHttpAPI;
 
     @Autowired
     private Environment env;
@@ -111,7 +110,7 @@ public class SolarmanAPI {
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<String> requestEntity = new HttpEntity<>(requestJsonString, headers);
 
-        ResponseEntity<String> responseEntity = restTemplate.postForEntity(url, requestEntity, String.class, uri);
+        ResponseEntity<String> responseEntity = externalServiceHttpAPI.postForEntity(url, requestEntity, uri);
         final JsonNode response = handleResponse(responseEntity, false);
         TokenDAO.getInstance().write("solarman", "bearer", response.get("access_token").asText());
         TokenDAO.getInstance().persist();
@@ -136,7 +135,7 @@ public class SolarmanAPI {
         headers.setBearerAuth(bearer);
         HttpEntity<String> requestEntity = new HttpEntity<>(requestJsonString, headers);
 
-        ResponseEntity<String> responseEntity = restTemplate.postForEntity(url, requestEntity, String.class, uri);
+        ResponseEntity<String> responseEntity = externalServiceHttpAPI.postForEntity(url, requestEntity, uri);
         return handleResponse(responseEntity, true);
     }
 

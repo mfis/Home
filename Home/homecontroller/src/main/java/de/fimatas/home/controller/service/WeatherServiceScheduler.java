@@ -15,7 +15,7 @@ public class WeatherServiceScheduler {
     private WeatherService weatherService;
 
     @PostConstruct
-    @Scheduled(cron = "02 03 01-23 * * *")
+    @Scheduled(cron = "02 05 01-23 * * *")
     public void scheduledRefreshWeatherModel() {
         try {
             weatherService.refreshWeatherForecastModel();
@@ -24,12 +24,10 @@ public class WeatherServiceScheduler {
         }
     }
 
-    @PostConstruct
-    @Scheduled(cron = "02 05 05,15 * * *")
+    @Scheduled(cron = "02 03 05,15 * * *")
     public void scheduledRefreshWeatherModelWithFurtherDays() {
         try {
             weatherService.refreshFurtherDaysCache();
-            weatherService.refreshWeatherForecastModel();
         }catch(Exception e){
             log.error("Could not call weather service(2)", e);
         }

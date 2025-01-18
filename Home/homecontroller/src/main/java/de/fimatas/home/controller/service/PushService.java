@@ -141,7 +141,7 @@ public class PushService {
         }
     }
 
-    @Scheduled(cron = "0 2 5 * * *")
+    @Scheduled(cron = "0 7 5 * * *")
     public void sendWeatherAtMorning() {
         try {
             todayWeatherMessage(ModelObjectDAO.getInstance().readWeatherForecastModel());

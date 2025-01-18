@@ -9,7 +9,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -23,7 +22,7 @@ import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
 public class BrightSkyAPI {
 
     @Autowired
-    private RestTemplate restTemplate;
+    private ExternalServiceHttpAPI externalServiceHttpAPI;
 
     @Autowired
     private Environment env;
@@ -75,7 +74,7 @@ public class BrightSkyAPI {
         String url = env.getProperty("weatherForecast.brightskyEndpoint")
                 + "/weather?max_dist={max_dist}&tz={tz}&units={units}&lat={lat}&lon={lon}&date={date}";
 
-        ResponseEntity<String> responseEntity = restTemplate.getForEntity(url, String.class, uri);
+        ResponseEntity<String> responseEntity = externalServiceHttpAPI.getForEntity(url, uri);
 
         JsonNode jsonTree = jsonObjectMapper.readTree(responseEntity.getBody());
 

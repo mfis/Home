@@ -81,7 +81,7 @@ public class SolarmanService {
 
         Instant givenTime = Instant.ofEpochMilli(lastCollectionTimeRead);
         var seconds = Duration.between(givenTime, Instant.now()).toSeconds();
-        if(seconds < ((60 * 5) - 5)){ // inverter send update every 5 minutes
+        if(seconds < (60 * 6)){ // inverter send update every 5 minutes + 1 minute delay
             return;
         }
 
