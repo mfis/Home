@@ -1487,7 +1487,7 @@ public class HouseViewService {
         HeatpumpPreset actualPreset = isUnreachable ? null : heatpumpModel.getHeatpumpMap().get(place).getHeatpumpPreset();
 
         view.setLinkRefresh(buildHeatpumpPresetLink(place, HeatpumpPreset.UNKNOWN, actualPreset));
-        if(actualPreset==HeatpumpPreset.UNKNOWN){
+        if(isUnreachable || actualPreset==HeatpumpPreset.UNKNOWN){
             view.setStateUnknown(true);
         }else{
             view.setLinkCoolAuto(buildHeatpumpPresetLink(place, HeatpumpPreset.COOL_AUTO, actualPreset));
@@ -1504,23 +1504,18 @@ public class HouseViewService {
             view.setLinkOff(buildHeatpumpPresetLink(place, HeatpumpPreset.OFF, actualPreset));
         }
 
-        if(isUnreachable){
-            return;
-        }
-
-        view.setBusy(Boolean.toString(heatpumpModel.isBusy()));
-
         var timerInfo = "";
-        if(heatpumpModel.getHeatpumpMap().get(place).getTimer() != null){
+        if(!isUnreachable && heatpumpModel.getHeatpumpMap().get(place).getTimer() != null){
             timerInfo = " bis " + viewFormatter.formatTimestamp(heatpumpModel.getHeatpumpMap().get(place).getTimer(), TimestampFormat.ONLY_TIME);
         }
 
+        view.setBusy(Boolean.toString(heatpumpModel != null && heatpumpModel.isBusy()));
         HeatpumpPreset presetForView = actualPreset == null ? HeatpumpPreset.UNKNOWN : actualPreset;
         ConditionColor color = presetForView.getConditionColor();
         view.setColorClass(color.getUiClass());
         view.setActiveSwitchColorClass(color.getUiClass());
         view.setStateShort(presetForView.getShortText());
-        view.setElementTitleState(heatpumpModel.isBusy()? "Ansteuerung..." : presetForView.getMode()
+        view.setElementTitleState(heatpumpModel != null && heatpumpModel.isBusy() ? "Ansteuerung..." : presetForView.getMode()
                 + (presetForView.getIntensity()!=null ? ", " + presetForView.getIntensity() : ""));
         view.setState(presetForView.getMode());
         view.setStateSuffix(presetForView.getIntensity()!=null ? (", " + presetForView.getIntensity() + timerInfo) : "");

@@ -16,7 +16,7 @@ public enum HeatpumpPreset {
     FAN_MIN("Gebläse", "Leise", "Gebläse-", ConditionColor.GREEN), //
     DRY_TIMER("Trocknen", "Timer", "Trocknen", ConditionColor.GREEN), //
     OFF("Aus", null, "Aus", ConditionColor.GRAY), //
-    UNKNOWN("Unbekannt", null, "", ConditionColor.RED), //
+    UNKNOWN("Unbekannt", null, "", ConditionColor.GRAY), //
     ;
 
     private final String mode;

@@ -571,21 +571,23 @@
 
 				<div class="pt-1"></div>
 
-				<div class="form-check pl-0" style="opacity: 0.6; padding-left: 0 !important;">
-					<input class="form-check-input checkbox-preserve-state" type="checkbox" th:id="'idChkHeatpump_' + ${model.placeID} + '_self'" value="true" checked disabled>
-					<label class="btn btn-sm p-0 mb-0" th:for="'idChkHeatpump_' + ${model.placeID} + '_self'">
-						<i class="fa-solid fa-square fa-2x text-secondary check-false"></i><i class="fa-solid fa-square-check fa-2x text-warning check-true"></i><span th:text="' ' + ${model.placeSubtitle}"></span>
-					</label>
-				</div>
-
-				<th:block th:each="entry : ${model.otherPlaces}">
-					<div class="form-check pl-0" style="padding-left: 0 !important;">
-						<input class="form-check-input checkbox-preserve-state" type="checkbox" th:name="'heatpumpAddPlaceFor_' + ${model.id}" th:id="'idChkHeatpumpFrom_' + ${model.placeID} + '_for_' + ${entry.value}" value="true" th:alt="${entry.value}">
-						<label class="btn btn-sm p-0 mb-0" th:for="'idChkHeatpumpFrom_' + ${model.placeID} + '_for_' + ${entry.value}">
-							<i class="fa-solid fa-square fa-2x text-secondary check-false"></i><i class="fa-solid fa-square-plus fa-2x text-warning check-true"></i><span th:text="' ' + ${entry.caption}"></span>
+				<div th:classappend="${model.stateUnknown || model.unreach} ? 'd-none' : ''">
+					<div class="form-check pl-0" style="opacity: 0.6; padding-left: 0 !important;">
+						<input class="form-check-input checkbox-preserve-state" type="checkbox" th:id="'idChkHeatpump_' + ${model.placeID} + '_self'" value="true" checked disabled>
+						<label class="btn btn-sm p-0 mb-0" th:for="'idChkHeatpump_' + ${model.placeID} + '_self'">
+							<i class="fa-solid fa-square fa-2x text-secondary check-false"></i><i class="fa-solid fa-square-check fa-2x text-warning check-true"></i><span th:text="' ' + ${model.placeSubtitle}"></span>
 						</label>
 					</div>
-				</th:block>
+
+					<th:block th:each="entry : ${model.otherPlaces}">
+						<div class="form-check pl-0" style="padding-left: 0 !important;">
+							<input class="form-check-input checkbox-preserve-state" type="checkbox" th:name="'heatpumpAddPlaceFor_' + ${model.id}" th:id="'idChkHeatpumpFrom_' + ${model.placeID} + '_for_' + ${entry.value}" value="true" th:alt="${entry.value}">
+							<label class="btn btn-sm p-0 mb-0" th:for="'idChkHeatpumpFrom_' + ${model.placeID} + '_for_' + ${entry.value}">
+								<i class="fa-solid fa-square fa-2x text-secondary check-false"></i><i class="fa-solid fa-square-plus fa-2x text-warning check-true"></i><span th:text="' ' + ${entry.caption}"></span>
+							</label>
+						</div>
+					</th:block>
+				</div>
 
 				<div class="pt-1"></div>
 				<div th:if="${!model.stateUnknown}">

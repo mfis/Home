@@ -55,6 +55,9 @@ public class HeatpumpService {
     @Value("${application.externalServicesEnabled:false}")
     private boolean externalServicesEnabled;
 
+    @Value("${application.heatpumpRefreshEnabled:false}")
+    private boolean heatpumpRefreshEnabled;
+
     private boolean isCallError = false; // prevent continous error calls
 
     private Map<Place, String> dictPlaceToRoomNameInDriver;
@@ -120,7 +123,7 @@ public class HeatpumpService {
 
     private synchronized void refreshHeatpumpModel(boolean cachedData) {
 
-        if(!externalServicesEnabled){
+        if(!externalServicesEnabled || !heatpumpRefreshEnabled){
             return;
         }
 
@@ -224,7 +227,7 @@ public class HeatpumpService {
 
     public void preset(List<Place> places, HeatpumpPreset preset) {
 
-        if(places.isEmpty()){
+        if(places.isEmpty() || ModelObjectDAO.getInstance().readHeatpumpModel() == null){
             return;
         }
 
