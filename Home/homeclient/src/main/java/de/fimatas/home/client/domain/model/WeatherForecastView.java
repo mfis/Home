@@ -1,12 +1,13 @@
 package de.fimatas.home.client.domain.model;
 
-import de.fimatas.home.library.model.ConditionColor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.LinkedList;
 import java.util.List;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class WeatherForecastView extends View {
 
     private String header = "";

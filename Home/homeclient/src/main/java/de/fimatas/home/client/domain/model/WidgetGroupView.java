@@ -2,11 +2,13 @@ package de.fimatas.home.client.domain.model;
 
 import de.fimatas.home.library.domain.model.Place;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class WidgetGroupView extends View {
 
     public WidgetGroupView(String viewKey, Place place, Object modelDOA){
