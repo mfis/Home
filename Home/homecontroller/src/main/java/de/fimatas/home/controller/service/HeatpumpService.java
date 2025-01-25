@@ -3,6 +3,7 @@ package de.fimatas.home.controller.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fimatas.heatpumpdriver.api.*;
+import de.fimatas.home.controller.api.ExternalServiceHttpAPI;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
 import lombok.AllArgsConstructor;
@@ -10,7 +11,6 @@ import lombok.Data;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.*;
@@ -21,9 +21,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
-import org.springframework.web.client.RestTemplate;
 
 import jakarta.annotation.PostConstruct;
+
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -43,8 +43,7 @@ public class HeatpumpService {
     private PushService pushService;
 
     @Autowired
-    @Qualifier("restTemplateHeatpumpDriver")
-    private RestTemplate restTemplateHeatpumpDriver;
+    private ExternalServiceHttpAPI externalServiceHttpAPI;
 
     @Autowired
     private ThreadPoolTaskScheduler threadPoolTaskScheduler;
@@ -363,9 +362,8 @@ public class HeatpumpService {
     private synchronized HeatpumpResponse callDriver(HeatpumpRequest request){
 
         try {
-            HttpEntity<HeatpumpRequest> httpRequest = new HttpEntity<>(request);
-            ResponseEntity<HeatpumpResponse> response = restTemplateHeatpumpDriver.postForEntity(
-                    Objects.requireNonNull(env.getProperty("heatpump.driver.url")), httpRequest, HeatpumpResponse.class);
+            ResponseEntity<HeatpumpResponse> response = externalServiceHttpAPI.postForHeatpumpEntity(
+                    Objects.requireNonNull(env.getProperty("heatpump.driver.url")), request);
             HttpStatusCode statusCode = response.getStatusCode();
 
             if (!statusCode.is2xxSuccessful()) {

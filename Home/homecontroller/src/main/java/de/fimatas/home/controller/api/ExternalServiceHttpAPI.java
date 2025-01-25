@@ -1,9 +1,13 @@
 package de.fimatas.home.controller.api;
 
+import de.fimatas.heatpumpdriver.api.HeatpumpRequest;
+import de.fimatas.heatpumpdriver.api.HeatpumpResponse;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -26,6 +30,10 @@ public class ExternalServiceHttpAPI {
     @Autowired
     private RestTemplate restTemplate;
 
+    @Autowired
+    @Qualifier("restTemplateHeatpumpDriver")
+    private RestTemplate restTemplateHeatpumpDriver;
+
     @Value("${application.externalServicesEnabled:false}")
     private boolean externalServicesEnabled;
 
@@ -46,6 +54,14 @@ public class ExternalServiceHttpAPI {
                                                 Map<String, ?> uriVariables) throws RestClientException {
         checkServiceEnabledAndFrequency(url, uriVariables, "POST");
         return restTemplate.postForEntity(url, request, String.class, uriVariables);
+    }
+
+    public ResponseEntity<HeatpumpResponse> postForHeatpumpEntity(String url, HeatpumpRequest request) throws RestClientException {
+        assert request.getApiVersion() == 3;
+        var map = Map.of("type", request.isReadFromCache() ? "cache" : (request.getWriteWithRoomnameAndProgram().isEmpty() ? "read" : "write"));
+        checkServiceEnabledAndFrequency(url, map, "POST");
+        HttpEntity<HeatpumpRequest> httpRequest = new HttpEntity<>(request);
+        return restTemplateHeatpumpDriver.postForEntity(url, httpRequest, HeatpumpResponse.class);
     }
 
     private void checkServiceEnabledAndFrequency(String url, Map<String, ?> uriVariables, String method) {
