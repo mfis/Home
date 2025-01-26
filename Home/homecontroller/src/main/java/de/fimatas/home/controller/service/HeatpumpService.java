@@ -130,12 +130,11 @@ public class HeatpumpService {
             return;
         }
 
-        HeatpumpRequest request = HeatpumpRequest.builder()
-                .readWithRoomnames(new ArrayList<>(dictPlaceToRoomNameInDriver.values()))
-                .heatpumpUsername(env.getProperty("heatpump.driver.user"))
-                .heatpumpPassword(env.getProperty("heatpump.driver.pass"))
-                .readFromCache(cachedData)
-                .build();
+        HeatpumpRequest request = new HeatpumpRequest();
+        request.getReadWithRoomnames().addAll(dictPlaceToRoomNameInDriver.values());
+        request.setHeatpumpUsername(env.getProperty("heatpump.driver.user"));
+        request.setHeatpumpPassword(env.getProperty("heatpump.driver.pass"));
+        request.setReadFromCache(cachedData);
 
         HeatpumpResponse response = callDriver(request);
         if(cachedData && response.isCacheNotPresentError() && !isCallError){
@@ -257,13 +256,12 @@ public class HeatpumpService {
             });
         }
 
-        HeatpumpRequest request = HeatpumpRequest.builder()
-                .writeWithRoomnameAndProgram(programs)
-                .readWithRoomnames(new ArrayList<>(dictPlaceToRoomNameInDriver.values()))
-                .heatpumpUsername(env.getProperty("heatpump.driver.user"))
-                .heatpumpPassword(env.getProperty("heatpump.driver.pass"))
-                .readFromCache(false)
-                .build();
+        HeatpumpRequest request = new HeatpumpRequest();
+        request.getReadWithRoomnames().addAll(dictPlaceToRoomNameInDriver.values());
+        request.getWriteWithRoomnameAndProgram().putAll(programs);
+        request.setHeatpumpUsername(env.getProperty("heatpump.driver.user"));
+        request.setHeatpumpPassword(env.getProperty("heatpump.driver.pass"));
+        request.setReadFromCache(false);
 
         final HeatpumpResponse response = callDriver(request);
         if(!responseHasError(response)){
