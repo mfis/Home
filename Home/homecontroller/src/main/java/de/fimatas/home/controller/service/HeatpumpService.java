@@ -139,7 +139,7 @@ public class HeatpumpService {
         HeatpumpResponse response = callDriver(request);
         if(cachedData && response.isCacheNotPresentError() && !isCallError){
             // Fallback from cached to direct call
-            log.warn("heatpump cache empty, calling again without cache");
+            log.info("heatpump cache empty, calling again without cache");
             request.setReadFromCache(false);
             response = callDriver(request);
             isCallError = !response.isDriverRunSuccessful() || StringUtils.isNotBlank(response.getErrorMessage());
