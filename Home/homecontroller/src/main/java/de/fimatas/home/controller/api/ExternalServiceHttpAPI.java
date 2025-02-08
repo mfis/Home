@@ -57,7 +57,9 @@ public class ExternalServiceHttpAPI {
     }
 
     public ResponseEntity<HeatpumpResponse> postForHeatpumpEntity(String url, HeatpumpRequest request) throws RestClientException {
-        assert HeatpumpRequest.apiVersion == 3;
+        if(HeatpumpRequest.apiVersion != 3){
+            throw new IllegalStateException("Heatpump API version not supported");
+        }
         var map = Map.of("type", request.isReadFromCache() ? "cache" : (request.getWriteWithRoomnameAndProgram().isEmpty() ? "read" : "write"));
         checkServiceEnabledAndFrequency(url, map, "POST");
         HttpEntity<HeatpumpRequest> httpRequest = new HttpEntity<>(request);
