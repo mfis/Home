@@ -16,7 +16,13 @@ public class WeatherForecastView extends View {
 
     private String time;
 
+    private String detailKey = "";
+
+    private String detailCaption = "";
+
     private String temperature;
 
     private List<ValueWithCaption> icons = new LinkedList<>();
+
+    private List<WeatherForecastView> detailForecasts = new LinkedList<>();
 }

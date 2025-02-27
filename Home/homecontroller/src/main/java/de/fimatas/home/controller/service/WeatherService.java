@@ -72,7 +72,8 @@ public class WeatherService {
                     dayForecasts.stream().filter(fc -> fc.getIcons().contains(c)).findFirst().ifPresent(i -> dayConclusion.getConditions().add(c));
                 }
                 });
-            model.getFurtherDays().put(date, dayConclusion);
+            model.getFurtherDaysConclusion().put(date, dayConclusion);
+            model.getFurtherDaysForecasts().put(date, dayForecasts);
         });
 
         ModelObjectDAO.getInstance().write(model);

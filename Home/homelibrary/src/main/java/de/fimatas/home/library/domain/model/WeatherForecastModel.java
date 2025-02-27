@@ -26,5 +26,7 @@ public class WeatherForecastModel extends AbstractSystemModel {
 
     private WeatherForecastConclusion conclusion3hours;
 
-    private Map<LocalDate, WeatherForecastConclusion> furtherDays = new LinkedHashMap<>();
+    private Map<LocalDate, WeatherForecastConclusion> furtherDaysConclusion = new LinkedHashMap<>();
+
+    private Map<LocalDate, List<WeatherForecast>> furtherDaysForecasts = new LinkedHashMap<>();
 }

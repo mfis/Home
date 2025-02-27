@@ -1281,31 +1281,38 @@ public class HouseViewService {
         forecasts.setShortTermColorClass(StringUtils.isNotBlank(textMap3h.get(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS)) ? textMap3h.get(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS) : ConditionColor.DEFAULT.getUiClass());
 
         // hourly forecast for two days
+        mapWeatherDetailView(weatherForecastModel, weatherForecastModel.getForecasts(), forecasts.getForecasts(), forecasts);
+
+        // Header 'next days'
+        var viewH = new WeatherForecastView();
+        viewH.setHeader("ab " + weatherForecastModel.getFurtherDaysConclusion().keySet().iterator().next().format(DateTimeFormatter.ofPattern("EEEE", Locale.GERMAN)));
+        viewH.setColorClass(ConditionColor.DEFAULT.getUiClass());
+        forecasts.getForecasts().add(viewH);
+
+        weatherForecastModel.getFurtherDaysConclusion().forEach((date, conclusion) ->
+                formatDailyWeatherForecast(date, conclusion, forecasts, weatherForecastModel.getFurtherDaysForecasts()));
+    }
+
+    private void mapWeatherDetailView(WeatherForecastModel weatherForecastModel, List<WeatherForecast> forecastsList, List<WeatherForecastView> targetViewList, WeatherForecastsView forecasts) {
         final var summary = new WeatherForecastSummary();
-        weatherForecastModel.getForecasts().forEach( fc -> {
+        forecastsList.forEach(fc -> {
             if(!summary.sameDay(fc)){
                 if(summary.hasData()){
-                    formatHourlyWeatherForecastSummary(summary, forecasts);
+                    targetViewList.add(formatHourlyWeatherForecastSummary(summary));
                     summary.reset();
                 }
-                formatHourlyWeatherForecastHeader(weatherForecastModel, fc, forecasts);
+                if(weatherForecastModel != null){
+                    formatHourlyWeatherForecastHeader(weatherForecastModel, fc, forecasts);
+                }
             }else if(!summary.fitsInSummary(fc)){
-                formatHourlyWeatherForecastSummary(summary, forecasts);
+                targetViewList.add(formatHourlyWeatherForecastSummary(summary));
                 summary.reset();
             }
             summary.integrateInSummary(fc);
         });
         if(summary.hasData()){
-            formatHourlyWeatherForecastSummary(summary, forecasts);
+            targetViewList.add(formatHourlyWeatherForecastSummary(summary));
         }
-
-        // Header 'next days'
-        var viewH = new WeatherForecastView();
-        viewH.setHeader("ab " + weatherForecastModel.getFurtherDays().keySet().iterator().next().format(DateTimeFormatter.ofPattern("EEEE", Locale.GERMAN)));
-        viewH.setColorClass(ConditionColor.DEFAULT.getUiClass());
-        forecasts.getForecasts().add(viewH);
-
-        weatherForecastModel.getFurtherDays().forEach((date, conclusion) -> formatDailyWeatherForecast(date, conclusion, forecasts));
     }
 
     private void formatHourlyWeatherForecastHeader(WeatherForecastModel weatherForecastModel, WeatherForecast fc, WeatherForecastsView forecasts) {
@@ -1317,7 +1324,7 @@ public class HouseViewService {
         forecasts.getForecasts().add(view);
     }
 
-    private void formatHourlyWeatherForecastSummary(WeatherForecastSummary weatherForecastSummary, WeatherForecastsView forecasts) {
+    private WeatherForecastView formatHourlyWeatherForecastSummary(WeatherForecastSummary weatherForecastSummary) {
         var summary = weatherForecastSummary.getSummary();
         var view = new WeatherForecastView();
         final Map<Integer, String> textMap = WeatherForecastConclusionTextFormatter.formatConclusionText(WeatherForecastConclusion.fromWeatherForecast(summary), false);
@@ -1327,17 +1334,23 @@ public class HouseViewService {
         view.setTemperature(WeatherForecastConclusionTextFormatter.formatTemperature(summary.getTemperature()) + TEMPERATURE_UNIT);
         mapWeatherForecastConditionsColor(view, WeatherForecastConclusion.fromWeatherForecast(summary));
         summary.getIcons().forEach(i -> view.getIcons().add(new ValueWithCaption(i.getFontAwesomeID(), i.conditionValue(textMap), null)));
-        forecasts.getForecasts().add(view);
+        return view;
     }
 
-    private void formatDailyWeatherForecast(LocalDate date, WeatherForecastConclusion conclusion, WeatherForecastsView forecasts) {
+    private void formatDailyWeatherForecast(LocalDate date, WeatherForecastConclusion conclusion, WeatherForecastsView forecasts, Map<LocalDate, List<WeatherForecast>> furtherDaysForecasts) {
+        var furtherDayDetails = furtherDaysForecasts.entrySet().stream().filter(e -> e.getKey().isEqual(date)).findFirst().orElse(null);
         final Map<Integer, String> textMapHeader = WeatherForecastConclusionTextFormatter.formatConclusionText(conclusion, true);
         var view = new WeatherForecastView();
         view.setTime(date.format(DateTimeFormatter.ofPattern("EEEE", Locale.GERMAN)));
+        view.setDetailKey(date.format(DateTimeFormatter.ISO_LOCAL_DATE));
+        view.setDetailCaption(date.format(DateTimeFormatter.ofPattern("EEEE, d. MMM", Locale.GERMAN)));
         view.setTemperature(textMapHeader.get(FORMAT_FROM_TO_ONLY));
         mapWeatherForecastConditionsColor(view, conclusion);
         view.getIcons().addAll(lookupDailyForecastConditionIcons(conclusion, textMapHeader));
         forecasts.getForecasts().add(view);
+        if(furtherDayDetails != null){
+            mapWeatherDetailView(null, furtherDayDetails.getValue(), view.getDetailForecasts(), null);
+        }
     }
 
     private List<ValueWithCaption> lookupDailyForecastConditionIcons(WeatherForecastConclusion conclusion, Map<Integer, String> textMapHeader){

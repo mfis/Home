@@ -15,13 +15,43 @@
 						<th:block th:each="entry : ${model.forecasts}">
 							<th:block th:if="${#strings.equals(entry.header,'')}">
 								<tr th:class="'tr-dark-stripe-default'" th:style="'border-bottom: 0.5px dotted #222222; ' + (${#strings.equals(entry.dayNight, 'night')} ? 'opacity: 0.55 !important;' : '')">
-									<td th:class="'td-no-border text-' + ${entry.colorClass}" style="padding: .08rem; vertical-align: top" th:text="${entry.time}"></td>
+									<td th:class="'td-no-border text-' + ${entry.colorClass}" style="padding: .08rem; vertical-align: top" data-bs-toggle="modal" th:data-bs-target="'#weatherDetail-' + ${entry.detailKey}">
+										<span th:text="${entry.time}"></span>
+										<span th:unless="${#strings.equals(entry.detailKey,'')}" style="padding-left: 5px; font-size: 0.8rem"><th:block th:replace="~{basics :: symbol (name='fa-solid fa-circle-info')}"/></span>
+										<div class="modal fade" th:id="'weatherDetail-' + ${entry.detailKey}" tabindex="-1" role="dialog" aria-labelledby="licenseAttribution" aria-hidden="true">
+											<div class="modal-dialog modal-dialog-centered" role="document">
+												<div class="modal-content">
+													<div class="modal-header">
+														<h5 class="modal-title" id="exampleModalLabel" th:text="'Wetter am ' + ${entry.detailCaption}"></h5>
+													</div>
+													<div class="modal-body">
+														<!--Detailview-->
+														<table style="border: 0; width: 100%; margin-bottom: 10px;">
+															<th:block th:each="detailEntry : ${entry.detailForecasts}">
+																<tr th:class="'tr-dark-stripe-default'" th:style="'border-bottom: 0.5px dotted #222222; ' + (${#strings.equals(detailEntry.dayNight, 'night')} ? 'opacity: 0.55 !important;' : '')">
+																	<td th:class="'td-no-border text-' + ${detailEntry.colorClass}" style="padding: .08rem; vertical-align: top">
+																		<span th:text="${detailEntry.time}"></span>
+																	</td>
+																	<td th:class="'td-no-border text-' + ${detailEntry.colorClass}" style="padding: .08rem" >
+																		<th:block th:each="detailIcon : ${detailEntry.icons}">
+																			<div><span><th:block th:replace="~{basics :: symbol (name=${detailIcon.value})}"/></span><span>&nbsp;</span> <span th:text="${detailIcon.caption}"></span></div>
+																		</th:block>
+																	</td>
+																	<td th:class="'td-no-border text-' + ${detailEntry.colorClass}" style="text-align: right; padding: .08rem 1rem .08rem .25rem; vertical-align: top" th:text="${detailEntry.temperature}"></td>
+																</tr>
+															</th:block>
+														</table>
+													</div>
+												</div>
+											</div>
+										</div>
+									</td>
 									<td th:class="'td-no-border text-' + ${entry.colorClass}" style="padding: .08rem" >
 										<th:block th:each="icon : ${entry.icons}">
 											<div><span><th:block th:replace="~{basics :: symbol (name=${icon.value})}"/></span><span>&nbsp;</span> <span th:text="${icon.caption}"></span></div>
 										</th:block>
 									</td>
-									<td th:class="'td-no-border text-' + ${entry.colorClass}" style="text-align: right; padding: .08rem 1.5rem .08rem .25rem; vertical-align: top" th:text="${entry.temperature}"></td>
+									<td th:class="'td-no-border text-' + ${entry.colorClass}" style="text-align: right; padding: .08rem 1rem .08rem .25rem; vertical-align: top" th:text="${entry.temperature}"></td>
 								</tr>
 							</th:block>
 							<th:block th:unless="${#strings.equals(entry.header,'')}">
