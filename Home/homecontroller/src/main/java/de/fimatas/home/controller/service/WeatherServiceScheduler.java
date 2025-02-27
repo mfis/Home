@@ -16,7 +16,7 @@ public class WeatherServiceScheduler {
     @Autowired
     private WeatherService weatherService;
 
-    @EventListener(ApplicationReadyEvent.class)
+    @PostConstruct
     @Scheduled(cron = "02 05 01-23 * * *")
     public void scheduledRefreshWeatherModel() {
         try {
