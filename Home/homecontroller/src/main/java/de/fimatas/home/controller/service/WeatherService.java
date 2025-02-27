@@ -10,12 +10,14 @@ import de.fimatas.home.library.domain.model.WeatherForecast;
 import de.fimatas.home.library.domain.model.WeatherForecastConclusion;
 import de.fimatas.home.library.domain.model.WeatherForecastModel;
 import de.fimatas.home.library.util.HomeUtils;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -44,8 +46,17 @@ public class WeatherService {
 
     private static final BigDecimal WIND_SPEED_STORM = BigDecimal.valueOf(36);
     private static final BigDecimal WIND_SPEED_GUST_STORM = BigDecimal.valueOf(70);
-
     private static final BigDecimal HEAVY_RAIN_MM = BigDecimal.valueOf(10);
+
+    private LocalDateTime DATETIMENOW;
+    private LocalDate DATENOW;
+
+    @PostConstruct
+    @Scheduled(cron = "1 0 0 * * *")
+    public void newDate() {
+        DATETIMENOW = LocalDateTime.now();
+        DATENOW = DATETIMENOW.toLocalDate();
+    }
 
     @Retryable(retryFor = Exception.class, maxAttempts = 5, backoff = @Backoff(delay = 60000))
     public void refreshFurtherDaysCache() {
@@ -88,7 +99,7 @@ public class WeatherService {
 
             LocalDateTime dateTime = LocalDateTime.parse(entry.get("timestamp").asText(), ISO_OFFSET_DATE_TIME);
 
-            if (dateTime.isBefore(LocalDateTime.now().truncatedTo(ChronoUnit.HOURS))) {
+            if (dateTime.isBefore(DATETIMENOW.truncatedTo(ChronoUnit.HOURS))) {
                 return;
             }
 
@@ -222,12 +233,12 @@ public class WeatherService {
         }
 
         model.setConclusion24to48hours(calculateConclusionForTimerange(model.getForecasts()));
-        model.setConclusionToday(calculateConclusionForTimerange(model.getForecasts().stream().filter(fc -> fc.getTime().toLocalDate().isEqual(LocalDate.now())).collect(Collectors.toList())));
-        model.setConclusionTomorrow(calculateConclusionForTimerange(model.getForecasts().stream().filter(fc -> fc.getTime().toLocalDate().isEqual(LocalDate.now().plusDays(1))).collect(Collectors.toList())));
-        model.setConclusion3hours(calculateConclusionForTimerange(model.getForecasts().stream().filter(fc -> fc.getTime().isBefore(LocalDateTime.now().plusHours(3))).collect(Collectors.toList())));
+        model.setConclusionToday(calculateConclusionForTimerange(model.getForecasts().stream().filter(fc -> fc.getTime().toLocalDate().isEqual(DATENOW)).collect(Collectors.toList())));
+        model.setConclusionTomorrow(calculateConclusionForTimerange(model.getForecasts().stream().filter(fc -> fc.getTime().toLocalDate().isEqual(DATENOW.plusDays(1))).collect(Collectors.toList())));
+        model.setConclusion3hours(calculateConclusionForTimerange(model.getForecasts().stream().filter(fc -> fc.getTime().isBefore(DATETIMENOW.plusHours(3))).collect(Collectors.toList())));
 
-        model.getConclusionForDate().put(LocalDate.now(), model.getConclusionToday());
-        model.getConclusionForDate().put(LocalDate.now().plusDays(1), model.getConclusionTomorrow());
+        model.getConclusionForDate().put(DATENOW, model.getConclusionToday());
+        model.getConclusionForDate().put(DATENOW.plusDays(1), model.getConclusionTomorrow());
     }
 
     static WeatherForecastConclusion calculateConclusionForTimerange(List<WeatherForecast> items) {
