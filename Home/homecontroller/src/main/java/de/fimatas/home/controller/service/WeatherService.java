@@ -72,6 +72,7 @@ public class WeatherService {
                     dayForecasts.stream().filter(fc -> fc.getIcons().contains(c)).findFirst().ifPresent(i -> dayConclusion.getConditions().add(c));
                 }
                 });
+            calculateSunriseSunset(dayForecasts);
             model.getFurtherDaysConclusion().put(date, dayConclusion);
             model.getFurtherDaysForecasts().put(date, dayForecasts);
         });
