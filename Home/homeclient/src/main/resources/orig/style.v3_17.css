@@ -292,6 +292,47 @@ input[type="checkbox"]:checked ~ label .check-true{
 	background: rgb(244,190,238); /* fixme based on text color */
 }
 
+/* weather table */
+
+.weather-table {
+	border: 0;
+	width: 100%;
+	margin-bottom: 10px;
+}
+
+.weather-table .weather-header{
+	padding: .25rem;
+	text-align: center;
+	font-size: 1.3rem;
+	margin-top: 10px;
+}
+
+.weather-table tr {
+	border-bottom: 1px dotted #111;
+}
+
+.weather-table .weathercol1{
+	padding: .08rem;
+	vertical-align: top;
+}
+
+.weather-table .weathercol1 .weather-info{
+	padding-left: 5px;
+	font-size: 0.8rem;
+}
+
+.weather-table .weathercol2{
+	padding: .08rem;
+}
+
+.weather-table .weathercol3{
+	text-align: right;
+	padding: .08rem 1rem .08rem .25rem;
+	vertical-align: top;
+}
+
+/* EV charge */
+
 .evBatterySlider .rs-handle  {
 	display: none;
 	background-color: transparent;
@@ -412,6 +453,7 @@ input[type="range"]::-ms-fill-upper {
 .progress {
 	height: 0.85rem !important;
 }
+
 /*
         START - Following CSS is based on: "Smooth arrow animation"
 
