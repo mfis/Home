@@ -41,7 +41,7 @@ public class ClientCommunicationService {
     private LightService lightService;
 
     @Autowired
-    private WeatherService weatherService;
+    private WeatherServiceScheduler weatherServiceScheduler;
 
     @Autowired
     private PresenceService presenceService;
@@ -221,7 +221,7 @@ public class ClientCommunicationService {
         }
 
         if (ModelObjectDAO.getInstance().readWeatherForecastModel() == null) {
-            weatherService.refreshWeatherForecastModel();
+            weatherServiceScheduler.init();
         } else {
             uploadService.uploadToClient(ModelObjectDAO.getInstance().readWeatherForecastModel());
         }

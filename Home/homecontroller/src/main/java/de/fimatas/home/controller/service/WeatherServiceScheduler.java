@@ -2,8 +2,6 @@ package de.fimatas.home.controller.service;
 
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -17,12 +15,17 @@ public class WeatherServiceScheduler {
     private WeatherService weatherService;
 
     @PostConstruct
-    @Scheduled(cron = "02 05 01-23 * * *")
+    public void init(){
+        scheduledRefreshWeatherModelWithFurtherDays();
+        scheduledRefreshWeatherModel();
+    }
+
+    @Scheduled(cron = "02 05 04-23 * * *")
     public void scheduledRefreshWeatherModel() {
         try {
             weatherService.refreshWeatherForecastModel();
         }catch(Exception e){
-           log.error("Could not call weather service(1)", e);
+           log.error("Could not call weather service (2-days)", e);
         }
     }
 
@@ -31,7 +34,7 @@ public class WeatherServiceScheduler {
         try {
             weatherService.refreshFurtherDaysCache();
         }catch(Exception e){
-            log.error("Could not call weather service(2)", e);
+            log.error("Could not call weather service (further-days)", e);
         }
     }
 
