@@ -29,7 +29,7 @@ public class BrightSkyAPI {
 
     private static final ObjectMapper jsonObjectMapper = new ObjectMapper();
 
-    private Map<LocalDate, List<JsonNode>> cacheFurtherDays = null;
+    private Map<LocalDate, List<JsonNode>> cacheFurtherDays = new LinkedHashMap<>();
 
     public List<JsonNode> callTwoDays(){
 
@@ -41,9 +41,6 @@ public class BrightSkyAPI {
     }
 
     public Map<LocalDate, List<JsonNode>> getCachedFurtherDays(){
-        if(cacheFurtherDays == null){
-            cachingCallForFurtherDays();
-        }
         return cacheFurtherDays;
     }
 
@@ -52,12 +49,17 @@ public class BrightSkyAPI {
         Map<LocalDate, List<JsonNode>> allDays = new LinkedHashMap<>();
         LocalDate now = LocalDate.now();
 
-        for(int i = 2 ; i < 10 ; i++){
-            List<JsonNode> singleDay = new LinkedList<>();
-            callForDate(now.plusDays(i), singleDay);
-            allDays.put(now.plusDays(i), singleDay);
+        try {
+            for (int i = 2; i < 10; i++) {
+                List<JsonNode> singleDay = new LinkedList<>();
+                callForDate(now.plusDays(i), singleDay);
+                allDays.put(now.plusDays(i), singleDay);
+            }
+            cacheFurtherDays = allDays;
+        } catch (Exception e) {
+            cacheFurtherDays.clear();
+            throw e;
         }
-        cacheFurtherDays = allDays;
     }
 
     @SneakyThrows
