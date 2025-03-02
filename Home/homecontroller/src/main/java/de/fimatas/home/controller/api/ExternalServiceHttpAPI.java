@@ -46,6 +46,8 @@ public class ExternalServiceHttpAPI {
 
     private final Map<String, LocalDateTime> lastUrlRequestCall = new HashMap<>();
 
+    public static final String MESSAGE_TOO_MANY_CALLS = "Too many calls to url: ";
+
     private final Map<String, Duration> MAX_CALL_RATE_MAP = new HashMap<>();
     private final Duration MAX_CALL_RATE_DEFAULT = Duration.ofSeconds(58);
 
@@ -94,7 +96,7 @@ public class ExternalServiceHttpAPI {
 
         var maxRate = MAX_CALL_RATE_MAP.getOrDefault(host, MAX_CALL_RATE_DEFAULT);
         if(value != null && value.plus(maxRate).isAfter(LocalDateTime.now())){
-            throw new RestClientException("Too many calls to url: " + host);
+            throw new RestClientException(MESSAGE_TOO_MANY_CALLS + host);
         }
 
         lastUrlRequestCall.put(lastCallKey, LocalDateTime.now());

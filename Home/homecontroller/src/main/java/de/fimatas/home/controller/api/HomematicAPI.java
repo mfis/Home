@@ -203,7 +203,7 @@ public class HomematicAPI {
             for (HomematicCommand cmd : currentValues.keySet()) {
                 sb.append(cmd.getCashedVarName()).append("\n");
             }
-            LOG.warn("Key/Value unknown: " + command.getCashedVarName() + " / known keys: \n" + sb);
+            LOG.warn("Key/Value unknown: " + command.getCashedVarName() + " / known keys: " + (sb.isEmpty() ? "n/a" : ("\n" + sb.toString().trim())));
             return null;
         }
     }
