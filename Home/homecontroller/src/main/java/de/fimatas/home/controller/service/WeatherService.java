@@ -15,8 +15,6 @@ import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -102,30 +100,34 @@ public class WeatherService {
 
         List<WeatherForecast> forecasts = new LinkedList<>();
         jsonNodes.forEach(entry -> {
+            try {
+                LocalDateTime dateTime = LocalDateTime.parse(entry.get("timestamp").asText(), ISO_OFFSET_DATE_TIME);
 
-            LocalDateTime dateTime = LocalDateTime.parse(entry.get("timestamp").asText(), ISO_OFFSET_DATE_TIME);
+                if (dateTime.isBefore(DATETIMENOW.truncatedTo(ChronoUnit.HOURS))) {
+                    return;
+                }
 
-            if (dateTime.isBefore(DATETIMENOW.truncatedTo(ChronoUnit.HOURS))) {
-                return;
+                if (forecasts.stream().anyMatch(wf -> wf.getTime().equals(dateTime))) {
+                    return;
+                }
+
+                var condition = BrightSkyCondition.fromValueString(entry.get("condition").asText());
+                var icon = BrightSkyIcon.fromValueString(entry.get("icon").asText());
+
+                var forecast = new WeatherForecast();
+                forecast.setTime(dateTime);
+                forecast.setTemperature(nodeToBigDecimal(entry.get("temperature")));
+                forecast.setWind(nodeToBigDecimal(entry.get("wind_speed")));
+                forecast.setGust(nodeToBigDecimal(entry.get("wind_gust_speed")));
+                forecast.setPrecipitationInMM(nodeToBigDecimal(entry.get("precipitation")));
+                forecast.setPrecipitationProbability(HomeUtils.roundPercentageToNearestTen(nodeToInteger(entry.get("precipitation_probability"))));
+                forecast.setSunshineInMin(nodeToBigDecimal(entry.get("sunshine")));
+                forecast.setIcons(addConditions(condition, icon, forecast));
+                forecasts.add(forecast);
+            }catch(Exception e) {
+                log.error("error parsing weather entry: " + entry.toString());
+                throw e;
             }
-
-            if (forecasts.stream().anyMatch(wf -> wf.getTime().equals(dateTime))) {
-                return;
-            }
-
-            var condition = BrightSkyCondition.fromValueString(entry.get("condition").asText());
-            var icon = BrightSkyIcon.fromValueString(entry.get("icon").asText());
-
-            var forecast = new WeatherForecast();
-            forecast.setTime(dateTime);
-            forecast.setTemperature(nodeToBigDecimal(entry.get("temperature")));
-            forecast.setWind(nodeToBigDecimal(entry.get("wind_speed")));
-            forecast.setGust(nodeToBigDecimal(entry.get("wind_gust_speed")));
-            forecast.setPrecipitationInMM(nodeToBigDecimal(entry.get("precipitation")));
-            forecast.setPrecipitationProbability(HomeUtils.roundPercentageToNearestTen(nodeToInteger(entry.get("precipitation_probability"))));
-            forecast.setSunshineInMin(nodeToBigDecimal(entry.get("sunshine")));
-            forecast.setIcons(addConditions(condition, icon, forecast));
-            forecasts.add(forecast);
         });
         return forecasts;
     }
