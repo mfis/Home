@@ -2,11 +2,13 @@ package de.fimatas.home.controller.api;
 
 import de.fimatas.heatpumpdriver.api.HeatpumpRequest;
 import de.fimatas.heatpumpdriver.api.HeatpumpResponse;
+import jakarta.annotation.PostConstruct;
+import lombok.SneakyThrows;
 import lombok.extern.apachecommons.CommonsLog;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
@@ -15,9 +17,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,21 +41,32 @@ public class ExternalServiceHttpAPI {
     @Value("${application.externalServicesEnabled:false}")
     private boolean externalServicesEnabled;
 
+    @Autowired
+    private Environment environment;
+
     private final Map<String, LocalDateTime> lastUrlRequestCall = new HashMap<>();
+
+    private final Map<String, Duration> MAX_CALL_RATE_MAP = new HashMap<>();
+    private final Duration MAX_CALL_RATE_DEFAULT = Duration.ofSeconds(58);
+
+    @PostConstruct
+    public void init(){
+        MAX_CALL_RATE_MAP.put(lookupHostName(environment.getProperty("heatpump.driver.url")), Duration.ofMinutes(1));
+        MAX_CALL_RATE_MAP.put(lookupHostName(environment.getProperty("weatherForecast.brightskyEndpoint")), Duration.ofMinutes(55));
+        MAX_CALL_RATE_MAP.put(lookupHostName(environment.getProperty("solarman.hostname")), Duration.ofSeconds(58));
+    }
 
     @Scheduled(cron = "0 0 0 * * *")
     protected void resetLastUrlRequestCall() {
         lastUrlRequestCall.clear();
     }
 
-    public ResponseEntity<String> getForEntity(String url, Map<String, ?> uriVariables)
-            throws RestClientException {
+    public ResponseEntity<String> getForEntity(String url, Map<String, ?> uriVariables) {
         checkServiceEnabledAndFrequency(url, uriVariables, "GET");
         return restTemplate.getForEntity(url, String.class, uriVariables);
     }
 
-    public ResponseEntity<String> postForEntity(String url, @Nullable Object request,
-                                                Map<String, ?> uriVariables) throws RestClientException {
+    public ResponseEntity<String> postForEntity(String url, @Nullable Object request, Map<String, ?> uriVariables) {
         checkServiceEnabledAndFrequency(url, uriVariables, "POST");
         return restTemplate.postForEntity(url, request, String.class, uriVariables);
     }
@@ -68,7 +83,7 @@ public class ExternalServiceHttpAPI {
 
     private void checkServiceEnabledAndFrequency(String url, Map<String, ?> uriVariables, String method) {
 
-        var host = StringUtils.substringBefore(url, "?");
+        var host = lookupHostName(url);
 
         if(!externalServicesEnabled) {
             throw new RestClientException("External services are disabled: " + host);
@@ -76,7 +91,9 @@ public class ExternalServiceHttpAPI {
 
         var lastCallKey = method + " " + url + "#" + generateHash(uriVariables);
         var value = lastUrlRequestCall.get(lastCallKey);
-        if(value != null && value.plusSeconds(58).isAfter(LocalDateTime.now())){
+
+        var maxRate = MAX_CALL_RATE_MAP.getOrDefault(host, MAX_CALL_RATE_DEFAULT);
+        if(value != null && value.plus(maxRate).isAfter(LocalDateTime.now())){
             throw new RestClientException("Too many calls to url: " + host);
         }
 
@@ -111,4 +128,8 @@ public class ExternalServiceHttpAPI {
         }
     }
 
+    @SneakyThrows
+    private String lookupHostName(String url) {
+        return new URL(url).getHost();
+    }
 }
