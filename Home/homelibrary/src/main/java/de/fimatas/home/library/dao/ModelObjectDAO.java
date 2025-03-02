@@ -174,7 +174,7 @@ public class ModelObjectDAO {
 
     public WeatherForecastModel readWeatherForecastModel() {
         long newestTimestamp = weatherForecastModel == null ? 0 : weatherForecastModel.getTimestamp();
-        if (weatherForecastModel == null || new Date().getTime() - newestTimestamp > 1000 * 60 * 70) {
+        if (weatherForecastModel == null || new Date().getTime() - newestTimestamp > 1000 * 60 * 125) {
             return null; // Too old. Should never happen
         } else {
             return weatherForecastModel;

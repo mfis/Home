@@ -962,6 +962,8 @@ public class HouseViewService {
 
         if(weatherForecastModel==null){
             copy.add("Wettervorhersage Status unbekannt!");
+        }else if(weatherForecastModel.getFurtherDaysForecasts().isEmpty()){
+            copy.add("Wettervorhersage eingeschränkt!");
         }
 
         if(historyModel==null){
@@ -1246,6 +1248,7 @@ public class HouseViewService {
 
     private void formatWeatherForecast(Model model, WeatherForecastModel weatherForecastModel) {
 
+        var NOW = LocalDateTime.now();
         var unreach = weatherForecastModel == null || weatherForecastModel.getForecasts().isEmpty() || weatherForecastModel.getConclusion24to48hours() == null;
 
         var forecasts = new WeatherForecastsView();
@@ -1281,7 +1284,13 @@ public class HouseViewService {
         forecasts.setShortTermColorClass(StringUtils.isNotBlank(textMap3h.get(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS)) ? textMap3h.get(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS) : ConditionColor.DEFAULT.getUiClass());
 
         // hourly forecast for two days
-        mapWeatherDetailView(weatherForecastModel, weatherForecastModel.getForecasts(), forecasts.getForecasts(), forecasts);
+        var filtered2dayForecast = weatherForecastModel.getForecasts().stream().filter(fc ->
+                !fc.getTime().isBefore(NOW.truncatedTo(ChronoUnit.HOURS))).toList();
+        mapWeatherDetailView(weatherForecastModel, filtered2dayForecast, forecasts.getForecasts(), forecasts);
+
+        if(weatherForecastModel.getFurtherDaysForecasts().isEmpty()){
+            return;
+        }
 
         // Header 'next days'
         var viewH = new WeatherForecastView();
