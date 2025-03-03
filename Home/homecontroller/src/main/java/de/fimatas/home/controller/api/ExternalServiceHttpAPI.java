@@ -53,9 +53,9 @@ public class ExternalServiceHttpAPI {
 
     @PostConstruct
     public void init(){
-        MAX_CALL_RATE_MAP.put(lookupHostName(environment.getProperty("heatpump.driver.url")), Duration.ofMinutes(1));
-        MAX_CALL_RATE_MAP.put(lookupHostName(environment.getProperty("weatherForecast.brightskyEndpoint")), Duration.ofMinutes(55));
-        MAX_CALL_RATE_MAP.put(lookupHostName(environment.getProperty("solarman.hostname")), Duration.ofSeconds(58));
+        MAX_CALL_RATE_MAP.put(hostAndPath(environment.getProperty("heatpump.driver.url")).host(), Duration.ofMinutes(1));
+        MAX_CALL_RATE_MAP.put(hostAndPath(environment.getProperty("weatherForecast.brightskyEndpoint")).host(), Duration.ofMinutes(55));
+        MAX_CALL_RATE_MAP.put(hostAndPath(environment.getProperty("solarman.hostname")).host(), Duration.ofSeconds(58));
     }
 
     @Scheduled(cron = "0 0 0 * * *")
@@ -85,22 +85,22 @@ public class ExternalServiceHttpAPI {
 
     private void checkServiceEnabledAndFrequency(String url, Map<String, ?> uriVariables, String method) {
 
-        var host = lookupHostName(url);
+        var hostAndPath = hostAndPath(url);
 
         if(!externalServicesEnabled) {
-            throw new RestClientException("External services are disabled: " + host);
+            throw new RestClientException("External services are disabled: " + hostAndPath.host());
         }
 
         var lastCallKey = method + " " + url + "#" + generateHash(uriVariables);
         var value = lastUrlRequestCall.get(lastCallKey);
 
-        var maxRate = MAX_CALL_RATE_MAP.getOrDefault(host, MAX_CALL_RATE_DEFAULT);
+        var maxRate = MAX_CALL_RATE_MAP.getOrDefault(hostAndPath.host(), MAX_CALL_RATE_DEFAULT);
         if(value != null && value.plus(maxRate).isAfter(LocalDateTime.now())){
-            throw new RestClientException(MESSAGE_TOO_MANY_CALLS + host);
+            throw new RestClientException(MESSAGE_TOO_MANY_CALLS + hostAndPath.host());
         }
 
         lastUrlRequestCall.put(lastCallKey, LocalDateTime.now());
-        log.info("CALLING external service (" + method + "): " + host);
+        log.info("CALLING external service (" + method + "): " + hostAndPath.host() + hostAndPath.path());
     }
 
     private String generateHash(Map<String, ?> map) {
@@ -131,7 +131,10 @@ public class ExternalServiceHttpAPI {
     }
 
     @SneakyThrows
-    private String lookupHostName(String url) {
-        return new URL(url).getHost();
+    private HostAndPath hostAndPath(String urlString) {
+        var url = new URL(urlString);
+        return new HostAndPath(url.getHost(), url.getPath());
     }
+
+    private record HostAndPath(String host, String path) {}
 }
