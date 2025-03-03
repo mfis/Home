@@ -50,7 +50,7 @@ public class WeatherService {
     private LocalDate DATENOW;
 
     @PostConstruct
-    @Scheduled(cron = "1 0 0 * * *")
+    @Scheduled(cron = "1 0 * * * *")
     public void newDate() {
         DATETIMENOW = LocalDateTime.now();
         DATENOW = DATETIMENOW.toLocalDate();
@@ -100,6 +100,7 @@ public class WeatherService {
 
         List<WeatherForecast> forecasts = new LinkedList<>();
         jsonNodes.forEach(entry -> {
+
             try {
                 LocalDateTime dateTime = LocalDateTime.parse(entry.get("timestamp").asText(), ISO_OFFSET_DATE_TIME);
 

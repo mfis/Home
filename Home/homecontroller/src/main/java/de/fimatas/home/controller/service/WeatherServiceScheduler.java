@@ -42,7 +42,7 @@ public class WeatherServiceScheduler {
 
     private static void handleException(Exception e, String msg) {
         if(e instanceof RestClientException && e.getMessage().startsWith(ExternalServiceHttpAPI.MESSAGE_TOO_MANY_CALLS)){
-            log.warn(msg + e.getMessage());
+            log.warn(msg + " - " + e.getMessage());
             return;
         }
         log.error(msg, e);
