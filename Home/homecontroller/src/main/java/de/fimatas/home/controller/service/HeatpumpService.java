@@ -23,6 +23,7 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
 
 import jakarta.annotation.PostConstruct;
+import org.springframework.web.client.RestClientException;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -94,7 +95,11 @@ public class HeatpumpService {
     @Scheduled(cron = "50 4/10 * * * *")
     public void scheduledRefreshFromDriverCache() {
         if(!isRestartInTimerangeMinutes(10)) {
-            refreshHeatpumpModel(true);
+            try {
+                refreshHeatpumpModel(true);
+            } catch (Exception e) {
+                handleException(e, "Could not call heatpump service (with-cache)");
+            }
         }
     }
 
@@ -105,7 +110,19 @@ public class HeatpumpService {
             // no non-cache call if server restarts within +- three hours (and resets cache)
             return;
         }
-        refreshHeatpumpModel(false);
+        try {
+            refreshHeatpumpModel(false);
+        } catch (Exception e) {
+            handleException(e, "Could not call heatpump service (no-cache!)");
+        }
+    }
+
+    private static void handleException(Exception e, String msg) {
+        if(e instanceof RestClientException && e.getMessage().startsWith(ExternalServiceHttpAPI.MESSAGE_TOO_MANY_CALLS)){
+            log.warn(msg + " - " + e.getMessage());
+            return;
+        }
+        log.error(msg, e);
     }
 
     private boolean isRestartInTimerangeMinutes(int minutes){

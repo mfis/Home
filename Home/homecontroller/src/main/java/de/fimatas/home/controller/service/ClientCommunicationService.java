@@ -70,9 +70,6 @@ public class ClientCommunicationService {
     private TasksService tasksService;
 
     @Autowired
-    private SolarmanService solarmanService;
-
-    @Autowired
     private MaintenanceService maintenanceService;
 
     @Autowired
@@ -256,9 +253,8 @@ public class ClientCommunicationService {
             uploadService.uploadToClient(ModelObjectDAO.getInstance().readTasksModel());
         }
 
-        if (ModelObjectDAO.getInstance().readPvAdditionalDataModel() == null) {
-            solarmanService.refresh();
-        } else {
+        if (ModelObjectDAO.getInstance().readPvAdditionalDataModel() != null) {
+            // no refresh here because of scheduled 1-minute interval
             uploadService.uploadToClient(ModelObjectDAO.getInstance().readPvAdditionalDataModel());
         }
 

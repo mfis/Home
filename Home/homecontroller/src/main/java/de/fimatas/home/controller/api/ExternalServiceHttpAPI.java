@@ -73,7 +73,7 @@ public class ExternalServiceHttpAPI {
         return restTemplate.postForEntity(url, request, String.class, uriVariables);
     }
 
-    public ResponseEntity<HeatpumpResponse> postForHeatpumpEntity(String url, HeatpumpRequest request) throws RestClientException {
+    public synchronized ResponseEntity<HeatpumpResponse> postForHeatpumpEntity(String url, HeatpumpRequest request) throws RestClientException {
         if(HeatpumpRequest.apiVersion != 3){
             throw new IllegalStateException("Heatpump API version not supported");
         }
