@@ -516,6 +516,7 @@ public class HouseService {
     public void doorState(Message message) {
         if (StringUtils.isNotBlank(message.getSecurityPin())
             && userService.checkPin(message.getUser(), message.getSecurityPin())) {
+            hmApi.executeCommand(homematicCommandBuilder.write(message.getDevice(), "Ansteuerung", true));
             switch (StateValue.valueOf(message.getValue())) {
             case LOCK:
                 runProgram(message.getDevice(), "Lock");
