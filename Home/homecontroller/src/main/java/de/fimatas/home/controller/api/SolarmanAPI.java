@@ -136,6 +136,7 @@ public class SolarmanAPI {
         HttpEntity<String> requestEntity = new HttpEntity<>(requestJsonString, headers);
 
         ResponseEntity<String> responseEntity = externalServiceHttpAPI.postForEntity(url, requestEntity, uri);
+        // log.info("SOLARMAN response: " + responseEntity.getBody());
         return handleResponse(responseEntity, true);
     }
 

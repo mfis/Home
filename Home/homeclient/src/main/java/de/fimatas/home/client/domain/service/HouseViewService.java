@@ -249,10 +249,9 @@ public class HouseViewService {
         var battery = new View();
         battery.setId(lookupTodayPowerId(Device.STROMZAEHLER_BEZUG, true) + "3");
         battery.setState("?");
+        battery.setColorClass(lookupPvBatteryColor(ModelObjectDAO.getInstance().readPvAdditionalDataModel(), ConditionColor.GRAY).getUiClass());
         if(ModelObjectDAO.getInstance().readPvAdditionalDataModel() != null){
             battery.setState(ModelObjectDAO.getInstance().readPvAdditionalDataModel().getBatteryStateOfCharge() + "%");
-            battery.setColorClass(ModelObjectDAO.getInstance().readPvAdditionalDataModel().getPvBatteryState() == PvBatteryState.CHARGING ? ConditionColor.GREEN.getUiClass() :
-                    (ModelObjectDAO.getInstance().readPvAdditionalDataModel().getPvBatteryState() == PvBatteryState.DISCHARGING ? ConditionColor.BLUE.getUiClass() : ConditionColor.GRAY.getUiClass()));
         }
         view.getCaptionAndValue().put("PvSp", battery);
 
@@ -268,6 +267,26 @@ public class HouseViewService {
                 view.getCaptionAndValue().put(e.getKey().getCaption(), ev);
             }
         });
+    }
+
+    private static ConditionColor lookupPvBatteryColor(PvAdditionalDataModel pvAdditionalDataModel, ConditionColor defaultColor) {
+        ConditionColor colorPvBattery;
+        if (pvAdditionalDataModel == null || pvAdditionalDataModel.getPvBatteryState() == null) {
+            colorPvBattery = ConditionColor.RED;
+        } else if(pvAdditionalDataModel.getPvBatteryState() == PvBatteryState.CHARGING){
+            colorPvBattery = ConditionColor.BLUE;
+        } else{
+            if(pvAdditionalDataModel.getPvBatteryState() == PvBatteryState.DISCHARGING) {
+                colorPvBattery = ConditionColor.GREEN;
+            }else {
+                if(pvAdditionalDataModel.getBatteryStateOfCharge() == 100){
+                    colorPvBattery = ConditionColor.BLUE;
+                } else {
+                    colorPvBattery = defaultColor;
+                }
+            }
+        }
+        return colorPvBattery;
     }
 
     private void formatSymbolsGroup(Model model, PresenceModel presenceModel, HeatpumpModel heatpumpModel, LightsModel lightsModel, HouseModel houseModel, TasksModel tasksModel) {
@@ -821,18 +840,20 @@ public class HouseViewService {
         // battery
         if(pvAdditionalDataModel != null){
             overallElectricPowerHouseView.setBatteryStateOfCharge(pvAdditionalDataModel.getBatteryStateOfCharge() + "%");
+            overallElectricPowerHouseView.setBatteryColorClass(lookupPvBatteryColor(pvAdditionalDataModel, ConditionColor.DEFAULT).getUiClass());
+
             if (pvAdditionalDataModel.getPvBatteryState() == null) {
                 overallElectricPowerHouseView.setBatteryState("Unbekannt, ");
-                overallElectricPowerHouseView.setBatteryColorClass(ConditionColor.RED.getUiClass());
             } else if(pvAdditionalDataModel.getPvBatteryState() == PvBatteryState.STABLE){
-                overallElectricPowerHouseView.setBatteryState("Inaktiv, ");
-                overallElectricPowerHouseView.setBatteryColorClass(ConditionColor.DEFAULT.getUiClass());
+                if(pvAdditionalDataModel.getBatteryStateOfCharge() == 100){
+                    overallElectricPowerHouseView.setBatteryState("Standby, ");
+                }else {
+                    overallElectricPowerHouseView.setBatteryState("Inaktiv, ");
+                }
             }else if(pvAdditionalDataModel.getPvBatteryState() == PvBatteryState.CHARGING){
                 overallElectricPowerHouseView.setBatteryState("Lädt " + pvAdditionalDataModel.getBatteryWattage() + " W, ");
-                overallElectricPowerHouseView.setBatteryColorClass(ConditionColor.GREEN.getUiClass());
             }else {
                 overallElectricPowerHouseView.setBatteryState("Speist " + pvAdditionalDataModel.getBatteryWattage() + " W, ");
-                overallElectricPowerHouseView.setBatteryColorClass(ConditionColor.BLUE.getUiClass());
             }
             if(pvAdditionalDataModel.getBatteryStateOfCharge() < 15){
                 overallElectricPowerHouseView.setBatteryIcon("fa-solid fa-battery-empty");

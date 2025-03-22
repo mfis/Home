@@ -63,7 +63,7 @@ public class SolarmanService {
     private static final Map<String, Device> SOLARMAN_KEY_TO_HM_DEVICE  = new HashMap<>() {{
         put("Et_ge0", Device.ELECTRIC_POWER_PRODUCTION_COUNTER_HOUSE); // Summe PV
         put("Et_use1", Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HOUSE); // Summe Verbrauch
-        put("T_AC_OP", Device.ELECTRIC_POWER_PRODUCTION_ACTUAL_HOUSE); // produktion
+        put("PVTP", Device.ELECTRIC_POWER_PRODUCTION_ACTUAL_HOUSE); // produktion
         put("E_Puse_t1", Device.ELECTRIC_POWER_CONSUMPTION_ACTUAL_HOUSE); // verbrauch
     }};
 
@@ -207,11 +207,9 @@ public class SolarmanService {
     private PvBatteryState solarmanBatteryStateToInternalBatteryState(String solarmanState){
         if(solarmanState == null){
             return PvBatteryState.STABLE;
-        } else if(solarmanState.equalsIgnoreCase("Static")){
-            return PvBatteryState.STABLE;
-        }else if(solarmanState.equalsIgnoreCase("???_CHARGING_???")){ // FIXME
+        }else if(solarmanState.equalsIgnoreCase("Charging")){
             return PvBatteryState.CHARGING;
-        }else if(solarmanState.equalsIgnoreCase("???_DISCHARGING_???")){ // FIXME
+        }else if(solarmanState.equalsIgnoreCase("Discharging")){
             return PvBatteryState.DISCHARGING;
         }
         return PvBatteryState.STABLE;
