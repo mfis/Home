@@ -421,24 +421,21 @@ public class HouseViewService {
             setButtonLock = true;
         } else {
             setButtonOpen = true;
-            if (doorlock.isLockStateUncertain()) {
-                view.setState("Unbestimmt");
-                view.setIcon("fas fa-question-circle");
-                view.setColorClass(ConditionColor.ORANGE.getUiClass());
-                setButtonLock = true;
+            if (doorlock.isLockState()) {
+                view.setState("Verriegelt");
+                view.setIcon("fas fa-lock");
+                view.setColorClass(ConditionColor.GREEN.getUiClass());
                 setButtonUnlock = true;
             } else {
-                if (doorlock.isLockState()) {
-                    view.setState("Verriegelt");
-                    view.setIcon("fas fa-lock");
-                    view.setColorClass(ConditionColor.GREEN.getUiClass());
-                    setButtonUnlock = true;
-                } else {
-                    view.setState("Entriegelt");
-                    view.setIcon("fas fa-lock-open");
-                    view.setColorClass(ConditionColor.ORANGE.getUiClass());
-                    setButtonLock = true;
-                }
+                view.setState("Entriegelt");
+                view.setIcon("fas fa-lock-open");
+                view.setColorClass(ConditionColor.ORANGE.getUiClass());
+                setButtonLock = true;
+            }
+            if (doorlock.isLockStateUncertain()) {
+                view.setState(view.getState() + " (manuell)");
+                setButtonLock = true;
+                setButtonUnlock = true;
             }
         }
 
