@@ -59,10 +59,10 @@ public enum LiveActivityField {
             val -> {
                 switch (ModelObjectDAO.getInstance().readPvAdditionalDataModel().getPvBatteryState()){
                     case CHARGING -> {
-                        return ViewFormatterUtils.mapAppColorAccent(ConditionColor.GREEN.getUiClass());
+                        return ViewFormatterUtils.mapAppColorAccent(ConditionColor.BLUE.getUiClass());
                     }
                     case DISCHARGING -> {
-                        return ViewFormatterUtils.mapAppColorAccent(ConditionColor.BLUE.getUiClass());
+                        return ViewFormatterUtils.mapAppColorAccent(ConditionColor.GREEN.getUiClass());
                     }
                     default -> {
                         return ViewFormatterUtils.mapAppColorAccent(ConditionColor.DEFAULT.getUiClass());

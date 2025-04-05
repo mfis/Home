@@ -786,7 +786,7 @@ public class HouseViewService {
             }
         }else{
             if(isFeedingPowerConsumptionByPvBattery(pvAdditionalDataModel)){
-                overallElectricPowerHouseView.getPv().setColorClass(ConditionColor.BLUE.getUiClass());
+                overallElectricPowerHouseView.getPv().setColorClass(ConditionColor.GREEN.getUiClass());
                 overallElectricPowerHouseView.setBatteryDirectionArrowClass("225");
             }else{
                 overallElectricPowerHouseView.getPv().setColorClass(ConditionColor.DEFAULT.getUiClass());
@@ -803,9 +803,9 @@ public class HouseViewService {
                 && houseModel.getGridElectricalPower().getActualConsumption().getValue() != null
                 && houseModel.getGridElectricalPower().getActualConsumption().getValue().compareTo(BigDecimal.ZERO) < 0) {
             if(isFeedingPowerConsumptionByPvBattery(pvAdditionalDataModel)){
-                overallElectricPowerHouseView.getConsumption().setColorClass(ConditionColor.BLUE.getUiClass());
-            }else{
                 overallElectricPowerHouseView.getConsumption().setColorClass(ConditionColor.GREEN.getUiClass());
+            }else{
+                overallElectricPowerHouseView.getConsumption().setColorClass(ConditionColor.BLUE.getUiClass());
             }
         }else{
             overallElectricPowerHouseView.getConsumption().setColorClass(ConditionColor.DEFAULT.getUiClass());

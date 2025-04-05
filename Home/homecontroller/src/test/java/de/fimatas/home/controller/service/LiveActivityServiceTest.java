@@ -82,7 +82,7 @@ class LiveActivityServiceTest {
         assertEquals("0,1", getSingleVal(0, "primary", "valShort"));
         assertEquals("energygrid", getSingleVal(0, "primary", "symbolName"));
         assertEquals("20%", getSingleVal(0, "secondary", "val"));
-        assertEquals(".green", getSingleVal(0, "secondary", "color"));
+        assertEquals(".blue", getSingleVal(0, "secondary", "color"));
         assertEquals("20%", getSingleVal(0, "secondary", "valShort"));
         assertEquals("battery.25percent", getSingleVal(0, "secondary", "symbolName"));
     }
