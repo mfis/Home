@@ -35,6 +35,9 @@ public class ClientCommunicationService {
     private HouseService houseService;
 
     @Autowired
+    private FrontDoorService frontDoorService;
+
+    @Autowired
     private HistoryService historyService;
 
     @Autowired
@@ -131,7 +134,7 @@ public class ClientCommunicationService {
                 houseService.refreshHouseModel(false);
                 break;
             case OPEN:
-                houseService.doorState(message);
+                frontDoorService.doorState(message, true);
                 houseService.refreshHouseModel(false);
                 break;
             case SHUTTERPOSITION:

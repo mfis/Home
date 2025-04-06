@@ -82,6 +82,8 @@ public class HomematicAPI {
 
     private static final int YEAR_OF_UNIX_TIMESTAMP_START = 1970;
 
+    public static final String BUSY = "Busy";
+
     // current response
 
     @Getter
@@ -130,6 +132,11 @@ public class HomematicAPI {
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance(); // NOSONAR
         dbFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, Boolean.TRUE);
         documentBuilder = dbFactory.newDocumentBuilder();
+    }
+
+    public void runProgramWithBusyState(Device device, String programSuffix) {
+        executeCommand(homematicCommandBuilder.write(device, BUSY, String.valueOf(System.currentTimeMillis())),
+                homematicCommandBuilder.exec(device, programSuffix));
     }
 
     public boolean isDeviceUnreachableOrNotSending(Device device) {

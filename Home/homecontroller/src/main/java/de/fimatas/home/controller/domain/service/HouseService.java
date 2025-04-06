@@ -8,10 +8,8 @@ import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.homematic.model.*;
 import de.fimatas.home.library.homematic.model.Type;
-import de.fimatas.home.library.model.Message;
 import de.fimatas.home.library.util.HomeAppConstants;
 import lombok.extern.apachecommons.CommonsLog;
-import mfi.files.api.UserService;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -59,8 +57,6 @@ public class HouseService {
 
     private static final String EVENT = "Event";
 
-    private static final String BUSY = "Busy";
-
     private static final String IS_OPENED = "IsOpened";
 
     private static final String TIMESTAMP = "Timestamp";
@@ -82,9 +78,6 @@ public class HouseService {
 
     @Autowired
     private HomematicCommandBuilder homematicCommandBuilder;
-
-    @Autowired
-    private UserService userService;
 
     @Autowired
     private ElectricVehicleService electricVehicleService;
@@ -499,43 +492,18 @@ public class HouseService {
     }
 
     public void heatingBoost(Device device) {
-        runProgram(device, "Boost");
+        hmApi.runProgramWithBusyState(device, "Boost");
     }
 
     // needs to be synchronized because of using ccu-systemwide temperature
     // variable
     public synchronized void heatingManual(Device device, BigDecimal temperature) {
         hmApi.executeCommand(homematicCommandBuilder.write(device, "Temperature", temperature.toString()));
-        runProgram(device, "Manual");
+        hmApi.runProgramWithBusyState(device, "Manual");
     }
 
     public synchronized void heatingAuto(Device device) {
-        runProgram(device, "Auto");
-    }
-
-    public void doorState(Message message) {
-        if (StringUtils.isNotBlank(message.getSecurityPin())
-            && userService.checkPin(message.getUser(), message.getSecurityPin())) {
-            hmApi.executeCommand(homematicCommandBuilder.write(message.getDevice(), "Ansteuerung", true));
-            switch (StateValue.valueOf(message.getValue())) {
-            case LOCK:
-                runProgram(message.getDevice(), "Lock");
-                break;
-            case UNLOCK:
-                runProgram(message.getDevice(), "Unlock");
-                break;
-            case OPEN:
-                runProgram(message.getDevice(), "Open");
-                break;
-            default:
-                // noop
-            }
-        }
-    }
-
-    private void runProgram(Device device, String programSuffix) {
-        hmApi.executeCommand(homematicCommandBuilder.write(device, BUSY, String.valueOf(System.currentTimeMillis())),
-            homematicCommandBuilder.exec(device, programSuffix));
+        hmApi.runProgramWithBusyState(device, "Auto");
     }
 
     private void updateHomematicSystemVariables(HouseModel oldModel, HouseModel newModel) {
@@ -689,14 +657,14 @@ public class HouseService {
 
     private boolean checkBusyState(Device device) {
 
-        String busyString = hmApi.getAsString(homematicCommandBuilder.read(device, BUSY));
+        String busyString = hmApi.getAsString(homematicCommandBuilder.read(device, HomematicAPI.BUSY));
         if (StringUtils.isNotBlank(busyString) && StringUtils.isNumeric(busyString)) {
             long busyTimestamp = Long.parseLong(busyString);
             long diff = System.currentTimeMillis() - busyTimestamp;
             if (diff < 1000 * 60 * 3) {
                 return true;
             }
-            hmApi.executeCommand(homematicCommandBuilder.write(device, BUSY, StringUtils.EMPTY));
+            hmApi.executeCommand(homematicCommandBuilder.write(device, HomematicAPI.BUSY, StringUtils.EMPTY));
         }
         return false;
     }
