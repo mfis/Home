@@ -45,10 +45,6 @@ public class FrontDoorService {
         }
     }
 
-        var frontDoorModel = ModelObjectDAO.getInstance().readHouseModel() != null ? ModelObjectDAO.getInstance().readHouseModel().getFrontDoorLock() : null;
-        if (frontDoorModel != null && !frontDoorModel.isUnreach() && frontDoorModel.getLockAutomation()) {
-            doorState(messageForDoorState(StateValue.LOCK), true);
-            houseService.refreshHouseModel(false);
     public void handlePresenceChange(String username, PresenceState state) {
         if(state == PresenceState.AWAY && isNoOneAtHome() && isDoorLockAutomaticAndNotInState(StateValue.LOCK) ) {
             changeDoorLockState(messageForDoorState(StateValue.LOCK), false);
@@ -56,7 +52,6 @@ public class FrontDoorService {
         }
     }
 
-    public void doorState(Message message, boolean unlockOnlyWithSecutityPin) {
     public void changeDoorLockState(Message message, boolean unlockOnlyWithSecutityPin) {
 
         // check pin?
