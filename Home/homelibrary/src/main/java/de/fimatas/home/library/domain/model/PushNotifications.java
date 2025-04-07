@@ -13,6 +13,7 @@ public enum PushNotifications {
     ERRORMESSAGE("Fehlermeldung", "Fehlermeldungen",false), //
     NOTICE("Hinweise", "Hinweise",false), //
     TASKS("", "Aufgaben",true), //
+    DOOR_LOCK("Haustür", "Türverriegelung",true), //
     ;
 
     @Getter

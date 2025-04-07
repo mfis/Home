@@ -134,7 +134,7 @@ public class ClientCommunicationService {
                 houseService.refreshHouseModel(false);
                 break;
             case OPEN:
-                frontDoorService.doorState(message, true);
+                frontDoorService.changeDoorLockState(message, true);
                 houseService.refreshHouseModel(false);
                 break;
             case SHUTTERPOSITION:
@@ -151,6 +151,7 @@ public class ClientCommunicationService {
                 break;
             case PRESENCE_EDIT:
                 presenceService.update(message.getKey(), PresenceState.valueOf(message.getValue()));
+                frontDoorService.handlePresenceChange(message.getKey(), PresenceState.valueOf(message.getValue()));
                 break;
             case CONTROL_HEATPUMP:
                 List<Place> places = new LinkedList<>();

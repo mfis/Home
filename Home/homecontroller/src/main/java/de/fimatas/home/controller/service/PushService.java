@@ -277,6 +277,14 @@ public class PushService {
                 handleMessage(pushToken, PushNotifications.DOORBELL.getPushText(), "Türklingelbetätigung!"));
     }
 
+    public void doorLock(String user) {
+
+        final PushToken pushToken = settingsService.tokenWithEnabledSettingForUser(PushNotifications.DOOR_LOCK, user);
+        if(pushToken != null){
+            handleMessage(pushToken, PushNotifications.DOOR_LOCK.getPushText(), "Tür wurde verriegelt.");
+        }
+    }
+
     private void todayWeatherMessage(WeatherForecastModel model) {
 
         if(model==null || model.getConclusionToday()==null){

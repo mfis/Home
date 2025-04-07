@@ -4,8 +4,10 @@ import de.fimatas.home.controller.api.HomematicAPI;
 import de.fimatas.home.controller.command.HomematicCommandBuilder;
 import de.fimatas.home.controller.domain.service.HouseService;
 import de.fimatas.home.library.dao.ModelObjectDAO;
+import de.fimatas.home.library.domain.model.Doorlock;
 import de.fimatas.home.library.domain.model.StateValue;
 import de.fimatas.home.library.model.Message;
+import de.fimatas.home.library.model.PresenceState;
 import lombok.extern.apachecommons.CommonsLog;
 import mfi.files.api.UserService;
 import org.apache.commons.lang3.StringUtils;
@@ -31,22 +33,31 @@ public class FrontDoorService {
     private UserService userService;
 
     @Autowired
-    private UploadService uploadService;
+    private PushService pushService;
 
     @Autowired
     private Environment env;
 
     @Scheduled(cron = "04 30 19,21 * * *")
     public void lockDoorInTheEvening() {
+        if (isDoorLockAutomaticAndNotInState(StateValue.LOCK)) {
+            changeDoorLockState(messageForDoorState(StateValue.LOCK), true);
+        }
+    }
 
         var frontDoorModel = ModelObjectDAO.getInstance().readHouseModel() != null ? ModelObjectDAO.getInstance().readHouseModel().getFrontDoorLock() : null;
         if (frontDoorModel != null && !frontDoorModel.isUnreach() && frontDoorModel.getLockAutomation()) {
             doorState(messageForDoorState(StateValue.LOCK), true);
             houseService.refreshHouseModel(false);
+    public void handlePresenceChange(String username, PresenceState state) {
+        if(state == PresenceState.AWAY && isNoOneAtHome() && isDoorLockAutomaticAndNotInState(StateValue.LOCK) ) {
+            changeDoorLockState(messageForDoorState(StateValue.LOCK), false);
+            pushService.doorLock(username);
         }
     }
 
     public void doorState(Message message, boolean unlockOnlyWithSecutityPin) {
+    public void changeDoorLockState(Message message, boolean unlockOnlyWithSecutityPin) {
 
         // check pin?
         boolean checkPin = switch (StateValue.valueOf(message.getValue())) {
@@ -62,6 +73,7 @@ public class FrontDoorService {
                 case UNLOCK -> hmApi.runProgramWithBusyState(message.getDevice(), "Unlock");
                 case OPEN -> hmApi.runProgramWithBusyState(message.getDevice(), "Open");
             }
+            houseService.refreshHouseModel(false);
         }
     }
 
@@ -74,5 +86,25 @@ public class FrontDoorService {
         var m = new Message();
         m.setValue(stateValue.name());
         return m;
+    }
+
+    private boolean isDoorLockAutomaticAndNotInState(StateValue stateValue) {
+        var frontDoorModel = getFrontDoorModel();
+        return frontDoorModel != null && !frontDoorModel.isUnreach()
+                && frontDoorModel.getLockAutomation()
+                && stateValueFromModel(frontDoorModel) == stateValue;
+    }
+
+    private StateValue stateValueFromModel(Doorlock doorlock) {
+        return doorlock.isOpen() ? StateValue.OPEN : (doorlock.isLockState() ? StateValue.LOCK : StateValue.UNLOCK);
+    }
+
+    private static Doorlock getFrontDoorModel() {
+        return ModelObjectDAO.getInstance().readHouseModel() != null ? ModelObjectDAO.getInstance().readHouseModel().getFrontDoorLock() : null;
+    }
+
+    private boolean isNoOneAtHome() {
+        return ModelObjectDAO.getInstance().readPresenceModel().getPresenceStates().entrySet()
+                .stream().noneMatch(e -> e.getValue() == PresenceState.PRESENT);
     }
 }
