@@ -222,16 +222,17 @@ public class HistoryServiceTest {
         testValueMap.add(new TestParams(1, "2.8", false, "not add diff < -1"));
         testValueMap.add(new TestParams(1, "2.4", true, "add diff < -1 if rounded value is not equal"));
 
-        final AutoCloseableSoftAssertions softAssert = new AutoCloseableSoftAssertions();
-        TimestampValuePair lastPair = null;
-        for (TestParams params: testValueMap) {
-            when(dao.readLatestValue(historyElement.getCommand())).thenReturn(lastPair);
-            var result = new LinkedList<TimestampValuePair>();
-            historyService.diffValueCheckedAdd(historyElement, params.pair, result);
-            softAssert.assertThat(result.size()).describedAs(params.description).isEqualTo(params.expectation);
-            lastPair = params.pair;
+        try (AutoCloseableSoftAssertions softAssert = new AutoCloseableSoftAssertions()) {
+            TimestampValuePair lastPair = null;
+            for (TestParams params: testValueMap) {
+                when(dao.readLatestValue(historyElement.getCommand())).thenReturn(lastPair);
+                var result = new LinkedList<TimestampValuePair>();
+                historyService.diffValueCheckedAdd(historyElement, params.pair, result);
+                softAssert.assertThat(result.size()).describedAs(params.description).isEqualTo(params.expectation);
+                lastPair = params.pair;
+            }
+            softAssert.assertAll();
         }
-        softAssert.assertAll();
     }
 
 }

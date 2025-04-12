@@ -61,8 +61,43 @@ public class FrontDoorServiceTest {
     }
 
     @Test
-    void testHandlePresenceChange() {
+    void testHandlePresenceChangeToOne() {
+        presence(1);
+        doorLockState(StateValue.UNLOCK, true);
+        frontDoorService.handlePresenceChange("user", PresenceState.PRESENT);
+        verify(hmApi, times(0)).runProgramWithBusyState(eq(Device.HAUSTUER_SCHLOSS), eq("Lock"));
+        verify(homematicCommandBuilder, times(0)).write(eq(Device.HAUSTUER_SCHLOSS), eq("Ansteuerung"), eq(true));
+        verify(pushService, times(0)).doorLock(eq("user"));
+    }
 
+    @Test
+    void testHandlePresenceChangeToZeroNoAutomation() {
+        presence(0);
+        doorLockState(StateValue.UNLOCK, false);
+        frontDoorService.handlePresenceChange("user", PresenceState.PRESENT);
+        verify(hmApi, times(0)).runProgramWithBusyState(eq(Device.HAUSTUER_SCHLOSS), eq("Lock"));
+        verify(homematicCommandBuilder, times(0)).write(eq(Device.HAUSTUER_SCHLOSS), eq("Ansteuerung"), eq(true));
+        verify(pushService, times(0)).doorLock(eq("user"));
+    }
+
+    @Test
+    void testHandlePresenceChangeToZeroIsLocked() {
+        presence(0);
+        doorLockState(StateValue.LOCK, true);
+        frontDoorService.handlePresenceChange("user", PresenceState.PRESENT);
+        verify(hmApi, times(0)).runProgramWithBusyState(eq(Device.HAUSTUER_SCHLOSS), eq("Lock"));
+        verify(homematicCommandBuilder, times(0)).write(eq(Device.HAUSTUER_SCHLOSS), eq("Ansteuerung"), eq(true));
+        verify(pushService, times(0)).doorLock(eq("user"));
+    }
+
+    @Test
+    void testHandlePresenceChangeToZeroAndLock() {
+        presence(0);
+        doorLockState(StateValue.UNLOCK, true);
+        frontDoorService.handlePresenceChange("user", PresenceState.AWAY);
+        verify(hmApi, times(1)).runProgramWithBusyState(eq(Device.HAUSTUER_SCHLOSS), eq("Lock"));
+        verify(homematicCommandBuilder, times(1)).write(eq(Device.HAUSTUER_SCHLOSS), eq("Ansteuerung"), eq(true));
+        verify(pushService, times(1)).doorLock(eq("user"));
     }
 
     @Test
@@ -71,6 +106,7 @@ public class FrontDoorServiceTest {
         doorLockState(StateValue.UNLOCK, true);
         frontDoorService.lockDoorInTheEvening();
         verify(hmApi, times(1)).runProgramWithBusyState(eq(Device.HAUSTUER_SCHLOSS), eq("Lock"));
+        verify(homematicCommandBuilder, times(1)).write(eq(Device.HAUSTUER_SCHLOSS), eq("Ansteuerung"), eq(true));
     }
 
     @Test
@@ -79,6 +115,7 @@ public class FrontDoorServiceTest {
         doorLockState(StateValue.UNLOCK, true);
         frontDoorService.lockDoorInTheEvening();
         verify(hmApi, times(1)).runProgramWithBusyState(eq(Device.HAUSTUER_SCHLOSS), eq("Lock"));
+        verify(homematicCommandBuilder, times(1)).write(eq(Device.HAUSTUER_SCHLOSS), eq("Ansteuerung"), eq(true));
     }
 
     @Test
@@ -87,6 +124,7 @@ public class FrontDoorServiceTest {
         doorLockState(StateValue.UNLOCK, false);
         frontDoorService.lockDoorInTheEvening();
         verify(hmApi, times(0)).runProgramWithBusyState(eq(Device.HAUSTUER_SCHLOSS), eq("Lock"));
+        verify(homematicCommandBuilder, times(0)).write(eq(Device.HAUSTUER_SCHLOSS), eq("Ansteuerung"), eq(true));
     }
 
     @Test
@@ -95,6 +133,7 @@ public class FrontDoorServiceTest {
         doorLockState(StateValue.LOCK, true);
         frontDoorService.lockDoorInTheEvening();
         verify(hmApi, times(0)).runProgramWithBusyState(eq(Device.HAUSTUER_SCHLOSS), eq("Lock"));
+        verify(homematicCommandBuilder, times(0)).write(eq(Device.HAUSTUER_SCHLOSS), eq("Ansteuerung"), eq(true));
     }
 
     private void doorLockState(StateValue stateValue, boolean automation) {

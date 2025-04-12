@@ -13,7 +13,6 @@ import lombok.extern.apachecommons.CommonsLog;
 import mfi.files.api.UserService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -35,9 +34,6 @@ public class FrontDoorService {
 
     @Autowired
     private PushService pushService;
-
-    @Autowired
-    private Environment env;
 
     private final Device DEFAULT_DEVICE = Device.HAUSTUER_SCHLOSS;
 
