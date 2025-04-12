@@ -6,6 +6,7 @@ import de.fimatas.home.controller.domain.service.HouseService;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.Doorlock;
 import de.fimatas.home.library.domain.model.StateValue;
+import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.model.Message;
 import de.fimatas.home.library.model.PresenceState;
 import lombok.extern.apachecommons.CommonsLog;
@@ -38,16 +39,18 @@ public class FrontDoorService {
     @Autowired
     private Environment env;
 
+    private final Device DEFAULT_DEVICE = Device.HAUSTUER_SCHLOSS;
+
     @Scheduled(cron = "04 30 19,21 * * *")
     public void lockDoorInTheEvening() {
         if (isDoorLockAutomaticAndNotInState(StateValue.LOCK)) {
-            changeDoorLockState(messageForDoorState(StateValue.LOCK), true);
+            changeDoorLockState(messageForDoorState(DEFAULT_DEVICE, StateValue.LOCK), true);
         }
     }
 
     public void handlePresenceChange(String username, PresenceState state) {
         if(state == PresenceState.AWAY && isNoOneAtHome() && isDoorLockAutomaticAndNotInState(StateValue.LOCK) ) {
-            changeDoorLockState(messageForDoorState(StateValue.LOCK), false);
+            changeDoorLockState(messageForDoorState(DEFAULT_DEVICE, StateValue.LOCK), false);
             pushService.doorLock(username);
         }
     }
@@ -77,8 +80,9 @@ public class FrontDoorService {
                 && userService.checkPin(message.getUser(), message.getSecurityPin());
     }
 
-    private Message messageForDoorState(StateValue stateValue) {
+    private Message messageForDoorState(Device device, StateValue stateValue) {
         var m = new Message();
+        m.setDevice(DEFAULT_DEVICE);
         m.setValue(stateValue.name());
         return m;
     }
@@ -87,7 +91,7 @@ public class FrontDoorService {
         var frontDoorModel = getFrontDoorModel();
         return frontDoorModel != null && !frontDoorModel.isUnreach()
                 && frontDoorModel.getLockAutomation()
-                && stateValueFromModel(frontDoorModel) == stateValue;
+                && stateValueFromModel(frontDoorModel) != stateValue;
     }
 
     private StateValue stateValueFromModel(Doorlock doorlock) {
