@@ -40,13 +40,13 @@ public class FrontDoorService {
     @Scheduled(cron = "04 30 19,21 * * *")
     public void lockDoorInTheEvening() {
         if (isDoorLockAutomaticAndNotInState(StateValue.LOCK)) {
-            changeDoorLockState(messageForDoorState(DEFAULT_DEVICE, StateValue.LOCK), true);
+            changeDoorLockState(messageForDoorState(StateValue.LOCK), true);
         }
     }
 
     public void handlePresenceChange(String username, PresenceState state) {
         if(state == PresenceState.AWAY && isNoOneAtHome() && isDoorLockAutomaticAndNotInState(StateValue.LOCK) ) {
-            changeDoorLockState(messageForDoorState(DEFAULT_DEVICE, StateValue.LOCK), false);
+            changeDoorLockState(messageForDoorState(StateValue.LOCK), true);
             pushService.doorLock(username);
         }
     }
@@ -76,7 +76,7 @@ public class FrontDoorService {
                 && userService.checkPin(message.getUser(), message.getSecurityPin());
     }
 
-    private Message messageForDoorState(Device device, StateValue stateValue) {
+    private Message messageForDoorState(StateValue stateValue) {
         var m = new Message();
         m.setDevice(DEFAULT_DEVICE);
         m.setValue(stateValue.name());
