@@ -154,13 +154,13 @@ public class HeatpumpService {
         request.setReadFromCache(cachedData);
 
         HeatpumpResponse response = callDriver(request);
-        if(cachedData && response.isCacheNotPresentError() && !isCallError){
+        //if(cachedData && response.isCacheNotPresentError() && !isCallError){
             // Fallback from cached to direct call
-            log.info("heatpump cache empty, calling again without cache");
-            request.setReadFromCache(false);
-            response = callDriver(request);
-            isCallError = !response.isDriverRunSuccessful() || StringUtils.isNotBlank(response.getErrorMessage());
-        }
+            // log.info("heatpump cache empty, calling again without cache");
+            //request.setReadFromCache(false);
+            //response = callDriver(request);
+            //isCallError = !response.isDriverRunSuccessful() || StringUtils.isNotBlank(response.getErrorMessage());
+        //}
 
         handleResponse(request, response);
     }
