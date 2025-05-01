@@ -119,6 +119,13 @@ public class SettingsService {
                 .findFirst().orElse(null);
     }
 
+    public PushToken tokenForUser(String user) {
+        return SettingsDAO.getInstance().read().stream()
+                .filter(settings -> settings.getUser().equals(user))
+                .map(settingsModel -> new PushToken(settingsModel.getUser(), settingsModel.getToken()))
+                .findFirst().orElse(null);
+    }
+
     public void editSetting(String token, String key, boolean value){
         SettingsDAO.getInstance().read().stream().filter(sm -> sm.getToken().equals(token)).findFirst().ifPresent(
                         sm -> {

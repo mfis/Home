@@ -236,6 +236,13 @@ public class PushService {
         }
     }
 
+    public void testMessage(String user) {
+        final PushToken pushToken = settingsService.tokenForUser(user);
+        if(pushToken != null){
+            handleMessage(pushToken, "Test", LocalDateTime.now().toString());
+        }
+    }
+
     private void windowOpenMessage(HouseModel newModel) {
 
         var roomNames = new LinkedList<String>();
