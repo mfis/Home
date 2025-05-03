@@ -2,7 +2,7 @@ package de.fimatas.home.controller.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.fimatas.heatpumpdriver.api.*;
+import de.fimatas.heatpump.roof.driver.api.*;
 import de.fimatas.home.controller.api.ExternalServiceHttpAPI;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
@@ -18,9 +18,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.ResourceAccessException;
 
 import jakarta.annotation.PostConstruct;
 import org.springframework.web.client.RestClientException;
@@ -395,7 +392,7 @@ public class HeatpumpService {
             }
             return body;
 
-        } catch (ResourceAccessException | HttpServerErrorException | HttpClientErrorException e) {
+        } catch (RestClientException e) {
             log.error("Exception calling heatpump driver:" + e.getMessage());
             isCallError = true;
             var response = new HeatpumpResponse();

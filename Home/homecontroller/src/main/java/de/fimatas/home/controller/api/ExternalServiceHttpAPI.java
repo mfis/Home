@@ -1,7 +1,7 @@
 package de.fimatas.home.controller.api;
 
-import de.fimatas.heatpumpdriver.api.HeatpumpRequest;
-import de.fimatas.heatpumpdriver.api.HeatpumpResponse;
+import de.fimatas.heatpump.roof.driver.api.HeatpumpRequest;
+import de.fimatas.heatpump.roof.driver.api.HeatpumpResponse;
 import jakarta.annotation.PostConstruct;
 import lombok.SneakyThrows;
 import lombok.extern.apachecommons.CommonsLog;
