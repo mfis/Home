@@ -58,6 +58,9 @@ public class HeatpumpService {
     @Value("${application.heatpumpRefreshEnabled:false}")
     private boolean heatpumpRefreshEnabled;
 
+    @Value("${heatpump.roof.name:UnbekannteWaermepumpe}")
+    private String heatpumpName;
+
     private boolean isCallError = false; // prevent continous error calls
 
     private Map<Place, String> dictPlaceToRoomNameInDriver;
@@ -174,7 +177,7 @@ public class HeatpumpService {
                 log.warn("Error calling heatpump driver....");
             }
             if(!request.isReadFromCache() || (request.getWriteWithRoomnameAndProgram() != null && !request.getWriteWithRoomnameAndProgram().isEmpty())){
-                CompletableFuture.runAsync(() -> pushService.sendErrorMessage("Fehler bei Ansteuerung der Wärmepumpe!"));
+                CompletableFuture.runAsync(() -> pushService.sendErrorMessage("Fehler bei Ansteuerung von " + heatpumpName));
             }
             switchModelToUnknown();
             return;
@@ -285,7 +288,7 @@ public class HeatpumpService {
             if(areExpectedModesSet(places, presetToProgram(preset), response)){
                 scheduleNewTimers(places, preset);
             }else{
-                CompletableFuture.runAsync(() -> pushService.sendErrorMessage("Wärmepumpe befindet sich nicht im erwarteten Modus!"));
+                CompletableFuture.runAsync(() -> pushService.sendErrorMessage(heatpumpName + " befindet sich nicht im erwarteten Modus!"));
             }
         }
 
@@ -354,6 +357,7 @@ public class HeatpumpService {
     private HeatpumpModel getHeatpumpModelWithUnknownPresets() {
 
         final var unknownHeatpumpModel = new HeatpumpModel();
+        unknownHeatpumpModel.setName(heatpumpName);
         unknownHeatpumpModel.setTimestamp(System.currentTimeMillis());
         dictPlaceToRoomNameInDriver.keySet().forEach(
                 place -> unknownHeatpumpModel.getHeatpumpMap().put(place, new Heatpump(place, HeatpumpPreset.UNKNOWN, null)));

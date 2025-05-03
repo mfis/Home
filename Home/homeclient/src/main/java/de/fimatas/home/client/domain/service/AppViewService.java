@@ -344,7 +344,7 @@ public class AppViewService {
     private HomeViewValueModel mapHeatpump(PlaceDirectives placeDirectives, HeatpumpView view) {
         HomeViewValueModel hvm = new HomeViewValueModel();
         hvm.setId(view.getId());
-        hvm.setKey("Wärmepumpe");
+        hvm.setKey(view.getName());
         if(Boolean.parseBoolean(view.getBusy())) {
             hvm.setValue("...\u21BB...");
             hvm.setAccent(Strings.EMPTY);
@@ -584,7 +584,7 @@ public class AppViewService {
 
         var idSuffix = other.stream().map(ValueWithCaption::getValue).collect(Collectors.joining("#"));
         actionSwitchCaption.setId(placeDirectives.place.name() + "-hpSwitchesCaption-" + idSuffix);
-        actionSwitchCaption.setName("Wärmepumpe\n" + (StringUtils.isBlank(view.getPlaceSubtitle()) ? view.getPlace() : "") + view.getPlaceSubtitle().trim());
+        actionSwitchCaption.setName(view.getName() + "\n" + (StringUtils.isBlank(view.getPlaceSubtitle()) ? view.getPlace() : "") + view.getPlaceSubtitle().trim());
         if(!other.isEmpty()){
             other.forEach(o -> actionSwitchCaption.setName(actionSwitchCaption.getName() + "\n" + (StringUtils.isNotBlank(o.getCssClass()) ? o.getCssClass().trim() : o.getCaption())));
         }

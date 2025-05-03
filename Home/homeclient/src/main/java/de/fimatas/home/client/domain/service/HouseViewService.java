@@ -1512,7 +1512,7 @@ public class HouseViewService {
 
         var view = new HeatpumpView();
         model.addAttribute("heatpump" + place.name(), view);
-        view.setName("Wärmepumpe");
+        view.setName(heatpumpModel == null ? "UnbekannteWaermepumpe" : heatpumpModel.getName());
         view.setIcon("aircon.png");
         view.setPlaceEnum(place);
         view.setPlaceSubtitle(houseModel.getPlaceSubtitles().containsKey(place) ? houseModel.getPlaceSubtitles().get(place) : place.getPlaceName());

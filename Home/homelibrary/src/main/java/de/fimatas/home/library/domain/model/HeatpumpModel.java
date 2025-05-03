@@ -15,6 +15,8 @@ public class HeatpumpModel extends AbstractSystemModel {
 
     private boolean busy;
 
+    private String name;
+
     public HeatpumpModel() {
         timestamp = System.currentTimeMillis();
     }
