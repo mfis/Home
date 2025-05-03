@@ -126,7 +126,7 @@ public class HeatpumpService {
     }
 
     private boolean isRestartInTimerangeMinutes(int minutes){
-        String serverRestartCron = env.getProperty("heatpump.server.restartCron");
+        String serverRestartCron = env.getProperty("heatpump.roof.server.restartCron");
         if(StringUtils.isNotBlank(serverRestartCron)) {
             CronExpression cronExpression = CronExpression.parse(serverRestartCron);
             final LocalDateTime next = cronExpression.next(LocalDateTime.now());
@@ -149,8 +149,8 @@ public class HeatpumpService {
 
         HeatpumpRequest request = new HeatpumpRequest();
         request.getReadWithRoomnames().addAll(dictPlaceToRoomNameInDriver.values());
-        request.setHeatpumpUsername(env.getProperty("heatpump.driver.user"));
-        request.setHeatpumpPassword(env.getProperty("heatpump.driver.pass"));
+        request.setHeatpumpUsername(env.getProperty("heatpump.roof.driver.user"));
+        request.setHeatpumpPassword(env.getProperty("heatpump.roof.driver.pass"));
         request.setReadFromCache(cachedData);
 
         HeatpumpResponse response = callDriver(request);
@@ -276,8 +276,8 @@ public class HeatpumpService {
         HeatpumpRequest request = new HeatpumpRequest();
         request.getReadWithRoomnames().addAll(dictPlaceToRoomNameInDriver.values());
         request.getWriteWithRoomnameAndProgram().putAll(programs);
-        request.setHeatpumpUsername(env.getProperty("heatpump.driver.user"));
-        request.setHeatpumpPassword(env.getProperty("heatpump.driver.pass"));
+        request.setHeatpumpUsername(env.getProperty("heatpump.roof.driver.user"));
+        request.setHeatpumpPassword(env.getProperty("heatpump.roof.driver.pass"));
         request.setReadFromCache(false);
 
         final HeatpumpResponse response = callDriver(request);
@@ -378,7 +378,7 @@ public class HeatpumpService {
 
         try {
             ResponseEntity<HeatpumpResponse> response = externalServiceHttpAPI.postForHeatpumpEntity(
-                    Objects.requireNonNull(env.getProperty("heatpump.driver.url")), request);
+                    Objects.requireNonNull(env.getProperty("heatpump.roof.driver.url")), request);
             HttpStatusCode statusCode = response.getStatusCode();
 
             if (!statusCode.is2xxSuccessful()) {
