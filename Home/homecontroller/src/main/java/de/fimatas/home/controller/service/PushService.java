@@ -15,6 +15,7 @@ import de.fimatas.home.controller.model.PushToken;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.model.PhotovoltaicsStringsStatus;
+import de.fimatas.home.library.model.PvAdditionalDataModel;
 import de.fimatas.home.library.model.TaskState;
 import de.fimatas.home.library.model.TasksModel;
 import de.fimatas.home.library.util.HomeAppConstants;
@@ -141,6 +142,16 @@ public class PushService {
         }
     }
 
+    @Scheduled(cron = "0 30 07 * * *")
+    public void sendPvAlert() {
+
+        try {
+            pvAlert(ModelObjectDAO.getInstance().readPvAdditionalDataModel());
+        } catch (Exception e) {
+            LogFactory.getLog(PushService.class).error("Could not [sendPvAlert] push notifications:", e);
+        }
+    }
+
     @Scheduled(cron = "0 7 5 * * *")
     public void sendWeatherAtMorning() {
         try {
@@ -259,12 +270,41 @@ public class PushService {
         }
     }
 
+    private void pvAlert(PvAdditionalDataModel pvAdditionalDataModel) {
+
+        if(pvAdditionalDataModel == null){
+            return;
+        }
+
+        var liste = new LinkedList<String>();
+
+        if(pvAdditionalDataModel.getStringsStatus() == PhotovoltaicsStringsStatus.ERROR_DETECTING){
+            liste.add("Status der Photovoltaikanlage konnte nicht geprüft werden!");
+        } else if(pvAdditionalDataModel.getStringsStatus() == PhotovoltaicsStringsStatus.ONE_FAULTY){
+            liste.add("Teilausfall der Photovoltaikanlage erkannt!");
+        }
+
+        if (StringUtils.isNotBlank(pvAdditionalDataModel.getAlarm())) {
+            liste.add("Photovoltaikanlage meldet Fehler: " + pvAdditionalDataModel.getAlarm() + "!");
+        }
+
+        if(pvAdditionalDataModel.getBatteryStateOfCharge() < 19){
+            liste.add("PV-Speicher Ladestand niedrig: " + pvAdditionalDataModel.getBatteryStateOfCharge() + "%!");
+        }
+
+        if (!liste.isEmpty()) {
+            settingsService.listTokensWithEnabledSetting(PushNotifications.ERRORMESSAGE)
+                .forEach(pushToken -> handleMessage(pushToken, PushNotifications.ERRORMESSAGE.getPushText(),
+                        String.join(", ", liste)));
+        }
+    }
+
     private void lowBatteryMessage(HouseModel newModel) {
 
         if (!newModel.getLowBatteryDevices().isEmpty()) {
             settingsService.listTokensWithEnabledSetting(PushNotifications.LOW_BATTERY)
-                .forEach(pushToken -> handleMessage(pushToken, PushNotifications.LOW_BATTERY.getPushText(),
-                    StringUtils.join(newModel.getLowBatteryDevices(), ", ")));
+                    .forEach(pushToken -> handleMessage(pushToken, PushNotifications.LOW_BATTERY.getPushText(),
+                            StringUtils.join(newModel.getLowBatteryDevices(), ", ")));
         }
     }
 
