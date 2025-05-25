@@ -810,9 +810,12 @@ public class HouseViewService {
 
         var df = buildDecimalFormat("0");
         df.setRoundingMode(RoundingMode.HALF_UP);
-        var ets = Math.abs(houseModel.getGridElectricalPower().getActualConsumption().getValue().intValue()) + "W, PV " +
-                StringUtils.replace(overallElectricPowerHouseView.getPv().getElementTitleState(), " ", "") + ", Netz " +
-                StringUtils.replace(overallElectricPowerHouseView.getGridPurchase().getElementTitleState(), " ", "");
+        var ets = "Status unbekannt";
+        if(pvAdditionalDataModel != null){
+            ets = "PV: " +  StringUtils.remove(overallElectricPowerHouseView.getPv().getState(), ' ')
+                    + ", Bat: " + pvAdditionalDataModel.getBatteryStateOfCharge()
+                    + "%, Haus: " + Math.abs(houseModel.getConsumedElectricalPower().getActualConsumption().getValue().intValue()) + "W";
+        }
 
         // indicators
         overallElectricPowerHouseView.setState("");
