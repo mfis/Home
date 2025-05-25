@@ -201,4 +201,8 @@ public enum Device {
         return sysVars;
     }
 
+    public boolean isDisabled() {
+        return this == GASZAEHLER;
+    }
+
 }

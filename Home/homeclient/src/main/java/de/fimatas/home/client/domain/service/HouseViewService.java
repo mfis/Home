@@ -132,7 +132,6 @@ public class HouseViewService {
         formatFrontDoorLock(model, "frontDoorLock", house.getFrontDoorLock());
 
         formatOverallElectricPowerHouse(model, house, historyModel, pvAdditionalDataModel);
-        formatPower(model, house.getGasConsumption(), historyModel==null?null:historyModel.getGasConsumptionDay());
         formatWallboxSwitch(model, lookupWallboxId(), house.getWallboxSwitch(), house.getWallboxElectricalPowerConsumption(), electricVehicleModel);
         formatPower(model, house.getWallboxElectricalPowerConsumption(), historyModel==null?null:historyModel.getWallboxElectricPowerConsumptionDay());
         formatEVCharge(model, electricVehicleModel, house.getWallboxElectricalPowerConsumption());
@@ -208,19 +207,6 @@ public class HouseViewService {
             }
         }
         view.getCaptionAndValue().put("Strom", electric);
-
-        var gas = new View();
-        gas.setId(lookupTodayPowerId(house.getGasConsumption().getDevice(), true));
-        gas.setState("0" + ViewFormatter.powerConsumptionUnit(house.getGasConsumption().getDevice()));
-        if (pcdGas != null &&!pcdGas.isEmpty()) {
-            List<ChartEntry> dayViewModel = viewFormatter.fillPowerHistoryDayViewModel(house.getGasConsumption().getDevice(), pcdGas, false, true);
-            if (dayViewModel != null && !dayViewModel.isEmpty()) {
-                gas.setState(dayViewModel.get(0).getLabel().replace(ViewFormatter.SUM_SIGN, "").trim());
-                gas.setColorClass(calculateViewConditionColorGridPowerActualDayDay(house.getGasConsumption().getDevice(), dayViewModel.get(0).getNumericValue()).getUiClass());
-            }
-        }
-        view.getCaptionAndValue().put("Gas", gas);
-
     }
 
     private void formatEnergyGroup(Model model, String viewKey, Place place, ElectricVehicleModel electricVehicleModel, PowerMeter producedElectricalPower, PowerMeter gridElectricalPower) {
@@ -890,20 +876,20 @@ public class HouseViewService {
         power.setPlaceEnum(powerMeter.getDevice().getPlace());
         power.setDevice(powerMeter.getDevice());
         power.setDescription(powerMeter.getDevice().getDescription());
+        power.setName(powerMeter.getDevice().getType().getTypeName());
+        power.setHistoryKey(powerMeter.getDevice().historyKeyPrefix());
         setPowerViewIcon(powerMeter, power);
         power.setUnreach(Boolean.toString(powerMeter.isUnreach()));
         if (powerMeter.isUnreach() || externalUnreach) {
             return power;
         }
 
-        power.setHistoryKey(powerMeter.getDevice().historyKeyPrefix());
         BigDecimal val = powerMeter.getActualConsumption().getValue() == null? BigDecimal.ZERO : powerMeter.getActualConsumption().getValue().add(valueOffset);
         if(abs){
             val = val.abs();
         }
         power.setState(powerMeter.getActualConsumption().getValue() == null ? UNBEKANNT
                 : ViewFormatter.actualPowerConsumptionValueForView(powerMeter.getDevice(), val) + ViewFormatter.actualPowerUnit(power.getDevice()));
-        power.setName(powerMeter.getDevice().getType().getTypeName());
         if (powerMeter.getActualConsumption().getTendency() != null) {
             power.setTendencyIcon(powerMeter.getActualConsumption().getTendency().getIconCssClass());
         }
@@ -928,8 +914,6 @@ public class HouseViewService {
 
         if (powerMeter.getDevice() == Device.STROMZAEHLER_WALLBOX) {
             power.setIcon("fas fa-charging-station");
-        } else if (powerMeter.getDevice() == Device.GASZAEHLER){
-            power.setIcon("fa-solid fa-fire-flame-simple");
         } else if (powerMeter.getDevice() == Device.STROMZAEHLER_BEZUG
                 || powerMeter.getDevice() == Device.STROMZAEHLER_EINSPEISUNG){
             power.setIcon("fas fa-bolt");

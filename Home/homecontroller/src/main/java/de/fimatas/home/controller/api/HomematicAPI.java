@@ -149,6 +149,10 @@ public class HomematicAPI {
             return true;
         }
 
+        if(device.isDisabled()){
+            return true;
+        }
+
         boolean unreachable = getAsBoolean(homematicCommandBuilder.read(device, Datapoint.UNREACH));
         if (unreachable) {
             return true;
@@ -260,12 +264,14 @@ public class HomematicAPI {
         List<HomematicCommand> commands = new LinkedList<>();
         commands.add(homematicCommandBuilder.read(VAR_CCU_REBOOT));
         for (Device device : Device.values()) {
-            for (Datapoint datapoint : device.getDatapoints()) {
-                commands.add(homematicCommandBuilder.read(device, datapoint));
-            }
-            if (device.getSysVars() != null) {
-                for (String suffix : device.getSysVars()) {
-                    commands.add(homematicCommandBuilder.read(device, suffix));
+            if(!device.isDisabled()){
+                for (Datapoint datapoint : device.getDatapoints()) {
+                    commands.add(homematicCommandBuilder.read(device, datapoint));
+                }
+                if (device.getSysVars() != null) {
+                    for (String suffix : device.getSysVars()) {
+                        commands.add(homematicCommandBuilder.read(device, suffix));
+                    }
                 }
             }
         }
@@ -315,16 +321,18 @@ public class HomematicAPI {
         long timeStart = System.nanoTime();
         List<HomematicCommand> commands = new LinkedList<>();
         for (Device device : Device.values()) {
-            for (Datapoint datapoint : device.getDatapoints()) {
-                if (datapoint.isReadTimestamp()) {
-                    commands.add(homematicCommandBuilder.readTS(device, datapoint));
+            if(!device.isDisabled()){
+                for (Datapoint datapoint : device.getDatapoints()) {
+                    if (datapoint.isReadTimestamp()) {
+                        commands.add(homematicCommandBuilder.readTS(device, datapoint));
+                    }
                 }
+                Datapoint lowBatDatapoint = device.lowBatDatapoint();
+                if (lowBatDatapoint != null) {
+                    commands.add(homematicCommandBuilder.read(device, device.lowBatDatapoint()));
+                }
+                commands.add(homematicCommandBuilder.read(device, Datapoint.UNREACH));
             }
-            Datapoint lowBatDatapoint = device.lowBatDatapoint();
-            if (lowBatDatapoint != null) {
-                commands.add(homematicCommandBuilder.read(device, device.lowBatDatapoint()));
-            }
-            commands.add(homematicCommandBuilder.read(device, Datapoint.UNREACH));
         }
         commands.add(homematicCommandBuilder.read(VAR_CCU_REBOOT));
         commands.add(homematicCommandBuilder.read(VAR_CCU_UPTIME));

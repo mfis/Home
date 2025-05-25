@@ -75,8 +75,6 @@ public class HouseModel extends AbstractSystemModel {
 
     private PowerMeter wallboxElectricalPowerConsumption;
 
-    private PowerMeter gasConsumption;
-
     private Doorbell frontDoorBell;
 
     private Doorlock frontDoorLock;

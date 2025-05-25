@@ -32,6 +32,13 @@
 				</th:block>
 			</div>
 			<div th:replace="~{pin :: pinView}"></div>
+
+			<h4 style="margin-top: 10px;">Deaktivierte Geräte</h4>
+			<div th:class="'alert alert-secondary callout callout-secondary'" style="text-decoration:none; color: white !important;">
+				<a>Historie Gasverbrauch: </a>
+				<th:block th:replace="~{fragments :: historyLink (key='GasHOUSE', name='Gas Gesamt', place='Haus')}"></th:block>
+			</div>
+
 			<button style="margin-top: 15px;" type="button" onclick="window.location.reload(true)"  class="btn btn-secondary" th:text="'Aktualisieren'"></button>
 			<button style="margin-top: 15px;" type="button" onclick="window.location.href='/'"  class="btn btn-secondary" th:text="'Zurück'"></button>
 		</div>

@@ -169,7 +169,6 @@ public class HouseService {
         newModel.setGridElectricStatusTime(formatTimestamp(Device.ELECTRIC_POWER_GRID_TIMESTAMP_HOUSE));
 
         newModel.setWallboxElectricalPowerConsumption(readPowerConsumption(Device.STROMZAEHLER_WALLBOX));
-        newModel.setGasConsumption(readPowerConsumption(Device.GASZAEHLER));
 
         // associated devices
         newModel.getWallboxSwitch().setAssociatedPowerMeter(newModel.getWallboxElectricalPowerConsumption());
@@ -842,6 +841,10 @@ public class HouseService {
     private void checkLowBattery(HouseModel model, Device device) {
 
         if (!device.getType().isHasBattery()) {
+            return;
+        }
+
+        if (device.isDisabled()) {
             return;
         }
 
