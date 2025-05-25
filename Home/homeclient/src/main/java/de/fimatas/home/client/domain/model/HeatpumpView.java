@@ -32,9 +32,13 @@ public class HeatpumpView extends View {
 
     private String linkHeatTimer2 = "#";
 
+    private String linkHeatTimer3 = "#";
+
     private String linkCoolTimer1 = "#";
 
     private String linkCoolTimer2 = "#";
+
+    private String linkCoolTimer3 = "#";
 
     private String linkOff = "#";
 

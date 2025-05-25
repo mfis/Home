@@ -612,7 +612,7 @@
 						<div class="btn-group widebutton" role="group" aria-label="heatpump-group-cool-timer1">
 							<button type="button" th:class="${#strings.startsWith(model.linkCoolTimer1, '#')} ? 'btn btn-dark btn-sm btn-block' : 'btn btn-secondary btn-sm btn-block'" th:onclick="@{'heatpump(\''+ ${model.id} +'\', \'' + ${model.placeID} + '\', \'' + ${model.linkCoolTimer1} + '\')'}">
 								<span th:class="${#strings.startsWith(model.linkCoolTimer1, '#')} ? 'text-' + ${model.activeSwitchColorClass}">
-									<th:block th:replace="~{basics :: symbol (name='fa-solid fa-clock')}"/>
+									<th:block th:replace="~{basics :: symbol (name='fa-solid fa-hourglass-end')}"/>
 								</span>
 								<span th:class="${#strings.startsWith(model.linkCoolTimer1, '#')} ? 'text-' + ${model.activeSwitchColorClass}">60′</span>
 							</button>
@@ -620,9 +620,17 @@
 						<div class="btn-group widebutton" role="group" aria-label="heatpump-group-cool-timer2">
 							<button type="button" th:class="${#strings.startsWith(model.linkCoolTimer2, '#')} ? 'btn btn-dark btn-sm btn-block' : 'btn btn-secondary btn-sm btn-block'" th:onclick="@{'heatpump(\''+ ${model.id} +'\', \'' + ${model.placeID} + '\', \'' + ${model.linkCoolTimer2} + '\')'}">
 								<span th:class="${#strings.startsWith(model.linkCoolTimer2, '#')} ? 'text-' + ${model.activeSwitchColorClass}">
-									<th:block th:replace="~{basics :: symbol (name='fa-solid fa-clock')}"/>
+									<th:block th:replace="~{basics :: symbol (name='fa-solid fa-hourglass-end')}"/>
 								</span>
 								<span th:class="${#strings.startsWith(model.linkCoolTimer2, '#')} ? 'text-' + ${model.activeSwitchColorClass}">120′</span>
+							</button>
+						</div>
+						<div class="btn-group widebutton" role="group" aria-label="heatpump-group-cool-timer3">
+							<button type="button" th:class="${#strings.startsWith(model.linkCoolTimer3, '#')} ? 'btn btn-dark btn-sm btn-block' : 'btn btn-secondary btn-sm btn-block'" th:onclick="@{'heatpump(\''+ ${model.id} +'\', \'' + ${model.placeID} + '\', \'' + ${model.linkCoolTimer3} + '\')'}">
+								<span th:class="${#strings.startsWith(model.linkCoolTimer3, '#')} ? 'text-' + ${model.activeSwitchColorClass}">
+									<th:block th:replace="~{basics :: symbol (name='fa-solid fa-clock')}"/>
+								</span>
+								<span th:class="${#strings.startsWith(model.linkCoolTimer3, '#')} ? 'text-' + ${model.activeSwitchColorClass}">19h</span>
 							</button>
 						</div>
 					</div>
@@ -648,7 +656,7 @@
 						<div class="btn-group widebutton" role="group" aria-label="heatpump-group-heat-timer1">
 							<button type="button" th:class="${#strings.startsWith(model.linkHeatTimer1, '#')} ? 'btn btn-dark btn-sm btn-block' : 'btn btn-secondary btn-sm btn-block'" th:onclick="@{'heatpump(\''+ ${model.id} +'\', \'' + ${model.placeID} + '\', \'' + ${model.linkHeatTimer1} + '\')'}">
 								<span th:class="${#strings.startsWith(model.linkHeatTimer1, '#')} ? 'text-' + ${model.activeSwitchColorClass}">
-									<th:block th:replace="~{basics :: symbol (name='fa-solid fa-clock')}"/>
+									<th:block th:replace="~{basics :: symbol (name='fa-solid fa-hourglass-end')}"/>
 								</span>
 								<span th:class="${#strings.startsWith(model.linkHeatTimer1, '#')} ? 'text-' + ${model.activeSwitchColorClass}">60′</span>
 							</button>
@@ -656,9 +664,17 @@
 						<div class="btn-group widebutton" role="group" aria-label="heatpump-group-heat-timer2">
 							<button type="button" th:class="${#strings.startsWith(model.linkHeatTimer2, '#')} ? 'btn btn-dark btn-sm btn-block' : 'btn btn-secondary btn-sm btn-block'" th:onclick="@{'heatpump(\''+ ${model.id} +'\', \'' + ${model.placeID} + '\', \'' + ${model.linkHeatTimer2} + '\')'}">
 								<span th:class="${#strings.startsWith(model.linkHeatTimer2, '#')} ? 'text-' + ${model.activeSwitchColorClass}">
-									<th:block th:replace="~{basics :: symbol (name='fa-solid fa-clock')}"/>
+									<th:block th:replace="~{basics :: symbol (name='fa-solid fa-hourglass-end')}"/>
 								</span>
 								<span th:class="${#strings.startsWith(model.linkHeatTimer2, '#')} ? 'text-' + ${model.activeSwitchColorClass}">120′</span>
+							</button>
+						</div>
+						<div class="btn-group widebutton" role="group" aria-label="heatpump-group-heat-timer3">
+							<button type="button" th:class="${#strings.startsWith(model.linkHeatTimer3, '#')} ? 'btn btn-dark btn-sm btn-block' : 'btn btn-secondary btn-sm btn-block'" th:onclick="@{'heatpump(\''+ ${model.id} +'\', \'' + ${model.placeID} + '\', \'' + ${model.linkHeatTimer3} + '\')'}">
+								<span th:class="${#strings.startsWith(model.linkHeatTimer3, '#')} ? 'text-' + ${model.activeSwitchColorClass}">
+									<th:block th:replace="~{basics :: symbol (name='fa-solid fa-clock')}"/>
+								</span>
+								<span th:class="${#strings.startsWith(model.linkHeatTimer3, '#')} ? 'text-' + ${model.activeSwitchColorClass}">13h</span>
 							</button>
 						</div>
 					</div>
@@ -684,7 +700,7 @@
 						<div class="btn-group widebutton" role="group" aria-label="heatpump-group-drytimer">
 							<button type="button" th:class="${#strings.startsWith(model.linkDryTimer, '#')} ? 'btn btn-dark btn-sm btn-block' : 'btn btn-secondary btn-sm btn-block'" th:onclick="@{'heatpump(\''+ ${model.id} +'\', \'' + ${model.placeID} + '\', \'' + ${model.linkDryTimer} + '\')'}">
 								<span th:class="${#strings.startsWith(model.linkDryTimer, '#')} ? 'text-' + ${model.activeSwitchColorClass}">
-									<th:block th:replace="~{basics :: symbol (name='fa-solid fa-clock')}"/>
+									<th:block th:replace="~{basics :: symbol (name='fa-solid fa-hourglass-end')}"/>
 								</span>
 								<span th:class="${#strings.startsWith(model.linkDryTimer, '#')} ? 'text-' + ${model.activeSwitchColorClass}">20′</span>
 							</button>

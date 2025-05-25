@@ -22,8 +22,7 @@ import org.springframework.stereotype.Component;
 import jakarta.annotation.PostConstruct;
 import org.springframework.web.client.RestClientException;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
+import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -65,11 +64,13 @@ public class HeatpumpService {
     private Map<Place, Optional<SchedulerData>> placeScheduler;
 
     private final Map<HeatpumpPreset, SchedulerConfig> schedulerConfigMap = Map.of(
-            HeatpumpPreset.DRY_TIMER, new SchedulerConfig(HeatpumpPreset.OFF, HeatpumpPreset.FAN_MIN, 20),
-            HeatpumpPreset.HEAT_TIMER1, new SchedulerConfig(HeatpumpPreset.OFF, HeatpumpPreset.HEAT_MIN, 60),
-            HeatpumpPreset.HEAT_TIMER2, new SchedulerConfig(HeatpumpPreset.OFF, HeatpumpPreset.HEAT_MIN, 120),
-            HeatpumpPreset.COOL_TIMER1, new SchedulerConfig(HeatpumpPreset.DRY_TIMER, HeatpumpPreset.COOL_MIN, 60),
-            HeatpumpPreset.COOL_TIMER2, new SchedulerConfig(HeatpumpPreset.DRY_TIMER, HeatpumpPreset.COOL_MIN, 120)
+            HeatpumpPreset.DRY_TIMER, new SchedulerConfig(HeatpumpPreset.OFF, HeatpumpPreset.FAN_MIN, 20, null),
+            HeatpumpPreset.HEAT_TIMER1, new SchedulerConfig(HeatpumpPreset.OFF, HeatpumpPreset.HEAT_AUTO, 60, null),
+            HeatpumpPreset.HEAT_TIMER2, new SchedulerConfig(HeatpumpPreset.OFF, HeatpumpPreset.HEAT_AUTO, 120, null),
+            HeatpumpPreset.HEAT_TIMER3, new SchedulerConfig(HeatpumpPreset.OFF, HeatpumpPreset.HEAT_AUTO, null, LocalTime.of(13,0)),
+            HeatpumpPreset.COOL_TIMER1, new SchedulerConfig(HeatpumpPreset.DRY_TIMER, HeatpumpPreset.COOL_AUTO, 60, null),
+            HeatpumpPreset.COOL_TIMER2, new SchedulerConfig(HeatpumpPreset.DRY_TIMER, HeatpumpPreset.COOL_AUTO, 120, null),
+            HeatpumpPreset.COOL_TIMER3, new SchedulerConfig(HeatpumpPreset.DRY_TIMER, HeatpumpPreset.COOL_AUTO, null, LocalTime.of(19,0))
             );
 
     private final Map<HeatpumpPreset, List<HeatpumpPreset>> conflictiongPresets = Map.of(
@@ -328,10 +329,26 @@ public class HeatpumpService {
 
         if(schedulerConfigMap.containsKey(preset)){
             var config = schedulerConfigMap.get(preset);
-            var scheduledTime = Instant.now().plus(config.getTimeInMinutes(), ChronoUnit.MINUTES);
+            LocalDateTime scheduledTime;
+            if(config.getTimeInMinutes() != null){
+                scheduledTime = LocalDateTime.now().plusMinutes(config.getTimeInMinutes());
+            }else{
+                scheduledTime = LocalDateTime.of(LocalDate.now(), config.localTime);
+                if(scheduledTime.isBefore(LocalDateTime.now()) && config.getLocalTime() != null){
+                    if(preset == HeatpumpPreset.HEAT_TIMER3){
+                        scheduleNewTimers(places, HeatpumpPreset.HEAT_TIMER2);
+                        return;
+                    }else if(preset == HeatpumpPreset.COOL_TIMER3) {
+                        scheduleNewTimers(places, HeatpumpPreset.COOL_TIMER2);
+                        return;
+                    }
+                    scheduledTime = LocalDateTime.now().plusMinutes(120);
+                }
+            }
+            var scheduledTimeInstant = scheduledTime.atZone(ZoneId.systemDefault()).toInstant();
             final ScheduledFuture<?> scheduledFuture = threadPoolTaskScheduler.schedule(() ->
-                    timerPreset(places, config.getTarget(), scheduledTime), scheduledTime);
-            places.forEach(p -> placeScheduler.put(p, Optional.of(new SchedulerData(scheduledFuture, preset, config.getBase(), scheduledTime))));
+                    timerPreset(places, config.getTarget(), scheduledTimeInstant), scheduledTimeInstant);
+            places.forEach(p -> placeScheduler.put(p, Optional.of(new SchedulerData(scheduledFuture, preset, config.getBase(), scheduledTimeInstant))));
         }
     }
 
@@ -363,10 +380,10 @@ public class HeatpumpService {
 
     private HeatpumpProgram presetToProgram(HeatpumpPreset preset){
         return switch (preset) {
-            case COOL_AUTO -> HeatpumpProgram.COOLING_AUTO;
-            case COOL_MIN, COOL_TIMER1, COOL_TIMER2 -> HeatpumpProgram.COOLING_MIN;
+            case COOL_AUTO, COOL_TIMER1, COOL_TIMER2, COOL_TIMER3 -> HeatpumpProgram.COOLING_AUTO;
+            case COOL_MIN -> HeatpumpProgram.COOLING_MIN;
             case HEAT_AUTO -> HeatpumpProgram.HEATING_AUTO;
-            case HEAT_MIN, HEAT_TIMER1, HEAT_TIMER2 -> HeatpumpProgram.HEATING_MIN;
+            case HEAT_MIN, HEAT_TIMER1, HEAT_TIMER2, HEAT_TIMER3 -> HeatpumpProgram.HEATING_MIN;
             case FAN_AUTO -> HeatpumpProgram.FAN_AUTO;
             case FAN_MIN -> HeatpumpProgram.FAN_MIN;
             case DRY_TIMER -> HeatpumpProgram.FAN_DRY;
@@ -417,5 +434,6 @@ public class HeatpumpService {
         HeatpumpPreset target;
         HeatpumpPreset base;
         Integer timeInMinutes;
+        LocalTime localTime;
     }
 }
