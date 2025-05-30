@@ -34,7 +34,7 @@ public enum Place {
     WIDGET_UPPER_FLOOR_TEMPERATURE("Obergeschoss", false, Place.BEDROOM, Place.KIDSROOM_1, Place.KIDSROOM_2), //
     WIDGET_DOORS_AND_WINDOWS("Türen und Fenster", false, Place.HOUSE, Place.GUESTROOM, Place.WORKSHOP, Place.LAUNDRY), //
     WIDGET_GRIDS("Netze", false), //
-    WIDGET_ENERGY("Energie", false), //
+    WIDGET_BUFFER("Speicher", false), //
     WIDGET_SYMBOLS("Symbole", false), //
     ;
 

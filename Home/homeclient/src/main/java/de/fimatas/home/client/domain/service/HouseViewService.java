@@ -156,7 +156,7 @@ public class HouseViewService {
         // widget
         formatUpperFloorGroup(model, "widgetUpperFloor", Place.WIDGET_UPPER_FLOOR_TEMPERATURE, house);
         formatGridsGroup(model, "widgetGrids", Place.WIDGET_GRIDS, house, historyModel==null?null:historyModel.getPurchasedElectricPowerConsumptionDay(), historyModel==null?null:historyModel.getGasConsumptionDay());
-        formatEnergyGroup(model, "widgetEnergy", Place.WIDGET_ENERGY, electricVehicleModel);
+        formatBufferGroup(model, "widgetBuffer", Place.WIDGET_BUFFER, electricVehicleModel);
         formatSymbolsGroup(model, presenceModel, heatpumpModel, lightsModel, house, tasksModel);
     }
 
@@ -225,7 +225,7 @@ public class HouseViewService {
         view.getCaptionAndValue().put("Strom", electric);
     }
 
-    private void formatEnergyGroup(Model model, String viewKey, Place place, ElectricVehicleModel electricVehicleModel) {
+    private void formatBufferGroup(Model model, String viewKey, Place place, ElectricVehicleModel electricVehicleModel) {
 
         WidgetGroupView view = new WidgetGroupView(viewKey, place, electricVehicleModel);
         model.addAttribute(viewKey, view);

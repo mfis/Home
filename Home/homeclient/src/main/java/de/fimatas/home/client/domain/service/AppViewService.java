@@ -63,7 +63,7 @@ public class AppViewService {
         widget.add(new PlaceDirectives(Place.OUTSIDE, PlaceDirective.WIDGET_LABEL_SMALL, PlaceDirective.WIDGET_LABEL_MEDIUM, PlaceDirective.WIDGET_LABEL_LARGE, PlaceDirective.WIDGET_SYMBOL, PlaceDirective.WIDGET_LOCKSCREEN_CIRCULAR));
         widget.add(new PlaceDirectives(Place.WIDGET_UPPER_FLOOR_TEMPERATURE, PlaceDirective.WIDGET_LABEL_SMALL, PlaceDirective.WIDGET_LABEL_MEDIUM, PlaceDirective.WIDGET_LABEL_LARGE));
         widget.add(new PlaceDirectives(Place.WIDGET_GRIDS, PlaceDirective.WIDGET_LABEL_MEDIUM, PlaceDirective.WIDGET_LABEL_LARGE));
-        widget.add(new PlaceDirectives(Place.WIDGET_ENERGY, PlaceDirective.WIDGET_LABEL_MEDIUM, PlaceDirective.WIDGET_LABEL_LARGE));
+        widget.add(new PlaceDirectives(Place.WIDGET_BUFFER, PlaceDirective.WIDGET_LABEL_MEDIUM, PlaceDirective.WIDGET_LABEL_LARGE));
         widget.add(new PlaceDirectives(Place.WIDGET_SYMBOLS, PlaceDirective.WIDGET_SYMBOL));
     }
 
