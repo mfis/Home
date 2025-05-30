@@ -34,14 +34,15 @@
 				<div th:replace="~{fragments :: presence (model=${presence})}"></div>
 				<div th:replace="~{fragments-tasks :: tasks (model=${tasks})}"></div>
 
-				<!-- Wohnzimmer -->
-				<div th:replace="~{fragments :: title (name='Wohnzimmer')}"></div>
-				<div th:replace="~{fragments :: temperature (model=${tempLivingroom})}"></div>
-				<div th:replace="~{fragments :: lights (model=${lightsLIVINGROOM})}"></div>
+				<!-- Energie -->
+				<div th:replace="~{fragments :: title (name='Energie')}"></div>
+				<div th:replace="~{fragments-overallElectricPower :: overallElectricPower (model=${overallElectricPowerHouse})}"></div>
+				<div th:replace="~{fragments :: wallbox (modelMeter=${StromWallbox}, modelSwitch=${switchWallbox})}"></div>
+				<div th:replace="~{fragments-evcharge :: evcharge (model=${evcharge_EUP})}"></div>
 
-				<!-- Küche -->
-				<div th:replace="~{fragments :: title (name='Küche')}"></div>
-				<div th:replace="~{fragments :: switch (model=${switchKitchen})}"></div>
+				<!-- Dachboden -->
+				<div th:replace="~{fragments :: title (name='Dachboden')}"></div>
+				<div th:replace="~{fragments :: temperature (model=${tempRoof})}"></div>
 
 				<!-- Kinderzimmer 1 -->
 				<div th:replace="~{fragments :: title (name='Kinderzimmer ' + ${place_subtitle_KIDSROOM_1})}"></div>
@@ -58,12 +59,20 @@
 				<div th:replace="~{fragments :: title (name='Schlafzimmer')}"></div>
 				<div th:replace="~{fragments :: temperature (model=${tempBedroom})}"></div>
 				<div th:replace="~{fragments :: heatpump (model=${heatpumpBEDROOM})}"></div>
-				<!-- <div th:replace="~{fragments :: window (model=${leftWindowBedroom})}"></div> //NOSONAR -->
 
 				<!-- Badezimmer -->
 				<div th:replace="~{fragments :: title (name='Badezimmer')}"></div>
 				<div th:replace="~{fragments :: temperature (model=${tempBathroom})}"></div>
 				<div th:replace="~{fragments :: thermostat (model=${tempBathroom})}"></div>
+
+				<!-- Wohnzimmer -->
+				<div th:replace="~{fragments :: title (name='Wohnzimmer')}"></div>
+				<div th:replace="~{fragments :: temperature (model=${tempLivingroom})}"></div>
+				<div th:replace="~{fragments :: lights (model=${lightsLIVINGROOM})}"></div>
+
+				<!-- Küche -->
+				<div th:replace="~{fragments :: title (name='Küche')}"></div>
+				<div th:replace="~{fragments :: switch (model=${switchKitchen})}"></div>
 
 				<!-- Waschküche -->
 				<div th:replace="~{fragments :: title (name='Waschküche')}"></div>
@@ -83,12 +92,6 @@
 				<div th:replace="~{fragments :: windowsensor (model=${windowSensorWorkshop})}"></div>
 				<div th:replace="~{fragments :: temperature (model=${tempWorkshop})}"></div>
 				<div th:replace="~{fragments :: switch (model=${switchWorkshopLight})}"></div>
-
-				<!-- Energie -->
-				<div th:replace="~{fragments :: title (name='Energie')}"></div>
-				<div th:replace="~{fragments-overallElectricPower :: overallElectricPower (model=${overallElectricPowerHouse})}"></div>
-				<div th:replace="~{fragments :: wallbox (modelMeter=${StromWallbox}, modelSwitch=${switchWallbox})}"></div>
-				<div th:replace="~{fragments-evcharge :: evcharge (model=${evcharge_EUP})}"></div>
 
 			</th:block>
 
