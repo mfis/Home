@@ -688,6 +688,8 @@ public class HouseViewService {
 
     private void formatOverallElectricPowerHouse(Model model, HouseModel houseModel, HistoryModel historyModel, PvAdditionalDataModel pvAdditionalDataModel) {
 
+        var MAX_GRID_CONSUMPTION_WATTAGE_IN_PV_MODE = new BigDecimal(25);
+
         OverallElectricPowerHouseView overallElectricPowerHouseView = new OverallElectricPowerHouseView();
         Device baseDevice = Device.STROMZAEHLER_BEZUG;
         overallElectricPowerHouseView.setId(lookupTodayPowerId(baseDevice, false));
@@ -741,7 +743,7 @@ public class HouseViewService {
         overallElectricPowerHouseView.getGridPurchase().setColorClass(ConditionColor.ORANGE.getUiClass());
         if(houseModel.getGridElectricalPower().getActualConsumption().getValue() != null){
             int val = houseModel.getGridElectricalPower().getActualConsumption().getValue().intValue();
-            if(val < 0){
+            if(val <= 0){
                 overallElectricPowerHouseView.getGridFeed().setColorClass(ConditionColor.GREEN.getUiClass());
                 overallElectricPowerHouseView.setGridActualDirection(overallElectricPowerHouseView.getGridFeed());
             }else{
@@ -757,6 +759,14 @@ public class HouseViewService {
                 houseModel.getProducedElectricalPower().getActualConsumption().getValue() != null ?
                 houseModel.getProducedElectricalPower().getActualConsumption().getValue().compareTo(BigDecimal.TEN) > 0 ? ConditionColor.GREEN.getUiClass() :
                         ConditionColor.DEFAULT.getUiClass() : ConditionColor.DEFAULT.getUiClass());
+
+        // hide grid arrow
+        if(houseModel.getGridElectricalPower().getActualConsumption().getValue() != null) {
+            int val = houseModel.getGridElectricalPower().getActualConsumption().getValue().intValue();
+            if(Math.abs(val) < MAX_GRID_CONSUMPTION_WATTAGE_IN_PV_MODE.intValue()){
+                overallElectricPowerHouseView.getGridActualDirection().setDirectionArrowClass("#");
+            }
+        }
 
         if(houseModel.getProducedElectricalPower().getActualConsumption() != null
                 && houseModel.getProducedElectricalPower().getActualConsumption().getValue() != null
@@ -784,7 +794,7 @@ public class HouseViewService {
             overallElectricPowerHouseView.getConsumption().setColorClass(ConditionColor.ORANGE.getUiClass());
         }else if (houseModel.getGridElectricalPower().getActualConsumption() != null
                 && houseModel.getGridElectricalPower().getActualConsumption().getValue() != null
-                && houseModel.getGridElectricalPower().getActualConsumption().getValue().compareTo(BigDecimal.ZERO) < 0) {
+                && houseModel.getGridElectricalPower().getActualConsumption().getValue().compareTo(MAX_GRID_CONSUMPTION_WATTAGE_IN_PV_MODE) < 0) {
             if(isFeedingPowerConsumptionByPvBattery(pvAdditionalDataModel)){
                 overallElectricPowerHouseView.getConsumption().setColorClass(ConditionColor.GREEN.getUiClass());
             }else{

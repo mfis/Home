@@ -66,16 +66,7 @@
 												</td>
 												<td align="right">
 													<th:block th:unless="${#strings.equals(model.pv.directionArrowClass,'#')}">
-														<div th:class="'arrow arrow-' + ${model.pv.directionArrowClass}">
-															<span></span>
-															<span></span>
-															<span></span>
-														</div>
-													</th:block>
-												</td>
-												<td align="right" th:class="'text-' + ${model.batteryColorClass}">
-													<th:block th:unless="${#strings.equals(model.batteryDirectionArrowClass,'#')}">
-														<div th:class="'arrow arrow-' + ${model.batteryDirectionArrowClass}" style="padding-left: 35px;">
+														<div th:class="'arrow arrow-' + ${model.pv.directionArrowClass} + ' text-' + ${model.consumption.colorClass}">
 															<span></span>
 															<span></span>
 															<span></span>
@@ -120,11 +111,13 @@
 										<table border="0" width="50%">
 											<tr>
 												<td align="right" th:class="'text-' + ${model.gridActualDirection.colorClass}">
-													<div th:class="'arrow arrow-' + ${model.gridActualDirection.directionArrowClass}">
-														<span></span>
-														<span></span>
-														<span></span>
-													</div>
+													<th:block th:unless="${#strings.equals(model.gridActualDirection.directionArrowClass,'#')}">
+														<div th:class="'arrow arrow-' + ${model.gridActualDirection.directionArrowClass}">
+															<span></span>
+															<span></span>
+															<span></span>
+														</div>
+													</th:block>
 												</td>
 												<td align="right" style="width: 50%">
 													<!-- FIXME: icon name from model -->
