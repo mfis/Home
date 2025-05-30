@@ -156,7 +156,7 @@ public class HouseViewService {
         // widget
         formatUpperFloorGroup(model, "widgetUpperFloor", Place.WIDGET_UPPER_FLOOR_TEMPERATURE, house);
         formatGridsGroup(model, "widgetGrids", Place.WIDGET_GRIDS, house, historyModel==null?null:historyModel.getPurchasedElectricPowerConsumptionDay(), historyModel==null?null:historyModel.getGasConsumptionDay());
-        formatEnergyGroup(model, "widgetEnergy", Place.WIDGET_ENERGY, electricVehicleModel, house.getProducedElectricalPower(), house.getGridElectricalPower());
+        formatEnergyGroup(model, "widgetEnergy", Place.WIDGET_ENERGY, electricVehicleModel);
         formatSymbolsGroup(model, presenceModel, heatpumpModel, lightsModel, house, tasksModel);
     }
 
@@ -197,6 +197,21 @@ public class HouseViewService {
             return;
         }
 
+        var pv = new View();
+        pv.setId(lookupTodayPowerId(Device.STROMZAEHLER_BEZUG, true) + "2");
+        pv.setState("?");
+        if(house.getProducedElectricalPower() != null && !house.getProducedElectricalPower().isUnreach() && house.getGridElectricalPower() != null
+                && !house.getGridElectricalPower().isUnreach() && ModelObjectDAO.getInstance().readPvAdditionalDataModel() != null){
+            BigDecimal grid = house.getGridElectricalPower().getActualConsumption().getValue();
+            if(grid.compareTo(BigDecimal.ZERO) > 0){
+                grid = BigDecimal.ZERO;
+            }
+            grid = grid.abs();
+            pv.setState(ViewFormatter.powerInWattToKiloWatt(grid) + "kW");
+            pv.setColorClass(grid.compareTo(BigDecimal.ZERO) == 0 ? ConditionColor.ORANGE.getUiClass() : ConditionColor.GREEN.getUiClass());
+        }
+        view.getCaptionAndValue().put("Übers.", pv);
+
         var electric = new View();
         electric.setId(lookupTodayPowerId(Device.STROMZAEHLER_BEZUG, true));
         electric.setState("0" + ViewFormatter.powerConsumptionUnit(house.getGridElectricalPower().getDevice()));
@@ -210,28 +225,13 @@ public class HouseViewService {
         view.getCaptionAndValue().put("Strom", electric);
     }
 
-    private void formatEnergyGroup(Model model, String viewKey, Place place, ElectricVehicleModel electricVehicleModel, PowerMeter producedElectricalPower, PowerMeter gridElectricalPower) {
+    private void formatEnergyGroup(Model model, String viewKey, Place place, ElectricVehicleModel electricVehicleModel) {
 
         WidgetGroupView view = new WidgetGroupView(viewKey, place, electricVehicleModel);
         model.addAttribute(viewKey, view);
         if (view.isUnreach()) {
             return;
         }
-
-        var pv = new View();
-        pv.setId(lookupTodayPowerId(Device.STROMZAEHLER_BEZUG, true) + "2");
-        pv.setState("?");
-        if(producedElectricalPower != null && !producedElectricalPower.isUnreach() && gridElectricalPower != null
-                && !gridElectricalPower.isUnreach() && ModelObjectDAO.getInstance().readPvAdditionalDataModel() != null){
-            BigDecimal grid = gridElectricalPower.getActualConsumption().getValue();
-            if(grid.compareTo(BigDecimal.ZERO) > 0){
-                grid = BigDecimal.ZERO;
-            }
-            grid = grid.abs();
-            pv.setState(ViewFormatter.powerInWattToKiloWatt(grid) + "kW");
-            pv.setColorClass(grid.compareTo(BigDecimal.ZERO) == 0 ? ConditionColor.ORANGE.getUiClass() : ConditionColor.GREEN.getUiClass());
-        }
-        view.getCaptionAndValue().put("Übers.", pv);
 
         var battery = new View();
         battery.setId(lookupTodayPowerId(Device.STROMZAEHLER_BEZUG, true) + "3");
