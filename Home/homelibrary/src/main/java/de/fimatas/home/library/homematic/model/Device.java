@@ -4,7 +4,9 @@ import java.util.List;
 import de.fimatas.home.library.domain.model.AutomationState;
 import de.fimatas.home.library.domain.model.Place;
 import de.fimatas.home.library.util.HomeUtils;
+import lombok.Getter;
 
+@Getter
 public enum Device {
 
     THERMOSTAT_BAD(HomematicProtocol.HM, Type.THERMOSTAT, Place.BATHROOM, true, Datapoint.LIST_THERMOSTAT_HM,
@@ -28,6 +30,9 @@ public enum Device {
     THERMOMETER_GARTEN(HomematicProtocol.HMIP, Type.THERMOMETER, Place.GARDEN, true, Datapoint.LIST_THERMOMETER_HMIP, null), //
 
     THERMOMETER_EINFAHRT(HomematicProtocol.HMIP, Type.THERMOMETER, Place.ENTRANCE, true, Datapoint.LIST_THERMOMETER_HMIP, null), //
+
+    DIFF_TEMPERATUR_DACHBODEN_AUSSEN(HomematicProtocol.HM, Type.THERMOMETER, Place.TERRACE, false,
+            Datapoint.LIST_DIFFTHERMOMETER_HM, null), //
 
     SCHALTER_KUECHE_LICHT(HomematicProtocol.HM, Type.SWITCH_WINDOWLIGHT, Place.KITCHEN, true, Datapoint.LIST_SWITCH_HM,
         Type.VAR_PREFIXES_SWITCH_AUTO, Boolean.class, AutomationState.class), //
@@ -171,34 +176,6 @@ public enum Device {
 
     public String getHistoryKey() {
         return type.getTypeName() + " " + place.name();
-    }
-
-    public Type getType() {
-        return type;
-    }
-
-    public Place getPlace() {
-        return place;
-    }
-
-    public boolean isTextQueryEnabled() {
-        return textQueryEnabled;
-    }
-
-    public Class<?>[] getValueTypes() {
-        return valueTypes;
-    }
-
-    public HomematicProtocol getHomematicProtocol() {
-        return homematicProtocol;
-    }
-
-    public List<Datapoint> getDatapoints() {
-        return datapoints;
-    }
-
-    public List<String> getSysVars() {
-        return sysVars;
     }
 
     public boolean isDisabled() {

@@ -138,6 +138,7 @@ public class HouseService {
         newModel.setClimateLivingRoom(readRoomClimate(Device.THERMOMETER_WOHNZIMMER));
         newModel.setClimateBedRoom(readRoomClimate(Device.THERMOMETER_SCHLAFZIMMER));
         newModel.setClimateLaundry(readRoomClimate(Device.THERMOMETER_WASCHKUECHE));
+        newModel.setClimateRoof(readRoomClimate(Device.DIFF_TEMPERATUR_DACHBODEN_AUSSEN));
 
         newModel.setClimateGuestRoom(readRoomClimate(Device.THERMOMETER_GAESTEZIMMER));
         newModel.setHeatingGuestRoom(readHeating(Device.THERMOSTAT_GAESTEZIMMER));
@@ -582,9 +583,11 @@ public class HouseService {
             return roomClimate;
         }
 
+        var datapoint = thermometer.isHomematicIP() || thermometer.getType() == Type.THERMOSTAT ?
+                Datapoint.ACTUAL_TEMPERATURE : Datapoint.TEMPERATURE;
         roomClimate.setTemperature(new ValueWithTendency<>(
-            hmApi.getAsBigDecimal(homematicCommandBuilder.read(thermometer, Datapoint.ACTUAL_TEMPERATURE))));
-        BigDecimal humidity = thermometer.getType() == Type.THERMOSTAT ? null
+            hmApi.getAsBigDecimal(homematicCommandBuilder.read(thermometer, datapoint))));
+        BigDecimal humidity = thermometer.getType() == Type.THERMOSTAT || thermometer.isHomematic() ? null
             : hmApi.getAsBigDecimal(homematicCommandBuilder.read(thermometer, Datapoint.HUMIDITY));
         if (humidity != null) {
             roomClimate.setHumidity(new ValueWithTendency<>(humidity));

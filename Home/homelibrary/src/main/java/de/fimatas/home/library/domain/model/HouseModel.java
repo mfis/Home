@@ -11,6 +11,8 @@ import java.util.*;
 @Data
 public class HouseModel extends AbstractSystemModel {
 
+    private RoomClimate climateRoof;
+
     @EnableHomekit(accessoryId = 1001)
     private RoomClimate climateKidsRoom1;
 

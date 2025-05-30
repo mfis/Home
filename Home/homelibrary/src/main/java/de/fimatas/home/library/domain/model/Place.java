@@ -1,10 +1,13 @@
 package de.fimatas.home.library.domain.model;
 
+import lombok.Getter;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+@Getter
 public enum Place {
 
     LIVINGROOM("Wohnzimmer", false), //
@@ -23,6 +26,7 @@ public enum Place {
     TERRACE("Terrasse", false), //
     GARDEN("Garten", false), //
     FRONTDOOR("Haustür", false), //
+    ROOF("Dachboden", false), //
     // with sub-places
     OUTSIDE("Draußen", false, Place.ENTRANCE, Place.TERRACE), //
 
@@ -34,30 +38,18 @@ public enum Place {
     WIDGET_SYMBOLS("Symbole", false), //
     ;
 
-    private String placeName;
+    private final String placeName;
 
-    private boolean airCondition;
+    private final boolean airCondition;
 
     private final List<Place> subPlaces = new ArrayList<>();
 
-    private Place(String placeName, boolean airCondition, Place... subPlaces) {
+    Place(String placeName, boolean airCondition, Place... subPlaces) {
         this.placeName = placeName;
         this.airCondition = airCondition;
         if (subPlaces != null) {
             this.subPlaces.addAll(Arrays.asList(subPlaces));
         }
-    }
-
-    public String getPlaceName() {
-        return placeName;
-    }
-
-    public List<Place> getSubPlaces() {
-        return subPlaces;
-    }
-
-    public boolean isAirCondition() {
-        return airCondition;
     }
 
     public List<Place> allPlaces() {
