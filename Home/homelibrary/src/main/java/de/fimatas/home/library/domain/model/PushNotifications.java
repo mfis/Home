@@ -12,6 +12,7 @@ public enum PushNotifications {
     CHARGELIMIT_ERROR("Ladevorgang unterbrochen", "Ladevorgang Fehler",false), //
     ERRORMESSAGE("Fehlermeldung", "Fehlermeldungen",false), //
     NOTICE("Hinweise", "Hinweise",false), //
+    ATTENTION("Achtung!", "Warnmeldungen",true), //
     TASKS("", "Aufgaben",true), //
     DOOR_LOCK("Haustür", "Türverriegelung",true), //
     ;

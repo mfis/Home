@@ -34,6 +34,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.*;
@@ -41,6 +42,8 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+
+import static de.fimatas.home.library.util.HomeUtils.buildDecimalFormat;
 
 @Component
 public class PushService {
@@ -139,6 +142,16 @@ public class PushService {
             lowBatteryMessage(ModelObjectDAO.getInstance().readHouseModel());
         } catch (Exception e) {
             LogFactory.getLog(PushService.class).error("Could not [sendLowBatteryAtEarlyMorning] push notifications:", e);
+        }
+    }
+
+    @Scheduled(cron = "0 30 5 * * *")
+    public void sendLowRoofTemperatureAtEarlyMorning() {
+
+        try {
+            lowRoofTemperature(ModelObjectDAO.getInstance().readHouseModel());
+        } catch (Exception e) {
+            LogFactory.getLog(PushService.class).error("Could not [sendLowRoofTemperatureAtEarlyMorning] push notifications:", e);
         }
     }
 
@@ -305,6 +318,16 @@ public class PushService {
             settingsService.listTokensWithEnabledSetting(PushNotifications.LOW_BATTERY)
                     .forEach(pushToken -> handleMessage(pushToken, PushNotifications.LOW_BATTERY.getPushText(),
                             StringUtils.join(newModel.getLowBatteryDevices(), ", ")));
+        }
+    }
+
+    private void lowRoofTemperature(HouseModel newModel) {
+
+        if(newModel.getClimateRoof().getTemperature().getValue().compareTo(new BigDecimal("5.0")) < 0){
+            var formattedTemperature = buildDecimalFormat("0.0")
+                    .format(newModel.getClimateRoof().getTemperature().getValue()) + "°C";
+            settingsService.listTokensWithEnabledSetting(PushNotifications.ATTENTION).forEach(pushToken ->
+                    handleMessage(pushToken, PushNotifications.ATTENTION.getPushText(), "Temperatur Dachboden nah am Gefrierpunkt: " + formattedTemperature));
         }
     }
 
