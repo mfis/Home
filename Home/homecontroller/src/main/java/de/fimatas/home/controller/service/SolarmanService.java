@@ -72,8 +72,6 @@ public class SolarmanService {
         put("B_ST1", ""); // Battery Status
         put("B_P1", "W"); // Battery Power
         put("B_left_cap1", "%"); // SoC
-        put("t_cg_n1", "kWh"); // Total Charging Energy
-        put("t_dcg_n1", "kWh"); // Total Discharging Energy
     }};
 
     @Scheduled(cron = "10 * * * * *")

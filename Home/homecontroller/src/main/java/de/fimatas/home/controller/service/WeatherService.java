@@ -56,18 +56,10 @@ public class WeatherService {
         DATENOW = DATETIMENOW.toLocalDate();
     }
 
-    // TODO: Testweise ohne Retry
     public void refreshFurtherDaysCache() {
         brightSkyAPI.cachingCallForFurtherDays();
     }
 
-    /*@Retryable(retryFor = {
-            ResourceAccessException.class,
-            HttpServerErrorException.class,
-            RestClientResponseException.class,
-            RestClientException.class
-    }, maxAttempts = 2, backoff = @Backoff(delay = 120000)) */
-    // TODO: Testweise ohne Retry
     public void refreshWeatherForecastModel() {
 
         var model = new WeatherForecastModel();
