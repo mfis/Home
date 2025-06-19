@@ -560,8 +560,8 @@
 		</th:block>
 	</div>
 
-	<!-- Heatpump -->
-	<div th:fragment="heatpump (model)" th:class="'alert alert-secondary callout callout-' + ${model.colorClass}">
+	<!-- HeatpumpRoof -->
+	<div th:fragment="heatpumpRoof (model)" th:class="'alert alert-secondary callout callout-' + ${model.colorClass}">
 		<div th:replace="~{fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState}, colorClass=${model.colorClass})}"></div>
 		<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
 

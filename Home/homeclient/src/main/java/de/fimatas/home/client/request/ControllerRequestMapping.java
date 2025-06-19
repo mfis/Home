@@ -60,10 +60,15 @@ public class ControllerRequestMapping {
         return new ActionModel("OK");
     }
 
-    @PostMapping(value = UPLOAD_METHOD_PREFIX + "HeatpumpModel")
-    public ActionModel uploadHeatpumpModel(@RequestBody HeatpumpModel heatpumpModel) {
-        //log.info("NEW HEATPUMP MODEL. BUSY=" + heatpumpModel.isBusy() + ", PRESET=" + heatpumpModel.getHeatpumpMap().get(Place.BEDROOM));
-        ModelObjectDAO.getInstance().write(heatpumpModel);
+    @PostMapping(value = UPLOAD_METHOD_PREFIX + "HeatpumpRoofModel")
+    public ActionModel uploadHeatpumpRoofModel(@RequestBody HeatpumpRoofModel heatpumpRoofModel) {
+        ModelObjectDAO.getInstance().write(heatpumpRoofModel);
+        return new ActionModel("OK");
+    }
+
+    @PostMapping(value = UPLOAD_METHOD_PREFIX + "HeatpumpBasementModel")
+    public ActionModel uploadHeatpumpBasementModel(@RequestBody HeatpumpBasementModel heatpumpBasementModel) {
+        ModelObjectDAO.getInstance().write(heatpumpBasementModel);
         return new ActionModel("OK");
     }
 

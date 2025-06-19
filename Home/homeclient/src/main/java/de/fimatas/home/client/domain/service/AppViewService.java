@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import de.fimatas.home.client.domain.model.*;
-import de.fimatas.home.library.domain.model.HeatpumpPreset;
+import de.fimatas.home.library.domain.model.HeatpumpRoofPreset;
 import de.fimatas.home.library.homematic.model.Type;
 import de.fimatas.home.library.model.ConditionColor;
 import de.fimatas.home.library.util.ViewFormatterUtils;
@@ -117,8 +117,8 @@ public class AppViewService {
                 mapWeatherForecastsView(placeDirectives, (WeatherForecastsView) view, placeModel, viewTarget);
             } else if (view instanceof PresenceView) {
                 mapPresenceView(placeDirectives, (PresenceView) view, placeModel, viewTarget);
-            } else if(view instanceof HeatpumpView){
-                mapHeatpumpView(placeDirectives, (HeatpumpView) view, placeModel, viewTarget);
+            } else if(view instanceof HeatpumpRoofView){
+                mapHeatpumpRoofView(placeDirectives, (HeatpumpRoofView) view, placeModel, viewTarget);
             } else if(view instanceof LightsView){
                 mapLightsView(placeDirectives, (LightsView) view, placeModel, viewTarget);
             } else if(view instanceof ChargingView){
@@ -225,11 +225,11 @@ public class AppViewService {
         }
     }
 
-    private void mapHeatpumpView(PlaceDirectives placeDirectives, HeatpumpView view, HomeViewPlaceModel placeModel, AppViewTarget viewTarget) {
+    private void mapHeatpumpRoofView(PlaceDirectives placeDirectives, HeatpumpRoofView view, HomeViewPlaceModel placeModel, AppViewTarget viewTarget) {
 
-        placeModel.getValues().add(mapHeatpump(placeDirectives, view));
+        placeModel.getValues().add(mapHeatpumpRoof(placeDirectives, view));
         if(!Boolean.parseBoolean(view.getBusy()) && !Boolean.parseBoolean(view.getUnreach())) {
-            placeModel.getActions().addAll(mapHeatpumpActions(placeDirectives, view));
+            placeModel.getActions().addAll(mapHeatpumpRoofActions(placeDirectives, view));
         }
     }
 
@@ -341,7 +341,7 @@ public class AppViewService {
     }
 
     @SuppressWarnings("UnnecessaryUnicodeEscape")
-    private HomeViewValueModel mapHeatpump(PlaceDirectives placeDirectives, HeatpumpView view) {
+    private HomeViewValueModel mapHeatpumpRoof(PlaceDirectives placeDirectives, HeatpumpRoofView view) {
         HomeViewValueModel hvm = new HomeViewValueModel();
         hvm.setId(view.getId());
         hvm.setKey(view.getName());
@@ -556,7 +556,7 @@ public class AppViewService {
         return actions;
     }
 
-    private List<List<HomeViewActionModel>> mapHeatpumpActions(PlaceDirectives placeDirectives, HeatpumpView view) {
+    private List<List<HomeViewActionModel>> mapHeatpumpRoofActions(PlaceDirectives placeDirectives, HeatpumpRoofView view) {
 
         if (BooleanUtils.toBoolean(view.getUnreach())) {
             return new LinkedList<>();
@@ -565,18 +565,18 @@ public class AppViewService {
         List<List<HomeViewActionModel>> actions = new LinkedList<>();
 
         // direct
-        actions.add(mapHeatpumpActionsRoomCombination(placeDirectives, view, List.of()));
+        actions.add(mapHeatpumpRoofActionsRoomCombination(placeDirectives, view, List.of()));
 
         // with one other room
-        view.getOtherPlaces().forEach(other -> actions.add(mapHeatpumpActionsRoomCombination(placeDirectives, view, List.of(other))));
+        view.getOtherPlaces().forEach(other -> actions.add(mapHeatpumpRoofActionsRoomCombination(placeDirectives, view, List.of(other))));
 
         // all
-        actions.add(mapHeatpumpActionsRoomCombination(placeDirectives, view, view.getOtherPlaces()));
+        actions.add(mapHeatpumpRoofActionsRoomCombination(placeDirectives, view, view.getOtherPlaces()));
 
         return actions;
     }
 
-    private List<HomeViewActionModel> mapHeatpumpActionsRoomCombination(PlaceDirectives placeDirectives, HeatpumpView view, List<ValueWithCaption> other) {
+    private List<HomeViewActionModel> mapHeatpumpRoofActionsRoomCombination(PlaceDirectives placeDirectives, HeatpumpRoofView view, List<ValueWithCaption> other) {
 
         List<HomeViewActionModel> actionsDirect = new LinkedList<>();
 
@@ -591,17 +591,17 @@ public class AppViewService {
         actionSwitchCaption.setLink(Strings.EMPTY);
         actionsDirect.add(actionSwitchCaption);
 
-        actionsDirect.add(mapHeatpumpActionSinglePreset(placeDirectives, view, other, HeatpumpPreset.COOL_AUTO, idSuffix));
-        actionsDirect.add(mapHeatpumpActionSinglePreset(placeDirectives, view, other, HeatpumpPreset.COOL_MIN, idSuffix));
-        actionsDirect.add(mapHeatpumpActionSinglePreset(placeDirectives, view, other, HeatpumpPreset.HEAT_AUTO, idSuffix));
-        actionsDirect.add(mapHeatpumpActionSinglePreset(placeDirectives, view, other, HeatpumpPreset.HEAT_MIN, idSuffix));
-        actionsDirect.add(mapHeatpumpActionSinglePreset(placeDirectives, view, other, HeatpumpPreset.DRY_TIMER, idSuffix));
-        actionsDirect.add(mapHeatpumpActionSinglePreset(placeDirectives, view, other, HeatpumpPreset.OFF, idSuffix));
+        actionsDirect.add(mapHeatpumpRoofActionSinglePreset(placeDirectives, view, other, HeatpumpRoofPreset.COOL_AUTO, idSuffix));
+        actionsDirect.add(mapHeatpumpRoofActionSinglePreset(placeDirectives, view, other, HeatpumpRoofPreset.COOL_MIN, idSuffix));
+        actionsDirect.add(mapHeatpumpRoofActionSinglePreset(placeDirectives, view, other, HeatpumpRoofPreset.HEAT_AUTO, idSuffix));
+        actionsDirect.add(mapHeatpumpRoofActionSinglePreset(placeDirectives, view, other, HeatpumpRoofPreset.HEAT_MIN, idSuffix));
+        actionsDirect.add(mapHeatpumpRoofActionSinglePreset(placeDirectives, view, other, HeatpumpRoofPreset.DRY_TIMER, idSuffix));
+        actionsDirect.add(mapHeatpumpRoofActionSinglePreset(placeDirectives, view, other, HeatpumpRoofPreset.OFF, idSuffix));
 
         return actionsDirect;
     }
 
-    private HomeViewActionModel mapHeatpumpActionSinglePreset(PlaceDirectives placeDirectives, HeatpumpView view, List<ValueWithCaption> other, HeatpumpPreset preset, String idSuffix) {
+    private HomeViewActionModel mapHeatpumpRoofActionSinglePreset(PlaceDirectives placeDirectives, HeatpumpRoofView view, List<ValueWithCaption> other, HeatpumpRoofPreset preset, String idSuffix) {
 
         HomeViewActionModel hpActionSwitch = new HomeViewActionModel();
         hpActionSwitch.setId(placeDirectives.place.name() + "-hpSwitch-" + preset + "-" + idSuffix);

@@ -8,7 +8,7 @@ import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class HeatpumpView extends View {
+public class HeatpumpRoofView extends View {
 
     private String label = "";
 

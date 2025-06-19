@@ -7,13 +7,13 @@ import java.io.Serializable;
 
 @Data
 @AllArgsConstructor
-public class Heatpump implements Serializable {
+public class HeatpumpRoof implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     private Place place;
 
-    private HeatpumpPreset heatpumpPreset;
+    private HeatpumpRoofPreset heatpumpRoofPreset;
 
     private Long timer;
 }

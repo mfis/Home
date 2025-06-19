@@ -90,7 +90,7 @@ public class AppRequestMapping {
             } else {
                 Model model = new ExtendedModelMap();
                 houseView.fillViewModel(model, null, houseModel, ModelObjectDAO.getInstance().readHistoryModel(),
-                    ModelObjectDAO.getInstance().readLightsModel(), ModelObjectDAO.getInstance().readWeatherForecastModel(), ModelObjectDAO.getInstance().readPresenceModel(), ModelObjectDAO.getInstance().readHeatpumpModel(), ModelObjectDAO.getInstance().readElectricVehicleModel(), ModelObjectDAO.getInstance().readPushMessageModel(), ModelObjectDAO.getInstance().readTasksModel(), ModelObjectDAO.getInstance().readPvAdditionalDataModel());
+                    ModelObjectDAO.getInstance().readLightsModel(), ModelObjectDAO.getInstance().readWeatherForecastModel(), ModelObjectDAO.getInstance().readPresenceModel(), ModelObjectDAO.getInstance().readHeatpumpRoofModel(), ModelObjectDAO.getInstance().readHeatpumpBasementModel(), ModelObjectDAO.getInstance().readElectricVehicleModel(), ModelObjectDAO.getInstance().readPushMessageModel(), ModelObjectDAO.getInstance().readTasksModel(), ModelObjectDAO.getInstance().readPvAdditionalDataModel());
                 return appViewService.mapAppModel(model, AppViewService.AppViewTarget.valueOf(viewTarget.toUpperCase()));
             }
         } catch (Exception e) {

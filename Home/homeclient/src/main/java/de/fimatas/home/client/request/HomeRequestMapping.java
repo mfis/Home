@@ -222,7 +222,7 @@ public class HomeRequestMapping {
             } else {
                 String user = userService.userNameFromLoginCookie(userCookie);
                 houseView.fillViewModel(model, user, houseModel, ModelObjectDAO.getInstance().readHistoryModel(),
-                    ModelObjectDAO.getInstance().readLightsModel(), ModelObjectDAO.getInstance().readWeatherForecastModel(), ModelObjectDAO.getInstance().readPresenceModel(), ModelObjectDAO.getInstance().readHeatpumpModel(), ModelObjectDAO.getInstance().readElectricVehicleModel(), ModelObjectDAO.getInstance().readPushMessageModel(), ModelObjectDAO.getInstance().readTasksModel(), ModelObjectDAO.getInstance().readPvAdditionalDataModel());
+                    ModelObjectDAO.getInstance().readLightsModel(), ModelObjectDAO.getInstance().readWeatherForecastModel(), ModelObjectDAO.getInstance().readPresenceModel(), ModelObjectDAO.getInstance().readHeatpumpRoofModel(), ModelObjectDAO.getInstance().readHeatpumpBasementModel(), ModelObjectDAO.getInstance().readElectricVehicleModel(), ModelObjectDAO.getInstance().readPushMessageModel(), ModelObjectDAO.getInstance().readTasksModel(), ModelObjectDAO.getInstance().readPvAdditionalDataModel());
                 returnTemplate =  Objects.requireNonNull(Pages.getEntry(Pages.PATH_HOME)).getTemplate();
             }
         } catch (Exception e) {

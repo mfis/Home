@@ -74,7 +74,7 @@ public class HouseViewService {
 
     private static final String TOGGLE_LIGHT = MESSAGEPATH + TYPE_IS + MessageType.TOGGLELIGHT + AND_DEVICE_ID_IS;
 
-    private static final String SET_HEATPUMP = MESSAGEPATH + TYPE_IS + MessageType.CONTROL_HEATPUMP + AND_PLACE_IS;
+    private static final String SET_HEATPUMP = MESSAGEPATH + TYPE_IS + MessageType.CONTROL_HEATPUMP_ROOF + AND_PLACE_IS;
 
     public static final String PLACE_SUBTITLE_PREFIX = "place_subtitle_";
 
@@ -94,7 +94,7 @@ public class HouseViewService {
         });
     }
 
-    public void fillViewModel(Model model, String username, HouseModel house, HistoryModel historyModel, LightsModel lightsModel, WeatherForecastModel weatherForecastModel, PresenceModel presenceModel, HeatpumpModel heatpumpModel, ElectricVehicleModel electricVehicleModel, PushMessageModel pushMessageModel, TasksModel tasksModel, PvAdditionalDataModel pvAdditionalDataModel) {
+    public void fillViewModel(Model model, String username, HouseModel house, HistoryModel historyModel, LightsModel lightsModel, WeatherForecastModel weatherForecastModel, PresenceModel presenceModel, HeatpumpRoofModel heatpumpRoofModel, HeatpumpBasementModel heatpumpBasementModel, ElectricVehicleModel electricVehicleModel, PushMessageModel pushMessageModel, TasksModel tasksModel, PvAdditionalDataModel pvAdditionalDataModel) {
 
         model.addAttribute("modelTimestamp", ModelObjectDAO.getInstance().calculateModelTimestamp());
 
@@ -137,9 +137,9 @@ public class HouseViewService {
         formatPower(model, house.getWallboxElectricalPowerConsumption(), historyModel==null?null:historyModel.getWallboxElectricPowerConsumptionDay());
         formatEVCharge(model, electricVehicleModel, house.getWallboxElectricalPowerConsumption());
 
-        formatHeatpump(model, heatpumpModel, Place.BEDROOM);
-        formatHeatpump(model, heatpumpModel, Place.KIDSROOM_1);
-        formatHeatpump(model, heatpumpModel, Place.KIDSROOM_2);
+        formatHeatpump(model, heatpumpRoofModel, Place.BEDROOM);
+        formatHeatpump(model, heatpumpRoofModel, Place.KIDSROOM_1);
+        formatHeatpump(model, heatpumpRoofModel, Place.KIDSROOM_2);
 
         formatLowBattery(model, house.getLowBatteryDevices());
 
@@ -157,7 +157,7 @@ public class HouseViewService {
         formatUpperFloorGroup(model, "widgetUpperFloor", Place.WIDGET_UPPER_FLOOR_TEMPERATURE, house);
         formatGridsGroup(model, "widgetGrids", Place.WIDGET_GRIDS, house, historyModel==null?null:historyModel.getPurchasedElectricPowerConsumptionDay(), historyModel==null?null:historyModel.getGasConsumptionDay());
         formatBufferGroup(model, "widgetBuffer", Place.WIDGET_BUFFER, electricVehicleModel);
-        formatSymbolsGroup(model, presenceModel, heatpumpModel, lightsModel, house, tasksModel);
+        formatSymbolsGroup(model, presenceModel, heatpumpRoofModel, lightsModel, house, tasksModel);
     }
 
     private void formatUpperFloorGroup(Model model, String viewKey, Place place, HouseModel house) {
@@ -276,14 +276,14 @@ public class HouseViewService {
         return colorPvBattery;
     }
 
-    private void formatSymbolsGroup(Model model, PresenceModel presenceModel, HeatpumpModel heatpumpModel, LightsModel lightsModel, HouseModel houseModel, TasksModel tasksModel) {
+    private void formatSymbolsGroup(Model model, PresenceModel presenceModel, HeatpumpRoofModel heatpumpRoofModel, LightsModel lightsModel, HouseModel houseModel, TasksModel tasksModel) {
 
         WidgetGroupView view = new WidgetGroupView("widgetSymbols", Place.WIDGET_SYMBOLS);
         model.addAttribute("widgetSymbols", view);
 
-        if(heatpumpModel != null){
-            var countUnknwn = heatpumpModel.getHeatpumpMap().values().stream().filter(h -> h.getHeatpumpPreset() == HeatpumpPreset.UNKNOWN).count();
-            var countOn = heatpumpModel.getHeatpumpMap().values().stream().filter(h -> h.getHeatpumpPreset() != HeatpumpPreset.OFF).count();
+        if(heatpumpRoofModel != null){
+            var countUnknwn = heatpumpRoofModel.getHeatpumpMap().values().stream().filter(h -> h.getHeatpumpRoofPreset() == HeatpumpRoofPreset.UNKNOWN).count();
+            var countOn = heatpumpRoofModel.getHeatpumpMap().values().stream().filter(h -> h.getHeatpumpRoofPreset() != HeatpumpRoofPreset.OFF).count();
             var v = new View();
             v.setId("symbols-heatpump" + lookupGroupitemIdPostfix(true));
             if(countUnknwn>0){
@@ -1501,16 +1501,16 @@ public class HouseViewService {
     }
 
 
-    private void formatHeatpump(Model model, HeatpumpModel heatpumpModel, Place place) {
+    private void formatHeatpump(Model model, HeatpumpRoofModel heatpumpRoofModel, Place place) {
 
-        var isUnreachable = heatpumpModel == null ||
-                heatpumpModel.getHeatpumpMap() == null || heatpumpModel.getHeatpumpMap().get(place) == null;
+        var isUnreachable = heatpumpRoofModel == null ||
+                heatpumpRoofModel.getHeatpumpMap() == null || heatpumpRoofModel.getHeatpumpMap().get(place) == null;
 
         var houseModel = ModelObjectDAO.getInstance().readHouseModelIgnoringAge();
 
-        var view = new HeatpumpView();
+        var view = new HeatpumpRoofView();
         model.addAttribute("heatpump" + place.name(), view);
-        view.setName(heatpumpModel == null ? "UnbekannteWaermepumpe" : heatpumpModel.getName());
+        view.setName(heatpumpRoofModel == null ? "UnbekannteWaermepumpe" : heatpumpRoofModel.getName());
         view.setIcon("aircon.png");
         view.setPlaceEnum(place);
         view.setPlaceSubtitle(houseModel.getPlaceSubtitles().containsKey(place) ? houseModel.getPlaceSubtitles().get(place) : place.getPlaceName());
@@ -1522,41 +1522,41 @@ public class HouseViewService {
             view.getOtherPlaces().add(new ValueWithCaption(a.name(), title, null));
         });
 
-        HeatpumpPreset actualPreset = isUnreachable ? null : heatpumpModel.getHeatpumpMap().get(place).getHeatpumpPreset();
+        HeatpumpRoofPreset actualPreset = isUnreachable ? null : heatpumpRoofModel.getHeatpumpMap().get(place).getHeatpumpRoofPreset();
 
-        view.setLinkRefresh(buildHeatpumpPresetLink(place, HeatpumpPreset.UNKNOWN, actualPreset));
-        if(isUnreachable || actualPreset==HeatpumpPreset.UNKNOWN){
+        view.setLinkRefresh(buildHeatpumpPresetLink(place, HeatpumpRoofPreset.UNKNOWN, actualPreset));
+        if(isUnreachable || actualPreset== HeatpumpRoofPreset.UNKNOWN){
             view.setStateUnknown(true);
             view.setUnreach(Boolean.toString(true));
         }else{
-            view.setLinkCoolAuto(buildHeatpumpPresetLink(place, HeatpumpPreset.COOL_AUTO, actualPreset));
-            view.setLinkCoolMin(buildHeatpumpPresetLink(place, HeatpumpPreset.COOL_MIN, actualPreset));
-            view.setLinkCoolTimer1(buildHeatpumpPresetLink(place, HeatpumpPreset.COOL_TIMER1, actualPreset));
-            view.setLinkCoolTimer2(buildHeatpumpPresetLink(place, HeatpumpPreset.COOL_TIMER2, actualPreset));
-            view.setLinkCoolTimer3(buildHeatpumpPresetLink(place, HeatpumpPreset.COOL_TIMER3, actualPreset));
-            view.setLinkHeatAuto(buildHeatpumpPresetLink(place, HeatpumpPreset.HEAT_AUTO, actualPreset));
-            view.setLinkHeatMin(buildHeatpumpPresetLink(place, HeatpumpPreset.HEAT_MIN, actualPreset));
-            view.setLinkHeatTimer1(buildHeatpumpPresetLink(place, HeatpumpPreset.HEAT_TIMER1, actualPreset));
-            view.setLinkHeatTimer2(buildHeatpumpPresetLink(place, HeatpumpPreset.HEAT_TIMER2, actualPreset));
-            view.setLinkHeatTimer3(buildHeatpumpPresetLink(place, HeatpumpPreset.HEAT_TIMER3, actualPreset));
-            view.setLinkFanAuto(buildHeatpumpPresetLink(place, HeatpumpPreset.FAN_AUTO, actualPreset));
-            view.setLinkFanMin(buildHeatpumpPresetLink(place, HeatpumpPreset.FAN_MIN, actualPreset));
-            view.setLinkDryTimer(buildHeatpumpPresetLink(place, HeatpumpPreset.DRY_TIMER, actualPreset));
-            view.setLinkOff(buildHeatpumpPresetLink(place, HeatpumpPreset.OFF, actualPreset));
+            view.setLinkCoolAuto(buildHeatpumpPresetLink(place, HeatpumpRoofPreset.COOL_AUTO, actualPreset));
+            view.setLinkCoolMin(buildHeatpumpPresetLink(place, HeatpumpRoofPreset.COOL_MIN, actualPreset));
+            view.setLinkCoolTimer1(buildHeatpumpPresetLink(place, HeatpumpRoofPreset.COOL_TIMER1, actualPreset));
+            view.setLinkCoolTimer2(buildHeatpumpPresetLink(place, HeatpumpRoofPreset.COOL_TIMER2, actualPreset));
+            view.setLinkCoolTimer3(buildHeatpumpPresetLink(place, HeatpumpRoofPreset.COOL_TIMER3, actualPreset));
+            view.setLinkHeatAuto(buildHeatpumpPresetLink(place, HeatpumpRoofPreset.HEAT_AUTO, actualPreset));
+            view.setLinkHeatMin(buildHeatpumpPresetLink(place, HeatpumpRoofPreset.HEAT_MIN, actualPreset));
+            view.setLinkHeatTimer1(buildHeatpumpPresetLink(place, HeatpumpRoofPreset.HEAT_TIMER1, actualPreset));
+            view.setLinkHeatTimer2(buildHeatpumpPresetLink(place, HeatpumpRoofPreset.HEAT_TIMER2, actualPreset));
+            view.setLinkHeatTimer3(buildHeatpumpPresetLink(place, HeatpumpRoofPreset.HEAT_TIMER3, actualPreset));
+            view.setLinkFanAuto(buildHeatpumpPresetLink(place, HeatpumpRoofPreset.FAN_AUTO, actualPreset));
+            view.setLinkFanMin(buildHeatpumpPresetLink(place, HeatpumpRoofPreset.FAN_MIN, actualPreset));
+            view.setLinkDryTimer(buildHeatpumpPresetLink(place, HeatpumpRoofPreset.DRY_TIMER, actualPreset));
+            view.setLinkOff(buildHeatpumpPresetLink(place, HeatpumpRoofPreset.OFF, actualPreset));
         }
 
         var timerInfo = "";
-        if(!isUnreachable && heatpumpModel.getHeatpumpMap().get(place).getTimer() != null){
-            timerInfo = " bis " + viewFormatter.formatTimestamp(heatpumpModel.getHeatpumpMap().get(place).getTimer(), TimestampFormat.ONLY_TIME);
+        if(!isUnreachable && heatpumpRoofModel.getHeatpumpMap().get(place).getTimer() != null){
+            timerInfo = " bis " + viewFormatter.formatTimestamp(heatpumpRoofModel.getHeatpumpMap().get(place).getTimer(), TimestampFormat.ONLY_TIME);
         }
 
-        view.setBusy(Boolean.toString(heatpumpModel != null && heatpumpModel.isBusy()));
-        HeatpumpPreset presetForView = actualPreset == null ? HeatpumpPreset.UNKNOWN : actualPreset;
+        view.setBusy(Boolean.toString(heatpumpRoofModel != null && heatpumpRoofModel.isBusy()));
+        HeatpumpRoofPreset presetForView = actualPreset == null ? HeatpumpRoofPreset.UNKNOWN : actualPreset;
         ConditionColor color = presetForView.getConditionColor();
         view.setColorClass(color.getUiClass());
         view.setActiveSwitchColorClass(color.getUiClass());
         view.setStateShort(presetForView.getShortText());
-        view.setElementTitleState(heatpumpModel != null && heatpumpModel.isBusy() ? "Ansteuerung..." : presetForView.getMode()
+        view.setElementTitleState(heatpumpRoofModel != null && heatpumpRoofModel.isBusy() ? "Ansteuerung..." : presetForView.getMode()
                 + (presetForView.getIntensity()!=null ? ", " + presetForView.getIntensity() : ""));
         view.setState(presetForView.getMode());
         view.setStateSuffix(presetForView.getIntensity()!=null ? (", " + presetForView.getIntensity() + timerInfo) : "");
@@ -1595,8 +1595,8 @@ public class HouseViewService {
         return "switchWallbox";
     }
 
-    private String buildHeatpumpPresetLink(Place place, HeatpumpPreset targetPreset, HeatpumpPreset actualPreset){
-        if(targetPreset==actualPreset && targetPreset != HeatpumpPreset.UNKNOWN){
+    private String buildHeatpumpPresetLink(Place place, HeatpumpRoofPreset targetPreset, HeatpumpRoofPreset actualPreset){
+        if(targetPreset==actualPreset && targetPreset != HeatpumpRoofPreset.UNKNOWN){
             return "#";
         }else{
             return SET_HEATPUMP + place.name() + AND_VALUE_IS + targetPreset.name() + AND_ADD_DATA_ARE;

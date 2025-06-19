@@ -23,7 +23,9 @@ public class ModelObjectDAO {
 
     private PresenceModel presenceModel;
 
-    private HeatpumpModel heatpumpModel;
+    private HeatpumpRoofModel heatpumpRoofModel;
+
+    private HeatpumpBasementModel heatpumpBasementModel;
 
     private WeatherForecastModel weatherForecastModel;
 
@@ -72,9 +74,14 @@ public class ModelObjectDAO {
         presenceModel.setTimestamp(new Date().getTime());
     }
 
-    public void write(HeatpumpModel newModel) {
-        heatpumpModel = newModel;
-        heatpumpModel.setTimestamp(new Date().getTime());
+    public void write(HeatpumpRoofModel newModel) {
+        heatpumpRoofModel = newModel;
+        heatpumpRoofModel.setTimestamp(new Date().getTime());
+    }
+
+    public void write(HeatpumpBasementModel newModel) {
+        heatpumpBasementModel = newModel;
+        heatpumpBasementModel.setTimestamp(new Date().getTime());
     }
 
     public void write(ElectricVehicleModel newModel) {
@@ -163,12 +170,21 @@ public class ModelObjectDAO {
         }
     }
 
-    public HeatpumpModel readHeatpumpModel() {
-        long newestTimestamp = heatpumpModel == null ? 0 : heatpumpModel.getTimestamp();
-        if (heatpumpModel == null || new Date().getTime() - newestTimestamp > 1000 * HomeAppConstants.MODEL_HEATPUMP_OUTDATED_SECONDS) {
+    public HeatpumpRoofModel readHeatpumpRoofModel() {
+        long newestTimestamp = heatpumpRoofModel == null ? 0 : heatpumpRoofModel.getTimestamp();
+        if (heatpumpRoofModel == null || new Date().getTime() - newestTimestamp > 1000 * HomeAppConstants.MODEL_HEATPUMP_ROOF_OUTDATED_SECONDS) {
             return null; // Too old. Should never happen
         } else {
-            return heatpumpModel;
+            return heatpumpRoofModel;
+        }
+    }
+
+    public HeatpumpBasementModel readHeatpumpBasementModel() {
+        long newestTimestamp = heatpumpBasementModel == null ? 0 : heatpumpBasementModel.getTimestamp();
+        if (heatpumpBasementModel == null || new Date().getTime() - newestTimestamp > 1000 * HomeAppConstants.MODEL_HEATPUMP_BASEMENT_OUTDATED_SECONDS) {
+            return null; // Too old. Should never happen
+        } else {
+            return heatpumpBasementModel;
         }
     }
 

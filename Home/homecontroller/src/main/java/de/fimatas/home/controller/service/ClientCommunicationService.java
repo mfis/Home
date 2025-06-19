@@ -50,7 +50,11 @@ public class ClientCommunicationService {
     private PresenceService presenceService;
 
     @Autowired
-    private HeatpumpService heatpumpService;
+    private HeatpumpRoofService heatpumpRoofService;
+
+    @Autowired
+    private HeatpumpBasementService heatpumpBasementService;
+
     @Autowired
     private SettingsService settingsService;
 
@@ -153,11 +157,11 @@ public class ClientCommunicationService {
                 presenceService.update(message.getKey(), PresenceState.valueOf(message.getValue()));
                 frontDoorService.handlePresenceChange(message.getKey(), PresenceState.valueOf(message.getValue()));
                 break;
-            case CONTROL_HEATPUMP:
+            case CONTROL_HEATPUMP_ROOF:
                 List<Place> places = new LinkedList<>();
                 places.add(message.getPlace());
                 List.of(StringUtils.split(message.getAdditionalData(), ',')).forEach(ap ->places.add(Place.valueOf(ap)));
-                heatpumpService.preset(places, HeatpumpPreset.valueOf(message.getValue()));
+                heatpumpRoofService.preset(places, HeatpumpRoofPreset.valueOf(message.getValue()));
                 break;
             case SLIDERVALUE:
                 electricVehicleService.saveChargingUser(message.getUser());
@@ -233,10 +237,16 @@ public class ClientCommunicationService {
             uploadService.uploadToClient(ModelObjectDAO.getInstance().readPresenceModel());
         }
 
-        if (ModelObjectDAO.getInstance().readHeatpumpModel() == null) {
-            heatpumpService.scheduledRefreshFromDriverCache();
+        if (ModelObjectDAO.getInstance().readHeatpumpRoofModel() == null) {
+            heatpumpRoofService.scheduledRefreshFromDriverCache();
         } else {
-            uploadService.uploadToClient(ModelObjectDAO.getInstance().readHeatpumpModel());
+            uploadService.uploadToClient(ModelObjectDAO.getInstance().readHeatpumpRoofModel());
+        }
+
+        if (ModelObjectDAO.getInstance().readHeatpumpBasementModel() == null) {
+            heatpumpBasementService.scheduledRefreshFromDriverCache();
+        } else {
+            uploadService.uploadToClient(ModelObjectDAO.getInstance().readHeatpumpBasementModel());
         }
 
         if (ModelObjectDAO.getInstance().readElectricVehicleModel() == null) {

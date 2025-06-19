@@ -4,7 +4,7 @@ import de.fimatas.home.library.model.ConditionColor;
 import lombok.Getter;
 
 @Getter
-public enum HeatpumpPreset {
+public enum HeatpumpRoofPreset {
 
     COOL_AUTO("Kühlen", "Automatisch", "Kühlen+", ConditionColor.BLUE), //
     COOL_MIN("Kühlen", "Leise", "Kühlen-", ConditionColor.BLUE), //
@@ -30,7 +30,7 @@ public enum HeatpumpPreset {
 
     private final ConditionColor conditionColor;
 
-    HeatpumpPreset(String mode, String intensity, String shortText, ConditionColor conditionColor) {
+    HeatpumpRoofPreset(String mode, String intensity, String shortText, ConditionColor conditionColor) {
         this.mode = mode;
         this.intensity = intensity;
         this.conditionColor = conditionColor;
