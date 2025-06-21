@@ -3,6 +3,14 @@ This is a Home automation controlling web application.
 
 Application is based on [Spring Boot](https://spring.io/projects/spring-boot) and uses [Thymeleaf](https://www.thymeleaf.org) for GUI rendering and [Font Awesome](https://fontawesome.com) for icons (all not included).
 
+Included icons:
+- [Air conditioning icons created by Freepik - Flaticon](https://www.flaticon.com/free-icons/air-conditioning)
+- [Window icons created by andinur - Flaticon](https://www.flaticon.com/free-icons/window)
+- [Electric tower icons created by Creative Stall Premium - Flaticon](https://www.flaticon.com/free-icons/electric-tower)
+- [Solar panel icons created by Freepik - Flaticon](https://www.flaticon.com/free-icons/solar-panel)
+- [Solar panel icons created by gravisio - Flaticon](https://www.flaticon.com/free-icons/solar-panel)
+- [Energy icons created by Freepik - Flaticon](https://www.flaticon.com/free-icons/energy)
+- [Air source heat pump icons created by Freepik - Flaticon](https://www.flaticon.com/free-icons/air-source-heat-pump)
 # Customizing
 Sources in */domain/ -packages are depending on individual Homematic setup and therefore needed to be changed.
 
