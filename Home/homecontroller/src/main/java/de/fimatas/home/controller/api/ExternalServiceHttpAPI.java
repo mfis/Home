@@ -1,5 +1,7 @@
 package de.fimatas.home.controller.api;
 
+import de.fimatas.heatpump.basement.driver.api.Request;
+import de.fimatas.heatpump.basement.driver.api.Response;
 import de.fimatas.heatpump.roof.driver.api.HeatpumpRequest;
 import de.fimatas.heatpump.roof.driver.api.HeatpumpResponse;
 import jakarta.annotation.PostConstruct;
@@ -54,6 +56,7 @@ public class ExternalServiceHttpAPI {
     @PostConstruct
     public void init(){
         MAX_CALL_RATE_MAP.put(hostAndPath(environment.getProperty("heatpump.roof.driver.url")).host(), Duration.ofMinutes(1));
+        MAX_CALL_RATE_MAP.put(hostAndPath(environment.getProperty("heatpump.basement.driver.url")).host(), Duration.ofMinutes(9));
         MAX_CALL_RATE_MAP.put(hostAndPath(environment.getProperty("weatherForecast.brightskyEndpoint")).host(), Duration.ofMinutes(55));
         MAX_CALL_RATE_MAP.put(hostAndPath(environment.getProperty("solarman.hostname")).host(), Duration.ofSeconds(58));
     }
@@ -73,14 +76,21 @@ public class ExternalServiceHttpAPI {
         return restTemplate.postForEntity(url, request, String.class, uriVariables);
     }
 
-    public synchronized ResponseEntity<HeatpumpResponse> postForHeatpumpEntity(String url, HeatpumpRequest request) throws RestClientException {
-        if(HeatpumpRequest.apiVersion != 3){
+    public synchronized ResponseEntity<HeatpumpResponse> postForHeatpumpRoofEntity(String url, HeatpumpRequest request) throws RestClientException {
+        if(HeatpumpRequest.apiVersion != 4){
             throw new IllegalStateException("Heatpump API version not supported");
         }
         var map = Map.of("type", request.isReadFromCache() ? "cache" : (request.getWriteWithRoomnameAndProgram().isEmpty() ? "read" : "write"));
         checkServiceEnabledAndFrequency(url, map, "POST");
         HttpEntity<HeatpumpRequest> httpRequest = new HttpEntity<>(request);
         return restTemplateHeatpumpDriver.postForEntity(url, httpRequest, HeatpumpResponse.class);
+    }
+
+    public synchronized ResponseEntity<Response> postForHeatpumpBasementEntity(String url, Request request) throws RestClientException {
+        var map = Map.of("cache", (request.isReadFromCache() ? "read" : "write"));
+        checkServiceEnabledAndFrequency(url, map, "POST");
+        HttpEntity<Request> httpRequest = new HttpEntity<>(request);
+        return restTemplateHeatpumpDriver.postForEntity(url, httpRequest, Response.class);
     }
 
     private void checkServiceEnabledAndFrequency(String url, Map<String, ?> uriVariables, String method) {

@@ -2,10 +2,13 @@ package de.fimatas.home.controller.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.fimatas.heatpump.roof.driver.api.*;
+import de.fimatas.heatpump.basement.driver.api.Credentials;
+import de.fimatas.heatpump.basement.driver.api.Request;
+import de.fimatas.heatpump.basement.driver.api.Response;
 import de.fimatas.home.controller.api.ExternalServiceHttpAPI;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
+import de.fimatas.home.library.model.ConditionColor;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
@@ -47,32 +50,32 @@ public class HeatpumpBasementService {
 
     @PostConstruct
     public void init() {
-
+        scheduledRefreshFromDriverCache();
     }
 
     public void scheduledRefreshFromDriverCache() {
         try {
-            //refreshHeatpumpModel(true);
+            refreshHeatpumpModel(true);
         } catch (Exception e) {
-            handleException(e, "Could not call heatpumpBasement service (with-cache)");
+            handleException(e, "Could not call heatpump basement service (with-cache)");
         }
     }
 
-    //@Scheduled(cron = "44 01 6-23 * * *")
+    @Scheduled(cron = "44 01 6-23 * * *")
     public void scheduledRefreshFromDriverNoCache() {
-        isCallError = false;
         try {
-            //refreshHeatpumpModel(false);
+            refreshHeatpumpModel(false);
         } catch (Exception e) {
-            handleException(e, "Could not call heatpumpBasement service (no-cache!)");
+            handleException(e, "Could not call heatpump basement service (no-cache!)");
         }
     }
 
-    private static void handleException(Exception e, String msg) {
+    private void handleException(Exception e, String msg) {
         if(e instanceof RestClientException && e.getMessage().startsWith(ExternalServiceHttpAPI.MESSAGE_TOO_MANY_CALLS)){
             log.warn(msg + " - " + e.getMessage());
             return;
         }
+        isCallError = true;
         log.error(msg, e);
     }
 
@@ -86,74 +89,86 @@ public class HeatpumpBasementService {
             return;
         }
 
-        HeatpumpRequest request = new HeatpumpRequest();
-        request.setHeatpumpUsername(env.getProperty("heatpump.basement.driver.user"));
-        request.setHeatpumpPassword(env.getProperty("heatpump.basement.driver.pass"));
+        var sshUser = env.getProperty("heatpump.basement.driver.sshUser");
+        var sshPass = env.getProperty("heatpump.basement.driver.sshPass");
+        var apiUser = env.getProperty("heatpump.basement.driver.apiUser");
+        var apiPass =  env.getProperty("heatpump.basement.driver.apiPass");
+
+        Request request = new Request();
+        request.setReadFromCache(cachedData);
+        request.setCredentials(new Credentials(sshUser, sshPass, apiUser, apiPass));
         request.setReadFromCache(cachedData);
 
-        HeatpumpResponse response = callDriver(request);
+        Response response = callDriver(request);
         handleResponse(request, response);
     }
 
-    private void handleResponse(HeatpumpRequest request, HeatpumpResponse response) {
+    private void handleResponse(Request request, Response response) {
 
         if(responseHasError(response)){
             try {
-                log.warn("Error calling heatpump driver: " + new ObjectMapper().writeValueAsString(response));
+                log.warn("Error calling heatpump basement driver: " + new ObjectMapper().writeValueAsString(response));
             } catch (JsonProcessingException e) {
-                log.warn("Error calling heatpump driver....");
+                log.warn("Error calling heatpump basement driver....");
             }
-            if(!request.isReadFromCache() || (request.getWriteWithRoomnameAndProgram() != null && !request.getWriteWithRoomnameAndProgram().isEmpty())){
+            if(!request.isReadFromCache()){
                 CompletableFuture.runAsync(() -> pushService.sendErrorMessage("Fehler bei Ansteuerung von Heizung!"));
             }
-            switchModelToUnknown();
+            switchModelToUnknown(response.getErrorMessage());
             return;
         }
 
-        HeatpumpBasementModel newModel = getHeatpumpModelWithUnknownPresets();
+        HeatpumpBasementModel newModel = emptyModel();
+        mapResponseToModel(response, newModel);
         ModelObjectDAO.getInstance().write(newModel);
         uploadService.uploadToClient(newModel);
     }
 
-    private boolean responseHasError(HeatpumpResponse response) {
-        return !response.isRemoteConnectionSuccessful() || !response.isDriverRunSuccessful() || StringUtils.isNotBlank(response.getErrorMessage());
+    private void mapResponseToModel(Response response, HeatpumpBasementModel newModel) {
+        response.getDatapointList().forEach(dp -> {
+            var datapoint = new HeatpumpBasementDatapoint();
+            datapoint.setId(dp.id());
+            datapoint.setName(dp.name());
+            datapoint.setValue(dp.value());
+            datapoint.setConditionColor(newModel.getDatapoints().isEmpty() ? ConditionColor.GREEN : ConditionColor.BLUE);
+            newModel.getDatapoints().add(datapoint);
+        });
     }
 
-    private void switchModelToUnknown() {
+    private boolean responseHasError(Response response) {
+        return StringUtils.isNotBlank(response.getErrorMessage());
+    }
 
-        final HeatpumpBasementModel unknownHeatpumpModel = getHeatpumpModelWithUnknownPresets();
+    private void switchModelToUnknown(String errorMessage) {
+
+        final HeatpumpBasementModel unknownHeatpumpModel = emptyModel();
         ModelObjectDAO.getInstance().write(unknownHeatpumpModel);
         uploadService.uploadToClient(unknownHeatpumpModel);
     }
 
-    private synchronized HeatpumpResponse callDriver(HeatpumpRequest request){
+    private synchronized Response callDriver(Request request){
 
         try {
-            ResponseEntity<HeatpumpResponse> response = externalServiceHttpAPI.postForHeatpumpEntity(
+            ResponseEntity<Response> response = externalServiceHttpAPI.postForHeatpumpBasementEntity(
                     Objects.requireNonNull(env.getProperty("heatpump.basement.driver.url")), request);
             HttpStatusCode statusCode = response.getStatusCode();
 
             if (!statusCode.is2xxSuccessful()) {
-                log.error("Could not call heatpump driver. RC=" + statusCode.value());
+                log.error("Could not call heatpump basement driver. RC=" + statusCode.value());
                 isCallError = true;
             }
-            final HeatpumpResponse body = response.getBody();
-            if(body != null){
-                body.setRemoteConnectionSuccessful(true);
-            }
-            return body;
+            return response.getBody();
 
         } catch (RestClientException e) {
-            log.error("Exception calling heatpump driver:" + e.getMessage());
+            log.error("Exception calling heatpump basement driver:" + e.getMessage());
             isCallError = true;
-            var response = new HeatpumpResponse();
-            response.setRemoteConnectionSuccessful(false);
-            response.setErrorMessage("Exception calling heatpump driver:" + e.getMessage());
+            var response = new Response();
+            response.setErrorMessage("Exception calling heatpump basement driver:" + e.getMessage());
             return response;
         }
     }
 
-    private HeatpumpBasementModel getHeatpumpModelWithUnknownPresets() {
+    private HeatpumpBasementModel emptyModel() {
 
         final var unknownHeatpumpModel = new HeatpumpBasementModel();
         unknownHeatpumpModel.setTimestamp(System.currentTimeMillis());

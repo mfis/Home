@@ -44,7 +44,7 @@
 		<assertj.version>3.26.3</assertj.version>
 		<hap-java.version>2.0.1</hap-java.version>
 		<zxing.version>3.5.3</zxing.version>
-		<heatpumpdriver.version>4.0.0</heatpumpdriver.version>
+		<heatpumpdriver.version>4.0.1</heatpumpdriver.version>
 		<resilience4j.version>2.2.0</resilience4j.version>
 		<oshi-core.version>6.6.3</oshi-core.version>
 	</properties>

@@ -74,7 +74,9 @@ public class HouseViewService {
 
     private static final String TOGGLE_LIGHT = MESSAGEPATH + TYPE_IS + MessageType.TOGGLELIGHT + AND_DEVICE_ID_IS;
 
-    private static final String SET_HEATPUMP = MESSAGEPATH + TYPE_IS + MessageType.CONTROL_HEATPUMP_ROOF + AND_PLACE_IS;
+    private static final String SET_HEATPUMP_ROOF = MESSAGEPATH + TYPE_IS + MessageType.CONTROL_HEATPUMP_ROOF + AND_PLACE_IS;
+
+    private static final String REFRESH_HEATPUMP_BASEMENT = MESSAGEPATH + TYPE_IS + MessageType.CONTROL_HEATPUMP_BASEMENT + AND_VALUE_IS + "refresh";
 
     public static final String PLACE_SUBTITLE_PREFIX = "place_subtitle_";
 
@@ -137,9 +139,11 @@ public class HouseViewService {
         formatPower(model, house.getWallboxElectricalPowerConsumption(), historyModel==null?null:historyModel.getWallboxElectricPowerConsumptionDay());
         formatEVCharge(model, electricVehicleModel, house.getWallboxElectricalPowerConsumption());
 
-        formatHeatpump(model, heatpumpRoofModel, Place.BEDROOM);
-        formatHeatpump(model, heatpumpRoofModel, Place.KIDSROOM_1);
-        formatHeatpump(model, heatpumpRoofModel, Place.KIDSROOM_2);
+        formatHeatpumpRoof(model, heatpumpRoofModel, Place.BEDROOM);
+        formatHeatpumpRoof(model, heatpumpRoofModel, Place.KIDSROOM_1);
+        formatHeatpumpRoof(model, heatpumpRoofModel, Place.KIDSROOM_2);
+
+        formatHeatpumpBasement(model, heatpumpBasementModel);
 
         formatLowBattery(model, house.getLowBatteryDevices());
 
@@ -1500,8 +1504,38 @@ public class HouseViewService {
         view.setState(shortText + " - " + longText);
     }
 
+    private void formatHeatpumpBasement(Model model, HeatpumpBasementModel heatpumpBasementModel) {
 
-    private void formatHeatpump(Model model, HeatpumpRoofModel heatpumpRoofModel, Place place) {
+        var isUnreachable = heatpumpBasementModel == null || heatpumpBasementModel.getDatapoints().isEmpty();
+
+        var view = new HeatpumpBasementView();
+        model.addAttribute("heatpumpBasement", view);
+        view.setIcon("air-source-heat-pump.png");
+        view.setName("Heizung");
+        view.setId("heatpumpBasement");
+        view.setUnreach(Boolean.toString(isUnreachable));
+        view.setLinkRefresh(isUnreachable ? REFRESH_HEATPUMP_BASEMENT : "#");
+
+        if(isUnreachable){
+            view.setColorClass(ConditionColor.GRAY.getUiClass());
+            return;
+        }
+
+        var colorClassCallout = ConditionColor.GREEN;
+
+        view.setColorClass(colorClassCallout.getUiClass());
+        view.setActiveSwitchColorClass(colorClassCallout.getUiClass());
+        view.setStateShort("stateShort");
+        view.setElementTitleState("elementTitleState");
+        view.setState("state");
+
+        heatpumpBasementModel.getDatapoints().forEach(v -> {
+            view.getDatapoints().add(new ValueWithCaption(v.getValue(), v.getName(), v.getConditionColor().getUiClass()));
+        });
+
+    }
+
+    private void formatHeatpumpRoof(Model model, HeatpumpRoofModel heatpumpRoofModel, Place place) {
 
         var isUnreachable = heatpumpRoofModel == null ||
                 heatpumpRoofModel.getHeatpumpMap() == null || heatpumpRoofModel.getHeatpumpMap().get(place) == null;
@@ -1599,7 +1633,7 @@ public class HouseViewService {
         if(targetPreset==actualPreset && targetPreset != HeatpumpRoofPreset.UNKNOWN){
             return "#";
         }else{
-            return SET_HEATPUMP + place.name() + AND_VALUE_IS + targetPreset.name() + AND_ADD_DATA_ARE;
+            return SET_HEATPUMP_ROOF + place.name() + AND_VALUE_IS + targetPreset.name() + AND_ADD_DATA_ARE;
         }
     }
 

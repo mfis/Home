@@ -37,6 +37,7 @@
 				<!-- Energie -->
 				<div th:replace="~{fragments :: title (name='Energie')}"></div>
 				<div th:replace="~{fragments-overallElectricPower :: overallElectricPower (model=${overallElectricPowerHouse})}"></div>
+				<div th:replace="~{fragments-heatpumpBasement :: heatpumpBasement (model=${heatpumpBasement})}"></div>
 				<div th:replace="~{fragments :: wallbox (modelMeter=${StromWallbox}, modelSwitch=${switchWallbox})}"></div>
 				<div th:replace="~{fragments-evcharge :: evcharge (model=${evcharge_EUP})}"></div>
 
@@ -47,18 +48,18 @@
 				<!-- Kinderzimmer 1 -->
 				<div th:replace="~{fragments :: title (name='Kinderzimmer ' + ${place_subtitle_KIDSROOM_1})}"></div>
 				<div th:replace="~{fragments :: temperature (model=${tempKids1})}"></div>
-				<div th:replace="~{fragments :: heatpumpRoof (model=${heatpumpKIDSROOM_1})}"></div>
+				<div th:replace="~{fragments-heatpumpRoof :: heatpumpRoof (model=${heatpumpKIDSROOM_1})}"></div>
 
 				<!-- Kinderzimmer 2 -->
 				<div th:replace="~{fragments :: title (name='Kinderzimmer ' + ${place_subtitle_KIDSROOM_2})}"></div>
 				<div th:replace="~{fragments :: temperature (model=${tempKids2})}"></div>
-				<div th:replace="~{fragments :: heatpumpRoof (model=${heatpumpKIDSROOM_2})}"></div>
+				<div th:replace="~{fragments-heatpumpRoof :: heatpumpRoof (model=${heatpumpKIDSROOM_2})}"></div>
 				<div th:replace="~{fragments :: lights (model=${lightsKIDSROOM_2})}"></div>
 
 				<!-- Schlafzimmer -->
 				<div th:replace="~{fragments :: title (name='Schlafzimmer')}"></div>
 				<div th:replace="~{fragments :: temperature (model=${tempBedroom})}"></div>
-				<div th:replace="~{fragments :: heatpumpRoof (model=${heatpumpBEDROOM})}"></div>
+				<div th:replace="~{fragments-heatpumpRoof :: heatpumpRoof (model=${heatpumpBEDROOM})}"></div>
 
 				<!-- Badezimmer -->
 				<div th:replace="~{fragments :: title (name='Badezimmer')}"></div>

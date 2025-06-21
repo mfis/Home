@@ -99,7 +99,7 @@ public class HeatpumpRoofService {
             try {
                 refreshHeatpumpModel(true);
             } catch (Exception e) {
-                handleException(e, "Could not call heatpump service (with-cache)");
+                handleException(e, "Could not call heatpump roof service (with-cache)");
             }
         }
     }
@@ -148,9 +148,9 @@ public class HeatpumpRoofService {
 
         if(responseHasError(response)){
             try {
-                log.warn("Error calling heatpump driver: " + new ObjectMapper().writeValueAsString(response));
+                log.warn("Error calling heatpump roof driver: " + new ObjectMapper().writeValueAsString(response));
             } catch (JsonProcessingException e) {
-                log.warn("Error calling heatpump driver....");
+                log.warn("Error calling heatpump roof driver....");
             }
             if(!request.isReadFromCache() || (request.getWriteWithRoomnameAndProgram() != null && !request.getWriteWithRoomnameAndProgram().isEmpty())){
                 CompletableFuture.runAsync(() -> pushService.sendErrorMessage("Fehler bei Ansteuerung von " + heatpumpName));
@@ -373,12 +373,12 @@ public class HeatpumpRoofService {
     private synchronized HeatpumpResponse callDriver(HeatpumpRequest request){
 
         try {
-            ResponseEntity<HeatpumpResponse> response = externalServiceHttpAPI.postForHeatpumpEntity(
+            ResponseEntity<HeatpumpResponse> response = externalServiceHttpAPI.postForHeatpumpRoofEntity(
                     Objects.requireNonNull(env.getProperty("heatpump.roof.driver.url")), request);
             HttpStatusCode statusCode = response.getStatusCode();
 
             if (!statusCode.is2xxSuccessful()) {
-                log.error("Could not call heatpump driver. RC=" + statusCode.value());
+                log.error("Could not call heatpump roof driver. RC=" + statusCode.value());
                 isCallError = true;
             }
             final HeatpumpResponse body = response.getBody();
@@ -388,11 +388,11 @@ public class HeatpumpRoofService {
             return body;
 
         } catch (RestClientException e) {
-            log.error("Exception calling heatpump driver:" + e.getMessage());
+            log.error("Exception calling heatpump roof driver:" + e.getMessage());
             isCallError = true;
             var response = new HeatpumpResponse();
             response.setRemoteConnectionSuccessful(false);
-            response.setErrorMessage("Exception calling heatpump driver:" + e.getMessage());
+            response.setErrorMessage("Exception calling heatpump roof driver:" + e.getMessage());
             return response;
         }
     }

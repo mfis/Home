@@ -17,6 +17,7 @@ public enum MessageType {
     SLIDERVALUE(Pages.PATH_HOME), //
     CHARGELIMIT(Pages.PATH_HOME), //
     CONTROL_HEATPUMP_ROOF(Pages.PATH_HOME), //
+    CONTROL_HEATPUMP_BASEMENT(Pages.PATH_HOME), //
     SETTINGS_NEW(null), //
     SETTINGS_EDIT(null), //
     WALLBOX_SELECTED_EV(Pages.PATH_HOME),
