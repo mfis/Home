@@ -15,15 +15,24 @@ import static de.fimatas.home.library.util.HomeUtils.buildDecimalFormat;
 @Getter
 public enum LiveActivityField {
 
-    // TODO: Re-use View Formatter
-    ELECTRIC_GRID(
-            val -> "energygrid",
-            "app",
-            new BigDecimal(40),
+    HOUSE_CONSUMPTION(
+            val -> "house.fill",
+            "sys",
+            new BigDecimal(50),
             true,
-            val -> buildDecimalFormat("0").format(val.abs()) + " W",
+            val -> buildDecimalFormat("0.0").format(val.abs().divide(new BigDecimal(1000), new MathContext(3, RoundingMode.HALF_UP)))+ "kW",
             val -> buildDecimalFormat("0.0").format(val.abs().divide(new BigDecimal(1000), new MathContext(3, RoundingMode.HALF_UP))),
-            val -> ViewFormatterUtils.mapAppColorAccent(val.compareTo(BigDecimal.ZERO) > 0 ? ConditionColor.ORANGE.getUiClass() : ConditionColor.GREEN.getUiClass())
+            val -> ViewFormatterUtils.mapAppColorAccent(ConditionColor.DEFAULT.getUiClass())
+    ), //
+
+    PV_PRODUCTION(
+            val -> "sun.max.fill",
+            "sys",
+            new BigDecimal(50),
+            true,
+            val -> buildDecimalFormat("0.0").format(val.abs().divide(new BigDecimal(1000), new MathContext(3, RoundingMode.HALF_UP))) + "kW",
+            val -> buildDecimalFormat("0.0").format(val.abs().divide(new BigDecimal(1000), new MathContext(3, RoundingMode.HALF_UP))),
+            val -> ViewFormatterUtils.mapAppColorAccent(val.compareTo(BigDecimal.ZERO) > 0 ? ConditionColor.GREEN.getUiClass() : ConditionColor.DEFAULT.getUiClass())
     ), //
 
     EV_CHARGE(

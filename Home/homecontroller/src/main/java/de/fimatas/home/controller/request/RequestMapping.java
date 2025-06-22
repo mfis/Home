@@ -1,6 +1,7 @@
 package de.fimatas.home.controller.request;
 
 import de.fimatas.home.controller.configuration.ScheduledTaskInspector;
+import de.fimatas.home.controller.service.LiveActivityService;
 import de.fimatas.home.controller.service.PushService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,6 +25,9 @@ public class RequestMapping {
     @Autowired
     private PushService pushService;
 
+    @Autowired
+    private LiveActivityService liveActivityService;
+
     @Value("${test.push.enabled:false}")
     private boolean testPushEnabled;
 
@@ -44,6 +48,12 @@ public class RequestMapping {
             return new ActionModel("PustPush is not enabled");
         }
         pushService.testMessage(user);
+        return new ActionModel("OK");
+    }
+
+    @GetMapping(value = "/controller/testStartLiveActivity")
+    public ActionModel testStartLiveActivity() {
+        liveActivityService.start(LiveActivityService.TEST_LOKEN_ONLY_LOGGING, "USER", "DEVICE");
         return new ActionModel("OK");
     }
 }
