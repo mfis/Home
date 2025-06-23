@@ -105,6 +105,7 @@ public class LiveActivityService {
         if (model.getLiveActivityType().fields().contains(fieldValue.getField())) {
             // check for first value
             if (model.getLastValuesSentWithHighPriotity().get(fieldValue.getField()) == null) {
+                log.debug(highestPriority.name() + " #1: " + fieldValue.field.name() + " = "  + fieldValue.getValue());
                 return highestPriority;
             }
             // check for equal value
@@ -114,13 +115,23 @@ public class LiveActivityService {
             // check for different signs
             BigDecimal product = model.getLastValuesSentWithHighPriotity().get(fieldValue.getField()).multiply(fieldValue.getValue());
             if(product.compareTo(BigDecimal.ZERO) < 0){
+                log.debug(highestPriority.name() + " #2: " + fieldValue.field.name() + " = "  + fieldValue.getValue());
                 return highestPriority;
             }
             // check for threshold
             BigDecimal diff = model.getLastValuesSentWithHighPriotity().get(fieldValue.getField()).subtract(fieldValue.getValue()).abs();
             if (diff.compareTo(fieldValue.getField().getThresholdMin()) >= 0) {
+                log.debug(highestPriority.name() + " #3: " + fieldValue.field.name() + " = "  + fieldValue.getValue());
                 return highestPriority;
             }
+
+            // check for equal value with low priority
+            if (model.getLastValuesSentWithLowPriotity().containsKey(fieldValue.getField()) &&
+                    model.getLastValuesSentWithLowPriotity().get(fieldValue.getField()).compareTo(fieldValue.getValue()) == 0) {
+                return MessagePriority.IGNORE;
+            }
+
+            log.debug(MessagePriority.LOW_PRIORITY.name() + " #4: " + fieldValue.field.name() + " = "  + fieldValue.getValue() + " (" + model.getLastValuesSentWithHighPriotity().get(fieldValue.getField()) + ")");
             return MessagePriority.LOW_PRIORITY;
         }
         return MessagePriority.IGNORE;
@@ -186,6 +197,8 @@ public class LiveActivityService {
 
         if (messagePriority == MessagePriority.HIGH_PRIORITY) {
             liveActivityModel.shiftValuesToSentWithHighPriotity();
+        } else {
+            liveActivityModel.shiftValuesLowPriotity();
         }
     }
 
@@ -212,6 +225,7 @@ public class LiveActivityService {
         contentState.put("primary", buildSingleStateMap(primaryObject));
         contentState.put("secondary", buildSingleStateMap(secondaryObject));
         contentState.put("tertiary", buildSingleStateMap(tertiaryObject));
+        contentState.put("quaternary", buildSingleStateMap(singleStatePreview()));
 
         return contentState;
     }

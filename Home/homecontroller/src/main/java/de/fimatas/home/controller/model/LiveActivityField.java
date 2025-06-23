@@ -38,8 +38,8 @@ public enum LiveActivityField {
     EV_CHARGE(
             val -> "bolt.car",
             "sys",
-            new BigDecimal(1),
-            false,
+            new BigDecimal(2),
+            true,
             val -> val.intValue() + "%",
             val -> val.intValue() + "%",
             val -> ViewFormatterUtils.mapAppColorAccent(ViewFormatterUtils.calculateViewConditionColorEv(val.shortValue()).getUiClass())
@@ -61,8 +61,8 @@ public enum LiveActivityField {
                 }
             },
             "sys",
-            new BigDecimal(1),
-            false,
+            new BigDecimal(2),
+            true,
             val -> val.intValue() + "%",
             val -> val.intValue() + "%",
             val -> {

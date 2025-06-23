@@ -26,10 +26,17 @@ public class LiveActivityModel {
 
     private Map<LiveActivityField, BigDecimal> lastValuesSentWithHighPriotity = new HashMap<>();
 
+    private Map<LiveActivityField, BigDecimal> lastValuesSentWithLowPriotity = new HashMap<>();
+
     private Map<LiveActivityField, BigDecimal> actualValues = new HashMap<>();
 
     public void shiftValuesToSentWithHighPriotity(){
         lastValuesSentWithHighPriotity.clear();
         lastValuesSentWithHighPriotity.putAll(actualValues);
+    }
+
+    public void shiftValuesLowPriotity(){
+        lastValuesSentWithLowPriotity.clear();
+        lastValuesSentWithLowPriotity.putAll(actualValues);
     }
 }
