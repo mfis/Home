@@ -247,6 +247,7 @@ public class LiveActivityService {
         }
 
         var state = new SingleState();
+        state.label = field.getLabel();
         state.val = field.formatValue(value);
         state.valShort = field.formatShort(value);
         state.symbolName = field.getSymbolName().apply(value);
@@ -257,7 +258,9 @@ public class LiveActivityService {
 
     private SingleState singleStatePreview() {
         var state = new SingleState();
+        state.label = "";
         state.val = "--";
+        state.valShort = "-";
         state.symbolName = "square.dashed";
         state.symbolType = "sys";
         state.color = ".grey";

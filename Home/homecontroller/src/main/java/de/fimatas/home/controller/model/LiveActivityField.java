@@ -16,6 +16,7 @@ import static de.fimatas.home.library.util.HomeUtils.buildDecimalFormat;
 public enum LiveActivityField {
 
     HOUSE_CONSUMPTION(
+            "Haus",
             val -> "house.fill",
             "sys",
             new BigDecimal(50),
@@ -26,8 +27,9 @@ public enum LiveActivityField {
     ), //
 
     PV_PRODUCTION(
-            val -> "sun.max.fill",
-            "sys",
+            "PV",
+            val -> "solarpanel",
+            "app",
             new BigDecimal(50),
             true,
             val -> buildDecimalFormat("0.0").format(val.abs().divide(new BigDecimal(1000), new MathContext(3, RoundingMode.HALF_UP))) + "kW",
@@ -36,6 +38,7 @@ public enum LiveActivityField {
     ), //
 
     EV_CHARGE(
+            "Auto",
             val -> "bolt.car",
             "sys",
             new BigDecimal(2),
@@ -46,6 +49,7 @@ public enum LiveActivityField {
     ), //
 
     PV_BATTERY(
+            "Bat",
             val -> {
                 final int soc = ModelObjectDAO.getInstance().readPvAdditionalDataModel().getBatteryStateOfCharge();
                 if(soc < 15){
@@ -82,6 +86,8 @@ public enum LiveActivityField {
 
     ;
 
+    private final String label;
+
     private final Function<BigDecimal, String> symbolName;
 
     private final String symbolType;
@@ -96,7 +102,8 @@ public enum LiveActivityField {
 
     private final Function<BigDecimal, String> color;
 
-    LiveActivityField(Function<BigDecimal, String> symbolName, String symbolType, BigDecimal thresholdMin, boolean allowsHighPriority, Function<BigDecimal, String> formatterValue, Function<BigDecimal, String> formatterShort, Function<BigDecimal, String> color){
+    LiveActivityField(String label, Function<BigDecimal, String> symbolName, String symbolType, BigDecimal thresholdMin, boolean allowsHighPriority, Function<BigDecimal, String> formatterValue, Function<BigDecimal, String> formatterShort, Function<BigDecimal, String> color){
+        this.label = label;
         this.symbolName = symbolName;
         this.symbolType = symbolType;
         this.thresholdMin = thresholdMin;
