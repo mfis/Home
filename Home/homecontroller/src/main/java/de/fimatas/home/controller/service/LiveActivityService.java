@@ -115,7 +115,7 @@ public class LiveActivityService {
         if (model.getLiveActivityType().fields().contains(fieldValue.getField())) {
             // check for first value
             if (model.getLastValuesSentWithHighPriotity().get(fieldValue.getField()) == null) {
-                log.debug(highestPriority.name() + " #1: " + fieldValue.field.name() + " = "  + fieldValue.getValue());
+                log.info("LiveActivity calc: " + highestPriority.name() + " #1: " + fieldValue.field.name() + " = "  + fieldValue.getValue());
                 return highestPriority;
             }
             // check for equal value
@@ -125,13 +125,13 @@ public class LiveActivityService {
             // check for different signs
             BigDecimal product = model.getLastValuesSentWithHighPriotity().get(fieldValue.getField()).multiply(fieldValue.getValue());
             if(product.compareTo(BigDecimal.ZERO) < 0){
-                log.debug(highestPriority.name() + " #2: " + fieldValue.field.name() + " = "  + fieldValue.getValue());
+                log.info("LiveActivity calc: " + highestPriority.name() + " #2: " + fieldValue.field.name() + " = "  + fieldValue.getValue());
                 return highestPriority;
             }
             // check for threshold
             BigDecimal diff = model.getLastValuesSentWithHighPriotity().get(fieldValue.getField()).subtract(fieldValue.getValue()).abs();
             if (diff.compareTo(fieldValue.getField().getThresholdMin()) >= 0) {
-                log.debug(highestPriority.name() + " #3: " + fieldValue.field.name() + " = "  + fieldValue.getValue());
+                log.info("LiveActivity calc: " + highestPriority.name() + " #3: " + fieldValue.field.name() + " = "  + fieldValue.getValue());
                 return highestPriority;
             }
 
@@ -141,7 +141,7 @@ public class LiveActivityService {
                 return MessagePriority.IGNORE;
             }
 
-            log.debug(MessagePriority.LOW_PRIORITY.name() + " #4: " + fieldValue.field.name() + " = "  + fieldValue.getValue() + " (" + model.getLastValuesSentWithHighPriotity().get(fieldValue.getField()) + ")");
+            log.info("LiveActivity calc: " + MessagePriority.LOW_PRIORITY.name() + " #4: " + fieldValue.field.name() + " = "  + fieldValue.getValue() + " (" + model.getLastValuesSentWithHighPriotity().get(fieldValue.getField()) + ")");
             return MessagePriority.LOW_PRIORITY;
         }
         return MessagePriority.IGNORE;
@@ -154,6 +154,7 @@ public class LiveActivityService {
 
     @PreDestroy
     public void preDestroy() {
+        log.info("LiveActivity preDestroy()");
         endAllActivities();
     }
 
@@ -162,6 +163,8 @@ public class LiveActivityService {
         if (LiveActivityDAO.getInstance().getActiveLiveActivities().containsKey(token)) {
             return;
         }
+
+        log.info("LiveActivity start: " + user);
 
         LiveActivityDAO.getInstance().getActiveLiveActivities().values().stream().filter(la -> la.getUsername().equals(user) && la.getDevice().equals(device))
                 .forEach(la -> endActivitiy(la.getToken()));
@@ -199,7 +202,7 @@ public class LiveActivityService {
             log.info("TEST_LIVE_ACTIVITY: prio=" + highPriority + ", map=" + buildContentStateMap(token, true));
         }else{
             //noinspection UnnecessaryUnicodeEscape
-            log.info("LiveActivity Push to: " + liveActivityModel.getUsername() + ", prio=" + highPriority);
+            log.info("LiveActivity PUSH to: " + liveActivityModel.getUsername() + ", prio=" + messagePriority);
             pushService.sendLiveActivityToApns(token, highPriority, false, STALE_DURATION, liveActivityModel.getEndTimestamp(), buildContentStateMap(token, true));
         }
 
@@ -293,17 +296,22 @@ public class LiveActivityService {
         try {
             LiveActivityDAO.getInstance().getActiveLiveActivities().keySet().forEach(this::endActivitiy);
         } catch (Exception e) {
-            log.warn("endAllActivities(): Could not end LiveActivity via APNS" + e.getMessage());
+            log.warn("LiveActivity endAllActivities(): Could not end LiveActivity via APNS: " + e.getMessage());
         }
     }
 
-    public void endActivitiy(String token) {
+    public void endActivitiyFromClient(String token) {
+        log.info("LiveActivity endActivitiyFromClient()");
+        endActivitiy(token);
+    }
+
+    private void endActivitiy(String token) {
         synchronized (this) {
             try {
                 log.info("LiveActivity END");
                 pushService.sendLiveActivityToApns(token, true, true, Duration.ZERO, Instant.now(), buildContentStateMap(token, false));
             } catch (Throwable t) {
-                log.warn("endActivitiy(): Could not end LiveActivity via APNS: " + t.getMessage());
+                log.warn("LiveActivity endActivitiy(): Could not end LiveActivity via APNS: " + t.getMessage());
             }
             LiveActivityDAO.getInstance().getActiveLiveActivities().remove(token);
         }
@@ -332,7 +340,7 @@ public class LiveActivityService {
         static MessagePriority getHighestPriority(List<MessagePriority> list){
             return list.stream()
                     .max(Comparator.comparing(Enum::ordinal))
-                    .orElse(null);
+                    .orElse(IGNORE);
         }
     }
 }
