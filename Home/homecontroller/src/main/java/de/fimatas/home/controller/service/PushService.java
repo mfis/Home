@@ -412,20 +412,18 @@ public class PushService {
         });
     }
 
-    public void sendLiveActivityToApns(String pushToken, boolean highPriority, boolean isEnd, Map<String, Object> contentState) {
-
-        Instant instantNow = LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant();
+    @SuppressWarnings("ConstantValue")
+    public void sendLiveActivityToApns(String pushToken, boolean highPriority, boolean isEnd, Duration staleDuration, Instant dismissalDate, Map<String, Object> contentState) {
 
         final ApnsPayloadBuilder payloadBuilder = new SimpleApnsPayloadBuilder();
         payloadBuilder.setEvent(isEnd ? LiveActivityEvent.END : LiveActivityEvent.UPDATE);
-        payloadBuilder.setTimestamp(instantNow);
+        payloadBuilder.setTimestamp(Instant.now());
+        payloadBuilder.setStaleDate(Instant.now().plus(staleDuration));
         payloadBuilder.setContentState(contentState);
-        if(isEnd){
-            payloadBuilder.setDismissalDate(instantNow); // set 'now' at end to close activity widget
-        }
+        payloadBuilder.setDismissalDate(dismissalDate); // set 'now' at end to close activity widget
 
         var prority = highPriority ? DeliveryPriority.IMMEDIATE : DeliveryPriority.CONSERVE_POWER;
-        var invalidationTime = Instant.now().plus(Duration.ofMinutes(15)); // not mapped
+        final Instant invalidationTime = null; // not mapped
         var topic = iOsAppIdentifier + ".push-type.liveactivity"; // muss manuell angehängt werden
 
         var notification = new SimpleApnsPushNotification(pushToken, topic, payloadBuilder.build(), invalidationTime, prority, PushType.LIVE_ACTIVITY);

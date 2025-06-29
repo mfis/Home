@@ -175,7 +175,7 @@ public class ClientCommunicationService {
                 liveActivityService.start(message.getToken(), message.getUser(), message.getDeviceId());
                 break;
             case LIVEACTIVITY_END:
-                liveActivityService.end(message.getToken());
+                liveActivityService.endActivitiy(message.getToken());
                 break;
             case PV_OVERFLOW_MAX_WATTS_GRID:
                 photovoltaicsOverflowService.writeOverflowGridWattage(message.getDevice(), Integer.parseInt(message.getValue()));

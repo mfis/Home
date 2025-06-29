@@ -6,7 +6,6 @@ import de.fimatas.home.controller.model.LiveActivityModel;
 import de.fimatas.home.controller.model.LiveActivityType;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.ElectricVehicleModel;
-import de.fimatas.home.library.domain.model.HouseModel;
 import de.fimatas.home.library.model.PvAdditionalDataModel;
 import de.fimatas.home.library.util.ViewFormatterUtils;
 import lombok.AllArgsConstructor;
@@ -21,6 +20,8 @@ import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PreDestroy;
 import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -28,15 +29,22 @@ import java.util.*;
 @Component
 @CommonsLog
 public class LiveActivityService {
-
     @Autowired
     private PushService pushService;
 
-    private static final Integer DISMISS_SECONDS = 600;
+    private static final Integer OLD_DISMISS_SECONDS_TO_REMOVE = 600;
 
-    private static final int MAX_UPDATES = 2500;
+    private static final int MAX_UPDATES = 2000;
+
+    private static final Duration STALE_DURATION = Duration.ofMinutes(15);
+
+    private static final Duration MAX_DISMISSAL_TIME = Duration.ofHours(8).minusMinutes(5);
 
     public static final String TEST_LOKEN_ONLY_LOGGING = "###_TESTTOKEN_###";
+
+    // FIXME: Funktioniert StaleDate nach Update der App? Testweise STALE_DURATION auf 1 Minute setzen
+    // FIXME: Wenn ja -> Kurz vor Stale Nachricht abschicken, sofern Model okay
+    // FIXME: Wenn nein -> nach n Minuten ohne Update 'n/v' senden
 
     @Async
     public void newModel(Object object) {
@@ -48,21 +56,27 @@ public class LiveActivityService {
         });
     }
 
+    @Scheduled(cron = "24 * * * * *")
+    public void checkForDismissalDate() {
+        LiveActivityDAO.getInstance().getActiveLiveActivities().forEach((token, liveActivity) -> {
+            if(liveActivity.getEndTimestamp().isBefore(Instant.now())){
+                endActivitiy(token);
+            }
+        });
+    }
+
     private List<MessagePriority> processNewModelForSingleUser(Object model, LiveActivityModel liveActivity) {
 
         List<MessagePriority> priorities = new ArrayList<>();
 
-        if (model instanceof HouseModel) {
-            priorities.add(processValue(valuePvProduction((HouseModel) model), liveActivity));
-            priorities.add(processValue(valueHouseConsumption((HouseModel) model), liveActivity));
+        if(model instanceof PvAdditionalDataModel pvAdditionalDataModel) {
+            priorities.add(processValue(valuePvBattery(pvAdditionalDataModel), liveActivity));
+            priorities.add(processValue(valuePvProduction(pvAdditionalDataModel), liveActivity));
+            priorities.add(processValue(valueHouseConsumption(pvAdditionalDataModel), liveActivity));
         }
 
-        if(model instanceof PvAdditionalDataModel) {
-            priorities.add(processValue(valuePvBattery((PvAdditionalDataModel) model), liveActivity));
-        }
-
-        if(model instanceof ElectricVehicleModel) {
-            priorities.add(processValue(valueElectricVehicle((ElectricVehicleModel) model), liveActivity));
+        if(model instanceof ElectricVehicleModel electricVehicleModel) {
+            priorities.add(processValue(valueElectricVehicle(electricVehicleModel), liveActivity));
         }
 
         return priorities;
@@ -77,16 +91,12 @@ public class LiveActivityService {
         return calculateValueChangeEvaluation(fieldValue, liveActivityModel);
     }
 
-    private FieldValue valuePvProduction(HouseModel houseModel) {
-        return new FieldValue(houseModel.getProducedElectricalPower() != null
-                && houseModel.getProducedElectricalPower().getActualConsumption() != null ?
-                houseModel.getProducedElectricalPower().getActualConsumption().getValue() : null, LiveActivityField.PV_PRODUCTION);
+    private FieldValue valuePvProduction(PvAdditionalDataModel pvAdditionalDataModel) {
+        return new FieldValue(new BigDecimal(pvAdditionalDataModel.getProductionWattage()), LiveActivityField.PV_PRODUCTION);
     }
 
-    private FieldValue valueHouseConsumption(HouseModel houseModel) {
-        return new FieldValue(houseModel.getConsumedElectricalPower() != null
-                && houseModel.getConsumedElectricalPower().getActualConsumption() != null ?
-                houseModel.getConsumedElectricalPower().getActualConsumption().getValue() : null, LiveActivityField.HOUSE_CONSUMPTION);
+    private FieldValue valueHouseConsumption(PvAdditionalDataModel pvAdditionalDataModel) {
+        return new FieldValue(new BigDecimal(pvAdditionalDataModel.getConsumptionWattage()), LiveActivityField.HOUSE_CONSUMPTION);
     }
 
     private FieldValue valuePvBattery(PvAdditionalDataModel pvAdditionalDataModel) {
@@ -154,12 +164,14 @@ public class LiveActivityService {
         }
 
         LiveActivityDAO.getInstance().getActiveLiveActivities().values().stream().filter(la -> la.getUsername().equals(user) && la.getDevice().equals(device))
-                .forEach(la -> end(la.getToken()));
+                .forEach(la -> endActivitiy(la.getToken()));
 
         var liveActivity = new LiveActivityModel();
         liveActivity.setToken(token);
         liveActivity.setUsername(user);
         liveActivity.setDevice(device);
+        liveActivity.setStartTimestamp(Instant.now());
+        liveActivity.setEndTimestamp(Instant.now().plus(MAX_DISMISSAL_TIME));
         liveActivity.setLiveActivityType(LiveActivityType.ELECTRICITY);
         LiveActivityDAO.getInstance().getActiveLiveActivities().put(token, liveActivity);
 
@@ -167,10 +179,6 @@ public class LiveActivityService {
         processNewModelForSingleUser(ModelObjectDAO.getInstance().readPvAdditionalDataModel(), liveActivity);
         processNewModelForSingleUser(ModelObjectDAO.getInstance().readElectricVehicleModel(), liveActivity);
         sendToApns(liveActivity.getToken(), MessagePriority.HIGH_PRIORITY);
-    }
-
-    public void end(String token) {
-        endActivitiy(token);
     }
 
     private void sendToApns(String token, MessagePriority messagePriority) {
@@ -192,7 +200,7 @@ public class LiveActivityService {
         }else{
             //noinspection UnnecessaryUnicodeEscape
             log.info("LiveActivity Push to: " + liveActivityModel.getUsername() + ", prio=" + highPriority);
-            pushService.sendLiveActivityToApns(token, highPriority, false, buildContentStateMap(token, true));
+            pushService.sendLiveActivityToApns(token, highPriority, false, STALE_DURATION, liveActivityModel.getEndTimestamp(), buildContentStateMap(token, true));
         }
 
         if (messagePriority == MessagePriority.HIGH_PRIORITY) {
@@ -207,25 +215,28 @@ public class LiveActivityService {
         SingleState primaryObject;
         SingleState secondaryObject;
         SingleState tertiaryObject;
+        SingleState quaternaryObject;
 
         if (withLiveValue) {
             primaryObject = singleStateValues(token, LiveActivityDAO.getInstance().getActiveLiveActivities().get(token).getLiveActivityType().getPrimary());
             secondaryObject = singleStateValues(token, LiveActivityDAO.getInstance().getActiveLiveActivities().get(token).getLiveActivityType().getSecondary());
             tertiaryObject = singleStateValues(token, LiveActivityDAO.getInstance().getActiveLiveActivities().get(token).getLiveActivityType().getTertiary());
+            quaternaryObject = singleStateValues(token, LiveActivityDAO.getInstance().getActiveLiveActivities().get(token).getLiveActivityType().getQuaternary());
         } else {
             primaryObject = singleStatePreview();
             secondaryObject = singleStatePreview();
             tertiaryObject = singleStatePreview();
+            quaternaryObject = singleStatePreview();
         }
 
         Map<String, Object> contentState = new LinkedHashMap<>();
         contentState.put("contentId", UUID.randomUUID().toString());
         contentState.put("timestamp", LocalTime.now().format(DateTimeFormatter.ISO_TIME));
-        contentState.put("dismissSeconds", DISMISS_SECONDS.toString());
+        contentState.put("dismissSeconds", OLD_DISMISS_SECONDS_TO_REMOVE.toString()); // FIXME: remove aufter installing new client vrsion
         contentState.put("primary", buildSingleStateMap(primaryObject));
         contentState.put("secondary", buildSingleStateMap(secondaryObject));
         contentState.put("tertiary", buildSingleStateMap(tertiaryObject));
-        contentState.put("quaternary", buildSingleStateMap(singleStatePreview()));
+        contentState.put("quaternary", buildSingleStateMap(quaternaryObject));
 
         return contentState;
     }
@@ -282,30 +293,19 @@ public class LiveActivityService {
         try {
             LiveActivityDAO.getInstance().getActiveLiveActivities().keySet().forEach(this::endActivitiy);
         } catch (Exception e) {
-            log.warn("Could not end LiveActivity via APNS");
+            log.warn("endAllActivities(): Could not end LiveActivity via APNS" + e.getMessage());
         }
     }
 
-    private void endActivitiy(String token) {
-
-        if(LiveActivityDAO.getInstance().getActiveLiveActivities().containsKey(token)){
-            synchronized (LiveActivityDAO.getInstance().getActiveLiveActivities().get(token)) {
-                try {
-                    pushService.sendLiveActivityToApns(token, true, true, buildContentStateMap(token, false));
-                } catch (Exception e) {
-                    log.warn("Could not end LiveActivity via APNS: " + e.getMessage());
-                }
-                LiveActivityDAO.getInstance().getActiveLiveActivities().remove(token);
+    public void endActivitiy(String token) {
+        synchronized (this) {
+            try {
+                log.info("LiveActivity END");
+                pushService.sendLiveActivityToApns(token, true, true, Duration.ZERO, Instant.now(), buildContentStateMap(token, false));
+            } catch (Throwable t) {
+                log.warn("endActivitiy(): Could not end LiveActivity via APNS: " + t.getMessage());
             }
-        }else{
-            // occurs after restart while liveactivity is running on a device
-            synchronized (this) {
-                try {
-                    pushService.sendLiveActivityToApns(token, true, true, buildContentStateMap(token, false));
-                } catch (Exception e) {
-                    log.warn("Could not end LiveActivity via APNS: " + e.getMessage());
-                }
-            }
+            LiveActivityDAO.getInstance().getActiveLiveActivities().remove(token);
         }
     }
 

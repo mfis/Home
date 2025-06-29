@@ -16,6 +16,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Map;
 
@@ -49,11 +51,11 @@ class LiveActivityServiceTest {
 
     @Test
     void testStart() {
-        ModelObjectDAO.getInstance().write(houseModelWithPvProduction(100));
+        ModelObjectDAO.getInstance().write(pvAdditionalDataModel(0, PvBatteryState.STABLE, 100, 0));
         liveActivityService.start("test", "user", "device");
 
         verify(pushService, times(1))
-                .sendLiveActivityToApns(eq("test"), argCaptorHighPriority.capture(), eq(false), argCaptorValueMap.capture());
+                .sendLiveActivityToApns(eq("test"), argCaptorHighPriority.capture(), eq(false), any(Duration.class), any(Instant.class), argCaptorValueMap.capture());
 
         assertNotNull(argCaptorValueMap.getValue());
         assertNotNull(argCaptorValueMap.getValue().get("timestamp"));
@@ -61,18 +63,17 @@ class LiveActivityServiceTest {
         assertEquals("0,1kW", getSingleVal(0, "primary", "val"));
         assertEquals(".green", getSingleVal(0, "primary", "color"));
         assertEquals("0,1", getSingleVal(0, "primary", "valShort"));
-        assertEquals("sun.max.fill", getSingleVal(0, "primary", "symbolName"));
-        assertEquals("", getSingleVal(0, "secondary", "val"));
+        assertEquals("solarpanel", getSingleVal(0, "primary", "symbolName"));
+        assertEquals("0%", getSingleVal(0, "secondary", "val"));
     }
 
     @Test
     void testStartWithPvBattery() {
-        ModelObjectDAO.getInstance().write(houseModelWithPvProduction(100));
-        ModelObjectDAO.getInstance().write(pvAdditionalDataModel(20, PvBatteryState.CHARGING));
+        ModelObjectDAO.getInstance().write(pvAdditionalDataModel(20, PvBatteryState.CHARGING, 100, 0));
         liveActivityService.start("test", "user", "device");
 
         verify(pushService, times(1))
-                .sendLiveActivityToApns(eq("test"), argCaptorHighPriority.capture(), eq(false), argCaptorValueMap.capture());
+                .sendLiveActivityToApns(eq("test"), argCaptorHighPriority.capture(), eq(false), any(Duration.class), any(Instant.class), argCaptorValueMap.capture());
 
         assertNotNull(argCaptorValueMap.getValue());
         assertNotNull(argCaptorValueMap.getValue().get("timestamp"));
@@ -80,22 +81,22 @@ class LiveActivityServiceTest {
         assertEquals("0,1kW", getSingleVal(0, "primary", "val"));
         assertEquals(".green", getSingleVal(0, "primary", "color"));
         assertEquals("0,1", getSingleVal(0, "primary", "valShort"));
-        assertEquals("sun.max.fill", getSingleVal(0, "primary", "symbolName"));
-        assertEquals("20%", getSingleVal(0, "tertiary", "val"));
-        assertEquals(".blue", getSingleVal(0, "tertiary", "color"));
-        assertEquals("20%", getSingleVal(0, "tertiary", "valShort"));
-        assertEquals("battery.25percent", getSingleVal(0, "tertiary", "symbolName"));
+        assertEquals("solarpanel", getSingleVal(0, "primary", "symbolName"));
+        assertEquals("20%", getSingleVal(0, "secondary", "val"));
+        assertEquals(".blue", getSingleVal(0, "secondary", "color"));
+        assertEquals("20%", getSingleVal(0, "secondary", "valShort"));
+        assertEquals("battery.25percent", getSingleVal(0, "secondary", "symbolName"));
     }
 
     @Test
     void testNewModelWithDifferentValue() {
-        ModelObjectDAO.getInstance().write(houseModelWithPvProduction(100));
+        ModelObjectDAO.getInstance().write(pvAdditionalDataModel(0, PvBatteryState.STABLE, 100, 0));
         liveActivityService.start("test", "user", "device");
 
-        liveActivityService.newModel(houseModelWithPvProduction(1000));
+        liveActivityService.newModel(pvAdditionalDataModel(0, PvBatteryState.STABLE, 1000, 0));
 
         verify(pushService, times(2))
-                .sendLiveActivityToApns(eq("test"), argCaptorHighPriority.capture(), eq(false), argCaptorValueMap.capture());
+                .sendLiveActivityToApns(eq("test"), argCaptorHighPriority.capture(), eq(false), any(Duration.class), any(Instant.class), argCaptorValueMap.capture());
 
         assertTrue(getSinglePriorityHigh(0));
         assertEquals("0,1kW", getSingleVal(0, "primary", "val"));
@@ -105,13 +106,13 @@ class LiveActivityServiceTest {
 
     @Test
     void testNewModelWithSameValue() {
-        ModelObjectDAO.getInstance().write(houseModelWithPvProduction(500));
+        ModelObjectDAO.getInstance().write(pvAdditionalDataModel(0, PvBatteryState.STABLE, 500, 0));
         liveActivityService.start("test", "user", "device");
 
-        liveActivityService.newModel(houseModelWithPvProduction(500));
+        liveActivityService.newModel(pvAdditionalDataModel(0, PvBatteryState.STABLE, 500, 0));
 
         verify(pushService, times(1))
-                .sendLiveActivityToApns(eq("test"), argCaptorHighPriority.capture(), eq(false), argCaptorValueMap.capture());
+                .sendLiveActivityToApns(eq("test"), argCaptorHighPriority.capture(), eq(false), any(Duration.class), any(Instant.class), argCaptorValueMap.capture());
 
         assertTrue(getSinglePriorityHigh(0));
         assertEquals("0,5kW", getSingleVal(0, "primary", "val"));
@@ -119,15 +120,15 @@ class LiveActivityServiceTest {
 
     @Test
     void testNewModelWithSimilarValue() {
-        ModelObjectDAO.getInstance().write(houseModelWithPvProduction(500));
+        ModelObjectDAO.getInstance().write(pvAdditionalDataModel(0, PvBatteryState.STABLE, 500, 0));
         liveActivityService.start("test", "user", "device");
 
-        liveActivityService.newModel(houseModelWithPvProduction(510));
-        liveActivityService.newModel(houseModelWithPvProduction(490));
-        liveActivityService.newModel(houseModelWithPvProduction(500));
+        liveActivityService.newModel(pvAdditionalDataModel(0, PvBatteryState.STABLE, 510, 0));
+        liveActivityService.newModel(pvAdditionalDataModel(0, PvBatteryState.STABLE, 490, 0));
+        liveActivityService.newModel(pvAdditionalDataModel(0, PvBatteryState.STABLE, 500, 0));
 
         verify(pushService, times(3))
-                .sendLiveActivityToApns(eq("test"), argCaptorHighPriority.capture(), eq(false), argCaptorValueMap.capture());
+                .sendLiveActivityToApns(eq("test"), argCaptorHighPriority.capture(), eq(false), any(Duration.class), any(Instant.class), argCaptorValueMap.capture());
 
         assertTrue(getSinglePriorityHigh(0));
         assertEquals("0,5kW", getSingleVal(0, "primary", "val"));
@@ -139,13 +140,13 @@ class LiveActivityServiceTest {
 
     @Test
     void testNewModelWithSimilarValueButDifferentSign() {
-        ModelObjectDAO.getInstance().write(houseModelWithPvProduction(5));
+        ModelObjectDAO.getInstance().write(pvAdditionalDataModel(0, PvBatteryState.STABLE, 5, 0));
         liveActivityService.start("test", "user", "device");
 
-        liveActivityService.newModel(houseModelWithPvProduction(-2));
+        liveActivityService.newModel(pvAdditionalDataModel(0, null, -2, 0));
 
         verify(pushService, times(2))
-                .sendLiveActivityToApns(eq("test"), argCaptorHighPriority.capture(), eq(false), argCaptorValueMap.capture());
+                .sendLiveActivityToApns(eq("test"), argCaptorHighPriority.capture(), eq(false), any(Duration.class), any(Instant.class), argCaptorValueMap.capture());
 
         assertTrue(getSinglePriorityHigh(0));
         assertEquals("0,0kW", getSingleVal(0, "primary", "val"));
@@ -158,16 +159,16 @@ class LiveActivityServiceTest {
 
     @Test
     void testStartHouseAndElectricVehicleNoCharge() {
-        ModelObjectDAO.getInstance().write(houseModelWithPvProduction(500));
+        ModelObjectDAO.getInstance().write(pvAdditionalDataModel(0, PvBatteryState.STABLE, 500, 0));
         ModelObjectDAO.getInstance().write(electricVehicleModelWithValue(30, 0));
         liveActivityService.start("test", "user", "device");
 
         verify(pushService, times(1))
-                .sendLiveActivityToApns(eq("test"), argCaptorHighPriority.capture(), eq(false), argCaptorValueMap.capture());
+                .sendLiveActivityToApns(eq("test"), argCaptorHighPriority.capture(), eq(false), any(Duration.class), any(Instant.class), argCaptorValueMap.capture());
 
         assertTrue(getSinglePriorityHigh(0));
         assertEquals("0,5kW", getSingleVal(0, "primary", "val"));
-        assertEquals("", getSingleVal(0, "secondary", "val"));
+        assertEquals("0%", getSingleVal(0, "secondary", "val"));
     }
 
     private boolean getSinglePriorityHigh(int number) {
@@ -179,15 +180,7 @@ class LiveActivityServiceTest {
         return (String)((Map<String, Object>) argCaptorValueMap.getAllValues().get(number).get(mapName)).get(name);
     }
 
-    private HouseModel houseModelWithPvProduction(int value) {
-        HouseModel houseModel = new HouseModel();
-        houseModel.setProducedElectricalPower(new PowerMeter());
-        houseModel.getProducedElectricalPower().setActualConsumption(new ValueWithTendency<>());
-        houseModel.getProducedElectricalPower().getActualConsumption().setValue(new BigDecimal(value));
-        return houseModel;
-    }
-
-    private PvAdditionalDataModel pvAdditionalDataModel(int soc, PvBatteryState pvBatteryState) {
+    private PvAdditionalDataModel pvAdditionalDataModel(int soc, PvBatteryState pvBatteryState, int production, int consumption) {
         var pvAdditionalDataModel = new PvAdditionalDataModel();
         pvAdditionalDataModel.setBatteryStateOfCharge(soc);
         pvAdditionalDataModel.setMinChargingWattageForOverflowControl(2000);
@@ -196,6 +189,8 @@ class LiveActivityServiceTest {
         pvAdditionalDataModel.setPvBatteryState(pvBatteryState);
         pvAdditionalDataModel.setBatteryWattage(0);
         pvAdditionalDataModel.setBatteryPercentageEmptyForOverflowControl(5);
+        pvAdditionalDataModel.setProductionWattage(production);
+        pvAdditionalDataModel.setConsumptionWattage(consumption);
         return pvAdditionalDataModel;
     }
 

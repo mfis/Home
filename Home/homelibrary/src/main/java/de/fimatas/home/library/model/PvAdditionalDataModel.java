@@ -20,6 +20,10 @@ public class PvAdditionalDataModel extends AbstractSystemModel {
 
     private int batteryWattage; // charging/feeding 'pvBatteryState' Watt
 
+    private int productionWattage;
+
+    private int consumptionWattage;
+
     private int maxChargeWattage; // maximum watt to charge
 
     private int minChargingWattageForOverflowControl; // keep left this wattage for charging if target percentage is not reached
