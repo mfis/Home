@@ -50,19 +50,23 @@ public class LiveActivityService {
     public void newModel(Object object) {
         LiveActivityDAO.getInstance().getActiveLiveActivities().forEach((token, liveActivity) -> {
             synchronized (LiveActivityDAO.getInstance().getActiveLiveActivities().get(token)){
-                List<MessagePriority> messagePriorityList = processNewModelForSingleUser(object, liveActivity);
-                sendToApns(liveActivity.getToken(), MessagePriority.getHighestPriority(messagePriorityList));
+                if(liveActivity.getEndTimestamp().isAfter(Instant.now())){
+                    List<MessagePriority> messagePriorityList = processNewModelForSingleUser(object, liveActivity);
+                    sendToApns(liveActivity.getToken(), MessagePriority.getHighestPriority(messagePriorityList));
+                }
             }
         });
     }
 
     @Scheduled(cron = "24 * * * * *")
     public void checkForDismissalDate() {
+        List<String> tokensToRemove = new ArrayList<>();
         LiveActivityDAO.getInstance().getActiveLiveActivities().forEach((token, liveActivity) -> {
-            if(liveActivity.getEndTimestamp().isBefore(Instant.now())){
-                endActivitiy(token);
+            if (liveActivity.getEndTimestamp().isBefore(Instant.now())) {
+                tokensToRemove.add(token);
             }
         });
+        tokensToRemove.forEach(this::endActivitiy);
     }
 
     private List<MessagePriority> processNewModelForSingleUser(Object model, LiveActivityModel liveActivity) {
@@ -294,7 +298,7 @@ public class LiveActivityService {
 
     private void endAllActivities() {
         try {
-            LiveActivityDAO.getInstance().getActiveLiveActivities().keySet().forEach(this::endActivitiy);
+            new ArrayList<>(LiveActivityDAO.getInstance().getActiveLiveActivities().keySet()).forEach(this::endActivitiy);
         } catch (Exception e) {
             log.warn("LiveActivity endAllActivities(): Could not end LiveActivity via APNS: " + e.getMessage());
         }
