@@ -6,6 +6,7 @@ import de.fimatas.heatpump.roof.driver.api.*;
 import de.fimatas.home.controller.api.ExternalServiceHttpAPI;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
+import de.fimatas.home.library.util.HomeAppConstants;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.apachecommons.CommonsLog;
@@ -64,7 +65,7 @@ public class HeatpumpService {
     private Map<Place, Optional<SchedulerData>> placeScheduler;
 
     private final Map<HeatpumpPreset, SchedulerConfig> schedulerConfigMap = Map.of(
-            HeatpumpPreset.DRY_TIMER, new SchedulerConfig(HeatpumpPreset.OFF, HeatpumpPreset.FAN_MIN, 20, null),
+            HeatpumpPreset.DRY_TIMER, new SchedulerConfig(HeatpumpPreset.OFF, HeatpumpPreset.FAN_MIN, HomeAppConstants.HEATPUMP_DRY_TIMER_DURATION_MINUTES, null),
             HeatpumpPreset.HEAT_TIMER1, new SchedulerConfig(HeatpumpPreset.OFF, HeatpumpPreset.HEAT_AUTO, 60, null),
             HeatpumpPreset.HEAT_TIMER2, new SchedulerConfig(HeatpumpPreset.OFF, HeatpumpPreset.HEAT_AUTO, 120, null),
             HeatpumpPreset.HEAT_TIMER3, new SchedulerConfig(HeatpumpPreset.OFF, HeatpumpPreset.HEAT_AUTO, null, LocalTime.of(13,0)),

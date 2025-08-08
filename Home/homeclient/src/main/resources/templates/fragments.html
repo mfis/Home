@@ -702,7 +702,7 @@
 								<span th:class="${#strings.startsWith(model.linkDryTimer, '#')} ? 'text-' + ${model.activeSwitchColorClass}">
 									<th:block th:replace="~{basics :: symbol (name='fa-solid fa-hourglass-end')}"/>
 								</span>
-								<span th:class="${#strings.startsWith(model.linkDryTimer, '#')} ? 'text-' + ${model.activeSwitchColorClass}">20′</span>
+								<span th:class="${#strings.startsWith(model.linkDryTimer, '#')} ? 'text-' + ${model.activeSwitchColorClass}" th:text="${model.dryTimerDurationFormatted}"></span>
 							</button>
 						</div>
 					</div>
