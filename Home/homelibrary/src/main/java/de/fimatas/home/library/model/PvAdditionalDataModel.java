@@ -8,6 +8,8 @@ import java.math.BigDecimal;
 @Data
 public class PvAdditionalDataModel extends AbstractSystemModel {
 
+    private long lastCollectionTimeReadMillis;
+
     private PhotovoltaicsStringsStatus stringsStatus = PhotovoltaicsStringsStatus.UNKNOWN;
 
     private String alarm;

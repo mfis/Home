@@ -128,9 +128,10 @@ public class SolarmanService {
 
         PvAdditionalDataModel pvAdditionalDataModel = processPvAdditionalDataModel(inverterKeysAndValues, stringAmps, alarm);
         if(pvAdditionalDataModel != null){
+            pvAdditionalDataModel.setLastCollectionTimeReadMillis(lastCollectionTimeRead);
             ModelObjectDAO.getInstance().write(pvAdditionalDataModel);
             uploadService.uploadToClient(pvAdditionalDataModel);
-            liveActivityService.newModel(pvAdditionalDataModel);
+            liveActivityService.newModel(ModelObjectDAO.getInstance().readPvAdditionalDataModel());
         }
     }
 

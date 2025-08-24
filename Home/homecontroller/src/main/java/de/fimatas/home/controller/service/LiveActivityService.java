@@ -29,14 +29,15 @@ import java.util.*;
 @Component
 @CommonsLog
 public class LiveActivityService {
+    
     @Autowired
     private PushService pushService;
 
-    private static final Integer OLD_DISMISS_SECONDS_TO_REMOVE = 600;
-
     private static final int MAX_UPDATES = 2000;
 
-    private static final Duration STALE_DURATION = Duration.ofMinutes(15);
+    private static final Duration STALE_DURATION = Duration.ofMinutes(20);
+
+    private static final Duration EQUAL_MODEL_STALE_PREVENTION_DURATION = Duration.ofMinutes(18);
 
     private static final Duration MAX_DISMISSAL_TIME = Duration.ofHours(8).minusMinutes(5);
 
@@ -239,7 +240,6 @@ public class LiveActivityService {
         Map<String, Object> contentState = new LinkedHashMap<>();
         contentState.put("contentId", UUID.randomUUID().toString());
         contentState.put("timestamp", LocalTime.now().format(DateTimeFormatter.ISO_TIME));
-        contentState.put("dismissSeconds", OLD_DISMISS_SECONDS_TO_REMOVE.toString()); // FIXME: remove aufter installing new client vrsion
         contentState.put("primary", buildSingleStateMap(primaryObject));
         contentState.put("secondary", buildSingleStateMap(secondaryObject));
         contentState.put("tertiary", buildSingleStateMap(tertiaryObject));

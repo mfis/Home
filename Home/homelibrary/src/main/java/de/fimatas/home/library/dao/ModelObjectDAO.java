@@ -191,7 +191,7 @@ public class ModelObjectDAO {
     }
 
     public PvAdditionalDataModel readPvAdditionalDataModel() {
-        long newestTimestamp = pvAdditionalDataModel == null ? 0 : pvAdditionalDataModel.getTimestamp();
+        long newestTimestamp = pvAdditionalDataModel == null ? 0 : pvAdditionalDataModel.getLastCollectionTimeReadMillis();
         if (pvAdditionalDataModel == null || new Date().getTime() - newestTimestamp > 1000 * HomeAppConstants.MODEL_PV_OUTDATED_SECONDS) {
             return null; // Too old. Should never happen
         } else {
