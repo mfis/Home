@@ -174,6 +174,10 @@ public class SolarmanService {
         pvAdditionalDataModel.setProductionWattage(new BigDecimal(inverterKeysAndValues.get(FIELD_PRODUCTION_ACTUAL)).intValue());
         pvAdditionalDataModel.setConsumptionWattage(new BigDecimal(inverterKeysAndValues.get(FIELD_CONSUMPTION_ACTUAL)).intValue());
 
+        // DetailInfo
+        pvAdditionalDataModel.getDetailInfos().put("Strom String 1", ONE_DIGIT_FORMAT.format(stringAmps.string1) + " Ampere");
+        pvAdditionalDataModel.getDetailInfos().put("Strom String 2", ONE_DIGIT_FORMAT.format(stringAmps.string2) + " Ampere");
+
         pvAdditionalDataModel.setAlarm(alarm);
         processFailures(stringAmps, pvAdditionalDataModel);
 

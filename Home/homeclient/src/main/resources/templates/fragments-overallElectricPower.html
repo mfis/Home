@@ -93,7 +93,32 @@
 									<td th:class="'text-' + ${model.pv.colorClass}">
 										<span th:text="${model.pv.state}"></span>
 										<span><th:block th:replace="~{fragments :: tendency (icon=${model.pv.tendencyIcon})}"></th:block></span>
+										<span>&nbsp;</span>
+										<span data-bs-toggle="modal" th:data-bs-target="'#modalPvStringsInfo'"><th:block th:replace="~{basics :: symbolWithStyle (name='fa-solid fa-circle-info', style='font-size: 80%;')}"/></span>
 									</td>
+									<!-- Modal -->
+									<div class="modal fade" th:id="'modalPvStringsInfo'" tabindex="-1" role="dialog" th:aria-labelledby="'#modalPvStringsInfoLabel'" aria-hidden="true">
+										<div class="modal-dialog modal-dialog-centered" role="document">
+											<div class="modal-content">
+												<div class="modal-header">
+													<h5 class="modal-title" th:text="'PV Details:'"></h5>
+													<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+														<span class="text-secondary" aria-hidden="true">&times;</span>
+													</button>
+												</div>
+												<div class="modal-body">
+													<ul style="display: grid; grid-template-columns: auto 1fr; gap: 0.5rem 1rem;">
+													<th:block th:each="line : ${model.pvDetails}">
+														<li class="text-start text-light" style="display: contents;">
+															<span style="width: 150px;" th:text="${line.caption}"></span>
+															<span th:text="${line.value}"></span>
+														</li>
+													</th:block>
+													</ul>
+												</div>
+											</div>
+										</div>
+									</div>
 								</tr>
 								<tr align="left">
 									<td th:class="'text-' + ${model.pv.colorClass}">

@@ -4,6 +4,8 @@ import de.fimatas.home.library.domain.model.AbstractSystemModel;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @Data
 public class PvAdditionalDataModel extends AbstractSystemModel {
@@ -11,6 +13,8 @@ public class PvAdditionalDataModel extends AbstractSystemModel {
     private long lastCollectionTimeReadMillis;
 
     private PhotovoltaicsStringsStatus stringsStatus = PhotovoltaicsStringsStatus.UNKNOWN;
+
+    private Map<String, String> detailInfos = new LinkedHashMap<>();
 
     private String alarm;
 

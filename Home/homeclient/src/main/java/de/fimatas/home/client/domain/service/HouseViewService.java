@@ -863,6 +863,11 @@ public class HouseViewService {
             } else {
                 overallElectricPowerHouseView.setBatteryIcon("fa-solid fa-battery-full");
             }
+
+            pvAdditionalDataModel.getDetailInfos().forEach((key, value) -> {
+                var valueWithCaption = new ValueWithCaption(value,key + ":", "");
+                overallElectricPowerHouseView.getPvDetails().add(valueWithCaption);
+            });
         } else{
             overallElectricPowerHouseView.setBatteryState("");
             overallElectricPowerHouseView.setBatteryStateOfCharge("");

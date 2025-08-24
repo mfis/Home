@@ -3,6 +3,9 @@ package de.fimatas.home.client.domain.model;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.LinkedList;
+import java.util.List;
+
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -37,4 +40,6 @@ public class OverallElectricPowerHouseView extends View {
     private String batteryIcon;
 
     private String batteryDirectionArrowClass = "#";
+
+    private List<ValueWithCaption> pvDetails = new LinkedList<>();
 }
