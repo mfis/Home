@@ -35,15 +35,15 @@ public class LiveActivityModel {
 
     private Map<LiveActivityField, BigDecimal> actualValues = new HashMap<>();
 
-    public void shiftValuesToSentWithHighPriotity(){
+    public void shiftValuesToSentWithHighPriotity(LocalDateTime now){
         lastValuesSentWithHighPriotity.clear();
         lastValuesSentWithHighPriotity.putAll(actualValues);
-        lastValTimestampHighPriority = LocalDateTime.now();
+        lastValTimestampHighPriority = now;
     }
 
-    public void shiftValuesLowPriotity(){
+    public void shiftValuesLowPriotity(LocalDateTime now){
         lastValuesSentWithLowPriotity.clear();
         lastValuesSentWithLowPriotity.putAll(actualValues);
-        lastValTimestampLowPriority = LocalDateTime.now();
+        lastValTimestampLowPriority = now;
     }
 }

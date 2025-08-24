@@ -5,6 +5,7 @@ import de.fimatas.home.controller.model.LiveActivityField;
 import de.fimatas.home.controller.model.LiveActivityModel;
 import de.fimatas.home.controller.model.LiveActivityType;
 import de.fimatas.home.library.dao.ModelObjectDAO;
+import de.fimatas.home.library.domain.model.AbstractSystemModel;
 import de.fimatas.home.library.domain.model.ElectricVehicleModel;
 import de.fimatas.home.library.model.PvAdditionalDataModel;
 import de.fimatas.home.library.util.ViewFormatterUtils;
@@ -14,6 +15,7 @@ import lombok.Getter;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -25,6 +27,7 @@ import java.time.Instant;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Stream;
 
 @Component
 @CommonsLog
@@ -33,26 +36,40 @@ public class LiveActivityService {
     @Autowired
     private PushService pushService;
 
+    @Autowired
+    private UniqueTimestampService uniqueTimestampService;
+
+    @Autowired
+    private Environment env;
+
     private static final int MAX_UPDATES = 2000;
 
     private static final Duration STALE_DURATION = Duration.ofMinutes(20);
 
-    private static final Duration EQUAL_MODEL_STALE_PREVENTION_DURATION = Duration.ofMinutes(18);
+    protected static final Duration EQUAL_MODEL_STALE_PREVENTION_DURATION = Duration.ofMinutes(18);
 
     private static final Duration MAX_DISMISSAL_TIME = Duration.ofHours(8).minusMinutes(5);
 
     public static final String TEST_LOKEN_ONLY_LOGGING = "###_TESTTOKEN_###";
 
-    // FIXME: Funktioniert StaleDate nach Update der App? Testweise STALE_DURATION auf 1 Minute setzen
-    // FIXME: Wenn ja -> Kurz vor Stale Nachricht abschicken, sofern Model okay
-    // FIXME: Wenn nein -> nach n Minuten ohne Update 'n/v' senden
-
     @Async
-    public void newModel(Object object) {
+    public <T extends AbstractSystemModel> void newModel(Class<T> clazz) {
+
+        if (!Boolean.parseBoolean(env.getProperty("liveactivity.enabled"))) {
+            return;
+        }
+
+        getActualModels().stream().filter(model -> model.getClass().equals(clazz)).findFirst().ifPresent(this::processModel);
+    }
+
+    protected void processModel(AbstractSystemModel model) {
+        if(model == null) {
+            return;
+        }
         LiveActivityDAO.getInstance().getActiveLiveActivities().forEach((token, liveActivity) -> {
             synchronized (LiveActivityDAO.getInstance().getActiveLiveActivities().get(token)){
                 if(liveActivity.getEndTimestamp().isAfter(Instant.now())){
-                    List<MessagePriority> messagePriorityList = processNewModelForSingleUser(object, liveActivity);
+                    List<MessagePriority> messagePriorityList = processNewModelForSingleUser(model, liveActivity);
                     sendToApns(liveActivity.getToken(), MessagePriority.getHighestPriority(messagePriorityList));
                 }
             }
@@ -68,6 +85,18 @@ public class LiveActivityService {
             }
         });
         tokensToRemove.forEach(this::endActivitiy);
+    }
+
+    @Scheduled(cron = "40 * * * * *")
+    public void preventStaleCausedByEqualValues() {
+        getActualModels().forEach(this::processModel);
+    }
+
+    private List<AbstractSystemModel> getActualModels(){
+        return Stream.of(
+                        ModelObjectDAO.getInstance().readPvAdditionalDataModel(),
+                        ModelObjectDAO.getInstance().readElectricVehicleModel()
+                ).filter(Objects::nonNull).toList();
     }
 
     private List<MessagePriority> processNewModelForSingleUser(Object model, LiveActivityModel liveActivity) {
@@ -125,6 +154,10 @@ public class LiveActivityService {
             }
             // check for equal value
             if (model.getLastValuesSentWithHighPriotity().get(fieldValue.getField()).compareTo(fieldValue.getValue()) == 0) {
+                if(model.getLastValTimestampHighPriority().plus(EQUAL_MODEL_STALE_PREVENTION_DURATION).isBefore(uniqueTimestampService.getNonUnique())){
+                    log.info("LiveActivity STALE VERHINDERN");
+                    return MessagePriority.HIGH_PRIORITY; // stale verhindern
+                }
                 return MessagePriority.IGNORE;
             }
             // check for different signs
@@ -165,6 +198,10 @@ public class LiveActivityService {
 
     public void start(String token, String user, String device) {
 
+        if (!Boolean.parseBoolean(env.getProperty("liveactivity.enabled"))) {
+            return;
+        }
+
         if (LiveActivityDAO.getInstance().getActiveLiveActivities().containsKey(token)) {
             return;
         }
@@ -183,9 +220,8 @@ public class LiveActivityService {
         liveActivity.setLiveActivityType(LiveActivityType.ELECTRICITY);
         LiveActivityDAO.getInstance().getActiveLiveActivities().put(token, liveActivity);
 
-        processNewModelForSingleUser(ModelObjectDAO.getInstance().readHouseModel(), liveActivity);
-        processNewModelForSingleUser(ModelObjectDAO.getInstance().readPvAdditionalDataModel(), liveActivity);
-        processNewModelForSingleUser(ModelObjectDAO.getInstance().readElectricVehicleModel(), liveActivity);
+        getActualModels().forEach(model -> processNewModelForSingleUser(model, liveActivity));
+
         sendToApns(liveActivity.getToken(), MessagePriority.HIGH_PRIORITY);
     }
 
@@ -212,9 +248,9 @@ public class LiveActivityService {
         }
 
         if (messagePriority == MessagePriority.HIGH_PRIORITY) {
-            liveActivityModel.shiftValuesToSentWithHighPriotity();
+            liveActivityModel.shiftValuesToSentWithHighPriotity(uniqueTimestampService.getNonUnique());
         } else {
-            liveActivityModel.shiftValuesLowPriotity();
+            liveActivityModel.shiftValuesLowPriotity(uniqueTimestampService.getNonUnique());
         }
     }
 

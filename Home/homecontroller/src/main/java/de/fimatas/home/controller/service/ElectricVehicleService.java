@@ -134,7 +134,7 @@ public class ElectricVehicleService {
 
         ModelObjectDAO.getInstance().write(newModel);
         uploadService.uploadToClient(newModel);
-        liveActivityService.newModel(newModel);
+        liveActivityService.newModel(ElectricVehicleModel.class);
     }
 
     private void calculateEstimatedChargingTime(ElectricVehicleState state) {

@@ -27,6 +27,8 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -57,6 +59,7 @@ public class SolarmanService {
 
     private static final BigDecimal STRING_CHECK_LOWER_LIMIT_AMPS = new BigDecimal("0.5");
     private static final BigDecimal _100 = new BigDecimal("100");
+    private static final DecimalFormat ONE_DIGIT_FORMAT = new DecimalFormat("0.0", new DecimalFormatSymbols(Locale.GERMAN));
 
     private long lastCollectionTimeRead = 0;
 
@@ -131,7 +134,7 @@ public class SolarmanService {
             pvAdditionalDataModel.setLastCollectionTimeReadMillis(lastCollectionTimeRead);
             ModelObjectDAO.getInstance().write(pvAdditionalDataModel);
             uploadService.uploadToClient(pvAdditionalDataModel);
-            liveActivityService.newModel(ModelObjectDAO.getInstance().readPvAdditionalDataModel());
+            liveActivityService.newModel(PvAdditionalDataModel.class);
         }
     }
 
