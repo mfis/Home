@@ -463,6 +463,7 @@ class PhotovoltaicsOverflowServiceTest {
     private void refreshPvBattery(int soc, PvBatteryState state, int wattage) {
 
         var pvAdditionalDataModel = new PvAdditionalDataModel();
+        pvAdditionalDataModel.setLastCollectionTimeReadMillis(Long.MAX_VALUE);
         pvAdditionalDataModel.setBatteryStateOfCharge(soc);
         pvAdditionalDataModel.setMinChargingWattageForOverflowControl(2000);
         pvAdditionalDataModel.setBatteryCapacity(new BigDecimal(4750));
