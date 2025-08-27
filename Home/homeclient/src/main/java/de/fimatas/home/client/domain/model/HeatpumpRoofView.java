@@ -1,5 +1,6 @@
 package de.fimatas.home.client.domain.model;
 
+import de.fimatas.home.library.util.HomeAppConstants;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -45,6 +46,8 @@ public class HeatpumpRoofView extends View {
     private String linkRefresh = "#";
 
     private boolean stateUnknown = false;
+
+    private String dryTimerDurationFormatted = HomeAppConstants.HEATPUMP_DRY_TIMER_DURATION_MINUTES + "′";
 
     private List<ValueWithCaption> otherPlaces = new LinkedList<>();
 

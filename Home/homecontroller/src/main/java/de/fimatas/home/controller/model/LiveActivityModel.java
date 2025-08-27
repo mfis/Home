@@ -3,6 +3,7 @@ package de.fimatas.home.controller.model;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,6 +19,10 @@ public class LiveActivityModel {
 
     private LiveActivityType liveActivityType;
 
+    private Instant startTimestamp;
+
+    private Instant endTimestamp;
+
     private LocalDateTime lastValTimestampHighPriority;
 
     private LocalDateTime lastValTimestampLowPriority;
@@ -26,10 +31,19 @@ public class LiveActivityModel {
 
     private Map<LiveActivityField, BigDecimal> lastValuesSentWithHighPriotity = new HashMap<>();
 
+    private Map<LiveActivityField, BigDecimal> lastValuesSentWithLowPriotity = new HashMap<>();
+
     private Map<LiveActivityField, BigDecimal> actualValues = new HashMap<>();
 
-    public void shiftValuesToSentWithHighPriotity(){
+    public void shiftValuesToSentWithHighPriotity(LocalDateTime now){
         lastValuesSentWithHighPriotity.clear();
         lastValuesSentWithHighPriotity.putAll(actualValues);
+        lastValTimestampHighPriority = now;
+    }
+
+    public void shiftValuesLowPriotity(LocalDateTime now){
+        lastValuesSentWithLowPriotity.clear();
+        lastValuesSentWithLowPriotity.putAll(actualValues);
+        lastValTimestampLowPriority = now;
     }
 }

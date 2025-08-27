@@ -867,6 +867,11 @@ public class HouseViewService {
             } else {
                 overallElectricPowerHouseView.setBatteryIcon("fa-solid fa-battery-full");
             }
+
+            pvAdditionalDataModel.getDetailInfos().forEach((key, value) -> {
+                var valueWithCaption = new ValueWithCaption(value,key + ":", "");
+                overallElectricPowerHouseView.getPvDetails().add(valueWithCaption);
+            });
         } else{
             overallElectricPowerHouseView.setBatteryState("");
             overallElectricPowerHouseView.setBatteryStateOfCharge("");
@@ -1140,7 +1145,7 @@ public class HouseViewService {
 
         if (switchModel.isState()) {
             String stateColor;
-            if (switchModel.getAutomation() != null && Boolean.TRUE.equals(switchModel.getAutomation())) {
+            if (switchModel.getAutomation() != null && switchModel.getAutomation()) {
                 stateColor = ConditionColor.GREEN.getUiClass();
             } else {
                 stateColor = ConditionColor.ORANGE.getUiClass();
@@ -1176,7 +1181,7 @@ public class HouseViewService {
 
         if (switchModel.getAutomation() != null) {
             boolean infoText = false;
-            if (Boolean.TRUE.equals(switchModel.getAutomation())) {
+            if (switchModel.getAutomation()) {
                 view.setLinkManual(
                         TOGGLE_AUTOMATION + switchModel.getDevice().name() + AND_VALUE_IS + AutomationState.MANUAL.name());
                 if (ArrayUtils.isNotEmpty(buttonCaptions)) {

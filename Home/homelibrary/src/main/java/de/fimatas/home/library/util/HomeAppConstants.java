@@ -46,7 +46,7 @@ public class HomeAppConstants {
 
     public static final int MODEL_TASKS_OUTDATED_SECONDS = 60 * 10;
 
-    public static final int MODEL_PV_OUTDATED_SECONDS = 60 * 36;
+    public static final int MODEL_PV_OUTDATED_SECONDS = 60 * 15;
 
     //
 
@@ -62,4 +62,6 @@ public class HomeAppConstants {
 
     @SuppressWarnings("PointlessArithmeticExpression")
     public static final int CHARGING_STATE_CHECK_INTERVAL_SECONDS = 60 * 1;
+
+    public static final int HEATPUMP_DRY_TIMER_DURATION_MINUTES = 30;
 }

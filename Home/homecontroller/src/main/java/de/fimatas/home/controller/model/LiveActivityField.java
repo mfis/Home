@@ -15,28 +15,41 @@ import static de.fimatas.home.library.util.HomeUtils.buildDecimalFormat;
 @Getter
 public enum LiveActivityField {
 
-    // TODO: Re-use View Formatter
-    ELECTRIC_GRID(
-            val -> "energygrid",
-            "app",
-            new BigDecimal(40),
+    HOUSE_CONSUMPTION(
+            "Haus",
+            val -> "house.fill",
+            "sys",
+            new BigDecimal(50),
             true,
-            val -> buildDecimalFormat("0").format(val.abs()) + " W",
+            val -> buildDecimalFormat("0.0").format(val.abs().divide(new BigDecimal(1000), new MathContext(3, RoundingMode.HALF_UP)))+ "kW",
             val -> buildDecimalFormat("0.0").format(val.abs().divide(new BigDecimal(1000), new MathContext(3, RoundingMode.HALF_UP))),
-            val -> ViewFormatterUtils.mapAppColorAccent(val.compareTo(BigDecimal.ZERO) > 0 ? ConditionColor.ORANGE.getUiClass() : ConditionColor.GREEN.getUiClass())
+            val -> ViewFormatterUtils.mapAppColorAccent(ConditionColor.DEFAULT.getUiClass())
+    ), //
+
+    PV_PRODUCTION(
+            "PV",
+            val -> "solarpanel",
+            "app",
+            new BigDecimal(50),
+            true,
+            val -> buildDecimalFormat("0.0").format(val.abs().divide(new BigDecimal(1000), new MathContext(3, RoundingMode.HALF_UP))) + "kW",
+            val -> buildDecimalFormat("0.0").format(val.abs().divide(new BigDecimal(1000), new MathContext(3, RoundingMode.HALF_UP))),
+            val -> ViewFormatterUtils.mapAppColorAccent(val.compareTo(BigDecimal.ZERO) > 0 ? ConditionColor.GREEN.getUiClass() : ConditionColor.DEFAULT.getUiClass())
     ), //
 
     EV_CHARGE(
+            "Auto",
             val -> "bolt.car",
             "sys",
-            new BigDecimal(1),
-            false,
+            new BigDecimal(2),
+            true,
             val -> val.intValue() + "%",
             val -> val.intValue() + "%",
             val -> ViewFormatterUtils.mapAppColorAccent(ViewFormatterUtils.calculateViewConditionColorEv(val.shortValue()).getUiClass())
     ), //
 
     PV_BATTERY(
+            "Bat",
             val -> {
                 final int soc = ModelObjectDAO.getInstance().readPvAdditionalDataModel().getBatteryStateOfCharge();
                 if(soc < 15){
@@ -52,8 +65,8 @@ public enum LiveActivityField {
                 }
             },
             "sys",
-            new BigDecimal(1),
-            false,
+            new BigDecimal(2),
+            true,
             val -> val.intValue() + "%",
             val -> val.intValue() + "%",
             val -> {
@@ -73,6 +86,8 @@ public enum LiveActivityField {
 
     ;
 
+    private final String label;
+
     private final Function<BigDecimal, String> symbolName;
 
     private final String symbolType;
@@ -87,7 +102,8 @@ public enum LiveActivityField {
 
     private final Function<BigDecimal, String> color;
 
-    LiveActivityField(Function<BigDecimal, String> symbolName, String symbolType, BigDecimal thresholdMin, boolean allowsHighPriority, Function<BigDecimal, String> formatterValue, Function<BigDecimal, String> formatterShort, Function<BigDecimal, String> color){
+    LiveActivityField(String label, Function<BigDecimal, String> symbolName, String symbolType, BigDecimal thresholdMin, boolean allowsHighPriority, Function<BigDecimal, String> formatterValue, Function<BigDecimal, String> formatterShort, Function<BigDecimal, String> color){
+        this.label = label;
         this.symbolName = symbolName;
         this.symbolType = symbolType;
         this.thresholdMin = thresholdMin;
