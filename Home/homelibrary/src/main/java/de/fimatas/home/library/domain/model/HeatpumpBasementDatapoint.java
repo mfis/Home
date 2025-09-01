@@ -14,6 +14,8 @@ public class HeatpumpBasementDatapoint extends AbstractSystemModel {
 
     private String value;
 
+    private String description;
+
     private ConditionColor conditionColor;
 
     public HeatpumpBasementDatapoint() {

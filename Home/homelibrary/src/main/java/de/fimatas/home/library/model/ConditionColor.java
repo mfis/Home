@@ -4,18 +4,16 @@ import de.fimatas.home.library.domain.model.Place;
 
 public enum ConditionColor {
 
-    DEFAULT("default"),
     RED("danger"),
     ORANGE("warning"),
-    GREEN("success"),
+    DEFAULT("default"),
+    COLD("cold"),
     BLUE("info"),
+    GREEN("success"),
     LIGHT("light"),
     GRAY("secondary"),
-    COLD("cold"),
     ACTIVE_BUTTON("active-primary"),
-
     ROW_STRIPE_DEFAULT("default"),
-
     ROW_STRIPE_ACCENT("accent"),
     ;
 
