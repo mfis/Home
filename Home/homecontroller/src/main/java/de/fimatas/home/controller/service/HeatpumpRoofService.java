@@ -105,7 +105,6 @@ public class HeatpumpRoofService {
         }
     }
 
-    // @Scheduled(cron = "42 15 13,20 * * *")
     public void scheduledRefreshFromDriverNoCache() {
         isCallError = false;
         if(isRestartInTimerangeMinutes(60 * 3)) {

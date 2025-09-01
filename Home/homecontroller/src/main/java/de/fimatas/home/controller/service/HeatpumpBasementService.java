@@ -2,10 +2,9 @@ package de.fimatas.home.controller.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.fimatas.heatpump.basement.driver.api.Credentials;
-import de.fimatas.heatpump.basement.driver.api.Request;
-import de.fimatas.heatpump.basement.driver.api.Response;
+import de.fimatas.heatpump.basement.driver.api.*;
 import de.fimatas.home.controller.api.ExternalServiceHttpAPI;
+import de.fimatas.heatpump.basement.driver.api.HeatpumpBasementDatapoints;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.model.ConditionColor;
@@ -23,6 +22,8 @@ import org.springframework.web.client.RestClientException;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
 @CommonsLog
@@ -50,9 +51,13 @@ public class HeatpumpBasementService {
 
     @PostConstruct
     public void init() {
+        if(Objects.requireNonNull(env.getProperty("heatpump.basement.driver.url")).contains("callHeatpumpBasementMock")){
+            scheduledRefreshFromDriverNoCache(); // local testing
+        }
         scheduledRefreshFromDriverCache();
     }
 
+    @Scheduled(cron = "44 0/1 * * * *") // FIXME: 0/10
     public void scheduledRefreshFromDriverCache() {
         try {
             refreshHeatpumpModel(true);
@@ -61,7 +66,7 @@ public class HeatpumpBasementService {
         }
     }
 
-    @Scheduled(cron = "44 01 6-23 * * *")
+    @Scheduled(cron = "44 01 6-22 * * *")
     public void scheduledRefreshFromDriverNoCache() {
         try {
             refreshHeatpumpModel(false);
@@ -95,7 +100,6 @@ public class HeatpumpBasementService {
         var apiPass =  env.getProperty("heatpump.basement.driver.apiPass");
 
         Request request = new Request();
-        request.setReadFromCache(cachedData);
         request.setCredentials(new Credentials(sshUser, sshPass, apiUser, apiPass));
         request.setReadFromCache(cachedData);
 
@@ -125,14 +129,31 @@ public class HeatpumpBasementService {
     }
 
     private void mapResponseToModel(Response response, HeatpumpBasementModel newModel) {
-        response.getDatapointList().forEach(dp -> {
-            var datapoint = new HeatpumpBasementDatapoint();
-            datapoint.setId(dp.id());
-            datapoint.setName(dp.name());
-            datapoint.setValue(dp.value());
-            datapoint.setConditionColor(newModel.getDatapoints().isEmpty() ? ConditionColor.GREEN : ConditionColor.BLUE);
-            newModel.getDatapoints().add(datapoint);
+
+        newModel.setApiReadTimestamp(response.getTimestampResponse());
+
+        Map<String, Datapoint> idMap = response.getDatapointList().stream()
+                .collect(Collectors.toMap(Datapoint::id, Function.identity()));
+
+        Arrays.stream(HeatpumpBasementDatapoints.values()).toList().forEach(enumDp -> {
+            var apiDp = idMap.get(enumDp.getId());
+            var modelDp = new HeatpumpBasementDatapoint();
+            modelDp.setId(enumDp.getId());
+            modelDp.setName(enumDp.getAlternateLabel());
+            modelDp.setDescription(enumDp.getDescription());
+            if(apiDp==null){
+                modelDp.setValue("Unbekannt");
+                modelDp.setConditionColor(ConditionColor.RED);
+            }else{
+                modelDp.setValue(apiDp.value());
+                modelDp.setConditionColor(ConditionColor.valueOf(enumDp.getStateColorBasedByValue().apply(apiDp.value()).name()));
+            }
+            newModel.getDatapoints().add(modelDp);
         });
+
+        newModel.setConditionColor(
+                newModel.getDatapoints().stream().map(HeatpumpBasementDatapoint::getConditionColor)
+                        .min(Comparator.comparingInt(Enum::ordinal)).orElseThrow());
     }
 
     private boolean responseHasError(Response response) {

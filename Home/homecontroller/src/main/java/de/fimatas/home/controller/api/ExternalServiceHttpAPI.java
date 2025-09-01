@@ -87,8 +87,9 @@ public class ExternalServiceHttpAPI {
     }
 
     public synchronized ResponseEntity<Response> postForHeatpumpBasementEntity(String url, Request request) throws RestClientException {
-        var map = Map.of("cache", (request.isReadFromCache() ? "read" : "write"));
-        checkServiceEnabledAndFrequency(url, map, "POST");
+        if(!request.isReadFromCache()){
+            checkServiceEnabledAndFrequency(url, Map.of("read", "read"), "POST");
+        }
         HttpEntity<Request> httpRequest = new HttpEntity<>(request);
         return restTemplateHeatpumpDriver.postForEntity(url, httpRequest, Response.class);
     }
