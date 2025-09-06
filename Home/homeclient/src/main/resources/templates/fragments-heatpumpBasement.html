@@ -14,14 +14,23 @@
                 <table style="margin-top: 10px;">
                     <th:block th:each="row : ${model.datapoints}">
                         <tr>
-                            <td th:class="'td-no-border text-' + ${row.cssClass}" style="padding-right: 25px;">
+                            <td th:class="'td-no-border text-' + ${row.cssClass}" style="padding-right: 10px;">
                                 <span th:text="${row.caption}"></span>
+                            </td>
+                            <td th:class="'td-no-border text-' + ${row.cssClass}" style="padding-right: 10px;">
+                                <span data-bs-toggle="modal" th:data-bs-target="'#modalPvStringsInfo'">
+                                    <th:block th:replace="~{basics :: symbolWithStyle (name='fa-solid fa-arrow-right', style='font-size: 80%;')}"/>
+                                </span>
                             </td>
                             <td th:class="'td-no-border text-' + ${row.cssClass}">
                                 <span th:text="${row.value}"></span>
                             </td>
                         </tr>
                     </th:block>
+                    <tr><td height="15px"></td></tr>
+                    <tr>
+                        <td colspan="3" class="text-secondary" style="font-size: 80%; text-align: left;" th:text="${model.timestamp}"></td>
+                    </tr>
                 </table>
 
                 <div th:unless="${#strings.startsWith(model.linkRefresh, '#')}">

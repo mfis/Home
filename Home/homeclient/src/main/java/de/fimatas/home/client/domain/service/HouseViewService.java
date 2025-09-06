@@ -1526,16 +1526,24 @@ public class HouseViewService {
             return;
         }
 
-        var colorClassCallout = ConditionColor.GREEN;
-
+        var colorClassCallout = heatpumpBasementModel.getConditionColor();
         view.setColorClass(colorClassCallout.getUiClass());
         view.setActiveSwitchColorClass(colorClassCallout.getUiClass());
-        view.setStateShort("stateShort");
-        view.setElementTitleState("elementTitleState");
-        view.setState("state");
+
+        var timestamp = Instant.ofEpochMilli(heatpumpBasementModel.getApiReadTimestamp());
+        view.setTimestamp(HomeUtils.durationSinceFormatted(timestamp, false, true, true));
+
+        var state = heatpumpBasementModel.getDatapoints().stream()
+                .filter(dp -> dp.getId().equals("programmwahl"))
+                .findFirst()
+                .map(HeatpumpBasementDatapoint::getValue)
+                .orElse(UNBEKANNT);
+        view.setStateShort(state);
+        view.setElementTitleState(state);
+        view.setState(state);
 
         heatpumpBasementModel.getDatapoints().forEach(v -> {
-            view.getDatapoints().add(new ValueWithCaption(v.getValue(), v.getName(), v.getConditionColor().getUiClass()));
+            view.getDatapoints().add(new ValueWithCaption(v.getValue(), v.getName(), v.getConditionColor() != null ? v.getConditionColor().getUiClass() : view.getColorClass()));
         });
 
     }

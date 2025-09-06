@@ -286,7 +286,7 @@ input[type="checkbox"]:checked ~ label .check-true{
 	background: rgb(244,190,238); /* fixme based on text color */
 }
 .img-default {
-	background: rgb(244,190,238,0.8); /* fixme based on text color */
+	background: rgb(238,238,238,0.8); /* fixme based on text color */
 }
 .img-cold {
 	background: rgb(244,190,238); /* fixme based on text color */

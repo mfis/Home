@@ -12,6 +12,8 @@ public class HeatpumpBasementView extends View {
 
     private String linkRefresh = "#";
 
+    private String timestamp = "";
+
     private List<ValueWithCaption> datapoints = new LinkedList<>();
 
 }
