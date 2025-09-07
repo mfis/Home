@@ -163,6 +163,9 @@ public class ClientCommunicationService {
                 List.of(StringUtils.split(message.getAdditionalData(), ',')).forEach(ap ->places.add(Place.valueOf(ap)));
                 heatpumpRoofService.preset(places, HeatpumpRoofPreset.valueOf(message.getValue()));
                 break;
+            case CONTROL_HEATPUMP_BASEMENT:
+                heatpumpBasementService.scheduledRefreshFromDriverNoCache();
+                break;
             case SLIDERVALUE:
                 electricVehicleService.saveChargingUser(message.getUser());
                 electricVehicleService.updateBatteryPercentage(ElectricVehicle.valueOf(message.getDeviceId()), message.getValue());

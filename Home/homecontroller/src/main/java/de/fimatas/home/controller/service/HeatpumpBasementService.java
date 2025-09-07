@@ -57,7 +57,7 @@ public class HeatpumpBasementService {
         scheduledRefreshFromDriverCache();
     }
 
-    @Scheduled(cron = "44 0/1 * * * *") // FIXME: 0/10
+    @Scheduled(cron = "07 2/10 * * * *")
     public void scheduledRefreshFromDriverCache() {
         try {
             refreshHeatpumpModel(true);
@@ -66,7 +66,7 @@ public class HeatpumpBasementService {
         }
     }
 
-    @Scheduled(cron = "44 01 6-22 * * *")
+    @Scheduled(cron = "07 00 6,9,12,15,18 * * *")
     public void scheduledRefreshFromDriverNoCache() {
         try {
             refreshHeatpumpModel(false);
@@ -169,6 +169,7 @@ public class HeatpumpBasementService {
 
     private synchronized Response callDriver(Request request){
 
+        log.info("call HeatpumpBasement " + (request.isReadFromCache() ? "cache" : "LIVE !"));
         try {
             ResponseEntity<Response> response = externalServiceHttpAPI.postForHeatpumpBasementEntity(
                     Objects.requireNonNull(env.getProperty("heatpump.basement.driver.url")), request);
