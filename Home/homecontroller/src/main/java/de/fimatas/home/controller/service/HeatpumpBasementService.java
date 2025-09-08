@@ -94,6 +94,10 @@ public class HeatpumpBasementService {
             return;
         }
 
+        if(!cachedData){
+            switchModelToBusy();
+        }
+
         var sshUser = env.getProperty("heatpump.basement.driver.sshUser");
         var sshPass = env.getProperty("heatpump.basement.driver.sshPass");
         var apiUser = env.getProperty("heatpump.basement.driver.apiUser");
@@ -105,6 +109,15 @@ public class HeatpumpBasementService {
 
         Response response = callDriver(request);
         handleResponse(request, response);
+    }
+
+    private void switchModelToBusy() {
+
+        final var busyModel = ModelObjectDAO.getInstance().readHeatpumpBasementModel();
+        busyModel.setBusy(true);
+        busyModel.setTimestamp(busyModel.getTimestamp() + 1);
+        ModelObjectDAO.getInstance().write(busyModel);
+        uploadService.uploadToClient(busyModel);
     }
 
     private void handleResponse(Request request, Response response) {

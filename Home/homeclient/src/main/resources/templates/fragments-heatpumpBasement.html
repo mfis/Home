@@ -34,18 +34,20 @@
                 </table>
 
                 <div th:unless="${#strings.startsWith(model.linkRefresh, '#')}">
-                    <div class="btn-group widebutton" role="group" aria-label="heatpumpbasement-group-refresh">
-                        <button type="button" th:class="'btn btn-secondary btn-sm btn-block'" th:onclick="@{'heatpump(\''+ ${model.id} +'\', \'' + ${model.placeID} + '\', \'' + ${model.linkRefresh} + '\')'}">
+                    <div style="padding-top: 2px;">
+                        <div class="btn-group widebutton" role="group" aria-label="heatpumpbasement-group-refresh">
+                            <button type="button" th:class="'btn btn-secondary btn-sm btn-block'" th:onclick="@{'heatpump(\''+ ${model.id} +'\', \'' + ${model.placeID} + '\', \'' + ${model.linkRefresh} + '\')'}">
                                 <span th:class="${#strings.startsWith(model.linkRefresh, '#')} ? 'text-' + ${model.activeSwitchColorClass}">
                                     <th:block th:replace="~{basics :: symbol (name='fa-solid fa-rotate')}"/>
                                 </span>
-                        </button>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </th:block>
 
             <th:block th:if="${#strings.equals(model.busy,'true')}">
-                <h4><span><th:block th:replace="~{basics :: symbol (name='fa fa-spinner fa-spin')}"/></span></h4>
+                <h4 style="padding-top: 10px;"><span><th:block th:replace="~{basics :: symbol (name='fa fa-spinner fa-spin')}"/></span></h4>
             </th:block>
 
         </div>

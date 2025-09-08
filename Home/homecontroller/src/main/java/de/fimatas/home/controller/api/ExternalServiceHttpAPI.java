@@ -80,8 +80,10 @@ public class ExternalServiceHttpAPI {
         if(HeatpumpRequest.apiVersion != 4){
             throw new IllegalStateException("Heatpump API version not supported");
         }
-        var map = Map.of("type", request.isReadFromCache() ? "cache" : (request.getWriteWithRoomnameAndProgram().isEmpty() ? "read" : "write"));
-        checkServiceEnabledAndFrequency(url, map, "POST");
+        if(!request.isReadFromCache()){
+            var map = Map.of("type", (request.getWriteWithRoomnameAndProgram().isEmpty() ? "read" : "write"));
+            checkServiceEnabledAndFrequency(url, map, "POST");
+        }
         HttpEntity<HeatpumpRequest> httpRequest = new HttpEntity<>(request);
         return restTemplateHeatpumpDriver.postForEntity(url, httpRequest, HeatpumpResponse.class);
     }

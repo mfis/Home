@@ -1512,6 +1512,7 @@ public class HouseViewService {
     private void formatHeatpumpBasement(Model model, HeatpumpBasementModel heatpumpBasementModel) {
 
         var isUnreachable = heatpumpBasementModel == null || heatpumpBasementModel.getDatapoints().isEmpty();
+        var isBusy = heatpumpBasementModel != null && heatpumpBasementModel.isBusy();
 
         var view = new HeatpumpBasementView();
         model.addAttribute("heatpumpBasement", view);
@@ -1519,7 +1520,8 @@ public class HouseViewService {
         view.setName("Heizung");
         view.setId("heatpumpBasement");
         view.setUnreach(Boolean.toString(isUnreachable));
-        view.setLinkRefresh(isUnreachable ? REFRESH_HEATPUMP_BASEMENT : "#");
+        view.setLinkRefresh(isUnreachable && !isBusy ? REFRESH_HEATPUMP_BASEMENT : "#");
+        view.setBusy(Boolean.toString(isBusy));
 
         if(isUnreachable){
             view.setColorClass(ConditionColor.GRAY.getUiClass());
