@@ -20,6 +20,10 @@
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>de.fimatas</groupId>
+			<artifactId>HeatpumpDriverInterface</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>de.fimatas.files</groupId>
 			<artifactId>files-api</artifactId>
 		</dependency>
@@ -86,7 +90,7 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-	</dependencies>
+    </dependencies>
 
 	<build>
 		<plugins>

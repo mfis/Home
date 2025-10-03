@@ -10,6 +10,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import de.fimatas.heatpump.basement.driver.api.HeatpumpBasementDatapoints;
 import de.fimatas.home.library.util.*;
 import jakarta.annotation.PostConstruct;
 
@@ -1535,11 +1536,17 @@ public class HouseViewService {
         var timestamp = Instant.ofEpochMilli(heatpumpBasementModel.getApiReadTimestamp());
         view.setTimestamp(HomeUtils.durationSinceFormatted(timestamp, false, true, true));
 
-        var state = heatpumpBasementModel.getDatapoints().stream()
-                .filter(dp -> dp.getId().equals("programmwahl"))
-                .findFirst()
-                .map(HeatpumpBasementDatapoint::getValue)
-                .orElse(UNBEKANNT);
+        String state;
+        if(heatpumpBasementModel.isOffline()){
+            state = "Offline";
+        }else{
+            state = heatpumpBasementModel.getDatapoints().stream()
+                    .filter(dp -> dp.getId().equals(HeatpumpBasementDatapoints.PROGRAMM_WAHL.getId()))
+                    .findFirst()
+                    .map(HeatpumpBasementDatapoint::getValue)
+                    .orElse(UNBEKANNT);
+        }
+
         view.setStateShort(state);
         view.setElementTitleState(state);
         view.setState(state);

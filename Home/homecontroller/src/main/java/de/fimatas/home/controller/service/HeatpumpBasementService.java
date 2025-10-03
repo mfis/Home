@@ -49,12 +49,19 @@ public class HeatpumpBasementService {
 
     private boolean isCallError = false; // prevent continous error calls
 
+    private static final int EXIT_CODE_OFFLINE = 2;
+
     @PostConstruct
     public void init() {
         if(Objects.requireNonNull(env.getProperty("heatpump.basement.driver.url")).contains("callHeatpumpBasementMock")){
             scheduledRefreshFromDriverNoCache(); // local testing
         }
         scheduledRefreshFromDriverCache();
+    }
+
+    @Scheduled(cron = "0 0 0 * * *")
+    public void resetCallErrorFlag() {
+        isCallError = false;
     }
 
     @Scheduled(cron = "07 2/10 * * * *")
@@ -66,7 +73,7 @@ public class HeatpumpBasementService {
         }
     }
 
-    @Scheduled(cron = "07 00 6,9,12,15,18 * * *")
+    @Scheduled(cron = "07 00 6,9,12,15,18,21 * * *")
     public void scheduledRefreshFromDriverNoCache() {
         try {
             refreshHeatpumpModel(false);
@@ -144,6 +151,7 @@ public class HeatpumpBasementService {
     private void mapResponseToModel(Response response, HeatpumpBasementModel newModel) {
 
         newModel.setApiReadTimestamp(response.getTimestampResponse());
+        newModel.setOffline(response.getExitCode() != null && response.getExitCode() == EXIT_CODE_OFFLINE);
 
         Map<String, Datapoint> idMap = response.getDatapointList().stream()
                 .collect(Collectors.toMap(Datapoint::id, Function.identity()));
