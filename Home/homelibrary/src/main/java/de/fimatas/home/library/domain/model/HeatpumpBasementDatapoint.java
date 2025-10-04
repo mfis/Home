@@ -4,6 +4,8 @@ import de.fimatas.home.library.model.ConditionColor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.math.BigDecimal;
+
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class HeatpumpBasementDatapoint extends AbstractSystemModel {
@@ -12,7 +14,9 @@ public class HeatpumpBasementDatapoint extends AbstractSystemModel {
 
     private String name;
 
-    private String value;
+    private ValueWithTendency<BigDecimal> valueWithTendency;
+
+    private String valueFormatted;
 
     private int group;
 

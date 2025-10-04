@@ -1544,7 +1544,7 @@ public class HouseViewService {
             state = heatpumpBasementModel.getDatapoints().stream()
                     .filter(dp -> dp.getId().equals(HeatpumpBasementDatapoints.PROGRAMM_WAHL.getId()))
                     .findFirst()
-                    .map(HeatpumpBasementDatapoint::getValue)
+                    .map(HeatpumpBasementDatapoint::getValueFormatted)
                     .orElse(UNBEKANNT);
         }
 
@@ -1557,7 +1557,11 @@ public class HouseViewService {
             if(v.getGroup() != lastGroup.get()){
                 view.getDatapoints().add(new ValueWithCaption());
             }
-            view.getDatapoints().add(new ValueWithCaption(v.getValue(), v.getName(), v.getConditionColor() != null ? v.getConditionColor().getUiClass() : view.getColorClass()));
+            var val = new ValueWithCaption(v.getValueFormatted(), v.getName(), v.getConditionColor() != null ? v.getConditionColor().getUiClass() : view.getColorClass());
+            if(v.getValueWithTendency() != null){
+                val.setTendencyIcon(v.getValueWithTendency().getTendency().getIconCssClass());
+            }
+            view.getDatapoints().add(val);
             lastGroup.set(v.getGroup());
         });
 

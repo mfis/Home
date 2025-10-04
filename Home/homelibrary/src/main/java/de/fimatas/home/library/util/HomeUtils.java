@@ -1,5 +1,7 @@
 package de.fimatas.home.library.util;
 
+import de.fimatas.home.library.domain.model.Tendency;
+import de.fimatas.home.library.domain.model.ValueWithTendency;
 import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
@@ -83,6 +85,38 @@ public class HomeUtils {
                 return "jetzt";
             }
             return prefix + StringUtils.leftPad(Long.toString(minutes), padded ? 5 : 0) + " Minute" + (minutes == 1 ? "" : "n");
+        }
+    }
+
+    public static void calculateTendency(long newTimestamp, ValueWithTendency<BigDecimal> reference,
+                                   ValueWithTendency<BigDecimal> actual, BigDecimal diffValue) {
+
+        if (actual.getValue() == null) {
+            actual.setTendency(Tendency.NONE);
+            return;
+        }
+
+        if (reference == null || reference.getReferenceValue() == null) {
+            actual.setTendency(Tendency.NONE);
+            actual.setReferenceValue(actual.getValue());
+            return;
+        }
+
+        BigDecimal diff = actual.getValue().subtract(reference.getReferenceValue());
+
+        if (diff.compareTo(BigDecimal.ZERO) > 0 && diff.compareTo(diffValue) > 0) {
+            actual.setTendency(Tendency.RISE);
+            actual.setReferenceValue(actual.getValue());
+            actual.setReferenceDateTime(newTimestamp);
+        } else if (diff.compareTo(BigDecimal.ZERO) < 0 && diff.abs().compareTo(diffValue) > 0) {
+            actual.setTendency(Tendency.FALL);
+            actual.setReferenceValue(actual.getValue());
+            actual.setReferenceDateTime(newTimestamp);
+        } else {
+            long timeDiff = newTimestamp - reference.getReferenceDateTime();
+            actual.setTendency(Tendency.calculate(reference, timeDiff));
+            actual.setReferenceValue(reference.getReferenceValue());
+            actual.setReferenceDateTime(reference.getReferenceDateTime());
         }
     }
 }

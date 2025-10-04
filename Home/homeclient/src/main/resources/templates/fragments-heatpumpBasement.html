@@ -11,22 +11,23 @@
             <th:block th:unless="${#strings.equals(model.busy,'true')}">
                 <h4 th:text="${model.state}"></h4>
 
-                <table style="margin-top: 10px;">
+                <table style="margin-top: 13px;">
                     <th:block th:each="row : ${model.datapoints}">
                         <tr>
                             <td th:class="'td-no-border text-' + ${row.cssClass}" style="padding-right: 10px;">
                                 <span th:text="${row.caption}"></span>
                             </td>
                             <td th:class="'td-no-border text-' + ${row.cssClass}" style="padding-right: 10px;">
-                                <span th:unless="${#strings.isEmpty(row.caption)}" data-bs-toggle="modal" th:data-bs-target="'#modalPvStringsInfo'">
+                                <span th:unless="${#strings.isEmpty(row.caption)}" data-bs-toggle="modal">
                                     <th:block th:replace="~{basics :: symbolWithStyle (name='fa-solid fa-arrow-right', style='font-size: 80%;')}"/>
                                 </span>
-                                <span th:if="${#strings.isEmpty(row.caption)}" data-bs-toggle="modal" th:data-bs-target="'#modalPvStringsInfo'">
+                                <span th:if="${#strings.isEmpty(row.caption)}" data-bs-toggle="modal">
                                     <a style='font-size: 60%;'>&nbsp;</a>
                                 </span>
                             </td>
                             <td th:class="'td-no-border text-' + ${row.cssClass}">
-                                <span th:text="${row.value}"></span>
+                                <span style="padding-right: 3px;" th:text="${row.value}"></span>
+                                <th:block th:unless="${#strings.isEmpty(row.tendencyIcon)}" th:replace="~{fragments :: tendency (icon=${row.tendencyIcon})}"></th:block>
                             </td>
                         </tr>
                     </th:block>

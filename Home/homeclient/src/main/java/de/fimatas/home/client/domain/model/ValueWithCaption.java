@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 @Data
@@ -11,6 +12,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class ValueWithCaption implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     private String value = "";
@@ -18,5 +20,13 @@ public class ValueWithCaption implements Serializable {
     private String caption = "";
 
     private String cssClass = "";
+
+    private String tendencyIcon = "";
+
+    public ValueWithCaption(String value, String caption, String cssClass){
+        this.value = value;
+        this.caption = caption;
+        this.cssClass = cssClass;
+    }
 
 }

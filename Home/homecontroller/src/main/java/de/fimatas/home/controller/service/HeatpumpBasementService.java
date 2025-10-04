@@ -8,6 +8,7 @@ import de.fimatas.heatpump.basement.driver.api.HeatpumpBasementDatapoints;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.model.ConditionColor;
+import de.fimatas.home.library.util.HomeUtils;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
@@ -153,6 +154,8 @@ public class HeatpumpBasementService {
         Map<String, Datapoint> idMap = response.getDatapointList().stream()
                 .collect(Collectors.toMap(Datapoint::id, Function.identity()));
 
+        var oldModel = ModelObjectDAO.getInstance().readHeatpumpBasementModel();
+
         Arrays.stream(HeatpumpBasementDatapoints.values()).toList().forEach(enumDp -> {
             var apiDp = idMap.get(enumDp.getId());
             var modelDp = new HeatpumpBasementDatapoint();
@@ -161,10 +164,18 @@ public class HeatpumpBasementService {
             modelDp.setGroup(enumDp.getGroup());
             modelDp.setDescription(enumDp.getDescription());
             if(apiDp==null){
-                modelDp.setValue("Unbekannt");
+                modelDp.setValueFormatted("Unbekannt");
                 modelDp.setConditionColor(ConditionColor.RED);
             }else{
-                modelDp.setValue(enumDp.getFormattedValue().apply(apiDp.value()));
+                var valueFormatted = enumDp.getFormattedValue().apply(apiDp.value());
+                modelDp.setValueFormatted(valueFormatted);
+                if(enumDp.getTendencyThreshold() != null){
+                    Optional<HeatpumpBasementDatapoint> oldValue = oldModel == null ? Optional.empty() : oldModel.getDatapoints().stream().filter(dp -> dp.getId().equals(enumDp.getId())).findFirst();
+                    var valueBD = HeatpumpBasementDatapoints.valueAsBigDecimal(enumDp.getFormattedValue().apply(apiDp.value()));
+                    var valueWithTenency = new ValueWithTendency<>(valueBD);
+                    HomeUtils.calculateTendency(response.getTimestampResponse(), oldValue.map(HeatpumpBasementDatapoint::getValueWithTendency).orElse(null), valueWithTenency, enumDp.getTendencyThreshold());
+                    modelDp.setValueWithTendency(valueWithTenency);
+                }
                 modelDp.setConditionColor(ConditionColor.valueOf(enumDp.getStateColorBasedByValue().apply(apiDp.value()).name()));
             }
             newModel.getDatapoints().add(modelDp);

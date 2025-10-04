@@ -30,6 +30,8 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static de.fimatas.home.library.util.HomeUtils.calculateTendency;
+
 @SuppressWarnings("StatementWithEmptyBody")
 @Component
 @CommonsLog
@@ -315,32 +317,6 @@ public class HouseService {
                 referenceHumidity = climateOld.getHumidity();
             }
             calculateTendency(newModel.getTimestamp(), referenceHumidity, climateNew.getHumidity(), HUMIDITY_TENDENCY_DIFF);
-        }
-    }
-
-    private void calculateTendency(long newTimestamp, ValueWithTendency<BigDecimal> reference,
-            ValueWithTendency<BigDecimal> actual, BigDecimal diffValue) {
-
-        if (actual.getValue() == null || reference == null || reference.getReferenceValue() == null) {
-            actual.setTendency(Tendency.NONE);
-            return;
-        }
-
-        BigDecimal diff = actual.getValue().subtract(reference.getReferenceValue());
-
-        if (diff.compareTo(BigDecimal.ZERO) > 0 && diff.compareTo(diffValue) > 0) {
-            actual.setTendency(Tendency.RISE);
-            actual.setReferenceValue(actual.getValue());
-            actual.setReferenceDateTime(newTimestamp);
-        } else if (diff.compareTo(BigDecimal.ZERO) < 0 && diff.abs().compareTo(diffValue) > 0) {
-            actual.setTendency(Tendency.FALL);
-            actual.setReferenceValue(actual.getValue());
-            actual.setReferenceDateTime(newTimestamp);
-        } else {
-            long timeDiff = newTimestamp - reference.getReferenceDateTime();
-            actual.setTendency(Tendency.calculate(reference, timeDiff));
-            actual.setReferenceValue(reference.getReferenceValue());
-            actual.setReferenceDateTime(reference.getReferenceDateTime());
         }
     }
 
