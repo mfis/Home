@@ -178,8 +178,8 @@ public class SolarmanService {
         pvAdditionalDataModel.setConsumptionWattage(new BigDecimal(inverterKeysAndValues.get(FIELD_CONSUMPTION_ACTUAL)).intValue());
 
         // DetailInfo
-        pvAdditionalDataModel.getDetailInfos().put("Strom String 1", ONE_DIGIT_FORMAT.format(stringAmps.string1) + " Ampere");
-        pvAdditionalDataModel.getDetailInfos().put("Strom String 2", ONE_DIGIT_FORMAT.format(stringAmps.string2) + " Ampere");
+        pvAdditionalDataModel.getDetailInfos().put("Strom obere Reihe", ONE_DIGIT_FORMAT.format(stringAmps.string2) + " Ampere");
+        pvAdditionalDataModel.getDetailInfos().put("Strom untere Reihe", ONE_DIGIT_FORMAT.format(stringAmps.string1) + " Ampere");
 
         pvAdditionalDataModel.setAlarm(alarm);
         processFailures(stringAmps, pvAdditionalDataModel);
