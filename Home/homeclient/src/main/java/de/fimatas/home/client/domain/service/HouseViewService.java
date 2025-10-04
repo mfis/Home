@@ -7,6 +7,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -1551,8 +1552,13 @@ public class HouseViewService {
         view.setElementTitleState(state);
         view.setState(state);
 
+        var lastGroup = new AtomicInteger(heatpumpBasementModel.getDatapoints().stream().mapToInt(HeatpumpBasementDatapoint::getGroup).min().orElseThrow());
         heatpumpBasementModel.getDatapoints().forEach(v -> {
+            if(v.getGroup() != lastGroup.get()){
+                view.getDatapoints().add(new ValueWithCaption());
+            }
             view.getDatapoints().add(new ValueWithCaption(v.getValue(), v.getName(), v.getConditionColor() != null ? v.getConditionColor().getUiClass() : view.getColorClass()));
+            lastGroup.set(v.getGroup());
         });
 
     }

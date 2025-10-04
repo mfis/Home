@@ -49,8 +49,6 @@ public class HeatpumpBasementService {
 
     private boolean isCallError = false; // prevent continous error calls
 
-    private static final int EXIT_CODE_OFFLINE = 2;
-
     @PostConstruct
     public void init() {
         if(Objects.requireNonNull(env.getProperty("heatpump.basement.driver.url")).contains("callHeatpumpBasementMock")){
@@ -59,12 +57,11 @@ public class HeatpumpBasementService {
         scheduledRefreshFromDriverCache();
     }
 
-    @Scheduled(cron = "0 0 0 * * *")
+    @Scheduled(cron = "0 0 0,12 * * *")
     public void resetCallErrorFlag() {
         isCallError = false;
     }
 
-    @Scheduled(cron = "07 2/10 * * * *")
     public void scheduledRefreshFromDriverCache() {
         try {
             refreshHeatpumpModel(true);
@@ -73,7 +70,7 @@ public class HeatpumpBasementService {
         }
     }
 
-    @Scheduled(cron = "07 00 6,9,12,15,18,21 * * *")
+    @Scheduled(cron = "07 00 5-22 * * *")
     public void scheduledRefreshFromDriverNoCache() {
         try {
             refreshHeatpumpModel(false);
@@ -151,7 +148,7 @@ public class HeatpumpBasementService {
     private void mapResponseToModel(Response response, HeatpumpBasementModel newModel) {
 
         newModel.setApiReadTimestamp(response.getTimestampResponse());
-        newModel.setOffline(response.getExitCode() != null && response.getExitCode() == EXIT_CODE_OFFLINE);
+        newModel.setOffline(response.getExitCode() != null && response.getExitCode() == Response.RC_OFFLINE);
 
         Map<String, Datapoint> idMap = response.getDatapointList().stream()
                 .collect(Collectors.toMap(Datapoint::id, Function.identity()));
@@ -161,12 +158,13 @@ public class HeatpumpBasementService {
             var modelDp = new HeatpumpBasementDatapoint();
             modelDp.setId(enumDp.getId());
             modelDp.setName(enumDp.getAlternateLabel());
+            modelDp.setGroup(enumDp.getGroup());
             modelDp.setDescription(enumDp.getDescription());
             if(apiDp==null){
                 modelDp.setValue("Unbekannt");
                 modelDp.setConditionColor(ConditionColor.RED);
             }else{
-                modelDp.setValue(apiDp.value());
+                modelDp.setValue(enumDp.getFormattedValue().apply(apiDp.value()));
                 modelDp.setConditionColor(ConditionColor.valueOf(enumDp.getStateColorBasedByValue().apply(apiDp.value()).name()));
             }
             newModel.getDatapoints().add(modelDp);

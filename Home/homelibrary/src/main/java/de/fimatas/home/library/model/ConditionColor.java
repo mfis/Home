@@ -1,16 +1,14 @@
 package de.fimatas.home.library.model;
 
-import de.fimatas.home.library.domain.model.Place;
-
 public enum ConditionColor {
 
     RED("danger"),
     ORANGE("warning"),
-    DEFAULT("default"),
     COLD("cold"),
     BLUE("info"),
     GREEN("success"),
     LIGHT("light"),
+    DEFAULT("default"),
     GRAY("secondary"),
     ACTIVE_BUTTON("active-primary"),
     ROW_STRIPE_DEFAULT("default"),

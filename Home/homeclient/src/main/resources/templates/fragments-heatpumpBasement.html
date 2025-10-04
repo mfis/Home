@@ -18,8 +18,11 @@
                                 <span th:text="${row.caption}"></span>
                             </td>
                             <td th:class="'td-no-border text-' + ${row.cssClass}" style="padding-right: 10px;">
-                                <span data-bs-toggle="modal" th:data-bs-target="'#modalPvStringsInfo'">
+                                <span th:unless="${#strings.isEmpty(row.caption)}" data-bs-toggle="modal" th:data-bs-target="'#modalPvStringsInfo'">
                                     <th:block th:replace="~{basics :: symbolWithStyle (name='fa-solid fa-arrow-right', style='font-size: 80%;')}"/>
+                                </span>
+                                <span th:if="${#strings.isEmpty(row.caption)}" data-bs-toggle="modal" th:data-bs-target="'#modalPvStringsInfo'">
+                                    <a style='font-size: 60%;'>&nbsp;</a>
                                 </span>
                             </td>
                             <td th:class="'td-no-border text-' + ${row.cssClass}">
