@@ -42,8 +42,8 @@ public class WeatherService {
     @Autowired
     private Environment env;
 
-    private static final BigDecimal WIND_SPEED_STORM = BigDecimal.valueOf(36);
-    private static final BigDecimal WIND_SPEED_GUST_STORM = BigDecimal.valueOf(70);
+    private static final BigDecimal WIND_SPEED_STORM = BigDecimal.valueOf(35);
+    private static final BigDecimal WIND_SPEED_GUST_STORM = BigDecimal.valueOf(60);
     private static final BigDecimal HEAVY_RAIN_MM = BigDecimal.valueOf(10);
 
     private LocalDateTime DATETIMENOW;
