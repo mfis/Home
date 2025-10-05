@@ -4,9 +4,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fimatas.heatpump.basement.driver.api.*;
 import de.fimatas.home.controller.api.ExternalServiceHttpAPI;
-import de.fimatas.heatpump.basement.driver.api.HeatpumpBasementDatapoints;
 import de.fimatas.home.library.dao.ModelObjectDAO;
-import de.fimatas.home.library.domain.model.*;
+import de.fimatas.home.library.domain.model.HeatpumpBasementDatapoint;
+import de.fimatas.home.library.domain.model.HeatpumpBasementModel;
+import de.fimatas.home.library.domain.model.ValueWithTendency;
 import de.fimatas.home.library.model.ConditionColor;
 import de.fimatas.home.library.util.HomeUtils;
 import jakarta.annotation.PostConstruct;
@@ -164,26 +165,32 @@ public class HeatpumpBasementService {
             modelDp.setGroup(enumDp.getGroup());
             modelDp.setDescription(enumDp.getDescription());
             if(apiDp==null){
-                modelDp.setValueFormatted("Unbekannt");
+                modelDp.setValueFormattedLong("Unbekannt");
+                modelDp.setValueFormattedLong("?");
                 modelDp.setConditionColor(ConditionColor.RED);
             }else{
-                var valueFormatted = enumDp.getFormattedValue().apply(apiDp.value());
-                modelDp.setValueFormatted(valueFormatted);
+                modelDp.setValueFormattedLong(enumDp.getFormattedValueLong().apply(apiDp.value()));
+                modelDp.setValueFormattedShort(enumDp.getFormattedValueShort().apply(apiDp.value()));
                 if(enumDp.getTendencyThreshold() != null){
                     Optional<HeatpumpBasementDatapoint> oldValue = oldModel == null ? Optional.empty() : oldModel.getDatapoints().stream().filter(dp -> dp.getId().equals(enumDp.getId())).findFirst();
-                    var valueBD = HeatpumpBasementDatapoints.valueAsBigDecimal(enumDp.getFormattedValue().apply(apiDp.value()));
+                    var valueBD = HeatpumpBasementDatapoints.valueAsBigDecimal(enumDp.getFormattedValueLong().apply(apiDp.value()));
                     var valueWithTenency = new ValueWithTendency<>(valueBD);
                     HomeUtils.calculateTendency(response.getTimestampResponse(), oldValue.map(HeatpumpBasementDatapoint::getValueWithTendency).orElse(null), valueWithTenency, enumDp.getTendencyThreshold());
                     modelDp.setValueWithTendency(valueWithTenency);
                 }
                 modelDp.setConditionColor(ConditionColor.valueOf(enumDp.getStateColorBasedByValue().apply(apiDp.value()).name()));
+                modelDp.setStateOff(HeatpumpBasementDatapoints.isValueOff(apiDp.value()));
             }
             newModel.getDatapoints().add(modelDp);
         });
 
-        newModel.setConditionColor(
-                newModel.getDatapoints().stream().map(HeatpumpBasementDatapoint::getConditionColor)
-                        .min(Comparator.comparingInt(Enum::ordinal)).orElseThrow());
+        if(newModel.isOffline()){
+            newModel.setConditionColor(ConditionColor.RED);
+        }else{
+            newModel.setConditionColor(
+                    newModel.getDatapoints().stream().map(HeatpumpBasementDatapoint::getConditionColor)
+                            .min(Comparator.comparingInt(Enum::ordinal)).orElseThrow());
+        }
     }
 
     private boolean responseHasError(Response response) {

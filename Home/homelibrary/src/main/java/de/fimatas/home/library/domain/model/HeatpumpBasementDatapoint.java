@@ -16,7 +16,11 @@ public class HeatpumpBasementDatapoint extends AbstractSystemModel {
 
     private ValueWithTendency<BigDecimal> valueWithTendency;
 
-    private String valueFormatted;
+    private String valueFormattedLong;
+
+    private String valueFormattedShort;
+
+    private boolean stateOff;
 
     private int group;
 

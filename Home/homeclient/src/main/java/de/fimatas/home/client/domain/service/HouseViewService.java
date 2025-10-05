@@ -1,5 +1,24 @@
 package de.fimatas.home.client.domain.service;
 
+import de.fimatas.heatpump.basement.driver.api.HeatpumpBasementDatapoints;
+import de.fimatas.home.client.domain.model.*;
+import de.fimatas.home.client.domain.service.ViewFormatter.TimestampFormat;
+import de.fimatas.home.client.model.MessageQueue;
+import de.fimatas.home.library.dao.ModelObjectDAO;
+import de.fimatas.home.library.domain.model.*;
+import de.fimatas.home.library.homematic.model.Device;
+import de.fimatas.home.library.homematic.model.Type;
+import de.fimatas.home.library.model.*;
+import de.fimatas.home.library.util.*;
+import jakarta.annotation.PostConstruct;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.RegExUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.ui.Model;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.*;
@@ -10,26 +29,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import de.fimatas.heatpump.basement.driver.api.HeatpumpBasementDatapoints;
-import de.fimatas.home.library.util.*;
-import jakarta.annotation.PostConstruct;
-
-import de.fimatas.home.client.domain.model.*;
-import de.fimatas.home.library.dao.ModelObjectDAO;
-import de.fimatas.home.library.domain.model.*;
-import de.fimatas.home.library.model.*;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.RegExUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.springframework.ui.Model;
-import de.fimatas.home.client.domain.service.ViewFormatter.TimestampFormat;
-import de.fimatas.home.client.model.MessageQueue;
-import de.fimatas.home.library.homematic.model.Device;
-import de.fimatas.home.library.homematic.model.Type;
 
 import static de.fimatas.home.library.util.HomeUtils.buildDecimalFormat;
 import static de.fimatas.home.library.util.WeatherForecastConclusionTextFormatter.*;
@@ -1537,15 +1536,21 @@ public class HouseViewService {
         var timestamp = Instant.ofEpochMilli(heatpumpBasementModel.getApiReadTimestamp());
         view.setTimestamp(HomeUtils.durationSinceFormatted(timestamp, false, true, true));
 
-        String state;
+        String state = "";
         if(heatpumpBasementModel.isOffline()){
             state = "Offline";
         }else{
-            state = heatpumpBasementModel.getDatapoints().stream()
-                    .filter(dp -> dp.getId().equals(HeatpumpBasementDatapoints.PROGRAMM_WAHL.getId()))
-                    .findFirst()
-                    .map(HeatpumpBasementDatapoint::getValueFormatted)
-                    .orElse(UNBEKANNT);
+            state += "VL: ";
+            var valueMischerkreis = readHeatpumpBasementDatapoint(heatpumpBasementModel, HeatpumpBasementDatapoints.MISCHERKREIS_PUMPE);
+            if(valueMischerkreis.isPresent() && !valueMischerkreis.get().isStateOff()){
+                var valueVorlauf = readHeatpumpBasementDatapoint(heatpumpBasementModel, HeatpumpBasementDatapoints.VORLAUF_TEMPERATUR);
+                state += valueVorlauf.isPresent() ? valueVorlauf.get().getValueFormattedShort() : "?";
+            } else {
+                state += "--";
+            }
+            state += ", ";
+            var valueVerdichterStatus = readHeatpumpBasementDatapoint(heatpumpBasementModel, HeatpumpBasementDatapoints.VERDICHTER_STATUS);
+            state += "Verdichter: " + (valueVerdichterStatus.isPresent() ? valueVerdichterStatus.get().getValueFormattedShort() : "?");
         }
 
         view.setStateShort(state);
@@ -1557,7 +1562,7 @@ public class HouseViewService {
             if(v.getGroup() != lastGroup.get()){
                 view.getDatapoints().add(new ValueWithCaption());
             }
-            var val = new ValueWithCaption(v.getValueFormatted(), v.getName(), v.getConditionColor() != null ? v.getConditionColor().getUiClass() : view.getColorClass());
+            var val = new ValueWithCaption(v.getValueFormattedLong(), v.getName(), v.getConditionColor() != null ? v.getConditionColor().getUiClass() : view.getColorClass());
             if(v.getValueWithTendency() != null){
                 val.setTendencyIcon(v.getValueWithTendency().getTendency().getIconCssClass());
             }
@@ -1565,6 +1570,12 @@ public class HouseViewService {
             lastGroup.set(v.getGroup());
         });
 
+    }
+
+    private Optional<HeatpumpBasementDatapoint> readHeatpumpBasementDatapoint(HeatpumpBasementModel heatpumpBasementModel, HeatpumpBasementDatapoints datapointToRead) {
+        return heatpumpBasementModel.getDatapoints().stream()
+                .filter(dp -> dp.getId().equals(datapointToRead.getId()))
+                .findFirst();
     }
 
     private void formatHeatpumpRoof(Model model, HeatpumpRoofModel heatpumpRoofModel, Place place) {
