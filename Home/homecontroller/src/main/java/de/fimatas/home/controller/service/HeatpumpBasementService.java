@@ -4,10 +4,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fimatas.heatpump.basement.driver.api.*;
 import de.fimatas.home.controller.api.ExternalServiceHttpAPI;
+import de.fimatas.home.controller.api.HomematicAPI;
+import de.fimatas.home.controller.command.HomematicCommandBuilder;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.HeatpumpBasementDatapoint;
 import de.fimatas.home.library.domain.model.HeatpumpBasementModel;
 import de.fimatas.home.library.domain.model.ValueWithTendency;
+import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.model.ConditionColor;
 import de.fimatas.home.library.util.HomeUtils;
 import jakarta.annotation.PostConstruct;
@@ -22,6 +25,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 
+import java.math.BigDecimal;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -41,6 +46,12 @@ public class HeatpumpBasementService {
     private ExternalServiceHttpAPI externalServiceHttpAPI;
 
     @Autowired
+    private HomematicAPI hmApi;
+
+    @Autowired
+    private HomematicCommandBuilder homematicCommandBuilder;
+
+    @Autowired
     private Environment env;
 
     @Value("${application.externalServicesEnabled:false}")
@@ -51,15 +62,16 @@ public class HeatpumpBasementService {
 
     private boolean isCallError = false; // prevent continous error calls
 
+    private BigDecimal lastConsumptionCounterWroteToHomematic = null;
+
+    private static final long REFRESH_DELAY_MS = 30 * 60 * 1000;
+
     @PostConstruct
     public void init() {
-        if(Objects.requireNonNull(env.getProperty("heatpump.basement.driver.url")).contains("callHeatpumpBasementMock")){
-            scheduledRefreshFromDriverNoCache(); // local testing
-        }
         scheduledRefreshFromDriverCache();
     }
 
-    @Scheduled(cron = "0 0 0,12 * * *")
+    @Scheduled(cron = "0 0 2 * * *")
     public void resetCallErrorFlag() {
         isCallError = false;
     }
@@ -72,12 +84,15 @@ public class HeatpumpBasementService {
         }
     }
 
-    @Scheduled(cron = "07 00 5-22 * * *")
+    @Scheduled(initialDelay = REFRESH_DELAY_MS, fixedDelay = REFRESH_DELAY_MS)
     public void scheduledRefreshFromDriverNoCache() {
-        try {
-            refreshHeatpumpModel(false);
-        } catch (Exception e) {
-            handleException(e, "Could not call heatpump basement service (no-cache!)");
+        int stunde = LocalTime.now().getHour();
+        if (stunde >= 5 && stunde <= 22) {
+            try {
+                refreshHeatpumpModel(false);
+            } catch (Exception e) {
+                handleException(e, "Could not call heatpump basement service (no-cache!)");
+            }
         }
     }
 
@@ -143,8 +158,36 @@ public class HeatpumpBasementService {
 
         HeatpumpBasementModel newModel = emptyModel();
         mapResponseToModel(response, newModel);
+
+        if(!request.isReadFromCache()){
+            updateHomematicSysVar(newModel);
+        }
+
         ModelObjectDAO.getInstance().write(newModel);
         uploadService.uploadToClient(newModel);
+    }
+
+    private void updateHomematicSysVar(HeatpumpBasementModel newModel) {
+
+        var dpConsumption = newModel.getDatapoints().stream()
+                .filter(dp -> dp.getId().equals(HeatpumpBasementDatapoints.VERBRAUCH_AKTUELLES_JAHR.getId()))
+                .findFirst();
+        if(dpConsumption.isEmpty()) {
+            return;
+        }
+        var valueToWrite = dpConsumption.get().getValueWithTendency().getValue();
+        if(lastConsumptionCounterWroteToHomematic != null && lastConsumptionCounterWroteToHomematic.equals(valueToWrite)){
+            log.debug("SAME VALUE: " + valueToWrite);
+            return;
+        }
+
+        var command = homematicCommandBuilder.write(
+                Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT,
+                de.fimatas.home.library.homematic.model.Datapoint.SYSVAR_DUMMY,
+                valueToWrite.toString());
+        hmApi.executeCommand(command);
+        log.debug("WRITE VALUE: " + valueToWrite);
+        lastConsumptionCounterWroteToHomematic = valueToWrite;
     }
 
     private void mapResponseToModel(Response response, HeatpumpBasementModel newModel) {

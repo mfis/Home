@@ -35,8 +35,11 @@ public enum Type {
     SYSVAR_ELECTRIC_POWER_CONSUMPTION_ACTUAL("ElectricPowerConsumptionActual", null, false, false), //
     SYSVAR_ELECTRIC_POWER_CONSUMPTION_COUNTER("ElectricPowerConsumptionCounter", null, false, false), //
     SYSVAR_ELECTRIC_POWER_PRODUCTION_COUNTER("ElectricPowerProductionCounter", null, false, false), //
+    //
     SYSVAR_ELECTRIC_POWER_ACTUAL_TIMESTAMP("ElectricPowerActualTimestamp", null, false, false), //
     SYSVAR_ELECTRIC_POWER_GRID_TIMESTAMP("StromBezugTimestamp", null, false, false), //
+     //
+    SYSVAR_ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT("ElectricPowerConsumptionCounterHeatpump", null, false, false), //
     ;
 
     protected static final List<String> VAR_PREFIXES_SWITCH_AUTO = Arrays.asList("Automatic", "AutomaticInfoText");
@@ -58,7 +61,7 @@ public enum Type {
 
     private final List<Type> subTypes = new ArrayList<>();
 
-    private Type(String typeName, String shortName, boolean hasBattery, boolean controllable, Type... subTypes) {
+    Type(String typeName, String shortName, boolean hasBattery, boolean controllable, Type... subTypes) {
         this.typeName = typeName;
         this.shortName = shortName;
         this.hasBattery = hasBattery;

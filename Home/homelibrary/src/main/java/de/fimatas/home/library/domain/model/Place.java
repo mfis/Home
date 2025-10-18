@@ -27,6 +27,7 @@ public enum Place {
     GARDEN("Garten", false), //
     FRONTDOOR("Haustür", false), //
     ROOF("Dachboden", false), //
+    BASEMENT("Keller", false), //
     // with sub-places
     OUTSIDE("Draußen", false, Place.ENTRANCE, Place.TERRACE), //
 

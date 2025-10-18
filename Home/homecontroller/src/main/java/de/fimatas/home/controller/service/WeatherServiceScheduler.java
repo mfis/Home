@@ -5,8 +5,6 @@ import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
-import jakarta.annotation.PostConstruct;
 import org.springframework.web.client.RestClientException;
 
 @Component
@@ -16,18 +14,19 @@ public class WeatherServiceScheduler {
     @Autowired
     private WeatherService weatherService;
 
-    @PostConstruct
-    public void init(){
-        scheduledRefreshWeatherModelWithFurtherDays();
-        scheduledRefreshWeatherModel();
-    }
+    private boolean isInitialRun = true;
 
     @Scheduled(cron = "02 05 04-23 * * *")
     public void scheduledRefreshWeatherModel() {
         try {
             weatherService.refreshWeatherForecastModel();
-        }catch(Exception e){
+            if(isInitialRun){
+                scheduledRefreshWeatherModelWithFurtherDays();
+            }
+        } catch(Exception e){
             handleException(e, "Could not call weather service (2-days)");
+        } finally {
+            isInitialRun = false;
         }
     }
 

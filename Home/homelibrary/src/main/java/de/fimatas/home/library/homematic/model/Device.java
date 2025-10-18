@@ -1,10 +1,11 @@
 package de.fimatas.home.library.homematic.model;
 
-import java.util.List;
 import de.fimatas.home.library.domain.model.AutomationState;
 import de.fimatas.home.library.domain.model.Place;
 import de.fimatas.home.library.util.HomeUtils;
 import lombok.Getter;
+
+import java.util.List;
 
 @Getter
 public enum Device {
@@ -54,6 +55,8 @@ public enum Device {
     ELECTRIC_POWER_ACTUAL_TIMESTAMP_HOUSE(HomematicProtocol.SYSVAR, Type.SYSVAR_ELECTRIC_POWER_ACTUAL_TIMESTAMP, Place.HOUSE, true, Datapoint.LIST_SYSVAR, null), //
 
     ELECTRIC_POWER_GRID_TIMESTAMP_HOUSE(HomematicProtocol.SYSVAR, Type.SYSVAR_ELECTRIC_POWER_GRID_TIMESTAMP, Place.HOUSE, true, Datapoint.LIST_SYSVAR, null), //
+
+    ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT(HomematicProtocol.SYSVAR, Type.SYSVAR_ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT, Place.BASEMENT, true, Datapoint.LIST_SYSVAR, null), //
 
     STROMZAEHLER_WALLBOX(HomematicProtocol.HM, Type.ELECTRIC_POWER, Place.WALLBOX, true, Datapoint.LIST_POWERMETER_HM,
         Type.VAR_PREFIXES_TIMESTAMP),
