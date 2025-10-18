@@ -6,7 +6,7 @@ public enum HistoryValueType {
 
     private String databaseKey;
 
-    private HistoryValueType(String databaseKey) {
+    HistoryValueType(String databaseKey) {
         this.databaseKey = databaseKey;
     }
 

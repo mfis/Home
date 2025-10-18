@@ -1,31 +1,5 @@
 package de.fimatas.home.controller.domain.service;
 
-import java.math.BigDecimal;
-import java.math.MathContext;
-import java.math.RoundingMode;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.YearMonth;
-import java.time.ZoneId;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-
-import de.fimatas.home.controller.service.UploadService;
-import de.fimatas.home.library.homematic.model.Type;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 import de.fimatas.home.controller.api.HomematicAPI;
 import de.fimatas.home.controller.command.HomematicCommand;
 import de.fimatas.home.controller.command.HomematicCommandBuilder;
@@ -35,15 +9,27 @@ import de.fimatas.home.controller.database.mapper.TimestampValuePairComparator;
 import de.fimatas.home.controller.model.History;
 import de.fimatas.home.controller.model.HistoryElement;
 import de.fimatas.home.controller.model.HistoryValueType;
+import de.fimatas.home.controller.service.UploadService;
 import de.fimatas.home.library.dao.ModelObjectDAO;
-import de.fimatas.home.library.domain.model.HistoryModel;
-import de.fimatas.home.library.domain.model.PowerConsumptionDay;
-import de.fimatas.home.library.domain.model.PowerConsumptionMonth;
-import de.fimatas.home.library.domain.model.TemperatureHistory;
-import de.fimatas.home.library.domain.model.TimeRange;
+import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.homematic.model.Datapoint;
 import de.fimatas.home.library.homematic.model.Device;
+import de.fimatas.home.library.homematic.model.Type;
 import de.fimatas.home.library.util.HomeUtils;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
+import java.time.*;
+import java.util.*;
+import java.util.Map.Entry;
 
 @Component
 public class HistoryService {
@@ -152,6 +138,9 @@ public class HistoryService {
         calculatePowerConsumption(newModel.getProducedElectricPowerDay(),
                 newModel.getProducedElectricPowerMonth(), Device.ELECTRIC_POWER_PRODUCTION_COUNTER_HOUSE, null);
 
+        calculatePowerConsumption(newModel.getHeatpumpBasementElectricPowerConsumptionDay(),
+                newModel.getHeatpumpBasementElectricPowerConsumptionMonth(), Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT, null);
+
         calculatePowerConsumption(newModel.getWallboxElectricPowerConsumptionDay(),
             newModel.getWallboxElectricPowerConsumptionMonth(), Device.STROMZAEHLER_WALLBOX, null);
         calculatePowerConsumption(newModel.getGasConsumptionDay(),
@@ -203,6 +192,11 @@ public class HistoryService {
                 model.getProducedElectricPowerMonth(), Device.ELECTRIC_POWER_PRODUCTION_COUNTER_HOUSE,
                 model.getProducedElectricPowerMonth().isEmpty() ? null : model.getProducedElectricPowerMonth()
                         .get(model.getProducedElectricPowerMonth().size() - 1).measurePointMaxDateTime());
+
+        calculatePowerConsumption(model.getHeatpumpBasementElectricPowerConsumptionDay(),
+                model.getHeatpumpBasementElectricPowerConsumptionMonth(), Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT,
+                model.getHeatpumpBasementElectricPowerConsumptionMonth().isEmpty() ? null : model.getHeatpumpBasementElectricPowerConsumptionMonth()
+                        .get(model.getHeatpumpBasementElectricPowerConsumptionMonth().size() - 1).measurePointMaxDateTime());
 
         calculatePowerConsumption(model.getWallboxElectricPowerConsumptionDay(),
             model.getWallboxElectricPowerConsumptionMonth(), Device.STROMZAEHLER_WALLBOX,

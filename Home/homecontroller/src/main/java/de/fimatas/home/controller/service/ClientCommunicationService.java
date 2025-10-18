@@ -1,13 +1,13 @@
 package de.fimatas.home.controller.service;
 
-import java.math.BigDecimal;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
+import de.fimatas.home.controller.domain.service.HistoryService;
+import de.fimatas.home.controller.domain.service.HouseService;
+import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.homematic.model.Device;
+import de.fimatas.home.library.model.Message;
 import de.fimatas.home.library.model.PresenceState;
+import de.fimatas.home.library.util.HomeAppConstants;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
@@ -19,11 +19,11 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.*;
-import de.fimatas.home.controller.domain.service.HistoryService;
-import de.fimatas.home.controller.domain.service.HouseService;
-import de.fimatas.home.library.dao.ModelObjectDAO;
-import de.fimatas.home.library.model.Message;
-import de.fimatas.home.library.util.HomeAppConstants;
+
+import java.math.BigDecimal;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Component
 public class ClientCommunicationService {
@@ -164,7 +164,7 @@ public class ClientCommunicationService {
                 heatpumpRoofService.preset(places, HeatpumpRoofPreset.valueOf(message.getValue()));
                 break;
             case CONTROL_HEATPUMP_BASEMENT:
-                heatpumpBasementService.scheduledRefreshFromDriverNoCache();
+                heatpumpBasementService.readFromClientRequest();
                 break;
             case SLIDERVALUE:
                 electricVehicleService.saveChargingUser(message.getUser());
@@ -229,7 +229,7 @@ public class ClientCommunicationService {
         }
 
         if (ModelObjectDAO.getInstance().readWeatherForecastModel() == null) {
-            weatherServiceScheduler.init();
+            // no active refresh from client
         } else {
             uploadService.uploadToClient(ModelObjectDAO.getInstance().readWeatherForecastModel());
         }

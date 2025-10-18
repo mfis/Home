@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
@@ -64,7 +65,7 @@ public class HeatpumpBasementService {
 
     private BigDecimal lastConsumptionCounterWroteToHomematic = null;
 
-    private static final long REFRESH_DELAY_MS = 30 * 60 * 1000;
+    private static final long REFRESH_DELAY_MS = 30 * 60 * 1000 /* FIXME */ * 2 /* FIXME */;
 
     @PostConstruct
     public void init() {
@@ -94,6 +95,14 @@ public class HeatpumpBasementService {
                 handleException(e, "Could not call heatpump basement service (no-cache!)");
             }
         }
+    }
+
+    @Async
+    public void readFromClientRequest() {
+        if(ModelObjectDAO.getInstance().readHeatpumpBasementModel() != null){
+            return;
+        }
+        scheduledRefreshFromDriverNoCache();
     }
 
     private void handleException(Exception e, String msg) {
@@ -172,7 +181,7 @@ public class HeatpumpBasementService {
         var dpConsumption = newModel.getDatapoints().stream()
                 .filter(dp -> dp.getId().equals(HeatpumpBasementDatapoints.VERBRAUCH_AKTUELLES_JAHR.getId()))
                 .findFirst();
-        if(dpConsumption.isEmpty()) {
+        if(dpConsumption.isEmpty() || dpConsumption.get().getValueWithTendency() == null) {
             return;
         }
         var valueToWrite = dpConsumption.get().getValueWithTendency().getValue();

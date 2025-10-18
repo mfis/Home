@@ -1,16 +1,17 @@
 package de.fimatas.home.controller.model;
 
-import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import jakarta.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import de.fimatas.home.controller.command.HomematicCommandBuilder;
 import de.fimatas.home.library.homematic.model.Datapoint;
 import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.homematic.model.HistoryStrategy;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 @Component
 public class History {
@@ -73,6 +74,9 @@ public class History {
 
         elements.add(new HistoryElement(homematicCommandBuilder.read(Device.GASZAEHLER, Datapoint.GAS_ENERGY_COUNTER),
                 HistoryStrategy.MAX, new BigDecimal("0.2")));
+
+        elements.add(new HistoryElement(homematicCommandBuilder.read(Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT, Datapoint.VALUE),
+                HistoryStrategy.MAX, new BigDecimal("0.5")));
     }
 
     public List<HistoryElement> list() {

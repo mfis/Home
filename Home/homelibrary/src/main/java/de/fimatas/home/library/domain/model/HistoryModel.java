@@ -1,13 +1,14 @@
 package de.fimatas.home.library.domain.model;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class HistoryModel extends AbstractSystemModel {
 
@@ -34,6 +35,10 @@ public class HistoryModel extends AbstractSystemModel {
     private List<PowerConsumptionMonth> gasConsumptionMonth;
 
     private List<PowerConsumptionDay> gasConsumptionDay;
+
+    private List<PowerConsumptionMonth> heatpumpBasementElectricPowerConsumptionMonth;
+
+    private List<PowerConsumptionDay> heatpumpBasementElectricPowerConsumptionDay;
 
     private boolean initialized = false;
 
@@ -68,6 +73,8 @@ public class HistoryModel extends AbstractSystemModel {
         selfusedElectricPowerConsumptionDay = new LinkedList<>();
         wallboxElectricPowerConsumptionMonth = new LinkedList<>();
         wallboxElectricPowerConsumptionDay = new LinkedList<>();
+        heatpumpBasementElectricPowerConsumptionMonth = new LinkedList<>();
+        heatpumpBasementElectricPowerConsumptionDay = new LinkedList<>();
         gasConsumptionDay = new LinkedList<>();
         gasConsumptionMonth = new LinkedList<>();
         outsideTemperature = new LinkedList<>();

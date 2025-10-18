@@ -1,22 +1,10 @@
 package de.fimatas.home.controller.configuration;
 
-import java.io.FileReader;
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.security.KeyStore;
-import java.security.Security;
-import java.security.cert.X509Certificate;
-import java.time.Duration;
-import java.util.List;
-import java.util.Objects;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.sql.DataSource;
-
-import org.apache.hc.client5.http.config.RequestConfig;
+import com.zaxxer.hikari.HikariDataSource;
+import de.fimatas.home.library.util.HomeAppConstants;
 import org.apache.commons.net.util.SSLContextUtils;
 import org.apache.commons.net.util.TrustManagerUtils;
+import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
@@ -44,9 +32,18 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import com.zaxxer.hikari.HikariDataSource;
-
-import de.fimatas.home.library.util.HomeAppConstants;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.sql.DataSource;
+import java.io.FileReader;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
+import java.security.Security;
+import java.security.cert.X509Certificate;
+import java.time.Duration;
+import java.util.List;
+import java.util.Objects;
 
 @Configuration
 @EnableRetry
@@ -120,7 +117,7 @@ public class SpringConfiguration implements WebMvcConfigurer {
 
     @Bean(name = "restTemplateHeatpumpDriver")
     public RestTemplate restTemplateHeatpumpDriver(RestTemplateBuilder restTemplateBuilder){
-        return restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(5)).setReadTimeout(Duration.ofSeconds(120)).build();
+        return restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(10)).setReadTimeout(Duration.ofSeconds(180)).build();
     }
 
     @Bean(name = "restTemplateModelUpload")
