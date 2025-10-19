@@ -56,7 +56,7 @@ public class ExternalServiceHttpAPI {
     @PostConstruct
     public void init(){
         MAX_CALL_RATE_MAP.put(hostAndPath(environment.getProperty("heatpump.roof.driver.url")).host(), Duration.ofMinutes(1));
-        MAX_CALL_RATE_MAP.put(hostAndPath(environment.getProperty("heatpump.basement.driver.url")).host(), Duration.ofMinutes(9));
+        MAX_CALL_RATE_MAP.put(hostAndPath(environment.getProperty("heatpump.basement.driver.url")).host(), Duration.ofMinutes(12));
         MAX_CALL_RATE_MAP.put(hostAndPath(environment.getProperty("weatherForecast.brightskyEndpoint")).host(), Duration.ofMinutes(55));
         MAX_CALL_RATE_MAP.put(hostAndPath(environment.getProperty("solarman.hostname")).host(), Duration.ofSeconds(58));
     }

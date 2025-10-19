@@ -19,10 +19,10 @@ public class WeatherServiceScheduler {
     @Scheduled(cron = "02 05 04-23 * * *")
     public void scheduledRefreshWeatherModel() {
         try {
-            weatherService.refreshWeatherForecastModel();
             if(isInitialRun){
                 scheduledRefreshWeatherModelWithFurtherDays();
             }
+            weatherService.refreshWeatherForecastModel();
         } catch(Exception e){
             handleException(e, "Could not call weather service (2-days)");
         } finally {

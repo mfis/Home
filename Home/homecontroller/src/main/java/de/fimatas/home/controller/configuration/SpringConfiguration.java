@@ -117,7 +117,7 @@ public class SpringConfiguration implements WebMvcConfigurer {
 
     @Bean(name = "restTemplateHeatpumpDriver")
     public RestTemplate restTemplateHeatpumpDriver(RestTemplateBuilder restTemplateBuilder){
-        return restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(10)).setReadTimeout(Duration.ofSeconds(180)).build();
+        return restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(10)).setReadTimeout(Duration.ofSeconds(240)).build();
     }
 
     @Bean(name = "restTemplateModelUpload")

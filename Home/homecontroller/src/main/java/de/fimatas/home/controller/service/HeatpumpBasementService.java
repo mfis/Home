@@ -1,7 +1,5 @@
 package de.fimatas.home.controller.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fimatas.heatpump.basement.driver.api.*;
 import de.fimatas.home.controller.api.ExternalServiceHttpAPI;
 import de.fimatas.home.controller.api.HomematicAPI;
@@ -85,12 +83,12 @@ public class HeatpumpBasementService {
         }
     }
 
-    @Scheduled(initialDelay = REFRESH_DELAY_MS, fixedDelay = REFRESH_DELAY_MS)
+    // FIXME: @Scheduled(initialDelay = REFRESH_DELAY_MS, fixedDelay = REFRESH_DELAY_MS)
     public void scheduledRefreshFromDriverNoCache() {
         int stunde = LocalTime.now().getHour();
         if (stunde >= 5 && stunde <= 22) {
             try {
-                refreshHeatpumpModel(false);
+                // FIXME: refreshHeatpumpModel(false);
             } catch (Exception e) {
                 handleException(e, "Could not call heatpump basement service (no-cache!)");
             }
@@ -99,7 +97,8 @@ public class HeatpumpBasementService {
 
     @Async
     public void readFromClientRequest() {
-        if(ModelObjectDAO.getInstance().readHeatpumpBasementModel() != null){
+        var model = ModelObjectDAO.getInstance().readHeatpumpBasementModel();
+        if(model != null && model.getApiReadTimestamp() > 0){
             return;
         }
         scheduledRefreshFromDriverNoCache();
@@ -154,8 +153,9 @@ public class HeatpumpBasementService {
 
         if(responseHasError(response)){
             try {
-                log.warn("Error calling heatpump basement driver: " + new ObjectMapper().writeValueAsString(response));
-            } catch (JsonProcessingException e) {
+                var html = StringUtils.substringBetween(response.getErrorMessage(), "<!DOCTYPE html>", "</html>");
+                log.warn("Error calling heatpump basement driver: " + StringUtils.remove(response.getErrorMessage(), html));
+            } catch (Exception e) {
                 log.warn("Error calling heatpump basement driver....");
             }
             if(!request.isReadFromCache()){
