@@ -84,6 +84,17 @@ public class SolarmanService {
         put(FIELD_CONSUMPTION_ACTUAL, "W");
     }};
 
+
+    @Scheduled(cron = "0 0,20,40 * * * *")
+    public void batSoc() {
+        if(ModelObjectDAO.getInstance().readPvAdditionalDataModel() != null) {
+            var soc = ModelObjectDAO.getInstance().readPvAdditionalDataModel().getBatteryStateOfCharge();
+            if(soc <= 20){
+                log.info("BATTERY_SOC: " + soc);
+            }
+        }
+    }
+
     @Scheduled(cron = "10 * * * * *")
     public void refresh() {
 

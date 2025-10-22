@@ -21,6 +21,8 @@ import de.fimatas.home.library.model.TasksModel;
 import de.fimatas.home.library.util.HomeAppConstants;
 import de.fimatas.home.library.util.HomeUtils;
 import de.fimatas.home.library.util.WeatherForecastConclusionTextFormatter;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -30,14 +32,14 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.time.*;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -155,7 +157,7 @@ public class PushService {
         }
     }
 
-    @Scheduled(cron = "0 30 07 * * *")
+    @Scheduled(cron = "0 30 07,13,20 * * *")
     public void sendPvAlert() {
 
         try {
