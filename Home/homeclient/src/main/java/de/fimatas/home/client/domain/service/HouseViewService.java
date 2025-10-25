@@ -1827,11 +1827,12 @@ public class HouseViewService {
         }
         var prefix = true;
         String unit;
-        var duration = Duration.between(task.getNextExecutionTime(), LocalDateTime.now()).abs();
-        var days = duration.toDays();
+        var duration = Duration.between(task.getNextExecutionTime(), LocalDateTime.now());
+        var durationAbs =duration.abs();
+        var days = durationAbs.toDays();
         if(days == 0){
             // Stunden
-            var hours = duration.toHours();
+            var hours = durationAbs.toHours();
             if(hours < 2){
                 prefix = false;
                 unit = "jetzt";
@@ -1840,7 +1841,7 @@ public class HouseViewService {
             }
         } else {
             // Tage
-            var daysRounded = roundToFullDays(duration).toDays();
+            var daysRounded = roundToFullDays(durationAbs).toDays();
             if(daysRounded == 1){
                 unit = daysRounded + " Tag";
             } else{
