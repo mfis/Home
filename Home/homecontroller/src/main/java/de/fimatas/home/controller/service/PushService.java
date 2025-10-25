@@ -7,6 +7,7 @@ import com.eatthepath.pushy.apns.util.LiveActivityEvent;
 import com.eatthepath.pushy.apns.util.SimpleApnsPayloadBuilder;
 import com.eatthepath.pushy.apns.util.SimpleApnsPushNotification;
 import com.eatthepath.pushy.apns.util.concurrent.PushNotificationFuture;
+import de.fimatas.heatpump.basement.driver.api.HeatpumpBasementDatapoints;
 import de.fimatas.home.controller.api.HomematicAPI;
 import de.fimatas.home.controller.dao.LiveActivityDAO;
 import de.fimatas.home.controller.dao.PushMessageDAO;
@@ -167,6 +168,16 @@ public class PushService {
         }
     }
 
+    @Scheduled(cron = "0 31 08,14,20 * * *")
+    public void sendHeatingAlert() {
+
+        try {
+            heatingAlert(ModelObjectDAO.getInstance().readHeatpumpBasementModel());
+        } catch (Exception e) {
+            LogFactory.getLog(PushService.class).error("Could not [sendHeatingAlert] push notifications:", e);
+        }
+    }
+
     @Scheduled(cron = "0 7 5 * * *")
     public void sendWeatherAtMorning() {
         try {
@@ -311,6 +322,31 @@ public class PushService {
             settingsService.listTokensWithEnabledSetting(PushNotifications.ERRORMESSAGE)
                 .forEach(pushToken -> handleMessage(pushToken, PushNotifications.ERRORMESSAGE.getPushText(),
                         String.join(", ", liste)));
+        }
+    }
+
+    private void heatingAlert(HeatpumpBasementModel heatpumpBasementModel) {
+
+        if(heatpumpBasementModel == null){
+            return;
+        }
+
+        var liste = new LinkedList<String>();
+
+        var preasure = heatpumpBasementModel.getDatapoints().stream()
+                .filter(dp -> dp.getId().equals(HeatpumpBasementDatapoints.ANLAGEN_DRUCK.getId()))
+                .findFirst();
+
+        if(preasure.isPresent() && preasure.get().getValueWithTendency() != null) {
+            if (preasure.get().getValueWithTendency().getValue().compareTo(new BigDecimal("1.40")) < 0) {
+                liste.add("Heizkreislauf Druck gering: " + preasure.get().getValueWithTendency().getValue() + " Bar");
+            }
+        }
+
+        if (!liste.isEmpty()) {
+            settingsService.listTokensWithEnabledSetting(PushNotifications.ERRORMESSAGE)
+                    .forEach(pushToken -> handleMessage(pushToken, PushNotifications.ERRORMESSAGE.getPushText(),
+                            String.join(", ", liste)));
         }
     }
 
