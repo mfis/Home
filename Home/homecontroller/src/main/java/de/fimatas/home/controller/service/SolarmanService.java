@@ -63,6 +63,8 @@ public class SolarmanService {
 
     private long lastCollectionTimeRead = 0;
 
+    private int lastLoggedSOC = Integer.MIN_VALUE;
+
     protected static final String FIELD_PRODUCTION_COUNTER = "Et_ge0";
     protected static final String FIELD_CONSUMPTION_COUNTER = "Et_use1";
     protected static final String FIELD_PRODUCTION_ACTUAL = "PVTP";
@@ -85,12 +87,13 @@ public class SolarmanService {
     }};
 
 
-    @Scheduled(cron = "0 0,20,40 * * * *")
-    public void batSoc() {
+    @Scheduled(cron = "0 7,22,37,52 * * * *")
+    public void logBatterySOC() {
         if(ModelObjectDAO.getInstance().readPvAdditionalDataModel() != null) {
             var soc = ModelObjectDAO.getInstance().readPvAdditionalDataModel().getBatteryStateOfCharge();
-            if(soc <= 20){
+            if(soc <= 25 && soc != lastLoggedSOC){
                 log.info("BATTERY_SOC: " + soc);
+                lastLoggedSOC = soc;
             }
         }
     }

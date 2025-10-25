@@ -63,7 +63,7 @@ public class HeatpumpBasementService {
 
     private BigDecimal lastConsumptionCounterWroteToHomematic = null;
 
-    private static final long REFRESH_DELAY_MS = 30 * 60 * 1000 /* FIXME */ * 2 /* FIXME */;
+    private static final long REFRESH_DELAY_MS = 30 * 60 * 1000;
 
     @PostConstruct
     public void init() {
@@ -83,12 +83,12 @@ public class HeatpumpBasementService {
         }
     }
 
-    // FIXME: @Scheduled(initialDelay = REFRESH_DELAY_MS, fixedDelay = REFRESH_DELAY_MS)
+    @Scheduled(initialDelay = REFRESH_DELAY_MS, fixedDelay = REFRESH_DELAY_MS)
     public void scheduledRefreshFromDriverNoCache() {
         int stunde = LocalTime.now().getHour();
         if (stunde >= 5 && stunde <= 22) {
             try {
-                // FIXME: refreshHeatpumpModel(false);
+                refreshHeatpumpModel(false);
             } catch (Exception e) {
                 handleException(e, "Could not call heatpump basement service (no-cache!)");
             }
