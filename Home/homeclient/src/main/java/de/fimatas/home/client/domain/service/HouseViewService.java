@@ -1808,17 +1808,22 @@ public class HouseViewService {
             taskView.setColorClass(task.getState().getConditionColor().getUiClass());
             taskView.setColorClassProgressBar(task.getState().getConditionColor() == ConditionColor.GREEN ? ConditionColor.DEFAULT.getUiClass(): task.getState().getConditionColor().getUiClass());
             taskView.setManual(task.isManual());
-            taskView.setState(taskStateValueAndUnit(task));
+            calculateTaskNextExecution(task, taskView);
             taskView.setDurationInfoText("Alle " + task.getDuration().toDays() +
                     " Tage, zuletzt " + viewFormatter.formatTimestamp(task.getLastExecutionTime(), TimestampFormat.DATE));
             taskView.setResetLink(MESSAGEPATH + TYPE_IS + MessageType.TASKS_EXECUTION + AND_DEVICE_ID_IS + task.getId() + AND_VALUE_IS);
             tasksView.getList().add(taskView);
         });
+
+        // sort
+        tasksView.getList().sort(Comparator.comparingLong(TaskView::getDurationSeconds).reversed());
     }
 
-    private String taskStateValueAndUnit(Task task) {
+    private void calculateTaskNextExecution(Task task, TaskView taskView) {
         if(task.getNextExecutionTime() == null){
-            return "unbekannt";
+            taskView.setState("unbekannt");
+            taskView.setDurationSeconds(Long.MAX_VALUE);
+            return;
         }
         var prefix = true;
         String unit;
@@ -1842,7 +1847,9 @@ public class HouseViewService {
                 unit = daysRounded + " Tagen";
             }
         }
-        return (prefix ? task.getState().getStatePrefix() : "") + (task.getState() == TaskState.UNKNOWN ? "" : " ") + unit;
+        var stateText = (prefix ? task.getState().getStatePrefix() : "") + (task.getState() == TaskState.UNKNOWN ? "" : " ") + unit;
+        taskView.setState(stateText);
+        taskView.setDurationSeconds(duration.toSeconds());
     }
 
     private Duration roundToFullDays(Duration duration) {
