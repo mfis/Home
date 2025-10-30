@@ -3,6 +3,7 @@ package de.fimatas.home.controller.service;
 import de.fimatas.heatpump.basement.driver.api.*;
 import de.fimatas.home.controller.api.ExternalServiceHttpAPI;
 import de.fimatas.home.controller.api.HomematicAPI;
+import de.fimatas.home.controller.command.HomematicCommand;
 import de.fimatas.home.controller.command.HomematicCommandBuilder;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.HeatpumpBasementDatapoint;
@@ -24,7 +25,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 
-import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -61,7 +61,7 @@ public class HeatpumpBasementService {
 
     private boolean isCallError = false; // prevent continous error calls
 
-    private BigDecimal lastConsumptionCounterWroteToHomematic = null;
+    private final Map<Device, Integer> lastValuesWrote = new HashMap<>();
 
     private static final long REFRESH_DELAY_MS = 1000L * 60L * 30L;
 
@@ -176,34 +176,46 @@ public class HeatpumpBasementService {
         mapResponseToModel(response, newModel);
 
         if(!request.isReadFromCache()){
-            updateHomematicSysVar(newModel);
+            updateHomematicSysVars(newModel);
         }
 
         ModelObjectDAO.getInstance().write(newModel);
         uploadService.uploadToClient(newModel);
     }
 
-    private void updateHomematicSysVar(HeatpumpBasementModel newModel) {
+    private void updateHomematicSysVars(HeatpumpBasementModel newModel) {
 
-        var dpConsumption = newModel.getDatapoints().stream()
-                .filter(dp -> dp.getId().equals(HeatpumpBasementDatapoints.VERBRAUCH_AKTUELLES_JAHR.getId()))
-                .findFirst();
-        if(dpConsumption.isEmpty() || dpConsumption.get().getValueWithTendency() == null) {
-            return;
-        }
-        var valueToWrite = dpConsumption.get().getValueWithTendency().getValue();
-        if(lastConsumptionCounterWroteToHomematic != null && lastConsumptionCounterWroteToHomematic.equals(valueToWrite)){
-            log.debug("SAME VALUE: " + valueToWrite);
+        if (newModel == null || newModel.isOffline()) {
             return;
         }
 
-        var command = homematicCommandBuilder.write(
-                Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT,
-                de.fimatas.home.library.homematic.model.Datapoint.SYSVAR_DUMMY,
-                valueToWrite.toString());
-        hmApi.executeCommand(command);
-        log.debug("WRITE VALUE: " + valueToWrite);
-        lastConsumptionCounterWroteToHomematic = valueToWrite;
+        List<HomematicCommand> commands = new ArrayList<>();
+        createHomematicSysVar(newModel, HeatpumpBasementDatapoints.VERBRAUCH_AKTUELLES_JAHR, Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT, commands);
+        createHomematicSysVar(newModel, HeatpumpBasementDatapoints.ERZEUGTE_WAERME_AKTUELLES_JAHR, Device.WARMTH_POWER_PRODUCTION_COUNTER_HEATPUMP_BASEMENT, commands);
+
+        if(!commands.isEmpty()){
+            hmApi.executeCommand(commands.toArray(new HomematicCommand[]{}));
+        }
+    }
+
+    private void createHomematicSysVar(HeatpumpBasementModel newModel, HeatpumpBasementDatapoints datapoint, Device device, List<HomematicCommand> commands) {
+
+        var datapointValue = newModel.getDatapoints().stream().filter(dp -> dp.getId().equals(datapoint.getId())).findFirst();
+
+        if (datapointValue.isPresent() && datapointValue.get().getValueWithTendency() != null) {
+            var valueToWrite = datapointValue.get().getValueWithTendency().getValue();
+            var lastValueWrote = lastValuesWrote.get(device);
+            if (lastValueWrote != null && lastValueWrote == valueToWrite.intValue()) {
+                log.debug("SAME VALUE " + datapoint.getId() + ": " + valueToWrite);
+            }else{
+                log.debug("WRITE VALUE " + datapoint.getId() + ": " + valueToWrite);
+                var command = homematicCommandBuilder.write(device,
+                        de.fimatas.home.library.homematic.model.Datapoint.SYSVAR_DUMMY,
+                        valueToWrite.toString());
+                commands.add(command);
+                lastValuesWrote.put(device, valueToWrite.intValue());
+            }
+        }
     }
 
     private void mapResponseToModel(Response response, HeatpumpBasementModel newModel) {

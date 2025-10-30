@@ -77,6 +77,9 @@ public class History {
 
         elements.add(new HistoryElement(homematicCommandBuilder.read(Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT, Datapoint.VALUE),
                 HistoryStrategy.MAX, new BigDecimal("0.5")));
+
+        elements.add(new HistoryElement(homematicCommandBuilder.read(Device.WARMTH_POWER_PRODUCTION_COUNTER_HEATPUMP_BASEMENT, Datapoint.VALUE),
+                HistoryStrategy.MAX, new BigDecimal("1.0")));
     }
 
     public List<HistoryElement> list() {

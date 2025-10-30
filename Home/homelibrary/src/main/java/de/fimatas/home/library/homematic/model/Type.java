@@ -40,6 +40,7 @@ public enum Type {
     SYSVAR_ELECTRIC_POWER_GRID_TIMESTAMP("StromBezugTimestamp", null, false, false), //
      //
     SYSVAR_ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT("ElectricPowerConsumptionCounterHeatpump", null, false, false), //
+    SYSVAR_WARMTH_POWER_PRODUCTION_COUNTER_HEATPUMP_BASEMENT("WarmthPowerProductionCounterHeatpump", null, false, false), //
     ;
 
     protected static final List<String> VAR_PREFIXES_SWITCH_AUTO = Arrays.asList("Automatic", "AutomaticInfoText");

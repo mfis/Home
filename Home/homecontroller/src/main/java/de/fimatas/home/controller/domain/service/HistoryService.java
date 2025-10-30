@@ -141,6 +141,9 @@ public class HistoryService {
         calculatePowerConsumption(newModel.getHeatpumpBasementElectricPowerConsumptionDay(),
                 newModel.getHeatpumpBasementElectricPowerConsumptionMonth(), Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT, null);
 
+        calculatePowerConsumption(newModel.getHeatpumpBasementWarmthPowerProductionDay(),
+                newModel.getHeatpumpBasementWarmthPowerProductionMonth(), Device.WARMTH_POWER_PRODUCTION_COUNTER_HEATPUMP_BASEMENT, null);
+
         calculatePowerConsumption(newModel.getWallboxElectricPowerConsumptionDay(),
             newModel.getWallboxElectricPowerConsumptionMonth(), Device.STROMZAEHLER_WALLBOX, null);
         calculatePowerConsumption(newModel.getGasConsumptionDay(),
@@ -197,6 +200,11 @@ public class HistoryService {
                 model.getHeatpumpBasementElectricPowerConsumptionMonth(), Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT,
                 model.getHeatpumpBasementElectricPowerConsumptionMonth().isEmpty() ? null : model.getHeatpumpBasementElectricPowerConsumptionMonth()
                         .get(model.getHeatpumpBasementElectricPowerConsumptionMonth().size() - 1).measurePointMaxDateTime());
+
+        calculatePowerConsumption(model.getHeatpumpBasementWarmthPowerProductionDay(),
+                model.getHeatpumpBasementWarmthPowerProductionMonth(), Device.WARMTH_POWER_PRODUCTION_COUNTER_HEATPUMP_BASEMENT,
+                model.getHeatpumpBasementWarmthPowerProductionMonth().isEmpty() ? null : model.getHeatpumpBasementWarmthPowerProductionMonth()
+                        .get(model.getHeatpumpBasementWarmthPowerProductionMonth().size() - 1).measurePointMaxDateTime());
 
         calculatePowerConsumption(model.getWallboxElectricPowerConsumptionDay(),
             model.getWallboxElectricPowerConsumptionMonth(), Device.STROMZAEHLER_WALLBOX,
@@ -434,7 +442,13 @@ public class HistoryService {
                         .add(measurePoint.getValue().subtract(lastSingleValue)));
             } else if (lastSingleValue.compareTo(measurePoint.getValue()) > 0) {
                 // overflow
-                pcm.setPowerConsumption(pcm.getPowerConsumption().add(measurePoint.getValue()));
+                if(pcm.getPowerConsumption() == null){
+                    // no pcm values recorded (after restart)
+                    pcm.setPowerConsumption(lastSingleValue.add(measurePoint.getValue()));
+                }else {
+                    pcm.setPowerConsumption(pcm.getPowerConsumption().add(measurePoint.getValue()));
+                }
+
             }
         }
         pcm.setMeasurePointMax(measurePoint.getTimestamp().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());

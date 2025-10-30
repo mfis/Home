@@ -40,6 +40,10 @@ public class HistoryModel extends AbstractSystemModel {
 
     private List<PowerConsumptionDay> heatpumpBasementElectricPowerConsumptionDay;
 
+    private List<PowerConsumptionMonth> heatpumpBasementWarmthPowerProductionMonth;
+
+    private List<PowerConsumptionDay> heatpumpBasementWarmthPowerProductionDay;
+
     private boolean initialized = false;
 
     private BigDecimal highestOutsideTemperatureInLast24Hours;
@@ -75,6 +79,8 @@ public class HistoryModel extends AbstractSystemModel {
         wallboxElectricPowerConsumptionDay = new LinkedList<>();
         heatpumpBasementElectricPowerConsumptionMonth = new LinkedList<>();
         heatpumpBasementElectricPowerConsumptionDay = new LinkedList<>();
+        heatpumpBasementWarmthPowerProductionMonth = new LinkedList<>();
+        heatpumpBasementWarmthPowerProductionDay = new LinkedList<>();
         gasConsumptionDay = new LinkedList<>();
         gasConsumptionMonth = new LinkedList<>();
         outsideTemperature = new LinkedList<>();
