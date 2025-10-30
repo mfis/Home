@@ -1,15 +1,15 @@
 package de.fimatas.home.library.dao;
 
-import java.lang.reflect.Field;
-import java.time.Instant;
-import java.util.*;
-
 import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.model.*;
 import de.fimatas.home.library.util.HomeAppConstants;
 import de.fimatas.home.library.util.HomeUtils;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
+
+import java.lang.reflect.Field;
+import java.time.Instant;
+import java.util.*;
 
 public class ModelObjectDAO {
 
@@ -180,7 +180,7 @@ public class ModelObjectDAO {
     }
 
     public HeatpumpBasementModel readHeatpumpBasementModel() {
-        long newestTimestamp = heatpumpBasementModel == null ? 0 : heatpumpBasementModel.getTimestamp();
+        long newestTimestamp = heatpumpBasementModel == null ? 0 : Math.min(heatpumpBasementModel.getTimestamp(), heatpumpBasementModel.getApiReadTimestamp());
         if (heatpumpBasementModel == null || new Date().getTime() - newestTimestamp > 1000 * HomeAppConstants.MODEL_HEATPUMP_BASEMENT_OUTDATED_SECONDS) {
             return null; // Too old. Should never happen
         } else {

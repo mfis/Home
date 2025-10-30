@@ -63,21 +63,21 @@ public class HeatpumpBasementService {
 
     private BigDecimal lastConsumptionCounterWroteToHomematic = null;
 
-    private static final long REFRESH_DELAY_MS = 30 * 60 * 1000;
+    private static final long REFRESH_DELAY_MS = 1000L * 60L * 30L;
 
     @PostConstruct
     public void init() {
         scheduledRefreshFromDriverCache();
     }
 
-    @Scheduled(cron = "0 0 2 * * *")
+    @Scheduled(cron = "0 0 2,14 * * *")
     public void resetCallErrorFlag() {
         isCallError = false;
     }
 
     public void scheduledRefreshFromDriverCache() {
         try {
-            refreshHeatpumpModel(true);
+            refreshHeatpumpModel(true, false);
         } catch (Exception e) {
             handleException(e, "Could not call heatpump basement service (with-cache)");
         }
@@ -87,11 +87,7 @@ public class HeatpumpBasementService {
     public void scheduledRefreshFromDriverNoCache() {
         int stunde = LocalTime.now().getHour();
         if (stunde >= 5 && stunde <= 22) {
-            try {
-                refreshHeatpumpModel(false);
-            } catch (Exception e) {
-                handleException(e, "Could not call heatpump basement service (no-cache!)");
-            }
+            callWithoutCache(false);
         }
     }
 
@@ -101,7 +97,15 @@ public class HeatpumpBasementService {
         if(model != null && model.getApiReadTimestamp() > 0){
             return;
         }
-        scheduledRefreshFromDriverNoCache();
+        callWithoutCache(true);
+    }
+
+    private void callWithoutCache(boolean manual) {
+        try {
+            refreshHeatpumpModel(false, manual);
+        } catch (Exception e) {
+            handleException(e, "Could not call heatpump basement service (no-cache!)");
+        }
     }
 
     private void handleException(Exception e, String msg) {
@@ -113,7 +117,7 @@ public class HeatpumpBasementService {
         log.error(msg, e);
     }
 
-    private synchronized void refreshHeatpumpModel(boolean cachedData) {
+    private synchronized void refreshHeatpumpModel(boolean cachedData, boolean manual) {
 
         if(!externalServicesEnabled || !heatpumpRefreshEnabled){
             return;
@@ -123,7 +127,7 @@ public class HeatpumpBasementService {
             return;
         }
 
-        if(!cachedData){
+        if(!cachedData && manual){
             switchModelToBusy();
         }
 
@@ -142,11 +146,14 @@ public class HeatpumpBasementService {
 
     private void switchModelToBusy() {
 
-        final var busyModel = ModelObjectDAO.getInstance().readHeatpumpBasementModel();
-        busyModel.setBusy(true);
-        busyModel.setTimestamp(busyModel.getTimestamp() + 1);
-        ModelObjectDAO.getInstance().write(busyModel);
-        uploadService.uploadToClient(busyModel);
+        var model = ModelObjectDAO.getInstance().readHeatpumpBasementModel();
+        if(model == null){
+            model = emptyModel();
+        }
+        model.setBusy(true);
+        model.setTimestamp(model.getTimestamp() + 1);
+        ModelObjectDAO.getInstance().write(model);
+        uploadService.uploadToClient(model);
     }
 
     private void handleResponse(Request request, Response response) {
