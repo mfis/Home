@@ -63,14 +63,14 @@ public class HeatpumpBasementService {
 
     private final Map<Device, Integer> lastValuesWrote = new HashMap<>();
 
-    private static final long REFRESH_DELAY_MS = 1000L * 60L * 30L;
+    private static final long REFRESH_DELAY_MS = 1000L * 60L * 25L;
 
     @PostConstruct
     public void init() {
         scheduledRefreshFromDriverCache();
     }
 
-    @Scheduled(cron = "0 0 2,14 * * *")
+    @Scheduled(cron = "0 0 6,14 * * *")
     public void resetCallErrorFlag() {
         isCallError = false;
     }
@@ -166,6 +166,7 @@ public class HeatpumpBasementService {
                 log.warn("Error calling heatpump basement driver....");
             }
             if(!request.isReadFromCache()){
+                isCallError = true;
                 CompletableFuture.runAsync(() -> pushService.sendErrorMessage("Fehler bei Ansteuerung von Heizung!"));
             }
             switchModelToUnknown(response.getErrorMessage());

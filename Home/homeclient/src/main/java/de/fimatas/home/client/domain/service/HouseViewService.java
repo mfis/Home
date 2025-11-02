@@ -1550,7 +1550,7 @@ public class HouseViewService {
             }
             state += ", ";
             var valueVerdichterStatus = readHeatpumpBasementDatapoint(heatpumpBasementModel, HeatpumpBasementDatapoints.VERDICHTER_STATUS);
-            state += "Verdichter: " + (valueVerdichterStatus.isPresent() ? valueVerdichterStatus.get().getValueFormattedShort() : "?");
+            state += "Außengerät: " + (valueVerdichterStatus.isPresent() ? valueVerdichterStatus.get().getValueFormattedShort() : "?");
         }
 
         view.setStateShort(state);
