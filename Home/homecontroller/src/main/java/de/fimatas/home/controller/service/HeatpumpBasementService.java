@@ -12,7 +12,6 @@ import de.fimatas.home.library.domain.model.ValueWithTendency;
 import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.model.ConditionColor;
 import de.fimatas.home.library.util.HomeUtils;
-import jakarta.annotation.PostConstruct;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,11 +63,6 @@ public class HeatpumpBasementService {
     private final Map<Device, Integer> lastValuesWrote = new HashMap<>();
 
     private static final long REFRESH_DELAY_MS = 1000L * 60L * 25L;
-
-    @PostConstruct
-    public void init() {
-        scheduledRefreshFromDriverCache();
-    }
 
     @Scheduled(cron = "0 0 6,14 * * *")
     public void resetCallErrorFlag() {

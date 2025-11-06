@@ -9,6 +9,7 @@ import de.fimatas.home.library.domain.model.AbstractSystemModel;
 import de.fimatas.home.library.domain.model.ElectricVehicleModel;
 import de.fimatas.home.library.model.PvAdditionalDataModel;
 import de.fimatas.home.library.util.ViewFormatterUtils;
+import jakarta.annotation.PreDestroy;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -20,7 +21,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import jakarta.annotation.PreDestroy;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
@@ -149,13 +149,13 @@ public class LiveActivityService {
         if (model.getLiveActivityType().fields().contains(fieldValue.getField())) {
             // check for first value
             if (model.getLastValuesSentWithHighPriotity().get(fieldValue.getField()) == null) {
-                log.info("LiveActivity calc: " + highestPriority.name() + " #1: " + fieldValue.field.name() + " = "  + fieldValue.getValue());
+                // log.info("LiveActivity calc: " + highestPriority.name() + " #1: " + fieldValue.field.name() + " = "  + fieldValue.getValue());
                 return highestPriority;
             }
             // check for equal value
             if (model.getLastValuesSentWithHighPriotity().get(fieldValue.getField()).compareTo(fieldValue.getValue()) == 0) {
                 if(model.getLastValTimestampHighPriority().plus(EQUAL_MODEL_STALE_PREVENTION_DURATION).isBefore(uniqueTimestampService.getNonUnique())){
-                    log.info("LiveActivity STALE VERHINDERN");
+                    // log.info("LiveActivity STALE VERHINDERN");
                     return MessagePriority.HIGH_PRIORITY; // stale verhindern
                 }
                 return MessagePriority.IGNORE;
@@ -163,13 +163,13 @@ public class LiveActivityService {
             // check for different signs
             BigDecimal product = model.getLastValuesSentWithHighPriotity().get(fieldValue.getField()).multiply(fieldValue.getValue());
             if(product.compareTo(BigDecimal.ZERO) < 0){
-                log.info("LiveActivity calc: " + highestPriority.name() + " #2: " + fieldValue.field.name() + " = "  + fieldValue.getValue());
+                // log.info("LiveActivity calc: " + highestPriority.name() + " #2: " + fieldValue.field.name() + " = "  + fieldValue.getValue());
                 return highestPriority;
             }
             // check for threshold
             BigDecimal diff = model.getLastValuesSentWithHighPriotity().get(fieldValue.getField()).subtract(fieldValue.getValue()).abs();
             if (diff.compareTo(fieldValue.getField().getThresholdMin()) >= 0) {
-                log.info("LiveActivity calc: " + highestPriority.name() + " #3: " + fieldValue.field.name() + " = "  + fieldValue.getValue());
+                // log.info("LiveActivity calc: " + highestPriority.name() + " #3: " + fieldValue.field.name() + " = "  + fieldValue.getValue());
                 return highestPriority;
             }
 
@@ -179,7 +179,7 @@ public class LiveActivityService {
                 return MessagePriority.IGNORE;
             }
 
-            log.info("LiveActivity calc: " + MessagePriority.LOW_PRIORITY.name() + " #4: " + fieldValue.field.name() + " = "  + fieldValue.getValue() + " (" + model.getLastValuesSentWithHighPriotity().get(fieldValue.getField()) + ")");
+            // log.info("LiveActivity calc: " + MessagePriority.LOW_PRIORITY.name() + " #4: " + fieldValue.field.name() + " = "  + fieldValue.getValue() + " (" + model.getLastValuesSentWithHighPriotity().get(fieldValue.getField()) + ")");
             return MessagePriority.LOW_PRIORITY;
         }
         return MessagePriority.IGNORE;
@@ -243,7 +243,7 @@ public class LiveActivityService {
             log.info("TEST_LIVE_ACTIVITY: prio=" + highPriority + ", map=" + buildContentStateMap(token, true));
         }else{
             //noinspection UnnecessaryUnicodeEscape
-            log.info("LiveActivity PUSH to: " + liveActivityModel.getUsername() + ", prio=" + messagePriority);
+            // log.info("LiveActivity PUSH to: " + liveActivityModel.getUsername() + ", prio=" + messagePriority);
             pushService.sendLiveActivityToApns(token, highPriority, false, STALE_DURATION, liveActivityModel.getEndTimestamp(), buildContentStateMap(token, true));
         }
 
