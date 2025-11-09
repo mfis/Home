@@ -146,6 +146,7 @@ public class HeatpumpBasementService {
         }
         model.setBusy(true);
         model.setTimestamp(model.getTimestamp() + 1);
+        model.setApiReadTimestamp(model.getTimestamp());
         ModelObjectDAO.getInstance().write(model);
         uploadService.uploadToClient(model);
     }
