@@ -273,7 +273,7 @@ public class HeatpumpBasementService {
 
     private synchronized Response callDriver(Request request){
 
-        log.info("call HeatpumpBasement " + (request.isReadFromCache() ? "cache" : "LIVE !"));
+        log.debug("call HeatpumpBasement " + (request.isReadFromCache() ? "cache" : "LIVE !"));
         try {
             ResponseEntity<Response> response = externalServiceHttpAPI.postForHeatpumpBasementEntity(
                     Objects.requireNonNull(env.getProperty("heatpump.basement.driver.url")), request);
