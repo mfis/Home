@@ -2,6 +2,7 @@ package de.fimatas.home.controller.api;
 
 import de.fimatas.heatpump.basement.driver.api.Request;
 import de.fimatas.heatpump.basement.driver.api.Response;
+import de.fimatas.heatpump.roof.driver.api.HeatpumpProgram;
 import de.fimatas.heatpump.roof.driver.api.HeatpumpRequest;
 import de.fimatas.heatpump.roof.driver.api.HeatpumpResponse;
 import jakarta.annotation.PostConstruct;
@@ -26,8 +27,10 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 @Component
 @CommonsLog
@@ -51,12 +54,10 @@ public class ExternalServiceHttpAPI {
     public static final String MESSAGE_TOO_MANY_CALLS = "Too many calls to url: ";
 
     private final Map<String, Duration> MAX_CALL_RATE_MAP = new HashMap<>();
-    private final Duration MAX_CALL_RATE_DEFAULT = Duration.ofSeconds(58);
+    private final Duration MAX_CALL_RATE_DEFAULT = Duration.ofMinutes(11);
 
     @PostConstruct
     public void init(){
-        MAX_CALL_RATE_MAP.put(hostAndPath(environment.getProperty("heatpump.roof.driver.url")).host(), Duration.ofMinutes(1));
-        MAX_CALL_RATE_MAP.put(hostAndPath(environment.getProperty("heatpump.basement.driver.url")).host(), Duration.ofMinutes(14));
         MAX_CALL_RATE_MAP.put(hostAndPath(environment.getProperty("weatherForecast.brightskyEndpoint")).host(), Duration.ofMinutes(55));
         MAX_CALL_RATE_MAP.put(hostAndPath(environment.getProperty("solarman.hostname")).host(), Duration.ofSeconds(58));
     }
@@ -81,8 +82,24 @@ public class ExternalServiceHttpAPI {
             throw new IllegalStateException("Heatpump API version not supported");
         }
         if(!request.isReadFromCache()){
-            var map = Map.of("type", (request.getWriteWithRoomnameAndProgram().isEmpty() ? "read" : "write"));
-            checkServiceEnabledAndFrequency(url, map, "POST");
+            var map = new LinkedHashMap<String, String>();
+            for(String readKey : request.getReadWithRoomnames()){
+                map.put("read_roof_" + readKey, readKey);
+            }
+            for (Map.Entry<String, HeatpumpProgram> entry : request.getWriteWithRoomnameAndProgram().entrySet()) {
+                map.put("write_roof_" + entry.getKey(), entry.getValue().name());
+            }
+            map.putAll(request.getWriteWithRoomnameAndProgram().entrySet().stream().collect(Collectors.toMap(e -> "write_" + e.getKey(), e -> e.getValue().name())));
+            Map<String, String> sorted =
+                    map.entrySet().stream()
+                            .sorted(Map.Entry.comparingByKey())
+                            .collect(Collectors.toMap(
+                                    Map.Entry::getKey,
+                                    Map.Entry::getValue,
+                                    (a, b) -> a,
+                                    LinkedHashMap::new
+                            ));
+            checkServiceEnabledAndFrequency(url, sorted, "POST");
         }
         HttpEntity<HeatpumpRequest> httpRequest = new HttpEntity<>(request);
         return restTemplateHeatpumpDriver.postForEntity(url, httpRequest, HeatpumpResponse.class);
@@ -90,7 +107,7 @@ public class ExternalServiceHttpAPI {
 
     public synchronized ResponseEntity<Response> postForHeatpumpBasementEntity(String url, Request request) throws RestClientException {
         if(!request.isReadFromCache()){
-            checkServiceEnabledAndFrequency(url, Map.of("read", "read"), "POST");
+            checkServiceEnabledAndFrequency(url, Map.of("read_basement", "readAllValues"), "POST");
         }
         HttpEntity<Request> httpRequest = new HttpEntity<>(request);
         return restTemplateHeatpumpDriver.postForEntity(url, httpRequest, Response.class);
@@ -104,12 +121,12 @@ public class ExternalServiceHttpAPI {
             throw new RestClientException("External services are disabled: " + hostAndPath.host());
         }
 
-        var lastCallKey = method + " " + url + "#" + generateHash(uriVariables);
+        var lastCallKey = method + "_" + url + "#" + generateHash(uriVariables);
         var value = lastUrlRequestCall.get(lastCallKey);
 
         var maxRate = MAX_CALL_RATE_MAP.getOrDefault(hostAndPath.host(), MAX_CALL_RATE_DEFAULT);
         if(value != null && value.plus(maxRate).isAfter(LocalDateTime.now())){
-            throw new RestClientException(MESSAGE_TOO_MANY_CALLS + hostAndPath.host());
+            throw new RestClientException(MESSAGE_TOO_MANY_CALLS + hostAndPath.host() + hostAndPath.path);
         }
 
         lastUrlRequestCall.put(lastCallKey, LocalDateTime.now());
