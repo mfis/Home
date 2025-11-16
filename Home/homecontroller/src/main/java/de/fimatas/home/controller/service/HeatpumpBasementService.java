@@ -33,6 +33,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static de.fimatas.home.library.util.HomeAppConstants.MODEL_HEATPUMP_BASEMENT_UPDATE_INTERVAL_SECONDS;
+
 @Component
 @CommonsLog
 public class HeatpumpBasementService {
@@ -65,7 +67,7 @@ public class HeatpumpBasementService {
 
     private final Map<Device, Integer> lastValuesWrote = new HashMap<>();
 
-    private static final long REFRESH_DELAY_MS = 1000L * 60L * 25L;
+    private static final long REFRESH_DELAY_MS = 1000L * MODEL_HEATPUMP_BASEMENT_UPDATE_INTERVAL_SECONDS;
 
     public HeatpumpBasementService(CircuitBreakerRegistry registry) {
         this.circuitBreaker = registry.circuitBreaker("heatpumpBasement");
@@ -107,6 +109,7 @@ public class HeatpumpBasementService {
             var stateAfterCall = circuitBreaker.getState();
             if(stateBeforeCall != stateAfterCall && stateAfterCall == CircuitBreaker.State.OPEN){
                 log.warn("circuit breaker heatpumpBasement now OPEN");
+                switchModelToUnknown();
                 CompletableFuture.runAsync(() -> pushService.sendErrorMessage("Fehler beim Auslesen der Heizung!"));
             }
         }
@@ -167,13 +170,15 @@ public class HeatpumpBasementService {
 
         if(responseHasError(response)){
             try {
-                var html = StringUtils.substringBetween(response.getErrorMessage(), "<!DOCTYPE html>", "</html>");
-                log.warn("Error calling heatpump basement driver: " + StringUtils.remove(response.getErrorMessage(), html));
+                if(response.getErrorMessage().contains("<!DOCTYPE")){
+                    log.warn("Error calling heatpump basement driver - version problem detected !!!");
+                }else{
+                    log.warn("Error calling heatpump basement driver: " + response.getErrorMessage());
+                }
             } catch (Exception e) {
                 log.warn("Error calling heatpump basement driver....");
             }
             circuitBreakerOnError(request.isReadFromCache());
-            switchModelToUnknown(response.getErrorMessage());
             return;
         }
 
@@ -274,8 +279,7 @@ public class HeatpumpBasementService {
         return StringUtils.isNotBlank(response.getErrorMessage());
     }
 
-    private void switchModelToUnknown(String errorMessage) {
-
+    private void switchModelToUnknown() {
         final HeatpumpBasementModel unknownHeatpumpModel = emptyModel();
         ModelObjectDAO.getInstance().write(unknownHeatpumpModel);
         uploadService.uploadToClient(unknownHeatpumpModel);

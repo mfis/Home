@@ -42,7 +42,9 @@ public class HomeAppConstants {
 
     public static final int MODEL_HEATPUMP_ROOF_OUTDATED_SECONDS = 60 * 32;
 
-    public static final int MODEL_HEATPUMP_BASEMENT_OUTDATED_SECONDS = 60 * 65;
+    public static final int MODEL_HEATPUMP_BASEMENT_UPDATE_INTERVAL_SECONDS = 60 * 25; //
+
+    public static final int MODEL_HEATPUMP_BASEMENT_OUTDATED_SECONDS = 60 * 60; // 2nd value minimum: ((INTERVAL + 4) * slidingWindowSize)
 
     public static final int MODEL_TASKS_OUTDATED_SECONDS = 60 * 10;
 
