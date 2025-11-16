@@ -5,8 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fimatas.heatpump.roof.driver.api.*;
 import de.fimatas.home.controller.api.ExternalServiceHttpAPI;
 import de.fimatas.home.library.dao.ModelObjectDAO;
-import de.fimatas.home.library.domain.model.*;
+import de.fimatas.home.library.domain.model.HeatpumpRoof;
+import de.fimatas.home.library.domain.model.HeatpumpRoofModel;
+import de.fimatas.home.library.domain.model.HeatpumpRoofPreset;
+import de.fimatas.home.library.domain.model.Place;
 import de.fimatas.home.library.util.HomeAppConstants;
+import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.apachecommons.CommonsLog;
@@ -14,13 +18,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
-import org.springframework.http.*;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Component;
-
-import jakarta.annotation.PostConstruct;
 import org.springframework.web.client.RestClientException;
 
 import java.time.*;
@@ -170,7 +173,11 @@ public class HeatpumpRoofService {
 
         if(responseHasError(response)){
             try {
-                log.warn("Error calling heatpump driver: " + new ObjectMapper().writeValueAsString(response));
+                if(response.isCacheNotPresentError()){
+                    log.debug("Error calling heatpump driver: cache not present");
+                }else{
+                    log.warn("Error calling heatpump driver: " + new ObjectMapper().writeValueAsString(response));
+                }
             } catch (JsonProcessingException e) {
                 log.warn("Error calling heatpump driver....");
             }
