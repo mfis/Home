@@ -112,6 +112,9 @@ public class HeatpumpBasementService {
                 switchModelToUnknown();
                 CompletableFuture.runAsync(() -> pushService.sendErrorMessage("Fehler beim Auslesen der Heizung!"));
             }
+            if(manual && ModelObjectDAO.getInstance().readHeatpumpBasementModel() != null && ModelObjectDAO.getInstance().readHeatpumpBasementModel().isBusy()){
+                switchModelToUnknown();
+            }
         }
     }
 
@@ -276,7 +279,7 @@ public class HeatpumpBasementService {
     }
 
     private boolean responseHasError(Response response) {
-        return StringUtils.isNotBlank(response.getErrorMessage());
+        return response.getExitCode() == null || response.getExitCode() == 1 || response.getExitCode() > 2 || StringUtils.isNotBlank(response.getErrorMessage());
     }
 
     private void switchModelToUnknown() {
@@ -299,10 +302,10 @@ public class HeatpumpBasementService {
             return response.getBody();
 
         } catch (RestClientException e) {
-            log.error("Exception calling heatpump basement driver:" + e.getMessage());
-            circuitBreakerOnError(request.isReadFromCache());
             var response = new Response();
             response.setErrorMessage("Exception calling heatpump basement driver:" + e.getMessage());
+            response.setExitCode(9);
+            // handleResponse reacts to ErrorMessage - no call 'circuitBreakerOnError' needed here
             return response;
         }
     }
