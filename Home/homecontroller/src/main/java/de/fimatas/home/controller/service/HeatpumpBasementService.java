@@ -12,6 +12,8 @@ import de.fimatas.home.library.domain.model.ValueWithTendency;
 import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.model.ConditionColor;
 import de.fimatas.home.library.util.HomeUtils;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +29,7 @@ import org.springframework.web.client.RestClientException;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -58,22 +61,21 @@ public class HeatpumpBasementService {
     @Value("${application.heatpumpRefreshEnabled:false}")
     private boolean heatpumpRefreshEnabled;
 
-    private boolean isCallError = false; // prevent continous error calls
+    private final CircuitBreaker circuitBreaker;
 
     private final Map<Device, Integer> lastValuesWrote = new HashMap<>();
 
     private static final long REFRESH_DELAY_MS = 1000L * 60L * 25L;
 
-    @Scheduled(cron = "0 0 6,14 * * *")
-    public void resetCallErrorFlag() {
-        isCallError = false;
+    public HeatpumpBasementService(CircuitBreakerRegistry registry) {
+        this.circuitBreaker = registry.circuitBreaker("heatpumpBasement");
     }
 
     public void scheduledRefreshFromDriverCache() {
         try {
             refreshHeatpumpModel(true, false);
         } catch (Exception e) {
-            handleException(e, "Could not call heatpump basement service (with-cache)");
+            handleException(e, "Could not call heatpump basement service (with-cache)", true);
         }
     }
 
@@ -95,19 +97,27 @@ public class HeatpumpBasementService {
     }
 
     private void callWithoutCache(boolean manual) {
+
+        var stateBeforeCall = circuitBreaker.getState();
         try {
             refreshHeatpumpModel(false, manual);
         } catch (Exception e) {
-            handleException(e, "Could not call heatpump basement service (no-cache!)");
+            handleException(e, "Could not call heatpump basement service (no-cache!)", false);
+        } finally {
+            var stateAfterCall = circuitBreaker.getState();
+            if(stateBeforeCall != stateAfterCall && stateAfterCall == CircuitBreaker.State.OPEN){
+                log.warn("circuit breaker heatpumpBasement now OPEN");
+                CompletableFuture.runAsync(() -> pushService.sendErrorMessage("Fehler beim Auslesen der Heizung!"));
+            }
         }
     }
 
-    private void handleException(Exception e, String msg) {
+    private void handleException(Exception e, String msg, boolean cached) {
+        circuitBreakerOnError(cached);
         if(e instanceof RestClientException && e.getMessage().startsWith(ExternalServiceHttpAPI.MESSAGE_TOO_MANY_CALLS)){
             log.warn(msg + " - " + e.getMessage());
             return;
         }
-        isCallError = true;
         log.error(msg, e);
     }
 
@@ -117,8 +127,10 @@ public class HeatpumpBasementService {
             return;
         }
 
-        if(!cachedData && isCallError){
-            return;
+        if(!cachedData){
+            if (!circuitBreaker.tryAcquirePermission()) {
+                return;
+            }
         }
 
         if(!cachedData && manual){
@@ -160,10 +172,7 @@ public class HeatpumpBasementService {
             } catch (Exception e) {
                 log.warn("Error calling heatpump basement driver....");
             }
-            if(!request.isReadFromCache()){
-                isCallError = true;
-                CompletableFuture.runAsync(() -> pushService.sendErrorMessage("Fehler bei Ansteuerung von Heizung!"));
-            }
+            circuitBreakerOnError(request.isReadFromCache());
             switchModelToUnknown(response.getErrorMessage());
             return;
         }
@@ -172,6 +181,7 @@ public class HeatpumpBasementService {
         mapResponseToModel(response, newModel);
 
         if(!request.isReadFromCache()){
+            circuitBreakerOnSuccess();
             updateHomematicSysVars(newModel);
         }
 
@@ -273,7 +283,6 @@ public class HeatpumpBasementService {
 
     private synchronized Response callDriver(Request request){
 
-        log.debug("call HeatpumpBasement " + (request.isReadFromCache() ? "cache" : "LIVE !"));
         try {
             ResponseEntity<Response> response = externalServiceHttpAPI.postForHeatpumpBasementEntity(
                     Objects.requireNonNull(env.getProperty("heatpump.basement.driver.url")), request);
@@ -281,13 +290,13 @@ public class HeatpumpBasementService {
 
             if (!statusCode.is2xxSuccessful()) {
                 log.error("Could not call heatpump basement driver. RC=" + statusCode.value());
-                isCallError = true;
+                circuitBreakerOnError(request.isReadFromCache());
             }
             return response.getBody();
 
         } catch (RestClientException e) {
             log.error("Exception calling heatpump basement driver:" + e.getMessage());
-            isCallError = true;
+            circuitBreakerOnError(request.isReadFromCache());
             var response = new Response();
             response.setErrorMessage("Exception calling heatpump basement driver:" + e.getMessage());
             return response;
@@ -299,5 +308,15 @@ public class HeatpumpBasementService {
         final var unknownHeatpumpModel = new HeatpumpBasementModel();
         unknownHeatpumpModel.setTimestamp(System.currentTimeMillis());
         return unknownHeatpumpModel;
+    }
+
+    private void circuitBreakerOnSuccess(){
+        circuitBreaker.onSuccess(0, TimeUnit.MILLISECONDS);
+    }
+
+    private void circuitBreakerOnError(boolean cacheCall){
+        if(!cacheCall){
+            circuitBreaker.onError(0, TimeUnit.MILLISECONDS, new RuntimeException("heatpump basement driver call failed"));
+        }
     }
 }
