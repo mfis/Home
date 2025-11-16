@@ -414,7 +414,7 @@ public class PushService {
         }
 
         settingsService.listTokensWithEnabledSetting(PushNotifications.TASKS).forEach(pushToken -> model.getTasks().forEach(task -> {
-            if(HomeUtils.isSameDay(task.getNextExecutionTime(), LocalDateTime.now())){
+            if(task.getNextExecutionTime() != null && HomeUtils.isSameDay(task.getNextExecutionTime(), LocalDateTime.now())){
                 handleMessage(pushToken, "Heute fällige Aufgabe", task.getName());
             } else if (task.getState() == TaskState.FAR_OUT_OF_RANGE){
                 handleMessage(pushToken, "Überfällige Aufgabe", task.getName());
