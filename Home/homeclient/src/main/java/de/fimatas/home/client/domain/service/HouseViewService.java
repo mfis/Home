@@ -1010,6 +1010,26 @@ public class HouseViewService {
             }
         }
 
+        if(ModelObjectDAO.getInstance().readPresenceModel() == null) {
+            copy.add("Präsenz Status unbekannt!");
+        }
+
+        if(ModelObjectDAO.getInstance().readHeatpumpRoofModel() == null) {
+            copy.add("Wärmepumpe Dach Status unbekannt!");
+        }
+
+        if(ModelObjectDAO.getInstance().readHeatpumpBasementModel() == null) {
+            copy.add("Wärmepumpe Keller Status unbekannt!");
+        }
+
+        if(ModelObjectDAO.getInstance().readTasksModel() == null) {
+            copy.add("Aufgaben Status unbekannt!");
+        }
+
+        if(ModelObjectDAO.getInstance().readElectricVehicleModel() == null) {
+            copy.add("E-Auto Status unbekannt!");
+        }
+
         model.addAttribute("warnings", copy);
     }
 
