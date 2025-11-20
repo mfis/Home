@@ -2,6 +2,7 @@ package de.fimatas.home.controller.service;
 
 import de.fimatas.home.controller.api.HomematicAPI;
 import de.fimatas.home.controller.command.HomematicCommandBuilder;
+import de.fimatas.home.controller.dao.TicketDAO;
 import de.fimatas.home.controller.domain.service.HouseService;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.Doorlock;
@@ -35,6 +36,9 @@ public class FrontDoorService {
     @Autowired
     private PushService pushService;
 
+    @Autowired
+    private TicketDAO ticketDAO;
+
     private final Device DEFAULT_DEVICE = Device.HAUSTUER_SCHLOSS;
 
     @Scheduled(cron = "04 30 19,21 * * *")
@@ -53,6 +57,13 @@ public class FrontDoorService {
 
     public void changeDoorLockState(Message message, boolean unlockOnlyWithSecutityPin) {
 
+        if(ticketDAO.existsUsedTicket(message.getAdditionalData())){
+            log.warn("ticket exists: " + message.getAdditionalData());
+            message.setSecurityPin("");
+            return;
+        }
+        ticketDAO.write(message.getAdditionalData(), "FRONTDOOR", message.getValue());
+
         // check pin?
         boolean checkPin = switch (StateValue.valueOf(message.getValue())) {
             case LOCK -> false;
@@ -62,10 +73,14 @@ public class FrontDoorService {
 
         if (!checkPin || isSecurityPinCorrect(message)) {
             hmApi.executeCommand(homematicCommandBuilder.write(message.getDevice(), "Ansteuerung", true));
-            switch (StateValue.valueOf(message.getValue())) {
-                case LOCK -> hmApi.runProgramWithBusyState(message.getDevice(), "Lock");
-                case UNLOCK -> hmApi.runProgramWithBusyState(message.getDevice(), "Unlock");
-                case OPEN -> hmApi.runProgramWithBusyState(message.getDevice(), "Open");
+            if("".equals("xy")){
+                switch (StateValue.valueOf(message.getValue())) {
+                    case LOCK -> hmApi.runProgramWithBusyState(message.getDevice(), "Lock");
+                    case UNLOCK -> hmApi.runProgramWithBusyState(message.getDevice(), "Unlock");
+                    case OPEN -> hmApi.runProgramWithBusyState(message.getDevice(), "Open");
+                }
+            }else{
+                log.info("###### FRONTDOOR DO " + message.getValue() + " WITH TICKET " + message.getAdditionalData() + " #####");
             }
             houseService.refreshHouseModel(false);
         }
