@@ -230,12 +230,15 @@
 				} 		
 				function lock[[${model.id}]](){
 					submitContentWithPin(document.getElementById('val_model_linkLock_[[${model.id}]]').value, document.getElementById('val_pin').value);
+					resetPin();
 				}
 				function unlock[[${model.id}]](){
 					submitContentWithPin(document.getElementById('val_model_linkUnlock_[[${model.id}]]').value, document.getElementById('val_pin').value);
+					resetPin();
 				}	
 				function open[[${model.id}]](){
 					submitContentWithPin(document.getElementById('val_model_linkOpen_[[${model.id}]]').value, document.getElementById('val_pin').value);
+					resetPin();
 				}			
 			</script>		
 			

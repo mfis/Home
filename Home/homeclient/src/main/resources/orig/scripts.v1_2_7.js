@@ -52,6 +52,7 @@ function submitContentWithPin(target, pin){
         httpRequest.setRequestHeader('CSRF', 'true');
         httpRequest.setRequestHeader('appPushToken', pushToken);
         httpRequest.setRequestHeader('pin', pin.replace(/[^a-zA-Z0-9]/g, ''));
+        pin = '';
         httpRequest.send();
         httpRequest.onreadystatechange=(e)=>{
             if (httpRequest.readyState === 4) {
@@ -364,10 +365,7 @@ function addPin(i){
     document.getElementById('val_pin').value += i;
     pinPlaceholderStars(document.getElementById('val_pin').value);
     if(document.getElementById('val_pin').value.length === 6){
-        pinCallback();
-        let modalElement = document.getElementById("modalPin");
-        let bootstrapModal = bootstrap.Modal.getOrCreateInstance(modalElement);
-        bootstrapModal.hide();
+        submitPinCallbackAndCleanUp();
     }
 }
 function pinActivateBiometricAuthButton(){ // called from app
@@ -380,11 +378,15 @@ function pinBiometryCallback(pin){
     document.getElementById('val_pin').value = pin;
     pinPlaceholderStars(pin);
     if(pin.length > 0){
-        pinCallback();
-        let modalElement = document.getElementById("modalPin");
-        let bootstrapModal = bootstrap.Modal.getOrCreateInstance(modalElement);
-        bootstrapModal.hide();
+        submitPinCallbackAndCleanUp();
     }
+}
+function submitPinCallbackAndCleanUp(){
+    pinCallback();
+    pinCallback = null;
+    let modalElement = document.getElementById("modalPin");
+    let bootstrapModal = bootstrap.Modal.getOrCreateInstance(modalElement);
+    bootstrapModal.hide();
 }
 function pinPlaceholderStars(x){
     let p = '';
