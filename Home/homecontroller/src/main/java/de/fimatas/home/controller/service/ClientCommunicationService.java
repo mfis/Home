@@ -137,7 +137,7 @@ public class ClientCommunicationService {
                 houseService.heatingAuto(message.getDevice());
                 houseService.refreshHouseModel(false);
                 break;
-            case OPEN:
+            case FRONTDOOR:
                 frontDoorService.changeDoorLockState(message, true);
                 houseService.refreshHouseModel(false);
                 break;
