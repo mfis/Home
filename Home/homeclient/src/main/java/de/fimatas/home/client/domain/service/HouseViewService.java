@@ -71,7 +71,7 @@ public class HouseViewService {
 
     private static final String TOGGLE_AUTOMATION = MESSAGEPATH + TYPE_IS + MessageType.TOGGLEAUTOMATION + AND_DEVICE_IS;
 
-    private static final String OPEN_STATE = MESSAGEPATH + TYPE_IS + MessageType.OPEN + AND_DEVICE_IS;
+    private static final String FRONTDOOR_STATE = MESSAGEPATH + TYPE_IS + MessageType.FRONTDOOR + AND_DEVICE_IS;
 
     private static final String TOGGLE_LIGHT = MESSAGEPATH + TYPE_IS + MessageType.TOGGLELIGHT + AND_DEVICE_ID_IS;
 
@@ -432,19 +432,23 @@ public class HouseViewService {
         }
 
         if (setButtonLock) {
-            view.setLinkLock(OPEN_STATE + doorlock.getDevice().name() + AND_VALUE_IS + StateValue.LOCK.name() + NEEDS_PIN);
+            view.setLinkLock(FRONTDOOR_STATE + doorlock.getDevice().name() + AND_VALUE_IS + StateValue.LOCK.name() + NEEDS_PIN + AND_ADD_DATA_ARE + createrequestTicket());
         }
         if (setButtonUnlock) {
-            view.setLinkUnlock(OPEN_STATE + doorlock.getDevice().name() + AND_VALUE_IS + StateValue.UNLOCK.name() + NEEDS_PIN);
+            view.setLinkUnlock(FRONTDOOR_STATE + doorlock.getDevice().name() + AND_VALUE_IS + StateValue.UNLOCK.name() + NEEDS_PIN + AND_ADD_DATA_ARE + createrequestTicket());
         }
         if (setButtonOpen) {
-            view.setLinkOpen(OPEN_STATE + doorlock.getDevice().name() + AND_VALUE_IS + StateValue.OPEN.name() + NEEDS_PIN);
+            view.setLinkOpen(FRONTDOOR_STATE + doorlock.getDevice().name() + AND_VALUE_IS + StateValue.OPEN.name() + NEEDS_PIN + AND_ADD_DATA_ARE + createrequestTicket());
         }
 
         formatFrontDoorLockLinks(doorlock, view);
         view.setAutoInfoText(StringUtils.trimToEmpty(doorlock.getLockAutomationInfoText()));
 
         model.addAttribute(id, view);
+    }
+
+    private String createrequestTicket(){
+        return System.nanoTime() + "-" + UUID.randomUUID();
     }
 
     public void formatFrontDoorLockLinks(Doorlock doorlock, LockView view) {
