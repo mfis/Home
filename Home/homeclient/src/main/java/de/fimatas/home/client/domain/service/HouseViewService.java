@@ -443,6 +443,7 @@ public class HouseViewService {
 
         formatFrontDoorLockLinks(doorlock, view);
         view.setAutoInfoText(StringUtils.trimToEmpty(doorlock.getLockAutomationInfoText()));
+        view.setLastOpened(viewFormatter.formatTimestamp(doorlock.getLastOpened(), TimestampFormat.DATE_TIME));
 
         model.addAttribute(id, view);
     }

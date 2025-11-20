@@ -17,6 +17,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+
 @Component
 @CommonsLog
 public class FrontDoorService {
@@ -41,6 +43,10 @@ public class FrontDoorService {
 
     private final Device DEFAULT_DEVICE = Device.HAUSTUER_SCHLOSS;
 
+    private final static String TICKET_EVENT = "FRONTDOOR";
+
+    private LocalDateTime cachedLastOpened = null;
+
     @Scheduled(cron = "04 30 19,21 * * *")
     public void lockDoorInTheEvening() {
         if (isDoorLockAutomaticAndNotInState(StateValue.LOCK)) {
@@ -58,11 +64,10 @@ public class FrontDoorService {
     public void changeDoorLockState(Message message, boolean unlockOnlyWithSecutityPin) {
 
         if(ticketDAO.existsUsedTicket(message.getAdditionalData())){
-            log.warn("ticket exists: " + message.getAdditionalData());
+            log.error("ticket exists: " + message.getAdditionalData());
             message.setSecurityPin("");
             return;
         }
-        ticketDAO.write(message.getAdditionalData(), "FRONTDOOR", message.getValue());
 
         // check pin?
         boolean checkPin = switch (StateValue.valueOf(message.getValue())) {
@@ -72,18 +77,30 @@ public class FrontDoorService {
         };
 
         if (!checkPin || isSecurityPinCorrect(message)) {
+            ticketDAO.write(message.getAdditionalData(), TICKET_EVENT, message.getValue());
             hmApi.executeCommand(homematicCommandBuilder.write(message.getDevice(), "Ansteuerung", true));
-            if("".equals("xy")){
-                switch (StateValue.valueOf(message.getValue())) {
-                    case LOCK -> hmApi.runProgramWithBusyState(message.getDevice(), "Lock");
-                    case UNLOCK -> hmApi.runProgramWithBusyState(message.getDevice(), "Unlock");
-                    case OPEN -> hmApi.runProgramWithBusyState(message.getDevice(), "Open");
+            switch (StateValue.valueOf(message.getValue())) {
+                case LOCK -> hmApi.runProgramWithBusyState(message.getDevice(), "Lock");
+                case UNLOCK -> hmApi.runProgramWithBusyState(message.getDevice(), "Unlock");
+                case OPEN -> {
+                    log.info("###### FRONTDOOR DO " + message.getValue() + " WITH TICKET " + message.getAdditionalData() + " #####");
+                    cachedLastOpened = LocalDateTime.now();
+                    hmApi.runProgramWithBusyState(message.getDevice(), "Open");
                 }
-            }else{
-                log.info("###### FRONTDOOR DO " + message.getValue() + " WITH TICKET " + message.getAdditionalData() + " #####");
             }
             houseService.refreshHouseModel(false);
         }
+    }
+
+    public LocalDateTime readLastOpened(){
+        if(cachedLastOpened == null) {
+            log.info("empty cache - read database");
+            var lastOpened = ticketDAO.readLatestTicket(TICKET_EVENT, StateValue.OPEN.name());
+            if(lastOpened != null){
+                cachedLastOpened = lastOpened.getTimestamp();
+            }
+        }
+        return cachedLastOpened;
     }
 
     private boolean isSecurityPinCorrect(Message message) {

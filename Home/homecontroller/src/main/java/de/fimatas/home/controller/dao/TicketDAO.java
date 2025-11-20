@@ -1,6 +1,7 @@
 package de.fimatas.home.controller.dao;
 
 import de.fimatas.home.controller.database.mapper.TicketRowMapper;
+import de.fimatas.home.controller.model.Ticket;
 import de.fimatas.home.controller.service.UniqueTimestampService;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.apachecommons.CommonsLog;
@@ -32,6 +33,8 @@ public class TicketDAO {
                 + " (TICKET VARCHAR(60) NOT NULL, EVENT VARCHAR(10) NOT NULL, VAL VARCHAR(10) NOT NULL, TS DATETIME NOT NULL, PRIMARY KEY (TICKET));");
         jdbcTemplate
                 .update("CREATE UNIQUE INDEX IF NOT EXISTS " + "IDX1_" + TABLE_NAME + " ON " + TABLE_NAME + " (TICKET);");
+        jdbcTemplate
+                .update("CREATE INDEX IF NOT EXISTS " + "IDX2_" + TABLE_NAME + " ON " + TABLE_NAME + " (EVENT, VAL);");
     }
 
     @Transactional(readOnly = true)
@@ -40,6 +43,20 @@ public class TicketDAO {
         String query = "select * FROM " + TABLE_NAME + " where TICKET = ?;";
         var result = jdbcTemplate.query(query, new TicketRowMapper(), cleanSqlValue(ticket));
         return !result.isEmpty();
+    }
+
+    @Transactional(readOnly = true)
+    public Ticket readLatestTicket(String event, String value){
+
+        String query = "select * FROM " + TABLE_NAME + " where EVENT = ? AND VAL = ? ORDER BY TS DESC FETCH FIRST ROW ONLY;";
+        var result = jdbcTemplate.query(query, new TicketRowMapper(), cleanSqlValue(event), cleanSqlValue(value));
+        if(result.isEmpty()){
+            return null;
+        }else if(result.size()==1){
+            return result.get(0);
+        }else{
+            throw new IllegalStateException("incorrect result size: " + result.size());
+        }
     }
 
     @Transactional

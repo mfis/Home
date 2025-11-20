@@ -6,7 +6,9 @@ import de.fimatas.home.controller.command.HomematicCommandBuilder;
 import de.fimatas.home.controller.service.*;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
-import de.fimatas.home.library.homematic.model.*;
+import de.fimatas.home.library.homematic.model.Datapoint;
+import de.fimatas.home.library.homematic.model.Device;
+import de.fimatas.home.library.homematic.model.HomematicConstants;
 import de.fimatas.home.library.homematic.model.Type;
 import de.fimatas.home.library.util.HomeAppConstants;
 import lombok.extern.apachecommons.CommonsLog;
@@ -86,6 +88,9 @@ public class HouseService {
 
     @Autowired
     private PhotovoltaicsOverflowService photovoltaicsOverflowService;
+
+    @Autowired
+    private FrontDoorService frontDoorService;
 
     @Autowired
     private TasksService tasksService;
@@ -741,6 +746,7 @@ public class HouseService {
         frontDoor.setLockStateUncertain(
             hmApi.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, Datapoint.STATE_UNCERTAIN)));
         frontDoor.setOpen(hmApi.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, IS_OPENED)));
+        frontDoor.setLastOpened(frontDoorService.readLastOpened());
 
         if (oldModel != null && oldModel.getFrontDoorLock().isBusy() && !newBusy &&
                 doorLockHash(oldModel.getFrontDoorLock()) == doorLockHash(frontDoor)) {

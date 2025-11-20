@@ -198,7 +198,11 @@
 		<div th:replace="~{fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState}, colorClass=${model.colorClass})}"></div>
 		<div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
 				<h4 th:unless="${#strings.equals(model.busy,'true')}"><span id="frontdoorlockState" th:text="${model.state}"></span><span th:text="${model.stateSuffix}" style="font-size: 80%;"></span></h4>
-				<th:block th:unless="${#strings.equals(model.busy,'true')}">	
+				<a th:unless="${#strings.equals(model.busy,'true')}" style="display: block">
+					<span class="mb-1">Zuletzt geöffnet:</span>
+					<span class="mb-1" th:text="${model.lastOpened}"></span>
+				</a>
+				<th:block th:unless="${#strings.equals(model.busy,'true')}">
 					<div class="btn-group" role="group" aria-label="lockcontrol">
 			  			<button th:if="${#strings.startsWith(model.linkLock, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${model.colorClass}"><th:block th:replace="~{basics :: symbol (name='fas fa-lock')}"/></span><span>&nbsp;</span></button>
 			  			<button th:if="${#strings.startsWith(model.linkLock, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'openPin' + '(lockModalLabel' + ${model.id} + ', lock' + ${model.id} + ')'}"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name='fas fa-lock')}"/></span><span>&nbsp;</span></button>

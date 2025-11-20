@@ -1,11 +1,17 @@
 package de.fimatas.home.library.domain.model;
 
-import java.io.Serializable;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 import java.time.LocalDateTime;
 
-public class Doorlock extends AbstractDeviceModel implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+@EqualsAndHashCode(callSuper = true)
+@Data
+public class Doorlock extends AbstractDeviceModel {
 
     public Doorlock() {
         super();
@@ -23,51 +29,8 @@ public class Doorlock extends AbstractDeviceModel implements Serializable {
 
     private String lockAutomationInfoText;
 
-    public boolean isLockState() {
-        return lockState;
-    }
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    private LocalDateTime lastOpened;
 
-    public void setLockState(boolean lockState) {
-        this.lockState = lockState;
-    }
-
-    public boolean isLockStateUncertain() {
-        return lockStateUncertain;
-    }
-
-    public void setLockStateUncertain(boolean lockStateUncertain) {
-        this.lockStateUncertain = lockStateUncertain;
-    }
-
-    public Boolean getLockAutomation() {
-        return lockAutomation;
-    }
-
-    public void setLockAutomation(Boolean lockAutomation) {
-        this.lockAutomation = lockAutomation;
-    }
-
-    public String getLockAutomationInfoText() {
-        return lockAutomationInfoText;
-    }
-
-    public void setLockAutomationInfoText(String lockAutomationInfoText) {
-        this.lockAutomationInfoText = lockAutomationInfoText;
-    }
-
-    public boolean isOpen() {
-        return open;
-    }
-
-    public void setOpen(boolean open) {
-        this.open = open;
-    }
-
-    public Boolean getLockAutomationEvent() {
-        return lockAutomationEvent;
-    }
-
-    public void setLockAutomationEvent(Boolean lockAutomationEvent) {
-        this.lockAutomationEvent = lockAutomationEvent;
-    }
 }
