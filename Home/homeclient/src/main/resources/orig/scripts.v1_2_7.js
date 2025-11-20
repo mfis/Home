@@ -383,6 +383,7 @@ function pinBiometryCallback(pin){
 }
 function submitPinCallbackAndCleanUp(){
     pinCallback();
+    resetPin();
     pinCallback = null;
     let modalElement = document.getElementById("modalPin");
     let bootstrapModal = bootstrap.Modal.getOrCreateInstance(modalElement);
