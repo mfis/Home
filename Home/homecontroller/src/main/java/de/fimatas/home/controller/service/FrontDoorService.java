@@ -63,8 +63,14 @@ public class FrontDoorService {
 
     public void changeDoorLockState(Message message, boolean unlockOnlyWithSecutityPin) {
 
+        if(StringUtils.isBlank(message.getAdditionalData())){
+            log.error("no ticket provided!");
+            message.setSecurityPin("");
+            return;
+        }
+
         if(ticketDAO.existsUsedTicket(message.getAdditionalData())){
-            log.error("ticket exists: " + message.getAdditionalData());
+            log.error("ticket already exists: " + message.getAdditionalData());
             message.setSecurityPin("");
             return;
         }
