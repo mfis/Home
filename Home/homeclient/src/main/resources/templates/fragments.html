@@ -210,40 +210,33 @@
 			  			<button th:if="${#strings.startsWith(model.linkUnlock, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'openPin' + '(unlockModalLabel' + ${model.id} + ', unlock' + ${model.id} + ')'}"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name='fas fa-lock-open')}"/></span><span>&nbsp;</span></button>
 			  			<button th:if="${#strings.startsWith(model.linkOpen, '#')}" type="button" class="btn btn-dark btn-sm"><span>&nbsp;</span><span th:class="'text-' + ${model.colorClass}"><th:block th:replace="~{basics :: symbol (name='fas fa-door-open')}"/></span><span>&nbsp;</span></button>
 			  			<button th:if="${#strings.startsWith(model.linkOpen, '/')}" type="button" class="btn btn-secondary btn-sm" th:onclick="@{'openPin' + '(openModalLabel' + ${model.id} + ', open' + ${model.id} + ')'}"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name='fas fa-door-open')}"/></span><span>&nbsp;</span></button>
-						<!-- <button type="button" class="btn btn-secondary btn-sm" th:onclick="@{'openPin(lockTestLabel, testPin)'}"><span>&nbsp;</span><span><th:block th:replace="~{basics :: symbol (name='fa-regular fa-circle-question')}"/></span><span>&nbsp;</span></button> -->
 					</div>
 				</th:block>
 			<input type="hidden" th:id="'val_model_linkLock_' + ${model.id}" th:value="${model.linkLock}">
 			<input type="hidden" th:id="'val_model_linkUnlock_' + ${model.id}" th:value="${model.linkUnlock}">
 			<input type="hidden" th:id="'val_model_linkOpen_' + ${model.id}" th:value="${model.linkOpen}">
 	 		<script type="text/javascript">
-				function testPin(){
-					document.getElementById('frontdoorlockState').innerHTML = document.getElementById('val_pin').value + ' / ' + new Date().toLocaleTimeString();
-				}
-				function lockTestLabel(){
-					return 'TEST';
-				}
-				function lockModalLabel[[${model.id}]](){
-					return '[[${model.caption}]] verriegeln';
-				}
-				function unlockModalLabel[[${model.id}]](){
-					return '[[${model.caption}]] entriegeln';
-				}	
-				function openModalLabel[[${model.id}]](){
-					return '[[${model.caption}]] öffnen';
-				} 		
-				function lock[[${model.id}]](){
-					submitContentWithPin(document.getElementById('val_model_linkLock_[[${model.id}]]').value, document.getElementById('val_pin').value);
-					resetPin();
-				}
-				function unlock[[${model.id}]](){
-					submitContentWithPin(document.getElementById('val_model_linkUnlock_[[${model.id}]]').value, document.getElementById('val_pin').value);
-					resetPin();
-				}	
-				function open[[${model.id}]](){
-					submitContentWithPin(document.getElementById('val_model_linkOpen_[[${model.id}]]').value, document.getElementById('val_pin').value);
-					resetPin();
-				}			
+                                function lockModalLabel[[${model.id}]](){
+                                    return '[[${model.caption}]] verriegeln';
+                                }
+                                function unlockModalLabel[[${model.id}]](){
+                                    return '[[${model.caption}]] entriegeln';
+                                }
+                                function openModalLabel[[${model.id}]](){
+                                    return '[[${model.caption}]] öffnen';
+                                }
+                                function lock[[${model.id}]](){
+                                    submitContentWithPin(document.getElementById('val_model_linkLock_[[${model.id}]]').value, document.getElementById('val_pin').value);
+                                    resetPin();
+                                }
+                                function unlock[[${model.id}]](){
+                                    submitContentWithPin(document.getElementById('val_model_linkUnlock_[[${model.id}]]').value, document.getElementById('val_pin').value);
+                                    resetPin();
+                                }
+                                function open[[${model.id}]](){
+                                    submitContentWithPin(document.getElementById('val_model_linkOpen_[[${model.id}]]').value, document.getElementById('val_pin').value);
+                                    resetPin();
+                                }
 			</script>		
 			
 			<span th:unless="${#strings.equals(model.unreach,'true')}">&nbsp;</span>

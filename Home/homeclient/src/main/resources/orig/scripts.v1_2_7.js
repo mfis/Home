@@ -225,6 +225,13 @@ function registerCollapseListener(){
             nativeMessage('endTransition')
         }
     });
+    // modal hide listener
+    document.addEventListener('hide.bs.modal', (e) => {
+      if (e.target && e.target.id === 'modalPin') {
+        resetPin();
+        pinCallback = null;
+      }
+    });
 }
 
 function registerButtonListener(){
