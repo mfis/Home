@@ -146,7 +146,6 @@ public class SolarmanService {
         var changedValuesToWriteToHomematic = valuesToWriteToHomematic.entrySet().stream().filter(vtw -> !lastWrittenToHomematic.containsKey(vtw.getKey()) || !vtw.getValue().equals(lastWrittenToHomematic.get(vtw.getKey()))).toList();
         changedValuesToWriteToHomematic.forEach(cvtw -> updateCommands.add(homematicCommandBuilder.write(cvtw.getKey(), Datapoint.SYSVAR_DUMMY, cvtw.getValue())));
         hmApi.executeCommand(updateCommands.toArray(new HomematicCommand[0]));
-        log.info("****** SIZE = " + updateCommands.size());
         changedValuesToWriteToHomematic.forEach(cvtw -> lastWrittenToHomematic.put(cvtw.getKey(), cvtw.getValue()));
 
         PvAdditionalDataModel pvAdditionalDataModel = processPvAdditionalDataModel(inverterKeysAndValues, stringAmps, alarm);
