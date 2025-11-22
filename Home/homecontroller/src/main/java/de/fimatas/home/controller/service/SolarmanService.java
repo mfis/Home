@@ -64,6 +64,7 @@ public class SolarmanService {
     private long lastCollectionTimeRead = 0;
 
     private int lastLoggedSOC = Integer.MIN_VALUE;
+    private final HashMap<Device, String> lastWrittenToHomematic = new HashMap<>();
 
     protected static final String FIELD_PRODUCTION_COUNTER = "Et_ge0";
     protected static final String FIELD_CONSUMPTION_COUNTER = "Et_use1";
@@ -121,6 +122,7 @@ public class SolarmanService {
 
         final ArrayNode dataList = (ArrayNode) currentData.get("dataList");
         Iterator<JsonNode> dataListElements = dataList.elements();
+        var valuesToWriteToHomematic = new HashMap<Device, String>();
         while (dataListElements.hasNext()) {
             JsonNode element = dataListElements.next();
             String key = element.get("key").asText();
@@ -128,7 +130,7 @@ public class SolarmanService {
             if(SOLARMAN_KEY_TO_HM_DEVICE.containsKey(key)){
                 Device device = SOLARMAN_KEY_TO_HM_DEVICE.get(key);
                 log.debug("   " + device + " = " + value);
-                updateCommands.add(homematicCommandBuilder.write(device, Datapoint.SYSVAR_DUMMY, value));
+                valuesToWriteToHomematic.put(device, value);
             }else if (key.equalsIgnoreCase("DC1")) {
                 stringAmps.string1 = new BigDecimal(value);
             }else if (key.equalsIgnoreCase("DC2")) {
@@ -141,7 +143,11 @@ public class SolarmanService {
             }
         }
 
+        var changedValuesToWriteToHomematic = valuesToWriteToHomematic.entrySet().stream().filter(vtw -> !lastWrittenToHomematic.containsKey(vtw.getKey()) || !vtw.getValue().equals(lastWrittenToHomematic.get(vtw.getKey()))).toList();
+        changedValuesToWriteToHomematic.forEach(cvtw -> updateCommands.add(homematicCommandBuilder.write(cvtw.getKey(), Datapoint.SYSVAR_DUMMY, cvtw.getValue())));
         hmApi.executeCommand(updateCommands.toArray(new HomematicCommand[0]));
+        log.info("****** SIZE = " + updateCommands.size());
+        changedValuesToWriteToHomematic.forEach(cvtw -> lastWrittenToHomematic.put(cvtw.getKey(), cvtw.getValue()));
 
         PvAdditionalDataModel pvAdditionalDataModel = processPvAdditionalDataModel(inverterKeysAndValues, stringAmps, alarm);
         if(pvAdditionalDataModel != null){
