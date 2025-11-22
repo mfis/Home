@@ -1583,7 +1583,7 @@ public class HouseViewService {
         view.setState(state);
 
         var lastGroup = new AtomicInteger(heatpumpBasementModel.getDatapoints().stream().mapToInt(HeatpumpBasementDatapoint::getGroup).min().orElseThrow());
-        heatpumpBasementModel.getDatapoints().forEach(v -> {
+        heatpumpBasementModel.getDatapoints().stream().filter(dp -> !dp.isHide()).forEach(v -> {
             if(v.getGroup() != lastGroup.get()){
                 view.getDatapoints().add(new ValueWithCaption());
             }

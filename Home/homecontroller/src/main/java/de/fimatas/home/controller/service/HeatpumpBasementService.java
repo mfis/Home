@@ -249,6 +249,7 @@ public class HeatpumpBasementService {
             modelDp.setName(enumDp.getAlternateLabel());
             modelDp.setGroup(enumDp.getGroup());
             modelDp.setDescription("");
+            modelDp.setHide(enumDp.isHidden());
             if(apiDp==null){
                 modelDp.setValueFormattedLong("Unbekannt");
                 modelDp.setValueFormattedLong("?");

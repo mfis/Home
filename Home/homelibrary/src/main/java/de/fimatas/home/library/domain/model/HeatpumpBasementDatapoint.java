@@ -22,6 +22,8 @@ public class HeatpumpBasementDatapoint extends AbstractSystemModel {
 
     private boolean stateOff;
 
+    private boolean hide;
+
     private int group;
 
     private String description;
