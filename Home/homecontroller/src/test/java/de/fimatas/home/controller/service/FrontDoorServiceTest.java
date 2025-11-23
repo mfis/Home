@@ -1,22 +1,8 @@
 package de.fimatas.home.controller.service;
 
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.core.env.Environment;
-
 import de.fimatas.home.controller.api.HomematicAPI;
 import de.fimatas.home.controller.command.HomematicCommandBuilder;
+import de.fimatas.home.controller.dao.TicketDAO;
 import de.fimatas.home.controller.domain.service.HouseService;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.Doorlock;
@@ -27,6 +13,18 @@ import de.fimatas.home.library.model.Message;
 import de.fimatas.home.library.model.PresenceModel;
 import de.fimatas.home.library.model.PresenceState;
 import mfi.files.api.UserService;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.env.Environment;
+
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_METHOD)
@@ -40,6 +38,9 @@ public class FrontDoorServiceTest {
 
     @Mock
     private HouseService houseService;
+
+    @Mock
+    private TicketDAO ticketDAO;
 
     @Mock
     private UserService userService;
@@ -67,112 +68,119 @@ public class FrontDoorServiceTest {
 
     @Test
     void testChangeDoorLockStateNoPin() {
-        whenUserService();
+        whenUserService(true);
         frontDoorService.changeDoorLockState(message(StateValue.LOCK, null), false);
         verifyFrontDoorCommand(COMMAND_LOCK, true);
     }
 
     @Test
     void testChangeDoorLockStateWrongPin() {
-        whenUserService();
+        whenUserService(true);
         frontDoorService.changeDoorLockState(message(StateValue.LOCK, false), false);
         verifyFrontDoorCommand(COMMAND_LOCK, true);
     }
 
     @Test
     void testChangeDoorLockStateCorrectPin() {
-        whenUserService();
+        whenUserService(true);
         frontDoorService.changeDoorLockState(message(StateValue.LOCK, true), false);
         verifyFrontDoorCommand(COMMAND_LOCK, true);
     }
 
     @Test
     void testChangeDoorUnLockStateNoPinButNotNeeded() {
-        whenUserService();
+        whenUserService(true);
         frontDoorService.changeDoorLockState(message(StateValue.UNLOCK, null), false);
         verifyFrontDoorCommand(COMMAND_UNLOCK, true);
     }
 
     @Test
     void testChangeDoorUnLockStateWrongPinButNotNeeded() {
-        whenUserService();
+        whenUserService(true);
         frontDoorService.changeDoorLockState(message(StateValue.UNLOCK, false), false);
         verifyFrontDoorCommand(COMMAND_UNLOCK, true);
     }
 
     @Test
     void testChangeDoorUnLockStateCorrectPinButNotNeeded() {
-        whenUserService();
+        whenUserService(true);
         frontDoorService.changeDoorLockState(message(StateValue.UNLOCK, true), false);
         verifyFrontDoorCommand(COMMAND_UNLOCK, true);
     }
 
     @Test
     void testChangeDoorUnLockStateNoPinAndIsNeeded() {
-        whenUserService();
+        whenUserService(true);
         frontDoorService.changeDoorLockState(message(StateValue.UNLOCK, null), true);
         verifyFrontDoorCommand(COMMAND_UNLOCK, false);
     }
 
     @Test
     void testChangeDoorUnLockStateWrongPinAndIsNeeded() {
-        whenUserService();
+        whenUserService(true);
         frontDoorService.changeDoorLockState(message(StateValue.UNLOCK, false), true);
         verifyFrontDoorCommand(COMMAND_UNLOCK, false);
     }
 
     @Test
     void testChangeDoorUnLockStateCorrectPinAndIsNeeded() {
-        whenUserService();
+        whenUserService(true);
         frontDoorService.changeDoorLockState(message(StateValue.UNLOCK, true), true);
         verifyFrontDoorCommand(COMMAND_UNLOCK, true);
     }
 
     @Test
     void testChangeDoorOpenStateNoPinButNotNeeded() {
-        whenUserService();
+        whenUserService(true);
         frontDoorService.changeDoorLockState(message(StateValue.OPEN, null), false);
         verifyFrontDoorCommand(COMMAND_OPEN, false);
     }
 
     @Test
     void testChangeDoorOpenStateWrongPinButNotNeeded() {
-        whenUserService();
+        whenUserService(true);
         frontDoorService.changeDoorLockState(message(StateValue.OPEN, false), false);
         verifyFrontDoorCommand(COMMAND_OPEN, false);
     }
 
     @Test
     void testChangeDoorOpenStateCorrectPinButNotNeeded() {
-        whenUserService();
+        whenUserService(true);
         frontDoorService.changeDoorLockState(message(StateValue.OPEN, true), false);
         verifyFrontDoorCommand(COMMAND_OPEN, true);
     }
 
     @Test
     void testChangeDoorOpenStateNoPinAndIsNeeded() {
-        whenUserService();
+        whenUserService(true);
         frontDoorService.changeDoorLockState(message(StateValue.OPEN, null), true);
         verifyFrontDoorCommand(COMMAND_OPEN, false);
     }
 
     @Test
     void testChangeDoorOpenStateWrongPinAndIsNeeded() {
-        whenUserService();
+        whenUserService(true);
         frontDoorService.changeDoorLockState(message(StateValue.OPEN, false), true);
         verifyFrontDoorCommand(COMMAND_OPEN, false);
     }
 
     @Test
     void testChangeDoorOpenStateCorrectPinAndIsNeeded() {
-        whenUserService();
+        whenUserService(true);
         frontDoorService.changeDoorLockState(message(StateValue.OPEN, true), true);
         verifyFrontDoorCommand(COMMAND_OPEN, true);
     }
 
     @Test
+    void testIncorrectOrDuplicateTicket() {
+        whenUserService(false);
+        frontDoorService.changeDoorLockState(message(StateValue.OPEN, true), true);
+        verifyFrontDoorCommand(COMMAND_OPEN, false);
+    }
+
+    @Test
     void testHandlePresenceChangeToOne() {
-        whenUserService();
+        whenUserService(true);
         presence(1);
         doorLockState(StateValue.UNLOCK, true);
         frontDoorService.handlePresenceChange("user", PresenceState.PRESENT);
@@ -182,7 +190,7 @@ public class FrontDoorServiceTest {
 
     @Test
     void testHandlePresenceChangeToZeroNoAutomation() {
-        whenUserService();
+        whenUserService(true);
         presence(0);
         doorLockState(StateValue.UNLOCK, false);
         frontDoorService.handlePresenceChange("user", PresenceState.PRESENT);
@@ -192,7 +200,7 @@ public class FrontDoorServiceTest {
 
     @Test
     void testHandlePresenceChangeToZeroIsLocked() {
-        whenUserService();
+        whenUserService(true);
         presence(0);
         doorLockState(StateValue.LOCK, true);
         frontDoorService.handlePresenceChange("user", PresenceState.PRESENT);
@@ -202,7 +210,7 @@ public class FrontDoorServiceTest {
 
     @Test
     void testHandlePresenceChangeToZeroAndLock() {
-        whenUserService();
+        whenUserService(true);
         presence(0);
         doorLockState(StateValue.UNLOCK, true);
         frontDoorService.handlePresenceChange("user", PresenceState.AWAY);
@@ -212,7 +220,7 @@ public class FrontDoorServiceTest {
 
     @Test
     void testLockDoorInTheEveningUnlockPresence0() {
-        whenUserService();
+        whenUserService(true);
         presence(0);
         doorLockState(StateValue.UNLOCK, true);
         frontDoorService.lockDoorInTheEvening();
@@ -221,7 +229,7 @@ public class FrontDoorServiceTest {
 
     @Test
     void testLockDoorInTheEveningUnlockPresence1() {
-        whenUserService();
+        whenUserService(true);
         presence(1);
         doorLockState(StateValue.UNLOCK, true);
         frontDoorService.lockDoorInTheEvening();
@@ -230,7 +238,7 @@ public class FrontDoorServiceTest {
 
     @Test
     void testLockDoorInTheEveningUnlockNoAutomation() {
-        whenUserService();
+        whenUserService(true);
         presence(1);
         doorLockState(StateValue.UNLOCK, false);
         frontDoorService.lockDoorInTheEvening();
@@ -239,7 +247,7 @@ public class FrontDoorServiceTest {
 
     @Test
     void testLockDoorInTheEveningLock() {
-        whenUserService();
+        whenUserService(true);
         presence(1);
         doorLockState(StateValue.LOCK, true);
         frontDoorService.lockDoorInTheEvening();
@@ -277,6 +285,7 @@ public class FrontDoorServiceTest {
         var m = new Message();
         m.setDevice(Device.HAUSTUER_SCHLOSS);
         m.setValue(stateValue.name());
+        m.setAdditionalData("xy");
         if(correctPin != null){
             if(correctPin){
                 m.setUser(CORRECT_TEST_USER);
@@ -289,7 +298,8 @@ public class FrontDoorServiceTest {
         return m;
     }
 
-    private void whenUserService() {
+    private void whenUserService(boolean correctTicket) {
+        lenient().when(ticketDAO.existsUsedTicket(anyString())).thenReturn(!correctTicket);
         lenient().when(userService.checkPin(anyString(), anyString())).thenReturn(false);
         lenient().when(userService.checkPin(CORRECT_TEST_USER, CORRECT_TEST_PIN)).thenReturn(true);
     }
