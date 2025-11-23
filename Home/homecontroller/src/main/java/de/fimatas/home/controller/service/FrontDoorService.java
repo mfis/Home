@@ -18,6 +18,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Component
 @CommonsLog
@@ -50,13 +51,13 @@ public class FrontDoorService {
     @Scheduled(cron = "04 30 19,21 * * *")
     public void lockDoorInTheEvening() {
         if (isDoorLockAutomaticAndNotInState(StateValue.LOCK)) {
-            changeDoorLockState(messageForDoorState(StateValue.LOCK), true);
+            changeDoorLockState(messageForDoorState(StateValue.LOCK, "schedule-" + UUID.randomUUID()), true);
         }
     }
 
     public void handlePresenceChange(String username, PresenceState state) {
         if(state == PresenceState.AWAY && isNoOneAtHome() && isDoorLockAutomaticAndNotInState(StateValue.LOCK) ) {
-            changeDoorLockState(messageForDoorState(StateValue.LOCK), true);
+            changeDoorLockState(messageForDoorState(StateValue.LOCK, "presence-" + UUID.randomUUID()), true);
             pushService.doorLock(username);
         }
     }
@@ -114,10 +115,11 @@ public class FrontDoorService {
                 && userService.checkPin(message.getUser(), message.getSecurityPin());
     }
 
-    private Message messageForDoorState(StateValue stateValue) {
+    private Message messageForDoorState(StateValue stateValue, String ticket) {
         var m = new Message();
         m.setDevice(DEFAULT_DEVICE);
         m.setValue(stateValue.name());
+        m.setAdditionalData(ticket);
         return m;
     }
 
