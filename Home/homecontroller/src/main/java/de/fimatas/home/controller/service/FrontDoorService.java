@@ -90,7 +90,6 @@ public class FrontDoorService {
                 case LOCK -> hmApi.runProgramWithBusyState(message.getDevice(), "Lock");
                 case UNLOCK -> hmApi.runProgramWithBusyState(message.getDevice(), "Unlock");
                 case OPEN -> {
-                    log.info("###### FRONTDOOR DO " + message.getValue() + " WITH TICKET " + message.getAdditionalData() + " #####");
                     cachedLastOpened = LocalDateTime.now();
                     hmApi.runProgramWithBusyState(message.getDevice(), "Open");
                 }
