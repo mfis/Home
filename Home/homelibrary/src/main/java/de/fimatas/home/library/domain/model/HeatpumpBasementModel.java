@@ -19,6 +19,9 @@ public class HeatpumpBasementModel extends AbstractSystemModel {
 
     private final List<HeatpumpBasementDatapoint> datapoints = new LinkedList<>();
 
+    private String idConsumption = "";
+    private String idProduction = "";
+
     public HeatpumpBasementModel() {
         timestamp = System.currentTimeMillis();
     }

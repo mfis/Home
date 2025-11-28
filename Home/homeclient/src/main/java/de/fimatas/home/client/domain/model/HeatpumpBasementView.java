@@ -14,6 +14,6 @@ public class HeatpumpBasementView extends View {
 
     private String timestamp = "";
 
-    private List<ValueWithCaption> datapoints = new LinkedList<>();
+    private List<TableRowView> datapoints = new LinkedList<>();
 
 }

@@ -1,17 +1,7 @@
 package de.fimatas.home.client.domain.service;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.text.DecimalFormat;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.YearMonth;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.stream.Collectors;
-
+import de.fimatas.home.client.domain.model.ChartEntry;
+import de.fimatas.home.client.domain.model.HistoryEntry;
 import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.util.HomeUtils;
@@ -21,8 +11,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.Model;
-import de.fimatas.home.client.domain.model.ChartEntry;
-import de.fimatas.home.client.domain.model.HistoryEntry;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static de.fimatas.home.library.util.HomeUtils.buildDecimalFormat;
 
@@ -81,6 +77,18 @@ public class HistoryViewService {
             fillPowerHistoryMonthViewModel(model, Device.GASZAEHLER, history.getGasConsumptionMonth());
             List<ChartEntry> dayViewModel =
                     viewFormatter.fillPowerHistoryDayViewModel(Device.GASZAEHLER, history.getGasConsumptionDay(), true, false);
+            model.addAttribute("chartEntries", dayViewModel);
+
+        } else if (key.equals(Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT.historyKeyPrefix())) {
+            fillPowerHistoryMonthViewModel(model, Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT, history.getHeatpumpBasementElectricPowerConsumptionMonth());
+            List<ChartEntry> dayViewModel =
+                    viewFormatter.fillPowerHistoryDayViewModel(Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT, history.getHeatpumpBasementElectricPowerConsumptionDay(), true, false);
+            model.addAttribute("chartEntries", dayViewModel);
+
+        } else if (key.equals(Device.WARMTH_POWER_PRODUCTION_COUNTER_HEATPUMP_BASEMENT.historyKeyPrefix())) {
+            fillPowerHistoryMonthViewModel(model, Device.WARMTH_POWER_PRODUCTION_COUNTER_HEATPUMP_BASEMENT, history.getHeatpumpBasementWarmthPowerProductionMonth());
+            List<ChartEntry> dayViewModel =
+                    viewFormatter.fillPowerHistoryDayViewModel(Device.WARMTH_POWER_PRODUCTION_COUNTER_HEATPUMP_BASEMENT, history.getHeatpumpBasementWarmthPowerProductionDay(), true, false);
             model.addAttribute("chartEntries", dayViewModel);
 
         } else if (key.equals(house.getConclusionClimateFacadeMin().getDevice().historyKeyPrefix())) {

@@ -144,7 +144,7 @@ public class HouseViewService {
         formatHeatpumpRoof(model, heatpumpRoofModel, Place.KIDSROOM_1);
         formatHeatpumpRoof(model, heatpumpRoofModel, Place.KIDSROOM_2);
 
-        formatHeatpumpBasement(model, heatpumpBasementModel);
+        formatHeatpumpBasement(model, heatpumpBasementModel, historyModel==null?null:historyModel.getHeatpumpBasementElectricPowerConsumptionDay());
 
         formatLowBattery(model, house.getLowBatteryDevices());
 
@@ -1535,7 +1535,7 @@ public class HouseViewService {
         view.setState(shortText + " - " + longText);
     }
 
-    private void formatHeatpumpBasement(Model model, HeatpumpBasementModel heatpumpBasementModel) {
+    private void formatHeatpumpBasement(Model model, HeatpumpBasementModel heatpumpBasementModel, List<PowerConsumptionDay> pcd) {
 
         var isUnreachable = heatpumpBasementModel == null || heatpumpBasementModel.getDatapoints().isEmpty();
         var isBusy = heatpumpBasementModel != null && heatpumpBasementModel.isBusy();
@@ -1585,15 +1585,48 @@ public class HouseViewService {
         var lastGroup = new AtomicInteger(heatpumpBasementModel.getDatapoints().stream().mapToInt(HeatpumpBasementDatapoint::getGroup).min().orElseThrow());
         heatpumpBasementModel.getDatapoints().stream().filter(dp -> !dp.isHide()).forEach(v -> {
             if(v.getGroup() != lastGroup.get()){
-                view.getDatapoints().add(new ValueWithCaption());
+                var empty = new TableRowView();
+                empty.setValueWithCaption(new ValueWithCaption());
+                view.getDatapoints().add(empty);
             }
+            var tableRow = new TableRowView();
             var val = new ValueWithCaption(v.getValueFormattedLong(), v.getName(), v.getConditionColor() != null ? v.getConditionColor().getUiClass() : view.getColorClass());
             if(v.getValueWithTendency() != null){
                 val.setTendencyIcon(v.getValueWithTendency().getTendency().getIconCssClass());
             }
-            view.getDatapoints().add(val);
+            tableRow.setValueWithCaption(val);
+            if(v.getId().equals(heatpumpBasementModel.getIdConsumption())){
+                if (pcd != null && !pcd.isEmpty()) {
+                    List<ChartEntry> dayViewModel = viewFormatter.fillPowerHistoryDayViewModel(Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT, pcd, false, false);
+                    if (!dayViewModel.isEmpty()) {
+                        tableRow.setSecondRowValue(dayViewModel.get(0).getLabel().trim());
+                        tableRow.setHistoryKey(Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT.historyKeyPrefix());
+                    }
+                }
+
+            }
+            view.getDatapoints().add(tableRow);
             lastGroup.set(v.getGroup());
         });
+
+        // --------
+
+        /*
+        if (pcd != null && !pcd.isEmpty()) {
+            List<ChartEntry> dayViewModel = viewFormatter.fillPowerHistoryDayViewModel(power.getDevice(), pcd, false, false);
+            if (!dayViewModel.isEmpty()) {
+                power.setTodayConsumption(dayViewModel.get(0));
+            }
+        }
+
+        if (power.getTodayConsumption() == null) {
+            power.setElementTitleState("0" + ViewFormatter.powerConsumptionUnit(power.getDevice()));
+        } else {
+            power.setElementTitleState(power.getTodayConsumption().getLabel().replace(ViewFormatter.SUM_SIGN, "").trim());
+        }
+        */
+
+        // --------
 
     }
 

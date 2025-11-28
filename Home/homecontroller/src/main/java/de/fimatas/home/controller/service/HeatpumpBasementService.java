@@ -63,6 +63,12 @@ public class HeatpumpBasementService {
     @Value("${application.heatpumpRefreshEnabled:false}")
     private boolean heatpumpRefreshEnabled;
 
+    @Value("${heatpump.basement.consumption.id:}")
+    private String idConsumption;
+
+    @Value("${heatpump.basement.production.id:}")
+    private String idProduction;
+
     private final CircuitBreaker circuitBreaker;
 
     private final Map<Device, Integer> lastValuesWrote = new HashMap<>();
@@ -186,6 +192,8 @@ public class HeatpumpBasementService {
         }
 
         HeatpumpBasementModel newModel = emptyModel();
+        newModel.setIdConsumption(StringUtils.trimToNull(idConsumption));
+        newModel.setIdProduction(StringUtils.trimToNull(idProduction));
         mapResponseToModel(response, newModel);
 
         if(!request.isReadFromCache()){

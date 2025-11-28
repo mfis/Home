@@ -14,21 +14,22 @@
                 <table style="margin-top: 13px;">
                     <th:block th:each="row : ${model.datapoints}">
                         <tr>
-                            <td th:class="'td-no-border text-' + ${row.cssClass}" style="padding-right: 10px;">
-                                <span th:text="${row.caption}"></span>
+                            <td th:class="'td-no-border text-' + ${row.valueWithCaption.cssClass}" style="padding-right: 10px;">
+                                <span th:text="${row.valueWithCaption.caption}"></span>
                             </td>
-                            <td th:class="'td-no-border text-' + ${row.cssClass}" style="padding-right: 10px;">
-                                <span th:unless="${#strings.isEmpty(row.caption)}" data-bs-toggle="modal">
+                            <td th:class="'td-no-border text-' + ${row.valueWithCaption.cssClass}" style="padding-right: 10px;">
+                                <span th:unless="${#strings.isEmpty(row.valueWithCaption.caption)}" data-bs-toggle="modal">
                                     <th:block th:replace="~{basics :: symbolWithStyle (name='fa-solid fa-arrow-right', style='font-size: 80%;')}"/>
                                 </span>
-                                <span th:if="${#strings.isEmpty(row.caption)}" data-bs-toggle="modal">
+                                <span th:if="${#strings.isEmpty(row.valueWithCaption.caption)}" data-bs-toggle="modal">
                                     <a style='font-size: 60%;'>&nbsp;</a>
                                 </span>
                             </td>
-                            <td th:class="'td-no-border text-' + ${row.cssClass}">
-                                <span style="padding-right: 3px;" th:text="${row.value}"></span>
-                                <th:block th:unless="${#strings.isEmpty(row.tendencyIcon)}" th:replace="~{fragments :: tendency (icon=${row.tendencyIcon})}"></th:block>
+                            <td th:class="'td-no-border text-' + ${row.valueWithCaption.cssClass}">
+                                <span style="padding-right: 3px;" th:text="${row.valueWithCaption.value}"></span>
+                                <th:block th:unless="${#strings.isEmpty(row.valueWithCaption.tendencyIcon)}" th:replace="~{fragments :: tendency (icon=${row.valueWithCaption.tendencyIcon})}"></th:block>
                             </td>
+                            <td><a th:text="${row.secondRowValue}"></a><th:block th:replace="~{fragments :: historyLink (key=${row.historyKey}, name='Stromverbrauch' + ' Gesamt ', place='')}"></th:block></td>
                         </tr>
                     </th:block>
                     <tr><td height="15px"></td></tr>
