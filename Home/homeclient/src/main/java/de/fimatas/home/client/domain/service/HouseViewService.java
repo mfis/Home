@@ -1599,7 +1599,7 @@ public class HouseViewService {
                 if (pcd != null && !pcd.isEmpty()) {
                     List<ChartEntry> dayViewModel = viewFormatter.fillPowerHistoryDayViewModel(Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT, pcd, false, false);
                     if (!dayViewModel.isEmpty()) {
-                        tableRow.setSecondRowValue(dayViewModel.get(0).getLabel().trim());
+                        tableRow.setSecondRowValue(dayViewModel.get(0).getLabel().trim()); // 0=heute, 1=gestern
                         tableRow.setHistoryKey(Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT.historyKeyPrefix());
                     }
                 }

@@ -9,7 +9,7 @@ public class TableRowView {
 
     private ValueWithCaption valueWithCaption;
 
-    private String secondRowValue;
+    private String secondRowValue = null;
 
     private String historyKey;
 }

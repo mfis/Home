@@ -29,12 +29,33 @@
                                 <span style="padding-right: 3px;" th:text="${row.valueWithCaption.value}"></span>
                                 <th:block th:unless="${#strings.isEmpty(row.valueWithCaption.tendencyIcon)}" th:replace="~{fragments :: tendency (icon=${row.valueWithCaption.tendencyIcon})}"></th:block>
                             </td>
-                            <td><a th:text="${row.secondRowValue}"></a><th:block th:replace="~{fragments :: historyLink (key=${row.historyKey}, name='Stromverbrauch' + ' Gesamt ', place='')}"></th:block></td>
+                        </tr>
+                        <tr th:if="${row.secondRowValue != null}">
+                            <td th:class="'td-no-border text-' + ${row.valueWithCaption.cssClass}">
+                                <span style="transform: translateY(-3px); display: inline-block;">&nbsp;&#x21B3;</span>
+                                <span>Heute</span>
+                                <span><sup>(*)</sup></span>
+                            </td>
+                            <td th:class="'td-no-border text-' + ${row.valueWithCaption.cssClass}">
+                                <span>
+                                    <th:block th:replace="~{basics :: symbolWithStyle (name='fa-solid fa-arrow-right', style='font-size: 80%;')}"/>
+                                </span>
+                            </td>
+                            <td th:class="'td-no-border text-' + ${row.valueWithCaption.cssClass}">
+                                <span th:class="'text-' + ${row.valueWithCaption.cssClass}" th:text="${row.secondRowValue}"></span>
+                                <th:block th:replace="~{fragments :: historyLink (key=${row.historyKey}, name='Stromverbrauch' + ' Gesamt ', place='')}"></th:block>
+                            </td>
                         </tr>
                     </th:block>
                     <tr><td height="15px"></td></tr>
                     <tr>
                         <td colspan="3" class="text-secondary" style="font-size: 80%; text-align: left;" th:text="${model.timestamp}"></td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" class="text-secondary" style="font-size: 80%; text-align: left;">
+                            <span><sup>(*)</sup></span>
+                            <span>Werte können zeitverzögert sein</span>
+                        </td>
                     </tr>
                 </table>
 
