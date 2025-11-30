@@ -12,4 +12,6 @@ public class TableRowView {
     private String secondRowValue = null;
 
     private String historyKey;
+
+    private String historyCaption;
 }

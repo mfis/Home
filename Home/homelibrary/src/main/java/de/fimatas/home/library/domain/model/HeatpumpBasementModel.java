@@ -1,10 +1,13 @@
 package de.fimatas.home.library.domain.model;
 
+import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.model.ConditionColor;
 import lombok.Data;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class HeatpumpBasementModel extends AbstractSystemModel {
@@ -19,8 +22,7 @@ public class HeatpumpBasementModel extends AbstractSystemModel {
 
     private final List<HeatpumpBasementDatapoint> datapoints = new LinkedList<>();
 
-    private String idConsumption = "";
-    private String idProduction = "";
+    private Map<String, Device> historyIdsAndDevices = new HashMap<>();
 
     public HeatpumpBasementModel() {
         timestamp = System.currentTimeMillis();

@@ -192,8 +192,8 @@ public class HeatpumpBasementService {
         }
 
         HeatpumpBasementModel newModel = emptyModel();
-        newModel.setIdConsumption(StringUtils.trimToNull(idConsumption));
-        newModel.setIdProduction(StringUtils.trimToNull(idProduction));
+        newModel.getHistoryIdsAndDevices().put(idConsumption, Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT);
+        newModel.getHistoryIdsAndDevices().put(idProduction, Device.WARMTH_POWER_PRODUCTION_COUNTER_HEATPUMP_BASEMENT);
         mapResponseToModel(response, newModel);
 
         if(!request.isReadFromCache()){

@@ -43,7 +43,7 @@
                             </td>
                             <td th:class="'td-no-border text-' + ${row.valueWithCaption.cssClass}">
                                 <span th:class="'text-' + ${row.valueWithCaption.cssClass}" th:text="${row.secondRowValue}"></span>
-                                <th:block th:replace="~{fragments :: historyLink (key=${row.historyKey}, name='Stromverbrauch' + ' Gesamt ', place='')}"></th:block>
+                                <th:block th:replace="~{fragments :: historyLink (key=${row.historyKey}, name=${row.historyCaption} + ' Wärmepumpe', place='')}"></th:block>
                             </td>
                         </tr>
                     </th:block>
@@ -51,7 +51,7 @@
                     <tr>
                         <td colspan="3" class="text-secondary" style="font-size: 80%; text-align: left;" th:text="${model.timestamp}"></td>
                     </tr>
-                    <tr>
+                    <tr th:if="${#strings.startsWith(model.linkRefresh, '#')}">
                         <td colspan="3" class="text-secondary" style="font-size: 80%; text-align: left;">
                             <span><sup>(*)</sup></span>
                             <span>Werte können zeitverzögert sein</span>
