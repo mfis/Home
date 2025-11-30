@@ -144,7 +144,7 @@ public class HouseViewService {
         formatHeatpumpRoof(model, heatpumpRoofModel, Place.KIDSROOM_1);
         formatHeatpumpRoof(model, heatpumpRoofModel, Place.KIDSROOM_2);
 
-        formatHeatpumpBasement(model, heatpumpBasementModel, historyModel==null?null:historyModel.getHeatpumpBasementElectricPowerConsumptionDay());
+        formatHeatpumpBasement(username, model, heatpumpBasementModel, historyModel==null?null:historyModel.getHeatpumpBasementElectricPowerConsumptionDay());
 
         formatLowBattery(model, house.getLowBatteryDevices());
 
@@ -1535,7 +1535,7 @@ public class HouseViewService {
         view.setState(shortText + " - " + longText);
     }
 
-    private void formatHeatpumpBasement(Model model, HeatpumpBasementModel heatpumpBasementModel, List<PowerConsumptionDay> pcd) {
+    private void formatHeatpumpBasement(String username, Model model, HeatpumpBasementModel heatpumpBasementModel, List<PowerConsumptionDay> pcd) {
 
         var isUnreachable = heatpumpBasementModel == null || heatpumpBasementModel.getDatapoints().isEmpty();
         var isBusy = heatpumpBasementModel != null && heatpumpBasementModel.isBusy();
@@ -1611,26 +1611,6 @@ public class HouseViewService {
             view.getDatapoints().add(tableRow);
             lastGroup.set(v.getGroup());
         });
-
-        // --------
-
-        /*
-        if (pcd != null && !pcd.isEmpty()) {
-            List<ChartEntry> dayViewModel = viewFormatter.fillPowerHistoryDayViewModel(power.getDevice(), pcd, false, false);
-            if (!dayViewModel.isEmpty()) {
-                power.setTodayConsumption(dayViewModel.get(0));
-            }
-        }
-
-        if (power.getTodayConsumption() == null) {
-            power.setElementTitleState("0" + ViewFormatter.powerConsumptionUnit(power.getDevice()));
-        } else {
-            power.setElementTitleState(power.getTodayConsumption().getLabel().replace(ViewFormatter.SUM_SIGN, "").trim());
-        }
-        */
-
-        // --------
-
     }
 
     private Optional<HeatpumpBasementDatapoint> readHeatpumpBasementDatapoint(HeatpumpBasementModel heatpumpBasementModel, HeatpumpBasementDatapoints datapointToRead) {
