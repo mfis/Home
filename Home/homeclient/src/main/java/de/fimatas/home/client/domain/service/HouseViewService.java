@@ -144,7 +144,7 @@ public class HouseViewService {
         formatHeatpumpRoof(model, heatpumpRoofModel, Place.KIDSROOM_1);
         formatHeatpumpRoof(model, heatpumpRoofModel, Place.KIDSROOM_2);
 
-        formatHeatpumpBasement(username, model, heatpumpBasementModel, historyModel==null?null:historyModel.getHeatpumpBasementElectricPowerConsumptionDay());
+        formatHeatpumpBasement(username, model, heatpumpBasementModel);
 
         formatLowBattery(model, house.getLowBatteryDevices());
 
@@ -1535,7 +1535,7 @@ public class HouseViewService {
         view.setState(shortText + " - " + longText);
     }
 
-    private void formatHeatpumpBasement(String username, Model model, HeatpumpBasementModel heatpumpBasementModel, List<PowerConsumptionDay> pcd) {
+    private void formatHeatpumpBasement(String username, Model model, HeatpumpBasementModel heatpumpBasementModel) {
 
         var isUnreachable = heatpumpBasementModel == null || heatpumpBasementModel.getDatapoints().isEmpty();
         var isBusy = heatpumpBasementModel != null && heatpumpBasementModel.isBusy();
@@ -1595,9 +1595,14 @@ public class HouseViewService {
                 val.setTendencyIcon(v.getValueWithTendency().getTendency().getIconCssClass());
             }
             tableRow.setValueWithCaption(val);
-            // FIXME: username
-            if(username.contains("s") && heatpumpBasementModel.getHistoryIdsAndDevices().containsKey(v.getId())){
+            var historyModel = ModelObjectDAO.getInstance().readHistoryModel();
+            if(heatpumpBasementModel.getHistoryIdsAndDevices().containsKey(v.getId()) && historyModel != null){
                 var historyDevice = heatpumpBasementModel.getHistoryIdsAndDevices().get(v.getId());
+                var pcd = switch(historyDevice) {
+                    case ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT -> historyModel.getHeatpumpBasementElectricPowerConsumptionDay();
+                    case WARMTH_POWER_PRODUCTION_COUNTER_HEATPUMP_BASEMENT -> historyModel.getHeatpumpBasementWarmthPowerProductionDay();
+                    default -> null;
+                };
                 if (pcd != null && !pcd.isEmpty()) {
                     List<ChartEntry> dayViewModel = viewFormatter.fillPowerHistoryDayViewModel(historyDevice, pcd, false, false);
                     if (!dayViewModel.isEmpty()) {
