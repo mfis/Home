@@ -1020,7 +1020,7 @@ public class HouseViewService {
         }
 
         if(ModelObjectDAO.getInstance().readHeatpumpRoofModel() == null) {
-            copy.add("Wärmepumpe Dach Status unbekannt!");
+            // copy.add("Wärmepumpe Dach Status unbekannt!"); // FIXME: HEATPUMP_ROOF
         }
 
         if(ModelObjectDAO.getInstance().readHeatpumpBasementModel() == null) {

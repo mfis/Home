@@ -14,13 +14,13 @@ import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.apachecommons.CommonsLog;
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Component;
@@ -97,11 +97,11 @@ public class HeatpumpRoofService {
         dictPlaceToRoomNameInDriver.keySet().forEach(place -> placeScheduler.put(place, Optional.empty()));
     }
 
-    @Scheduled(cron = "50 4/10 * * * *")
+    // @Scheduled(cron = "50 4/10 * * * *") // FIXME: HEATPUMP_ROOF
     public void scheduledRefreshFromDriverCache() {
         if(!isRestartInTimerangeMinutes(10)) {
             try {
-                refreshHeatpumpRoofModel(true);
+                // refreshHeatpumpRoofModel(true); // FIXME: HEATPUMP_ROOF
             } catch (Exception e) {
                 handleException(e, "Could not call heatpump service (with-cache)");
             }
@@ -392,6 +392,10 @@ public class HeatpumpRoofService {
     }
 
     private synchronized HeatpumpResponse callDriver(HeatpumpRequest request){
+
+        if("".isEmpty()){ // FIXME: HEATPUMP_ROOF
+            throw new NotImplementedException("Not implemented yet");
+        }
 
         try {
             ResponseEntity<HeatpumpResponse> response = externalServiceHttpAPI.postForHeatpumpRoofEntity(
