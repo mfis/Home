@@ -56,7 +56,7 @@ public class LoginInterceptor implements HandlerInterceptor {
             LoginController.LOGIN_VIA_APP_FAILED_URI, AppRequestMapping.URI_WHOAMI, AppRequestMapping.URI_CREATE_AUTH_TOKEN,
                 LoginController.LOGIN_INTERRUPTED_URI);
 
-    private final Set<String> WHITELIST_URIS = Set.of("/error", "/robots.txt");
+    private final Set<String> WHITELIST_URIS = Set.of("/error", "/robots.txt", "/users");
     private Set<String> WHITELIST_URIS_DYNAMIC;
 
     private static final Set<String> WHITELIST_EXTENSIONS =

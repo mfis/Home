@@ -15,7 +15,10 @@ import de.fimatas.home.library.model.MaintenanceOptions;
 import de.fimatas.home.library.model.Message;
 import de.fimatas.home.library.model.MessageType;
 import de.fimatas.home.library.model.Pages;
+import de.fimatas.users.api.EndpointController;
 import de.fimatas.users.api.UserAPI;
+import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -28,6 +31,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -68,9 +72,11 @@ public class HomeRequestMapping {
     @Autowired
     private UserAPI userAPI;
 
+    @Inject
+    private EndpointController endpointController;
+
     @Value("${appdistribution.web.url}")
     private String appdistributionWebUrl;
-
 
     @GetMapping("/message")
     public String message(
@@ -239,6 +245,11 @@ public class HomeRequestMapping {
             log.warn("HomeRequestMapping#homePage slow response: " + ldiff + " ms!");
         }
         return returnTemplate;
+    }
+
+    @RequestMapping("/users")
+    public void users(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws IOException {
+        endpointController.requestVerarbeiten(httpServletRequest, httpServletResponse);
     }
 
     private void handlePushToken(String appPushToken, String userName, String client) {
