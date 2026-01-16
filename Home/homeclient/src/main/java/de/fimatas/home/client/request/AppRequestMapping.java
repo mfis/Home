@@ -13,9 +13,8 @@ import de.fimatas.home.library.domain.model.PushMessageModel;
 import de.fimatas.home.library.model.Message;
 import de.fimatas.home.library.model.MessageType;
 import de.fimatas.home.library.model.SettingsModel;
-import mfi.files.api.DeviceType;
-import mfi.files.api.TokenResult;
-import mfi.files.api.UserService;
+import de.fimatas.users.api.TokenResult;
+import de.fimatas.users.api.UserAPI;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -43,7 +42,7 @@ public class AppRequestMapping {
     public static final String URI_WHOAMI = "/whoami";
 
     @Autowired
-    private UserService userService;
+    private UserAPI userAPI;
 
     @Autowired
     private HouseViewService houseView;
@@ -71,7 +70,7 @@ public class AppRequestMapping {
     public AppTokenCreationModel createAuthToken(@RequestParam("user") String user, @RequestParam("pass") String pass,
             @RequestParam("device") String device) {
 
-        TokenResult result = userService.createToken(user, pass, device, DeviceType.APP);
+        TokenResult result = userAPI.createToken(user, pass, applicationIdentifier, device);
         AppTokenCreationModel model = new AppTokenCreationModel();
         model.setSuccess(result.isCheckOk());
         model.setToken(StringUtils.trimToEmpty(result.getNewToken()));

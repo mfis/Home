@@ -1,17 +1,22 @@
 package de.fimatas.home.client.request;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-
 import de.fimatas.home.client.domain.model.ValueWithCaption;
+import de.fimatas.home.client.domain.service.HistoryViewService;
+import de.fimatas.home.client.domain.service.HouseViewService;
+import de.fimatas.home.client.model.MessageQueue;
+import de.fimatas.home.client.service.LoginInterceptor;
+import de.fimatas.home.client.service.SettingsViewService;
+import de.fimatas.home.client.service.ViewAttributesDAO;
+import de.fimatas.home.library.dao.ModelObjectDAO;
+import de.fimatas.home.library.domain.model.HouseModel;
+import de.fimatas.home.library.domain.model.Place;
+import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.model.MaintenanceOptions;
+import de.fimatas.home.library.model.Message;
+import de.fimatas.home.library.model.MessageType;
+import de.fimatas.home.library.model.Pages;
+import de.fimatas.users.api.UserAPI;
 import jakarta.servlet.http.HttpServletResponse;
-
-import de.fimatas.home.library.domain.model.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -21,23 +26,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import de.fimatas.home.client.domain.service.HistoryViewService;
-import de.fimatas.home.client.domain.service.HouseViewService;
-import de.fimatas.home.client.model.MessageQueue;
-import de.fimatas.home.client.service.LoginInterceptor;
-import de.fimatas.home.client.service.SettingsViewService;
-import de.fimatas.home.client.service.ViewAttributesDAO;
-import de.fimatas.home.library.dao.ModelObjectDAO;
-import de.fimatas.home.library.homematic.model.Device;
-import de.fimatas.home.library.model.Message;
-import de.fimatas.home.library.model.MessageType;
-import de.fimatas.home.library.model.Pages;
-import mfi.files.api.UserService;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
 
 import static de.fimatas.home.client.domain.service.HouseViewService.*;
 
@@ -70,7 +66,7 @@ public class HomeRequestMapping {
     private SettingsViewService settingsViewService;
 
     @Autowired
-    private UserService userService;
+    private UserAPI userAPI;
 
     @Value("${appdistribution.web.url}")
     private String appdistributionWebUrl;
@@ -103,7 +99,7 @@ public class HomeRequestMapping {
                 + value + ", isApp=" + isNativeApp + ", pinLength=" + StringUtils.trimToEmpty(securityPin).length());
         }
 
-        String userName = isNativeApp ? appUserName : userService.userNameFromLoginCookie(userCookie);
+        String userName = isNativeApp ? appUserName : userAPI.userNameFromLoginCookie(userCookie);
 
         if (!isPinBlankOrSetAndCorrect(userName, securityPin)) {
             prepareErrorMessage(isNativeApp, "Die eingegebene PIN ist nicht korrekt.", userCookie, httpServletResponse);
@@ -145,7 +141,7 @@ public class HomeRequestMapping {
     }
 
     private boolean isPinBlankOrSetAndCorrect(String userName, String securityPin) {
-        return StringUtils.isBlank(securityPin) || userService.checkPin(userName, securityPin);
+        return StringUtils.isBlank(securityPin) || userAPI.checkPin(userName, securityPin);
     }
 
     @GetMapping("/history")
@@ -206,7 +202,7 @@ public class HomeRequestMapping {
         boolean isWebViewApp = StringUtils.equals(userAgent, ControllerUtil.USER_AGENT_APP_WEB_VIEW);
 
         if (isWebViewApp) {
-            handlePushToken(appPushToken, userService.userNameFromLoginCookie(userCookie), clientName);
+            handlePushToken(appPushToken, userAPI.userNameFromLoginCookie(userCookie), clientName);
         }
 
         boolean isNewMessage = ViewAttributesDAO.getInstance().isPresent(userCookie, ViewAttributesDAO.MESSAGE);
@@ -220,7 +216,7 @@ public class HomeRequestMapping {
                 response.setStatus(HttpStatus.NOT_MODIFIED.value());
                 returnTemplate =  "empty";
             } else {
-                String user = userService.userNameFromLoginCookie(userCookie);
+                String user = userAPI.userNameFromLoginCookie(userCookie);
                 houseView.fillViewModel(model, user, houseModel, ModelObjectDAO.getInstance().readHistoryModel(),
                     ModelObjectDAO.getInstance().readLightsModel(), ModelObjectDAO.getInstance().readWeatherForecastModel(), ModelObjectDAO.getInstance().readPresenceModel(), ModelObjectDAO.getInstance().readHeatpumpRoofModel(), ModelObjectDAO.getInstance().readHeatpumpBasementModel(), ModelObjectDAO.getInstance().readElectricVehicleModel(), ModelObjectDAO.getInstance().readPushMessageModel(), ModelObjectDAO.getInstance().readTasksModel(), ModelObjectDAO.getInstance().readPvAdditionalDataModel());
                 returnTemplate =  Objects.requireNonNull(Pages.getEntry(Pages.PATH_HOME)).getTemplate();
@@ -300,7 +296,7 @@ public class HomeRequestMapping {
     }
 
     private void fillUserAttributes(Model model, String userCookie) {
-        String user = userService.userNameFromLoginCookie(userCookie);
+        String user = userAPI.userNameFromLoginCookie(userCookie);
         if (user != null) {
             model.addAttribute(ViewAttributesDAO.USER_NAME, user);
         }

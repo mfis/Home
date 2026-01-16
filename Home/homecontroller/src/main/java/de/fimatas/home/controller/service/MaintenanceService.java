@@ -1,13 +1,13 @@
 package de.fimatas.home.controller.service;
 
 import de.fimatas.home.controller.api.HomematicAPI;
+import de.fimatas.home.controller.api.UserRemoteAPI;
 import de.fimatas.home.controller.command.HomematicCommandBuilder;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.model.MaintenanceOptions;
 import de.fimatas.home.library.model.Message;
 import lombok.extern.apachecommons.CommonsLog;
-import mfi.files.api.UserService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -24,7 +24,7 @@ import java.net.UnknownHostException;
 public class MaintenanceService {
 
     @Autowired
-    private UserService userService;
+    private UserRemoteAPI userRemoteAPI;
 
     @Autowired
     private ClientCommunicationService clientCommunicationService;
@@ -43,7 +43,7 @@ public class MaintenanceService {
 
     public void doMaintenance(Message message){
         if (StringUtils.isNotBlank(message.getSecurityPin())
-                && userService.checkPin(message.getUser(), message.getSecurityPin())) {
+                && userRemoteAPI.checkPIN(message.getUser(), message.getSecurityPin())) {
 
             var maintenanceOption = MaintenanceOptions.valueOf(message.getValue());
             log.warn("DO_MAINTENANCE: " + maintenanceOption);

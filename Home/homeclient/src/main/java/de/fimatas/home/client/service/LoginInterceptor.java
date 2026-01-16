@@ -1,18 +1,16 @@
 package de.fimatas.home.client.service;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import de.fimatas.home.client.request.AppRequestMapping;
+import de.fimatas.home.client.request.ControllerRequestMapping;
+import de.fimatas.home.client.request.ControllerUtil;
+import de.fimatas.home.library.model.Pages;
+import de.fimatas.home.library.util.HomeAppConstants;
+import de.fimatas.users.api.TokenResult;
+import de.fimatas.users.api.UserAPI;
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
-import de.fimatas.home.client.request.ControllerUtil;
-import jakarta.servlet.http.Cookie;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -24,13 +22,14 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.web.servlet.HandlerInterceptor;
-import de.fimatas.home.client.request.AppRequestMapping;
-import de.fimatas.home.client.request.ControllerRequestMapping;
-import de.fimatas.home.library.model.Pages;
-import de.fimatas.home.library.util.HomeAppConstants;
-import mfi.files.api.DeviceType;
-import mfi.files.api.TokenResult;
-import mfi.files.api.UserService;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 public class LoginInterceptor implements HandlerInterceptor {
 
@@ -68,10 +67,13 @@ public class LoginInterceptor implements HandlerInterceptor {
     );
 
     @Autowired
-    private UserService userService;
+    private UserAPI userAPI;
 
     @Autowired
     private Environment env;
+
+    @Value("${application.identifier}")
+    private String applicationIdentifier;
 
     @Value("${server.servlet.session.cookie.secure}")
     private String cookieSecure;
@@ -188,14 +190,12 @@ public class LoginInterceptor implements HandlerInterceptor {
 
         String oldCookie = cookieRead(request);
         if (checkUser(oldCookie)) {
-            userService.deleteToken(userService.userNameFromLoginCookie(oldCookie), request.getHeader(USER_AGENT),
-                DeviceType.BROWSER);
+            userAPI.deleteToken(userAPI.userNameFromLoginCookie(oldCookie), applicationIdentifier, request.getHeader(USER_AGENT));
             cookieDelete(response);
         }
 
         if (StringUtils.isNoneBlank(request.getHeader(APP_DEVICE), request.getHeader(APP_USER_TOKEN))) {
-            userService.deleteToken(userService.userNameFromLoginCookie(request.getHeader(APP_USER_TOKEN)),
-                request.getHeader(APP_DEVICE), DeviceType.APP);
+            userAPI.deleteToken(userAPI.userNameFromLoginCookie(request.getHeader(APP_USER_TOKEN)), applicationIdentifier, request.getHeader(APP_DEVICE));
         }
     }
 
@@ -221,8 +221,8 @@ public class LoginInterceptor implements HandlerInterceptor {
 
         boolean refreshToken = BooleanUtils.toBoolean(request.getHeader("refreshToken")) && doLoginTokenRefreshForNativeApps;
 
-        TokenResult tokenResult = userService.checkToken(request.getHeader(APP_USER_NAME), request.getHeader(APP_USER_TOKEN),
-            request.getHeader(APP_DEVICE), DeviceType.APP, refreshToken);
+        TokenResult tokenResult = userAPI.checkToken(request.getHeader(APP_USER_NAME), request.getHeader(APP_USER_TOKEN), applicationIdentifier,
+            request.getHeader(APP_DEVICE), refreshToken);
 
         if (tokenResult.isCheckOk()) {
             if (refreshToken) {
@@ -230,9 +230,9 @@ public class LoginInterceptor implements HandlerInterceptor {
                 if(log.isDebugEnabled()){
                     log.debug("REFRESHED TOKEN: " + StringUtils.substring(tokenResult.getNewToken(), 0, 50));
                 }
-                return userService.userNameFromLoginCookie(tokenResult.getNewToken());
+                return userAPI.userNameFromLoginCookie(tokenResult.getNewToken());
             } else {
-                return userService.userNameFromLoginCookie(request.getHeader(APP_USER_TOKEN));
+                return userAPI.userNameFromLoginCookie(request.getHeader(APP_USER_TOKEN));
             }
         } else {
             response.setStatus(HttpStatus.UNAUTHORIZED.value()); // 401
@@ -245,8 +245,7 @@ public class LoginInterceptor implements HandlerInterceptor {
 
         String loginUser = StringUtils.trimToEmpty(params.get(LOGIN_USERNAME));
         String loginPass = StringUtils.trimToEmpty(params.get(LOGIN_PASSWORD));
-        TokenResult tokenResult =
-            userService.createToken(loginUser, loginPass, request.getHeader(USER_AGENT), DeviceType.BROWSER);
+        TokenResult tokenResult = userAPI.createToken(loginUser, loginPass, applicationIdentifier, request.getHeader(USER_AGENT));
         if (tokenResult.isCheckOk()) {
             cookieWrite(response, tokenResult.getNewToken());
             return loginUser;
@@ -268,15 +267,15 @@ public class LoginInterceptor implements HandlerInterceptor {
         boolean isWebViewApp = StringUtils.equals(request.getHeader(USER_AGENT), ControllerUtil.USER_AGENT_APP_WEB_VIEW);
         boolean loginTokenRefresh = !isAjaxRequest && (!isWebViewApp || doLoginTokenRefreshForNativeApps);
 
-        TokenResult tokenResult = userService.checkToken(userService.userNameFromLoginCookie(token), token,
-            request.getHeader(USER_AGENT), DeviceType.BROWSER, loginTokenRefresh);
+        TokenResult tokenResult = userAPI.checkToken(userAPI.userNameFromLoginCookie(token), token, applicationIdentifier,
+            request.getHeader(USER_AGENT), loginTokenRefresh);
 
         if (tokenResult.isCheckOk()) {
             if (loginTokenRefresh) {
                 cookieWrite(response, tokenResult.getNewToken());
-                return userService.userNameFromLoginCookie(tokenResult.getNewToken());
+                return userAPI.userNameFromLoginCookie(tokenResult.getNewToken());
             } else {
-                return userService.userNameFromLoginCookie(token);
+                return userAPI.userNameFromLoginCookie(token);
             }
         } else {
             if(tokenResult.isTimeout()){
