@@ -15,6 +15,7 @@ public enum PushNotifications {
     ATTENTION("Achtung!", "Warnmeldungen",true), //
     TASKS("", "Aufgaben",true), //
     DOOR_LOCK("Haustür", "Türverriegelung",true), //
+    CLIENT_ERROR("Client-Fehler", "Client-Fehler",true), //
     ;
 
     @Getter

@@ -196,6 +196,9 @@ public class ClientCommunicationService {
             case MAINTENANCE:
                 maintenanceService.doMaintenance(message);
                 break;
+            case CLIENT_ERROR_PUSH_MESSAGE:
+                pushService.clientError(message.getValue());
+                break;
             default:
                 throw new IllegalStateException("Unknown MessageType:" + message.getMessageType().name());
             }

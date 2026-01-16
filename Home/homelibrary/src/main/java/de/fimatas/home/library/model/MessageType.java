@@ -28,6 +28,7 @@ public enum MessageType {
     PV_OVERFLOW_MIN_PATTERY_PERCENTAGE(Pages.PATH_HOME), //
     TASKS_EXECUTION(Pages.PATH_HOME), //
     MAINTENANCE(Pages.PATH_MAINTENANCE), //
+    CLIENT_ERROR_PUSH_MESSAGE(null), //
     ;//
 
     private final String targetSite;

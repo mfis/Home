@@ -273,6 +273,16 @@ public class PushService {
         }
     }
 
+    public void clientError(String message) {
+
+        try {
+            settingsService.listTokensWithEnabledSetting(PushNotifications.CLIENT_ERROR).forEach(pushToken ->
+                    handleMessage(pushToken, PushNotifications.CLIENT_ERROR.getPushText(), message));
+        } catch (Exception e) {
+            LogFactory.getLog(PushService.class).error("Could not [clientError] push notifications:", e);
+        }
+    }
+
     public void testMessage(String user) {
         final PushToken pushToken = settingsService.tokenForUser(user);
         if(pushToken != null){
