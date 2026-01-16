@@ -31,6 +31,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import static de.fimatas.home.library.util.HomeAppConstants.USERS_CHECK_PIN_URI;
+
 public class LoginInterceptor implements HandlerInterceptor {
 
     public static final String COOKIE_NAME = "HomeLoginCookie";
@@ -325,8 +327,9 @@ public class LoginInterceptor implements HandlerInterceptor {
     }
 
     private boolean isControllerRequest(HttpServletRequest request) {
-        return StringUtils.startsWith(request.getRequestURI(), ControllerRequestMapping.UPLOAD_METHOD_PREFIX) || StringUtils
-            .equals(request.getRequestURI(), ControllerRequestMapping.CONTROLLER_LONG_POLLING_FOR_AWAIT_MESSAGE_REQUEST);
+        return StringUtils.startsWith(request.getRequestURI(), ControllerRequestMapping.UPLOAD_METHOD_PREFIX)
+                || StringUtils.equals(request.getRequestURI(), ControllerRequestMapping.CONTROLLER_LONG_POLLING_FOR_AWAIT_MESSAGE_REQUEST)
+                || StringUtils.equals(request.getRequestURI(), USERS_CHECK_PIN_URI) ;
     }
 
     private boolean isLoginRequest(HttpServletRequest request) {

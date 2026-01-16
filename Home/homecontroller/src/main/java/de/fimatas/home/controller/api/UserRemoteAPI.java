@@ -1,9 +1,11 @@
 package de.fimatas.home.controller.api;
 
+import de.fimatas.home.library.util.HomeAppConstants;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -13,6 +15,8 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import static de.fimatas.home.library.util.HomeAppConstants.USERS_CHECK_PIN_URI;
+
 @Component
 @CommonsLog
 public class UserRemoteAPI {
@@ -21,6 +25,9 @@ public class UserRemoteAPI {
     @Qualifier("restTemplateHue")
     private RestTemplate restTemplateHue;
 
+    @Autowired
+    private Environment env;
+
     @Value("${client.hostName:}")
     private String host;
 
@@ -28,9 +35,12 @@ public class UserRemoteAPI {
 
         try {
             RestTemplate restTemplate = new RestTemplate();
-            String url = host + "/checkPIN";
+            String url = host + USERS_CHECK_PIN_URI;
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+            headers.set(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN,
+                    //env.getProperty(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN));
+                    "xyz"); // FIXME
 
             MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
             map.add("username", username);
