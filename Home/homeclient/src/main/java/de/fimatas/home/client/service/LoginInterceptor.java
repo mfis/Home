@@ -7,6 +7,7 @@ import de.fimatas.home.library.model.Pages;
 import de.fimatas.home.library.util.HomeAppConstants;
 import de.fimatas.users.api.TokenResult;
 import de.fimatas.users.api.UserAPI;
+import de.fimatas.users.api.UsersConstants;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,8 +31,6 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-
-import static de.fimatas.home.library.util.HomeAppConstants.USERS_CHECK_PIN_URI;
 
 public class LoginInterceptor implements HandlerInterceptor {
 
@@ -333,7 +332,7 @@ public class LoginInterceptor implements HandlerInterceptor {
     private boolean isControllerRequest(HttpServletRequest request) {
         return StringUtils.startsWith(request.getRequestURI(), ControllerRequestMapping.UPLOAD_METHOD_PREFIX)
                 || StringUtils.equals(request.getRequestURI(), ControllerRequestMapping.CONTROLLER_LONG_POLLING_FOR_AWAIT_MESSAGE_REQUEST)
-                || StringUtils.equals(request.getRequestURI(), USERS_CHECK_PIN_URI) ;
+                || StringUtils.equals(request.getRequestURI(), UsersConstants.USERS_CHECK_PIN_PATH) ;
     }
 
     private boolean isLoginRequest(HttpServletRequest request) {

@@ -66,6 +66,11 @@
 			</dependency>
 			<dependency>
 				<groupId>de.fimatas</groupId>
+				<artifactId>users-api</artifactId>
+				<version>${de.fimatas.users.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>de.fimatas</groupId>
 				<artifactId>users-impl</artifactId>
 				<version>${de.fimatas.users.version}</version>
 			</dependency>

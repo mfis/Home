@@ -17,6 +17,7 @@ import de.fimatas.home.library.model.MessageType;
 import de.fimatas.home.library.model.Pages;
 import de.fimatas.users.api.EndpointController;
 import de.fimatas.users.api.UserAPI;
+import de.fimatas.users.api.UsersConstants;
 import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -247,7 +248,7 @@ public class HomeRequestMapping {
         return returnTemplate;
     }
 
-    @RequestMapping("/users/**")
+    @RequestMapping(UsersConstants.USERS_CONTROLLER_ANT_PATH)
     public void users(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws IOException {
         endpointController.requestVerarbeiten(httpServletRequest, httpServletResponse);
     }

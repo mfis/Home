@@ -1,7 +1,7 @@
 package de.fimatas.home.controller.service;
 
 import de.fimatas.home.controller.api.HomematicAPI;
-import de.fimatas.home.controller.api.UserRemoteAPI;
+import de.fimatas.home.controller.api.UsersRemoteAPI;
 import de.fimatas.home.controller.command.HomematicCommandBuilder;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.homematic.model.Device;
@@ -24,7 +24,7 @@ import java.net.UnknownHostException;
 public class MaintenanceService {
 
     @Autowired
-    private UserRemoteAPI userRemoteAPI;
+    private UsersRemoteAPI userRemoteAPI;
 
     @Autowired
     private ClientCommunicationService clientCommunicationService;

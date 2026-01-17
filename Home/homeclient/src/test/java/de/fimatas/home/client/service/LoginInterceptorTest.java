@@ -1,20 +1,9 @@
 package de.fimatas.home.client.service;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
-
+import de.fimatas.users.api.TokenResult;
+import de.fimatas.users.api.UserAPI;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-
-import mfi.files.api.DeviceType;
-import mfi.files.api.TokenResult;
-import mfi.files.api.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,9 +15,19 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
+
 @SpringBootTest
 @AutoConfigureMockMvc
 class LoginInterceptorTest {
+
+
 
     static final String THE_USER_NAME = "theUserName";
     static final String THE_DEVICE = "theDevice";
@@ -36,40 +35,36 @@ class LoginInterceptorTest {
     static final String THE_USER_AGENT = "theUserAgent";
     static final String THE_TOKEN = "theToken";
     static final String THE_NEW_TOKEN = "theNewToken";
+    static final String THE_APPLICATION = "de_fimatas_homeclient";
 
     @Autowired
     private MockMvc mockMvc;
 
     @MockBean
-    private UserService userService;
+    private UserAPI userAPI;
 
     @BeforeEach
     public void beforeEach(){
 
-        given(userService.userNameFromLoginCookie(anyString())).willReturn(null);
-        given(userService.userNameFromLoginCookie(THE_TOKEN)).willReturn(THE_USER_NAME);
-        given(userService.userNameFromLoginCookie(THE_NEW_TOKEN)).willReturn(THE_USER_NAME);
+        given(userAPI.userNameFromLoginCookie(anyString())).willReturn(null);
+        given(userAPI.userNameFromLoginCookie(THE_TOKEN)).willReturn(THE_USER_NAME);
+        given(userAPI.userNameFromLoginCookie(THE_NEW_TOKEN)).willReturn(THE_USER_NAME);
 
-        given(userService.deleteToken(THE_USER_NAME, THE_USER_AGENT, DeviceType.BROWSER)).willReturn(true);
-
-        given(userService.createToken(anyString(), anyString(), anyString(), any(DeviceType.class)))
+        given(userAPI.createToken(anyString(), anyString(), anyString(), anyString()))
                 .willReturn(new TokenResult(false, false,null));
-        given(userService.createToken(THE_USER_NAME, THE_PASSWORD, THE_USER_AGENT, DeviceType.BROWSER))
+        given(userAPI.createToken(THE_USER_NAME, THE_PASSWORD, THE_APPLICATION, THE_USER_AGENT))
                 .willReturn(new TokenResult(true, false, THE_TOKEN));
 
-        given(userService.checkToken(isNull(), anyString(), anyString(), any(DeviceType.class), anyBoolean()))
+        given(userAPI.checkToken(isNull(), anyString(), anyString(), anyString(), anyBoolean()))
                 .willReturn(new TokenResult(false, false,null));
-        given(userService.checkToken(anyString(), anyString(), anyString(), any(DeviceType.class), anyBoolean()))
+        given(userAPI.checkToken(anyString(), anyString(), anyString(), anyString(), anyBoolean()))
                 .willReturn(new TokenResult(false, false,null));
-        given(userService.checkToken(THE_USER_NAME, THE_TOKEN, THE_USER_AGENT, DeviceType.BROWSER, false))
+        given(userAPI.checkToken(THE_USER_NAME, THE_TOKEN, THE_APPLICATION, THE_USER_AGENT, false))
                 .willReturn(new TokenResult(true, false,null));
-        given(userService.checkToken(THE_USER_NAME, THE_TOKEN, THE_USER_AGENT, DeviceType.BROWSER, true))
+        given(userAPI.checkToken(THE_USER_NAME, THE_TOKEN, THE_APPLICATION, THE_USER_AGENT, true))
                 .willReturn(new TokenResult(true, false,THE_NEW_TOKEN));
-        given(userService.checkToken(THE_USER_NAME, THE_TOKEN, THE_DEVICE, DeviceType.APP, false))
+        given(userAPI.checkToken(THE_USER_NAME, THE_TOKEN, THE_APPLICATION, THE_DEVICE, false))
                 .willReturn(new TokenResult(true, false,null));
-
-        given(userService.readExternalKey(anyString(), anyString(), anyString(), any(DeviceType.class), anyString()))
-                .willReturn(new TokenResult(false, false,null));
     }
 
     @Test
@@ -177,8 +172,8 @@ class LoginInterceptorTest {
                             .header(LoginInterceptor.APP_USER_NAME, THE_USER_NAME)
                             .header(LoginInterceptor.APP_USER_TOKEN, THE_TOKEN))
                             .andExpect(MockMvcResultMatchers.status().isOk());
-        verify(userService, times(1))
-                .checkToken(anyString(), anyString(), anyString(), any(DeviceType.class), anyBoolean());
+        verify(userAPI, times(1))
+                .checkToken(anyString(), anyString(), anyString(), anyString(), anyBoolean());
     }
 
     @Test
@@ -188,8 +183,8 @@ class LoginInterceptorTest {
                             .header(LoginInterceptor.APP_USER_NAME, THE_USER_NAME)
                             .header(LoginInterceptor.APP_USER_TOKEN, "xyz"))
                     .andExpect(MockMvcResultMatchers.status().isUnauthorized());
-        verify(userService, times(1))
-                .checkToken(anyString(), anyString(), anyString(), any(DeviceType.class), anyBoolean());
+        verify(userAPI, times(1))
+                .checkToken(anyString(), anyString(), anyString(), anyString(), anyBoolean());
     }
 
     private HttpServletRequest uri(String uri) {

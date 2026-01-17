@@ -1,7 +1,7 @@
 package de.fimatas.home.controller.service;
 
 import de.fimatas.home.controller.api.HomematicAPI;
-import de.fimatas.home.controller.api.UserRemoteAPI;
+import de.fimatas.home.controller.api.UsersRemoteAPI;
 import de.fimatas.home.controller.command.HomematicCommandBuilder;
 import de.fimatas.home.controller.dao.TicketDAO;
 import de.fimatas.home.controller.domain.service.HouseService;
@@ -34,7 +34,7 @@ public class FrontDoorService {
     private HouseService houseService;
 
     @Autowired
-    private UserRemoteAPI userRemoteAPI;
+    private UsersRemoteAPI userRemoteAPI;
 
     @Autowired
     private PushService pushService;

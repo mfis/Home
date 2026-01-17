@@ -12,7 +12,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableAsync
 @EnableAspectJAutoProxy
 @SpringBootApplication
-@ComponentScan(basePackages = {"de.fimatas.home", "mfi.files"})
+@ComponentScan(basePackages = {"de.fimatas.home"})
 
 @PropertySource(value = "classpath:application.properties", encoding = "UTF-8")
 @PropertySource(value = "file:/Users/mfi/documents/config/homecontroller/homecontroller.properties", encoding = "UTF-8", ignoreResourceNotFound = true)
