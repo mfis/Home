@@ -66,7 +66,7 @@
 			</dependency>
 			<dependency>
 				<groupId>de.fimatas</groupId>
-				<artifactId>users</artifactId>
+				<artifactId>users-impl</artifactId>
 				<version>${de.fimatas.users.version}</version>
 			</dependency>
 			<dependency>
@@ -197,13 +197,6 @@
 				</plugin>
 			</plugins>
 		</pluginManagement>
-		<plugins>
-			<plugin>
-				<groupId>org.owasp</groupId>
-				<artifactId>dependency-check-maven</artifactId>
-				<version>${dependency-check-maven.version}</version>
-			</plugin>
-		</plugins>
 	</build>
 
 </project>
