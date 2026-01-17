@@ -212,7 +212,7 @@ public class LoginInterceptor implements HandlerInterceptor {
         String controllerTokenSent = request.getHeader(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN);
 
         if(StringUtils.isBlank(controllerTokenSent)){
-            response.setStatus(HttpStatus.BAD_REQUEST.value()); // 400
+            response.setStatus(HttpStatus.UNAUTHORIZED.value()); // 400
             return false;
         }
 

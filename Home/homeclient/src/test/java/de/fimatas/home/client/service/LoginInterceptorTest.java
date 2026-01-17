@@ -1,5 +1,6 @@
 package de.fimatas.home.client.service;
 
+import de.fimatas.home.library.util.HomeAppConstants;
 import de.fimatas.users.api.TokenResult;
 import de.fimatas.users.api.UserAPI;
 import jakarta.servlet.http.Cookie;
@@ -10,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.core.env.Environment;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -27,21 +30,24 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class LoginInterceptorTest {
 
-
-
     static final String THE_USER_NAME = "theUserName";
     static final String THE_DEVICE = "theDevice";
     static final String THE_PASSWORD = "thePassword";
+    static final String THE_PIN = "123456";
     static final String THE_USER_AGENT = "theUserAgent";
     static final String THE_TOKEN = "theToken";
     static final String THE_NEW_TOKEN = "theNewToken";
     static final String THE_APPLICATION = "de_fimatas_homeclient";
+    static final String THE_CIENT_COMM_TOKEN = "clientCommToken";
 
     @Autowired
     private MockMvc mockMvc;
 
     @MockBean
     private UserAPI userAPI;
+
+    @SpyBean
+    private Environment env;
 
     @BeforeEach
     public void beforeEach(){
@@ -65,6 +71,7 @@ class LoginInterceptorTest {
                 .willReturn(new TokenResult(true, false,THE_NEW_TOKEN));
         given(userAPI.checkToken(THE_USER_NAME, THE_TOKEN, THE_APPLICATION, THE_DEVICE, false))
                 .willReturn(new TokenResult(true, false,null));
+        given(userAPI.checkPin(null, null)).willReturn(true);
     }
 
     @Test
@@ -185,6 +192,39 @@ class LoginInterceptorTest {
                     .andExpect(MockMvcResultMatchers.status().isUnauthorized());
         verify(userAPI, times(1))
                 .checkToken(anyString(), anyString(), anyString(), anyString(), anyBoolean());
+    }
+
+    @Test
+    void testUsersSiteOK() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.post("/users")
+                        .header(LoginInterceptor.USER_AGENT, THE_USER_AGENT))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+    }
+
+    @Test
+    void testUsersCheckPinWithoutToken() throws Exception {
+        System.setProperty(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN, THE_CIENT_COMM_TOKEN);
+        mockMvc.perform(MockMvcRequestBuilders.post("/users/checkPIN")
+                        .header(LoginInterceptor.USER_AGENT, THE_USER_AGENT))
+                .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+    }
+
+    @Test
+    void testUsersCheckPinWrongToken() throws Exception {
+        System.setProperty(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN, THE_CIENT_COMM_TOKEN);
+        mockMvc.perform(MockMvcRequestBuilders.post("/users/checkPIN")
+                        .header(LoginInterceptor.USER_AGENT, THE_USER_AGENT)
+                        .header(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN, "xyz"))
+                .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+    }
+
+    @Test
+    void testUsersCheckPinCorrectToken() throws Exception {
+        System.setProperty(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN, THE_CIENT_COMM_TOKEN);
+        mockMvc.perform(MockMvcRequestBuilders.post("/users/checkPIN")
+                        .header(LoginInterceptor.USER_AGENT, THE_USER_AGENT)
+                        .header(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN, THE_CIENT_COMM_TOKEN))
+                .andExpect(MockMvcResultMatchers.status().isOk());
     }
 
     private HttpServletRequest uri(String uri) {
