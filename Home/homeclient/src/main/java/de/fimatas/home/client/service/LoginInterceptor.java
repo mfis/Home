@@ -87,6 +87,7 @@ public class LoginInterceptor implements HandlerInterceptor {
     private boolean doLoginTokenRefreshForNativeApps;
 
     private int controllerFalseLoginCounter = 0;
+    private boolean controllerFalseLoginCounterLogged = false;
 
     private final Log log = LogFactory.getLog(LoginInterceptor.class);
 
@@ -314,7 +315,10 @@ public class LoginInterceptor implements HandlerInterceptor {
     private boolean controllerSuccessResponse(boolean success, HttpServletResponse response) {
 
         if (controllerFalseLoginCounter > 2) { // controller token brute force attack?
-            log.error("controllerFalseLoginCounter reached maximum");
+            if(!controllerFalseLoginCounterLogged){
+                log.error("controllerFalseLoginCounter reached maximum  - NO FURTHER LOG ENTRIES WILL BE WRITTEN.");
+                controllerFalseLoginCounterLogged = true;
+            }
             response.setStatus(HttpStatus.UNAUTHORIZED.value()); // 401
             return false;
         } else if (success) {

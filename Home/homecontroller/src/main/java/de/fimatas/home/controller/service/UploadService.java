@@ -2,8 +2,8 @@ package de.fimatas.home.controller.service;
 
 import de.fimatas.home.library.util.HomeAppConstants;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.apachecommons.CommonsLog;
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -14,7 +14,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.*;
 
-import jakarta.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -75,9 +74,6 @@ public class UploadService {
         if(credentials) {
             headers.set(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN,
                     env.getProperty(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN));
-            String plainClientCredentials = env.getProperty("client.auth.user") + ":" + env.getProperty("client.auth.pass");
-            String base64ClientCredentials = new String(Base64.encodeBase64(plainClientCredentials.getBytes()));
-            headers.set("Authorization", "Basic " + base64ClientCredentials);
         }
 
         try {

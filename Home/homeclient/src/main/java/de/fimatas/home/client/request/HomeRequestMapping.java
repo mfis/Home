@@ -247,7 +247,7 @@ public class HomeRequestMapping {
         return returnTemplate;
     }
 
-    @RequestMapping("/users")
+    @RequestMapping("/users/**")
     public void users(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws IOException {
         endpointController.requestVerarbeiten(httpServletRequest, httpServletResponse);
     }

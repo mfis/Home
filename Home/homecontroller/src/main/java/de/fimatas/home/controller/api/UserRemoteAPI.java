@@ -39,8 +39,7 @@ public class UserRemoteAPI {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
             headers.set(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN,
-                    //env.getProperty(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN));
-                    "xyz"); // FIXME
+                    env.getProperty(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN));
 
             MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
             map.add("username", username);
