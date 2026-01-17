@@ -65,11 +65,6 @@ public class MaintenanceService {
         }
     }
 
-    @Scheduled(cron = "0/5 * * * * *")
-    public void FIXME() {
-        userRemoteAPI.checkPIN("FIXME", "FIXME");
-    }
-
     @Scheduled(cron = "45 0/6 * * * *")
     public void checkDnsResolver() {
         try {
