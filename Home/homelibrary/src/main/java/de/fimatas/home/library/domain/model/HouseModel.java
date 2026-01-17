@@ -3,12 +3,13 @@ package de.fimatas.home.library.domain.model;
 import de.fimatas.home.library.annotation.EnableHomekit;
 import de.fimatas.home.library.annotation.EnablePhotovoltaicsOverflow;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.*;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class HouseModel extends AbstractSystemModel {
 
     private RoomClimate climateRoof;

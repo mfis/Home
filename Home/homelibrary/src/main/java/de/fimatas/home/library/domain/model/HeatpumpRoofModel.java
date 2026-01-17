@@ -1,11 +1,13 @@
 package de.fimatas.home.library.domain.model;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.EnumMap;
 import java.util.Map;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class HeatpumpRoofModel extends AbstractSystemModel {
 
     private Map<Place, HeatpumpRoof> heatpumpMap = new EnumMap<>(Place.class);
