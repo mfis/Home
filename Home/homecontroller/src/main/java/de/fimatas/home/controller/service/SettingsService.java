@@ -1,21 +1,18 @@
 package de.fimatas.home.controller.service;
 
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
-
+import de.fimatas.home.controller.dao.SettingsDAO;
 import de.fimatas.home.controller.model.PushToken;
+import de.fimatas.home.library.domain.model.PushNotifications;
+import de.fimatas.home.library.model.SettingsContainer;
+import de.fimatas.home.library.model.SettingsModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import de.fimatas.home.controller.dao.SettingsDAO;
-import de.fimatas.home.library.domain.model.PushNotifications;
-import de.fimatas.home.library.model.SettingsContainer;
-import de.fimatas.home.library.model.SettingsModel;
+
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 @Component
 public class SettingsService {
@@ -28,6 +25,8 @@ public class SettingsService {
 
     @Scheduled(cron = "40 00 * * * *")
     public void refreshSettingsModelsComplete() {
+
+        deleteDuplicates();
 
         SettingsContainer container = new SettingsContainer();
         container.setTimestamp(System.currentTimeMillis());
@@ -139,6 +138,27 @@ public class SettingsService {
                         });
         SettingsDAO.getInstance().persist();
         refreshSettingsModelsComplete();
+    }
+
+    private void deleteDuplicates() {
+
+        List<SettingsModel> toDelete = new ArrayList<>();
+
+        Map<List<String>, List<SettingsModel>> grouped = SettingsDAO.getInstance().read().stream().collect(Collectors.groupingBy(
+            m -> Arrays.asList(m.getUser(), m.getClient())
+        ));
+
+        grouped.values().forEach(group -> {
+            if (group.size() > 1) {
+                group.sort(Comparator.comparingLong(SettingsModel::getLastTimestamp).reversed());
+                toDelete.addAll(group.subList(1, group.size()));
+            }
+        });
+
+        toDelete.forEach(settingsModel -> SettingsDAO.getInstance().delete(settingsModel));
+        if(!toDelete.isEmpty()) {
+            SettingsDAO.getInstance().persist();
+        }
     }
 
 }

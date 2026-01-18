@@ -1,16 +1,18 @@
 package de.fimatas.home.library.model;
 
+import de.fimatas.home.library.domain.model.PushNotifications;
+import lombok.Data;
+
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 
-import de.fimatas.home.library.domain.model.PushNotifications;
-import lombok.Data;
-
 @Data
 public class SettingsModel implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     public SettingsModel() {
@@ -28,6 +30,5 @@ public class SettingsModel implements Serializable {
     private EnumMap<PushNotifications, Boolean> pushNotifications = new EnumMap<>(PushNotifications.class);
 
     private Map<String, String> attributes = new HashMap<>();
-
 
 }
