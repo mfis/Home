@@ -22,9 +22,9 @@ import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -180,7 +180,7 @@ public class HomeRequestMapping {
     @GetMapping("/maintenance")
     public String repair(Model model, @RequestHeader(name = "User-Agent", required = false) String userAgent,
                          @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, HttpServletResponse response) {
-        boolean isWebViewApp = StringUtils.equals(userAgent, ControllerUtil.USER_AGENT_APP_WEB_VIEW);
+        boolean isWebViewApp = Strings.CS.equals(userAgent, ControllerUtil.USER_AGENT_APP_WEB_VIEW);
         fillMenu(Pages.PATH_MAINTENANCE, model, response, isWebViewApp);
         fillUserAttributes(model, userCookie);
         List<ValueWithCaption> list = new LinkedList<>();
@@ -206,7 +206,7 @@ public class HomeRequestMapping {
             @RequestHeader(name = LoginInterceptor.APP_PUSH_TOKEN, required = false) String appPushToken) {
 
         long l1 = System.nanoTime();
-        boolean isWebViewApp = StringUtils.equals(userAgent, ControllerUtil.USER_AGENT_APP_WEB_VIEW);
+        boolean isWebViewApp = Strings.CS.equals(userAgent, ControllerUtil.USER_AGENT_APP_WEB_VIEW);
 
         if (isWebViewApp) {
             handlePushToken(appPushToken, userAPI.userNameFromLoginCookie(userCookie), clientName);
@@ -279,12 +279,12 @@ public class HomeRequestMapping {
         model.addAttribute("error", "n/a");
         model.addAttribute("path", Pages.PATH_HOME);
         model.addAttribute("message", message);
-        model.addAttribute("exception", exception!=null ? exception.getMessage(): Strings.EMPTY);
+        model.addAttribute("exception", exception!=null ? exception.getMessage(): "");
     }
 
     private boolean isModelUnchanged(String etag) {
         return StringUtils.isNotBlank(etag)
-            && StringUtils.equals(etag, Long.toString(ModelObjectDAO.getInstance().calculateModelTimestamp()));
+            && Strings.CS.equals(etag, Long.toString(ModelObjectDAO.getInstance().calculateModelTimestamp()));
     }
 
     private Message request(String userName, String type, String deviceName, String placeName, String additionalData, String deviceId, String value,

@@ -1,8 +1,9 @@
 package de.fimatas.home.controller.dao;
 
-import de.fimatas.home.controller.database.mapper.*;
+import de.fimatas.home.controller.database.mapper.StringRowMapper;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -103,7 +104,7 @@ public class BackupRestoreDAO {
     }
 
     private boolean isNotCreateOrAlterStatement(String line) {
-        return StringUtils.isNotBlank(line) && !StringUtils.startsWithIgnoreCase(line, "CREATE ")
-                && !StringUtils.startsWithIgnoreCase(line, "ALTER ") && !StringUtils.startsWithIgnoreCase(line, "-- ");
+        return StringUtils.isNotBlank(line) && !Strings.CI.startsWith(line, "CREATE ")
+                && !Strings.CI.startsWith(line, "ALTER ") && !Strings.CI.startsWith(line, "-- ");
     }
 }

@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -216,7 +217,7 @@ public class LoginInterceptor implements HandlerInterceptor {
             return false;
         }
 
-        return controllerSuccessResponse(StringUtils.equals(controllerToken, controllerTokenSent), response);
+        return controllerSuccessResponse(Strings.CS.equals(controllerToken, controllerTokenSent), response);
     }
 
     private String tokenLogin(HttpServletRequest request, HttpServletResponse response) {
@@ -266,7 +267,7 @@ public class LoginInterceptor implements HandlerInterceptor {
         }
 
         boolean isAjaxRequest = BooleanUtils.toBoolean(request.getHeader("isAjaxRequest"));
-        boolean isWebViewApp = StringUtils.equals(request.getHeader(USER_AGENT), ControllerUtil.USER_AGENT_APP_WEB_VIEW);
+        boolean isWebViewApp = Strings.CS.equals(request.getHeader(USER_AGENT), ControllerUtil.USER_AGENT_APP_WEB_VIEW);
         boolean loginTokenRefresh = !isAjaxRequest && (!isWebViewApp || doLoginTokenRefreshForNativeApps);
 
         TokenResult tokenResult = userAPI.checkToken(userAPI.userNameFromLoginCookie(token), token, applicationIdentifier,
@@ -308,7 +309,7 @@ public class LoginInterceptor implements HandlerInterceptor {
     }
 
     private boolean isLogoffRequest(HttpServletRequest request) {
-        return StringUtils.equals(request.getRequestURI(), LoginController.LOGOFF_URI);
+        return Strings.CS.equals(request.getRequestURI(), LoginController.LOGOFF_URI);
     }
 
     private boolean controllerSuccessResponse(boolean success, HttpServletResponse response) {
@@ -330,9 +331,9 @@ public class LoginInterceptor implements HandlerInterceptor {
     }
 
     private boolean isControllerRequest(HttpServletRequest request) {
-        return StringUtils.startsWith(request.getRequestURI(), ControllerRequestMapping.UPLOAD_METHOD_PREFIX)
-                || StringUtils.equals(request.getRequestURI(), ControllerRequestMapping.CONTROLLER_LONG_POLLING_FOR_AWAIT_MESSAGE_REQUEST)
-                || StringUtils.equals(request.getRequestURI(), UsersConstants.USERS_CHECK_PIN_PATH) ;
+        return Strings.CS.startsWith(request.getRequestURI(), ControllerRequestMapping.UPLOAD_METHOD_PREFIX)
+                || Strings.CS.equals(request.getRequestURI(), ControllerRequestMapping.CONTROLLER_LONG_POLLING_FOR_AWAIT_MESSAGE_REQUEST)
+                || Strings.CS.equals(request.getRequestURI(), UsersConstants.USERS_CHECK_PIN_PATH) ;
     }
 
     private boolean isLoginRequest(HttpServletRequest request) {

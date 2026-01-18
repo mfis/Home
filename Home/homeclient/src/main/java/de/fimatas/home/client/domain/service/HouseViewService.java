@@ -14,6 +14,7 @@ import jakarta.annotation.PostConstruct;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -1019,6 +1020,7 @@ public class HouseViewService {
             copy.add("Präsenz Status unbekannt!");
         }
 
+        //noinspection StatementWithEmptyBody
         if(ModelObjectDAO.getInstance().readHeatpumpRoofModel() == null) {
             // copy.add("Wärmepumpe Dach Status unbekannt!"); // FIXME: HEATPUMP_ROOF
         }
@@ -1241,12 +1243,12 @@ public class HouseViewService {
 
     private boolean isLightSwitch(Device device) {
         String name = device.getType().getTypeName();
-        return StringUtils.containsIgnoreCase(name, "licht") || StringUtils.containsIgnoreCase(name, "lampe");
+        return Strings.CI.contains(name, "licht") || Strings.CI.contains(name, "lampe");
     }
 
     private boolean isHeatingSwitch(Device device) {
         String name = device.getType().getTypeName();
-        return StringUtils.containsIgnoreCase(name, "heizung");
+        return Strings.CI.contains(name, "heizung");
     }
 
     @SuppressWarnings("unused")
@@ -1494,8 +1496,8 @@ public class HouseViewService {
         lights.setState(lights.getElementTitleState());
 
         var stateShort = lights.getElementTitleState();
-        stateShort = StringUtils.replaceIgnoreCase(stateShort, EINGESCHALTET, "ein");
-        stateShort = StringUtils.replaceIgnoreCase(stateShort, AUSGESCHALTET, "aus");
+        stateShort = Strings.CI.replace(stateShort, EINGESCHALTET, "ein");
+        stateShort = Strings.CI.replace(stateShort, AUSGESCHALTET, "aus");
         lights.setStateShort(StringUtils.capitalize(stateShort));
 
         model.addAttribute("lights" + place.name(), lights);
@@ -1711,7 +1713,7 @@ public class HouseViewService {
     }
 
     private String lookupShortenedRoomName(String name){
-        return StringUtils.remove(name, "zimmer");
+        return Strings.CS.remove(name, "zimmer");
     }
 
     private String lookupWallboxId() {

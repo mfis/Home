@@ -9,7 +9,7 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.core5.util.Timeout;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
@@ -84,14 +84,25 @@ public class SpringConfiguration implements WebMvcConfigurer {
             TrustManager trustManager = TrustManagerUtils.getDefaultTrustManager(keyStore);
             SSLContext sslContext = SSLContextUtils.createSSLContext("TLS", null, trustManager);
 
-            SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(sslContext); //
+            DefaultClientTlsStrategy tlsStrategy = new DefaultClientTlsStrategy(sslContext);
 
-            RequestConfig config = RequestConfig.custom().setConnectionRequestTimeout(Timeout.ofMilliseconds(1500)).setResponseTimeout(Timeout.ofSeconds(2)).build();
-            HttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create().setSSLSocketFactory(socketFactory).build();
-            CloseableHttpClient httpClient = HttpClients.custom().setDefaultRequestConfig(config).setConnectionManager(connectionManager).build();
+            RequestConfig config = RequestConfig.custom()
+                    .setConnectionRequestTimeout(Timeout.ofMilliseconds(1500))
+                    .setResponseTimeout(Timeout.ofSeconds(2))
+                    .build();
+
+            HttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+                    .setTlsSocketStrategy(tlsStrategy)
+                    .build();
+
+            CloseableHttpClient httpClient = HttpClients.custom()
+                    .setDefaultRequestConfig(config)
+                    .setConnectionManager(connectionManager)
+                    .build();
 
             HttpComponentsClientHttpRequestFactory httpComponentsClientHttpRequestFactory =
-                new HttpComponentsClientHttpRequestFactory(httpClient);
+                    new HttpComponentsClientHttpRequestFactory(httpClient);
+
             return new RestTemplate(httpComponentsClientHttpRequestFactory);
         }
     }
