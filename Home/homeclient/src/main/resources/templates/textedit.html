@@ -39,7 +39,7 @@
 
         #textedit-wrapper .textedit-main-container {
             margin-top: var(--te-toolbar-height);
-            height: calc(100% - var(--te-toolbar-height));
+            height: calc(100% - var(--te-toolbar-height) - env(safe-area-inset-top));
             width: 100%;
             position: relative;
         }
