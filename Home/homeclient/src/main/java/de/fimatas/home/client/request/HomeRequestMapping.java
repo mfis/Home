@@ -197,6 +197,16 @@ public class HomeRequestMapping {
         return "maintenance";
     }
 
+    @GetMapping("/textedit")
+    public String textedit(Model model, @RequestHeader(name = "User-Agent", required = false) String userAgent,
+                         @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, HttpServletResponse response) {
+        boolean isWebViewApp = Strings.CS.equals(userAgent, ControllerUtil.USER_AGENT_APP_WEB_VIEW);
+        fillMenu(Pages.PATH_MAINTENANCE, model, response, isWebViewApp);
+        fillUserAttributes(model, userCookie);
+        //model.addAttribute("maintenanceLinks", list);
+        return "textedit";
+    }
+
     @RequestMapping(Pages.PATH_HOME) // NOSONAR: POST after login, all other GET
     public String homePage(Model model, HttpServletResponse response,
             @CookieValue(name = LoginInterceptor.COOKIE_NAME, required = false) String userCookie,

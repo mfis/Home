@@ -1,0 +1,215 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" lang="de">
+
+	<head th:replace="~{basics :: head (name='Home - Notizen', withHomeCSS='false')}"><title></title></head>
+
+	<style>
+        #textedit-wrapper {
+            --te-toolbar-height: 56px;
+            --te-bg-color: #000000;
+            --te-text-color: #ffffff;
+            --te-toolbar-bg: #222222;
+            --te-border-color: #444444;
+
+            position: fixed !important;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100dvh;
+            z-index: 2000;
+            background-color: var(--te-bg-color) !important;
+            color: var(--te-text-color) !important;
+            overflow: hidden;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        #textedit-wrapper .textedit-toolbar {
+            height: var(--te-toolbar-height);
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+            background-color: var(--te-toolbar-bg) !important;
+            border-bottom: 1px solid var(--te-border-color) !important;
+            z-index: 10;
+        }
+
+        #textedit-wrapper .textedit-main-container {
+            margin-top: var(--te-toolbar-height);
+            height: calc(100% - var(--te-toolbar-height));
+            width: 100%;
+            position: relative;
+        }
+
+        .textedit-hidden { display: none !important; }
+
+        #textedit-wrapper #textedit-input-area {
+            width: 100%;
+            height: 100%;
+            resize: none;
+            border: none;
+            outline: none;
+            padding: 1.5rem;
+            font-family: 'SFMono-Regular', Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 16px;
+            background-color: transparent !important;
+            color: inherit;
+            caret-color: #ffffff;
+        }
+
+        #textedit-wrapper #textedit-output-view {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            padding: 1.5rem;
+            background-color: transparent !important;
+            color: inherit;
+        }
+
+        #textedit-wrapper #textedit-output-view img { max-width: 100%; height: auto; }
+
+        #textedit-wrapper *::-webkit-scrollbar { width: 8px; }
+        #textedit-wrapper *::-webkit-scrollbar-track { background: var(--te-bg-color); }
+        #textedit-wrapper *::-webkit-scrollbar-thumb { background: var(--te-border-color); border-radius: 4px; }
+        #textedit-wrapper *::-webkit-scrollbar-thumb:hover { background: #666666; }
+
+        #textedit-wrapper h5,
+        #textedit-wrapper label,
+        #textedit-wrapper .form-check-label {
+            color: #ffffff !important;
+        }
+
+        #textedit-wrapper a { color: #6ea8fe !important; }
+	</style>
+
+	<body>
+		<div th:replace="~{basics :: navigation (selected=${MENU_SELECTED}, selectable=${MENU_SELECTABLE}, status=${SITE_REQUEST_TS}, isApp='true')}"></div>
+
+		<div id="textedit-wrapper">
+
+			<header class="textedit-toolbar justify-content-between">
+				<div class="d-flex align-items-center">
+					<h5 class="mb-0 me-4 d-none d-sm-block">Notiz-Editor</h5>
+					<div class="form-check form-switch m-0">
+						<input class="form-check-input" type="checkbox" role="switch" id="textedit-visibility-toggle" checked>
+						<label class="form-check-label small" for="textedit-visibility-toggle">sichtbar</label>
+					</div>
+				</div>
+
+				<div>
+					<button type="button" class="btn btn-secondary btn-sm me-2" onclick="window.location.href='/'">Zurück</button>
+					<button type="button" class="btn btn-primary" id="textedit-btn-toggle" onclick="texteditToggle()">Bearbeiten</button>
+				</div>
+			</header>
+
+			<main class="textedit-main-container" style="background-color: gray;">
+
+				<div id="textedit-container-edit" class="h-100 textedit-hidden">
+                <textarea id="textedit-input-area" placeholder="Markdown eingeben..."># Isoliert
+
+Dies ist der Editor.
+Hallo 1 2 3
+
+- Hintergrund: Schwarz (#000000)
+- Text: Weiß (#ffffff)
+- A
+- B
+- C
+- D
+- E
+- F
+- G
+- H
+- I
+- J
+- K
+- L
+- M
+- N
+- O
+- A
+- B
+- C
+- D
+- E
+- F
+- G
+- H
+- I
+- J
+- K
+- L
+- M
+- N
+- O
+				</textarea>
+				</div>
+
+				<div id="textedit-container-view" class="h-100">
+					<div id="textedit-output-view"></div>
+				</div>
+
+			</main>
+		</div>
+
+		<script type="text/javascript" src="/webjars/marked/lib/marked.umd.js"></script>
+
+		<script>
+            const texteditContainerEdit = document.getElementById('textedit-container-edit');
+            const texteditContainerView = document.getElementById('textedit-container-view');
+            const texteditInputArea = document.getElementById('textedit-input-area');
+            const texteditOutputView = document.getElementById('textedit-output-view');
+            const texteditBtnToggle = document.getElementById('textedit-btn-toggle');
+            const texteditVisibilityToggle = document.getElementById('textedit-visibility-toggle');
+
+            let texteditIsEditMode = false;
+
+            function texteditRenderViewMode() {
+                const rawText = texteditInputArea.value;
+                texteditOutputView.innerHTML = marked.parse(rawText);
+
+                texteditContainerEdit.classList.add('textedit-hidden');
+                texteditContainerView.classList.remove('textedit-hidden');
+
+                texteditBtnToggle.innerText = "Bearbeiten";
+                texteditBtnToggle.classList.replace('btn-success', 'btn-primary');
+            }
+
+            function texteditEnableEditMode() {
+                texteditContainerView.classList.add('textedit-hidden');
+                texteditContainerEdit.classList.remove('textedit-hidden');
+
+                texteditBtnToggle.innerText = "Speichern & Vorschau";
+                texteditBtnToggle.classList.replace('btn-primary', 'btn-success');
+
+                setTimeout(() => texteditInputArea.focus(), 50);
+            }
+
+            function texteditSaveData(content) {
+                const isPublic = texteditVisibilityToggle.checked;
+                console.log("Speichere:", { text: content, public: isPublic });
+                // API Call hier...
+            }
+
+            texteditBtnToggle.addEventListener('click', function() {
+                if (texteditIsEditMode) {
+                    texteditRenderViewMode();
+                    texteditSaveData(texteditInputArea.value);
+                } else {
+                    texteditEnableEditMode();
+                }
+                texteditIsEditMode = !texteditIsEditMode;
+            });
+
+            document.addEventListener('DOMContentLoaded', () => {
+                texteditRenderViewMode();
+            });
+		</script>
+	</body>
+
+	<div th:replace="~{basics :: scriptresources_basics}"></div>
+
+</html>

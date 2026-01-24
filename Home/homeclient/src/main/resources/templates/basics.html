@@ -2,7 +2,7 @@
 <!--suppress HtmlUnknownTarget -->
 <html xmlns:th="http://www.thymeleaf.org" lang="de">
 
-<head th:fragment="head (name)">
+<head th:fragment="head (name, withHomeCSS)">
 	<title th:text="${name}">Titel</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 	<meta name="viewport" content="width = device-width, height = device-height, initial-scale=1, minimum-scale = 1.0, maximum-scale = 1.0, viewport-fit=cover"/>
@@ -24,7 +24,7 @@
 	<link rel="icon" sizes="152x152" href="apple-touch-icon-152x152.png"/>
 	<link rel="icon" sizes="180x180" href="apple-touch-icon-180x180.png"/>
 	<link rel="shortcut icon" href="favicon.ico"/>
-	<link id="main_css" rel='stylesheet' href='style.v3_19.css'/>
+	<link th:if="${#strings.equals(withHomeCSS, 'true')}" id="main_css" rel='stylesheet' href='style.v3_19.css'/>
 	<link rel='stylesheet' href='/webjars/bootstrap/css/bootstrap.min.css'/>
 	<link rel="stylesheet" href="/webjars/font-awesome/css/all.min.css" crossorigin="anonymous"/>
 	<script type="text/javascript" src="/webjars/jquery/jquery.min.js"></script>
@@ -41,8 +41,12 @@
 	</script>
 </head>
 
-<th:block th:fragment="scriptresources">
+<th:block th:fragment="scriptresources_basics">
 	<script type="text/javascript" src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+</th:block>
+
+<th:block th:fragment="scriptresources">
+	<div th:replace="~{basics :: scriptresources_basics}"></div>
 	<link href="/soundar24-roundSlider/roundslider-min.css" rel="stylesheet"/>
 	<script src="/soundar24-roundSlider/roundslider-min.js"></script>
 	<script id="main_js" src="scripts.v1_2_7.js"></script>

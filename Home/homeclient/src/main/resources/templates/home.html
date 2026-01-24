@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org" lang="de">
 
-	<head th:replace="~{basics :: head (name='Zuhause - Laden...')}"><title></title></head>
+	<head th:replace="~{basics :: head (name='Zuhause - Laden...', withHomeCSS='true')}"><title></title></head>
 	
 	<body id="idbody">
 	
@@ -21,6 +21,8 @@
 
 				<!-- Hinweise -->
 				<div th:replace="~{fragments :: deviceBatterieWarning (model=${lowBattery})}"></div>
+
+				<div th:replace="~{fragments-textedit :: textedit (model=${heatpumpBasement})}"></div>
 
 				<!-- Draussen -->
 				<div th:replace="~{fragments :: title (name='Draußen')}"></div>

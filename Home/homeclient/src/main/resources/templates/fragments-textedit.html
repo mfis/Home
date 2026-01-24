@@ -1,0 +1,21 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html" lang="de">
+
+    <head><title></title></head>
+
+    <!-- Textedit -->
+    <div th:fragment="textedit (model)" th:class="'alert alert-secondary callout callout-' + ${model.colorClass}">
+        <div th:replace="~{fragments :: elementnameCollapsable (icon=${model.icon}, name=${model.name}, place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState}, colorClass=${model.colorClass})}"></div>
+        <div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
+
+                <div class="container mt-5 text-center">
+                    <h1>Notizen</h1>
+                    <button type="button" class="btn btn-primary" onclick="javascript: window.location.href = '/textedit'">
+                        Editor öffnen 2
+                    </button>
+                </div>
+
+        </div>
+    </div>
+
+</html>
