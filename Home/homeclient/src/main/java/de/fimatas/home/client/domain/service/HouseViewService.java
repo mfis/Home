@@ -1903,7 +1903,7 @@ public class HouseViewService {
 
         noticeModel.getNotices().forEach(notice -> {
             NoticeView noticeView = new NoticeView();
-            noticeView.setId("notice-" + notice.getId());
+            noticeView.setId(notice.getId());
             noticeView.setTitle(notice.getTitle());
             noticeView.setUserIcon(notice.isMultiuser() ? "fas fa-users" : "fas fa-user");
             noticeView.setLastEditedText(StringUtils.capitalize(viewFormatter.formatTimestamp(notice.getLastEdited(), TimestampFormat.DATE_TIME)));
