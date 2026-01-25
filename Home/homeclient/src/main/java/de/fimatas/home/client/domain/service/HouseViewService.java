@@ -159,6 +159,23 @@ public class HouseViewService {
 
         formatTasks(model, tasksModel);
 
+        var noticeModel = new NoticeModel();
+        var n1 = new Notice();
+        n1.setId("id1");
+        n1.setTitle("Title 1");
+        n1.setMultiuser(true);
+        n1.setLastEdited(LocalDateTime.now());
+        n1.setText("Text 1");
+        var n2 = new Notice();
+        n2.setId("id2");
+        n2.setTitle("Title 2");
+        n2.setMultiuser(false);
+        n2.setLastEdited(LocalDateTime.now().minusDays(3));
+        n2.setText("Text 2");
+        noticeModel.getNotices().add(n1);
+        noticeModel.getNotices().add(n2);
+        formatNotices(model, noticeModel);
+
         // widget
         formatUpperFloorGroup(model, "widgetUpperFloor", Place.WIDGET_UPPER_FLOOR_TEMPERATURE, house);
         formatGridsGroup(model, "widgetGrids", Place.WIDGET_GRIDS, house, historyModel==null?null:historyModel.getPurchasedElectricPowerConsumptionDay(), historyModel==null?null:historyModel.getGasConsumptionDay());
@@ -1865,6 +1882,37 @@ public class HouseViewService {
 
         // sort
         tasksView.getList().sort(Comparator.comparingLong(TaskView::getDurationSeconds).reversed());
+    }
+
+    private void formatNotices(Model model, NoticeModel noticeModel) {
+
+        NoticesView noticesView = new NoticesView();
+        noticesView.setName("Notizen");
+        noticesView.setId("notices");
+        noticesView.setPlaceEnum(Place.HOUSE);
+        noticesView.setIcon("fa-solid fa-note-sticky");
+        model.addAttribute("notices", noticesView);
+        noticesView.setUnreach(Boolean.toString(noticeModel == null));
+
+        if(noticeModel == null){
+            return;
+        }
+
+        noticesView.setColorClass(ConditionColor.GRAY.getUiClass());
+        noticesView.setElementTitleState(noticeModel.getNotices().size() + " Notiz" + (noticeModel.getNotices().size() == 1 ? "" : "en"));
+
+        noticeModel.getNotices().forEach(notice -> {
+            NoticeView noticeView = new NoticeView();
+            noticeView.setId("notice-" + notice.getId());
+            noticeView.setTitle(notice.getTitle());
+            noticeView.setUserIcon(notice.isMultiuser() ? "fas fa-users" : "fas fa-user");
+            noticeView.setLastEditedText(StringUtils.capitalize(viewFormatter.formatTimestamp(notice.getLastEdited(), TimestampFormat.DATE_TIME)));
+            noticeView.setLastEditedMillis(notice.getLastEdited().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
+            noticesView.getList().add(noticeView);
+        });
+
+        // sort
+        noticesView.getList().sort(Comparator.comparingLong(NoticeView::getLastEditedMillis).reversed());
     }
 
     private void calculateTaskNextExecution(Task task, TaskView taskView) {

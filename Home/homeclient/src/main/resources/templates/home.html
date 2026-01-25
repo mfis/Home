@@ -22,8 +22,6 @@
 				<!-- Hinweise -->
 				<div th:replace="~{fragments :: deviceBatterieWarning (model=${lowBattery})}"></div>
 
-				<div th:replace="~{fragments-textedit :: textedit (model=${heatpumpBasement})}"></div>
-
 				<!-- Draussen -->
 				<div th:replace="~{fragments :: title (name='Draußen')}"></div>
 				<div th:replace="~{fragments :: temperature (model=${tempMinHouse})}"></div>
@@ -32,9 +30,10 @@
 				<!-- Haus -->
 				<div th:replace="~{fragments :: title (name='Haus')}"></div>
 				<div th:replace="~{fragments :: frontDoor (model=${frontDoor})}"></div>
-				<div th:replace="~{fragments :: doorLock (model=${frontDoorLock})}"></div>
+				<!-- <div th:replace="~{fragments :: doorLock (model=${frontDoorLock})}"></div> -->
 				<div th:replace="~{fragments :: presence (model=${presence})}"></div>
 				<div th:replace="~{fragments-tasks :: tasks (model=${tasks})}"></div>
+				<div th:replace="~{fragments-textedit :: textedit (model=${notices})}"></div>
 
 				<!-- Energie -->
 				<div th:replace="~{fragments :: title (name='Energie')}"></div>
