@@ -88,23 +88,54 @@
                 }
 
 				#textedit-visibility-toggle {
-					font-size: 1.5rem; /* Standard ist meist 1rem */
+					font-size: 1.5rem;
 					cursor: pointer;
-					margin-top: 0;   /* Verhindert den Versatz nach unten */
-					margin-left: 0;  /* Da padding-left am Container entfernt wurde */
-					float: none;     /* Entfernt das alte Bootstrap-Floating */
+					margin-top: 0;
+					margin-left: 0;
+					float: none;
+					background-color: rgb(92,184,92);
+					border-color: rgb(92,184,92);
 				}
 
 				#textedit-visibility-toggle:checked {
-					background-color: #28a745; /* Beispiel: Grün */
-					border-color: #28a745;
+					background-color: rgb(240,173,78);
+					border-color: rgb(240,173,78);
 				}
 
 				.form-check.form-switch {
 					display: flex;
 					align-items: center;
-					gap: 0.5rem; /* Abstand zwischen Switch und Label */
-					padding-left: 0; /* Bootstrap Standard-Padding entfernen */
+					gap: 0.5rem;
+					padding-left: 0;
+				}
+
+				.icon-multi {
+					display: none;
+				}
+
+				.icon-single {
+					color: rgb(92,184,92);
+				}
+
+				#textedit-visibility-toggle:checked + label .icon-single {
+					display: none;
+					color: rgb(92,184,92);
+				}
+
+				#textedit-visibility-toggle:checked + label .icon-multi {
+					display: inline-block;
+					color: rgb(240,173,78);
+				}
+
+				#textedit-visibility-toggle,
+				#textedit-visibility-toggle:checked {
+					background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e");
+				}
+
+				.form-check-label i {
+					font-size: 1.25rem;
+					width: 25px;
+					text-align: center;
 				}
 
                 #textedit-wrapper a { color: #6ea8fe !important; }
@@ -118,15 +149,18 @@
 			<header class="textedit-toolbar justify-content-between">
 				<div class="d-flex align-items-center">
 					<h5 class="mb-0 me-4 d-none d-sm-block">Notiz</h5>
-					<div class="form-check form-switch m-0">
-						<input class="form-check-input" type="checkbox" role="switch" id="textedit-visibility-toggle" checked>
-						<label class="form-check-label small" for="textedit-visibility-toggle">sichtbar</label>
-					</div>
 				</div>
 
-				<div>
-					<button type="button" class="btn btn-secondary btn-sm me-2" onclick="window.location.href='/'">Zurück</button>
-					<button type="button" class="btn btn-primary" id="textedit-btn-toggle" onclick="texteditToggle()">Bearbeiten</button>
+				<div class="d-flex align-items-center gap-3">
+					<div class="form-check form-switch m-0 d-flex align-items-center">
+						<input class="form-check-input" type="checkbox" role="switch" id="textedit-visibility-toggle" checked>
+						<label class="form-check-label ms-2 d-flex align-items-center" for="textedit-visibility-toggle">
+							<i class="fas fa-user icon-single"></i>
+							<i class="fas fa-users icon-multi"></i>
+						</label>
+					</div>
+					<button type="button" class="btn btn-secondary btn-sm" onclick="window.location.href='/'">Zurück</button>
+					<button type="button" class="btn btn-secondary btn-sm" id="textedit-btn-toggle" onclick="texteditToggle()">Bearbeiten</button>
 				</div>
 			</header>
 
@@ -207,8 +241,8 @@ Hallo 1 2 3
                 texteditContainerView.classList.add('textedit-hidden');
                 texteditContainerEdit.classList.remove('textedit-hidden');
 
-                texteditBtnToggle.innerText = "Speichern & Vorschau";
-                texteditBtnToggle.classList.replace('btn-primary', 'btn-success');
+                texteditBtnToggle.innerText = "Speichern";
+                // texteditBtnToggle.classList.replace('btn-primary', 'btn-success');
 
                 setTimeout(() => texteditInputArea.focus(), 50);
             }
