@@ -138,6 +138,15 @@
 					text-align: center;
 				}
 
+				.icon-home {
+					font-size: 1.2rem;
+					cursor: pointer;
+					margin-top: 0;
+					margin-left: 0;
+					margin-right: 10px;
+					float: none;
+				}
+
                 #textedit-wrapper a { color: #6ea8fe !important; }
 	</style>
 
@@ -148,6 +157,7 @@
 
 			<header class="textedit-toolbar justify-content-between">
 				<div class="d-flex align-items-center">
+					<i th:if="${#strings.equals(isApp, 'false')}" class="fas fa-home icon-home"></i>
 					<h5 class="mb-0 me-4 d-none d-sm-block">Notiz</h5>
 				</div>
 
