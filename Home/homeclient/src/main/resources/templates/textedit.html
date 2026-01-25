@@ -208,6 +208,36 @@ Hallo 1 2 3
                 texteditRenderViewMode();
             });
 		</script>
+
+		<script>
+			function updateAppLayout() {
+                const wrapper = document.getElementById('textedit-wrapper');
+                if (!wrapper || !window.visualViewport) return;
+                // 1. Die verdeckte Höhe berechnen (Tastaturhöhe + evtl. Browser-Leisten)
+                const invisibleHeight = Math.max(0, window.innerHeight - window.visualViewport.height);
+                // 2. Nur eingreifen, wenn signifikant was fehlt (>100px = Tastatur)
+                if (invisibleHeight > 100) {
+                    wrapper.style.height = `calc(100dvh - ${invisibleHeight}px)`;
+                    window.scrollTo(0, 0);
+                } else {
+                    wrapper.style.height = '100dvh';
+                    wrapper.style.top = '0px';
+                }
+            }
+
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', updateAppLayout);
+                // Scroll-Listener, falls iOS den Viewport verschiebt
+                window.visualViewport.addEventListener('scroll', () => {
+                     if(window.visualViewport.offsetTop > 0) window.scrollTo(0,0);
+                });
+            } else {
+                window.addEventListener('resize', updateAppLayout);
+            }
+
+            updateAppLayout();
+		</script>
+
 	</body>
 
 	<div th:replace="~{basics :: scriptresources_basics}"></div>
