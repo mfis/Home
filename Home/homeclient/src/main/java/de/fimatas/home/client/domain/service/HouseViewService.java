@@ -98,7 +98,7 @@ public class HouseViewService {
         });
     }
 
-    public void fillViewModel(Model model, String username, HouseModel house, HistoryModel historyModel, LightsModel lightsModel, WeatherForecastModel weatherForecastModel, PresenceModel presenceModel, HeatpumpRoofModel heatpumpRoofModel, HeatpumpBasementModel heatpumpBasementModel, ElectricVehicleModel electricVehicleModel, PushMessageModel pushMessageModel, TasksModel tasksModel, PvAdditionalDataModel pvAdditionalDataModel) {
+    public void fillViewModel(Model model, String username, HouseModel house, HistoryModel historyModel, LightsModel lightsModel, WeatherForecastModel weatherForecastModel, PresenceModel presenceModel, HeatpumpRoofModel heatpumpRoofModel, HeatpumpBasementModel heatpumpBasementModel, ElectricVehicleModel electricVehicleModel, PushMessageModel pushMessageModel, TasksModel tasksModel, NoticeModel noticeModel, PvAdditionalDataModel pvAdditionalDataModel) {
 
         model.addAttribute("modelTimestamp", ModelObjectDAO.getInstance().calculateModelTimestamp());
 
@@ -159,21 +159,6 @@ public class HouseViewService {
 
         formatTasks(model, tasksModel);
 
-        var noticeModel = new NoticeModel();
-        var n1 = new Notice();
-        n1.setId("id1");
-        n1.setTitle("Title 1");
-        n1.setMultiuser(true);
-        n1.setLastEdited(LocalDateTime.now());
-        n1.setText("Text 1");
-        var n2 = new Notice();
-        n2.setId("id2");
-        n2.setTitle("Title 2");
-        n2.setMultiuser(false);
-        n2.setLastEdited(LocalDateTime.now().minusDays(3));
-        n2.setText("Text 2");
-        noticeModel.getNotices().add(n1);
-        noticeModel.getNotices().add(n2);
         formatNotices(model, noticeModel);
 
         // widget
@@ -1050,6 +1035,10 @@ public class HouseViewService {
             copy.add("Aufgaben Status unbekannt!");
         }
 
+        if(ModelObjectDAO.getInstance().readNoticeModel() == null) {
+            copy.add("Notizen unbekannt!");
+        }
+
         if(ModelObjectDAO.getInstance().readElectricVehicleModel() == null) {
             copy.add("E-Auto Status unbekannt!");
         }
@@ -1905,7 +1894,7 @@ public class HouseViewService {
             NoticeView noticeView = new NoticeView();
             noticeView.setId(notice.getId());
             noticeView.setTitle(notice.getTitle());
-            noticeView.setUserIcon(notice.isMultiuser() ? "fas fa-users" : "fas fa-user");
+            noticeView.setUserIcon(StringUtils.isBlank(notice.getUser()) ? "fas fa-users" : "fas fa-user");
             noticeView.setLastEditedText(StringUtils.capitalize(viewFormatter.formatTimestamp(notice.getLastEdited(), TimestampFormat.DATE_TIME)));
             noticeView.setLastEditedMillis(notice.getLastEdited().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
             noticesView.getList().add(noticeView);

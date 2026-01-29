@@ -50,6 +50,8 @@ public class HomeAppConstants {
 
     public static final int MODEL_PV_OUTDATED_SECONDS = 60 * 15;
 
+    public static final int MODEL_NOTOCE_OUTDATED_SECONDS = 60 * 20;
+
     //
 
     public static final int POWER_CONSUMPTION_OUTDATED_DECONDS_ELECTRICITY = 60 * 7;

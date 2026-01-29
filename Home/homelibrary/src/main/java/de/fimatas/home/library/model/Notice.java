@@ -17,7 +17,7 @@ public class Notice {
 
     private String text;
 
-    private boolean multiuser;
+    private String user;
 
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)

@@ -77,6 +77,9 @@ public class ClientCommunicationService {
     private TasksService tasksService;
 
     @Autowired
+    private NoticesService noticesService;
+
+    @Autowired
     private MaintenanceService maintenanceService;
 
     @Autowired
@@ -271,6 +274,12 @@ public class ClientCommunicationService {
             tasksService.refresh();
         } else {
             uploadService.uploadToClient(ModelObjectDAO.getInstance().readTasksModel());
+        }
+
+        if (ModelObjectDAO.getInstance().readNoticeModel() == null) {
+            noticesService.refresh();
+        } else {
+            uploadService.uploadToClient(ModelObjectDAO.getInstance().readNoticeModel());
         }
 
         if (ModelObjectDAO.getInstance().readPvAdditionalDataModel() != null) {

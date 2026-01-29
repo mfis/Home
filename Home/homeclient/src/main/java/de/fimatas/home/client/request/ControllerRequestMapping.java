@@ -1,10 +1,7 @@
 package de.fimatas.home.client.request;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-
+import de.fimatas.home.client.model.MessageQueue;
+import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.model.*;
 import lombok.extern.apachecommons.CommonsLog;
@@ -15,8 +12,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
-import de.fimatas.home.client.model.MessageQueue;
-import de.fimatas.home.library.dao.ModelObjectDAO;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @CommonsLog
@@ -99,6 +99,12 @@ public class ControllerRequestMapping {
     @PostMapping(value = UPLOAD_METHOD_PREFIX + "TasksModel")
     public ActionModel uploadTasksModel(@RequestBody TasksModel tasksModel) {
         ModelObjectDAO.getInstance().write(tasksModel);
+        return new ActionModel("OK");
+    }
+
+    @PostMapping(value = UPLOAD_METHOD_PREFIX + "NoticeModel")
+    public ActionModel uploadNoticeModel(@RequestBody NoticeModel noticeModel) {
+        ModelObjectDAO.getInstance().write(noticeModel);
         return new ActionModel("OK");
     }
 
