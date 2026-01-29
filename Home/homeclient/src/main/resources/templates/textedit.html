@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html xmlns:th="http://www.thymeleaf.org" lang="de">
+<html xmlns:th="https://www.thymeleaf.org" lang="de">
 
 	<head th:replace="~{basics :: head (name='Home - Notizen', withHomeCSS='false')}"><title></title></head>
 
@@ -148,6 +148,74 @@
 				}
 
                 #textedit-wrapper a { color: #6ea8fe !important; }
+
+#textedit-table-modal {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.8);
+    z-index: 3000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.textedit-modal-content {
+    background: var(--te-bg-color, #111);
+    border: 1px solid var(--te-border-color, #444);
+    padding: 20px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    color: #fff;
+}
+
+.textedit-modal-content h4 { margin-top: 0; margin-bottom: 1rem; }
+.textedit-modal-field { margin-bottom: 1rem; }
+.textedit-modal-field label { display: block; margin-bottom: 0.25rem; font-weight: bold; }
+.textedit-modal-field input {
+    width: 100%;
+    background: #222;
+    border: 1px solid #444;
+    color: #fff;
+    padding: 8px;
+    border-radius: 4px;
+}
+.textedit-modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 1rem; }
+
+#textedit-output-view table {
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: 1rem;
+    background-color: transparent;
+    border-collapse: collapse;
+    color: #e0e0e0;
+    font-size: 0.95rem;
+}
+
+#textedit-output-view th,
+#textedit-output-view td {
+    padding: 0.75rem;
+    vertical-align: top;
+    border-bottom: 1px solid #333;
+    text-align: left;
+}
+
+#textedit-output-view thead th {
+    vertical-align: bottom;
+    border-bottom: 2px solid #555;
+    background-color: #1a1a1a;
+    color: #fff;
+    font-weight: 600;
+}
+
+#textedit-output-view tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+#textedit-output-view {
+    overflow-x: auto;
+}
+
 	</style>
 
 	<body>
@@ -169,6 +237,11 @@
 							<i class="fas fa-users icon-multi"></i>
 						</label>
 					</div>
+
+					<button type="button" class="btn btn-secondary btn-sm textedit-hidden" id="textedit-btn-add-row">
+						<i class="fas fa-table"></i> Zeile +
+					</button>
+
 					<button type="button" class="btn btn-secondary btn-sm" onclick="window.location.href='/'">Zurück</button>
 					<button type="button" class="btn btn-secondary btn-sm" id="textedit-btn-toggle">Bearbeiten</button>
 				</div>
@@ -177,43 +250,15 @@
 			<main class="textedit-main-container">
 
 				<div id="textedit-container-edit" class="h-100 textedit-hidden">
-                <textarea id="textedit-input-area" placeholder="Markdown eingeben..."># Isoliert
+                <textarea id="textedit-input-area" placeholder="Markdown eingeben..."># Überschrift
 
-Dies ist der Editor.
-Hallo 1 2 3
+<!-- COMMENT -->
+| col 1    | col 2 |
+| -------- | ------- |
+| A  | 1    |
+| B | 2     |
+| B    | 3    |
 
-- Hintergrund: Schwarz (#000000)
-- Text: Weiß (#ffffff)
-- A
-- B
-- C
-- D
-- E
-- F
-- G
-- H
-- I
-- J
-- K
-- L
-- M
-- N
-- O
-- A
-- B
-- C
-- D
-- E
-- F
-- G
-- H
-- I
-- J
-- K
-- L
-- M
-- N
-- O
 				</textarea>
 				</div>
 
@@ -227,72 +272,250 @@ Hallo 1 2 3
 		<script type="text/javascript" src="/webjars/marked/lib/marked.umd.js"></script>
 
 		<script>
-            const texteditContainerEdit = document.getElementById('textedit-container-edit');
-            const texteditContainerView = document.getElementById('textedit-container-view');
-            const texteditInputArea = document.getElementById('textedit-input-area');
-            const texteditOutputView = document.getElementById('textedit-output-view');
-            const texteditBtnToggle = document.getElementById('textedit-btn-toggle');
-            const texteditVisibilityToggle = document.getElementById('textedit-visibility-toggle');
+			const texteditContainerEdit = document.getElementById('textedit-container-edit');
+                const texteditContainerView = document.getElementById('textedit-container-view');
+                const texteditInputArea = document.getElementById('textedit-input-area');
+                const texteditOutputView = document.getElementById('textedit-output-view');
+                const texteditBtnToggle = document.getElementById('textedit-btn-toggle');
+                const texteditVisibilityToggle = document.getElementById('textedit-visibility-toggle');
+                const texteditBtnAddRow = document.getElementById('textedit-btn-add-row');
 
-            let texteditIsEditMode = false;
+                let texteditIsEditMode = false;
 
-            function texteditRenderViewMode() {
-                const rawText = texteditInputArea.value;
-                texteditOutputView.innerHTML = marked.parse(rawText);
-
-                texteditContainerEdit.classList.add('textedit-hidden');
-                texteditContainerView.classList.remove('textedit-hidden');
-
-                texteditBtnToggle.innerText = "Bearbeiten";
-                // texteditBtnToggle.classList.replace('btn-success', 'btn-primary');
-                texteditVisibilityToggle.classList.add('textedit-hidden');
-                texteditVisibilityToggle.disabled = true;
-            }
-
-            function texteditEnableEditMode() {
-                texteditContainerView.classList.add('textedit-hidden');
-                texteditContainerEdit.classList.remove('textedit-hidden');
-
-                texteditBtnToggle.innerText = "Speichern";
-                // texteditBtnToggle.classList.replace('btn-primary', 'btn-success');
-				texteditVisibilityToggle.classList.remove('textedit-hidden');
-				texteditVisibilityToggle.disabled = false;
-
-                setTimeout(() => texteditInputArea.focus(), 50);
-            }
-
-            function texteditSaveData(content) {
-                const isPublic = texteditVisibilityToggle.checked;
-                console.log("Speichere:", { text: content, public: isPublic });
-                // API Call hier...
-            }
-
-            texteditBtnToggle.addEventListener('click', function() {
-                if (texteditIsEditMode) {
-                    texteditRenderViewMode();
-                    texteditSaveData(texteditInputArea.value);
-                } else {
-                    texteditEnableEditMode();
+                function texteditCheckTables() {
+                    const tables = texteditOutputView.querySelectorAll('table');
+                    if (tables.length > 0) {
+                        texteditBtnAddRow.classList.remove('textedit-hidden');
+                    } else {
+                        texteditBtnAddRow.classList.add('textedit-hidden');
+                    }
                 }
-                texteditIsEditMode = !texteditIsEditMode;
-            });
 
-            document.addEventListener('DOMContentLoaded', () => {
-            marked.setOptions({
-			  breaks: true,
-			  gfm: true  // GitHub Flavored Markdown
-			});
-                texteditRenderViewMode();
-            });
+                function texteditOpenTableModal() {
+                    const tables = texteditOutputView.querySelectorAll('table');
+                    if (tables.length === 0) return;
+
+                    const modal = document.createElement('div');
+                    modal.id = 'textedit-table-modal';
+                    document.body.appendChild(modal);
+
+                    const renderContent = (tableIndex) => {
+                        modal.innerHTML = '';
+
+                        const table = tables[tableIndex];
+                        const headers = Array.from(table.querySelectorAll('th')).map(th => th.innerText.trim());
+
+                        const modalContent = document.createElement('div');
+                        modalContent.className = 'textedit-modal-content';
+                        modal.appendChild(modalContent);
+
+                        const h4 = document.createElement('h4');
+                        h4.textContent = 'Neue Zeile hinzufügen';
+                        modalContent.appendChild(h4);
+
+                        let tableSelect = null;
+                        if (tables.length > 1) {
+                            const selectWrapper = document.createElement('div');
+                            selectWrapper.className = 'textedit-modal-field';
+
+                            const selectLabel = document.createElement('label');
+                            selectLabel.textContent = 'Tabelle wählen:';
+                            selectWrapper.appendChild(selectLabel);
+
+                            tableSelect = document.createElement('select');
+                            tableSelect.id = 'textedit-table-select';
+                            tableSelect.className = 'form-select text-white bg-dark border-secondary mb-3';
+
+                            tables.forEach((t, i) => {
+                                const option = document.createElement('option');
+                                option.value = i;
+                                const firstHeader = t.querySelector('th') ? t.querySelector('th').innerText : '';
+                                option.textContent = firstHeader ? `Tabelle ${i+1} (beginnt mit "${firstHeader}")` : `Tabelle ${i+1}`;
+                                if (i == tableIndex) option.selected = true;
+                                tableSelect.appendChild(option);
+                            });
+
+                            tableSelect.addEventListener('change', (e) => {
+                                renderContent(parseInt(e.target.value));
+                            });
+
+                            selectWrapper.appendChild(tableSelect);
+                            modalContent.appendChild(selectWrapper);
+                        }
+
+                        const form = document.createElement('form');
+                        form.id = 'textedit-row-form';
+
+                        if (headers.length > 0) {
+                            headers.forEach((header) => {
+                                const fieldWrapper = document.createElement('div');
+                                fieldWrapper.className = 'textedit-modal-field';
+
+                                const label = document.createElement('label');
+                                label.textContent = header;
+                                fieldWrapper.appendChild(label);
+
+                                const input = document.createElement('input');
+                                input.type = 'text';
+                                input.required = true;
+                                input.placeholder = `Wert für ${header}`;
+                                fieldWrapper.appendChild(input);
+
+                                form.appendChild(fieldWrapper);
+                            });
+                        } else {
+                             const p = document.createElement('p');
+                             p.className = 'text-warning';
+                             p.textContent = 'Diese Tabelle hat keine Kopfzeilen (th).';
+                             form.appendChild(p);
+                        }
+
+                        const actionsDiv = document.createElement('div');
+                        actionsDiv.className = 'textedit-modal-actions';
+
+                        const cancelBtn = document.createElement('button');
+                        cancelBtn.type = 'button';
+                        cancelBtn.className = 'btn btn-secondary btn-sm';
+                        cancelBtn.textContent = 'Abbrechen';
+                        cancelBtn.onclick = () => modal.remove();
+
+                        const submitBtn = document.createElement('button');
+                        submitBtn.type = 'submit';
+                        submitBtn.className = 'btn btn-success btn-sm';
+                        submitBtn.textContent = 'Speichern';
+                        if(headers.length === 0) submitBtn.disabled = true;
+
+                        actionsDiv.appendChild(cancelBtn);
+                        actionsDiv.appendChild(submitBtn);
+                        form.appendChild(actionsDiv);
+
+                        form.onsubmit = (e) => {
+                            e.preventDefault();
+                            const inputs = form.querySelectorAll('input[type="text"]');
+                            const values = Array.from(inputs).map(input => input.value.trim());
+                            const currentTableIndex = tableSelect ? parseInt(tableSelect.value) : tableIndex;
+                            texteditAddRowToMarkdown(values, currentTableIndex);
+                            modal.remove();
+                        };
+
+                        modalContent.appendChild(form);
+
+                        const firstInput = form.querySelector('input');
+                        if(firstInput) firstInput.focus();
+                    };
+
+                    renderContent(0);
+                }
+
+                function texteditAddRowToMarkdown(values, tableIndex) {
+                    const rawText = texteditInputArea.value;
+                    const lines = rawText.split('\n');
+
+                    const newRowMarkdown = '| ' + values.join(' | ') + ' |';
+                    const separatorRegex = /^\s*\|?[\s-:]+\|\s*[\s-:|]+\|\s*$/;
+
+                    let foundTablesCount = 0;
+                    let separatorLineIndex = -1;
+                    let insideCodeBlock = false;
+
+                    for (let i = 0; i < lines.length; i++) {
+                        const line = lines[i].trim();
+                        if (line.startsWith('```')) {
+                            insideCodeBlock = !insideCodeBlock;
+                            continue;
+                        }
+                        if (!insideCodeBlock && separatorRegex.test(line)) {
+                            if (foundTablesCount === tableIndex) {
+                                separatorLineIndex = i;
+                                break;
+                            }
+                            foundTablesCount++;
+                        }
+                    }
+
+                    if (separatorLineIndex === -1) {
+                        alert("Fehler: Tabelle im Markdown nicht gefunden.");   // FIXME
+                        return;
+                    }
+
+                    let insertOnTop = false;
+                    for (let i = separatorLineIndex - 1; i >= 0; i--) {
+                        const prevLine = lines[i].trim();
+                        if (prevLine.includes('oben')) { insertOnTop = true; break; }
+                    }
+
+                    let targetLineIndex = separatorLineIndex + 1;
+                    if (!insertOnTop) {
+                        while (targetLineIndex < lines.length) {
+                            const l = lines[targetLineIndex].trim();
+                            if ((!l.startsWith('|') && l !== '') || l === '') break;
+                            targetLineIndex++;
+                        }
+                    }
+
+                    lines.splice(targetLineIndex, 0, newRowMarkdown);
+
+                    const newText = lines.join('\n');
+                    texteditInputArea.value = newText;
+                    texteditSaveData(newText);
+                    texteditRenderViewMode();
+                }
+
+                function texteditRenderViewMode() {
+                    const rawText = texteditInputArea.value;
+                    texteditOutputView.innerHTML = marked.parse(rawText);
+
+                    texteditCheckTables();
+
+                    texteditContainerEdit.classList.add('textedit-hidden');
+                    texteditContainerView.classList.remove('textedit-hidden');
+
+                    texteditBtnToggle.innerText = "Bearbeiten";
+                    texteditVisibilityToggle.classList.add('textedit-hidden');
+                    texteditVisibilityToggle.disabled = true;
+                }
+
+                function texteditEnableEditMode() {
+                    texteditContainerView.classList.add('textedit-hidden');
+                    texteditContainerEdit.classList.remove('textedit-hidden');
+
+                    texteditBtnAddRow.classList.add('textedit-hidden');
+
+                    texteditBtnToggle.innerText = "Speichern";
+                    texteditVisibilityToggle.classList.remove('textedit-hidden');
+                    texteditVisibilityToggle.disabled = false;
+
+                    setTimeout(() => texteditInputArea.focus(), 50);
+                }
+
+                function texteditSaveData(content) {
+                    const isPublic = texteditVisibilityToggle.checked;
+                    console.log("Speichere:", { text: content, public: isPublic });
+                }
+
+                texteditBtnAddRow.addEventListener('click', texteditOpenTableModal);
+
+                texteditBtnToggle.addEventListener('click', function() {
+                    if (texteditIsEditMode) {
+                        texteditRenderViewMode();
+                        texteditSaveData(texteditInputArea.value);
+                    } else {
+                        texteditEnableEditMode();
+                    }
+                    texteditIsEditMode = !texteditIsEditMode;
+                });
+
+                document.addEventListener('DOMContentLoaded', () => {
+                    marked.setOptions({ breaks: true, gfm: true });
+                    texteditRenderViewMode();
+                });
 		</script>
 
 		<script>
 			function updateAppLayout() {
                 const wrapper = document.getElementById('textedit-wrapper');
                 if (!wrapper || !window.visualViewport) return;
-                // 1. Die verdeckte Höhe berechnen (Tastaturhöhe + evtl. Browser-Leisten)
                 const invisibleHeight = Math.max(0, window.innerHeight - window.visualViewport.height);
-                // 2. Nur eingreifen, wenn signifikant was fehlt (>100px = Tastatur)
                 if (invisibleHeight > 100) {
                     wrapper.style.height = `calc(100dvh - ${invisibleHeight}px)`;
                     window.scrollTo(0, 0);
@@ -304,7 +527,6 @@ Hallo 1 2 3
 
             if (window.visualViewport) {
                 window.visualViewport.addEventListener('resize', updateAppLayout);
-                // Scroll-Listener, falls iOS den Viewport verschiebt
                 window.visualViewport.addEventListener('scroll', () => {
                      if(window.visualViewport.offsetTop > 0) window.scrollTo(0,0);
                 });
