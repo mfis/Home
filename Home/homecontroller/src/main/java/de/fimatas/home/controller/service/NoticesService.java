@@ -40,7 +40,16 @@ public class NoticesService {
         n1.setTitle("Title 1");
         n1.setUser("test");
         n1.setLastEdited(LocalDateTime.now());
-        n1.setText("Text 1");
+        n1.setText("""
+                # Überschrift
+                
+                <!-- COMMENT -->
+                | COL 1    | COL 2 |
+                | -------- | ------- |
+                | A  | 1    |
+                | B | 2     |
+                | B    | 3    |
+                """);
         var n2 = new Notice();
         n2.setId("id2");
         n2.setTitle("Title 2");

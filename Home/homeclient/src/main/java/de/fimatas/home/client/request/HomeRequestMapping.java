@@ -199,11 +199,18 @@ public class HomeRequestMapping {
 
     @GetMapping("/textedit")
     public String textedit(Model model, @RequestHeader(name = "User-Agent", required = false) String userAgent,
+                         @RequestParam(name = "id") String id,
                          @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, HttpServletResponse response) {
         boolean isWebViewApp = Strings.CS.equals(userAgent, ControllerUtil.USER_AGENT_APP_WEB_VIEW);
         fillMenu(Pages.PATH_MAINTENANCE, model, response, isWebViewApp);
         fillUserAttributes(model, userCookie);
-        //model.addAttribute("maintenanceLinks", list);
+        var notice = ModelObjectDAO.getInstance().readNoticeModel().getNotices().stream().filter(n -> n.getId().equals(id)).findFirst().orElse(null);
+        if(notice == null) {
+            response.setStatus(HttpStatus.NOT_FOUND.value());
+            return "error";
+        }
+        model.addAttribute("multiUser", StringUtils.isBlank(notice.getUser()));
+        model.addAttribute("text", notice.getText());
         return "textedit";
     }
 

@@ -231,7 +231,7 @@
 
 				<div class="d-flex align-items-center gap-3">
 					<div class="form-check form-switch m-0 d-flex align-items-center">
-						<input class="form-check-input textedit-hidden" type="checkbox" role="switch" id="textedit-visibility-toggle" checked disabled>
+						<input class="form-check-input textedit-hidden" type="checkbox" role="switch" id="textedit-visibility-toggle" th:checked="${multiUser}" disabled>
 						<label class="form-check-label ms-2 d-flex align-items-center" for="textedit-visibility-toggle">
 							<i class="fas fa-user icon-single"></i>
 							<i class="fas fa-users icon-multi"></i>
@@ -250,16 +250,7 @@
 			<main class="textedit-main-container">
 
 				<div id="textedit-container-edit" class="h-100 textedit-hidden">
-                <textarea id="textedit-input-area" placeholder="Markdown eingeben..."># Überschrift
-
-<!-- COMMENT -->
-| col 1    | col 2 |
-| -------- | ------- |
-| A  | 1    |
-| B | 2     |
-| B    | 3    |
-
-				</textarea>
+                <textarea id="textedit-input-area" placeholder="Markdown eingeben..." th:text="${text}"></textarea>
 				</div>
 
 				<div id="textedit-container-view" class="h-100">
