@@ -7,6 +7,7 @@ import de.fimatas.home.library.model.Notice;
 import de.fimatas.home.library.model.NoticeModel;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.apachecommons.CommonsLog;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -64,6 +65,7 @@ public class NoticesService {
 
     public void refresh() {
 
+        instanceModel.getNotices().forEach(this::lookupDerivedTitle);
         ModelObjectDAO.getInstance().write(instanceModel);
         uploadService.uploadToClient(instanceModel);
     }
@@ -81,5 +83,17 @@ public class NoticesService {
         refresh();
     }
 
+    private void lookupDerivedTitle(Notice notice) {
+
+        if(notice == null) {
+            return;
+        }
+
+        String firstLine = StringUtils.trimToEmpty(notice.getText()).split("\\R", 2)[0].trim();
+        notice.setDerivedTitle(firstLine
+                .replaceAll("^#+\\s*", "")
+                .replaceAll("[*_~`]", "")
+                .trim());
+    }
 
 }
