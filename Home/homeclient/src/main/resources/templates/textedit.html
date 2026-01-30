@@ -216,10 +216,91 @@
     overflow-x: auto;
 }
 
+#textedit-messagebox-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease-in-out;
+}
+
+#textedit-messagebox-overlay.textedit-messagebox-visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#textedit-messagebox-box {
+    background-color: var(--te-bg-color, #111);
+    border: 1px solid var(--te-border-color, #444);
+    border-radius: 8px;
+    padding: 24px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    transform: scale(0.9);
+    transition: transform 0.2s ease-in-out;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+#textedit-messagebox-overlay.textedit-messagebox-visible #textedit-messagebox-box {
+    transform: scale(1);
+}
+
+#textedit-messagebox-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+#textedit-messagebox-message {
+    margin: 0;
+    font-size: 1rem;
+    color: #ccc;
+    line-height: 1.5;
+}
+
+#textedit-messagebox-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 8px;
+}
+
+#textedit-messagebox-btn {
+    background-color: #333;
+    color: #fff;
+    border: 1px solid #555;
+    padding: 8px 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+}
+
+#textedit-messagebox-btn:hover,
+#textedit-messagebox-btn:focus {
+    background-color: #555;
+    outline: none;
+    border-color: #777;
+}
+
 	</style>
 
 	<body>
 		<div th:replace="~{basics :: navigation (selected=${MENU_SELECTED}, selectable=${MENU_SELECTABLE}, status=${SITE_REQUEST_TS}, isApp='true')}"></div>
+		<input type="hidden" id="textedit-id" th:value="${id}" />
+		<input type="hidden" id="textedit-version" th:value="${version}" />
 
 		<div id="textedit-wrapper">
 
@@ -270,6 +351,8 @@
                 const texteditBtnToggle = document.getElementById('textedit-btn-toggle');
                 const texteditVisibilityToggle = document.getElementById('textedit-visibility-toggle');
                 const texteditBtnAddRow = document.getElementById('textedit-btn-add-row');
+                const texteditVersion = document.getElementById('textedit-version');
+                const texteditId = document.getElementById('textedit-id');
 
                 let texteditIsEditMode = false;
 
@@ -425,7 +508,7 @@
                     }
 
                     if (separatorLineIndex === -1) {
-                        alert("Fehler: Tabelle im Markdown nicht gefunden.");   // FIXME
+                        alert("Fehler: Tabelle im Markdown nicht gefunden.");   // FIXME !!
                         return;
                     }
 
@@ -448,8 +531,7 @@
 
                     const newText = lines.join('\n');
                     texteditInputArea.value = newText;
-                    texteditSaveData(newText);
-                    texteditRenderViewMode();
+                    save();
                 }
 
                 function texteditRenderViewMode() {
@@ -479,17 +561,11 @@
                     setTimeout(() => texteditInputArea.focus(), 50);
                 }
 
-                function texteditSaveData(content) {
-                    const isPublic = texteditVisibilityToggle.checked;
-                    console.log("Speichere:", { text: content, public: isPublic });
-                }
-
                 texteditBtnAddRow.addEventListener('click', texteditOpenTableModal);
 
                 texteditBtnToggle.addEventListener('click', function() {
                     if (texteditIsEditMode) {
-                        texteditRenderViewMode();
-                        texteditSaveData(texteditInputArea.value);
+                        save();
                     } else {
                         texteditEnableEditMode();
                     }
@@ -500,6 +576,90 @@
                     marked.setOptions({ breaks: true, gfm: true });
                     texteditRenderViewMode();
                 });
+
+				function showAlertModal(titleText, messageText, closeCallback) {
+					const existingOverlay = document.getElementById('textedit-messagebox-overlay');
+					if (existingOverlay) existingOverlay.remove();
+
+					const overlay = document.createElement('div');
+					overlay.id = 'textedit-messagebox-overlay';
+
+					const alertBox = document.createElement('div');
+					alertBox.id = 'textedit-messagebox-box';
+					alertBox.addEventListener('click', (event) => event.stopPropagation());
+
+					const titleElement = document.createElement('h3');
+					titleElement.id = 'textedit-messagebox-title';
+					titleElement.textContent = titleText;
+
+					const messageElement = document.createElement('p');
+					messageElement.id = 'textedit-messagebox-message';
+					messageElement.textContent = messageText;
+
+					const actionsContainer = document.createElement('div');
+					actionsContainer.id = 'textedit-messagebox-actions';
+
+					const confirmButton = document.createElement('button');
+					confirmButton.id = 'textedit-messagebox-btn';
+					confirmButton.textContent = 'OK';
+
+					const closeAlert = () => {
+						overlay.classList.remove('textedit-messagebox-visible');
+						setTimeout(() => {
+							if (overlay.parentNode) overlay.remove();
+							if (typeof closeCallback === 'function') closeCallback();
+						}, 200);
+					};
+
+					confirmButton.addEventListener('click', closeAlert);
+					overlay.addEventListener('click', closeAlert);
+
+					const handleEscapeKey = (event) => {
+						if (event.key === 'Escape') {
+							closeAlert();
+							document.removeEventListener('keydown', handleEscapeKey);
+						}
+					};
+					document.addEventListener('keydown', handleEscapeKey);
+
+					actionsContainer.appendChild(confirmButton);
+					alertBox.appendChild(titleElement);
+					alertBox.appendChild(messageElement);
+					alertBox.appendChild(actionsContainer);
+					overlay.appendChild(alertBox);
+
+					document.body.appendChild(overlay);
+
+					requestAnimationFrame(() => {
+						overlay.classList.add('textedit-messagebox-visible');
+						confirmButton.focus();
+					});
+				}
+
+				function save(){
+					if(navigator.onLine){
+						let httpRequest = new XMLHttpRequest();
+						httpRequest.open('POST', '/texteditSave?id=' + texteditId.value + '&version=' + texteditVersion.value + '&multiUser=' + texteditVisibilityToggle.checked);
+						httpRequest.setRequestHeader('Cache-Control', 'no-cache');
+						httpRequest.setRequestHeader('CSRF', 'true');
+						httpRequest.send(texteditInputArea.value);
+						httpRequest.onreadystatechange=(e)=>{
+							if (httpRequest.readyState === 4) {
+								if(httpRequest.status === 200){
+									const resp = JSON.parse(httpRequest.responseText);
+									texteditInputArea.value = resp.text;
+									texteditVersion.value = resp.version;
+									texteditRenderViewMode();
+								}else{
+									showAlertModal('Fehler', 'Speichern nicht erfolgreich!');
+								}
+							}
+						}
+					}else{
+						showAlertModal('Fehler', 'Bitte Netzwerk prüfen!');
+					}
+				}
+
 		</script>
 
 		<script>

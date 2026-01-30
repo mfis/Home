@@ -13,14 +13,16 @@ public class Notice {
 
     private String id;
 
-    private String title;
-
-    private String text;
-
-    private String user;
+    private long version;
 
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime lastEdited;
+
+    private String user;
+
+    private String derivedTitle;
+
+    private String text;
 
 }

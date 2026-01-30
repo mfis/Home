@@ -29,7 +29,8 @@ public enum MessageType {
     TASKS_EXECUTION(Pages.PATH_HOME), //
     MAINTENANCE(Pages.PATH_MAINTENANCE), //
     CLIENT_ERROR_PUSH_MESSAGE(null), //
-    ;//
+    NOTICE_SAVE(null), //
+    ; //
 
     private final String targetSite;
 

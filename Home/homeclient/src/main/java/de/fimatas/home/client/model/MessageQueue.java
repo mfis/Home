@@ -1,13 +1,13 @@
 package de.fimatas.home.client.model;
 
+import de.fimatas.home.library.model.Message;
+import de.fimatas.home.library.util.HomeAppConstants;
+import lombok.extern.apachecommons.CommonsLog;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-
-import de.fimatas.home.library.model.Message;
-import de.fimatas.home.library.util.HomeAppConstants;
-import lombok.extern.apachecommons.CommonsLog;
 
 @CommonsLog
 public class MessageQueue {
@@ -50,7 +50,7 @@ public class MessageQueue {
 
         do {
             try {
-                TimeUnit.MILLISECONDS.sleep(50);
+                TimeUnit.MILLISECONDS.sleep(10);
             } catch (InterruptedException e) { // NOSONAR
                 start = 0L;
                 log.warn("Exception while sleep: ", e);

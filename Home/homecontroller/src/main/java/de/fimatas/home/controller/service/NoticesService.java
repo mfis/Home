@@ -2,6 +2,7 @@ package de.fimatas.home.controller.service;
 
 import de.fimatas.home.controller.dao.StateHandlerDAO;
 import de.fimatas.home.library.dao.ModelObjectDAO;
+import de.fimatas.home.library.model.Message;
 import de.fimatas.home.library.model.Notice;
 import de.fimatas.home.library.model.NoticeModel;
 import jakarta.annotation.PostConstruct;
@@ -37,7 +38,7 @@ public class NoticesService {
         var noticeModel = new NoticeModel();
         var n1 = new Notice();
         n1.setId("id1");
-        n1.setTitle("Title 1");
+        n1.setDerivedTitle("Title 1");
         n1.setUser("test");
         n1.setLastEdited(LocalDateTime.now());
         n1.setText("""
@@ -52,7 +53,7 @@ public class NoticesService {
                 """);
         var n2 = new Notice();
         n2.setId("id2");
-        n2.setTitle("Title 2");
+        n2.setDerivedTitle("Title 2");
         n2.setUser(null);
         n2.setLastEdited(LocalDateTime.now().minusDays(3));
         n2.setText("Text 2");
@@ -63,9 +64,21 @@ public class NoticesService {
 
     public void refresh() {
 
-
         ModelObjectDAO.getInstance().write(instanceModel);
         uploadService.uploadToClient(instanceModel);
+    }
+
+    public void save(Message message) {
+
+        var notice = instanceModel.getNotices().stream().filter(n -> n.getId().equals(message.getDeviceId())).findFirst().orElse(null);
+        if(notice == null) {
+            throw new IllegalStateException("Message not found");
+        }
+        notice.setVersion(notice.getVersion() + 1);
+        notice.setUser(Boolean.parseBoolean(message.getAdditionalData()) ? null : message.getUser());
+        notice.setText(message.getValue());
+        message.setKey(Long.toString(notice.getVersion()));
+        refresh();
     }
 
 

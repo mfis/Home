@@ -1893,14 +1893,13 @@ public class HouseViewService {
         noticeModel.getNotices().forEach(notice -> {
             NoticeView noticeView = new NoticeView();
             noticeView.setId(notice.getId());
-            noticeView.setTitle(notice.getTitle());
+            noticeView.setTitle(notice.getDerivedTitle());
             noticeView.setUserIcon(StringUtils.isBlank(notice.getUser()) ? "fas fa-users" : "fas fa-user");
             noticeView.setLastEditedText(StringUtils.capitalize(viewFormatter.formatTimestamp(notice.getLastEdited(), TimestampFormat.DATE_TIME)));
             noticeView.setLastEditedMillis(notice.getLastEdited().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
             noticesView.getList().add(noticeView);
         });
 
-        // sort
         noticesView.getList().sort(Comparator.comparingLong(NoticeView::getLastEditedMillis).reversed());
     }
 

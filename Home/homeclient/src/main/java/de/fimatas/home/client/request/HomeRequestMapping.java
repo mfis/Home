@@ -1,5 +1,6 @@
 package de.fimatas.home.client.request;
 
+import de.fimatas.home.client.domain.model.NoticeResponse;
 import de.fimatas.home.client.domain.model.ValueWithCaption;
 import de.fimatas.home.client.domain.service.HistoryViewService;
 import de.fimatas.home.client.domain.service.HouseViewService;
@@ -28,6 +29,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -209,9 +211,44 @@ public class HomeRequestMapping {
             response.setStatus(HttpStatus.NOT_FOUND.value());
             return "error";
         }
+        model.addAttribute("id", notice.getId());
         model.addAttribute("multiUser", StringUtils.isBlank(notice.getUser()));
+        model.addAttribute("version", notice.getVersion());
         model.addAttribute("text", notice.getText());
         return "textedit";
+    }
+
+    @PostMapping("/texteditSave")
+    public ResponseEntity<NoticeResponse> texteditSave(Model model, @RequestHeader(name = "User-Agent", required = false) String userAgent,
+                                       @RequestParam(name = "id") String id, @RequestParam(name = "version") String version,
+                                       @RequestParam(name = "multiUser") String multiUser, @RequestBody String text,
+                                       @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, HttpServletResponse response) {
+        boolean isWebViewApp = Strings.CS.equals(userAgent, ControllerUtil.USER_AGENT_APP_WEB_VIEW);
+        fillMenu(Pages.PATH_MAINTENANCE, model, response, isWebViewApp);
+        fillUserAttributes(model, userCookie);
+        var notice = ModelObjectDAO.getInstance().readNoticeModel().getNotices().stream().filter(n -> n.getId().equals(id)).findFirst().orElse(null);
+        if(notice == null) {
+            return new ResponseEntity<>(new NoticeResponse(), HttpStatus.NOT_FOUND);
+        }
+        model.addAttribute("id", notice.getId());
+        model.addAttribute("multiUser", StringUtils.isBlank(notice.getUser()));
+        model.addAttribute("version", notice.getVersion());
+        model.addAttribute("text", notice.getText());
+
+        Message message = new Message();
+        message.setMessageType(MessageType.NOTICE_SAVE);
+        message.setDeviceId(id);
+        message.setAdditionalData(multiUser);
+        message.setKey(version);
+        message.setValue(text);
+        message.setUser(userAPI.userNameFromLoginCookie(userCookie));
+
+        var responseMessage = MessageQueue.getInstance().request(message, true);
+        var noticeResponse = new NoticeResponse();
+        noticeResponse.setVersion(responseMessage.getKey());
+        noticeResponse.setText(responseMessage.getValue());
+
+        return new ResponseEntity<>(noticeResponse, responseMessage.isSuccessfullExecuted()?HttpStatus.OK:HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @RequestMapping(Pages.PATH_HOME) // NOSONAR: POST after login, all other GET
