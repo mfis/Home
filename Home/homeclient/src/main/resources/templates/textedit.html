@@ -323,7 +323,7 @@
 						<i class="fas fa-table"></i> Zeile +
 					</button>
 
-					<button type="button" class="btn btn-secondary btn-sm" onclick="window.location.href='/'">Zurück</button>
+					<button type="button" class="btn btn-secondary btn-sm" onclick="navigateBack()">Zurück</button>
 					<button type="button" class="btn btn-secondary btn-sm" id="textedit-btn-toggle">Bearbeiten</button>
 				</div>
 			</header>
@@ -355,6 +355,11 @@
                 const texteditId = document.getElementById('textedit-id');
 
                 let texteditIsEditMode = false;
+
+				function navigateBack() {
+					sessionStorage.setItem('navigationFastLinkId', 'notices');
+					window.location.href = '/';
+				}
 
                 function texteditCheckTables() {
                     const tables = texteditOutputView.querySelectorAll('table');

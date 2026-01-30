@@ -1887,7 +1887,7 @@ public class HouseViewService {
             return;
         }
 
-        noticesView.setColorClass(ConditionColor.GRAY.getUiClass());
+        noticesView.setColorClass(ConditionColor.DEFAULT.getUiClass());
         noticesView.setElementTitleState(noticeModel.getNotices().size() + " Notiz" + (noticeModel.getNotices().size() == 1 ? "" : "en"));
 
         noticeModel.getNotices().forEach(notice -> {

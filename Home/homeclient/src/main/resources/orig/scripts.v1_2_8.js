@@ -101,6 +101,11 @@ function getAssetId(document){
 }
 
 function doOnloadFunctions(){
+    const fid = sessionStorage.getItem('navigationFastLinkId');
+    if (fid) {
+      fastLinkTo(fid);
+      sessionStorage.removeItem('navigationFastLinkId');
+    }
     if(sliderList){
         prototypeSlider();
         let sliderKey;
