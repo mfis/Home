@@ -208,7 +208,7 @@ public class PushService {
         }
     }
 
-    @Scheduled(cron = "30 25 11,16 * * *")
+    @Scheduled(cron = "00 45 12 * * *")
     public void sendPvStringFailure() {
         try {
             if(ModelObjectDAO.getInstance().readPvAdditionalDataModel() != null){
