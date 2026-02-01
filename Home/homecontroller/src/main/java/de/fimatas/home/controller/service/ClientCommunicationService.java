@@ -202,6 +202,9 @@ public class ClientCommunicationService {
             case CLIENT_ERROR_PUSH_MESSAGE:
                 pushService.clientError(message.getValue());
                 break;
+            case NOTICE_NEW:
+                 noticesService.createNew(message);
+                 break;
             case NOTICE_SAVE:
                 noticesService.save(message);
                 break;

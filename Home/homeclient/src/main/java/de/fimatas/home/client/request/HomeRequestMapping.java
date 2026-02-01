@@ -12,10 +12,7 @@ import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.HouseModel;
 import de.fimatas.home.library.domain.model.Place;
 import de.fimatas.home.library.homematic.model.Device;
-import de.fimatas.home.library.model.MaintenanceOptions;
-import de.fimatas.home.library.model.Message;
-import de.fimatas.home.library.model.MessageType;
-import de.fimatas.home.library.model.Pages;
+import de.fimatas.home.library.model.*;
 import de.fimatas.users.api.EndpointController;
 import de.fimatas.users.api.UserAPI;
 import de.fimatas.users.api.UsersConstants;
@@ -201,12 +198,29 @@ public class HomeRequestMapping {
 
     @GetMapping("/textedit")
     public String textedit(Model model, @RequestHeader(name = "User-Agent", required = false) String userAgent,
-                         @RequestParam(name = "id") String id,
+                         @RequestParam(name = "id", required = false) String id,
                          @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, HttpServletResponse response) {
         boolean isWebViewApp = Strings.CS.equals(userAgent, ControllerUtil.USER_AGENT_APP_WEB_VIEW);
         fillMenu(Pages.PATH_MAINTENANCE, model, response, isWebViewApp);
         fillUserAttributes(model, userCookie);
-        var notice = ModelObjectDAO.getInstance().readNoticeModel().getNotices().stream().filter(n -> n.getId().equals(id)).findFirst().orElse(null);
+
+        Notice notice = null;
+        if(StringUtils.isBlank(id)) {
+            Message message = new Message();
+            message.setMessageType(MessageType.NOTICE_NEW);
+            message.setUser(userAPI.userNameFromLoginCookie(userCookie));
+            var responseMessage = MessageQueue.getInstance().request(message, true);
+            if(responseMessage.isSuccessfullExecuted()){
+                notice = new Notice();
+                notice.setId(responseMessage.getDeviceId());
+                notice.setUser(responseMessage.getUser());
+                notice.setVersion(Long.parseLong(responseMessage.getKey()));
+                notice.setText(responseMessage.getValue());
+            }
+        } else {
+            notice = ModelObjectDAO.getInstance().readNoticeModel().getNotices().stream().filter(n -> n.getId().equals(id)).findFirst().orElse(null);
+        }
+
         if(notice == null) {
             response.setStatus(HttpStatus.NOT_FOUND.value());
             return "error";
@@ -221,7 +235,7 @@ public class HomeRequestMapping {
     @PostMapping("/texteditSave")
     public ResponseEntity<NoticeResponse> texteditSave(Model model, @RequestHeader(name = "User-Agent", required = false) String userAgent,
                                        @RequestParam(name = "id") String id, @RequestParam(name = "version") String version,
-                                       @RequestParam(name = "multiUser") String multiUser, @RequestBody String text,
+                                       @RequestParam(name = "multiUser") String multiUser, @RequestBody(required = false) String text,
                                        @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, HttpServletResponse response) {
         boolean isWebViewApp = Strings.CS.equals(userAgent, ControllerUtil.USER_AGENT_APP_WEB_VIEW);
         fillMenu(Pages.PATH_MAINTENANCE, model, response, isWebViewApp);
@@ -240,7 +254,7 @@ public class HomeRequestMapping {
         message.setDeviceId(id);
         message.setAdditionalData(multiUser);
         message.setKey(version);
-        message.setValue(text);
+        message.setValue(StringUtils.trimToEmpty(text));
         message.setUser(userAPI.userNameFromLoginCookie(userCookie));
 
         var responseMessage = MessageQueue.getInstance().request(message, true);

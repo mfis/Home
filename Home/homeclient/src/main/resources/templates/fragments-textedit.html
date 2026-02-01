@@ -9,7 +9,12 @@
         place=${model.place}, unreach=${model.unreach}, collapseLink='collapse' + ${model.id}, elementTitleState=${model.elementTitleState}, colorClass=${model.colorClass})}"></div>
         <div class="collapse collapse-preserve-state" th:id="'collapse' + ${model.id}">
             <th:block th:unless="${#strings.equals(model.unreach, 'true')}">
-                <div style="height: 10px;"></div>
+                <div></div>
+                <div class="btn-group" role="group" style="padding-bottom: 10px; padding-top: 10px;">
+                    <button class="btn btn-block btn-secondary btn-sm" th:onclick="@{'window.location.href=\'/textedit\''}">
+                        <span><i style="font-size: 0.8rem;" class="fa-solid fa-plus"></i></span>
+                    </button>
+                </div>
                 <th:block th:each="notice : ${model.list}">
                     <div th:id="'noticecontainer-div-' + ${notice.id}" class="noticecontainer" style="border-top: 1px solid #212529; padding-top: 4px;">
                         <div style="display: flex;">
@@ -22,7 +27,7 @@
                             </div>
                             <div class="btn-group" role="group" style="margin-right: 10px; padding-bottom: 10px; padding-top: 10px;">
                                 <button class="btn btn-block btn-secondary btn-sm" th:onclick="@{'window.location.href=\'/textedit?id=' + ${notice.id} + '\''}">
-                                    <span><i style="font-size: 0.8rem;" class="fa-solid fa-pencil"></i></span>
+                                    <span><i style="font-size: 0.8rem;" class="fa-solid fa-eye"></i></span>
                                 </button>
                             </div>
                         </div>
