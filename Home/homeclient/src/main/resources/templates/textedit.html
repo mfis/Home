@@ -311,20 +311,16 @@
 				</div>
 
 				<div class="d-flex align-items-center gap-3">
+					<button type="button" class="btn btn-secondary btn-sm" onclick="backButtonHandle()"><i class="fa-solid fa-circle-chevron-left"></i></button>
+					<button type="button" class="btn btn-secondary btn-sm textedit-hidden" id="textedit-btn-add-row"><i class="fa-solid fa-table"></i></button>
+					<button type="button" class="btn btn-secondary btn-sm" id="textedit-btn-toggle"><i id="textedit-btn-toggle-icon" class="fa-solid fa-pen-to-square"></i></button>
 					<div class="form-check form-switch m-0 d-flex align-items-center">
-						<input class="form-check-input textedit-hidden" type="checkbox" role="switch" id="textedit-visibility-toggle" th:checked="${multiUser}" disabled>
+						<input style="display: none" class="form-check-input textedit-hidden" type="checkbox" role="switch" id="textedit-visibility-toggle" th:checked="${multiUser}" disabled>
 						<label class="form-check-label ms-2 d-flex align-items-center" for="textedit-visibility-toggle">
 							<i class="fas fa-user icon-single"></i>
 							<i class="fas fa-users icon-multi"></i>
 						</label>
 					</div>
-
-					<button type="button" class="btn btn-secondary btn-sm textedit-hidden" id="textedit-btn-add-row">
-						<i class="fas fa-table"></i> Zeile +
-					</button>
-
-					<button type="button" class="btn btn-secondary btn-sm" onclick="navigateBack()">Zurück</button>
-					<button type="button" class="btn btn-secondary btn-sm" id="textedit-btn-toggle">Bearbeiten</button>
 				</div>
 			</header>
 
@@ -349,12 +345,22 @@
                 const texteditInputArea = document.getElementById('textedit-input-area');
                 const texteditOutputView = document.getElementById('textedit-output-view');
                 const texteditBtnToggle = document.getElementById('textedit-btn-toggle');
+                const texteditBtnToggleIcon = document.getElementById('textedit-btn-toggle-icon');
                 const texteditVisibilityToggle = document.getElementById('textedit-visibility-toggle');
                 const texteditBtnAddRow = document.getElementById('textedit-btn-add-row');
                 const texteditVersion = document.getElementById('textedit-version');
                 const texteditId = document.getElementById('textedit-id');
-
                 let texteditIsEditMode = false;
+
+				function backButtonHandle() {
+					if(texteditIsEditMode){
+						console.log('back save');
+						save('afterSave_Back');
+					}else{
+						console.log('back direct');
+						navigateBack();
+					}
+				}
 
 				function navigateBack() {
 					sessionStorage.setItem('navigationFastLinkId', 'notices');
@@ -461,7 +467,7 @@
                         const submitBtn = document.createElement('button');
                         submitBtn.type = 'submit';
                         submitBtn.className = 'btn btn-success btn-sm';
-                        submitBtn.textContent = 'Speichern';
+                        submitBtn.textContent = 'OK';
                         if(headers.length === 0) submitBtn.disabled = true;
 
                         actionsDiv.appendChild(cancelBtn);
@@ -536,7 +542,7 @@
 
                     const newText = lines.join('\n');
                     texteditInputArea.value = newText;
-                    save();
+                    save('afterSave_View');
                 }
 
                 function texteditRenderViewMode() {
@@ -548,9 +554,10 @@
                     texteditContainerEdit.classList.add('textedit-hidden');
                     texteditContainerView.classList.remove('textedit-hidden');
 
-                    texteditBtnToggle.innerText = "Bearbeiten";
+                    texteditBtnToggleIcon.classList = 'fa-solid fa-pen-to-square';
                     texteditVisibilityToggle.classList.add('textedit-hidden');
                     texteditVisibilityToggle.disabled = true;
+                    texteditMode = 'view';
                 }
 
                 function texteditEnableEditMode() {
@@ -559,18 +566,19 @@
 
                     texteditBtnAddRow.classList.add('textedit-hidden');
 
-                    texteditBtnToggle.innerText = "Speichern";
+                    texteditBtnToggleIcon.classList = 'fa-solid fa-eye';
                     texteditVisibilityToggle.classList.remove('textedit-hidden');
                     texteditVisibilityToggle.disabled = false;
 
                     setTimeout(() => texteditInputArea.focus(), 50);
+                    texteditMode = 'edit';
                 }
 
                 texteditBtnAddRow.addEventListener('click', texteditOpenTableModal);
 
                 texteditBtnToggle.addEventListener('click', function() {
                     if (texteditIsEditMode) {
-                        save();
+                        save('afterSave_View');
                     } else {
                         texteditEnableEditMode();
                     }
@@ -641,7 +649,7 @@
 					});
 				}
 
-				function save(){
+				function save(afterSave){
 					if(navigator.onLine){
 						let httpRequest = new XMLHttpRequest();
 						httpRequest.open('POST', '/texteditSave?id=' + texteditId.value + '&version=' + texteditVersion.value + '&multiUser=' + texteditVisibilityToggle.checked);
@@ -651,10 +659,15 @@
 						httpRequest.onreadystatechange=(e)=>{
 							if (httpRequest.readyState === 4) {
 								if(httpRequest.status === 200){
-									const resp = JSON.parse(httpRequest.responseText);
-									texteditInputArea.value = resp.text;
-									texteditVersion.value = resp.version;
-									texteditRenderViewMode();
+									if(afterSave === 'afterSave_Back') {
+										navigateBack();
+									}
+									if(afterSave === 'afterSave_View') {
+										const resp = JSON.parse(httpRequest.responseText);
+										texteditInputArea.value = resp.text;
+										texteditVersion.value = resp.version;
+										texteditRenderViewMode();
+									}
 								}else{
 									showAlertModal('Fehler', 'Speichern nicht erfolgreich!');
 								}
