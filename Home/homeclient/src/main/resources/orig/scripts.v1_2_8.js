@@ -109,9 +109,11 @@ function doOnloadFunctions(){
     if(sliderList){
         prototypeSlider();
         let sliderKey;
-        for (sliderKey in sliderList) {
-            initSliderFunctionsByName[sliderList[sliderKey]](sliderKey);
-        }
+        setTimeout(function(){
+            for (sliderKey in sliderList) {
+                initSliderFunctionsByName[sliderList[sliderKey]](sliderKey);
+            }
+        }, 100);
     }
     if(rangeIDs){
         rangeIDs.forEach(initRangecontainer);
