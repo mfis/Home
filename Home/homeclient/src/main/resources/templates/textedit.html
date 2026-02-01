@@ -443,7 +443,15 @@
                                 const input = document.createElement('input');
                                 input.type = 'text';
                                 input.required = true;
-                                input.placeholder = `Wert für ${header}`;
+                                if(header.toLowerCase().includes('datum')){
+                                	input.value = new Intl.DateTimeFormat('de-DE', {
+  													day: '2-digit',
+  													month: '2-digit',
+  													year: 'numeric'
+												}).format(new Date());
+                                }else{
+                                	input.placeholder = `Wert für ${header}`;
+                                }
                                 fieldWrapper.appendChild(input);
 
                                 form.appendChild(fieldWrapper);
@@ -526,7 +534,7 @@
                     let insertOnTop = false;
                     for (let i = separatorLineIndex - 1; i >= 0; i--) {
                         const prevLine = lines[i].trim();
-                        if (prevLine.includes('oben')) { insertOnTop = true; break; }
+                        if (prevLine.toLowerCase().includes('oben')) { insertOnTop = true; break; }
                     }
 
                     let targetLineIndex = separatorLineIndex + 1;
