@@ -21,6 +21,8 @@ public class Notice {
 
     private String user;
 
+    private boolean multiUser;
+
     private String derivedTitle;
 
     private String text;

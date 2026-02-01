@@ -214,6 +214,7 @@ public class HomeRequestMapping {
                 notice = new Notice();
                 notice.setId(responseMessage.getDeviceId());
                 notice.setUser(responseMessage.getUser());
+                notice.setMultiUser(Boolean.parseBoolean(responseMessage.getAdditionalData()));
                 notice.setVersion(Long.parseLong(responseMessage.getKey()));
                 notice.setText(responseMessage.getValue());
             }
@@ -225,8 +226,15 @@ public class HomeRequestMapping {
             response.setStatus(HttpStatus.NOT_FOUND.value());
             return "error";
         }
+
+        if(!notice.isMultiUser() && !notice.getUser().equals(userAPI.userNameFromLoginCookie(userCookie))) {
+            response.setStatus(HttpStatus.FORBIDDEN.value());
+            return "error";
+        }
+
         model.addAttribute("id", notice.getId());
-        model.addAttribute("multiUser", StringUtils.isBlank(notice.getUser()));
+        model.addAttribute("owner", notice.getUser());
+        model.addAttribute("multiUser", Boolean.toString(notice.isMultiUser()));
         model.addAttribute("version", notice.getVersion());
         model.addAttribute("text", notice.getText());
         return "textedit";
@@ -244,10 +252,10 @@ public class HomeRequestMapping {
         if(notice == null) {
             return new ResponseEntity<>(new NoticeResponse(), HttpStatus.NOT_FOUND);
         }
-        model.addAttribute("id", notice.getId());
-        model.addAttribute("multiUser", StringUtils.isBlank(notice.getUser()));
-        model.addAttribute("version", notice.getVersion());
-        model.addAttribute("text", notice.getText());
+        // check old value!
+        if(!notice.isMultiUser() && !notice.getUser().equals(userAPI.userNameFromLoginCookie(userCookie))) {
+            return new ResponseEntity<>(new NoticeResponse(), HttpStatus.FORBIDDEN);
+        }
 
         Message message = new Message();
         message.setMessageType(MessageType.NOTICE_SAVE);
@@ -255,7 +263,6 @@ public class HomeRequestMapping {
         message.setAdditionalData(multiUser);
         message.setKey(version);
         message.setValue(StringUtils.trimToEmpty(text));
-        message.setUser(userAPI.userNameFromLoginCookie(userCookie));
 
         var responseMessage = MessageQueue.getInstance().request(message, true);
         var noticeResponse = new NoticeResponse();

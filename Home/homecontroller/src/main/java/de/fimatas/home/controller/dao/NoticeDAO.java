@@ -31,7 +31,7 @@ public class NoticeDAO {
     public void createTables() {
 
         jdbcTemplate.update("CREATE CACHED TABLE IF NOT EXISTS " + TABLE_NAME
-                + " (ID CHAR(36) NOT NULL, VERSION INT NOT NULL, EDITED TIMESTAMP DEFAULT CURRENT_TIMESTAMP, USERNAME VARCHAR(64), TEXT VARCHAR(5000000), PRIMARY KEY (ID, VERSION));");
+                + " (ID CHAR(36) NOT NULL, VERSION INT NOT NULL, EDITED TIMESTAMP DEFAULT CURRENT_TIMESTAMP, USERNAME VARCHAR(64), MULTIUSER VARCHAR(5), TEXT VARCHAR(5000000), PRIMARY KEY (ID, VERSION));");
     }
 
     @Transactional(readOnly = true)
@@ -44,30 +44,32 @@ public class NoticeDAO {
     }
 
     @Transactional
-    public long createNew(String id, String username, String text) {
+    public long createNew(String id, String username, boolean multiUser, String text) {
 
         long version = 0;
         jdbcTemplate.update(
-                "INSERT INTO " + TABLE_NAME + " (ID, VERSION, EDITED, USERNAME, TEXT) VALUES (?, ?, ?, ?, ?)",
+                "INSERT INTO " + TABLE_NAME + " (ID, VERSION, EDITED, USERNAME, MULTIUSER, TEXT) VALUES (?, ?, ?, ?, ?, ?)",
                 cleanSqlValue(id),
                 version,
                 uniqueTimestampService.getAsStringWithMillis(),
                 cleanSqlValue(username),
+                Boolean.toString(multiUser),
                 cleanSqlValue(text)
         );
         return version;
     }
 
     @Transactional
-    public void modify(String id, String username, String text) {
+    public void modify(String id, String username, boolean multiUser, String text) {
 
-        String insertSql = "INSERT INTO " + TABLE_NAME + " (ID, VERSION, EDITED, USERNAME, TEXT) " +
-                "SELECT ID, MAX(VERSION) + 1, ?, ?, ? " +
+        String insertSql = "INSERT INTO " + TABLE_NAME + " (ID, VERSION, EDITED, USERNAME, MULTIUSER, TEXT) " +
+                "SELECT ID, MAX(VERSION) + 1, ?, ?, ?, ? " +
                 "FROM " + TABLE_NAME + " WHERE ID = ? GROUP BY ID";
 
         jdbcTemplate.update(insertSql,
                 uniqueTimestampService.getAsStringWithMillis(),
                 cleanSqlValue(username),
+                Boolean.toString(multiUser),
                 cleanSqlValue(text),
                 cleanSqlValue(id)
         );

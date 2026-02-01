@@ -11,6 +11,8 @@ public class NoticeView extends View {
 
     private String title;
 
+    private String userName;
+
     private String userIcon;
 
     private String lastEditedText;

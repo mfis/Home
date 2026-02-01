@@ -159,7 +159,7 @@ public class HouseViewService {
 
         formatTasks(model, tasksModel);
 
-        formatNotices(model, noticeModel);
+        formatNotices(model, noticeModel, username);
 
         // widget
         formatUpperFloorGroup(model, "widgetUpperFloor", Place.WIDGET_UPPER_FLOOR_TEMPERATURE, house);
@@ -1873,7 +1873,7 @@ public class HouseViewService {
         tasksView.getList().sort(Comparator.comparingLong(TaskView::getDurationSeconds).reversed());
     }
 
-    private void formatNotices(Model model, NoticeModel noticeModel) {
+    private void formatNotices(Model model, NoticeModel noticeModel, String user) {
 
         NoticesView noticesView = new NoticesView();
         noticesView.setName("Notizen");
@@ -1888,13 +1888,21 @@ public class HouseViewService {
         }
 
         noticesView.setColorClass(ConditionColor.DEFAULT.getUiClass());
-        noticesView.setElementTitleState(noticeModel.getNotices().size() + " Notiz" + (noticeModel.getNotices().size() == 1 ? "" : "en"));
 
-        noticeModel.getNotices().forEach(notice -> {
+        var ownNotices = noticeModel.getNotices().stream().filter(n -> n.getUser().equals(user)).toList();
+        var sharedNotices = noticeModel.getNotices().stream().filter(n -> !n.getUser().equals(user) && n.isMultiUser()).toList();
+
+        noticesView.setElementTitleState(ownNotices.size() + " eigene, " + sharedNotices.size() + " geteilte");
+
+        var allNotices = new  ArrayList<Notice>();
+        allNotices.addAll(ownNotices);
+        allNotices.addAll(sharedNotices);
+        allNotices.forEach(notice -> {
             NoticeView noticeView = new NoticeView();
             noticeView.setId(notice.getId());
             noticeView.setTitle(notice.getDerivedTitle());
-            noticeView.setUserIcon(StringUtils.isBlank(notice.getUser()) ? "fas fa-users" : "fas fa-user");
+            noticeView.setUserName(noticeView.getUserName());
+            noticeView.setUserIcon(notice.isMultiUser() ? "fas fa-users" : "fas fa-user");
             noticeView.setLastEditedText(StringUtils.capitalize(viewFormatter.formatTimestamp(notice.getLastEdited(), TimestampFormat.DATE_TIME)));
             noticeView.setLastEditedMillis(notice.getLastEdited().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
             noticesView.getList().add(noticeView);

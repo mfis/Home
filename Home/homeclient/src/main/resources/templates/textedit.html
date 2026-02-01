@@ -301,6 +301,8 @@
 		<div th:replace="~{basics :: navigation (selected=${MENU_SELECTED}, selectable=${MENU_SELECTABLE}, status=${SITE_REQUEST_TS}, isApp='true')}"></div>
 		<input type="hidden" id="textedit-id" th:value="${id}" />
 		<input type="hidden" id="textedit-version" th:value="${version}" />
+		<input type="hidden" id="textedit-owner" th:value="${owner}" />
+		<input type="hidden" id="textedit-logged-in-user" th:value="${USER_NAME}" />
 
 		<div id="textedit-wrapper">
 
@@ -350,14 +352,14 @@
                 const texteditBtnAddRow = document.getElementById('textedit-btn-add-row');
                 const texteditVersion = document.getElementById('textedit-version');
                 const texteditId = document.getElementById('textedit-id');
+                const texteditOwner = document.getElementById('textedit-owner');
+                const texteditLoggedInUser = document.getElementById('textedit-logged-in-user');
                 let texteditIsEditMode = false;
 
 				function backButtonHandle() {
 					if(texteditIsEditMode){
-						console.log('back save');
 						save('afterSave_Back');
 					}else{
-						console.log('back direct');
 						navigateBack();
 					}
 				}
@@ -583,6 +585,12 @@
                 }
 
                 texteditBtnAddRow.addEventListener('click', texteditOpenTableModal);
+                texteditVisibilityToggle.addEventListener('change', (event) => {
+					const isChecked = event.target.checked;
+					if (!isChecked && texteditOwner.value !== texteditLoggedInUser.value) {
+						showAlertModal('Geteilte Notiz', 'Achtung! Wenn Du jetzt speicherst, verlierst Du den Zugriff auf diese Notiz.');
+					}
+				});
 
                 texteditBtnToggle.addEventListener('click', function() {
                     if (texteditIsEditMode) {

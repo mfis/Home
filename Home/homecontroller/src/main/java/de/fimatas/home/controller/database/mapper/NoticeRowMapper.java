@@ -19,6 +19,7 @@ public class NoticeRowMapper implements RowMapper<Notice> {
         notice.setVersion(rs.getInt("VERSION"));
         notice.setLastEdited(LocalDateTime.ofInstant(Instant.ofEpochMilli(rs.getTimestamp("EDITED").getTime()), ZoneId.systemDefault()));
         notice.setUser(rs.getString("USERNAME"));
+        notice.setMultiUser(Boolean.parseBoolean(rs.getString("MULTIUSER")));
         notice.setText(rs.getString("TEXT"));
         return notice;
     }

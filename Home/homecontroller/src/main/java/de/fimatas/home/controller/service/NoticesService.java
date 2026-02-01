@@ -47,8 +47,9 @@ public class NoticesService {
     public void createNew(Message message) {
 
         var uuid = UUID.randomUUID().toString();
-        long version = noticeDAO.createNew(uuid, message.getUser(), "");
+        long version = noticeDAO.createNew(uuid, message.getUser(), false,"");
         message.setDeviceId(uuid);
+        message.setAdditionalData(Boolean.toString(false));
         message.setKey(Long.toString(version));
         message.setValue("");
 
@@ -67,9 +68,11 @@ public class NoticesService {
             throw new IllegalStateException("Message not found");
         }
 
-        // FIXME: CHECK VERSION
+        if(notice.getVersion() != Long.parseLong(message.getKey())) {
+            throw new IllegalStateException("Version don't match");
+        }
 
-        noticeDAO.modify(message.getDeviceId(), message.getUser(), message.getValue());
+        noticeDAO.modify(message.getDeviceId(), notice.getUser(), Boolean.parseBoolean(message.getAdditionalData()), message.getValue());
 
         refresh();
     }
