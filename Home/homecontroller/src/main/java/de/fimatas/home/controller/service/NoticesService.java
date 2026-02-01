@@ -72,7 +72,8 @@ public class NoticesService {
             throw new IllegalStateException("Version don't match");
         }
 
-        noticeDAO.modify(message.getDeviceId(), notice.getUser(), Boolean.parseBoolean(message.getAdditionalData()), message.getValue());
+        long newVersion = noticeDAO.modify(message.getDeviceId(), notice.getUser(), Boolean.parseBoolean(message.getAdditionalData()), message.getValue());
+        message.setKey(Long.toString(newVersion));
 
         refresh();
     }

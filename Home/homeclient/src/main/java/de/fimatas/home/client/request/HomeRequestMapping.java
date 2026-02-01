@@ -205,7 +205,9 @@ public class HomeRequestMapping {
         fillUserAttributes(model, userCookie);
 
         Notice notice = null;
+        boolean isNewNotice = false;
         if(StringUtils.isBlank(id)) {
+            isNewNotice = true;
             Message message = new Message();
             message.setMessageType(MessageType.NOTICE_NEW);
             message.setUser(userAPI.userNameFromLoginCookie(userCookie));
@@ -237,6 +239,7 @@ public class HomeRequestMapping {
         model.addAttribute("multiUser", Boolean.toString(notice.isMultiUser()));
         model.addAttribute("version", notice.getVersion());
         model.addAttribute("text", notice.getText());
+        model.addAttribute("isNewNotice", isNewNotice);
         return "textedit";
     }
 

@@ -5,11 +5,15 @@ import de.fimatas.home.library.model.Notice;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.PreparedStatement;
 import java.util.List;
 
 import static de.fimatas.home.controller.dao.DaoUtils.cleanSqlValue;
@@ -60,21 +64,33 @@ public class NoticeDAO {
     }
 
     @Transactional
-    public void modify(String id, String username, boolean multiUser, String text) {
+    public long modify(String id, String username, boolean multiUser, String text) {
 
-        String insertSql = "INSERT INTO " + TABLE_NAME + " (ID, VERSION, EDITED, USERNAME, MULTIUSER, TEXT) " +
-                "SELECT ID, MAX(VERSION) + 1, ?, ?, ?, ? " +
-                "FROM " + TABLE_NAME + " WHERE ID = ? GROUP BY ID";
+        KeyHolder keyHolder = new GeneratedKeyHolder();
 
-        jdbcTemplate.update(insertSql,
-                uniqueTimestampService.getAsStringWithMillis(),
-                cleanSqlValue(username),
-                Boolean.toString(multiUser),
-                cleanSqlValue(text),
-                cleanSqlValue(id)
-        );
+        jdbcTemplate.update(connection -> {
+            PreparedStatement ps = connection.prepareStatement(
+                    "INSERT INTO " + TABLE_NAME + " (ID, VERSION, EDITED, USERNAME, MULTIUSER, TEXT) " +
+                            "SELECT ID, MAX(VERSION) + 1, ?, ?, ?, ? " +
+                            "FROM " + TABLE_NAME + " WHERE ID = ? GROUP BY ID",
+                    new String[] { "VERSION" }
+            );
 
+            ps.setString(1, uniqueTimestampService.getAsStringWithMillis());
+            ps.setString(2, cleanSqlValue(username));
+            ps.setString(3, Boolean.toString(multiUser));
+            ps.setString(4, text);
+            ps.setString(5, id);
+
+            return ps;
+        }, keyHolder);
+
+        Number newVersion = keyHolder.getKey();
+        if(newVersion == null) {
+            throw new DataAccessResourceFailureException("New version number not found");
+        }
         deleteOldVersions(id);
+        return newVersion.longValue();
     }
 
     private void deleteOldVersions(String id) {

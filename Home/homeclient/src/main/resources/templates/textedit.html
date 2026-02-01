@@ -303,6 +303,7 @@
 		<input type="hidden" id="textedit-version" th:value="${version}" />
 		<input type="hidden" id="textedit-owner" th:value="${owner}" />
 		<input type="hidden" id="textedit-logged-in-user" th:value="${USER_NAME}" />
+		<input type="hidden" id="textedit-is-new-notice" th:value="${isNewNotice}" />
 
 		<div id="textedit-wrapper">
 
@@ -354,6 +355,7 @@
                 const texteditId = document.getElementById('textedit-id');
                 const texteditOwner = document.getElementById('textedit-owner');
                 const texteditLoggedInUser = document.getElementById('textedit-logged-in-user');
+                const texteditIsNewNotice = document.getElementById('textedit-is-new-notice');
                 let texteditIsEditMode = false;
 
 				function backButtonHandle() {
@@ -603,7 +605,12 @@
 
                 document.addEventListener('DOMContentLoaded', () => {
                     marked.setOptions({ breaks: true, gfm: true });
-                    texteditRenderViewMode();
+                    if(texteditIsNewNotice.value === 'true') {
+                    	texteditIsNewNotice.value = 'false';
+                    	texteditEnableEditMode();
+                    } else {
+                    	texteditRenderViewMode();
+                    }
                 });
 
 				function showAlertModal(titleText, messageText, closeCallback) {
