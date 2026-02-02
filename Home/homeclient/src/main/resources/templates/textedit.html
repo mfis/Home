@@ -465,6 +465,8 @@ table td[align="center"] {
 												}).format(new Date());
 								} else if(header.toLowerCase().includes('user') || header.toLowerCase().includes('wer')){
 									input.value = texteditLoggedInUser.value;
+								} else if(header.toLowerCase().includes('betrag') || header.includes('€')){
+									input.setAttribute('inputmode', 'decimal');
                                 }else{
                                 	input.placeholder = `Wert für ${header}`;
                                 }
@@ -486,7 +488,10 @@ table td[align="center"] {
                         cancelBtn.type = 'button';
                         cancelBtn.className = 'btn btn-secondary btn-sm';
                         cancelBtn.textContent = 'Abbrechen';
-                        cancelBtn.onclick = () => modal.remove();
+                        cancelBtn.onclick = () => {
+                        	modal.remove();
+                        	updateAppLayout();
+                        }
 
                         const submitBtn = document.createElement('button');
                         submitBtn.type = 'submit';
@@ -505,6 +510,7 @@ table td[align="center"] {
                             const currentTableIndex = tableSelect ? parseInt(tableSelect.value) : tableIndex;
                             texteditAddRowToMarkdown(values, currentTableIndex);
                             modal.remove();
+                            updateAppLayout();
                         };
 
                         modalContent.appendChild(form);
@@ -722,7 +728,9 @@ table td[align="center"] {
                 const invisibleHeight = Math.max(0, window.innerHeight - window.visualViewport.height);
                 if (invisibleHeight > 100) {
                     wrapper.style.height = `calc(100dvh - ${invisibleHeight}px)`;
-                    window.scrollTo(0, 0);
+                    if(!document.getElementById('textedit-table-modal')){
+                    	window.scrollTo(0, 0);
+                    }
                 } else {
                     wrapper.style.height = '100dvh';
                     wrapper.style.top = '0px';
@@ -732,7 +740,11 @@ table td[align="center"] {
             if (window.visualViewport) {
                 window.visualViewport.addEventListener('resize', updateAppLayout);
                 window.visualViewport.addEventListener('scroll', () => {
-                     if(window.visualViewport.offsetTop > 0) window.scrollTo(0,0);
+                     if(window.visualViewport.offsetTop > 0) {
+                     	if(!document.getElementById('textedit-table-modal')){
+                     		window.scrollTo(0,0);
+                     	}
+                     }
                 });
             } else {
                 window.addEventListener('resize', updateAppLayout);
