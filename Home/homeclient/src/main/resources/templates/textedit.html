@@ -467,6 +467,14 @@ table td[align="center"] {
 									input.value = texteditLoggedInUser.value;
 								} else if(header.toLowerCase().includes('betrag') || header.includes('€')){
 									input.setAttribute('inputmode', 'decimal');
+									input.addEventListener('blur', (e) => {
+									  let wert = parseFloat(e.target.value.replace(',', '.'));
+									  if (isNaN(wert)) return;
+									  e.target.value = new Intl.NumberFormat('de-DE', {
+										style: 'currency',
+										currency: 'EUR'
+									  }).format(wert);
+									});
                                 }else{
                                 	input.placeholder = `Wert für ${header}`;
                                 }
