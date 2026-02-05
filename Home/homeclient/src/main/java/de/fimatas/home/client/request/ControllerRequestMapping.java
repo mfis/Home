@@ -8,10 +8,13 @@ import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
@@ -120,13 +123,13 @@ public class ControllerRequestMapping {
         return new ActionModel("OK");
     }
 
-    @PostMapping(value = UPLOAD_METHOD_PREFIX + "BackupFile")
-    public ActionModel uploadBackupFile(@RequestBody BackupFile backupFile) throws IOException {
+    @PostMapping(value = UPLOAD_METHOD_PREFIX + "BackupFileMultipart", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ActionModel uploadBackupFile(@RequestParam("file") MultipartFile backupFile) throws IOException {
         String path = env.getProperty("backup.location");
         if (!Objects.requireNonNull(path).endsWith("/")) {
-            path = path + "/"; // NOSONAR
+            path = path + "/";
         }
-        String absFilePath = path + backupFile.getFilename();
+        String absFilePath = path + backupFile.getOriginalFilename();
         FileUtils.writeByteArrayToFile(new File(absFilePath), backupFile.getBytes());
         return new ActionModel("OK");
     }

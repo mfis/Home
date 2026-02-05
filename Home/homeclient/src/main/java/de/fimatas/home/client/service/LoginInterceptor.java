@@ -62,7 +62,7 @@ public class LoginInterceptor implements HandlerInterceptor {
     private Set<String> WHITELIST_URIS_DYNAMIC;
 
     private static final Set<String> WHITELIST_EXTENSIONS =
-        Set.of("png", "css", "js", "ico", "svg", "eot", "ttf", "woff", "woff2", "map");
+        Set.of(".png", ".css", ".js", ".ico", ".svg", ".eot", ".ttf", ".woff", ".woff2", ".map");
 
     private static final Map<String, String> WHITELIST_URI_AND_QUERY = Map.of(
             "/getAppModel", "viewTarget=complication" //
@@ -135,7 +135,7 @@ public class LoginInterceptor implements HandlerInterceptor {
             return true;
         }
 
-        return WHITELIST_EXTENSIONS.contains(FilenameUtils.getExtension(request.getRequestURI()));
+        return WHITELIST_EXTENSIONS.contains("." + FilenameUtils.getExtension(request.getRequestURI()));
     }
 
     private boolean checkLogin(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -213,7 +213,7 @@ public class LoginInterceptor implements HandlerInterceptor {
         String controllerTokenSent = request.getHeader(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN);
 
         if(StringUtils.isBlank(controllerTokenSent)){
-            response.setStatus(HttpStatus.UNAUTHORIZED.value()); // 400
+            response.setStatus(HttpStatus.UNAUTHORIZED.value()); // 401
             return false;
         }
 
@@ -332,8 +332,8 @@ public class LoginInterceptor implements HandlerInterceptor {
 
     private boolean isControllerRequest(HttpServletRequest request) {
         return Strings.CS.startsWith(request.getRequestURI(), ControllerRequestMapping.UPLOAD_METHOD_PREFIX)
-                || Strings.CS.equals(request.getRequestURI(), ControllerRequestMapping.CONTROLLER_LONG_POLLING_FOR_AWAIT_MESSAGE_REQUEST)
-                || Strings.CS.equals(request.getRequestURI(), UsersConstants.USERS_CHECK_PIN_PATH) ;
+                || Strings.CI.contains(request.getRequestURI(), ControllerRequestMapping.CONTROLLER_LONG_POLLING_FOR_AWAIT_MESSAGE_REQUEST)
+                || Strings.CI.contains(request.getRequestURI(), UsersConstants.USERS_CHECK_PIN_PATH) ;
     }
 
     private boolean isLoginRequest(HttpServletRequest request) {

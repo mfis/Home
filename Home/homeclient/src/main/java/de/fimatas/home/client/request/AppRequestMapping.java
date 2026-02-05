@@ -27,7 +27,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -81,7 +80,6 @@ public class AppRequestMapping {
     @GetMapping(value = "/getAppModel")
     public HomeViewModel getModel(@RequestParam("viewTarget") String viewTarget) {
 
-        log.debug("getModel()");
         HouseModel houseModel = ModelObjectDAO.getInstance().readHouseModel();
         try {
             if (houseModel == null) {
@@ -89,7 +87,7 @@ public class AppRequestMapping {
             } else {
                 Model model = new ExtendedModelMap();
                 houseView.fillViewModel(model, null, houseModel, ModelObjectDAO.getInstance().readHistoryModel(),
-                    ModelObjectDAO.getInstance().readLightsModel(), ModelObjectDAO.getInstance().readWeatherForecastModel(), ModelObjectDAO.getInstance().readPresenceModel(), ModelObjectDAO.getInstance().readHeatpumpRoofModel(), ModelObjectDAO.getInstance().readHeatpumpBasementModel(), ModelObjectDAO.getInstance().readElectricVehicleModel(), ModelObjectDAO.getInstance().readPushMessageModel(), ModelObjectDAO.getInstance().readTasksModel(), ModelObjectDAO.getInstance().readNoticeModel(), ModelObjectDAO.getInstance().readPvAdditionalDataModel());
+                    ModelObjectDAO.getInstance().readLightsModel(), ModelObjectDAO.getInstance().readWeatherForecastModel(), ModelObjectDAO.getInstance().readPresenceModel(), ModelObjectDAO.getInstance().readHeatpumpRoofModel(), ModelObjectDAO.getInstance().readHeatpumpBasementModel(), ModelObjectDAO.getInstance().readElectricVehicleModel(), null, null, null, ModelObjectDAO.getInstance().readPvAdditionalDataModel());
                 return appViewService.mapAppModel(model, AppViewService.AppViewTarget.valueOf(viewTarget.toUpperCase()));
             }
         } catch (Exception e) {
@@ -106,13 +104,12 @@ public class AppRequestMapping {
             return null;
         }
 
-        var list = pushMessageModel == null ? Collections.EMPTY_LIST :
-                pushMessageModel.getList().stream()
-                        .filter(msg -> msg.getUsername().equalsIgnoreCase(appUserName))
-                        .map(msg -> {
-                            var ts = StringUtils.capitalize(viewFormatter.formatTimestamp(msg.getTimestamp(), ViewFormatter.TimestampFormat.DATE_TIME));
-                            return new PushMessageView("id_pm_" + msg.getTimestamp(), ts, msg.getTitle(), msg.getTextMessage());
-                        }).collect(Collectors.toList());
+        var list = pushMessageModel.getList().stream()
+                .filter(msg -> msg.getUsername().equalsIgnoreCase(appUserName))
+                .map(msg -> {
+                    var ts = StringUtils.capitalize(viewFormatter.formatTimestamp(msg.getTimestamp(), ViewFormatter.TimestampFormat.DATE_TIME));
+                    return new PushMessageView("id_pm_" + msg.getTimestamp(), ts, msg.getTitle(), msg.getTextMessage());
+                }).collect(Collectors.toList());
 
         return new PushMessagesView(list);
     }

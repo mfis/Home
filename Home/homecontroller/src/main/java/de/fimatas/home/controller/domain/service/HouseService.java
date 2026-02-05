@@ -120,7 +120,6 @@ public class HouseService {
 
         pushService.sendAfterModelRefresh(oldModel, newModel);
         uploadService.uploadToClient(newModel);
-        uploadService.uploadToAdapter(newModel);
 
         updateHomematicSystemVariables(oldModel, newModel);
 

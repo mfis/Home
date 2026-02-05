@@ -1,45 +1,39 @@
 package de.fimatas.home.controller.service;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-
+import de.fimatas.home.controller.dao.*;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-
-import de.fimatas.home.controller.dao.*;
+import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import de.fimatas.home.library.domain.model.BackupFile;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 @Component
+@CommonsLog
 /*
     Restore Database:
     - stop homecontroller
     - stop homeclient
-    - rename last backup to 'import.sql.zip'
+    - rename last backup to 'import.7z'
     - delete 'homehistory.mv.db' and 'homehistory.trace.db'
     - deploy or start homecontroller
     - wait for finish restoring
     - start homeclient
  */
 public class BackupService {
-
-    @Autowired
-    private BackblazeBackupAPI backupAPI;
 
     @Autowired
     private HistoryDatabaseDAO historyDatabaseDAO;
@@ -62,12 +56,12 @@ public class BackupService {
     @Autowired
     private Environment env;
 
-    private static final DateTimeFormatter BACKUP_DAILY_TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
     private static final DateTimeFormatter BACKUP_ADHOC_TIMESTAMP_FORMATTER =
         DateTimeFormatter.ofPattern("yyyy-MM-dd__HH-mm_ss_SSS");
 
-    private static final Log LOG = LogFactory.getLog(BackupService.class);
+    private final String BACKUP_FILENAME_PREFIX = "backup_";
+
+    private final String BACKUP_FILENAME_SUFFIX = ".7z";
 
     private int restoreRunCounter = 0;
 
@@ -77,10 +71,10 @@ public class BackupService {
         long completeCount = historyDatabaseDAO.getCountOnStartup();
 
         if(completeCount == -1) {
-            LOG.warn("!! COULD NOT CHECK DATABASE ROW COUNT");
+            log.warn("!! COULD NOT CHECK DATABASE ROW COUNT");
         } else //noinspection StatementWithEmptyBody
             if (completeCount > 0) {
-            LOG.info("database row count: " + completeCount);
+            log.info("database row count: " + completeCount);
             historyDatabaseDAO.completeInit();
             evChargingDAO.completeInit();
             pushMessageDAO.completeInit();
@@ -101,20 +95,20 @@ public class BackupService {
         long completeCount = historyDatabaseDAO.getCountOnStartup();
 
         if(completeCount == -1) {
-            LOG.warn("!! COULD NOT CHECK DATABASE ROW COUNT");
+            log.warn("!! COULD NOT CHECK DATABASE ROW COUNT");
         } else if (completeCount == 0) {
-            File importFile = new File(lookupPath() + "import.sql.zip");
+            File importFile = new File(lookupLocalBackupPath() + "import.7z");
             if (importFile.exists()) {
-                LOG.info("!! AUTO-IMPORT DATABASE FROM: " + importFile.getAbsolutePath());
+                log.info("!! AUTO-IMPORT DATABASE FROM: " + importFile.getAbsolutePath());
                 backupRestoreDAO.restoreDatabase(importFile.getAbsolutePath());
                 //noinspection ResultOfMethodCallIgnored
                 importFile.renameTo(new File(importFile.getAbsolutePath() + ".done"));
-                LOG.info("!! AUTO-IMPORT FINISHED");
+                log.info("!! AUTO-IMPORT FINISHED");
             }else{
-                LOG.warn("!! DATABASE EMPTY - NO AUTO-IMPORT FILE FOUND");
+                log.warn("!! DATABASE EMPTY - NO AUTO-IMPORT FILE FOUND");
             }
         } else {
-            LOG.info("database row count: " + completeCount);
+            log.info("database row count: " + completeCount);
         }
 
         historyDatabaseDAO.completeInit();
@@ -127,67 +121,105 @@ public class BackupService {
 
     @PreDestroy
     public void backupDatabaseOnShutdown() {
-        backupRestoreDAO.backupDatabase(backupFilename(BACKUP_ADHOC_TIMESTAMP_FORMATTER, false));
+        backupDatabase();
     }
 
     @Scheduled(cron = "0 45 01 * * *")
     public void backupDatabaseCreateNew() {
-        backupRestoreDAO.backupDatabase(backupFilename(BACKUP_DAILY_TIMESTAMP_FORMATTER, false));
+        backupDatabase();
     }
 
-    @Scheduled(cron = "0 50 01 * * *")
-    public void backupDatabaseUpload() {
+    private void backupDatabase() {
 
-        Path path = Paths.get(backupFilename(BACKUP_DAILY_TIMESTAMP_FORMATTER, false));
+        String fileName = lookupBackupFileName();
+        File localTempFile = new File(lookupLocalTempPath() + "/" + fileName);
+        backupRestoreDAO.backupDatabase(localTempFile);
 
         try {
-            List<Path> list = new LinkedList<>();
-            if (path.toFile().exists()) {
-                list.add(path);
-            }
-            backupAPI.backup(list.stream());
+            FileUtils.copyFile(localTempFile, new File(lookupLocalBackupPath() + fileName));
         } catch (Exception e) {
-            LOG.error("Exception upload backup file to backblaze:", e);
+            log.error("Exception copy local backup file:", e);
         }
 
         try {
-            if (path.toFile().exists()) {
-                BackupFile backupFile = new BackupFile();
-                backupFile.setFilename(path.toFile().getName());
-                backupFile.setBytes(FileUtils.readFileToByteArray(path.toFile()));
-                uploadService.uploadToClient(backupFile);
-            }
-        } catch (Exception e) {
-            LOG.error("Exception upload backup file to client:", e);
+            uploadService.uploadBackupFile(localTempFile);
+        } catch(Exception e){
+            log.error("Exception upload backup file to client:", e);
         }
 
-        Path yesterdaysFile = Paths.get(backupFilename(BACKUP_DAILY_TIMESTAMP_FORMATTER, true));
-        if (yesterdaysFile.toFile().exists()) {
-            try {
-                Files.delete(yesterdaysFile);
-            } catch (IOException e) {
-                LOG.error("Exception deleting database backup file:", e);
-            }
+        try {
+            FileUtils.delete(localTempFile);
+        } catch (Exception e) {
+            log.error("Exception deleting temp backup:", e);
+        }
+
+        try {
+            deleteOldBackups(Path.of(lookupLocalBackupPath()));
+        } catch (Exception e) {
+            log.error("Exception deleting old backups:", e);
         }
     }
 
-    private String backupFilename(DateTimeFormatter formatter, boolean yesterday) {
+    private void deleteOldBackups(Path directory) throws IOException {
+
+        LocalDateTime cutoff = LocalDateTime.now().minusMonths(6);
+        try (Stream<Path> files = Files.list(directory)) {
+            files.filter(path -> !Files.isDirectory(path))
+                    .filter(path -> {
+                        String name = path.getFileName().toString();
+                        if (!name.startsWith(BACKUP_FILENAME_PREFIX) || !name.endsWith(BACKUP_FILENAME_SUFFIX)) return false;
+                        try {
+                            String datePart = StringUtils.substringBetween(name, BACKUP_FILENAME_PREFIX, BACKUP_FILENAME_SUFFIX);
+                            LocalDateTime fileDate = LocalDateTime.parse(datePart, BACKUP_ADHOC_TIMESTAMP_FORMATTER);
+                            return fileDate.isBefore(cutoff);
+                        } catch (Exception e) {
+                            log.warn("deleteOldBackups#1", e);
+                            return false;
+                        }
+                    })
+                    .forEach(path -> {
+                        try {
+                            Files.delete(path);
+                        } catch (IOException e) {
+                            log.warn("deleteOldBackups#2", e);
+                        }
+                    });
+        }
+    }
+
+    private String lookupBackupFileName() {
 
         LocalDateTime dateTime = LocalDateTime.now();
-        if (yesterday) {
-            dateTime = dateTime.minusHours(24);
-        }
-        String path = lookupPath();
-        String timestamp = formatter.format(dateTime);
-        return path + "backup_" + timestamp + ".sql.zip";
+        String timestamp = BACKUP_ADHOC_TIMESTAMP_FORMATTER.format(dateTime);
+        return BACKUP_FILENAME_PREFIX + timestamp + BACKUP_FILENAME_SUFFIX;
     }
 
-    public String lookupPath() {
-
+    private String lookupLocalBackupPath() {
         String path = env.getProperty("backup.database.path");
         if (!Objects.requireNonNull(path).endsWith("/")) {
             path = path + "/";
         }
         return path;
     }
+
+    private String lookupLocalTempPath() {
+        String rootpath = env.getProperty("backup.database.temp");
+        if (Objects.requireNonNull(rootpath).endsWith("/")) {
+            rootpath = Strings.CI.removeEnd(rootpath, "/");
+        }
+        File rootFile = new File(rootpath);
+        File targetFile = new File(rootpath + "/homecontroller");
+        if(!targetFile.exists() || !targetFile.isDirectory()) {
+            if(new File(rootpath).isDirectory()) {
+                boolean ok = targetFile.mkdirs();
+                if(ok){
+                    return targetFile.getAbsolutePath();
+                }
+            }
+        }else {
+            return targetFile.getAbsolutePath();
+        }
+        throw new IllegalStateException("backup path error");
+    }
+
 }
