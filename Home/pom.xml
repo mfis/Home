@@ -11,7 +11,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.5.9</version>
+		<version>3.5.10</version>
 		<relativePath />
 	</parent>
 	
@@ -21,13 +21,12 @@
 		<!-- Java -->
 		<java.version>17</java.version>
 		<!-- Dependency versions -->
-		<spring-boot.version>3.5.9</spring-boot.version>
+		<spring-boot.version>3.5.10</spring-boot.version>
 		<de.fimatas.users.version>1.0.0</de.fimatas.users.version>
 		<commons-io.version>2.17.0</commons-io.version>
 		<commons-text.version>1.12.0</commons-text.version>
 		<commons-collections4.version>4.4</commons-collections4.version>
 		<pushy.version>0.15.4</pushy.version>
-		<b2-sdk.version>6.2.1</b2-sdk.version>
 		<!-- Webjars versions -->
 		<webjars-locator.version>0.45</webjars-locator.version>
 		<bootstrap.version>5.3.3</bootstrap.version>
@@ -95,18 +94,6 @@
 				<groupId>com.eatthepath</groupId>
 				<artifactId>pushy</artifactId>
 				<version>${pushy.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.backblaze.b2</groupId>
-				<artifactId>b2-sdk-core</artifactId>
-				<version>${b2-sdk.version}</version>
-				<scope>compile</scope>
-			</dependency>
-			<dependency>
-				<groupId>com.backblaze.b2</groupId>
-				<artifactId>b2-sdk-httpclient</artifactId>
-				<version>${b2-sdk.version}</version>
-				<scope>compile</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.luckycatlabs</groupId>
