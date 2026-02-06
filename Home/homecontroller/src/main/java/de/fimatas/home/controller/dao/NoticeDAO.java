@@ -35,14 +35,14 @@ public class NoticeDAO {
     public void createTables() {
 
         jdbcTemplate.update("CREATE CACHED TABLE IF NOT EXISTS " + TABLE_NAME
-                + " (ID CHAR(36) NOT NULL, VERSION INT NOT NULL, EDITED TIMESTAMP DEFAULT CURRENT_TIMESTAMP, USERNAME VARCHAR(64), MULTIUSER VARCHAR(5), TEXT VARCHAR(5000000), PRIMARY KEY (ID, VERSION));");
+                + " (ID CHAR(36) NOT NULL, VERSION INT NOT NULL, EDITED TIMESTAMP DEFAULT CURRENT_TIMESTAMP, USERNAME VARCHAR(64), MULTIUSER BOOLEAN NOT NULL, LOGICALDELETED BOOLEAN NOT NULL, TEXT VARCHAR(5000000), PRIMARY KEY (ID, VERSION));");
     }
 
     @Transactional(readOnly = true)
     public List<Notice> getLatestNotices() {
 
         String query = "SELECT n.* FROM " + TABLE_NAME + " n " +
-                "WHERE n.VERSION = (SELECT MAX(sub.VERSION) FROM " + TABLE_NAME + " sub WHERE sub.ID = n.ID)";
+                "WHERE LOGICALDELETED = FALSE AND n.VERSION = (SELECT MAX(sub.VERSION) FROM " + TABLE_NAME + " sub WHERE sub.ID = n.ID)";
 
         return jdbcTemplate.query(query, new NoticeRowMapper());
     }
@@ -52,12 +52,13 @@ public class NoticeDAO {
 
         long version = 0;
         jdbcTemplate.update(
-                "INSERT INTO " + TABLE_NAME + " (ID, VERSION, EDITED, USERNAME, MULTIUSER, TEXT) VALUES (?, ?, ?, ?, ?, ?)",
+                "INSERT INTO " + TABLE_NAME + " (ID, VERSION, EDITED, USERNAME, MULTIUSER, LOGICALDELETED, TEXT) VALUES (?, ?, ?, ?, ?, ?, ?)",
                 cleanSqlValue(id),
                 version,
                 uniqueTimestampService.getAsStringWithMillis(),
                 cleanSqlValue(username),
-                Boolean.toString(multiUser),
+                multiUser,
+                false,
                 cleanSqlValue(text)
         );
         return version;
@@ -70,17 +71,18 @@ public class NoticeDAO {
 
         jdbcTemplate.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(
-                    "INSERT INTO " + TABLE_NAME + " (ID, VERSION, EDITED, USERNAME, MULTIUSER, TEXT) " +
-                            "SELECT ID, MAX(VERSION) + 1, ?, ?, ?, ? " +
+                    "INSERT INTO " + TABLE_NAME + " (ID, VERSION, EDITED, USERNAME, MULTIUSER, LOGICALDELETED, TEXT) " +
+                            "SELECT ID, MAX(VERSION) + 1, ?, ?, ?, ?, ? " +
                             "FROM " + TABLE_NAME + " WHERE ID = ? GROUP BY ID",
                     new String[] { "VERSION" }
             );
 
             ps.setString(1, uniqueTimestampService.getAsStringWithMillis());
             ps.setString(2, cleanSqlValue(username));
-            ps.setString(3, Boolean.toString(multiUser));
-            ps.setString(4, text);
-            ps.setString(5, id);
+            ps.setBoolean(3, multiUser);
+            ps.setBoolean(4, false);
+            ps.setString(5, text);
+            ps.setString(6, id);
 
             return ps;
         }, keyHolder);
@@ -89,11 +91,11 @@ public class NoticeDAO {
         if(newVersion == null) {
             throw new DataAccessResourceFailureException("New version number not found");
         }
-        deleteOldVersions(id);
+        physicalDeleteOldVersions(id);
         return newVersion.longValue();
     }
 
-    private void deleteOldVersions(String id) {
+    private void physicalDeleteOldVersions(String id) {
 
         String deleteSql = "DELETE FROM " + TABLE_NAME + " WHERE ID = ? " +
                 "AND VERSION NOT IN (" +
