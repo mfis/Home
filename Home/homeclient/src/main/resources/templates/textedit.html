@@ -216,6 +216,18 @@
     overflow-x: auto;
 }
 
+#textedit-messagebox-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+#textedit-messagebox-icon {
+    font-size: 1.5rem;
+    color: #f0ad4e;
+}
+
 #textedit-messagebox-overlay {
     position: fixed;
     top: 0;
@@ -262,6 +274,42 @@
     font-size: 1.25rem;
     font-weight: 600;
     color: #fff;
+}
+
+#textedit-messagebox-cancel-btn {
+    background-color: transparent;
+    color: #ccc;
+    border: 1px solid #555;
+    padding: 8px 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    margin-right: 10px;
+}
+
+#textedit-messagebox-cancel-btn:hover {
+    background-color: #333;
+    color: #fff;
+    border-color: #777;
+}
+
+#textedit-messagebox-confirm-btn {
+    background-color: #333;
+    color: #fff;
+    border: 1px solid #555;
+    padding: 8px 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+}
+
+#textedit-messagebox-confirm-btn:hover,
+#textedit-messagebox-confirm-btn:focus {
+    background-color: #555;
+    outline: none;
+    border-color: #777;
 }
 
 #textedit-messagebox-message {
@@ -591,16 +639,17 @@ table td[align="center"] {
 
                     texteditContainerEdit.classList.add('textedit-hidden');
                     texteditContainerView.classList.remove('textedit-hidden');
+                    texteditIsEditMode = false;
 
                     texteditBtnToggleIcon.classList = 'fa-solid fa-pen-to-square';
                     texteditVisibilityToggle.classList.add('textedit-hidden');
                     texteditVisibilityToggle.disabled = true;
-                    texteditMode = 'view';
                 }
 
                 function texteditEnableEditMode() {
                     texteditContainerView.classList.add('textedit-hidden');
                     texteditContainerEdit.classList.remove('textedit-hidden');
+                    texteditIsEditMode = true;
 
                     texteditBtnAddRow.classList.add('textedit-hidden');
 
@@ -609,14 +658,13 @@ table td[align="center"] {
                     texteditVisibilityToggle.disabled = false;
 
                     setTimeout(() => texteditInputArea.focus(), 50);
-                    texteditMode = 'edit';
                 }
 
                 texteditBtnAddRow.addEventListener('click', texteditOpenTableModal);
                 texteditVisibilityToggle.addEventListener('change', (event) => {
 					const isChecked = event.target.checked;
 					if (!isChecked && texteditOwner.value !== texteditLoggedInUser.value) {
-						showAlertModal('Geteilte Notiz', 'Achtung! Wenn Du jetzt speicherst, verlierst Du den Zugriff auf diese Notiz.');
+						showAlertModal('Geteilte Notiz', 'Achtung! Wenn Du jetzt speicherst, verlierst Du den Zugriff auf diese Notiz.', 'fa-solid fa-triangle-exclamation', false);
 					}
 				});
 
@@ -626,7 +674,6 @@ table td[align="center"] {
                     } else {
                         texteditEnableEditMode();
                     }
-                    texteditIsEditMode = !texteditIsEditMode;
                 });
 
                 document.addEventListener('DOMContentLoaded', () => {
@@ -639,7 +686,7 @@ table td[align="center"] {
                     }
                 });
 
-				function showAlertModal(titleText, messageText, closeCallback) {
+				function showAlertModal(titleText, messageText, iconClass, showCancelButton, confirmCallback, cancelCallback) {
 					const existingOverlay = document.getElementById('textedit-messagebox-overlay');
 					if (existingOverlay) existingOverlay.remove();
 
@@ -650,9 +697,21 @@ table td[align="center"] {
 					alertBox.id = 'textedit-messagebox-box';
 					alertBox.addEventListener('click', (event) => event.stopPropagation());
 
+					const headerContainer = document.createElement('div');
+					headerContainer.id = 'textedit-messagebox-header';
+
+					if (iconClass) {
+						const iconElement = document.createElement('i');
+						iconElement.className = iconClass;
+						iconElement.id = 'textedit-messagebox-icon';
+						headerContainer.appendChild(iconElement);
+					}
+
 					const titleElement = document.createElement('h3');
 					titleElement.id = 'textedit-messagebox-title';
 					titleElement.textContent = titleText;
+
+					headerContainer.appendChild(titleElement);
 
 					const messageElement = document.createElement('p');
 					messageElement.id = 'textedit-messagebox-message';
@@ -661,31 +720,40 @@ table td[align="center"] {
 					const actionsContainer = document.createElement('div');
 					actionsContainer.id = 'textedit-messagebox-actions';
 
-					const confirmButton = document.createElement('button');
-					confirmButton.id = 'textedit-messagebox-btn';
-					confirmButton.textContent = 'OK';
-
-					const closeAlert = () => {
-						overlay.classList.remove('textedit-messagebox-visible');
-						setTimeout(() => {
-							if (overlay.parentNode) overlay.remove();
-							if (typeof closeCallback === 'function') closeCallback();
-						}, 200);
+					const closeAlert = (callbackToRun) => {
+					   overlay.classList.remove('textedit-messagebox-visible');
+					   setTimeout(() => {
+						  if (overlay.parentNode) overlay.remove();
+						  if (typeof callbackToRun === 'function') callbackToRun();
+					   }, 200);
 					};
 
-					confirmButton.addEventListener('click', closeAlert);
-					overlay.addEventListener('click', closeAlert);
+					if (showCancelButton) {
+						const cancelButton = document.createElement('button');
+						cancelButton.id = 'textedit-messagebox-cancel-btn';
+						cancelButton.textContent = 'Abbrechen';
+						cancelButton.addEventListener('click', () => closeAlert(cancelCallback));
+						actionsContainer.appendChild(cancelButton);
+					}
+
+					const confirmButton = document.createElement('button');
+					confirmButton.id = 'textedit-messagebox-confirm-btn';
+					confirmButton.textContent = 'OK';
+					confirmButton.addEventListener('click', () => closeAlert(confirmCallback));
+
+					actionsContainer.appendChild(confirmButton);
+
+					overlay.addEventListener('click', () => closeAlert(cancelCallback));
 
 					const handleEscapeKey = (event) => {
-						if (event.key === 'Escape') {
-							closeAlert();
-							document.removeEventListener('keydown', handleEscapeKey);
-						}
+					   if (event.key === 'Escape') {
+						  closeAlert(cancelCallback);
+						  document.removeEventListener('keydown', handleEscapeKey);
+					   }
 					};
 					document.addEventListener('keydown', handleEscapeKey);
 
-					actionsContainer.appendChild(confirmButton);
-					alertBox.appendChild(titleElement);
+					alertBox.appendChild(headerContainer);
 					alertBox.appendChild(messageElement);
 					alertBox.appendChild(actionsContainer);
 					overlay.appendChild(alertBox);
@@ -693,8 +761,8 @@ table td[align="center"] {
 					document.body.appendChild(overlay);
 
 					requestAnimationFrame(() => {
-						overlay.classList.add('textedit-messagebox-visible');
-						confirmButton.focus();
+					   overlay.classList.add('textedit-messagebox-visible');
+					   confirmButton.focus();
 					});
 				}
 
@@ -718,12 +786,12 @@ table td[align="center"] {
 										texteditRenderViewMode();
 									}
 								}else{
-									showAlertModal('Fehler', 'Speichern nicht erfolgreich!');
+									showAlertModal('Fehler', 'Speichern nicht erfolgreich!', 'fa-solid fa-triangle-exclamation', false);
 								}
 							}
 						}
 					}else{
-						showAlertModal('Fehler', 'Bitte Netzwerk prüfen!');
+						showAlertModal('Fehler', 'Bitte Netzwerk prüfen!', 'fa-solid fa-triangle-exclamation', false);
 					}
 				}
 
