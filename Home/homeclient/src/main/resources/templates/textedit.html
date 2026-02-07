@@ -280,7 +280,7 @@
     color: #fff;
 }
 
-#textedit-messagebox-cancel-btn {
+.textedit-messagebox-btn {
     background-color: transparent;
     color: #ccc;
     border: 1px solid #555;
@@ -292,27 +292,9 @@
     margin-right: 10px;
 }
 
-#textedit-messagebox-cancel-btn:hover {
+.textedit-messagebox-btn:hover {
     background-color: #333;
     color: #fff;
-    border-color: #777;
-}
-
-#textedit-messagebox-confirm-btn {
-    background-color: #333;
-    color: #fff;
-    border: 1px solid #555;
-    padding: 8px 24px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: background-color 0.2s;
-}
-
-#textedit-messagebox-confirm-btn:hover,
-#textedit-messagebox-confirm-btn:focus {
-    background-color: #555;
-    outline: none;
     border-color: #777;
 }
 
@@ -688,6 +670,8 @@ table td[align="center"] {
                 texteditBtnDelete.addEventListener('click', function() {
 					showAlertModal('Löschen', 'Soll diese Notiz gelöscht werden?', 'fa-solid fa-trash-can', true, function() {
 						alert('LÖSCHEN');
+					}, function() {
+						alert('CANCEL');
 					});
                 });
 
@@ -746,6 +730,7 @@ table td[align="center"] {
 					if (showCancelButton) {
 						const cancelButton = document.createElement('button');
 						cancelButton.id = 'textedit-messagebox-cancel-btn';
+						cancelButton.className = 'textedit-messagebox-btn';
 						cancelButton.textContent = 'Abbrechen';
 						cancelButton.addEventListener('click', () => closeAlert(cancelCallback));
 						actionsContainer.appendChild(cancelButton);
@@ -753,6 +738,7 @@ table td[align="center"] {
 
 					const confirmButton = document.createElement('button');
 					confirmButton.id = 'textedit-messagebox-confirm-btn';
+					confirmButton.className = 'textedit-messagebox-btn';
 					confirmButton.textContent = 'OK';
 					confirmButton.addEventListener('click', () => closeAlert(confirmCallback));
 
