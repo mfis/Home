@@ -359,6 +359,7 @@ table td[align="center"] {
 		<input type="hidden" id="textedit-owner" th:value="${owner}" />
 		<input type="hidden" id="textedit-logged-in-user" th:value="${USER_NAME}" />
 		<input type="hidden" id="textedit-is-new-notice" th:value="${isNewNotice}" />
+		<input type="hidden" id="textedit-is-multiuser" th:value="${multiUser}" />
 
 		<div id="textedit-wrapper">
 
@@ -373,13 +374,7 @@ table td[align="center"] {
 					<button type="button" class="btn btn-secondary btn-sm" id="textedit-btn-delete"><i class="fa-solid fa-trash-can"></i></button>
 					<button type="button" class="btn btn-secondary btn-sm textedit-hidden" id="textedit-btn-add-row"><i class="fa-solid fa-table"></i></button>
 					<button type="button" class="btn btn-secondary btn-sm" id="textedit-btn-toggle"><i id="textedit-btn-toggle-icon" class="fa-solid fa-pen-to-square"></i></button>
-					<div class="form-check form-switch m-0 d-flex align-items-center">
-						<input style="display: none" class="form-check-input textedit-hidden" type="checkbox" role="switch" id="textedit-visibility-toggle" th:checked="${multiUser}" disabled>
-						<label class="form-check-label ms-2 d-flex align-items-center" for="textedit-visibility-toggle">
-							<i class="fas fa-user icon-single"></i>
-							<i class="fas fa-users icon-multi"></i>
-						</label>
-					</div>
+					<button type="button" class="btn btn-secondary btn-sm" id="textedit-btn-visibility"><i id="textedit-btn-visibility-icon" class=""></i></button>
 				</div>
 			</header>
 
@@ -405,7 +400,9 @@ table td[align="center"] {
                 const texteditOutputView = document.getElementById('textedit-output-view');
                 const texteditBtnToggle = document.getElementById('textedit-btn-toggle');
                 const texteditBtnToggleIcon = document.getElementById('textedit-btn-toggle-icon');
-                const texteditVisibilityToggle = document.getElementById('textedit-visibility-toggle');
+                const texteditMultiuser = document.getElementById('textedit-is-multiuser');
+                const texteditBtnVisibility = document.getElementById('textedit-btn-visibility');
+                const texteditVisibilityIcon = document.getElementById('textedit-btn-visibility-icon');
                 const texteditBtnAddRow = document.getElementById('textedit-btn-add-row');
                 const texteditBtnDelete = document.getElementById('textedit-btn-delete');
                 const texteditVersion = document.getElementById('textedit-version');
@@ -423,6 +420,21 @@ table td[align="center"] {
 						navigateBack();
 					}
 				}
+
+				function changeVisibilityIcon(){
+					if(texteditMultiuser.value==='true'){
+						texteditVisibilityIcon.className = 'fas fa-users';
+					}else{
+						texteditVisibilityIcon.className = 'fas fa-user';
+					}
+				}
+
+                texteditBtnVisibility.addEventListener('click', function() {
+                	console.log('CLICK');
+                	texteditMultiuser.value = texteditMultiuser.value === 'true' ? 'false' : 'true';
+                	changeVisibilityIcon();
+                });
+                changeVisibilityIcon();
 
 				function navigateBack() {
 					sessionStorage.setItem('navigationFastLinkId', 'notices');
@@ -643,8 +655,7 @@ table td[align="center"] {
                     texteditIsEditMode = false;
 
                     texteditBtnToggleIcon.classList = 'fa-solid fa-pen-to-square';
-                    texteditVisibilityToggle.classList.add('textedit-hidden');
-                    texteditVisibilityToggle.disabled = true;
+                    texteditBtnVisibility.disabled = true;
                 }
 
                 function texteditEnableEditMode() {
@@ -656,19 +667,12 @@ table td[align="center"] {
                     texteditBtnAddRow.classList.add('textedit-hidden');
 
                     texteditBtnToggleIcon.classList = 'fa-solid fa-eye';
-                    texteditVisibilityToggle.classList.remove('textedit-hidden');
-                    texteditVisibilityToggle.disabled = false;
+                    texteditBtnVisibility.disabled = false;
 
                     setTimeout(() => texteditInputArea.focus(), 50);
                 }
 
                 texteditBtnAddRow.addEventListener('click', texteditOpenTableModal);
-                texteditVisibilityToggle.addEventListener('change', (event) => {
-					const isChecked = event.target.checked;
-					if (!isChecked && texteditOwner.value !== texteditLoggedInUser.value) {
-						showAlertModal('Geteilte Notiz', 'Achtung! Wenn Du jetzt speicherst, verlierst Du den Zugriff auf diese Notiz.', 'fa-solid fa-triangle-exclamation', false);
-					}
-				});
 
                 texteditBtnToggle.addEventListener('click', function() {
                     if (texteditIsEditMode) {
@@ -781,7 +785,7 @@ table td[align="center"] {
 				function save(afterSave){
 					if(navigator.onLine){
 						let httpRequest = new XMLHttpRequest();
-						httpRequest.open('POST', '/texteditSave?id=' + texteditId.value + '&version=' + texteditVersion.value + '&multiUser=' + texteditVisibilityToggle.checked);
+						httpRequest.open('POST', '/texteditSave?id=' + texteditId.value + '&version=' + texteditVersion.value + '&multiUser=' + texteditMultiuser.value);
 						httpRequest.setRequestHeader('Cache-Control', 'no-cache');
 						httpRequest.setRequestHeader('CSRF', 'true');
 						httpRequest.send(texteditInputArea.value);
