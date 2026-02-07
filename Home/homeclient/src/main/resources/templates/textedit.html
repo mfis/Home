@@ -5,362 +5,331 @@
 
 	<style>
 
-				body{
-					background-color:#000
-				}
+		body{
+			background-color:#000
+		}
 
-                #textedit-wrapper {
-                    --te-toolbar-height: 56px;
-                    --te-bg-color: #111111;
-                    --te-text-color: #ffffff;
-                    --te-toolbar-bg: #222222;
-                    --te-border-color: #444444;
-                    --te-textsize-edit: 13px;
-                    --te-textsize-view: 0.85rem;
-                    --te-color-green: rgb(68, 204, 68);
+		#textedit-wrapper {
+			--te-toolbar-height: 56px;
+			--te-bg-color: #111111;
+			--te-text-color: #ffffff;
+			--te-toolbar-bg: #222222;
+			--te-border-color: #444444;
+			--te-textsize-edit: 13px;
+			--te-textsize-view: 0.85rem;
+			--te-color-green: rgb(68, 204, 68);
 
-                    position: fixed !important;
-                    top: 0;
-                    left: 0;
-                    width: 100vw;
-                    height: 100dvh;
-                    z-index: 2000;
-                    background-color: var(--te-bg-color) !important;
-                    color: var(--te-text-color) !important;
-                    overflow: hidden;
-                    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-                }
+			position: fixed !important;
+			top: 0;
+			left: 0;
+			width: 100vw;
+			height: 100dvh;
+			z-index: 2000;
+			background-color: var(--te-bg-color) !important;
+			color: var(--te-text-color) !important;
+			overflow: hidden;
+			font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+		}
 
-                #textedit-wrapper .textedit-toolbar {
-                    height: var(--te-toolbar-height);
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    display: flex;
-                    align-items: center;
-                    padding: 0 1rem;
-                    background-color: var(--te-toolbar-bg) !important;
-                    border-bottom: 1px solid var(--te-border-color) !important;
-                    z-index: 10;
-                }
+		#textedit-wrapper .textedit-toolbar {
+			height: var(--te-toolbar-height);
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			display: flex;
+			align-items: center;
+			padding: 0 1rem;
+			background-color: var(--te-toolbar-bg) !important;
+			border-bottom: 1px solid var(--te-border-color) !important;
+			z-index: 10;
+		}
 
-                #textedit-wrapper .textedit-main-container {
-                    margin-top: var(--te-toolbar-height);
-                    height: calc(100% - var(--te-toolbar-height) - env(safe-area-inset-top));
-                    width: 100%;
-                    position: relative;
-                }
+		#textedit-wrapper .textedit-main-container {
+			margin-top: var(--te-toolbar-height);
+			height: calc(100% - var(--te-toolbar-height) - env(safe-area-inset-top));
+			width: 100%;
+			position: relative;
+		}
 
-                .textedit-hidden { display: none !important; }
+		.textedit-hidden { display: none !important; }
 
-                #textedit-wrapper #textedit-input-area {
-                    width: 100%;
-                    height: 100%;
-                    resize: none;
-                    border: none;
-                    outline: none;
-                    padding: 0.5rem;
-                    font-family: 'SFMono-Regular', Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-                    font-size: var(--te-textsize-edit);
-                    background-color: transparent !important;
-                    color: inherit;
-                    caret-color: #ffffff;
-                }
+		#textedit-wrapper #textedit-input-area {
+			width: 100%;
+			height: 100%;
+			resize: none;
+			border: none;
+			outline: none;
+			padding: 0.5rem;
+			font-family: 'SFMono-Regular', Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+			font-size: var(--te-textsize-edit);
+			background-color: transparent !important;
+			color: inherit;
+			caret-color: #ffffff;
+		}
 
-                #textedit-wrapper #textedit-output-view {
-                    width: 100%;
-                    height: 100%;
-                    overflow-y: auto;
-                    padding: 0.5rem;
-                    background-color: transparent !important;
-                    color: inherit;
-                    font-size: var(--te-textsize-view);
-                }
+		#textedit-wrapper #textedit-output-view {
+			width: 100%;
+			height: 100%;
+			overflow-y: auto;
+			padding: 0.5rem;
+			background-color: transparent !important;
+			color: inherit;
+			font-size: var(--te-textsize-view);
+		}
 
-                #textedit-output-view h1,
-				#textedit-output-view h2,
-				#textedit-output-view h3,
-				#textedit-output-view h4,
-				#textedit-output-view h5,
-				#textedit-output-view h6 {
-					font-size: revert-layer;
-				}
+		#textedit-output-view h1,
+		#textedit-output-view h2,
+		#textedit-output-view h3,
+		#textedit-output-view h4,
+		#textedit-output-view h5,
+		#textedit-output-view h6 {
+			font-size: revert-layer;
+		}
 
-                #textedit-wrapper #textedit-output-view img { max-width: 100%; height: auto; }
+		#textedit-wrapper #textedit-output-view img { max-width: 100%; height: auto; }
 
-                #textedit-wrapper *::-webkit-scrollbar { width: 8px; }
-                #textedit-wrapper *::-webkit-scrollbar-track { background: var(--te-bg-color); }
-                #textedit-wrapper *::-webkit-scrollbar-thumb { background: var(--te-border-color); border-radius: 4px; }
-                #textedit-wrapper *::-webkit-scrollbar-thumb:hover { background: #666666; }
+		#textedit-wrapper *::-webkit-scrollbar { width: 8px; }
+		#textedit-wrapper *::-webkit-scrollbar-track { background: var(--te-bg-color); }
+		#textedit-wrapper *::-webkit-scrollbar-thumb { background: var(--te-border-color); border-radius: 4px; }
+		#textedit-wrapper *::-webkit-scrollbar-thumb:hover { background: #666666; }
 
-                #textedit-wrapper h5 {
-                	font-size: 1rem;
-                }
+		#textedit-wrapper h5 {
+			font-size: 1rem;
+		}
 
-                #textedit-wrapper h5,
-                #textedit-wrapper label,
-                #textedit-wrapper .form-check-label {
-                    color: #ffffff !important;
-                }
+		#textedit-wrapper h5,
+		#textedit-wrapper label,
+		#textedit-wrapper .form-check-label {
+			color: #ffffff !important;
+		}
 
-				#textedit-visibility-toggle {
-					font-size: 1.5rem;
-					cursor: pointer;
-					margin-top: 0;
-					margin-left: 0;
-					float: none;
-					background-color: rgb(92,184,92);
-					border-color: rgb(92,184,92);
-				}
+		.form-check.form-switch {
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+			padding-left: 0;
+		}
 
-				#textedit-visibility-toggle:checked {
-					background-color: rgb(240,173,78);
-					border-color: rgb(240,173,78);
-				}
+		.form-check-label i {
+			font-size: 1.25rem;
+			width: 25px;
+			text-align: center;
+		}
 
-				.form-check.form-switch {
-					display: flex;
-					align-items: center;
-					gap: 0.5rem;
-					padding-left: 0;
-				}
+		.icon-home {
+			font-size: 1.2rem;
+			cursor: pointer;
+			margin-top: 0;
+			margin-left: 0;
+			margin-right: 10px;
+			float: none;
+		}
 
-				.icon-multi {
-					display: none;
-				}
+		#textedit-wrapper a {
+			color: #6ea8fe !important;
+		}
 
-				.icon-single {
-					color: rgb(92,184,92);
-				}
+		#textedit-table-modal {
+			position: fixed;
+			top: 0; left: 0; width: 100%; height: 100%;
+			background: rgba(0,0,0,0.8);
+			z-index: 3000;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
 
-				#textedit-visibility-toggle:checked + label .icon-single {
-					display: none;
-					color: rgb(92,184,92);
-				}
+		.textedit-modal-content {
+			background: var(--te-bg-color, #111);
+			border: 1px solid var(--te-border-color, #444);
+			padding: 20px;
+			border-radius: 8px;
+			width: 90%;
+			max-width: 500px;
+			color: #fff;
+		}
 
-				#textedit-visibility-toggle:checked + label .icon-multi {
-					display: inline-block;
-					color: rgb(240,173,78);
-				}
+		.textedit-modal-content h4 { margin-top: 0; margin-bottom: 1rem; }
+		.textedit-modal-field { margin-bottom: 1rem; }
+		.textedit-modal-field label { display: block; margin-bottom: 0.25rem; font-weight: bold; }
+		.textedit-modal-field input {
+			width: 100%;
+			background: #222;
+			border: 1px solid #444;
+			color: #fff;
+			padding: 8px;
+			border-radius: 4px;
+		}
+		.textedit-modal-actions {
+			display: flex;
+			justify-content: flex-end;
+			gap: 10px;
+			margin-top: 1rem;
+		}
 
-				#textedit-visibility-toggle,
-				#textedit-visibility-toggle:checked {
-					background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e");
-				}
+		#textedit-output-view table {
+			width: 100%;
+			max-width: 100%;
+			margin-bottom: 1rem;
+			background-color: transparent;
+			border-collapse: collapse;
+			color: #e0e0e0;
+		}
 
-				.form-check-label i {
-					font-size: 1.25rem;
-					width: 25px;
-					text-align: center;
-				}
+		#textedit-output-view th,
+		#textedit-output-view td {
+			padding: 0.75rem;
+			vertical-align: top;
+			border-bottom: 1px solid #333;
+			text-align: left;
+		}
 
-				.icon-home {
-					font-size: 1.2rem;
-					cursor: pointer;
-					margin-top: 0;
-					margin-left: 0;
-					margin-right: 10px;
-					float: none;
-				}
+		#textedit-output-view thead th {
+			vertical-align: bottom;
+			border-bottom: 2px solid #555;
+			background-color: #1a1a1a;
+			color: #fff;
+			font-weight: 600;
+		}
 
-                #textedit-wrapper a { color: #6ea8fe !important; }
+		#textedit-output-view tbody tr:hover {
+			background-color: rgba(255, 255, 255, 0.05);
+		}
 
-#textedit-table-modal {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.8);
-    z-index: 3000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+		#textedit-output-view {
+			overflow-x: auto;
+		}
 
-.textedit-modal-content {
-    background: var(--te-bg-color, #111);
-    border: 1px solid var(--te-border-color, #444);
-    padding: 20px;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 500px;
-    color: #fff;
-}
+		#textedit-messagebox-header {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			margin-bottom: 8px;
+		}
 
-.textedit-modal-content h4 { margin-top: 0; margin-bottom: 1rem; }
-.textedit-modal-field { margin-bottom: 1rem; }
-.textedit-modal-field label { display: block; margin-bottom: 0.25rem; font-weight: bold; }
-.textedit-modal-field input {
-    width: 100%;
-    background: #222;
-    border: 1px solid #444;
-    color: #fff;
-    padding: 8px;
-    border-radius: 4px;
-}
-.textedit-modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 1rem; }
+		#textedit-messagebox-icon {
+			font-size: 1.5rem;
+			color: #f0ad4e;
+		}
 
-#textedit-output-view table {
-    width: 100%;
-    max-width: 100%;
-    margin-bottom: 1rem;
-    background-color: transparent;
-    border-collapse: collapse;
-    color: #e0e0e0;
-}
+		#textedit-messagebox-overlay {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background-color: rgba(0, 0, 0, 0.7);
+			z-index: 10000;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			opacity: 0;
+			pointer-events: none;
+			transition: opacity 0.2s ease-in-out;
+		}
 
-#textedit-output-view th,
-#textedit-output-view td {
-    padding: 0.75rem;
-    vertical-align: top;
-    border-bottom: 1px solid #333;
-    text-align: left;
-}
+		#textedit-messagebox-overlay.textedit-messagebox-visible {
+			opacity: 1;
+			pointer-events: auto;
+		}
 
-#textedit-output-view thead th {
-    vertical-align: bottom;
-    border-bottom: 2px solid #555;
-    background-color: #1a1a1a;
-    color: #fff;
-    font-weight: 600;
-}
+		#textedit-messagebox-box {
+			background-color: var(--te-bg-color, #111);
+			border: 1px solid var(--te-border-color, #444);
+			border-radius: 8px;
+			padding: 24px;
+			width: 90%;
+			max-width: 400px;
+			box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+			transform: scale(0.9);
+			transition: transform 0.2s ease-in-out;
+			color: #fff;
+			display: flex;
+			flex-direction: column;
+			gap: 16px;
+		}
 
-#textedit-output-view tbody tr:hover {
-    background-color: rgba(255, 255, 255, 0.05);
-}
+		#textedit-messagebox-overlay.textedit-messagebox-visible #textedit-messagebox-box {
+			transform: scale(1);
+		}
 
-#textedit-output-view {
-    overflow-x: auto;
-}
+		#textedit-messagebox-title {
+			margin: 0;
+			font-size: 1.25rem;
+			font-weight: 600;
+			color: #fff;
+		}
 
-#textedit-messagebox-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 8px;
-}
+		.textedit-messagebox-btn {
+			background-color: transparent;
+			color: #ccc;
+			border: 1px solid #555;
+			padding: 8px 24px;
+			border-radius: 4px;
+			cursor: pointer;
+			font-size: 0.9rem;
+			transition: all 0.2s;
+			margin-right: 10px;
+		}
 
-#textedit-messagebox-icon {
-    font-size: 1.5rem;
-    color: #f0ad4e;
-}
+		.textedit-messagebox-btn:hover {
+			background-color: #333;
+			color: #fff;
+			border-color: #777;
+		}
 
-#textedit-messagebox-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    z-index: 10000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s ease-in-out;
-}
+		#textedit-messagebox-message {
+			margin: 0;
+			font-size: 1rem;
+			color: #ccc;
+			line-height: 1.5;
+		}
 
-#textedit-messagebox-overlay.textedit-messagebox-visible {
-    opacity: 1;
-    pointer-events: auto;
-}
+		#textedit-messagebox-actions {
+			display: flex;
+			justify-content: flex-end;
+			margin-top: 8px;
+		}
 
-#textedit-messagebox-box {
-    background-color: var(--te-bg-color, #111);
-    border: 1px solid var(--te-border-color, #444);
-    border-radius: 8px;
-    padding: 24px;
-    width: 90%;
-    max-width: 400px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    transform: scale(0.9);
-    transition: transform 0.2s ease-in-out;
-    color: #fff;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
+		#textedit-messagebox-btn {
+			background-color: #333;
+			color: #fff;
+			border: 1px solid #555;
+			padding: 8px 24px;
+			border-radius: 4px;
+			cursor: pointer;
+			font-size: 0.9rem;
+			transition: background-color 0.2s;
+		}
 
-#textedit-messagebox-overlay.textedit-messagebox-visible #textedit-messagebox-box {
-    transform: scale(1);
-}
+		#textedit-messagebox-btn:hover,
+		#textedit-messagebox-btn:focus {
+			background-color: #555;
+			outline: none;
+			border-color: #777;
+		}
 
-#textedit-messagebox-title {
-    margin: 0;
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #fff;
-}
+		table th[align="right"],
+		table td[align="right"] {
+			text-align: right !important;
+		}
 
-.textedit-messagebox-btn {
-    background-color: transparent;
-    color: #ccc;
-    border: 1px solid #555;
-    padding: 8px 24px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: all 0.2s;
-    margin-right: 10px;
-}
-
-.textedit-messagebox-btn:hover {
-    background-color: #333;
-    color: #fff;
-    border-color: #777;
-}
-
-#textedit-messagebox-message {
-    margin: 0;
-    font-size: 1rem;
-    color: #ccc;
-    line-height: 1.5;
-}
-
-#textedit-messagebox-actions {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 8px;
-}
-
-#textedit-messagebox-btn {
-    background-color: #333;
-    color: #fff;
-    border: 1px solid #555;
-    padding: 8px 24px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: background-color 0.2s;
-}
-
-#textedit-messagebox-btn:hover,
-#textedit-messagebox-btn:focus {
-    background-color: #555;
-    outline: none;
-    border-color: #777;
-}
-
-table th[align="right"],
-table td[align="right"] {
-	text-align: right !important;;
-}
-
-table th[align="center"],
-table td[align="center"] {
-	text-align: center !important;;
-}
+		table th[align="center"],
+		table td[align="center"] {
+			text-align: center !important;
+		}
 
 	</style>
 
 	<body>
 		<div th:replace="~{basics :: navigation (selected=${MENU_SELECTED}, selectable=${MENU_SELECTABLE}, status=${SITE_REQUEST_TS}, isApp='true')}"></div>
-		<input type="hidden" id="textedit-id" th:value="${id}" />
-		<input type="hidden" id="textedit-version" th:value="${version}" />
-		<input type="hidden" id="textedit-owner" th:value="${owner}" />
-		<input type="hidden" id="textedit-logged-in-user" th:value="${USER_NAME}" />
-		<input type="hidden" id="textedit-is-new-notice" th:value="${isNewNotice}" />
-		<input type="hidden" id="textedit-is-multiuser" th:value="${multiUser}" />
+		<input type="hidden" id="textedit-id" th:value="${id}"/>
+		<input type="hidden" id="textedit-version" th:value="${version}"/>
+		<input type="hidden" id="textedit-owner" th:value="${owner}"/>
+		<input type="hidden" id="textedit-logged-in-user" th:value="${USER_NAME}"/>
+		<input type="hidden" id="textedit-is-new-notice" th:value="${isNewNotice}"/>
+		<input type="hidden" id="textedit-is-multiuser" th:value="${multiUser}"/>
 
 		<div id="textedit-wrapper">
 
@@ -371,18 +340,25 @@ table td[align="center"] {
 				</div>
 
 				<div class="d-flex align-items-center gap-3">
-					<button type="button" class="btn btn-secondary btn-sm" onclick="backButtonHandle()"><i class="fa-solid fa-circle-chevron-left"></i></button>
-					<button type="button" class="btn btn-secondary btn-sm" id="textedit-btn-delete"><i class="fa-solid fa-trash-can"></i></button>
-					<button type="button" class="btn btn-secondary btn-sm textedit-hidden" id="textedit-btn-add-row"><i class="fa-solid fa-table"></i></button>
-					<button type="button" class="btn btn-secondary btn-sm text-nowrap" id="textedit-btn-toggle"><i id="textedit-btn-toggle-icon-view" class="fa-solid fa-eye"></i>&nbsp;<i id="textedit-btn-toggle-icon-edit" class="fa-solid fa-pen-to-square"></i></button>
-					<button type="button" class="btn btn-secondary btn-sm text-nowrap" id="textedit-btn-visibility"><i id="textedit-btn-visibility-icon-single" class="fa-solid fa-user"></i>&nbsp;<i id="textedit-btn-visibility-icon-multi" class="fa-solid fa-users"></i></button>
+					<button type="button" class="btn btn-secondary btn-sm" onclick="backButtonHandle()"><i
+							class="fa-solid fa-circle-chevron-left"></i></button>
+					<button type="button" class="btn btn-secondary btn-sm" id="textedit-btn-delete"><i
+							class="fa-solid fa-trash-can"></i></button>
+					<button type="button" class="btn btn-secondary btn-sm textedit-hidden" id="textedit-btn-add-row"><i
+							class="fa-solid fa-table"></i></button>
+					<button type="button" class="btn btn-secondary btn-sm text-nowrap" id="textedit-btn-toggle"><i
+							id="textedit-btn-toggle-icon-view" class="fa-solid fa-eye"></i>&nbsp;<i
+							id="textedit-btn-toggle-icon-edit" class="fa-solid fa-pen-to-square"></i></button>
+					<button type="button" class="btn btn-secondary btn-sm text-nowrap" id="textedit-btn-visibility"><i
+							id="textedit-btn-visibility-icon-single" class="fa-solid fa-user"></i>&nbsp;<i
+							id="textedit-btn-visibility-icon-multi" class="fa-solid fa-users"></i></button>
 				</div>
 			</header>
 
 			<main class="textedit-main-container">
 
 				<div id="textedit-container-edit" class="h-100 textedit-hidden">
-                <textarea id="textedit-input-area" placeholder="Markdown eingeben..." th:text="${text}"></textarea>
+					<textarea id="textedit-input-area" placeholder="Markdown eingeben..." th:text="${text}"></textarea>
 				</div>
 
 				<div id="textedit-container-view" class="h-100">
@@ -396,26 +372,26 @@ table td[align="center"] {
 
 		<script>
 			const texteditContainerEdit = document.getElementById('textedit-container-edit');
-                const texteditContainerView = document.getElementById('textedit-container-view');
-                const texteditInputArea = document.getElementById('textedit-input-area');
-                const texteditOutputView = document.getElementById('textedit-output-view');
-                const texteditBtnToggle = document.getElementById('textedit-btn-toggle');
-                const texteditBtnToggleIcon = document.getElementById('textedit-btn-toggle-icon');
-                const texteditMultiuser = document.getElementById('textedit-is-multiuser');
-                const texteditBtnVisibility = document.getElementById('textedit-btn-visibility');
-                const texteditToggleIconView = document.getElementById('textedit-btn-toggle-icon-view');
-                const texteditToggleIconEdit = document.getElementById('textedit-btn-toggle-icon-edit');
-                const texteditVisibilityIconSingle = document.getElementById('textedit-btn-visibility-icon-single');
-                const texteditVisibilityIconMulti = document.getElementById('textedit-btn-visibility-icon-multi');
-                const texteditBtnAddRow = document.getElementById('textedit-btn-add-row');
-                const texteditBtnDelete = document.getElementById('textedit-btn-delete');
-                const texteditVersion = document.getElementById('textedit-version');
-                const texteditId = document.getElementById('textedit-id');
-                const texteditOwner = document.getElementById('textedit-owner');
-                const texteditLoggedInUser = document.getElementById('textedit-logged-in-user');
-                const texteditIsNewNotice = document.getElementById('textedit-is-new-notice');
-                const texteditHeaderTitleText = document.getElementById('textedit-header-title-text');
-                let texteditIsEditMode = false;
+				const texteditContainerView = document.getElementById('textedit-container-view');
+				const texteditInputArea = document.getElementById('textedit-input-area');
+				const texteditOutputView = document.getElementById('textedit-output-view');
+				const texteditBtnToggle = document.getElementById('textedit-btn-toggle');
+				const texteditBtnToggleIcon = document.getElementById('textedit-btn-toggle-icon');
+				const texteditMultiuser = document.getElementById('textedit-is-multiuser');
+				const texteditBtnVisibility = document.getElementById('textedit-btn-visibility');
+				const texteditToggleIconView = document.getElementById('textedit-btn-toggle-icon-view');
+				const texteditToggleIconEdit = document.getElementById('textedit-btn-toggle-icon-edit');
+				const texteditVisibilityIconSingle = document.getElementById('textedit-btn-visibility-icon-single');
+				const texteditVisibilityIconMulti = document.getElementById('textedit-btn-visibility-icon-multi');
+				const texteditBtnAddRow = document.getElementById('textedit-btn-add-row');
+				const texteditBtnDelete = document.getElementById('textedit-btn-delete');
+				const texteditVersion = document.getElementById('textedit-version');
+				const texteditId = document.getElementById('textedit-id');
+				const texteditOwner = document.getElementById('textedit-owner');
+				const texteditLoggedInUser = document.getElementById('textedit-logged-in-user');
+				const texteditIsNewNotice = document.getElementById('textedit-is-new-notice');
+				const texteditHeaderTitleText = document.getElementById('textedit-header-title-text');
+				let texteditIsEditMode = false;
 
 				function backButtonHandle() {
 					if(texteditIsEditMode){
@@ -435,98 +411,98 @@ table td[align="center"] {
 					}
 				}
 
-                texteditBtnVisibility.addEventListener('click', function() {
-                	texteditMultiuser.value = texteditMultiuser.value === 'true' ? 'false' : 'true';
-                	changeVisibilityIcon();
-                });
-                changeVisibilityIcon();
+				texteditBtnVisibility.addEventListener('click', function() {
+					texteditMultiuser.value = texteditMultiuser.value === 'true' ? 'false' : 'true';
+					changeVisibilityIcon();
+				});
+				changeVisibilityIcon();
 
 				function navigateBack() {
 					sessionStorage.setItem('navigationFastLinkId', 'notices');
 					window.location.href = '/';
 				}
 
-                function texteditCheckTables() {
-                    const tables = texteditOutputView.querySelectorAll('table');
-                    if (tables.length > 0) {
-                        texteditBtnAddRow.classList.remove('textedit-hidden');
-                    } else {
-                        texteditBtnAddRow.classList.add('textedit-hidden');
-                    }
-                }
+				function texteditCheckTables() {
+					const tables = texteditOutputView.querySelectorAll('table');
+					if (tables.length > 0) {
+						texteditBtnAddRow.classList.remove('textedit-hidden');
+					} else {
+						texteditBtnAddRow.classList.add('textedit-hidden');
+					}
+				}
 
-                function texteditOpenTableModal() {
-                    const tables = texteditOutputView.querySelectorAll('table');
-                    if (tables.length === 0) return;
+				function texteditOpenTableModal() {
+					const tables = texteditOutputView.querySelectorAll('table');
+					if (tables.length === 0) return;
 
-                    const modal = document.createElement('div');
-                    modal.id = 'textedit-table-modal';
-                    document.body.appendChild(modal);
+					const modal = document.createElement('div');
+					modal.id = 'textedit-table-modal';
+					document.body.appendChild(modal);
 
-                    const renderContent = (tableIndex) => {
-                        modal.innerHTML = '';
+					const renderContent = (tableIndex) => {
+						modal.innerHTML = '';
 
-                        const table = tables[tableIndex];
-                        const headers = Array.from(table.querySelectorAll('th')).map(th => th.innerText.trim());
+						const table = tables[tableIndex];
+						const headers = Array.from(table.querySelectorAll('th')).map(th => th.innerText.trim());
 
-                        const modalContent = document.createElement('div');
-                        modalContent.className = 'textedit-modal-content';
-                        modal.appendChild(modalContent);
+						const modalContent = document.createElement('div');
+						modalContent.className = 'textedit-modal-content';
+						modal.appendChild(modalContent);
 
-                        const h4 = document.createElement('h4');
-                        h4.textContent = 'Neue Zeile hinzufügen';
-                        modalContent.appendChild(h4);
+						const h4 = document.createElement('h4');
+						h4.textContent = 'Neue Zeile hinzufügen';
+						modalContent.appendChild(h4);
 
-                        let tableSelect = null;
-                        if (tables.length > 1) {
-                            const selectWrapper = document.createElement('div');
-                            selectWrapper.className = 'textedit-modal-field';
+						let tableSelect = null;
+						if (tables.length > 1) {
+							const selectWrapper = document.createElement('div');
+							selectWrapper.className = 'textedit-modal-field';
 
-                            const selectLabel = document.createElement('label');
-                            selectLabel.textContent = 'Tabelle wählen:';
-                            selectWrapper.appendChild(selectLabel);
+							const selectLabel = document.createElement('label');
+							selectLabel.textContent = 'Tabelle wählen:';
+							selectWrapper.appendChild(selectLabel);
 
-                            tableSelect = document.createElement('select');
-                            tableSelect.id = 'textedit-table-select';
-                            tableSelect.className = 'form-select text-white bg-dark border-secondary mb-3';
+							tableSelect = document.createElement('select');
+							tableSelect.id = 'textedit-table-select';
+							tableSelect.className = 'form-select text-white bg-dark border-secondary mb-3';
 
-                            tables.forEach((t, i) => {
-                                const option = document.createElement('option');
-                                option.value = i;
-                                const firstHeader = t.querySelector('th') ? t.querySelector('th').innerText : '';
-                                option.textContent = firstHeader ? `Tabelle ${i+1} (beginnt mit "${firstHeader}")` : `Tabelle ${i+1}`;
-                                if (i == tableIndex) option.selected = true;
-                                tableSelect.appendChild(option);
-                            });
+							tables.forEach((t, i) => {
+								const option = document.createElement('option');
+								option.value = i;
+								const firstHeader = t.querySelector('th') ? t.querySelector('th').innerText : '';
+								option.textContent = firstHeader ? `Tabelle ${i+1} (beginnt mit "${firstHeader}")` : `Tabelle ${i+1}`;
+								if (i == tableIndex) option.selected = true;
+								tableSelect.appendChild(option);
+							});
 
-                            tableSelect.addEventListener('change', (e) => {
-                                renderContent(parseInt(e.target.value));
-                            });
+							tableSelect.addEventListener('change', (e) => {
+								renderContent(parseInt(e.target.value));
+							});
 
-                            selectWrapper.appendChild(tableSelect);
-                            modalContent.appendChild(selectWrapper);
-                        }
+							selectWrapper.appendChild(tableSelect);
+							modalContent.appendChild(selectWrapper);
+						}
 
-                        const form = document.createElement('form');
-                        form.id = 'textedit-row-form';
+						const form = document.createElement('form');
+						form.id = 'textedit-row-form';
 
-                        if (headers.length > 0) {
-                            headers.forEach((header) => {
-                                const fieldWrapper = document.createElement('div');
-                                fieldWrapper.className = 'textedit-modal-field';
+						if (headers.length > 0) {
+							headers.forEach((header) => {
+								const fieldWrapper = document.createElement('div');
+								fieldWrapper.className = 'textedit-modal-field';
 
-                                const label = document.createElement('label');
-                                label.textContent = header;
-                                fieldWrapper.appendChild(label);
+								const label = document.createElement('label');
+								label.textContent = header;
+								fieldWrapper.appendChild(label);
 
-                                const input = document.createElement('input');
-                                input.type = 'text';
-                                input.required = true;
-                                if(header.toLowerCase().includes('datum')){
-                                	input.value = new Intl.DateTimeFormat('de-DE', {
-  													day: '2-digit',
-  													month: '2-digit',
-  													year: 'numeric'
+								const input = document.createElement('input');
+								input.type = 'text';
+								input.required = true;
+								if(header.toLowerCase().includes('datum')){
+									input.value = new Intl.DateTimeFormat('de-DE', {
+													  day: '2-digit',
+													  month: '2-digit',
+													  year: 'numeric'
 												}).format(new Date());
 								} else if(header.toLowerCase().includes('user') || header.toLowerCase().includes('wer')){
 									input.value = texteditLoggedInUser.value;
@@ -540,170 +516,170 @@ table td[align="center"] {
 										currency: 'EUR'
 									  }).format(wert);
 									});
-                                }else{
-                                	input.placeholder = `Wert für ${header}`;
-                                }
-                                fieldWrapper.appendChild(input);
+								}else{
+									input.placeholder = `Wert für ${header}`;
+								}
+								fieldWrapper.appendChild(input);
 
-                                form.appendChild(fieldWrapper);
-                            });
-                        } else {
-                             const p = document.createElement('p');
-                             p.className = 'text-warning';
-                             p.textContent = 'Diese Tabelle hat keine Kopfzeilen (th).';
-                             form.appendChild(p);
-                        }
+								form.appendChild(fieldWrapper);
+							});
+						} else {
+							 const p = document.createElement('p');
+							 p.className = 'text-warning';
+							 p.textContent = 'Diese Tabelle hat keine Kopfzeilen (th).';
+							 form.appendChild(p);
+						}
 
-                        const actionsDiv = document.createElement('div');
-                        actionsDiv.className = 'textedit-modal-actions';
+						const actionsDiv = document.createElement('div');
+						actionsDiv.className = 'textedit-modal-actions';
 
-                        const cancelBtn = document.createElement('button');
-                        cancelBtn.type = 'button';
-                        cancelBtn.className = 'btn btn-secondary btn-sm';
-                        cancelBtn.textContent = 'Abbrechen';
-                        cancelBtn.onclick = () => {
-                        	modal.remove();
-                        	updateAppLayout();
-                        }
+						const cancelBtn = document.createElement('button');
+						cancelBtn.type = 'button';
+						cancelBtn.className = 'btn btn-secondary btn-sm';
+						cancelBtn.textContent = 'Abbrechen';
+						cancelBtn.onclick = () => {
+							modal.remove();
+							updateAppLayout();
+						}
 
-                        const submitBtn = document.createElement('button');
-                        submitBtn.type = 'submit';
-                        submitBtn.className = 'btn btn-success btn-sm';
-                        submitBtn.textContent = 'OK';
-                        if(headers.length === 0) submitBtn.disabled = true;
+						const submitBtn = document.createElement('button');
+						submitBtn.type = 'submit';
+						submitBtn.className = 'btn btn-success btn-sm';
+						submitBtn.textContent = 'OK';
+						if(headers.length === 0) submitBtn.disabled = true;
 
-                        actionsDiv.appendChild(cancelBtn);
-                        actionsDiv.appendChild(submitBtn);
-                        form.appendChild(actionsDiv);
+						actionsDiv.appendChild(cancelBtn);
+						actionsDiv.appendChild(submitBtn);
+						form.appendChild(actionsDiv);
 
-                        form.onsubmit = (e) => {
-                            e.preventDefault();
-                            const inputs = form.querySelectorAll('input[type="text"]');
-                            const values = Array.from(inputs).map(input => input.value.trim());
-                            const currentTableIndex = tableSelect ? parseInt(tableSelect.value) : tableIndex;
-                            texteditAddRowToMarkdown(values, currentTableIndex);
-                            modal.remove();
-                            updateAppLayout();
-                        };
+						form.onsubmit = (e) => {
+							e.preventDefault();
+							const inputs = form.querySelectorAll('input[type="text"]');
+							const values = Array.from(inputs).map(input => input.value.trim());
+							const currentTableIndex = tableSelect ? parseInt(tableSelect.value) : tableIndex;
+							texteditAddRowToMarkdown(values, currentTableIndex);
+							modal.remove();
+							updateAppLayout();
+						};
 
-                        modalContent.appendChild(form);
+						modalContent.appendChild(form);
 
-                        const firstInput = form.querySelector('input');
-                        if(firstInput) firstInput.focus();
-                    };
+						const firstInput = form.querySelector('input');
+						if(firstInput) firstInput.focus();
+					};
 
-                    renderContent(0);
-                }
+					renderContent(0);
+				}
 
-                function texteditAddRowToMarkdown(values, tableIndex) {
-                    const rawText = texteditInputArea.value;
-                    const lines = rawText.split('\n');
+				function texteditAddRowToMarkdown(values, tableIndex) {
+					const rawText = texteditInputArea.value;
+					const lines = rawText.split('\n');
 
-                    const newRowMarkdown = '| ' + values.join(' | ') + ' |';
-                    const separatorRegex = /^\s*\|?[\s-:]+\|\s*[\s-:|]+\|\s*$/;
+					const newRowMarkdown = '| ' + values.join(' | ') + ' |';
+					const separatorRegex = /^\s*\|?[\s-:]+\|\s*[\s-:|]+\|\s*$/;
 
-                    let foundTablesCount = 0;
-                    let separatorLineIndex = -1;
-                    let insideCodeBlock = false;
+					let foundTablesCount = 0;
+					let separatorLineIndex = -1;
+					let insideCodeBlock = false;
 
-                    for (let i = 0; i < lines.length; i++) {
-                        const line = lines[i].trim();
-                        if (line.startsWith('```')) {
-                            insideCodeBlock = !insideCodeBlock;
-                            continue;
-                        }
-                        if (!insideCodeBlock && separatorRegex.test(line)) {
-                            if (foundTablesCount === tableIndex) {
-                                separatorLineIndex = i;
-                                break;
-                            }
-                            foundTablesCount++;
-                        }
-                    }
+					for (let i = 0; i < lines.length; i++) {
+						const line = lines[i].trim();
+						if (line.startsWith('```')) {
+							insideCodeBlock = !insideCodeBlock;
+							continue;
+						}
+						if (!insideCodeBlock && separatorRegex.test(line)) {
+							if (foundTablesCount === tableIndex) {
+								separatorLineIndex = i;
+								break;
+							}
+							foundTablesCount++;
+						}
+					}
 
-                    if (separatorLineIndex === -1) {
-                        alert("Fehler: Tabelle im Markdown nicht gefunden.");   // FIXME !!
-                        return;
-                    }
+					if (separatorLineIndex === -1) {
+						showAlertModal('Fehler', 'Tabelle im Markdown nicht gefunden.', 'fa-solid fa-triangle-exclamation', false);
+						return;
+					}
 
-                    let insertOnTop = false;
-                    for (let i = separatorLineIndex - 1; i >= 0; i--) {
-                        const prevLine = lines[i].trim();
-                        if (prevLine.toLowerCase().includes('oben')) { insertOnTop = true; break; }
-                    }
+					let insertOnTop = false;
+					for (let i = separatorLineIndex - 1; i >= 0; i--) {
+						const prevLine = lines[i].trim();
+						if (prevLine.toLowerCase().includes('oben')) { insertOnTop = true; break; }
+					}
 
-                    let targetLineIndex = separatorLineIndex + 1;
-                    if (!insertOnTop) {
-                        while (targetLineIndex < lines.length) {
-                            const l = lines[targetLineIndex].trim();
-                            if ((!l.startsWith('|') && l !== '') || l === '') break;
-                            targetLineIndex++;
-                        }
-                    }
+					let targetLineIndex = separatorLineIndex + 1;
+					if (!insertOnTop) {
+						while (targetLineIndex < lines.length) {
+							const l = lines[targetLineIndex].trim();
+							if ((!l.startsWith('|') && l !== '') || l === '') break;
+							targetLineIndex++;
+						}
+					}
 
-                    lines.splice(targetLineIndex, 0, newRowMarkdown);
+					lines.splice(targetLineIndex, 0, newRowMarkdown);
 
-                    const newText = lines.join('\n');
-                    texteditInputArea.value = newText;
-                    save('afterSave_View');
-                }
+					const newText = lines.join('\n');
+					texteditInputArea.value = newText;
+					save('afterSave_View');
+				}
 
-                function texteditRenderViewMode() {
-                    const rawText = texteditInputArea.value;
-                    texteditToggleIconView.style.color = 'var(--te-color-green)';
-                    texteditToggleIconEdit.style.color = 'var(--bs-btn-active-color)';
+				function texteditRenderViewMode() {
+					const rawText = texteditInputArea.value;
+					texteditToggleIconView.style.color = 'var(--te-color-green)';
+					texteditToggleIconEdit.style.color = 'var(--bs-btn-active-color)';
 
-                    texteditOutputView.innerHTML = marked.parse(rawText);
-                    texteditCheckTables();
+					texteditOutputView.innerHTML = marked.parse(rawText);
+					texteditCheckTables();
 
-                    texteditContainerEdit.classList.add('textedit-hidden');
-                    texteditContainerView.classList.remove('textedit-hidden');
-                    texteditIsEditMode = false;
+					texteditContainerEdit.classList.add('textedit-hidden');
+					texteditContainerView.classList.remove('textedit-hidden');
+					texteditIsEditMode = false;
 
-                    texteditBtnVisibility.disabled = true;
-                }
+					texteditBtnVisibility.disabled = true;
+				}
 
-                function texteditEnableEditMode() {
-                    texteditToggleIconEdit.style.color = 'var(--te-color-green)';
-                    texteditToggleIconView.style.color = 'var(--bs-btn-active-color)';
-                    texteditContainerView.classList.add('textedit-hidden');
-                    texteditContainerEdit.classList.remove('textedit-hidden');
-                    texteditIsEditMode = true;
+				function texteditEnableEditMode() {
+					texteditToggleIconEdit.style.color = 'var(--te-color-green)';
+					texteditToggleIconView.style.color = 'var(--bs-btn-active-color)';
+					texteditContainerView.classList.add('textedit-hidden');
+					texteditContainerEdit.classList.remove('textedit-hidden');
+					texteditIsEditMode = true;
 
-                    texteditBtnAddRow.classList.add('textedit-hidden');
+					texteditBtnAddRow.classList.add('textedit-hidden');
 
-                    texteditBtnVisibility.disabled = false;
+					texteditBtnVisibility.disabled = false;
 
-                    setTimeout(() => texteditInputArea.focus(), 50);
-                }
+					setTimeout(() => texteditInputArea.focus(), 50);
+				}
 
-                texteditBtnAddRow.addEventListener('click', texteditOpenTableModal);
+				texteditBtnAddRow.addEventListener('click', texteditOpenTableModal);
 
-                texteditBtnToggle.addEventListener('click', function() {
-                    if (texteditIsEditMode) {
-                        save('afterSave_View');
-                    } else {
-                        texteditEnableEditMode();
-                    }
-                });
+				texteditBtnToggle.addEventListener('click', function() {
+					if (texteditIsEditMode) {
+						save('afterSave_View');
+					} else {
+						texteditEnableEditMode();
+					}
+				});
 
-                texteditBtnDelete.addEventListener('click', function() {
+				texteditBtnDelete.addEventListener('click', function() {
 					showAlertModal('Löschen', 'Soll diese Notiz gelöscht werden?', 'fa-solid fa-trash-can', true, function() {
 						alert('LÖSCHEN');
 					}, function() {
 						alert('CANCEL');
 					});
-                });
+				});
 
-                document.addEventListener('DOMContentLoaded', () => {
-                    marked.setOptions({ breaks: true, gfm: true });
-                    if(texteditIsNewNotice.value === 'true') {
-                    	texteditIsNewNotice.value = 'false';
-                    	texteditEnableEditMode();
-                    } else {
-                    	texteditRenderViewMode();
-                    }
-                });
+				document.addEventListener('DOMContentLoaded', () => {
+					marked.setOptions({ breaks: true, gfm: true });
+					if(texteditIsNewNotice.value === 'true') {
+						texteditIsNewNotice.value = 'false';
+						texteditEnableEditMode();
+					} else {
+						texteditRenderViewMode();
+					}
+				});
 
 				function showAlertModal(titleText, messageText, iconClass, showCancelButton, confirmCallback, cancelCallback) {
 					const existingOverlay = document.getElementById('textedit-messagebox-overlay');
@@ -820,34 +796,34 @@ table td[align="center"] {
 
 		<script>
 			function updateAppLayout() {
-                const wrapper = document.getElementById('textedit-wrapper');
-                if (!wrapper || !window.visualViewport) return;
-                const invisibleHeight = Math.max(0, window.innerHeight - window.visualViewport.height);
-                if (invisibleHeight > 100) {
-                    wrapper.style.height = `calc(100dvh - ${invisibleHeight}px)`;
-                    if(!document.getElementById('textedit-table-modal')){
-                    	window.scrollTo(0, 0);
-                    }
-                } else {
-                    wrapper.style.height = '100dvh';
-                    wrapper.style.top = '0px';
-                }
-            }
+				const wrapper = document.getElementById('textedit-wrapper');
+				if (!wrapper || !window.visualViewport) return;
+				const invisibleHeight = Math.max(0, window.innerHeight - window.visualViewport.height);
+				if (invisibleHeight > 100) {
+					wrapper.style.height = `calc(100dvh - ${invisibleHeight}px)`;
+					if(!document.getElementById('textedit-table-modal')){
+						window.scrollTo(0, 0);
+					}
+				} else {
+					wrapper.style.height = '100dvh';
+					wrapper.style.top = '0px';
+				}
+			}
 
-            if (window.visualViewport) {
-                window.visualViewport.addEventListener('resize', updateAppLayout);
-                window.visualViewport.addEventListener('scroll', () => {
-                     if(window.visualViewport.offsetTop > 0) {
-                     	if(!document.getElementById('textedit-table-modal')){
-                     		window.scrollTo(0,0);
-                     	}
-                     }
-                });
-            } else {
-                window.addEventListener('resize', updateAppLayout);
-            }
+			if (window.visualViewport) {
+				window.visualViewport.addEventListener('resize', updateAppLayout);
+				window.visualViewport.addEventListener('scroll', () => {
+					 if(window.visualViewport.offsetTop > 0) {
+						 if(!document.getElementById('textedit-table-modal')){
+							 window.scrollTo(0,0);
+						 }
+					 }
+				});
+			} else {
+				window.addEventListener('resize', updateAppLayout);
+			}
 
-            updateAppLayout();
+			updateAppLayout();
 		</script>
 
 	</body>
