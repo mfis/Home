@@ -16,7 +16,8 @@
                     --te-toolbar-bg: #222222;
                     --te-border-color: #444444;
                     --te-textsize-edit: 13px;
-                    --te-textsize-view: 0.8rem;
+                    --te-textsize-view: 0.85rem;
+                    --te-color-green: rgb(68, 204, 68);
 
                     position: fixed !important;
                     top: 0;
@@ -373,8 +374,8 @@ table td[align="center"] {
 					<button type="button" class="btn btn-secondary btn-sm" onclick="backButtonHandle()"><i class="fa-solid fa-circle-chevron-left"></i></button>
 					<button type="button" class="btn btn-secondary btn-sm" id="textedit-btn-delete"><i class="fa-solid fa-trash-can"></i></button>
 					<button type="button" class="btn btn-secondary btn-sm textedit-hidden" id="textedit-btn-add-row"><i class="fa-solid fa-table"></i></button>
-					<button type="button" class="btn btn-secondary btn-sm" id="textedit-btn-toggle"><i id="textedit-btn-toggle-icon" class="fa-solid fa-pen-to-square"></i></button>
-					<button type="button" class="btn btn-secondary btn-sm" id="textedit-btn-visibility"><i id="textedit-btn-visibility-icon" class=""></i></button>
+					<button type="button" class="btn btn-secondary btn-sm text-nowrap" id="textedit-btn-toggle"><i id="textedit-btn-toggle-icon-view" class="fa-solid fa-eye"></i>&nbsp;<i id="textedit-btn-toggle-icon-edit" class="fa-solid fa-pen-to-square"></i></button>
+					<button type="button" class="btn btn-secondary btn-sm text-nowrap" id="textedit-btn-visibility"><i id="textedit-btn-visibility-icon-single" class="fa-solid fa-user"></i>&nbsp;<i id="textedit-btn-visibility-icon-multi" class="fa-solid fa-users"></i></button>
 				</div>
 			</header>
 
@@ -402,7 +403,10 @@ table td[align="center"] {
                 const texteditBtnToggleIcon = document.getElementById('textedit-btn-toggle-icon');
                 const texteditMultiuser = document.getElementById('textedit-is-multiuser');
                 const texteditBtnVisibility = document.getElementById('textedit-btn-visibility');
-                const texteditVisibilityIcon = document.getElementById('textedit-btn-visibility-icon');
+                const texteditToggleIconView = document.getElementById('textedit-btn-toggle-icon-view');
+                const texteditToggleIconEdit = document.getElementById('textedit-btn-toggle-icon-edit');
+                const texteditVisibilityIconSingle = document.getElementById('textedit-btn-visibility-icon-single');
+                const texteditVisibilityIconMulti = document.getElementById('textedit-btn-visibility-icon-multi');
                 const texteditBtnAddRow = document.getElementById('textedit-btn-add-row');
                 const texteditBtnDelete = document.getElementById('textedit-btn-delete');
                 const texteditVersion = document.getElementById('textedit-version');
@@ -423,14 +427,15 @@ table td[align="center"] {
 
 				function changeVisibilityIcon(){
 					if(texteditMultiuser.value==='true'){
-						texteditVisibilityIcon.className = 'fas fa-users';
+						texteditVisibilityIconMulti.style.color = 'var(--te-color-green)';
+						texteditVisibilityIconSingle.style.color = 'var(--bs-btn-active-color)';
 					}else{
-						texteditVisibilityIcon.className = 'fas fa-user';
+						texteditVisibilityIconSingle.style.color = 'var(--te-color-green)';
+						texteditVisibilityIconMulti.style.color = 'var(--bs-btn-active-color)';
 					}
 				}
 
                 texteditBtnVisibility.addEventListener('click', function() {
-                	console.log('CLICK');
                 	texteditMultiuser.value = texteditMultiuser.value === 'true' ? 'false' : 'true';
                 	changeVisibilityIcon();
                 });
@@ -645,28 +650,28 @@ table td[align="center"] {
 
                 function texteditRenderViewMode() {
                     const rawText = texteditInputArea.value;
-                    texteditHeaderTitleText.innerHTML = 'Notiz anzeigen';
-                    texteditOutputView.innerHTML = marked.parse(rawText);
+                    texteditToggleIconView.style.color = 'var(--te-color-green)';
+                    texteditToggleIconEdit.style.color = 'var(--bs-btn-active-color)';
 
+                    texteditOutputView.innerHTML = marked.parse(rawText);
                     texteditCheckTables();
 
                     texteditContainerEdit.classList.add('textedit-hidden');
                     texteditContainerView.classList.remove('textedit-hidden');
                     texteditIsEditMode = false;
 
-                    texteditBtnToggleIcon.classList = 'fa-solid fa-pen-to-square';
                     texteditBtnVisibility.disabled = true;
                 }
 
                 function texteditEnableEditMode() {
+                    texteditToggleIconEdit.style.color = 'var(--te-color-green)';
+                    texteditToggleIconView.style.color = 'var(--bs-btn-active-color)';
                     texteditContainerView.classList.add('textedit-hidden');
                     texteditContainerEdit.classList.remove('textedit-hidden');
-                    texteditHeaderTitleText.innerHTML = 'Notiz bearbeiten';
                     texteditIsEditMode = true;
 
                     texteditBtnAddRow.classList.add('textedit-hidden');
 
-                    texteditBtnToggleIcon.classList = 'fa-solid fa-eye';
                     texteditBtnVisibility.disabled = false;
 
                     setTimeout(() => texteditInputArea.focus(), 50);
