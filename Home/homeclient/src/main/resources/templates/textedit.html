@@ -854,7 +854,11 @@
 				if (invisibleHeight > 100) {
 					wrapper.style.height = `calc(100dvh - ${invisibleHeight}px)`;
 					if(!document.getElementById('textedit-table-modal')){
-						window.scrollTo(0, 0);
+					window.scrollTo({
+						top: 0,
+						left: 0,
+						behavior: "instant"
+					});
 					}
 				} else {
 					wrapper.style.height = '100dvh';
@@ -867,7 +871,11 @@
 				window.visualViewport.addEventListener('scroll', () => {
 					 if(window.visualViewport.offsetTop > 0) {
 						 if(!document.getElementById('textedit-table-modal')){
-							 window.scrollTo(0,0);
+							window.scrollTo({
+								top: 0,
+								left: 0,
+								behavior: "instant"
+							});
 						 }
 					 }
 				});
