@@ -371,7 +371,10 @@
 		<script type="text/javascript" src="/webjars/marked/lib/marked.umd.js"></script>
 
 		<script>
-			const texteditContainerEdit = document.getElementById('textedit-container-edit');
+				const TEXTEDIT_ENDPOINT_SAVE = '/texteditSave';
+				const TEXTEDIT_ENDPOINT_DELETE = '/texteditDelete';
+
+				const texteditContainerEdit = document.getElementById('textedit-container-edit');
 				const texteditContainerView = document.getElementById('textedit-container-view');
 				const texteditInputArea = document.getElementById('textedit-input-area');
 				const texteditOutputView = document.getElementById('textedit-output-view');
@@ -392,10 +395,12 @@
 				const texteditIsNewNotice = document.getElementById('textedit-is-new-notice');
 				const texteditHeaderTitleText = document.getElementById('textedit-header-title-text');
 				let texteditIsEditMode = false;
+				let texteditSavedText = texteditInputArea.value;
+				let texteditSavedMultiuserState = texteditMultiuser.value;
 
 				function backButtonHandle() {
 					if(texteditIsEditMode){
-						save('afterSave_Back');
+						save(TEXTEDIT_ENDPOINT_SAVE, function() {navigateBack()});
 					}else{
 						navigateBack();
 					}
@@ -621,7 +626,7 @@
 
 					const newText = lines.join('\n');
 					texteditInputArea.value = newText;
-					save('afterSave_View');
+					save(TEXTEDIT_ENDPOINT_SAVE, function() {texteditRenderViewMode()});
 				}
 
 				function texteditRenderViewMode() {
@@ -657,7 +662,7 @@
 
 				texteditBtnToggle.addEventListener('click', function() {
 					if (texteditIsEditMode) {
-						save('afterSave_View');
+						save(TEXTEDIT_ENDPOINT_SAVE, function() {texteditRenderViewMode()});
 					} else {
 						texteditEnableEditMode();
 					}
@@ -665,10 +670,8 @@
 
 				texteditBtnDelete.addEventListener('click', function() {
 					showAlertModal('Löschen', 'Soll diese Notiz gelöscht werden?', 'fa-solid fa-trash-can', true, function() {
-						alert('LÖSCHEN');
-					}, function() {
-						alert('CANCEL');
-					});
+						save(TEXTEDIT_ENDPOINT_DELETE, function() {navigateBack()});
+					}, function() {});
 				});
 
 				document.addEventListener('DOMContentLoaded', () => {
@@ -763,25 +766,29 @@
 					});
 				}
 
-				function save(afterSave){
+				function save(endpoint, callback){
+					if(endpoint === TEXTEDIT_ENDPOINT_SAVE && texteditMultiuser.value && texteditInputArea.value && texteditSavedMultiuserState && texteditSavedText){
+						if(texteditMultiuser.value === texteditSavedMultiuserState && texteditInputArea.value === texteditSavedText){
+							if (typeof callback === 'function') callback();
+							console.log('EQUAL VALUES -> SKIP SAVE');
+							return;
+						}
+					}
 					if(navigator.onLine){
 						let httpRequest = new XMLHttpRequest();
-						httpRequest.open('POST', '/texteditSave?id=' + texteditId.value + '&version=' + texteditVersion.value + '&multiUser=' + texteditMultiuser.value);
+						httpRequest.open('POST', endpoint + '?id=' + texteditId.value + '&version=' + texteditVersion.value + '&multiUser=' + texteditMultiuser.value);
 						httpRequest.setRequestHeader('Cache-Control', 'no-cache');
 						httpRequest.setRequestHeader('CSRF', 'true');
 						httpRequest.send(texteditInputArea.value);
 						httpRequest.onreadystatechange=(e)=>{
 							if (httpRequest.readyState === 4) {
 								if(httpRequest.status === 200){
-									if(afterSave === 'afterSave_Back') {
-										navigateBack();
-									}
-									if(afterSave === 'afterSave_View') {
-										const resp = JSON.parse(httpRequest.responseText);
-										texteditInputArea.value = resp.text;
-										texteditVersion.value = resp.version;
-										texteditRenderViewMode();
-									}
+									const resp = JSON.parse(httpRequest.responseText);
+									texteditSavedText = resp.text;
+									texteditInputArea.value = resp.text;
+									texteditSavedMultiuserState = texteditMultiuser.value;
+									texteditVersion.value = resp.version;
+									if (typeof callback === 'function') callback();
 								}else{
 									showAlertModal('Fehler', 'Speichern nicht erfolgreich!', 'fa-solid fa-triangle-exclamation', false);
 								}
