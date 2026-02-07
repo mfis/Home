@@ -15,6 +15,8 @@
                     --te-text-color: #ffffff;
                     --te-toolbar-bg: #222222;
                     --te-border-color: #444444;
+                    --te-textsize-edit: 13px;
+                    --te-textsize-view: 0.8rem;
 
                     position: fixed !important;
                     top: 0;
@@ -59,7 +61,7 @@
                     outline: none;
                     padding: 0.5rem;
                     font-family: 'SFMono-Regular', Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-                    font-size: 16px;
+                    font-size: var(--te-textsize-edit);
                     background-color: transparent !important;
                     color: inherit;
                     caret-color: #ffffff;
@@ -72,7 +74,17 @@
                     padding: 0.5rem;
                     background-color: transparent !important;
                     color: inherit;
+                    font-size: var(--te-textsize-view);
                 }
+
+                #textedit-output-view h1,
+				#textedit-output-view h2,
+				#textedit-output-view h3,
+				#textedit-output-view h4,
+				#textedit-output-view h5,
+				#textedit-output-view h6 {
+					font-size: revert-layer;
+				}
 
                 #textedit-wrapper #textedit-output-view img { max-width: 100%; height: auto; }
 
@@ -193,7 +205,6 @@
     background-color: transparent;
     border-collapse: collapse;
     color: #e0e0e0;
-    font-size: 0.95rem;
 }
 
 #textedit-output-view th,
