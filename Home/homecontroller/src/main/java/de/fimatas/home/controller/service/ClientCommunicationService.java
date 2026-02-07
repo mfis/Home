@@ -205,6 +205,7 @@ public class ClientCommunicationService {
                  noticesService.createNew(message);
                  break;
             case NOTICE_SAVE:
+            case NOTICE_DELETE:
                 noticesService.save(message);
                 break;
             default:

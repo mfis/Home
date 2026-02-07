@@ -58,6 +58,10 @@ public class HomeRequestMapping {
 
     private static final String DEVICE_ID = "deviceId";
 
+    private static final String URI_TEXTEDIT_SAVE = "/texteditSave";
+
+    private static final String URI_TEXTEDIT_DELETE = "/texteditDelete";
+
     private static final Log log = LogFactory.getLog(HomeRequestMapping.class);
 
     @Autowired
@@ -243,11 +247,12 @@ public class HomeRequestMapping {
         return "textedit";
     }
 
-    @PostMapping("/texteditSave")
+    @PostMapping({URI_TEXTEDIT_SAVE, URI_TEXTEDIT_DELETE})
     public ResponseEntity<NoticeResponse> texteditSave(Model model, @RequestHeader(name = "User-Agent", required = false) String userAgent,
                                        @RequestParam(name = "id") String id, @RequestParam(name = "version") String version,
                                        @RequestParam(name = "multiUser") String multiUser, @RequestBody(required = false) String text,
-                                       @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, HttpServletResponse response) {
+                                       @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
+                                                       HttpServletResponse response, HttpServletRequest request) {
         boolean isWebViewApp = Strings.CS.equals(userAgent, ControllerUtil.USER_AGENT_APP_WEB_VIEW);
         fillMenu(Pages.PATH_MAINTENANCE, model, response, isWebViewApp);
         fillUserAttributes(model, userCookie);
@@ -261,7 +266,7 @@ public class HomeRequestMapping {
         }
 
         Message message = new Message();
-        message.setMessageType(MessageType.NOTICE_SAVE);
+        message.setMessageType(request.getRequestURI().equals(URI_TEXTEDIT_DELETE) ? MessageType.NOTICE_DELETE : MessageType.NOTICE_SAVE);
         message.setDeviceId(id);
         message.setAdditionalData(multiUser);
         message.setKey(version);

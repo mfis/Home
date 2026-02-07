@@ -31,6 +31,7 @@ public enum MessageType {
     CLIENT_ERROR_PUSH_MESSAGE(null), //
     NOTICE_NEW(null), //
     NOTICE_SAVE(null), //
+    NOTICE_DELETE(null), //
     ; //
 
     private final String targetSite;

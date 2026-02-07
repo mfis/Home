@@ -3,6 +3,7 @@ package de.fimatas.home.controller.service;
 import de.fimatas.home.controller.dao.NoticeDAO;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.model.Message;
+import de.fimatas.home.library.model.MessageType;
 import de.fimatas.home.library.model.Notice;
 import de.fimatas.home.library.model.NoticeModel;
 import lombok.extern.apachecommons.CommonsLog;
@@ -38,8 +39,6 @@ public class NoticesService {
         var model = new NoticeModel();
         model.setNotices(notices);
 
-        // TODO: read history versions
-
         ModelObjectDAO.getInstance().write(model);
         uploadService.uploadToClient(model);
     }
@@ -72,7 +71,8 @@ public class NoticesService {
             throw new IllegalStateException("Version don't match");
         }
 
-        long newVersion = noticeDAO.modify(message.getDeviceId(), notice.getUser(), Boolean.parseBoolean(message.getAdditionalData()), message.getValue());
+        boolean delete = message.getMessageType() == MessageType.NOTICE_DELETE;
+        long newVersion = noticeDAO.modify(message.getDeviceId(), notice.getUser(), Boolean.parseBoolean(message.getAdditionalData()), delete, message.getValue());
         message.setKey(Long.toString(newVersion));
 
         refresh();

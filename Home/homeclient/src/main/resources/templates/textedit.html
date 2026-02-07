@@ -320,6 +320,17 @@
 			text-align: center !important;
 		}
 
+		.user-select-none {
+			user-select: none;
+			-webkit-user-select: none;
+		}
+
+		blockquote {
+			border-left: 4px solid #dfe2e5;
+			padding-left: 1em;
+			color: #6a737d;
+		}
+
 	</style>
 
 	<body>
@@ -340,7 +351,7 @@
 				</div>
 
 				<div class="d-flex align-items-center gap-3">
-					<button type="button" class="btn btn-secondary btn-sm" onclick="backButtonHandle()"><i
+					<button type="button" class="btn btn-secondary btn-sm user-select-none" id="textedit-btn-back"><i
 							class="fa-solid fa-circle-chevron-left"></i></button>
 					<button type="button" class="btn btn-secondary btn-sm" id="textedit-btn-delete"><i
 							class="fa-solid fa-trash-can"></i></button>
@@ -388,6 +399,7 @@
 				const texteditVisibilityIconMulti = document.getElementById('textedit-btn-visibility-icon-multi');
 				const texteditBtnAddRow = document.getElementById('textedit-btn-add-row');
 				const texteditBtnDelete = document.getElementById('textedit-btn-delete');
+				const texteditBtnBack = document.getElementById('textedit-btn-back');
 				const texteditVersion = document.getElementById('textedit-version');
 				const texteditId = document.getElementById('textedit-id');
 				const texteditOwner = document.getElementById('textedit-owner');
@@ -398,13 +410,47 @@
 				let texteditSavedText = texteditInputArea.value;
 				let texteditSavedMultiuserState = texteditMultiuser.value;
 
-				function backButtonHandle() {
+				let btnBackPressTimer;
+				let btnBackIsLongPress = false;
+				const btnBackLongPressDuration = 5000;
+
+				const btnBackStart = (e) => {
+					if (e.type === 'click' && e.button !== 0) return;
+
+					btnBackIsLongPress = false;
+					btnBackPressTimer = setTimeout(() => {
+						btnBackIsLongPress = true;
+						if(texteditIsEditMode){
+							showAlertModal('Verwerfen?', 'Soll die aktuelle Änderung verworfen werden?', 'fa-solid fa-rotate-left', true, function() {
+								navigateBack();
+							}, function() {});
+						}else{
+							navigateBack();
+						}
+					}, btnBackLongPressDuration);
+				};
+
+				const btnBackCancel = () => {
+					clearTimeout(btnBackPressTimer);
+				};
+
+				const btnBackHandleClick = (e) => {
+					if (btnBackIsLongPress) {
+						return;
+					}
 					if(texteditIsEditMode){
 						save(TEXTEDIT_ENDPOINT_SAVE, function() {navigateBack()});
 					}else{
 						navigateBack();
 					}
-				}
+				};
+
+				texteditBtnBack.addEventListener('mousedown', btnBackStart);
+				texteditBtnBack.addEventListener('touchstart', btnBackStart, { passive: true });
+				texteditBtnBack.addEventListener('mouseup', btnBackCancel);
+				texteditBtnBack.addEventListener('mouseleave', btnBackCancel);
+				texteditBtnBack.addEventListener('touchend', btnBackCancel);
+				texteditBtnBack.addEventListener('click', btnBackHandleClick);
 
 				function changeVisibilityIcon(){
 					if(texteditMultiuser.value==='true'){
@@ -770,7 +816,6 @@
 					if(endpoint === TEXTEDIT_ENDPOINT_SAVE && texteditMultiuser.value && texteditInputArea.value && texteditSavedMultiuserState && texteditSavedText){
 						if(texteditMultiuser.value === texteditSavedMultiuserState && texteditInputArea.value === texteditSavedText){
 							if (typeof callback === 'function') callback();
-							console.log('EQUAL VALUES -> SKIP SAVE');
 							return;
 						}
 					}

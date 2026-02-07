@@ -65,7 +65,7 @@ public class NoticeDAO {
     }
 
     @Transactional
-    public long modify(String id, String username, boolean multiUser, String text) {
+    public long modify(String id, String username, boolean multiUser, boolean delete, String text) {
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
@@ -80,7 +80,7 @@ public class NoticeDAO {
             ps.setString(1, uniqueTimestampService.getAsStringWithMillis());
             ps.setString(2, cleanSqlValue(username));
             ps.setBoolean(3, multiUser);
-            ps.setBoolean(4, false);
+            ps.setBoolean(4, delete);
             ps.setString(5, text);
             ps.setString(6, id);
 
