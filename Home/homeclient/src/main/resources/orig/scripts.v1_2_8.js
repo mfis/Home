@@ -435,6 +435,11 @@ function doAutoRefresh(){
         return;
     }
 
+    const SITE_REQUEST_NAME = document.getElementById('SITE_REQUEST_NAME').value;
+    if(!SITE_REQUEST_NAME || SITE_REQUEST_NAME !== 'HOME'){
+        return;
+    }
+
     // focus handling in app: app webview only gets focus after first touch event
     if((document.hasFocus() || isAppInForeground()) &&
         $('.modal.fade.show').length === 0 && ((new Date).getTime() - lastRefresh > (1000)) && isViewStatePermittingRefresh()){
