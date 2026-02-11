@@ -13,11 +13,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.env.Environment;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockServletContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -269,6 +272,30 @@ class LoginInterceptorTest {
                         .header(LoginInterceptor.USER_AGENT, THE_USER_AGENT)
                         .header(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN, THE_CIENT_COMM_TOKEN))
                 .andExpect(MockMvcResultMatchers.status().isOk());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"/", "/main.js", "/?a=b"})
+    void testValidURI(String input){
+        assertFalse(getLoginInterceptor().isInvalidRequest(MockMvcRequestBuilders.get(input).buildRequest(new MockServletContext())));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"/:", "/;main.js", "/%12"})
+    void testInValidURI(String input){
+        assertTrue(getLoginInterceptor().isInvalidRequest(MockMvcRequestBuilders.get(input).buildRequest(new MockServletContext())));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"/a.js", "/b.css"})
+    void testIsAssetRequest(String input){
+        assertTrue(getLoginInterceptor().isAssetRequest(MockMvcRequestBuilders.get(input).buildRequest(new MockServletContext())));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"/?x=a.js", "/message", "/"})
+    void testIsNoAssetRequest(String input){
+        assertFalse(getLoginInterceptor().isAssetRequest(MockMvcRequestBuilders.get(input).buildRequest(new MockServletContext())));
     }
 
     @Nonnull

@@ -349,7 +349,7 @@ public class LoginInterceptor implements HandlerInterceptor {
         }
     }
 
-    private boolean isInvalidRequest(HttpServletRequest request) {
+    boolean isInvalidRequest(HttpServletRequest request) {
         return Stream.of("?", "!", "%", "=", ";", ":", "#", "//").anyMatch(invalidChars -> request.getRequestURI().contains(invalidChars));
     }
 
