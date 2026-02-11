@@ -3,8 +3,10 @@ package de.fimatas.home.client.service;
 import de.fimatas.home.library.util.HomeAppConstants;
 import de.fimatas.users.api.TokenResult;
 import de.fimatas.users.api.UserAPI;
+import jakarta.annotation.Nonnull;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -76,16 +79,18 @@ class LoginInterceptorTest {
 
     @Test
     void testIsAssetRequestTrue() {
-        assertTrue(new LoginInterceptor().isAssetRequest(uri("/a.js")));
-        assertTrue(new LoginInterceptor().isAssetRequest(uri("/a.css")));
-        assertTrue(new LoginInterceptor().isAssetRequest(uri("/robots.txt")));
+        assertTrue(getLoginInterceptor().isAssetRequest(uri("/a.js")));
+        assertTrue(getLoginInterceptor().isAssetRequest(uri("/a.css")));
+        assertTrue(getLoginInterceptor().isAssetRequest(uri("/robots.txt")));
     }
 
     @Test
     void testIsAssetRequestFalse() {
-        assertFalse(new LoginInterceptor().isAssetRequest(uri("/")));
-        assertFalse(new LoginInterceptor().isAssetRequest(uri("/settings")));
-        assertFalse(new LoginInterceptor().isAssetRequest(uri("/js")));
+        assertFalse(getLoginInterceptor().isAssetRequest(uri("/")));
+        assertFalse(getLoginInterceptor().isAssetRequest(uri("/settings")));
+        assertFalse(getLoginInterceptor().isAssetRequest(uri("/js")));
+        assertFalse(getLoginInterceptor().isAssetRequest(uri("/?js")));
+        assertFalse(getLoginInterceptor().isAssetRequest(uri("/;js")));
     }
 
     @Test
@@ -225,6 +230,15 @@ class LoginInterceptorTest {
                         .header(LoginInterceptor.USER_AGENT, THE_USER_AGENT)
                         .header(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN, THE_CIENT_COMM_TOKEN))
                 .andExpect(MockMvcResultMatchers.status().isOk());
+    }
+
+    @Nonnull
+    @SneakyThrows
+    private static LoginInterceptor getLoginInterceptor() {
+        var li = new LoginInterceptor();
+        ReflectionTestUtils.setField(li, "appdistributionWebUrl", "http://localhost/");
+        li.postConstruct();
+        return li;
     }
 
     private HttpServletRequest uri(String uri) {

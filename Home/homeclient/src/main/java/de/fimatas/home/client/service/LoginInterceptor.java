@@ -3,6 +3,7 @@ package de.fimatas.home.client.service;
 import de.fimatas.home.client.request.AppRequestMapping;
 import de.fimatas.home.client.request.ControllerRequestMapping;
 import de.fimatas.home.client.request.ControllerUtil;
+import de.fimatas.home.client.request.HomeRequestMapping;
 import de.fimatas.home.library.model.Pages;
 import de.fimatas.home.library.util.HomeAppConstants;
 import de.fimatas.users.api.TokenResult;
@@ -32,6 +33,9 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
+
+import static de.fimatas.home.client.request.AppRequestMapping.URI_GET_APP_MODEL;
 
 public class LoginInterceptor implements HandlerInterceptor {
 
@@ -59,13 +63,13 @@ public class LoginInterceptor implements HandlerInterceptor {
                 LoginController.LOGIN_INTERRUPTED_URI);
 
     private final Set<String> WHITELIST_URIS = Set.of("/error", "/robots.txt", "/users");
-    private Set<String> WHITELIST_URIS_DYNAMIC;
+    private Set<String> WHITELIST_DISTRIBUTION_URIS;
 
     private static final Set<String> WHITELIST_EXTENSIONS =
         Set.of(".png", ".css", ".js", ".ico", ".svg", ".eot", ".ttf", ".woff", ".woff2", ".map");
 
-    private static final Map<String, String> WHITELIST_URI_AND_QUERY = Map.of(
-            "/getAppModel", "viewTarget=complication" //
+    private static final Map<String, String> WHITELIST_COMPLICATION_URI_AND_QUERY = Map.of(
+            URI_GET_APP_MODEL, "viewTarget=complication" //
     );
 
     @Autowired
@@ -93,8 +97,11 @@ public class LoginInterceptor implements HandlerInterceptor {
 
     @PostConstruct
     public void postConstruct() throws MalformedURLException {
+        if(StringUtils.isBlank(appdistributionWebUrl)) {
+            throw new MalformedURLException("appdistributionWebUrl is empty");
+        }
         URL appdistributionUrl = new URL(appdistributionWebUrl);
-        WHITELIST_URIS_DYNAMIC = Set.of(appdistributionUrl.getPath() + "homeClient.ipa", appdistributionUrl.getPath() + "manifest.plist");
+        WHITELIST_DISTRIBUTION_URIS = Set.of(appdistributionUrl.getPath() + "homeClient.ipa", appdistributionUrl.getPath() + "manifest.plist");
     }
 
     @Override
@@ -122,23 +129,35 @@ public class LoginInterceptor implements HandlerInterceptor {
             return false;
         }
 
+        if(HomeRequestMapping.ALL_NON_PAGE_HOME_URIS.contains(request.getRequestURI())) {
+            return false;
+        }
+
         if (WHITELIST_URIS.contains(request.getRequestURI())) {
             return true;
         }
 
-        if (WHITELIST_URIS_DYNAMIC!=null && WHITELIST_URIS_DYNAMIC.contains(request.getRequestURI())) {
+        if (WHITELIST_DISTRIBUTION_URIS.contains(request.getRequestURI())) {
             return true;
         }
 
-        if(WHITELIST_URI_AND_QUERY.containsKey(request.getRequestURI()) &&
-                WHITELIST_URI_AND_QUERY.get(request.getRequestURI()).equals(request.getQueryString())){
+        if(WHITELIST_COMPLICATION_URI_AND_QUERY.containsKey(request.getRequestURI()) &&
+                WHITELIST_COMPLICATION_URI_AND_QUERY.get(request.getRequestURI()).equals(request.getQueryString())){
             return true;
+        }
+
+        if(AppRequestMapping.ALL_NON_LOGIN_APP_URIS.contains(request.getRequestURI())) {
+            return false;
         }
 
         return WHITELIST_EXTENSIONS.contains("." + FilenameUtils.getExtension(request.getRequestURI()));
     }
 
     private boolean checkLogin(HttpServletRequest request, HttpServletResponse response) throws IOException {
+
+        if(isInvalidRequest(request)) {
+            return false;
+        }
 
         if (isControllerRequest(request)) {
             return controllerLogin(request, response);
@@ -330,10 +349,14 @@ public class LoginInterceptor implements HandlerInterceptor {
         }
     }
 
+    private boolean isInvalidRequest(HttpServletRequest request) {
+        return Stream.of("?", "!", "%", "=", ";", ":", "#", "//").anyMatch(invalidChars -> request.getRequestURI().contains(invalidChars));
+    }
+
     private boolean isControllerRequest(HttpServletRequest request) {
         return Strings.CS.startsWith(request.getRequestURI(), ControllerRequestMapping.UPLOAD_METHOD_PREFIX)
-                || Strings.CI.contains(request.getRequestURI(), ControllerRequestMapping.CONTROLLER_LONG_POLLING_FOR_AWAIT_MESSAGE_REQUEST)
-                || Strings.CI.contains(request.getRequestURI(), UsersConstants.USERS_CHECK_PIN_PATH) ;
+                || Strings.CS.equals(request.getRequestURI(), ControllerRequestMapping.CONTROLLER_LONG_POLLING_FOR_AWAIT_MESSAGE_REQUEST)
+                || Strings.CS.equals(request.getRequestURI(), UsersConstants.USERS_CHECK_PIN_PATH) ;
     }
 
     private boolean isLoginRequest(HttpServletRequest request) {

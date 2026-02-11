@@ -34,10 +34,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static de.fimatas.home.client.domain.service.HouseViewService.*;
 
@@ -58,9 +55,25 @@ public class HomeRequestMapping {
 
     private static final String DEVICE_ID = "deviceId";
 
+    private static final String URI_TEXTEDIT_VIEW = "/textedit";
+
     private static final String URI_TEXTEDIT_SAVE = "/texteditSave";
 
     private static final String URI_TEXTEDIT_DELETE = "/texteditDelete";
+
+    private static final String URI_MESSAGE = "/message";
+
+    private static final String URI_HISTORY = "/history";
+
+    private static final String URI_SETTINGS = "/settings";
+
+    private static final String URI_APP_INSTALLATION = "/appInstallation";
+
+    private static final String URI_MAINTENANCE = "/maintenance";
+
+    public static Set<String> ALL_NON_PAGE_HOME_URIS = Set.of(
+            URI_TEXTEDIT_VIEW, URI_TEXTEDIT_SAVE,  URI_TEXTEDIT_DELETE, URI_MESSAGE, URI_HISTORY, URI_SETTINGS, URI_APP_INSTALLATION, URI_MAINTENANCE
+    );
 
     private static final Log log = LogFactory.getLog(HomeRequestMapping.class);
 
@@ -82,7 +95,7 @@ public class HomeRequestMapping {
     @Value("${appdistribution.web.url}")
     private String appdistributionWebUrl;
 
-    @GetMapping("/message")
+    @GetMapping(URI_MESSAGE)
     public String message(
             @CookieValue(name = LoginInterceptor.COOKIE_NAME, required = false) String userCookie, //
             @RequestParam(name = "type") String type, //
@@ -154,7 +167,7 @@ public class HomeRequestMapping {
         return StringUtils.isBlank(securityPin) || userAPI.checkPin(userName, securityPin);
     }
 
-    @GetMapping("/history")
+    @GetMapping(URI_HISTORY)
     public String history(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
             @RequestParam(name = "key") String key) {
         fillUserAttributes(model, userCookie);
@@ -163,14 +176,14 @@ public class HomeRequestMapping {
         return "history";
     }
 
-    @GetMapping("/settings")
+    @GetMapping(URI_SETTINGS)
     public String settings(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie) {
         fillUserAttributes(model, userCookie);
         model.addAttribute("pushsettings", settingsViewService.allSettingsAsString());
         return "settings";
     }
 
-    @GetMapping("/appInstallation")
+    @GetMapping(URI_APP_INSTALLATION)
     public String appInstallation(Model model,
                                   @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, HttpServletResponse response) {
         fillMenu(Pages.PATH_APP, model, response, false);
@@ -180,7 +193,7 @@ public class HomeRequestMapping {
         return "appInstallation";
     }
 
-    @GetMapping("/maintenance")
+    @GetMapping(URI_MAINTENANCE)
     public String repair(Model model, @RequestHeader(name = "User-Agent", required = false) String userAgent,
                          @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, HttpServletResponse response) {
         boolean isWebViewApp = Strings.CS.equals(userAgent, ControllerUtil.USER_AGENT_APP_WEB_VIEW);
@@ -200,7 +213,7 @@ public class HomeRequestMapping {
         return "maintenance";
     }
 
-    @GetMapping("/textedit")
+    @GetMapping(URI_TEXTEDIT_VIEW)
     public String textedit(Model model, @RequestHeader(name = "User-Agent", required = false) String userAgent,
                          @RequestParam(name = "id", required = false) String id,
                          @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, HttpServletResponse response) {
