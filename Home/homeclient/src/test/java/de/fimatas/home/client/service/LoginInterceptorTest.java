@@ -1,5 +1,6 @@
 package de.fimatas.home.client.service;
 
+import de.fimatas.home.client.domain.service.AppViewService;
 import de.fimatas.home.client.request.AppRequestMapping;
 import de.fimatas.home.client.request.HomeRequestMapping;
 import de.fimatas.home.library.model.Pages;
@@ -149,6 +150,26 @@ class LoginInterceptorTest {
                     .andExpect(MockMvcResultMatchers.status().isFound())
                     .andExpect(MockMvcResultMatchers.redirectedUrl("/login"));
         }
+    }
+
+    @Test
+    void testAppModelNoLoginDataGeneral() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get(AppRequestMapping.URI_GET_APP_MODEL))
+                .andExpect(MockMvcResultMatchers.status().isFound())
+                .andExpect(MockMvcResultMatchers.redirectedUrl("/login"));
+    }
+
+    @Test
+    void testAppModelNoLoginDataAppViewTargetWatch() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get(AppRequestMapping.URI_GET_APP_MODEL + "?viewTarget=" + AppViewService.AppViewTarget.WATCH.name().toLowerCase()))
+                .andExpect(MockMvcResultMatchers.status().isFound())
+                .andExpect(MockMvcResultMatchers.redirectedUrl("/login"));
+    }
+
+    @Test
+    void testAppModelNoLoginDataAppViewTargetComplication() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get(AppRequestMapping.URI_GET_APP_MODEL + "?viewTarget=" + AppViewService.AppViewTarget.COMPLICATION.name().toLowerCase()))
+                .andExpect(MockMvcResultMatchers.status().isOk());
     }
 
     @Test
