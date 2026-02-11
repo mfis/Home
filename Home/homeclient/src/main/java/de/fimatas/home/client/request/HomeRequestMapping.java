@@ -67,9 +67,9 @@ public class HomeRequestMapping {
 
     private static final String URI_SETTINGS = "/settings";
 
-    private static final String URI_APP_INSTALLATION = "/appInstallation";
+    private static final String URI_APP_INSTALLATION = Pages.PATH_APP;
 
-    private static final String URI_MAINTENANCE = "/maintenance";
+    private static final String URI_MAINTENANCE = Pages.PATH_MAINTENANCE;
 
     public static Set<String> ALL_NON_PAGE_HOME_URIS = Set.of(
             URI_TEXTEDIT_VIEW, URI_TEXTEDIT_SAVE,  URI_TEXTEDIT_DELETE, URI_MESSAGE, URI_HISTORY, URI_SETTINGS, URI_APP_INSTALLATION, URI_MAINTENANCE

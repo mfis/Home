@@ -1,5 +1,8 @@
 package de.fimatas.home.client.service;
 
+import de.fimatas.home.client.request.AppRequestMapping;
+import de.fimatas.home.client.request.HomeRequestMapping;
+import de.fimatas.home.library.model.Pages;
 import de.fimatas.home.library.util.HomeAppConstants;
 import de.fimatas.users.api.TokenResult;
 import de.fimatas.users.api.UserAPI;
@@ -21,6 +24,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static de.fimatas.users.api.UsersConstants.USERS_CHECK_PIN_PATH;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
@@ -122,20 +129,26 @@ class LoginInterceptorTest {
 
     @Test
     void testRootAuthFailedWrongLoginData() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post("/")
-                        .header(LoginInterceptor.USER_AGENT, THE_USER_AGENT)
-                        .param(LoginInterceptor.LOGIN_USERNAME, "x")
-                        .param(LoginInterceptor.LOGIN_PASSWORD, "y")
-                        .param(LoginInterceptor.LOGIN_COOKIEOK, "true"))
-                .andExpect(MockMvcResultMatchers.status().isFound())
-                .andExpect(MockMvcResultMatchers.redirectedUrl("/loginFailed"));
+        for(String path : interceptedPaths()) {
+            System.out.println("path: " + path);
+            mockMvc.perform(MockMvcRequestBuilders.post("/")
+                            .header(LoginInterceptor.USER_AGENT, THE_USER_AGENT)
+                            .param(LoginInterceptor.LOGIN_USERNAME, "x")
+                            .param(LoginInterceptor.LOGIN_PASSWORD, "y")
+                            .param(LoginInterceptor.LOGIN_COOKIEOK, "true"))
+                    .andExpect(MockMvcResultMatchers.status().isFound())
+                    .andExpect(MockMvcResultMatchers.redirectedUrl("/loginFailed"));
+        }
     }
 
     @Test
     void testRootAuthFailedNoLoginData() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/"))
-                .andExpect(MockMvcResultMatchers.status().isFound())
-                .andExpect(MockMvcResultMatchers.redirectedUrl("/login"));
+        for(String path : interceptedPaths()) {
+            System.out.println("path: " + path);
+            mockMvc.perform(MockMvcRequestBuilders.get("/"))
+                    .andExpect(MockMvcResultMatchers.status().isFound())
+                    .andExpect(MockMvcResultMatchers.redirectedUrl("/login"));
+        }
     }
 
     @Test
@@ -190,13 +203,18 @@ class LoginInterceptorTest {
 
     @Test
     void testRootAuthWithWrongToken() throws Exception {
+        int invocationCounter = 0;
+        for(String path : interceptedPaths()) {
+            System.out.println("path: " + path);
             mockMvc.perform(MockMvcRequestBuilders.get("/")
                             .header(LoginInterceptor.APP_DEVICE, THE_DEVICE)
                             .header(LoginInterceptor.APP_USER_NAME, THE_USER_NAME)
                             .header(LoginInterceptor.APP_USER_TOKEN, "xyz"))
                     .andExpect(MockMvcResultMatchers.status().isUnauthorized());
-        verify(userAPI, times(1))
-                .checkToken(anyString(), anyString(), anyString(), anyString(), anyBoolean());
+            invocationCounter++;
+            verify(userAPI, times(invocationCounter))
+                    .checkToken(anyString(), anyString(), anyString(), anyString(), anyBoolean());
+        }
     }
 
     @Test
@@ -209,7 +227,7 @@ class LoginInterceptorTest {
     @Test
     void testUsersCheckPinWithoutToken() throws Exception {
         System.setProperty(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN, THE_CIENT_COMM_TOKEN);
-        mockMvc.perform(MockMvcRequestBuilders.post("/users/checkPIN")
+        mockMvc.perform(MockMvcRequestBuilders.post(USERS_CHECK_PIN_PATH)
                         .header(LoginInterceptor.USER_AGENT, THE_USER_AGENT))
                 .andExpect(MockMvcResultMatchers.status().isUnauthorized());
     }
@@ -217,7 +235,7 @@ class LoginInterceptorTest {
     @Test
     void testUsersCheckPinWrongToken() throws Exception {
         System.setProperty(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN, THE_CIENT_COMM_TOKEN);
-        mockMvc.perform(MockMvcRequestBuilders.post("/users/checkPIN")
+        mockMvc.perform(MockMvcRequestBuilders.post(USERS_CHECK_PIN_PATH)
                         .header(LoginInterceptor.USER_AGENT, THE_USER_AGENT)
                         .header(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN, "xyz"))
                 .andExpect(MockMvcResultMatchers.status().isUnauthorized());
@@ -226,7 +244,7 @@ class LoginInterceptorTest {
     @Test
     void testUsersCheckPinCorrectToken() throws Exception {
         System.setProperty(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN, THE_CIENT_COMM_TOKEN);
-        mockMvc.perform(MockMvcRequestBuilders.post("/users/checkPIN")
+        mockMvc.perform(MockMvcRequestBuilders.post(USERS_CHECK_PIN_PATH)
                         .header(LoginInterceptor.USER_AGENT, THE_USER_AGENT)
                         .header(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN, THE_CIENT_COMM_TOKEN))
                 .andExpect(MockMvcResultMatchers.status().isOk());
@@ -243,5 +261,13 @@ class LoginInterceptorTest {
 
     private HttpServletRequest uri(String uri) {
         return new MockHttpServletRequest("get", uri);
+    }
+
+    private List<String> interceptedPaths(){
+        var list = new ArrayList<String>();
+        list.add(Pages.PATH_HOME);
+        list.addAll(HomeRequestMapping.ALL_NON_PAGE_HOME_URIS);
+        list.addAll(AppRequestMapping.ALL_NON_LOGIN_APP_URIS);
+        return list;
     }
 }
