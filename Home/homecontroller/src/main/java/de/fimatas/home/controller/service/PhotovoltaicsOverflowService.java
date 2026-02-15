@@ -20,7 +20,10 @@ import org.springframework.stereotype.Component;
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -375,7 +378,7 @@ public class PhotovoltaicsOverflowService {
 
     private boolean isAutoModeOn(AbstractDeviceModel deviceModel) {
         if(deviceModel instanceof Switch switchDevice){
-            return !switchDevice.isUnreach() && switchDevice.getAutomation();
+            return !switchDevice.isUnreach() && switchDevice.getAutomation() != null && switchDevice.getAutomation();
         }
         LOG.warn("unknown instance: " + deviceModel.getClass().getName());
         return false;
