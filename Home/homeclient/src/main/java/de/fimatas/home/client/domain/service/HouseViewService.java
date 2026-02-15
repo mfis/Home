@@ -913,6 +913,7 @@ public class HouseViewService {
         setPowerViewIcon(powerMeter, power);
         power.setUnreach(Boolean.toString(powerMeter.isUnreach()));
         if (powerMeter.isUnreach() || externalUnreach) {
+            power.setState("Leistung unbekannt");
             return power;
         }
 
@@ -1116,8 +1117,8 @@ public class HouseViewService {
 
         WallboxSwitchView view = new WallboxSwitchView();
         formatSwitchInternal(model, viewKey, switchModel, view);
-        if(wallboxElectricalPowerConsumption.isUnreach()){
-            view.setUnreach(Boolean.toString(wallboxElectricalPowerConsumption.isUnreach()));
+        if(wallboxElectricalPowerConsumption.isUnreach() || switchModel.isUnreach()){
+            view.setUnreach(Boolean.toString(true));
         }
         Arrays.stream(ElectricVehicle.values()).forEach(ev -> {
             ElectroVehicleView evView = new ElectroVehicleView();
@@ -1140,10 +1141,6 @@ public class HouseViewService {
         view.setShortName(switchModel.getDevice().getType().getShortName());
         view.setPlaceEnum(switchModel.getDevice().getPlace());
         view.setUnreach(Boolean.toString(switchModel.isUnreach()));
-        if (switchModel.isUnreach()) {
-            model.addAttribute(viewKey, view);
-            return;
-        }
 
         view.setShowOverflowRange(Boolean.toString(switchModel.isPvOverflowConfigured()));
         if(switchModel.isPvOverflowConfigured()){
@@ -1160,19 +1157,25 @@ public class HouseViewService {
             });
         }
 
-        view.setState(switchModel.isState() ? "Eingeschaltet" : "Ausgeschaltet");
-        view.setStateShort(switchModel.isState() ? "Ein" : "Aus");
+        view.setState(switchModel.isUnreach() ? "Zustand unbekannt" : (switchModel.isState() ? "Eingeschaltet" : "Ausgeschaltet"));
+        view.setStateShort(switchModel.isUnreach() ? "???" : (switchModel.isState() ? "Ein" : "Aus"));
         formatSwitchColors(switchModel, view);
 
         formatSwitchAutomation(switchModel, view);
 
-        view.setLabel(switchModel.isState() ? "ausschalten" : "einschalten");
+        view.setLabel(switchModel.isUnreach() ? UNBEKANNT : (switchModel.isState() ? "ausschalten" : "einschalten"));
         formatSwitchIcon(switchModel, view);
-        if (switchModel.isState()) {
+        if(switchModel.isUnreach()){
             view.setLinkOff(TOGGLE_STATE + switchModel.getDevice().name() + AND_VALUE_IS + !switchModel.isState());
-        } else {
             view.setLinkOn(TOGGLE_STATE + switchModel.getDevice().name() + AND_VALUE_IS + !switchModel.isState());
+        } else {
+            if (switchModel.isState()) {
+                view.setLinkOff(TOGGLE_STATE + switchModel.getDevice().name() + AND_VALUE_IS + !switchModel.isState());
+            } else {
+                view.setLinkOn(TOGGLE_STATE + switchModel.getDevice().name() + AND_VALUE_IS + !switchModel.isState());
+            }
         }
+
     }
 
     private void formatSwitchColors(Switch switchModel, SwitchView view) {
@@ -1772,7 +1775,9 @@ public class HouseViewService {
         var etsLimit = "Limit " + state.getChargeLimit().getCaption();
         view.setElementTitleState(etsTimestamp + " " + etsPercent  + ", " + etsLimit); // collapsed top right
         if(state.isActiveCharging()){
-            if(wallboxPowerMeter.getActualConsumption().getValue().intValue() > 0){
+            if(wallboxPowerMeter.isUnreach()){
+                view.setState("Unbekannt...");
+            } else if(wallboxPowerMeter.getActualConsumption() != null && wallboxPowerMeter.getActualConsumption().getValue().intValue() > 0){
                 view.setState("Lädt gerade");
             }else{
                 if(isChargedSinceReading){

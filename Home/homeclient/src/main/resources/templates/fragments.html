@@ -72,35 +72,33 @@
 	<div th:fragment="wallbox (modelMeter, modelSwitch)" th:class="'alert alert-' + ${modelSwitch.colorClass} + ' callout callout-' + ${modelSwitch.colorClass}">
 		<div th:replace="~{fragments :: elementnameCollapsable (icon=${modelMeter.icon}, name=${modelMeter.place}, place='', unreach=${modelSwitch.unreach}, collapseLink='collapse' + ${modelSwitch.id}, elementTitleState=${modelMeter.elementTitleState} + ', ' + ${modelSwitch.elementTitleState.toLowerCase()}, colorClass=${modelMeter.colorClass})}"></div>
 		<div class="collapse collapse-preserve-state" th:id="'collapse' + ${modelSwitch.id}">
-			<th:block th:unless="${#strings.equals(modelSwitch.unreach, 'true')}">
-				<h4>
-					<span th:text="${modelMeter.state}"></span>
-					<th:block th:replace="~{fragments :: tendency (icon=${modelMeter.tendencyIcon})}"></th:block>
-					<th:block th:if="${modelMeter.todayConsumption != null}">
-						<span th:utext="'&nbsp;&ndash;&nbsp;'"></span>
-						<span class="mb-1" th:text="${modelMeter.todayConsumption.label}">Gestern</span>
-						<span class="text-muted" style="font-size: 80%;" th:text="${modelMeter.todayConsumption.additionalLabel}">Summe</span>
-						<th:block th:replace="~{fragments :: historyLink (key=${modelMeter.historyKey}, name=${modelMeter.name}, place=${modelMeter.place})}"></th:block>
-					</th:block>
-				</h4>
-				<h4><span th:text="${modelSwitch.state}"></span><span th:text="${modelSwitch.stateSuffix}" style="font-size: 80%;"></span></h4>
-				<div th:replace="~{fragments-switchControls :: switchControls (model=${modelSwitch})}"></div>
-				<div style="display: block; height: 10px;"></div>
-				<div class="btn-group" role="group" aria-label="evs">
-					<th:block th:each="ev : ${modelSwitch.evs}">
-						<button type="button" th:class="${#strings.startsWith(ev.link, '#')} ? 'btn btn-dark btn-sm' : 'btn btn-secondary btn-sm'" th:onclick="@{'evselect' + '(\'' + ${ev.link} + '\')'}">
-							<span th:class="${#strings.startsWith(ev.link, '#')} ? 'text-' + ${ev.activeSwitchColorClass}"th:text="${ev.caption}"></span>
-						</button>
-					</th:block>
-				</div>
-				<script type="text/javascript">
-					function evselect(link){
-						if(!link.startsWith('#')){
-							submitContent(link);
-						}
+			<h4>
+				<span th:text="${modelMeter.state}"></span>
+				<th:block th:replace="~{fragments :: tendency (icon=${modelMeter.tendencyIcon})}"></th:block>
+				<th:block th:if="${modelMeter.todayConsumption != null}">
+					<span th:utext="'&nbsp;&ndash;&nbsp;'"></span>
+					<span class="mb-1" th:text="${modelMeter.todayConsumption.label}">Gestern</span>
+					<span class="text-muted" style="font-size: 80%;" th:text="${modelMeter.todayConsumption.additionalLabel}">Summe</span>
+					<th:block th:replace="~{fragments :: historyLink (key=${modelMeter.historyKey}, name=${modelMeter.name}, place=${modelMeter.place})}"></th:block>
+				</th:block>
+			</h4>
+			<h4><span th:text="${modelSwitch.state}"></span><span th:text="${modelSwitch.stateSuffix}" style="font-size: 80%;"></span></h4>
+			<div th:replace="~{fragments-switchControls :: switchControls (model=${modelSwitch})}"></div>
+			<div style="display: block; height: 10px;"></div>
+			<div class="btn-group" role="group" aria-label="evs">
+				<th:block th:each="ev : ${modelSwitch.evs}">
+					<button type="button" th:class="${#strings.startsWith(ev.link, '#')} ? 'btn btn-dark btn-sm' : 'btn btn-secondary btn-sm'" th:onclick="@{'evselect' + '(\'' + ${ev.link} + '\')'}">
+						<span th:class="${#strings.startsWith(ev.link, '#')} ? 'text-' + ${ev.activeSwitchColorClass}"th:text="${ev.caption}"></span>
+					</button>
+				</th:block>
+			</div>
+			<script type="text/javascript">
+				function evselect(link){
+					if(!link.startsWith('#')){
+						submitContent(link);
 					}
-				</script>
-			</th:block>
+				}
+			</script>
 		</div>
 	</div>
 	

@@ -109,11 +109,9 @@ function doOnloadFunctions(){
     if(sliderList){
         prototypeSlider();
         let sliderKey;
-        setTimeout(function(){
-            for (sliderKey in sliderList) {
-                initSliderFunctionsByName[sliderList[sliderKey]](sliderKey);
-            }
-        }, 100);
+        for (sliderKey in sliderList) {
+            initSliderFunctionsByName[sliderList[sliderKey]](sliderKey);
+        }
     }
     if(rangeIDs){
         rangeIDs.forEach(initRangecontainer);
