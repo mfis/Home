@@ -100,7 +100,6 @@ public class FrontDoorService {
 
     public LocalDateTime readLastOpened(){
         if(cachedLastOpened == null) {
-            log.info("empty cache - read database");
             var lastOpened = ticketDAO.readLatestTicket(TICKET_EVENT, StateValue.OPEN.name());
             if(lastOpened != null){
                 cachedLastOpened = lastOpened.getTimestamp();
