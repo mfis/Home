@@ -93,7 +93,6 @@ public class SolarmanService {
         if(ModelObjectDAO.getInstance().readPvAdditionalDataModel() != null) {
             var soc = ModelObjectDAO.getInstance().readPvAdditionalDataModel().getBatteryStateOfCharge();
             if(soc < 20 && soc != lastLoggedSOC){
-                log.info("BATTERY_SOC: " + soc);
                 lastLoggedSOC = soc;
             }
         }
