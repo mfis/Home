@@ -137,6 +137,10 @@ public class HouseService {
             return null;
         }
 
+        if(!hmApi.hasCurrentValues()){
+            return null;
+        }
+
         HouseModel newModel = new HouseModel();
 
         newModel.setClimateBathRoom(readRoomClimate(Device.THERMOSTAT_BAD));
