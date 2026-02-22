@@ -1,8 +1,11 @@
 package de.fimatas.home.client.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fimatas.home.client.domain.service.AppViewService;
 import de.fimatas.home.client.request.AppRequestMapping;
+import de.fimatas.home.client.request.ControllerRequestMapping;
 import de.fimatas.home.client.request.HomeRequestMapping;
+import de.fimatas.home.library.domain.model.HouseModel;
 import de.fimatas.home.library.model.Pages;
 import de.fimatas.home.library.util.HomeAppConstants;
 import de.fimatas.users.api.TokenResult;
@@ -19,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.env.Environment;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockServletContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -272,6 +276,62 @@ class LoginInterceptorTest {
                         .header(LoginInterceptor.USER_AGENT, THE_USER_AGENT)
                         .header(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN, THE_CIENT_COMM_TOKEN))
                 .andExpect(MockMvcResultMatchers.status().isOk());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            ControllerRequestMapping.UPLOAD_METHOD_PREFIX + "HouseModel",
+            ControllerRequestMapping.CONTROLLER_LONG_POLLING_FOR_AWAIT_MESSAGE_REQUEST
+    })
+    void testUploadOK(String url) throws Exception {
+        System.setProperty(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN, THE_CIENT_COMM_TOKEN);
+        mockMvc.perform(MockMvcRequestBuilders.post(url)
+                        .header(LoginInterceptor.USER_AGENT, THE_USER_AGENT)
+                        .header(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN, THE_CIENT_COMM_TOKEN)
+                        .content(new ObjectMapper().writeValueAsString(new HouseModel()))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+    }
+
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            ControllerRequestMapping.UPLOAD_METHOD_PREFIX + "HouseModel",
+            ControllerRequestMapping.CONTROLLER_LONG_POLLING_FOR_AWAIT_MESSAGE_REQUEST
+    })
+    void testUploadWrongToken(String url) throws Exception {
+        System.setProperty(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN, THE_CIENT_COMM_TOKEN);
+        mockMvc.perform(MockMvcRequestBuilders.post(url)
+                        .header(LoginInterceptor.USER_AGENT, THE_USER_AGENT)
+                        .header(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN, "xyz")
+                        .content(new ObjectMapper().writeValueAsString(new HouseModel()))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+    }
+
+    @Test
+    void testUploadBlocking() throws Exception {
+        System.setProperty(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN, THE_CIENT_COMM_TOKEN);
+        // correct token
+        mockMvc.perform(MockMvcRequestBuilders.post(ControllerRequestMapping.CONTROLLER_LONG_POLLING_FOR_AWAIT_MESSAGE_REQUEST)
+                        .header(LoginInterceptor.USER_AGENT, THE_USER_AGENT)
+                        .header(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN, THE_CIENT_COMM_TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+        for (int i = 0; i < 5; i++) {
+            // wrong token until blocking
+            mockMvc.perform(MockMvcRequestBuilders.post(ControllerRequestMapping.CONTROLLER_LONG_POLLING_FOR_AWAIT_MESSAGE_REQUEST)
+                            .header(LoginInterceptor.USER_AGENT, THE_USER_AGENT)
+                            .header(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN, "xyz")
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+        }
+        // still blocking with correct token
+        mockMvc.perform(MockMvcRequestBuilders.post(ControllerRequestMapping.CONTROLLER_LONG_POLLING_FOR_AWAIT_MESSAGE_REQUEST)
+                        .header(LoginInterceptor.USER_AGENT, THE_USER_AGENT)
+                        .header(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN, THE_CIENT_COMM_TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isUnauthorized());
     }
 
     @ParameterizedTest
