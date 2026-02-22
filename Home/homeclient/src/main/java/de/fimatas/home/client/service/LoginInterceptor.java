@@ -78,6 +78,9 @@ public class LoginInterceptor implements HandlerInterceptor {
     @Autowired
     private Environment env;
 
+    @Value("${homeDebugMode:false}")
+    private boolean homeDebugMode;
+
     @Value("${application.identifier}")
     private String applicationIdentifier;
 
@@ -107,17 +110,10 @@ public class LoginInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler) throws Exception {
 
-        long l1 = System.nanoTime();
         boolean loginOK = checkLogin(request, response);
 
-        if (!loginOK && !noLoginDataProvided(request)) {
+        if (homeDebugMode && !loginOK && !noLoginDataProvided(request)) {
             log.warn("Request: " + request.getRequestURI() + " NOT ok");
-        }
-
-        long l2 = System.nanoTime();
-        long ldiff = (l2 - l1) / 1000000; // ms
-        if(ldiff > 1500){
-            log.warn("LoginInterceptor#preHandle slow response: " + ldiff + " ms!");
         }
 
         return loginOK;
@@ -180,7 +176,9 @@ public class LoginInterceptor implements HandlerInterceptor {
         Map<String, String> params = mapRequestParameters(request);
 
         if (noLoginDataProvided(request)) {
-            log.warn("sendRedirect - noLoginDataProvided");
+            if(homeDebugMode) {
+                log.warn("sendRedirect - noLoginDataProvided");
+            }
             response.sendRedirect(LoginController.LOGIN_URI);
             return false;
         }
@@ -194,7 +192,9 @@ public class LoginInterceptor implements HandlerInterceptor {
         if (params.containsKey(LOGIN_USERNAME)) {
             if (userHasNotAcceptedCookies(params)) {
                 response.sendRedirect(LoginController.LOGIN_COOKIECHECK_URI);
-                log.warn("sendRedirect - userHasNotAcceptedCookies");
+                if(homeDebugMode) {
+                    log.warn("sendRedirect - userHasNotAcceptedCookies");
+                }
                 return false;
             } else {
                 return checkUser(credentialsBrowserLogin(params, request, response));
@@ -273,7 +273,9 @@ public class LoginInterceptor implements HandlerInterceptor {
             return loginUser;
         } else {
             response.sendRedirect(LoginController.LOGIN_FAILED_URI);
-            log.warn("sendRedirect - !tokenResult.isCheckOk()");
+            if(homeDebugMode) {
+                log.warn("sendRedirect - !tokenResult.isCheckOk()");
+            }
             return null;
         }
     }
@@ -302,10 +304,14 @@ public class LoginInterceptor implements HandlerInterceptor {
         } else {
             if(tokenResult.isTimeout()){
                 response.sendRedirect(LoginController.LOGIN_INTERRUPTED_URI);
-                log.warn("sendRedirect - tokenResult.isTimeout()");
+                if(homeDebugMode) {
+                    log.warn("sendRedirect - tokenResult.isTimeout()");
+                }
             }else{
                 response.sendRedirect(LoginController.LOGIN_FAILED_URI);
-                log.warn("sendRedirect - login failed");
+                if(homeDebugMode) {
+                    log.warn("sendRedirect - login failed");
+                }
                 logoff(request, response);
             }
             return null;
