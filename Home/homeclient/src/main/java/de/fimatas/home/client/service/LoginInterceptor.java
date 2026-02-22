@@ -293,7 +293,7 @@ public class LoginInterceptor implements HandlerInterceptor {
             request.getHeader(USER_AGENT), loginTokenRefresh);
 
         if (tokenResult.isCheckOk()) {
-            if (loginTokenRefresh) {
+            if (StringUtils.isNotBlank(tokenResult.getNewToken())) {
                 cookieWrite(response, tokenResult.getNewToken());
                 return userAPI.userNameFromLoginCookie(tokenResult.getNewToken());
             } else {
