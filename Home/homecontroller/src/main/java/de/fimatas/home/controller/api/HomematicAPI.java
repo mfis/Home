@@ -1,27 +1,14 @@
 package de.fimatas.home.controller.api;
 
-import static de.fimatas.home.controller.command.HomematicCommandConstants.E_O_F;
-import static de.fimatas.home.controller.command.HomematicCommandConstants.PREFIX_RC;
-import static de.fimatas.home.controller.command.HomematicCommandConstants.PREFIX_VAR;
-import java.io.ByteArrayInputStream;
-import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
+import de.fimatas.home.controller.command.HomematicCommand;
+import de.fimatas.home.controller.command.HomematicCommandBuilder;
+import de.fimatas.home.controller.command.HomematicCommandConstants;
+import de.fimatas.home.controller.command.HomematicCommandProcessor;
+import de.fimatas.home.library.homematic.model.Datapoint;
+import de.fimatas.home.library.homematic.model.Device;
+import de.fimatas.home.library.util.HomeAppConstants;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jakarta.annotation.PostConstruct;
-import javax.xml.XMLConstants;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -38,13 +25,20 @@ import org.springframework.web.client.RestTemplate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import de.fimatas.home.controller.command.HomematicCommand;
-import de.fimatas.home.controller.command.HomematicCommandBuilder;
-import de.fimatas.home.controller.command.HomematicCommandConstants;
-import de.fimatas.home.controller.command.HomematicCommandProcessor;
-import de.fimatas.home.library.homematic.model.Datapoint;
-import de.fimatas.home.library.homematic.model.Device;
-import de.fimatas.home.library.util.HomeAppConstants;
+
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.ByteArrayInputStream;
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+
+import static de.fimatas.home.controller.command.HomematicCommandConstants.*;
 
 @Component
 public class HomematicAPI {
@@ -200,6 +194,11 @@ public class HomematicAPI {
                 LOG.info("Write to homematic is not enabled! - " + homematicCommandProcessor.buildCommand(command));
             }
         }
+    }
+
+    public boolean hasCurrentValues() {
+        //noinspection ConstantValue
+        return currentValues != null && !currentValues.isEmpty();
     }
 
     public boolean isPresent(HomematicCommand command) {

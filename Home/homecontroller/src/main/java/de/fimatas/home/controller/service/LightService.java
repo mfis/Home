@@ -8,14 +8,13 @@ import de.fimatas.home.library.domain.model.Light;
 import de.fimatas.home.library.domain.model.LightState;
 import de.fimatas.home.library.domain.model.LightsModel;
 import de.fimatas.home.library.domain.model.Place;
+import jakarta.annotation.PostConstruct;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
-import jakarta.annotation.PostConstruct;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -95,7 +94,7 @@ public class LightService {
 
         LightsModel model = new LightsModel();
 
-        groups.fields().forEachRemaining(group -> mapGroup(group, allLights, model));
+        groups.properties().forEach(group -> mapGroup(group, allLights, model));
 
         return model;
     }

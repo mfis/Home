@@ -208,15 +208,10 @@ public class PushService {
         }
     }
 
-    @Scheduled(cron = "30 25 11,16 * * *")
+    @Scheduled(cron = "00 00 13 * * *")
     public void sendPvStringFailure() {
         try {
             if(ModelObjectDAO.getInstance().readPvAdditionalDataModel() != null){
-                if(ModelObjectDAO.getInstance().readPvAdditionalDataModel().getAlarm() != null){
-                    settingsService.listTokensWithEnabledSetting(PushNotifications.ERRORMESSAGE)
-                            .forEach(pushToken -> handleMessage(pushToken, PushNotifications.ERRORMESSAGE.getPushText(),
-                                    "Photovoltaikanlage meldet Fehler: " + ModelObjectDAO.getInstance().readPvAdditionalDataModel().getAlarm()));
-                }
                 if(ModelObjectDAO.getInstance().readPvAdditionalDataModel().getStringsStatus() == PhotovoltaicsStringsStatus.ONE_FAULTY){
                     settingsService.listTokensWithEnabledSetting(PushNotifications.ERRORMESSAGE)
                             .forEach(pushToken -> handleMessage(pushToken, PushNotifications.ERRORMESSAGE.getPushText(),
@@ -273,6 +268,16 @@ public class PushService {
         }
     }
 
+    public void clientError(String message) {
+
+        try {
+            settingsService.listTokensWithEnabledSetting(PushNotifications.CLIENT_ERROR).forEach(pushToken ->
+                    handleMessage(pushToken, PushNotifications.CLIENT_ERROR.getPushText(), message));
+        } catch (Exception e) {
+            LogFactory.getLog(PushService.class).error("Could not [clientError] push notifications:", e);
+        }
+    }
+
     public void testMessage(String user) {
         final PushToken pushToken = settingsService.tokenForUser(user);
         if(pushToken != null){
@@ -304,17 +309,11 @@ public class PushService {
 
         var liste = new LinkedList<String>();
 
-        if(pvAdditionalDataModel.getStringsStatus() == PhotovoltaicsStringsStatus.ERROR_DETECTING){
-            liste.add("Status der Photovoltaikanlage konnte nicht geprüft werden!");
-        } else if(pvAdditionalDataModel.getStringsStatus() == PhotovoltaicsStringsStatus.ONE_FAULTY){
-            liste.add("Teilausfall der Photovoltaikanlage erkannt!");
-        }
-
         if (StringUtils.isNotBlank(pvAdditionalDataModel.getAlarm())) {
             liste.add("Photovoltaikanlage meldet Fehler: " + pvAdditionalDataModel.getAlarm() + "!");
         }
 
-        if(pvAdditionalDataModel.getBatteryStateOfCharge() < 19){
+        if(pvAdditionalDataModel.getBatteryStateOfCharge() < 17){
             liste.add("PV-Speicher Ladestand niedrig: " + pvAdditionalDataModel.getBatteryStateOfCharge() + "%!");
         }
 

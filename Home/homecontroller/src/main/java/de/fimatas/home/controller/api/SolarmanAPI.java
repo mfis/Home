@@ -10,6 +10,7 @@ import de.fimatas.home.library.util.HomeAppConstants;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
@@ -57,41 +58,27 @@ public class SolarmanAPI {
         // first try to load current data
         try{
             return currentData();
-        } catch (IllegalPvCollectionTimeException ipcte){
-            throw ipcte;
-        } catch (IllegalStateException | IllegalAccessException e) {
-            log.warn("first call (access): " + e.getMessage());
+        } catch (IllegalAccessException e) {
+            log.warn("first call (access) " + e.getClass().getSimpleName() + " : " +  e.getMessage());
         } catch (Exception e){
-            log.error("first call (other): " + e.getMessage());
+            log.error("first call (other) " + e.getClass().getSimpleName() + " : " +  e.getMessage());
             throw new RuntimeException(e);
         }
 
         // if login failure occured, try to login
         try{
             loginCounter++;
-            log.debug("solarman login");
             login();
         } catch (IllegalStateException | IllegalAccessException e){
-            log.error("login call (access): " + e.getMessage());
+            log.error("login call (access|state) " + e.getClass().getSimpleName() + " : " +  e.getMessage());
             accessFailureCounter++;
             throw new RuntimeException(e);
         } catch (Exception e){
-            log.error("login call (other): " + e.getMessage());
+            log.error("login call (other) " + e.getClass().getSimpleName() + " : " +  e.getMessage());
             throw new RuntimeException(e);
         }
 
-        // then try to load current data second time
-        try{
-            return currentData();
-        } catch (IllegalPvCollectionTimeException ipcte){
-            throw ipcte;
-        } catch (IllegalStateException | IllegalAccessException e){
-            log.error("second call (access): " + e.getMessage());
-            throw new RuntimeException(e);
-        } catch (Exception e){
-            log.error("second call (other): " + e.getMessage());
-            throw new RuntimeException(e);
-        }
+        return null;
     }
 
     @SuppressWarnings("unused") // used by resilience4j
@@ -124,7 +111,7 @@ public class SolarmanAPI {
 
         String bearer = TokenDAO.getInstance().read("solarman", "bearer");
         if(StringUtils.isBlank(bearer)){
-            throw new IllegalStateException("no bearer token set");
+            throw new IllegalAccessException("no bearer token set");
         }
 
         Map<String, String> uri = new HashMap<>();
@@ -147,11 +134,18 @@ public class SolarmanAPI {
     private static JsonNode handleResponse(ResponseEntity<String> responseEntity, boolean checkCollectionTime) throws IllegalAccessException, JsonProcessingException {
 
         if(responseEntity.getStatusCode() == FORBIDDEN || responseEntity.getStatusCode() == UNAUTHORIZED){
-            throw new IllegalAccessException("response code " + responseEntity.getStatusCode());
+            TokenDAO.getInstance().write("solarman", "bearer", "");
+            TokenDAO.getInstance().persist();
+            throw new IllegalAccessException("response code forbidden|unauthorized: " + responseEntity.getStatusCode());
         }
         final JsonNode tree = jsonObjectMapper.readTree(responseEntity.getBody());
         if(tree.get("success").asText().equalsIgnoreCase("false")){
-            throw new IllegalStateException("call not successful: " + tree.get("msg").asText());
+            var errorText = tree.get("msg").asText();
+            if(isAuthError(errorText)){
+                throw new IllegalAccessException("auth error: " + errorText);
+            }else{
+                throw new IllegalStateException("call not successful: " + errorText);
+            }
         }
 
         if(checkCollectionTime){
@@ -166,10 +160,18 @@ public class SolarmanAPI {
         return tree;
     }
 
+    private static boolean isAuthError(String errorText) {
+        return Strings.CI.contains(errorText, "forbidden")
+                || Strings.CI.contains(errorText, "auth");
+    }
+
     @Scheduled(cron = "0 0 * * * *")
-    public void resetCounter() {
-        accessFailureCounter = 0;
+    public void resetCounterHourly() {
         loginCounter = 0;
     }
 
+    @Scheduled(cron = "0 0 0 * * *")
+    public void resetCounterDaily() {
+        accessFailureCounter = 0;
+    }
 }

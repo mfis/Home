@@ -9,7 +9,6 @@ import de.fimatas.home.library.model.Message;
 import de.fimatas.home.library.model.PresenceState;
 import de.fimatas.home.library.util.HomeAppConstants;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -75,6 +74,9 @@ public class ClientCommunicationService {
 
     @Autowired
     private TasksService tasksService;
+
+    @Autowired
+    private NoticesService noticesService;
 
     @Autowired
     private MaintenanceService maintenanceService;
@@ -196,6 +198,16 @@ public class ClientCommunicationService {
             case MAINTENANCE:
                 maintenanceService.doMaintenance(message);
                 break;
+            case CLIENT_ERROR_PUSH_MESSAGE:
+                pushService.clientError(message.getValue());
+                break;
+            case NOTICE_NEW:
+                 noticesService.createNew(message);
+                 break;
+            case NOTICE_SAVE:
+            case NOTICE_DELETE:
+                noticesService.save(message);
+                break;
             default:
                 throw new IllegalStateException("Unknown MessageType:" + message.getMessageType().name());
             }
@@ -270,6 +282,12 @@ public class ClientCommunicationService {
             uploadService.uploadToClient(ModelObjectDAO.getInstance().readTasksModel());
         }
 
+        if (ModelObjectDAO.getInstance().readNoticeModel() == null) {
+            noticesService.refresh();
+        } else {
+            uploadService.uploadToClient(ModelObjectDAO.getInstance().readNoticeModel());
+        }
+
         if (ModelObjectDAO.getInstance().readPvAdditionalDataModel() != null) {
             // no refresh here because of scheduled 1-minute interval
             uploadService.uploadToClient(ModelObjectDAO.getInstance().readPvAdditionalDataModel());
@@ -295,10 +313,6 @@ public class ClientCommunicationService {
         headers.set("Cache-Control", "no-cache");
         headers.set(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN,
             env.getProperty(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN));
-
-        String plainClientCredentials = env.getProperty("client.auth.user") + ":" + env.getProperty("client.auth.pass");
-        String base64ClientCredentials = new String(Base64.encodeBase64(plainClientCredentials.getBytes()));
-        headers.set("Authorization", "Basic " + base64ClientCredentials);
 
         try {
             HttpEntity<ActionModel> request = new HttpEntity<>(new ActionModel(""), headers);

@@ -10,8 +10,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -29,31 +29,31 @@ class EvChargingDAOTest {
     @Autowired
     private UniqueTimestampService uniqueTimestampService;
 
-    @MockBean
+    @MockitoBean
     private HouseService houseService;
 
-    @MockBean
+    @MockitoBean
     private LightService lightService;
 
-    @MockBean
+    @MockitoBean
     private PresenceService presenceService;
 
-    @MockBean
+    @MockitoBean
     private ElectricVehicleService electricVehicleService;
 
-    @MockBean
+    @MockitoBean
     private WeatherService weatherService;
 
-    @MockBean
+    @MockitoBean
     private HistoryService historyService;
 
-    @MockBean
+    @MockitoBean
     private SettingsService settingsService;
 
-    @MockBean
+    @MockitoBean
     private ClientCommunicationService clientCommunicationService;
 
-    @MockBean
+    @MockitoBean
     private PushService pushService;
 
     @BeforeEach

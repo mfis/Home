@@ -18,7 +18,7 @@ public class HomeAppConstants {
 
     public static final int CONTROLLER_CLIENT_LONGPOLLING_REQUEST_TIMEOUT_SECONDS = 4;
 
-    public static final int CONTROLLER_CLIENT_LONGPOLLING_RESPONSE_TIMEOUT_SECONDS = 2;
+    public static final int CONTROLLER_CLIENT_LONGPOLLING_RESPONSE_TIMEOUT_SECONDS = 5;
 
     //
 
@@ -49,6 +49,8 @@ public class HomeAppConstants {
     public static final int MODEL_TASKS_OUTDATED_SECONDS = 60 * 10;
 
     public static final int MODEL_PV_OUTDATED_SECONDS = 60 * 15;
+
+    public static final int MODEL_NOTOCE_OUTDATED_SECONDS = 60 * 20;
 
     //
 

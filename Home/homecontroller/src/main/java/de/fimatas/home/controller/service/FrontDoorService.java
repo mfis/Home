@@ -1,6 +1,7 @@
 package de.fimatas.home.controller.service;
 
 import de.fimatas.home.controller.api.HomematicAPI;
+import de.fimatas.home.controller.api.UsersRemoteAPI;
 import de.fimatas.home.controller.command.HomematicCommandBuilder;
 import de.fimatas.home.controller.dao.TicketDAO;
 import de.fimatas.home.controller.domain.service.HouseService;
@@ -11,7 +12,6 @@ import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.model.Message;
 import de.fimatas.home.library.model.PresenceState;
 import lombok.extern.apachecommons.CommonsLog;
-import mfi.files.api.UserService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -34,7 +34,7 @@ public class FrontDoorService {
     private HouseService houseService;
 
     @Autowired
-    private UserService userService;
+    private UsersRemoteAPI userRemoteAPI;
 
     @Autowired
     private PushService pushService;
@@ -100,7 +100,6 @@ public class FrontDoorService {
 
     public LocalDateTime readLastOpened(){
         if(cachedLastOpened == null) {
-            log.info("empty cache - read database");
             var lastOpened = ticketDAO.readLatestTicket(TICKET_EVENT, StateValue.OPEN.name());
             if(lastOpened != null){
                 cachedLastOpened = lastOpened.getTimestamp();
@@ -111,7 +110,7 @@ public class FrontDoorService {
 
     private boolean isSecurityPinCorrect(Message message) {
         return StringUtils.isNotBlank(message.getSecurityPin())
-                && userService.checkPin(message.getUser(), message.getSecurityPin());
+                && userRemoteAPI.checkPIN(message.getUser(), message.getSecurityPin());
     }
 
     private Message messageForDoorState(StateValue stateValue, String ticket) {

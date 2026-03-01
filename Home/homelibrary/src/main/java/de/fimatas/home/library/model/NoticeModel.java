@@ -4,13 +4,12 @@ import de.fimatas.home.library.domain.model.AbstractSystemModel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.LinkedList;
+import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class PresenceModel extends AbstractSystemModel {
+public class NoticeModel extends AbstractSystemModel {
 
-    private Map<String, PresenceState> presenceStates = new HashMap<>();
-
+    private List<Notice> notices = new LinkedList<>();
 }

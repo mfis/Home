@@ -1,6 +1,7 @@
 package de.fimatas.home.controller.service;
 
 import de.fimatas.home.controller.api.HomematicAPI;
+import de.fimatas.home.controller.api.UsersRemoteAPI;
 import de.fimatas.home.controller.command.HomematicCommandBuilder;
 import de.fimatas.home.controller.dao.TicketDAO;
 import de.fimatas.home.controller.domain.service.HouseService;
@@ -12,7 +13,6 @@ import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.model.Message;
 import de.fimatas.home.library.model.PresenceModel;
 import de.fimatas.home.library.model.PresenceState;
-import mfi.files.api.UserService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -43,7 +43,7 @@ public class FrontDoorServiceTest {
     private TicketDAO ticketDAO;
 
     @Mock
-    private UserService userService;
+    private UsersRemoteAPI usersRemoteAPI;
 
     @Mock
     private PushService pushService;
@@ -300,7 +300,7 @@ public class FrontDoorServiceTest {
 
     private void whenUserService(boolean correctTicket) {
         lenient().when(ticketDAO.existsUsedTicket(anyString())).thenReturn(!correctTicket);
-        lenient().when(userService.checkPin(anyString(), anyString())).thenReturn(false);
-        lenient().when(userService.checkPin(CORRECT_TEST_USER, CORRECT_TEST_PIN)).thenReturn(true);
+        lenient().when(usersRemoteAPI.checkPIN(anyString(), anyString())).thenReturn(false);
+        lenient().when(usersRemoteAPI.checkPIN(CORRECT_TEST_USER, CORRECT_TEST_PIN)).thenReturn(true);
     }
 }

@@ -13,9 +13,8 @@ import de.fimatas.home.library.domain.model.PushMessageModel;
 import de.fimatas.home.library.model.Message;
 import de.fimatas.home.library.model.MessageType;
 import de.fimatas.home.library.model.SettingsModel;
-import mfi.files.api.DeviceType;
-import mfi.files.api.TokenResult;
-import mfi.files.api.UserService;
+import de.fimatas.users.api.TokenResult;
+import de.fimatas.users.api.UserAPI;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -28,9 +27,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static de.fimatas.home.library.util.HomeAppConstants.PUSH_TOKEN_NOT_AVAILABLE_INDICATOR;
@@ -42,8 +41,26 @@ public class AppRequestMapping {
 
     public static final String URI_WHOAMI = "/whoami";
 
+    public static final String URI_GET_APP_MODEL = "/getAppModel";
+
+    public static final String URI_GET_PUSH_MESSAGE_MODEL = "/getPushMessageModel";
+
+    public static final String URI_GET_PUSH_SETTINGS = "/getPushSettings";
+
+    public static final String URI_SET_PUSH_SETTING = "/setPushSetting";
+
+    public static final String URI_SET_PRESENCE = "/setPresence";
+
+    public static final String URI_LIVE_START = "/liveActivityStart";
+
+    public static final String URI_LIVE_END = "/liveActivityEnd";
+
+    public static Set<String> ALL_NON_LOGIN_APP_URIS = Set.of(
+            URI_GET_APP_MODEL, URI_GET_PUSH_MESSAGE_MODEL, URI_GET_PUSH_SETTINGS, URI_SET_PUSH_SETTING,  URI_SET_PRESENCE, URI_LIVE_START, URI_LIVE_END
+    );
+
     @Autowired
-    private UserService userService;
+    private UserAPI userAPI;
 
     @Autowired
     private HouseViewService houseView;
@@ -71,7 +88,7 @@ public class AppRequestMapping {
     public AppTokenCreationModel createAuthToken(@RequestParam("user") String user, @RequestParam("pass") String pass,
             @RequestParam("device") String device) {
 
-        TokenResult result = userService.createToken(user, pass, device, DeviceType.APP);
+        TokenResult result = userAPI.createToken(user, pass, applicationIdentifier, device);
         AppTokenCreationModel model = new AppTokenCreationModel();
         model.setSuccess(result.isCheckOk());
         model.setToken(StringUtils.trimToEmpty(result.getNewToken()));
@@ -79,10 +96,9 @@ public class AppRequestMapping {
         return model;
     }
 
-    @GetMapping(value = "/getAppModel")
+    @GetMapping(value = URI_GET_APP_MODEL)
     public HomeViewModel getModel(@RequestParam("viewTarget") String viewTarget) {
 
-        log.debug("getModel()");
         HouseModel houseModel = ModelObjectDAO.getInstance().readHouseModel();
         try {
             if (houseModel == null) {
@@ -90,7 +106,7 @@ public class AppRequestMapping {
             } else {
                 Model model = new ExtendedModelMap();
                 houseView.fillViewModel(model, null, houseModel, ModelObjectDAO.getInstance().readHistoryModel(),
-                    ModelObjectDAO.getInstance().readLightsModel(), ModelObjectDAO.getInstance().readWeatherForecastModel(), ModelObjectDAO.getInstance().readPresenceModel(), ModelObjectDAO.getInstance().readHeatpumpRoofModel(), ModelObjectDAO.getInstance().readHeatpumpBasementModel(), ModelObjectDAO.getInstance().readElectricVehicleModel(), ModelObjectDAO.getInstance().readPushMessageModel(), ModelObjectDAO.getInstance().readTasksModel(), ModelObjectDAO.getInstance().readPvAdditionalDataModel());
+                    ModelObjectDAO.getInstance().readLightsModel(), ModelObjectDAO.getInstance().readWeatherForecastModel(), ModelObjectDAO.getInstance().readPresenceModel(), ModelObjectDAO.getInstance().readHeatpumpRoofModel(), ModelObjectDAO.getInstance().readHeatpumpBasementModel(), ModelObjectDAO.getInstance().readElectricVehicleModel(), null, null, null, ModelObjectDAO.getInstance().readPvAdditionalDataModel());
                 return appViewService.mapAppModel(model, AppViewService.AppViewTarget.valueOf(viewTarget.toUpperCase()));
             }
         } catch (Exception e) {
@@ -99,7 +115,7 @@ public class AppRequestMapping {
         }
     }
 
-    @GetMapping(value = "/getPushMessageModel")
+    @GetMapping(value = URI_GET_PUSH_MESSAGE_MODEL)
     public PushMessagesView getPushMessageModel(@RequestHeader("appUserName") String appUserName) {
 
         final PushMessageModel pushMessageModel = ModelObjectDAO.getInstance().readPushMessageModel();
@@ -107,18 +123,17 @@ public class AppRequestMapping {
             return null;
         }
 
-        var list = pushMessageModel == null ? Collections.EMPTY_LIST :
-                pushMessageModel.getList().stream()
-                        .filter(msg -> msg.getUsername().equalsIgnoreCase(appUserName))
-                        .map(msg -> {
-                            var ts = StringUtils.capitalize(viewFormatter.formatTimestamp(msg.getTimestamp(), ViewFormatter.TimestampFormat.DATE_TIME));
-                            return new PushMessageView("id_pm_" + msg.getTimestamp(), ts, msg.getTitle(), msg.getTextMessage());
-                        }).collect(Collectors.toList());
+        var list = pushMessageModel.getList().stream()
+                .filter(msg -> msg.getUsername().equalsIgnoreCase(appUserName))
+                .map(msg -> {
+                    var ts = StringUtils.capitalize(viewFormatter.formatTimestamp(msg.getTimestamp(), ViewFormatter.TimestampFormat.DATE_TIME));
+                    return new PushMessageView("id_pm_" + msg.getTimestamp(), ts, msg.getTitle(), msg.getTextMessage());
+                }).collect(Collectors.toList());
 
         return new PushMessagesView(list);
     }
 
-    @GetMapping(value = "/getPushSettings")
+    @GetMapping(value = URI_GET_PUSH_SETTINGS)
     public AppPushSettingsModels getPushSettings(@RequestParam("token") String token) {
 
         final Collection<SettingsModel> settingsModels = ModelObjectDAO.getInstance().readAllSettings();
@@ -137,7 +152,7 @@ public class AppRequestMapping {
         return new AppPushSettingsModels(listPushSettings, listAttributes);
     }
 
-    @PostMapping(value = "/setPushSetting")
+    @PostMapping(value = URI_SET_PUSH_SETTING)
     public AppPushSettingsModels setPushSetting(@RequestParam("token") String token, @RequestParam("key")String key, @RequestParam("value") String value) {
 
         Message message = new Message();
@@ -151,7 +166,7 @@ public class AppRequestMapping {
         return getPushSettings(token);
     }
 
-    @PostMapping(value = "/setPresence")
+    @PostMapping(value = URI_SET_PRESENCE)
     public void setPushSetting(@RequestHeader(name = LoginInterceptor.APP_USER_NAME) String appUserName, @RequestParam("value") String value) {
 
         Message message = new Message();
@@ -162,7 +177,7 @@ public class AppRequestMapping {
         MessageQueue.getInstance().request(message, true);
     }
 
-    @PostMapping(value = "/liveActivityStart")
+    @PostMapping(value = URI_LIVE_START)
     public void liveActivityStart(@RequestParam("token") String token,
                                   @RequestHeader(name = LoginInterceptor.APP_USER_NAME) String appUserName,
                                   @RequestHeader(name = LoginInterceptor.APP_DEVICE) String appDevice) {
@@ -176,7 +191,7 @@ public class AppRequestMapping {
         MessageQueue.getInstance().request(message, true);
     }
 
-    @PostMapping(value = "/liveActivityEnd")
+    @PostMapping(value = URI_LIVE_END)
     public void liveActivityEnd(@RequestParam("token") String token) {
 
         Message message = new Message();

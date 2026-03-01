@@ -14,6 +14,7 @@ import jakarta.annotation.PostConstruct;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -97,7 +98,7 @@ public class HouseViewService {
         });
     }
 
-    public void fillViewModel(Model model, String username, HouseModel house, HistoryModel historyModel, LightsModel lightsModel, WeatherForecastModel weatherForecastModel, PresenceModel presenceModel, HeatpumpRoofModel heatpumpRoofModel, HeatpumpBasementModel heatpumpBasementModel, ElectricVehicleModel electricVehicleModel, PushMessageModel pushMessageModel, TasksModel tasksModel, PvAdditionalDataModel pvAdditionalDataModel) {
+    public void fillViewModel(Model model, String username, HouseModel house, HistoryModel historyModel, LightsModel lightsModel, WeatherForecastModel weatherForecastModel, PresenceModel presenceModel, HeatpumpRoofModel heatpumpRoofModel, HeatpumpBasementModel heatpumpBasementModel, ElectricVehicleModel electricVehicleModel, PushMessageModel pushMessageModel, TasksModel tasksModel, NoticeModel noticeModel, PvAdditionalDataModel pvAdditionalDataModel) {
 
         model.addAttribute("modelTimestamp", ModelObjectDAO.getInstance().calculateModelTimestamp());
 
@@ -157,6 +158,8 @@ public class HouseViewService {
         formatPresence(model, presenceModel);
 
         formatTasks(model, tasksModel);
+
+        formatNotices(model, noticeModel, username);
 
         // widget
         formatUpperFloorGroup(model, "widgetUpperFloor", Place.WIDGET_UPPER_FLOOR_TEMPERATURE, house);
@@ -910,6 +913,7 @@ public class HouseViewService {
         setPowerViewIcon(powerMeter, power);
         power.setUnreach(Boolean.toString(powerMeter.isUnreach()));
         if (powerMeter.isUnreach() || externalUnreach) {
+            power.setState("Leistung unbekannt");
             return power;
         }
 
@@ -1019,6 +1023,7 @@ public class HouseViewService {
             copy.add("Präsenz Status unbekannt!");
         }
 
+        //noinspection StatementWithEmptyBody
         if(ModelObjectDAO.getInstance().readHeatpumpRoofModel() == null) {
             // copy.add("Wärmepumpe Dach Status unbekannt!"); // FIXME: HEATPUMP_ROOF
         }
@@ -1029,6 +1034,10 @@ public class HouseViewService {
 
         if(ModelObjectDAO.getInstance().readTasksModel() == null) {
             copy.add("Aufgaben Status unbekannt!");
+        }
+
+        if(ModelObjectDAO.getInstance().readNoticeModel() == null) {
+            copy.add("Notizen unbekannt!");
         }
 
         if(ModelObjectDAO.getInstance().readElectricVehicleModel() == null) {
@@ -1108,8 +1117,8 @@ public class HouseViewService {
 
         WallboxSwitchView view = new WallboxSwitchView();
         formatSwitchInternal(model, viewKey, switchModel, view);
-        if(wallboxElectricalPowerConsumption.isUnreach()){
-            view.setUnreach(Boolean.toString(wallboxElectricalPowerConsumption.isUnreach()));
+        if(wallboxElectricalPowerConsumption.isUnreach() || switchModel.isUnreach()){
+            view.setUnreach(Boolean.toString(true));
         }
         Arrays.stream(ElectricVehicle.values()).forEach(ev -> {
             ElectroVehicleView evView = new ElectroVehicleView();
@@ -1132,10 +1141,6 @@ public class HouseViewService {
         view.setShortName(switchModel.getDevice().getType().getShortName());
         view.setPlaceEnum(switchModel.getDevice().getPlace());
         view.setUnreach(Boolean.toString(switchModel.isUnreach()));
-        if (switchModel.isUnreach()) {
-            model.addAttribute(viewKey, view);
-            return;
-        }
 
         view.setShowOverflowRange(Boolean.toString(switchModel.isPvOverflowConfigured()));
         if(switchModel.isPvOverflowConfigured()){
@@ -1152,19 +1157,25 @@ public class HouseViewService {
             });
         }
 
-        view.setState(switchModel.isState() ? "Eingeschaltet" : "Ausgeschaltet");
-        view.setStateShort(switchModel.isState() ? "Ein" : "Aus");
+        view.setState(switchModel.isUnreach() ? "Zustand unbekannt" : (switchModel.isState() ? "Eingeschaltet" : "Ausgeschaltet"));
+        view.setStateShort(switchModel.isUnreach() ? "???" : (switchModel.isState() ? "Ein" : "Aus"));
         formatSwitchColors(switchModel, view);
 
         formatSwitchAutomation(switchModel, view);
 
-        view.setLabel(switchModel.isState() ? "ausschalten" : "einschalten");
+        view.setLabel(switchModel.isUnreach() ? UNBEKANNT : (switchModel.isState() ? "ausschalten" : "einschalten"));
         formatSwitchIcon(switchModel, view);
-        if (switchModel.isState()) {
+        if(switchModel.isUnreach()){
             view.setLinkOff(TOGGLE_STATE + switchModel.getDevice().name() + AND_VALUE_IS + !switchModel.isState());
-        } else {
             view.setLinkOn(TOGGLE_STATE + switchModel.getDevice().name() + AND_VALUE_IS + !switchModel.isState());
+        } else {
+            if (switchModel.isState()) {
+                view.setLinkOff(TOGGLE_STATE + switchModel.getDevice().name() + AND_VALUE_IS + !switchModel.isState());
+            } else {
+                view.setLinkOn(TOGGLE_STATE + switchModel.getDevice().name() + AND_VALUE_IS + !switchModel.isState());
+            }
         }
+
     }
 
     private void formatSwitchColors(Switch switchModel, SwitchView view) {
@@ -1241,12 +1252,12 @@ public class HouseViewService {
 
     private boolean isLightSwitch(Device device) {
         String name = device.getType().getTypeName();
-        return StringUtils.containsIgnoreCase(name, "licht") || StringUtils.containsIgnoreCase(name, "lampe");
+        return Strings.CI.contains(name, "licht") || Strings.CI.contains(name, "lampe");
     }
 
     private boolean isHeatingSwitch(Device device) {
         String name = device.getType().getTypeName();
-        return StringUtils.containsIgnoreCase(name, "heizung");
+        return Strings.CI.contains(name, "heizung");
     }
 
     @SuppressWarnings("unused")
@@ -1494,8 +1505,8 @@ public class HouseViewService {
         lights.setState(lights.getElementTitleState());
 
         var stateShort = lights.getElementTitleState();
-        stateShort = StringUtils.replaceIgnoreCase(stateShort, EINGESCHALTET, "ein");
-        stateShort = StringUtils.replaceIgnoreCase(stateShort, AUSGESCHALTET, "aus");
+        stateShort = Strings.CI.replace(stateShort, EINGESCHALTET, "ein");
+        stateShort = Strings.CI.replace(stateShort, AUSGESCHALTET, "aus");
         lights.setStateShort(StringUtils.capitalize(stateShort));
 
         model.addAttribute("lights" + place.name(), lights);
@@ -1711,7 +1722,7 @@ public class HouseViewService {
     }
 
     private String lookupShortenedRoomName(String name){
-        return StringUtils.remove(name, "zimmer");
+        return Strings.CS.remove(name, "zimmer");
     }
 
     private String lookupWallboxId() {
@@ -1764,7 +1775,9 @@ public class HouseViewService {
         var etsLimit = "Limit " + state.getChargeLimit().getCaption();
         view.setElementTitleState(etsTimestamp + " " + etsPercent  + ", " + etsLimit); // collapsed top right
         if(state.isActiveCharging()){
-            if(wallboxPowerMeter.getActualConsumption().getValue().intValue() > 0){
+            if(wallboxPowerMeter.isUnreach()){
+                view.setState("Unbekannt...");
+            } else if(wallboxPowerMeter.getActualConsumption() != null && wallboxPowerMeter.getActualConsumption().getValue().intValue() > 0){
                 view.setState("Lädt gerade");
             }else{
                 if(isChargedSinceReading){
@@ -1863,6 +1876,44 @@ public class HouseViewService {
 
         // sort
         tasksView.getList().sort(Comparator.comparingLong(TaskView::getDurationSeconds).reversed());
+    }
+
+    private void formatNotices(Model model, NoticeModel noticeModel, String user) {
+
+        NoticesView noticesView = new NoticesView();
+        noticesView.setName("Notizen");
+        noticesView.setId("notices");
+        noticesView.setPlaceEnum(Place.HOUSE);
+        noticesView.setIcon("fa-solid fa-note-sticky");
+        model.addAttribute("notices", noticesView);
+        noticesView.setUnreach(Boolean.toString(noticeModel == null));
+
+        if(noticeModel == null){
+            return;
+        }
+
+        noticesView.setColorClass(ConditionColor.DEFAULT.getUiClass());
+
+        var ownNotices = noticeModel.getNotices().stream().filter(n -> n.getUser().equals(user)).toList();
+        var sharedNotices = noticeModel.getNotices().stream().filter(n -> !n.getUser().equals(user) && n.isMultiUser()).toList();
+
+        noticesView.setElementTitleState(ownNotices.size() + " eigene, " + sharedNotices.size() + " geteilte");
+
+        var allNotices = new  ArrayList<Notice>();
+        allNotices.addAll(ownNotices);
+        allNotices.addAll(sharedNotices);
+        allNotices.forEach(notice -> {
+            NoticeView noticeView = new NoticeView();
+            noticeView.setId(notice.getId());
+            noticeView.setTitle(notice.getDerivedTitle());
+            noticeView.setUserName(noticeView.getUserName());
+            noticeView.setUserIcon(notice.isMultiUser() ? "fas fa-users" : "fas fa-user");
+            noticeView.setLastEditedText(StringUtils.capitalize(viewFormatter.formatTimestamp(notice.getLastEdited(), TimestampFormat.DATE_TIME)));
+            noticeView.setLastEditedMillis(notice.getLastEdited().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
+            noticesView.getList().add(noticeView);
+        });
+
+        noticesView.getList().sort(Comparator.comparingLong(NoticeView::getLastEditedMillis).reversed());
     }
 
     private void calculateTaskNextExecution(Task task, TaskView taskView) {

@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org" lang="de">
 
-	<head th:replace="~{basics :: head (name='Zuhause - Anmeldung')}"><title></title></head>
+	<head th:replace="~{basics :: head (name='Zuhause - Anmeldung', withHomeCSS='true')}"><title></title></head>
 	
 	<body id="idbody">
 	
@@ -19,7 +19,7 @@
 			
 				<div th:class="'alert alert-secondary callout callout-secondary'">
 					<fieldset>
-						<legend>Home - Anmeldung</legend>
+						<legend>Zuhause - Anmeldung</legend>
 						<div style="margin-right: 20px;">
 							<label for="username">Benutzername</label> 
 							<br/>
@@ -32,25 +32,34 @@
 						</div>
 
 						<br/>
+						<a><strong>Hinweis:</strong><br/>Dies ist ein privates System für Freunde und Familie. Wir bitten um Verständnis, dass externe Registrierungen nicht freigeschaltet werden.</a>
+						<br/>
+						<br/>
 						<a><strong>Cookie-Information:</strong><br/>Diese Internetseite verwendet so genannte Cookies. <br/>Um mehr zu erfahren, klicken Sie bitte hier:</a>
 						<p></p>
-						<a th:href="${lawLink}" target="_blank">Impressum und Datenschutzerkl&auml;rung</a><br/><br/>
+						<a th:href="${lawLink}" target="_blank">Impressum und Datenschutzerkl&auml;rung</a><br/>
 
-						<div class="form-check form-check-inline pl-0" style="display: block; padding-left: 0 !important;">
+						<div class="form-check form-check-inline pl-0 ml-0" style="padding-left: 0 !important; padding-bottom: 10px;">
 							<input class="form-check-input" type="checkbox" id="cookiecheck" value="true" name="login_cookieok">
-							<label class="btn btn-sm pl-0" style="padding-left: 0; padding-top: 5px;" for="cookiecheck">
+							<label class="btn btn-sm pl-0" style="text-align: left; padding-left: 0; padding-top: 18px;" for="cookiecheck">
 								<i class="fa-solid fa-square fa-2x check-false"></i><i class="fa-solid fa-square-check fa-2x check-true"></i>
-								<a style="font-size: 1rem; vertical-align: top;"> Ich bin mit der Verwendung von Cookies einverstanden</a>
+								<a style="font-size: 1rem; vertical-align: top;">&nbsp;Ich bin mit der Verwendung von Cookies einverstanden</a>
 							</label>
 						</div>
 
 						<br/>
-										
+
 						<div class="form-actions pt-1">
 							<button type="submit" class="btn btn-secondary">anmelden</button>
 						</div>
 
 						<br/>
+
+						<a href="/users">
+							Benutzer Account Verwaltung
+						</a>
+
+						<br/><br/>
 
 						<a href="#" data-bs-toggle="modal" data-bs-target="#licenseAttributionModal">
 							License Attribution

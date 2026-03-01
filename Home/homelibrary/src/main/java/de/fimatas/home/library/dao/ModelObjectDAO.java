@@ -35,6 +35,8 @@ public class ModelObjectDAO {
 
     private TasksModel tasksModel;
 
+    private NoticeModel noticeModel;
+
     private SettingsContainer settingsContainer;
 
     private PvAdditionalDataModel pvAdditionalDataModel;
@@ -92,6 +94,11 @@ public class ModelObjectDAO {
     public void write(TasksModel newModel) {
         tasksModel = newModel;
         tasksModel.setTimestamp(new Date().getTime());
+    }
+
+    public void write(NoticeModel newModel) {
+        noticeModel = newModel;
+        noticeModel.setTimestamp(new Date().getTime());
     }
 
     public void write(PvAdditionalDataModel newModel) {
@@ -203,6 +210,15 @@ public class ModelObjectDAO {
             return null; // Too old. Should never happen
         } else {
             return tasksModel;
+        }
+    }
+
+    public NoticeModel readNoticeModel() {
+        long newestTimestamp = noticeModel == null ? 0 : noticeModel.getTimestamp();
+        if (noticeModel == null || new Date().getTime() - newestTimestamp > 1000 * HomeAppConstants.MODEL_NOTOCE_OUTDATED_SECONDS) {
+            return null; // Too old. Should never happen
+        } else {
+            return noticeModel;
         }
     }
 

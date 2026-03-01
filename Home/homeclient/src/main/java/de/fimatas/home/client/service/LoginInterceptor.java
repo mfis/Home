@@ -1,21 +1,22 @@
 package de.fimatas.home.client.service;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import de.fimatas.home.client.request.AppRequestMapping;
+import de.fimatas.home.client.request.ControllerRequestMapping;
+import de.fimatas.home.client.request.ControllerUtil;
+import de.fimatas.home.client.request.HomeRequestMapping;
+import de.fimatas.home.library.model.Pages;
+import de.fimatas.home.library.util.HomeAppConstants;
+import de.fimatas.users.api.TokenResult;
+import de.fimatas.users.api.UserAPI;
+import de.fimatas.users.api.UsersConstants;
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
-import de.fimatas.home.client.request.ControllerUtil;
-import jakarta.servlet.http.Cookie;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,13 +25,17 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.web.servlet.HandlerInterceptor;
-import de.fimatas.home.client.request.AppRequestMapping;
-import de.fimatas.home.client.request.ControllerRequestMapping;
-import de.fimatas.home.library.model.Pages;
-import de.fimatas.home.library.util.HomeAppConstants;
-import mfi.files.api.DeviceType;
-import mfi.files.api.TokenResult;
-import mfi.files.api.UserService;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
+
+import static de.fimatas.home.client.request.AppRequestMapping.URI_GET_APP_MODEL;
 
 public class LoginInterceptor implements HandlerInterceptor {
 
@@ -57,21 +62,27 @@ public class LoginInterceptor implements HandlerInterceptor {
             LoginController.LOGIN_VIA_APP_FAILED_URI, AppRequestMapping.URI_WHOAMI, AppRequestMapping.URI_CREATE_AUTH_TOKEN,
                 LoginController.LOGIN_INTERRUPTED_URI);
 
-    private final Set<String> WHITELIST_URIS = Set.of("/error", "/robots.txt");
-    private Set<String> WHITELIST_URIS_DYNAMIC;
+    private final Set<String> WHITELIST_URIS = Set.of("/error", "/robots.txt", "/users");
+    private Set<String> WHITELIST_DISTRIBUTION_URIS;
 
     private static final Set<String> WHITELIST_EXTENSIONS =
-        Set.of("png", "css", "js", "ico", "svg", "eot", "ttf", "woff", "woff2", "map");
+        Set.of(".png", ".css", ".js", ".ico", ".svg", ".eot", ".ttf", ".woff", ".woff2", ".map");
 
-    private static final Map<String, String> WHITELIST_URI_AND_QUERY = Map.of(
-            "/getAppModel", "viewTarget=complication" //
+    private static final Map<String, String> WHITELIST_COMPLICATION_URI_AND_QUERY = Map.of(
+            URI_GET_APP_MODEL, "viewTarget=complication" //
     );
 
     @Autowired
-    private UserService userService;
+    private UserAPI userAPI;
 
     @Autowired
     private Environment env;
+
+    @Value("${homeDebugMode:false}")
+    private boolean homeDebugMode;
+
+    @Value("${application.identifier}")
+    private String applicationIdentifier;
 
     @Value("${server.servlet.session.cookie.secure}")
     private String cookieSecure;
@@ -83,29 +94,26 @@ public class LoginInterceptor implements HandlerInterceptor {
     private boolean doLoginTokenRefreshForNativeApps;
 
     private int controllerFalseLoginCounter = 0;
+    private boolean controllerFalseLoginCounterLogged = false;
 
     private final Log log = LogFactory.getLog(LoginInterceptor.class);
 
     @PostConstruct
     public void postConstruct() throws MalformedURLException {
+        if(StringUtils.isBlank(appdistributionWebUrl)) {
+            throw new MalformedURLException("appdistributionWebUrl is empty");
+        }
         URL appdistributionUrl = new URL(appdistributionWebUrl);
-        WHITELIST_URIS_DYNAMIC = Set.of(appdistributionUrl.getPath() + "homeClient.ipa", appdistributionUrl.getPath() + "manifest.plist");
+        WHITELIST_DISTRIBUTION_URIS = Set.of(appdistributionUrl.getPath() + "homeClient.ipa", appdistributionUrl.getPath() + "manifest.plist");
     }
 
     @Override
     public boolean preHandle(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler) throws Exception {
 
-        long l1 = System.nanoTime();
         boolean loginOK = checkLogin(request, response);
 
-        if (!loginOK && !noLoginDataProvided(request)) {
+        if (homeDebugMode && !loginOK && !noLoginDataProvided(request)) {
             log.warn("Request: " + request.getRequestURI() + " NOT ok");
-        }
-
-        long l2 = System.nanoTime();
-        long ldiff = (l2 - l1) / 1000000; // ms
-        if(ldiff > 1500){
-            log.warn("LoginInterceptor#preHandle slow response: " + ldiff + " ms!");
         }
 
         return loginOK;
@@ -117,23 +125,35 @@ public class LoginInterceptor implements HandlerInterceptor {
             return false;
         }
 
+        if(HomeRequestMapping.ALL_NON_PAGE_HOME_URIS.contains(request.getRequestURI())) {
+            return false;
+        }
+
         if (WHITELIST_URIS.contains(request.getRequestURI())) {
             return true;
         }
 
-        if (WHITELIST_URIS_DYNAMIC!=null && WHITELIST_URIS_DYNAMIC.contains(request.getRequestURI())) {
+        if (WHITELIST_DISTRIBUTION_URIS.contains(request.getRequestURI())) {
             return true;
         }
 
-        if(WHITELIST_URI_AND_QUERY.containsKey(request.getRequestURI()) &&
-                WHITELIST_URI_AND_QUERY.get(request.getRequestURI()).equals(request.getQueryString())){
+        if(WHITELIST_COMPLICATION_URI_AND_QUERY.containsKey(request.getRequestURI()) &&
+                WHITELIST_COMPLICATION_URI_AND_QUERY.get(request.getRequestURI()).equals(request.getQueryString())){
             return true;
         }
 
-        return WHITELIST_EXTENSIONS.contains(FilenameUtils.getExtension(request.getRequestURI()));
+        if(AppRequestMapping.ALL_NON_LOGIN_APP_URIS.contains(request.getRequestURI())) {
+            return false;
+        }
+
+        return WHITELIST_EXTENSIONS.contains("." + FilenameUtils.getExtension(request.getRequestURI()));
     }
 
     private boolean checkLogin(HttpServletRequest request, HttpServletResponse response) throws IOException {
+
+        if(isInvalidRequest(request)) {
+            return false;
+        }
 
         if (isControllerRequest(request)) {
             return controllerLogin(request, response);
@@ -156,7 +176,9 @@ public class LoginInterceptor implements HandlerInterceptor {
         Map<String, String> params = mapRequestParameters(request);
 
         if (noLoginDataProvided(request)) {
-            log.warn("sendRedirect - noLoginDataProvided");
+            if(homeDebugMode) {
+                log.warn("sendRedirect - noLoginDataProvided");
+            }
             response.sendRedirect(LoginController.LOGIN_URI);
             return false;
         }
@@ -170,7 +192,9 @@ public class LoginInterceptor implements HandlerInterceptor {
         if (params.containsKey(LOGIN_USERNAME)) {
             if (userHasNotAcceptedCookies(params)) {
                 response.sendRedirect(LoginController.LOGIN_COOKIECHECK_URI);
-                log.warn("sendRedirect - userHasNotAcceptedCookies");
+                if(homeDebugMode) {
+                    log.warn("sendRedirect - userHasNotAcceptedCookies");
+                }
                 return false;
             } else {
                 return checkUser(credentialsBrowserLogin(params, request, response));
@@ -188,14 +212,12 @@ public class LoginInterceptor implements HandlerInterceptor {
 
         String oldCookie = cookieRead(request);
         if (checkUser(oldCookie)) {
-            userService.deleteToken(userService.userNameFromLoginCookie(oldCookie), request.getHeader(USER_AGENT),
-                DeviceType.BROWSER);
+            userAPI.deleteToken(userAPI.userNameFromLoginCookie(oldCookie), applicationIdentifier, request.getHeader(USER_AGENT));
             cookieDelete(response);
         }
 
         if (StringUtils.isNoneBlank(request.getHeader(APP_DEVICE), request.getHeader(APP_USER_TOKEN))) {
-            userService.deleteToken(userService.userNameFromLoginCookie(request.getHeader(APP_USER_TOKEN)),
-                request.getHeader(APP_DEVICE), DeviceType.APP);
+            userAPI.deleteToken(userAPI.userNameFromLoginCookie(request.getHeader(APP_USER_TOKEN)), applicationIdentifier, request.getHeader(APP_DEVICE));
         }
     }
 
@@ -210,19 +232,19 @@ public class LoginInterceptor implements HandlerInterceptor {
         String controllerTokenSent = request.getHeader(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN);
 
         if(StringUtils.isBlank(controllerTokenSent)){
-            response.setStatus(HttpStatus.BAD_REQUEST.value()); // 400
+            response.setStatus(HttpStatus.UNAUTHORIZED.value()); // 401
             return false;
         }
 
-        return controllerSuccessResponse(StringUtils.equals(controllerToken, controllerTokenSent), response);
+        return controllerSuccessResponse(Strings.CS.equals(controllerToken, controllerTokenSent), response);
     }
 
     private String tokenLogin(HttpServletRequest request, HttpServletResponse response) {
 
         boolean refreshToken = BooleanUtils.toBoolean(request.getHeader("refreshToken")) && doLoginTokenRefreshForNativeApps;
 
-        TokenResult tokenResult = userService.checkToken(request.getHeader(APP_USER_NAME), request.getHeader(APP_USER_TOKEN),
-            request.getHeader(APP_DEVICE), DeviceType.APP, refreshToken);
+        TokenResult tokenResult = userAPI.checkToken(request.getHeader(APP_USER_NAME), request.getHeader(APP_USER_TOKEN), applicationIdentifier,
+            request.getHeader(APP_DEVICE), refreshToken);
 
         if (tokenResult.isCheckOk()) {
             if (refreshToken) {
@@ -230,9 +252,9 @@ public class LoginInterceptor implements HandlerInterceptor {
                 if(log.isDebugEnabled()){
                     log.debug("REFRESHED TOKEN: " + StringUtils.substring(tokenResult.getNewToken(), 0, 50));
                 }
-                return userService.userNameFromLoginCookie(tokenResult.getNewToken());
+                return userAPI.userNameFromLoginCookie(tokenResult.getNewToken());
             } else {
-                return userService.userNameFromLoginCookie(request.getHeader(APP_USER_TOKEN));
+                return userAPI.userNameFromLoginCookie(request.getHeader(APP_USER_TOKEN));
             }
         } else {
             response.setStatus(HttpStatus.UNAUTHORIZED.value()); // 401
@@ -245,14 +267,15 @@ public class LoginInterceptor implements HandlerInterceptor {
 
         String loginUser = StringUtils.trimToEmpty(params.get(LOGIN_USERNAME));
         String loginPass = StringUtils.trimToEmpty(params.get(LOGIN_PASSWORD));
-        TokenResult tokenResult =
-            userService.createToken(loginUser, loginPass, request.getHeader(USER_AGENT), DeviceType.BROWSER);
+        TokenResult tokenResult = userAPI.createToken(loginUser, loginPass, applicationIdentifier, request.getHeader(USER_AGENT));
         if (tokenResult.isCheckOk()) {
             cookieWrite(response, tokenResult.getNewToken());
             return loginUser;
         } else {
             response.sendRedirect(LoginController.LOGIN_FAILED_URI);
-            log.warn("sendRedirect - !tokenResult.isCheckOk()");
+            if(homeDebugMode) {
+                log.warn("sendRedirect - !tokenResult.isCheckOk()");
+            }
             return null;
         }
     }
@@ -265,26 +288,30 @@ public class LoginInterceptor implements HandlerInterceptor {
         }
 
         boolean isAjaxRequest = BooleanUtils.toBoolean(request.getHeader("isAjaxRequest"));
-        boolean isWebViewApp = StringUtils.equals(request.getHeader(USER_AGENT), ControllerUtil.USER_AGENT_APP_WEB_VIEW);
+        boolean isWebViewApp = Strings.CS.equals(request.getHeader(USER_AGENT), ControllerUtil.USER_AGENT_APP_WEB_VIEW);
         boolean loginTokenRefresh = !isAjaxRequest && (!isWebViewApp || doLoginTokenRefreshForNativeApps);
 
-        TokenResult tokenResult = userService.checkToken(userService.userNameFromLoginCookie(token), token,
-            request.getHeader(USER_AGENT), DeviceType.BROWSER, loginTokenRefresh);
+        TokenResult tokenResult = userAPI.checkToken(userAPI.userNameFromLoginCookie(token), token, applicationIdentifier,
+            request.getHeader(USER_AGENT), loginTokenRefresh);
 
         if (tokenResult.isCheckOk()) {
-            if (loginTokenRefresh) {
+            if (StringUtils.isNotBlank(tokenResult.getNewToken())) {
                 cookieWrite(response, tokenResult.getNewToken());
-                return userService.userNameFromLoginCookie(tokenResult.getNewToken());
+                return userAPI.userNameFromLoginCookie(tokenResult.getNewToken());
             } else {
-                return userService.userNameFromLoginCookie(token);
+                return userAPI.userNameFromLoginCookie(token);
             }
         } else {
             if(tokenResult.isTimeout()){
                 response.sendRedirect(LoginController.LOGIN_INTERRUPTED_URI);
-                log.warn("sendRedirect - tokenResult.isTimeout()");
+                if(homeDebugMode) {
+                    log.warn("sendRedirect - tokenResult.isTimeout()");
+                }
             }else{
                 response.sendRedirect(LoginController.LOGIN_FAILED_URI);
-                log.warn("sendRedirect - login failed");
+                if(homeDebugMode) {
+                    log.warn("sendRedirect - login failed");
+                }
                 logoff(request, response);
             }
             return null;
@@ -307,13 +334,16 @@ public class LoginInterceptor implements HandlerInterceptor {
     }
 
     private boolean isLogoffRequest(HttpServletRequest request) {
-        return StringUtils.equals(request.getRequestURI(), LoginController.LOGOFF_URI);
+        return Strings.CS.equals(request.getRequestURI(), LoginController.LOGOFF_URI);
     }
 
     private boolean controllerSuccessResponse(boolean success, HttpServletResponse response) {
 
         if (controllerFalseLoginCounter > 2) { // controller token brute force attack?
-            log.error("controllerFalseLoginCounter reached maximum");
+            if(!controllerFalseLoginCounterLogged){
+                log.error("controllerFalseLoginCounter reached maximum  - NO FURTHER LOG ENTRIES WILL BE WRITTEN.");
+                controllerFalseLoginCounterLogged = true;
+            }
             response.setStatus(HttpStatus.UNAUTHORIZED.value()); // 401
             return false;
         } else if (success) {
@@ -325,9 +355,14 @@ public class LoginInterceptor implements HandlerInterceptor {
         }
     }
 
+    boolean isInvalidRequest(HttpServletRequest request) {
+        return Stream.of("?", "!", "%", "=", ";", ":", "#", "//").anyMatch(invalidChars -> request.getRequestURI().contains(invalidChars));
+    }
+
     private boolean isControllerRequest(HttpServletRequest request) {
-        return StringUtils.startsWith(request.getRequestURI(), ControllerRequestMapping.UPLOAD_METHOD_PREFIX) || StringUtils
-            .equals(request.getRequestURI(), ControllerRequestMapping.CONTROLLER_LONG_POLLING_FOR_AWAIT_MESSAGE_REQUEST);
+        return Strings.CS.startsWith(request.getRequestURI(), ControllerRequestMapping.UPLOAD_METHOD_PREFIX)
+                || Strings.CS.equals(request.getRequestURI(), ControllerRequestMapping.CONTROLLER_LONG_POLLING_FOR_AWAIT_MESSAGE_REQUEST)
+                || Strings.CS.equals(request.getRequestURI(), UsersConstants.USERS_CHECK_PIN_PATH) ;
     }
 
     private boolean isLoginRequest(HttpServletRequest request) {

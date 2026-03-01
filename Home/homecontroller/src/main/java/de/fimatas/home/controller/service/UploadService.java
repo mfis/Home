@@ -2,22 +2,26 @@ package de.fimatas.home.controller.service;
 
 import de.fimatas.home.library.util.HomeAppConstants;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.apachecommons.CommonsLog;
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.*;
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.*;
 
-import jakarta.annotation.PostConstruct;
+import java.io.File;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Component
 @CommonsLog
@@ -27,20 +31,33 @@ public class UploadService {
     @Qualifier("restTemplateModelUpload")
     private RestTemplate restTemplateModelUpload;
 
-    @Autowired
-    private Environment env;
-
-    @Value("${application.homeAdapterEnabled:false}")
-    private boolean homeAdapterEnabled;
+    private final Environment env;
 
     @Value("${application.homeClientEnabled:false}")
     private boolean homeClientEnabled;
 
     private final Map<String, Long> resourceNotAvailableCounter = new HashMap<>();
 
+    private final RestClient backupFileRestClient;
+
+    public UploadService(RestClient.Builder builder, Environment env) {
+
+        this.env = env;
+
+        var requestFactory = new JdkClientHttpRequestFactory();
+        requestFactory.setReadTimeout(Duration.ofMinutes(5));
+
+        this.backupFileRestClient = builder
+                .baseUrl(Objects.requireNonNull(env.getProperty("client.hostName")))
+                .requestFactory(requestFactory)
+                .build();
+
+        log.info("homeClientEnabled=" + homeClientEnabled + ", client.hostName=" + env.getProperty("client.hostName"));
+    }
+
     @PostConstruct
     public void init() {
-        log.info("homeAdapterEnabled=" + homeAdapterEnabled + ", homeClientEnabled=" + homeClientEnabled);
+
     }
 
     @CircuitBreaker(name = "upload", fallbackMethod = "fallbackResponse")
@@ -51,11 +68,18 @@ public class UploadService {
         }
     }
 
-    @Async
-    public void uploadToAdapter(Object object) {
-        if(homeAdapterEnabled){
-            uploadBinaryToClient("http://localhost:8097/upload" + object.getClass().getSimpleName(), object, false);
-        }
+    public void uploadBackupFile(File file) {
+
+        var body = new LinkedMultiValueMap<String, Object>();
+        body.add("file", new FileSystemResource(file));
+
+        backupFileRestClient.post()
+                .uri("/uploadBackupFileMultipart")
+                .contentType(MediaType.MULTIPART_FORM_DATA)
+                .header(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN, env.getProperty(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN))
+                .body(body)
+                .retrieve()
+                .toBodilessEntity();
     }
 
     @SuppressWarnings("unused") // used by resilience4j
@@ -75,9 +99,6 @@ public class UploadService {
         if(credentials) {
             headers.set(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN,
                     env.getProperty(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN));
-            String plainClientCredentials = env.getProperty("client.auth.user") + ":" + env.getProperty("client.auth.pass");
-            String base64ClientCredentials = new String(Base64.encodeBase64(plainClientCredentials.getBytes()));
-            headers.set("Authorization", "Basic " + base64ClientCredentials);
         }
 
         try {

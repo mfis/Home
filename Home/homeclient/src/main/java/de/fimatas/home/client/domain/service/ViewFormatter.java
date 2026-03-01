@@ -1,5 +1,17 @@
 package de.fimatas.home.client.domain.service;
 
+import de.fimatas.home.client.domain.model.ChartEntry;
+import de.fimatas.home.client.domain.model.ValueWithCaption;
+import de.fimatas.home.library.domain.model.PowerConsumptionDay;
+import de.fimatas.home.library.domain.model.TimeRange;
+import de.fimatas.home.library.homematic.model.Device;
+import de.fimatas.home.library.homematic.model.Type;
+import de.fimatas.home.library.util.HomeUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.springframework.stereotype.Component;
+
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
@@ -9,30 +21,17 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import de.fimatas.home.library.homematic.model.Device;
-import de.fimatas.home.library.homematic.model.Type;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
-import org.springframework.stereotype.Component;
-import de.fimatas.home.client.domain.model.ChartEntry;
-import de.fimatas.home.client.domain.model.ValueWithCaption;
-import de.fimatas.home.library.domain.model.PowerConsumptionDay;
-import de.fimatas.home.library.domain.model.TimeRange;
-import de.fimatas.home.library.util.HomeUtils;
+import java.util.*;
 
 import static de.fimatas.home.library.util.HomeUtils.buildDecimalFormat;
 
 @Component
 public class ViewFormatter {
 
+    @SuppressWarnings("UnnecessaryUnicodeEscape")
     public static final String SUM_SIGN = "\u2211 ";
 
+    @SuppressWarnings("UnnecessaryUnicodeEscape")
     public static final String DEGREE = "\u00b0";
 
     private static final BigDecimal KWH_FACTOR = new BigDecimal(1000);
@@ -160,7 +159,7 @@ public class ViewFormatter {
         String minFrmt = formatTemperature(min);
         String maxFrmt = formatTemperature(max);
 
-        if (StringUtils.equals(minFrmt, maxFrmt)) {
+        if (Strings.CS.equals(minFrmt, maxFrmt)) {
             return minFrmt + DEGREE + "C";
         }
 

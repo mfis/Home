@@ -1,13 +1,14 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org" lang="de">
 
-	<head th:replace="~{basics :: head (name='Zuhause - Laden...')}"><title></title></head>
+	<head th:replace="~{basics :: head (name='Zuhause - Laden...', withHomeCSS='true')}"><title></title></head>
 	
 	<body id="idbody">
 	
 		<div th:replace="~{basics :: navigation (selected=${MENU_SELECTED}, selectable=${MENU_SELECTABLE}, status=${SITE_REQUEST_TS}, isApp=${isApp})}"></div>
 		<input type="hidden" th:id="'modelTimestamp'" th:value="${modelTimestamp}"></input>	
 		<input type="hidden" id="SITE_REQUEST_TS" th:value="${SITE_REQUEST_TS}" />
+		<input type="hidden" id="SITE_REQUEST_NAME" th:value="'HOME'" />
 		<div th:replace="~{fragments :: viewCorrelations (model=${viewCorrelations})}"></div>
 
 		<div class="container">
@@ -30,9 +31,10 @@
 				<!-- Haus -->
 				<div th:replace="~{fragments :: title (name='Haus')}"></div>
 				<div th:replace="~{fragments :: frontDoor (model=${frontDoor})}"></div>
-				<div th:replace="~{fragments :: doorLock (model=${frontDoorLock})}"></div>
+				<!-- <div th:replace="~{fragments :: doorLock (model=${frontDoorLock})}"></div> -->
 				<div th:replace="~{fragments :: presence (model=${presence})}"></div>
 				<div th:replace="~{fragments-tasks :: tasks (model=${tasks})}"></div>
+				<div th:replace="~{fragments-textedit :: textedit (model=${notices})}"></div>
 
 				<!-- Energie -->
 				<div th:replace="~{fragments :: title (name='Energie')}"></div>

@@ -8,7 +8,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @EnableScheduling
 @SpringBootApplication
-@ComponentScan(basePackages = {"de.fimatas.home", "mfi.files"})
+@ComponentScan(basePackages = {"de.fimatas.home", "de.fimatas.users"})
 
 @PropertySource(value = "classpath:application.properties")
 @PropertySource(value = "file:/Users/mfi/documents/config/homeapp.properties", ignoreResourceNotFound = true)

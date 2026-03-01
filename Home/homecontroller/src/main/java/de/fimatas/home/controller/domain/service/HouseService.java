@@ -98,9 +98,12 @@ public class HouseService {
     @Autowired
     private Environment env;
 
-    @Scheduled(cron = "3/10 * * * * *")
+    @Scheduled(initialDelay = 500, fixedDelay = 8_500) // duration 100-150ms
     public void scheduledRefreshHouseModel() {
-        refreshHouseModel(false);
+        var oldModel = ModelObjectDAO.getInstance().readHouseModel();
+        long oldModelTimestamp = oldModel == null ? 0 : oldModel.getTimestamp();
+        boolean force = (new Date().getTime() - oldModelTimestamp) > ((HomeAppConstants.MODEL_OUTDATED_SECONDS * 1000) / 2);
+        refreshHouseModel(force);
     }
 
     public synchronized void refreshHouseModel(boolean force) {
@@ -120,7 +123,6 @@ public class HouseService {
 
         pushService.sendAfterModelRefresh(oldModel, newModel);
         uploadService.uploadToClient(newModel);
-        uploadService.uploadToAdapter(newModel);
 
         updateHomematicSystemVariables(oldModel, newModel);
 
@@ -132,6 +134,10 @@ public class HouseService {
     private HouseModel refreshModel(HouseModel oldModel, boolean force) {
 
         if (!hmApi.refresh() && !force) {
+            return null;
+        }
+
+        if(!hmApi.hasCurrentValues()){
             return null;
         }
 

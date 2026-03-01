@@ -101,6 +101,11 @@ function getAssetId(document){
 }
 
 function doOnloadFunctions(){
+    const fid = sessionStorage.getItem('navigationFastLinkId');
+    if (fid) {
+      fastLinkTo(fid);
+      sessionStorage.removeItem('navigationFastLinkId');
+    }
     if(sliderList){
         prototypeSlider();
         let sliderKey;
@@ -425,6 +430,11 @@ function unsetAutoRefresh(){
 function doAutoRefresh(){
 
     if(window.location.pathname !== '/'){
+        return;
+    }
+
+    const SITE_REQUEST_NAME = document.getElementById('SITE_REQUEST_NAME').value;
+    if(!SITE_REQUEST_NAME || SITE_REQUEST_NAME !== 'HOME'){
         return;
     }
 

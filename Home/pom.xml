@@ -11,7 +11,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.5.9</version>
+		<version>3.5.10</version>
 		<relativePath />
 	</parent>
 	
@@ -21,47 +21,59 @@
 		<!-- Java -->
 		<java.version>17</java.version>
 		<!-- Dependency versions -->
-		<spring-boot.version>3.5.9</spring-boot.version>
-		<files-api.version>3.0</files-api.version>
-		<commons-io.version>2.17.0</commons-io.version>
+		<spring-boot.version>3.5.10</spring-boot.version>
+		<de.fimatas.users.version>1.0.0</de.fimatas.users.version>
+		<commons-io.version>2.19.0</commons-io.version>
 		<commons-text.version>1.12.0</commons-text.version>
 		<commons-collections4.version>4.4</commons-collections4.version>
 		<pushy.version>0.15.4</pushy.version>
-		<b2-sdk.version>6.2.1</b2-sdk.version>
 		<!-- Webjars versions -->
 		<webjars-locator.version>0.45</webjars-locator.version>
 		<bootstrap.version>5.3.3</bootstrap.version>
 		<jquery.version>3.7.1</jquery.version>
 		<font-awesome.version>6.5.2</font-awesome.version>
+		<marked.version>17.0.1</marked.version>
 		<soundar24-roundSlider.version>1.6.1-1</soundar24-roundSlider.version>
 		<!-- Plugin versions -->
 		<StaticResourceProcessing.version>1.5.3</StaticResourceProcessing.version>
 		<lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
 		<dependency-check-maven.version>7.0.4</dependency-check-maven.version>
 		<maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
-		<bouncycastle.version>1.78.1</bouncycastle.version>
+		<bouncycastle.version>1.83</bouncycastle.version>
 		<commons-net.version>3.11.1</commons-net.version>
-		<assertj.version>3.26.3</assertj.version>
+		<assertj.version>3.27.7</assertj.version>
 		<hap-java.version>2.0.1</hap-java.version>
 		<zxing.version>3.5.3</zxing.version>
 		<heatpumpdriver.version>4.0.3</heatpumpdriver.version>
 		<resilience4j.version>2.2.0</resilience4j.version>
 		<oshi-core.version>6.6.3</oshi-core.version>
+		<commons-lang.version>3.20.0</commons-lang.version>
+		<commons-compress.version>1.28.0</commons-compress.version>
 	</properties>
 
 	<modules>
 		<module>homelibrary</module>
 		<module>homecontroller</module>
 		<module>homeclient</module>
-		<module>homeadapter</module>
 	</modules>
 
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
-				<groupId>de.fimatas.files</groupId>
-				<artifactId>files-api</artifactId>
-				<version>${files-api.version}</version>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-lang3</artifactId>
+				<version>${commons-lang.version}</version>
+				<scope>compile</scope>
+			</dependency>
+			<dependency>
+				<groupId>de.fimatas</groupId>
+				<artifactId>users-api</artifactId>
+				<version>${de.fimatas.users.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>de.fimatas</groupId>
+				<artifactId>users-impl</artifactId>
+				<version>${de.fimatas.users.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>commons-io</groupId>
@@ -82,18 +94,6 @@
 				<groupId>com.eatthepath</groupId>
 				<artifactId>pushy</artifactId>
 				<version>${pushy.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.backblaze.b2</groupId>
-				<artifactId>b2-sdk-core</artifactId>
-				<version>${b2-sdk.version}</version>
-				<scope>compile</scope>
-			</dependency>
-			<dependency>
-				<groupId>com.backblaze.b2</groupId>
-				<artifactId>b2-sdk-httpclient</artifactId>
-				<version>${b2-sdk.version}</version>
-				<scope>compile</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.luckycatlabs</groupId>
@@ -119,6 +119,12 @@
 				<groupId>org.webjars</groupId>
 				<artifactId>font-awesome</artifactId>
 				<version>${font-awesome.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.webjars.npm</groupId>
+				<artifactId>marked</artifactId>
+				<version>${marked.version}</version>
+				<scope>compile</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.webjars</groupId>
@@ -156,6 +162,17 @@
 				<artifactId>oshi-core</artifactId>
 				<version>${oshi-core.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-compress</artifactId>
+				<version>${commons-compress.version}</version>
+				<scope>compile</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.tukaani</groupId>
+				<artifactId>xz</artifactId>
+				<version>1.11</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -187,15 +204,30 @@
 					<version>${maven-compiler-plugin.version}</version>
 					<configuration>
 						<release>${java.version}</release>
+						<showDeprecation>true</showDeprecation>
+						<showWarnings>true</showWarnings>
 					</configuration>
 				</plugin>
 			</plugins>
 		</pluginManagement>
 		<plugins>
 			<plugin>
-				<groupId>org.owasp</groupId>
-				<artifactId>dependency-check-maven</artifactId>
-				<version>${dependency-check-maven.version}</version>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<version>3.4.1</version>
+				<executions>
+					<execution>
+						<id>enforce</id>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<dependencyConvergence/>
+							</rules>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

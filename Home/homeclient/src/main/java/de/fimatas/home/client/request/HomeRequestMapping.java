@@ -1,31 +1,7 @@
 package de.fimatas.home.client.request;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-
+import de.fimatas.home.client.domain.model.NoticeResponse;
 import de.fimatas.home.client.domain.model.ValueWithCaption;
-import de.fimatas.home.library.model.MaintenanceOptions;
-import jakarta.servlet.http.HttpServletResponse;
-
-import de.fimatas.home.library.domain.model.*;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.logging.log4j.util.Strings;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import de.fimatas.home.client.domain.service.HistoryViewService;
 import de.fimatas.home.client.domain.service.HouseViewService;
 import de.fimatas.home.client.model.MessageQueue;
@@ -33,11 +9,32 @@ import de.fimatas.home.client.service.LoginInterceptor;
 import de.fimatas.home.client.service.SettingsViewService;
 import de.fimatas.home.client.service.ViewAttributesDAO;
 import de.fimatas.home.library.dao.ModelObjectDAO;
+import de.fimatas.home.library.domain.model.HouseModel;
+import de.fimatas.home.library.domain.model.Place;
 import de.fimatas.home.library.homematic.model.Device;
-import de.fimatas.home.library.model.Message;
-import de.fimatas.home.library.model.MessageType;
-import de.fimatas.home.library.model.Pages;
-import mfi.files.api.UserService;
+import de.fimatas.home.library.model.*;
+import de.fimatas.users.api.EndpointController;
+import de.fimatas.users.api.UserAPI;
+import de.fimatas.users.api.UsersConstants;
+import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 import static de.fimatas.home.client.domain.service.HouseViewService.*;
 
@@ -58,6 +55,26 @@ public class HomeRequestMapping {
 
     private static final String DEVICE_ID = "deviceId";
 
+    private static final String URI_TEXTEDIT_VIEW = "/textedit";
+
+    private static final String URI_TEXTEDIT_SAVE = "/texteditSave";
+
+    private static final String URI_TEXTEDIT_DELETE = "/texteditDelete";
+
+    private static final String URI_MESSAGE = "/message";
+
+    private static final String URI_HISTORY = "/history";
+
+    private static final String URI_SETTINGS = "/settings";
+
+    private static final String URI_APP_INSTALLATION = Pages.PATH_APP;
+
+    private static final String URI_MAINTENANCE = Pages.PATH_MAINTENANCE;
+
+    public static Set<String> ALL_NON_PAGE_HOME_URIS = Set.of(
+            URI_TEXTEDIT_VIEW, URI_TEXTEDIT_SAVE,  URI_TEXTEDIT_DELETE, URI_MESSAGE, URI_HISTORY, URI_SETTINGS, URI_APP_INSTALLATION, URI_MAINTENANCE
+    );
+
     private static final Log log = LogFactory.getLog(HomeRequestMapping.class);
 
     @Autowired
@@ -70,13 +87,15 @@ public class HomeRequestMapping {
     private SettingsViewService settingsViewService;
 
     @Autowired
-    private UserService userService;
+    private UserAPI userAPI;
+
+    @Inject
+    private EndpointController endpointController;
 
     @Value("${appdistribution.web.url}")
     private String appdistributionWebUrl;
 
-
-    @GetMapping("/message")
+    @GetMapping(URI_MESSAGE)
     public String message(
             @CookieValue(name = LoginInterceptor.COOKIE_NAME, required = false) String userCookie, //
             @RequestParam(name = "type") String type, //
@@ -103,7 +122,7 @@ public class HomeRequestMapping {
                 + value + ", isApp=" + isNativeApp + ", pinLength=" + StringUtils.trimToEmpty(securityPin).length());
         }
 
-        String userName = isNativeApp ? appUserName : userService.userNameFromLoginCookie(userCookie);
+        String userName = isNativeApp ? appUserName : userAPI.userNameFromLoginCookie(userCookie);
 
         if (!isPinBlankOrSetAndCorrect(userName, securityPin)) {
             prepareErrorMessage(isNativeApp, "Die eingegebene PIN ist nicht korrekt.", userCookie, httpServletResponse);
@@ -145,10 +164,10 @@ public class HomeRequestMapping {
     }
 
     private boolean isPinBlankOrSetAndCorrect(String userName, String securityPin) {
-        return StringUtils.isBlank(securityPin) || userService.checkPin(userName, securityPin);
+        return StringUtils.isBlank(securityPin) || userAPI.checkPin(userName, securityPin);
     }
 
-    @GetMapping("/history")
+    @GetMapping(URI_HISTORY)
     public String history(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
             @RequestParam(name = "key") String key) {
         fillUserAttributes(model, userCookie);
@@ -157,14 +176,14 @@ public class HomeRequestMapping {
         return "history";
     }
 
-    @GetMapping("/settings")
+    @GetMapping(URI_SETTINGS)
     public String settings(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie) {
         fillUserAttributes(model, userCookie);
         model.addAttribute("pushsettings", settingsViewService.allSettingsAsString());
         return "settings";
     }
 
-    @GetMapping("/appInstallation")
+    @GetMapping(URI_APP_INSTALLATION)
     public String appInstallation(Model model,
                                   @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, HttpServletResponse response) {
         fillMenu(Pages.PATH_APP, model, response, false);
@@ -174,10 +193,10 @@ public class HomeRequestMapping {
         return "appInstallation";
     }
 
-    @GetMapping("/maintenance")
+    @GetMapping(URI_MAINTENANCE)
     public String repair(Model model, @RequestHeader(name = "User-Agent", required = false) String userAgent,
                          @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, HttpServletResponse response) {
-        boolean isWebViewApp = StringUtils.equals(userAgent, ControllerUtil.USER_AGENT_APP_WEB_VIEW);
+        boolean isWebViewApp = Strings.CS.equals(userAgent, ControllerUtil.USER_AGENT_APP_WEB_VIEW);
         fillMenu(Pages.PATH_MAINTENANCE, model, response, isWebViewApp);
         fillUserAttributes(model, userCookie);
         List<ValueWithCaption> list = new LinkedList<>();
@@ -194,6 +213,86 @@ public class HomeRequestMapping {
         return "maintenance";
     }
 
+    @GetMapping(URI_TEXTEDIT_VIEW)
+    public String textedit(Model model, @RequestHeader(name = "User-Agent", required = false) String userAgent,
+                         @RequestParam(name = "id", required = false) String id,
+                         @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, HttpServletResponse response) {
+        boolean isWebViewApp = Strings.CS.equals(userAgent, ControllerUtil.USER_AGENT_APP_WEB_VIEW);
+        fillMenu(Pages.PATH_MAINTENANCE, model, response, isWebViewApp);
+        fillUserAttributes(model, userCookie);
+
+        Notice notice = null;
+        boolean isNewNotice = false;
+        if(StringUtils.isBlank(id)) {
+            isNewNotice = true;
+            Message message = new Message();
+            message.setMessageType(MessageType.NOTICE_NEW);
+            message.setUser(userAPI.userNameFromLoginCookie(userCookie));
+            var responseMessage = MessageQueue.getInstance().request(message, true);
+            if(responseMessage.isSuccessfullExecuted()){
+                notice = new Notice();
+                notice.setId(responseMessage.getDeviceId());
+                notice.setUser(responseMessage.getUser());
+                notice.setMultiUser(Boolean.parseBoolean(responseMessage.getAdditionalData()));
+                notice.setVersion(Long.parseLong(responseMessage.getKey()));
+                notice.setText(responseMessage.getValue());
+            }
+        } else {
+            notice = ModelObjectDAO.getInstance().readNoticeModel().getNotices().stream().filter(n -> n.getId().equals(id)).findFirst().orElse(null);
+        }
+
+        if(notice == null) {
+            response.setStatus(HttpStatus.NOT_FOUND.value());
+            return "error";
+        }
+
+        if(!notice.isMultiUser() && !notice.getUser().equals(userAPI.userNameFromLoginCookie(userCookie))) {
+            response.setStatus(HttpStatus.FORBIDDEN.value());
+            return "error";
+        }
+
+        model.addAttribute("id", notice.getId());
+        model.addAttribute("owner", notice.getUser());
+        model.addAttribute("multiUser", Boolean.toString(notice.isMultiUser()));
+        model.addAttribute("version", notice.getVersion());
+        model.addAttribute("text", notice.getText());
+        model.addAttribute("isNewNotice", isNewNotice);
+        return "textedit";
+    }
+
+    @PostMapping({URI_TEXTEDIT_SAVE, URI_TEXTEDIT_DELETE})
+    public ResponseEntity<NoticeResponse> texteditSave(Model model, @RequestHeader(name = "User-Agent", required = false) String userAgent,
+                                       @RequestParam(name = "id") String id, @RequestParam(name = "version") String version,
+                                       @RequestParam(name = "multiUser") String multiUser, @RequestBody(required = false) String text,
+                                       @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
+                                                       HttpServletResponse response, HttpServletRequest request) {
+        boolean isWebViewApp = Strings.CS.equals(userAgent, ControllerUtil.USER_AGENT_APP_WEB_VIEW);
+        fillMenu(Pages.PATH_MAINTENANCE, model, response, isWebViewApp);
+        fillUserAttributes(model, userCookie);
+        var notice = ModelObjectDAO.getInstance().readNoticeModel().getNotices().stream().filter(n -> n.getId().equals(id)).findFirst().orElse(null);
+        if(notice == null) {
+            return new ResponseEntity<>(new NoticeResponse(), HttpStatus.NOT_FOUND);
+        }
+        // check old value!
+        if(!notice.isMultiUser() && !notice.getUser().equals(userAPI.userNameFromLoginCookie(userCookie))) {
+            return new ResponseEntity<>(new NoticeResponse(), HttpStatus.FORBIDDEN);
+        }
+
+        Message message = new Message();
+        message.setMessageType(request.getRequestURI().equals(URI_TEXTEDIT_DELETE) ? MessageType.NOTICE_DELETE : MessageType.NOTICE_SAVE);
+        message.setDeviceId(id);
+        message.setAdditionalData(multiUser);
+        message.setKey(version);
+        message.setValue(StringUtils.trimToEmpty(text));
+
+        var responseMessage = MessageQueue.getInstance().request(message, true);
+        var noticeResponse = new NoticeResponse();
+        noticeResponse.setVersion(responseMessage.getKey());
+        noticeResponse.setText(responseMessage.getValue());
+
+        return new ResponseEntity<>(noticeResponse, responseMessage.isSuccessfullExecuted()?HttpStatus.OK:HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     @RequestMapping(Pages.PATH_HOME) // NOSONAR: POST after login, all other GET
     public String homePage(Model model, HttpServletResponse response,
             @CookieValue(name = LoginInterceptor.COOKIE_NAME, required = false) String userCookie,
@@ -203,10 +302,10 @@ public class HomeRequestMapping {
             @RequestHeader(name = LoginInterceptor.APP_PUSH_TOKEN, required = false) String appPushToken) {
 
         long l1 = System.nanoTime();
-        boolean isWebViewApp = StringUtils.equals(userAgent, ControllerUtil.USER_AGENT_APP_WEB_VIEW);
+        boolean isWebViewApp = Strings.CS.equals(userAgent, ControllerUtil.USER_AGENT_APP_WEB_VIEW);
 
         if (isWebViewApp) {
-            handlePushToken(appPushToken, userService.userNameFromLoginCookie(userCookie), clientName);
+            handlePushToken(appPushToken, userAPI.userNameFromLoginCookie(userCookie), clientName);
         }
 
         boolean isNewMessage = ViewAttributesDAO.getInstance().isPresent(userCookie, ViewAttributesDAO.MESSAGE);
@@ -220,9 +319,9 @@ public class HomeRequestMapping {
                 response.setStatus(HttpStatus.NOT_MODIFIED.value());
                 returnTemplate =  "empty";
             } else {
-                String user = userService.userNameFromLoginCookie(userCookie);
+                String user = userAPI.userNameFromLoginCookie(userCookie);
                 houseView.fillViewModel(model, user, houseModel, ModelObjectDAO.getInstance().readHistoryModel(),
-                    ModelObjectDAO.getInstance().readLightsModel(), ModelObjectDAO.getInstance().readWeatherForecastModel(), ModelObjectDAO.getInstance().readPresenceModel(), ModelObjectDAO.getInstance().readHeatpumpRoofModel(), ModelObjectDAO.getInstance().readHeatpumpBasementModel(), ModelObjectDAO.getInstance().readElectricVehicleModel(), ModelObjectDAO.getInstance().readPushMessageModel(), ModelObjectDAO.getInstance().readTasksModel(), ModelObjectDAO.getInstance().readPvAdditionalDataModel());
+                    ModelObjectDAO.getInstance().readLightsModel(), ModelObjectDAO.getInstance().readWeatherForecastModel(), ModelObjectDAO.getInstance().readPresenceModel(), ModelObjectDAO.getInstance().readHeatpumpRoofModel(), ModelObjectDAO.getInstance().readHeatpumpBasementModel(), ModelObjectDAO.getInstance().readElectricVehicleModel(), ModelObjectDAO.getInstance().readPushMessageModel(), ModelObjectDAO.getInstance().readTasksModel(), ModelObjectDAO.getInstance().readNoticeModel(), ModelObjectDAO.getInstance().readPvAdditionalDataModel());
                 returnTemplate =  Objects.requireNonNull(Pages.getEntry(Pages.PATH_HOME)).getTemplate();
             }
         } catch (Exception e) {
@@ -243,6 +342,11 @@ public class HomeRequestMapping {
             log.warn("HomeRequestMapping#homePage slow response: " + ldiff + " ms!");
         }
         return returnTemplate;
+    }
+
+    @RequestMapping(UsersConstants.USERS_CONTROLLER_ANT_PATH)
+    public void users(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws IOException {
+        endpointController.requestVerarbeiten(httpServletRequest, httpServletResponse);
     }
 
     private void handlePushToken(String appPushToken, String userName, String client) {
@@ -271,12 +375,12 @@ public class HomeRequestMapping {
         model.addAttribute("error", "n/a");
         model.addAttribute("path", Pages.PATH_HOME);
         model.addAttribute("message", message);
-        model.addAttribute("exception", exception!=null ? exception.getMessage(): Strings.EMPTY);
+        model.addAttribute("exception", exception!=null ? exception.getMessage(): "");
     }
 
     private boolean isModelUnchanged(String etag) {
         return StringUtils.isNotBlank(etag)
-            && StringUtils.equals(etag, Long.toString(ModelObjectDAO.getInstance().calculateModelTimestamp()));
+            && Strings.CS.equals(etag, Long.toString(ModelObjectDAO.getInstance().calculateModelTimestamp()));
     }
 
     private Message request(String userName, String type, String deviceName, String placeName, String additionalData, String deviceId, String value,
@@ -300,7 +404,7 @@ public class HomeRequestMapping {
     }
 
     private void fillUserAttributes(Model model, String userCookie) {
-        String user = userService.userNameFromLoginCookie(userCookie);
+        String user = userAPI.userNameFromLoginCookie(userCookie);
         if (user != null) {
             model.addAttribute(ViewAttributesDAO.USER_NAME, user);
         }

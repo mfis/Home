@@ -9,7 +9,7 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.core5.util.Timeout;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
@@ -63,7 +63,7 @@ public class SpringConfiguration implements WebMvcConfigurer {
 
     @Bean
     public RestTemplate restTemplate(RestTemplateBuilder restTemplateBuilder) {
-        return restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(5)).setReadTimeout(Duration.ofSeconds(10)).build();
+        return restTemplateBuilder.connectTimeout(Duration.ofSeconds(5)).readTimeout(Duration.ofSeconds(10)).build();
     }
 
     @Bean(name = "restTemplateCCU")
@@ -84,14 +84,25 @@ public class SpringConfiguration implements WebMvcConfigurer {
             TrustManager trustManager = TrustManagerUtils.getDefaultTrustManager(keyStore);
             SSLContext sslContext = SSLContextUtils.createSSLContext("TLS", null, trustManager);
 
-            SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(sslContext); //
+            DefaultClientTlsStrategy tlsStrategy = new DefaultClientTlsStrategy(sslContext);
 
-            RequestConfig config = RequestConfig.custom().setConnectionRequestTimeout(Timeout.ofMilliseconds(1500)).setResponseTimeout(Timeout.ofSeconds(2)).build();
-            HttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create().setSSLSocketFactory(socketFactory).build();
-            CloseableHttpClient httpClient = HttpClients.custom().setDefaultRequestConfig(config).setConnectionManager(connectionManager).build();
+            RequestConfig config = RequestConfig.custom()
+                    .setConnectionRequestTimeout(Timeout.ofMilliseconds(1500))
+                    .setResponseTimeout(Timeout.ofSeconds(2))
+                    .build();
+
+            HttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+                    .setTlsSocketStrategy(tlsStrategy)
+                    .build();
+
+            CloseableHttpClient httpClient = HttpClients.custom()
+                    .setDefaultRequestConfig(config)
+                    .setConnectionManager(connectionManager)
+                    .build();
 
             HttpComponentsClientHttpRequestFactory httpComponentsClientHttpRequestFactory =
-                new HttpComponentsClientHttpRequestFactory(httpClient);
+                    new HttpComponentsClientHttpRequestFactory(httpClient);
+
             return new RestTemplate(httpComponentsClientHttpRequestFactory);
         }
     }
@@ -99,35 +110,35 @@ public class SpringConfiguration implements WebMvcConfigurer {
     @Bean(name = "restTemplateBinaryResponse")
     public RestTemplate restTemplateBinaryResponse(RestTemplateBuilder restTemplateBuilder,
             List<HttpMessageConverter<?>> messageConverters) {
-        return restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(5)).setReadTimeout(Duration.ofSeconds(20))
+        return restTemplateBuilder.connectTimeout(Duration.ofSeconds(5)).readTimeout(Duration.ofSeconds(20))
             .additionalMessageConverters(messageConverters).build();
     }
 
     @Bean(name = "restTemplateLowTimeout")
     public RestTemplate restTemplateLowTimeout(RestTemplateBuilder restTemplateBuilder) {
-        return restTemplateBuilder.setConnectTimeout(Duration.ofMillis(500)).setReadTimeout(Duration.ofMillis(500)).build();
+        return restTemplateBuilder.connectTimeout(Duration.ofMillis(500)).readTimeout(Duration.ofMillis(500)).build();
     }
 
     @Bean(name = "restTemplateLongPolling")
     public RestTemplate restTemplateLongPolling(RestTemplateBuilder restTemplateBuilder) {
-        return restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(10))
-            .setReadTimeout(Duration.ofSeconds(HomeAppConstants.CONTROLLER_CLIENT_LONGPOLLING_REQUEST_TIMEOUT_SECONDS * 2L))
+        return restTemplateBuilder.connectTimeout(Duration.ofSeconds(10))
+            .readTimeout(Duration.ofSeconds(HomeAppConstants.CONTROLLER_CLIENT_LONGPOLLING_REQUEST_TIMEOUT_SECONDS * 2L))
             .build();
     }
 
     @Bean(name = "restTemplateHeatpumpDriver")
     public RestTemplate restTemplateHeatpumpDriver(RestTemplateBuilder restTemplateBuilder){
-        return restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(15)).setReadTimeout(Duration.ofSeconds(300)).build();
+        return restTemplateBuilder.connectTimeout(Duration.ofSeconds(15)).readTimeout(Duration.ofSeconds(300)).build();
     }
 
     @Bean(name = "restTemplateModelUpload")
     public RestTemplate restTemplateModelUpload(RestTemplateBuilder restTemplateBuilder) {
-        return restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(2)).setReadTimeout(Duration.ofSeconds(4)).build();
+        return restTemplateBuilder.connectTimeout(Duration.ofSeconds(2)).readTimeout(Duration.ofSeconds(4)).build();
     }
 
     @Bean(name = "restTemplateHue")
     public RestTemplate restTemplateHue(RestTemplateBuilder restTemplateBuilder) {
-        return restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(1)).setReadTimeout(Duration.ofSeconds(2)).build();
+        return restTemplateBuilder.connectTimeout(Duration.ofSeconds(1)).readTimeout(Duration.ofSeconds(2)).build();
     }
 
     @Bean

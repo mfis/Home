@@ -1,11 +1,6 @@
 package de.fimatas.home.client.service;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-
+import jakarta.annotation.Nonnull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
@@ -17,6 +12,12 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
@@ -44,7 +45,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     }
 
    @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+    public void addResourceHandlers(@Nonnull ResourceHandlerRegistry registry) {
 
         URL appdistributionUrl;
         try {
@@ -60,7 +61,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Bean
     public RestTemplate restTemplate(RestTemplateBuilder restTemplateBuilder) {
-        return restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(8)).setReadTimeout(Duration.ofSeconds(8)).build();
+        return restTemplateBuilder.connectTimeout(Duration.ofSeconds(8)).readTimeout(Duration.ofSeconds(8)).build();
     }
 
     @Bean
