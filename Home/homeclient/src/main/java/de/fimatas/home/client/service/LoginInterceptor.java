@@ -169,7 +169,6 @@ public class LoginInterceptor implements HandlerInterceptor {
 
         if (isLogoffRequest(request)) {
             logoff(request, response);
-            response.sendRedirect(LoginController.LOGIN_URI);
             return true;
         }
 
