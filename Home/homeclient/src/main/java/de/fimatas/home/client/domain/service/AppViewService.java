@@ -1,29 +1,28 @@
 package de.fimatas.home.client.domain.service;
 
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import de.fimatas.home.client.domain.model.*;
-import de.fimatas.home.library.domain.model.HeatpumpRoofPreset;
-import de.fimatas.home.library.homematic.model.Type;
-import de.fimatas.home.library.model.ConditionColor;
-import de.fimatas.home.library.util.ViewFormatterUtils;
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.util.Strings;
-import org.springframework.stereotype.Component;
-import org.springframework.ui.Model;
 import de.fimatas.home.client.model.HomeViewModel;
 import de.fimatas.home.client.model.HomeViewModel.HomeViewActionModel;
 import de.fimatas.home.client.model.HomeViewModel.HomeViewPlaceModel;
 import de.fimatas.home.client.model.HomeViewModel.HomeViewValueModel;
 import de.fimatas.home.client.request.HomeRequestMapping;
+import de.fimatas.home.library.domain.model.HeatpumpRoofPreset;
 import de.fimatas.home.library.domain.model.Place;
 import de.fimatas.home.library.domain.model.Tendency;
-
+import de.fimatas.home.library.homematic.model.Type;
+import de.fimatas.home.library.model.ConditionColor;
+import de.fimatas.home.library.util.ViewFormatterUtils;
 import jakarta.annotation.PostConstruct;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.util.Strings;
+import org.springframework.stereotype.Component;
+import org.springframework.ui.Model;
+
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @SuppressWarnings({"unused", "ExtractMethodRecommender"})
 @Component
@@ -214,6 +213,7 @@ public class AppViewService {
 
         if(viewTarget == AppViewTarget.WATCH) {
             placeModel.getValues().add(mapForecastShortTerm(placeDirectives, view));
+            placeModel.getValues().add(mapForecastSource(placeDirectives, view));
         }
 
     }
@@ -328,6 +328,16 @@ public class AppViewService {
         hvm.setKey("3-Stunden");
         hvm.setValue(view.getShortTermText());
         hvm.setAccent(ViewFormatterUtils.mapAppColorAccent(view.getShortTermColorClass()));
+        return hvm;
+    }
+
+    private HomeViewValueModel mapForecastSource(PlaceDirectives placeDirectives, WeatherForecastsView view) {
+        HomeViewValueModel hvm = new HomeViewValueModel();
+        hvm.setId(placeDirectives.place.name() + "-source");
+        hvm.getValueDirectives().addAll(Stream.of(ValueDirective.SYMBOL_SKIP, ValueDirective.WIDGET_SKIP, ValueDirective.LOCKSCREEN_SKIP).map(Enum::name).toList());
+        hvm.setKey("Vorhersage Quelle");
+        hvm.setValue(StringUtils.trimToEmpty(org.apache.commons.lang3.Strings.CI.remove(view.getSource(), "Quelle:")));
+        hvm.setAccent(ViewFormatterUtils.mapAppColorAccent(ConditionColor.DEFAULT.getUiClass()));
         return hvm;
     }
 
