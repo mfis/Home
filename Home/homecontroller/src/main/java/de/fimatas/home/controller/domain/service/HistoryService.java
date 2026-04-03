@@ -57,6 +57,8 @@ public class HistoryService {
 
     private static final long HIGHEST_OUTSIDE_TEMPERATURE_PERIOD_HOURS = HOURS_IN_DAY;
 
+    public static final long MAX_DIFF_KWH_POWER_READ_FAILURE = 10;
+
     private static final Log LOG = LogFactory.getLog(HistoryService.class);
 
     @PostConstruct
@@ -326,6 +328,7 @@ public class HistoryService {
 
     private LocalDateTime toFixedHour(LocalDateTime localDateTime, int hour) {
 
+        //noinspection RedundantJavaTimeOperations
         LocalDateTime ldt = LocalDateTime.from(localDateTime);
 
         if (hour == HOURS_IN_DAY) {
@@ -396,7 +399,7 @@ public class HistoryService {
             }
             powerConsumptionDay.add(dest);
         }
-        addMeasurePointDay(dest, pair, lastSingleValue);
+        addPowerCounterMeasurePointDay(dest, pair, lastSingleValue);
     }
 
     private void calculateElectricPowerConsumptionMonth(List<PowerConsumptionMonth> powerConsumptionMonth,
@@ -418,10 +421,10 @@ public class HistoryService {
             }
             powerConsumptionMonth.add(dest);
         }
-        addMeasurePointMonth(dest, pair, lastSingleValue);
+        addPowerCounterMeasurePointMonth(dest, pair, lastSingleValue);
     }
 
-    private void addMeasurePointDay(PowerConsumptionDay pcd, TimestampValuePair measurePoint, BigDecimal lastSingleValue) {
+    private void addPowerCounterMeasurePointDay(PowerConsumptionDay pcd, TimestampValuePair measurePoint, BigDecimal lastSingleValue) {
 
         TimeRange timeRange = TimeRange.fromDateTime(measurePoint.getTimestamp());
         if (lastSingleValue.longValue() <= measurePoint.getValue().longValue()) {
@@ -429,12 +432,19 @@ public class HistoryService {
                 pcd.getValues().get(timeRange).add(measurePoint.getValue().subtract(lastSingleValue)));
         } else {
             // overflow
-            pcd.getValues().put(timeRange, pcd.getValues().get(timeRange).add(measurePoint.getValue()));
+            long diff = lastSingleValue.longValue() - measurePoint.getValue().longValue();
+            if(diff > 0 && diff <= MAX_DIFF_KWH_POWER_READ_FAILURE){
+                // failure value read, ignore
+                LOG.debug("addPowerCounterMeasurePointDay - failure value read, ignore - diff = " + diff);
+            } else {
+                // real overflow
+                pcd.getValues().put(timeRange, pcd.getValues().get(timeRange).add(measurePoint.getValue()));
+            }
         }
         pcd.setMeasurePointMax(measurePoint.getTimestamp().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
     }
 
-    private void addMeasurePointMonth(PowerConsumptionMonth pcm, TimestampValuePair measurePoint, BigDecimal lastSingleValue) {
+    private void addPowerCounterMeasurePointMonth(PowerConsumptionMonth pcm, TimestampValuePair measurePoint, BigDecimal lastSingleValue) {
 
         if (lastSingleValue != null) {
             if (lastSingleValue.compareTo(measurePoint.getValue()) < 0) {
@@ -446,7 +456,14 @@ public class HistoryService {
                     // no pcm values recorded (after restart)
                     pcm.setPowerConsumption(lastSingleValue.add(measurePoint.getValue()));
                 }else {
-                    pcm.setPowerConsumption(pcm.getPowerConsumption().add(measurePoint.getValue()));
+                    long diff = lastSingleValue.longValue() - measurePoint.getValue().longValue();
+                    if(diff > 0 && diff <= MAX_DIFF_KWH_POWER_READ_FAILURE){
+                        // failure value read, ignore
+                        LOG.debug("addPowerCounterMeasurePointMonth - failure value read, ignore - diff = " + diff);
+                    } else {
+                        // real overflow
+                        pcm.setPowerConsumption(pcm.getPowerConsumption().add(measurePoint.getValue()));
+                    }
                 }
 
             }
