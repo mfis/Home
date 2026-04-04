@@ -6,6 +6,7 @@ import de.fimatas.home.controller.model.EvChargeDatabaseEntry;
 import de.fimatas.home.controller.service.UniqueTimestampService;
 import de.fimatas.home.library.domain.model.ElectricVehicle;
 import de.fimatas.home.library.domain.model.EvChargePoint;
+import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,11 +15,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Component
 @CommonsLog
@@ -87,11 +89,27 @@ public class EvChargingDAO {
    }
 
     @Transactional
-    public synchronized void finishAll(){
+    public synchronized void finishAll() {
 
-        jdbcTemplate
-                .update("UPDATE " + TABLE_NAME + " SET ENDTS = ? WHERE ENDTS is null",
-                        uniqueTimestampService.getAsStringWithMillis());
+        List<Map<String, Object>> rowsToUpdate = jdbcTemplate.queryForList(
+                "SELECT STARTTS, EVNAME FROM " + TABLE_NAME + " WHERE ENDTS is null ORDER BY STARTTS ASC");
+
+        if (rowsToUpdate.isEmpty()) {
+            return;
+        }
+
+        List<Object[]> batchArgs = new ArrayList<>();
+        for (Map<String, Object> row : rowsToUpdate) {
+            batchArgs.add(new Object[]{
+                    uniqueTimestampService.getAsStringWithMillis(),
+                    row.get("STARTTS"),
+                    row.get("EVNAME")
+            });
+        }
+
+        jdbcTemplate.batchUpdate(
+                "UPDATE " + TABLE_NAME + " SET ENDTS = ? WHERE STARTTS = ? AND EVNAME = ?",
+                batchArgs);
     }
 
     @Transactional
