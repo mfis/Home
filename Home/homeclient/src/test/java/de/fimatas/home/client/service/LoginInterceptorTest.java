@@ -176,7 +176,8 @@ class LoginInterceptorTest {
     @Test
     void testAppModelNoLoginDataAppViewTargetComplication() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get(AppRequestMapping.URI_GET_APP_MODEL + "?viewTarget=" + AppViewService.AppViewTarget.COMPLICATION.name().toLowerCase()))
-                .andExpect(MockMvcResultMatchers.status().isOk());
+                .andExpect(MockMvcResultMatchers.status().isFound())
+                .andExpect(MockMvcResultMatchers.redirectedUrl("/login"));
     }
 
     @Test
