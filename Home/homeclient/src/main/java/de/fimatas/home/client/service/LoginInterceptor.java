@@ -35,8 +35,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import static de.fimatas.home.client.request.AppRequestMapping.URI_GET_APP_MODEL;
-
 public class LoginInterceptor implements HandlerInterceptor {
 
     public static final String COOKIE_NAME = "HomeLoginCookie";
@@ -67,10 +65,6 @@ public class LoginInterceptor implements HandlerInterceptor {
 
     private static final Set<String> WHITELIST_EXTENSIONS =
         Set.of(".png", ".css", ".js", ".ico", ".svg", ".eot", ".ttf", ".woff", ".woff2", ".map");
-
-    private static final Map<String, String> WHITELIST_COMPLICATION_URI_AND_QUERY = Map.of(
-            URI_GET_APP_MODEL, "viewTarget=complication" //
-    );
 
     @Autowired
     private UserAPI userAPI;
@@ -134,11 +128,6 @@ public class LoginInterceptor implements HandlerInterceptor {
         }
 
         if (WHITELIST_DISTRIBUTION_URIS.contains(request.getRequestURI())) {
-            return true;
-        }
-
-        if(WHITELIST_COMPLICATION_URI_AND_QUERY.containsKey(request.getRequestURI()) &&
-                WHITELIST_COMPLICATION_URI_AND_QUERY.get(request.getRequestURI()).equals(request.getQueryString())){
             return true;
         }
 
