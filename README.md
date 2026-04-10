@@ -82,5 +82,9 @@ More complex programs are splitted. The trigger of the actor is implemented over
 
 Example: A roller shutter motor has CCU programs to automatically drive up and down based on sunrise and sunset times. An additional CCU program drives the shutter down if a CCU system variable (which is linked to the ‚close roller shutter‘ hint based on temperature and sunshine) is set to true.
 
-# Caution
+# Disclaimer
+[!CAUTION]  
 No guarantees are made about the suitability of this code for your own use. It is provided as-is, and you are responsible for any damage it may cause. You should not use this code without understanding it first.
+
+# Third-Party Integrations & Trademarks
+All product names, logos, and brands mentioned (including Tasmota, Homematic, BrightSky, Philips Hue, Solarman and others) are property of their respective owners. These names are used in this project for identification and compatibility purposes only. This project is an unofficial integration and is not affiliated with, authorized, or endorsed by any of the aforementioned brand owners.
