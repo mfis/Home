@@ -5,6 +5,8 @@ import lombok.Getter;
 @Getter
 public enum MaintenanceOptions {
 
+    TEST_PUSH(ConditionColor.GREEN),
+    TEST_PUSH_WITH_HINT(ConditionColor.GREEN),
     REFRESH_MODELS(ConditionColor.ORANGE),
     REBOOT_CONTROLLER(ConditionColor.RED),
     ;

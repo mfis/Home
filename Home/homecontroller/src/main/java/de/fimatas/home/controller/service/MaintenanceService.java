@@ -39,6 +39,9 @@ public class MaintenanceService {
     private HomematicCommandBuilder homematicCommandBuilder;
 
     @Autowired
+    private PushService pushService;
+
+    @Autowired
     private HomematicAPI hmApi;
 
     public void doMaintenance(Message message){
@@ -50,8 +53,14 @@ public class MaintenanceService {
             switch (maintenanceOption){
                 case REFRESH_MODELS -> clientCommunicationService.refreshAll();
                 case REBOOT_CONTROLLER -> controllerReboot();
+                case TEST_PUSH -> sendTestPush(message.getUser(), null);
+                case TEST_PUSH_WITH_HINT -> sendTestPush(message.getUser(), "openCameraView");
             }
         }
+    }
+
+    private void sendTestPush(String userName, String hint) {
+        pushService.testPushMessage(userName, hint);
     }
 
     private void controllerReboot() {

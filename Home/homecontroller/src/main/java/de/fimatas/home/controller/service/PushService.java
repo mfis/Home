@@ -201,7 +201,7 @@ public class PushService {
         try {
             if(homematicAPI.isRequestFailure(true)){
                 settingsService.listTokensWithEnabledSetting(PushNotifications.ERRORMESSAGE)
-                        .forEach(pushToken -> handleMessage(pushToken, PushNotifications.ERRORMESSAGE.getPushText(), "Homematic CCU nicht erreichbar!"));
+                        .forEach(pushToken -> handleMessage(pushToken, PushNotifications.ERRORMESSAGE.getPushText(), "Homematic CCU nicht erreichbar!", null));
             }
         } catch (Exception e) {
             LogFactory.getLog(PushService.class).error("Could not [sendHomematicApiFailure] push notifications:", e);
@@ -215,7 +215,7 @@ public class PushService {
                 if(ModelObjectDAO.getInstance().readPvAdditionalDataModel().getStringsStatus() == PhotovoltaicsStringsStatus.ONE_FAULTY){
                     settingsService.listTokensWithEnabledSetting(PushNotifications.ERRORMESSAGE)
                             .forEach(pushToken -> handleMessage(pushToken, PushNotifications.ERRORMESSAGE.getPushText(),
-                                    "Teilausfall der Photovoltaikanlage erkannt."));
+                                    "Teilausfall der Photovoltaikanlage erkannt.", null));
                 }
             }
         } catch (Exception e) {
@@ -226,7 +226,7 @@ public class PushService {
     public void sendRegistrationConfirmation(String user, String token, String client) {
 
         handleMessage(new PushToken(user, token), "Registrierung erfolgreich",
-            "Auf dem Gerät '" + client + "' können nun Benachrichtigungen empfangen werden.");
+            "Auf dem Gerät '" + client + "' können nun Benachrichtigungen empfangen werden.", null);
     }
 
     public synchronized void sendAfterModelRefresh(HouseModel oldModel, HouseModel newModel) {
@@ -242,7 +242,7 @@ public class PushService {
 
         try {
             settingsService.listTokensWithEnabledSetting(PushNotifications.ERRORMESSAGE).forEach(pushToken ->
-                    handleMessage(pushToken, PushNotifications.ERRORMESSAGE.getPushText(), message));
+                    handleMessage(pushToken, PushNotifications.ERRORMESSAGE.getPushText(), message, null));
         } catch (Exception e) {
             LogFactory.getLog(PushService.class).error("Could not [sendErorMessage] push notifications:", e);
         }
@@ -253,7 +253,7 @@ public class PushService {
 
         try {
             settingsService.listTokensWithEnabledSetting(PushNotifications.NOTICE).forEach(pushToken ->
-                    handleMessage(pushToken, PushNotifications.NOTICE.getPushText(), message));
+                    handleMessage(pushToken, PushNotifications.NOTICE.getPushText(), message, null));
         } catch (Exception e) {
             LogFactory.getLog(PushService.class).error("Could not [sendNotice] push notifications:", e);
         }
@@ -264,7 +264,7 @@ public class PushService {
         PushNotifications notification = early ? PushNotifications.CHARGELIMIT_ERROR : PushNotifications.CHARGELIMIT_OK;
         final PushToken pushToken = settingsService.tokenWithEnabledSettingForUser(notification, user);
         if(pushToken != null){
-            handleMessage(pushToken, "Wallbox", notification.getPushText());
+            handleMessage(pushToken, "Wallbox", notification.getPushText(), null);
         }
     }
 
@@ -272,16 +272,9 @@ public class PushService {
 
         try {
             settingsService.listTokensWithEnabledSetting(PushNotifications.CLIENT_ERROR).forEach(pushToken ->
-                    handleMessage(pushToken, PushNotifications.CLIENT_ERROR.getPushText(), message));
+                    handleMessage(pushToken, PushNotifications.CLIENT_ERROR.getPushText(), message, null));
         } catch (Exception e) {
             LogFactory.getLog(PushService.class).error("Could not [clientError] push notifications:", e);
-        }
-    }
-
-    public void testMessage(String user) {
-        final PushToken pushToken = settingsService.tokenForUser(user);
-        if(pushToken != null){
-            handleMessage(pushToken, "Test", LocalDateTime.now().toString());
         }
     }
 
@@ -296,7 +289,7 @@ public class PushService {
 
         if(!roomNames.isEmpty()) {
             settingsService.listTokensWithEnabledSetting(PushNotifications.WINDOW_OPEN).forEach(pushToken -> 
-            handleMessage(pushToken, PushNotifications.WINDOW_OPEN.getPushText(), StringUtils.join(roomNames, ", "))
+            handleMessage(pushToken, PushNotifications.WINDOW_OPEN.getPushText(), StringUtils.join(roomNames, ", "), null)
             );
         }
     }
@@ -320,7 +313,7 @@ public class PushService {
         if (!liste.isEmpty()) {
             settingsService.listTokensWithEnabledSetting(PushNotifications.ERRORMESSAGE)
                 .forEach(pushToken -> handleMessage(pushToken, PushNotifications.ERRORMESSAGE.getPushText(),
-                        String.join(", ", liste)));
+                        String.join(", ", liste), null));
         }
     }
 
@@ -345,7 +338,7 @@ public class PushService {
         if (!liste.isEmpty()) {
             settingsService.listTokensWithEnabledSetting(PushNotifications.ERRORMESSAGE)
                     .forEach(pushToken -> handleMessage(pushToken, PushNotifications.ERRORMESSAGE.getPushText(),
-                            String.join(", ", liste)));
+                            String.join(", ", liste), null));
         }
     }
 
@@ -354,7 +347,7 @@ public class PushService {
         if (!newModel.getLowBatteryDevices().isEmpty()) {
             settingsService.listTokensWithEnabledSetting(PushNotifications.LOW_BATTERY)
                     .forEach(pushToken -> handleMessage(pushToken, PushNotifications.LOW_BATTERY.getPushText(),
-                            StringUtils.join(newModel.getLowBatteryDevices(), ", ")));
+                            StringUtils.join(newModel.getLowBatteryDevices(), ", "), null));
         }
     }
 
@@ -364,7 +357,7 @@ public class PushService {
             var formattedTemperature = buildDecimalFormat("0.0")
                     .format(newModel.getClimateRoof().getTemperature().getValue()) + "°C";
             settingsService.listTokensWithEnabledSetting(PushNotifications.ATTENTION).forEach(pushToken ->
-                    handleMessage(pushToken, PushNotifications.ATTENTION.getPushText(), "Temperatur Dachboden nah am Gefrierpunkt: " + formattedTemperature));
+                    handleMessage(pushToken, PushNotifications.ATTENTION.getPushText(), "Temperatur Dachboden nah am Gefrierpunkt: " + formattedTemperature, null));
         }
     }
 
@@ -381,14 +374,22 @@ public class PushService {
         timestampLastDoorbellPushMessage = LocalDateTime.now();
 
         settingsService.listTokensWithEnabledSetting(PushNotifications.DOORBELL).forEach(pushToken ->
-                handleMessage(pushToken, PushNotifications.DOORBELL.getPushText(), "Türklingelbetätigung!"));
+                handleMessage(pushToken, PushNotifications.DOORBELL.getPushText(), "Türklingelbetätigung!", "openCameraView"));
+    }
+
+    public void testPushMessage(String userName, String handlerHint) {
+
+        final PushToken pushToken = settingsService.tokenForUser(userName);
+        if(pushToken != null){
+            handleMessage(pushToken, "Test", LocalDateTime.now().toString(), handlerHint);
+        }
     }
 
     public void doorLock(String user) {
 
         final PushToken pushToken = settingsService.tokenWithEnabledSettingForUser(PushNotifications.DOOR_LOCK, user);
         if(pushToken != null){
-            handleMessage(pushToken, PushNotifications.DOOR_LOCK.getPushText(), "Tür wurde verriegelt.");
+            handleMessage(pushToken, PushNotifications.DOOR_LOCK.getPushText(), "Tür wurde verriegelt.", null);
         }
     }
 
@@ -401,7 +402,7 @@ public class PushService {
         settingsService.listTokensWithEnabledSetting(PushNotifications.WEATHER_TODAY).forEach(pushToken -> {
             var text = WeatherForecastConclusionTextFormatter.formatConclusionText(model.getConclusionToday(), false).get(WeatherForecastConclusionTextFormatter.FORMAT_LONGEST);
             if(StringUtils.isNotBlank(text)){
-                handleMessage(pushToken, PushNotifications.WEATHER_TODAY.getPushText(), text);
+                handleMessage(pushToken, PushNotifications.WEATHER_TODAY.getPushText(), text, null);
             }
         });
     }
@@ -414,31 +415,35 @@ public class PushService {
 
         settingsService.listTokensWithEnabledSetting(PushNotifications.TASKS).forEach(pushToken -> model.getTasks().forEach(task -> {
             if(task.getNextExecutionTime() != null && HomeUtils.isSameDay(task.getNextExecutionTime(), LocalDateTime.now())){
-                handleMessage(pushToken, "Heute fällige Aufgabe", task.getName());
+                handleMessage(pushToken, "Heute fällige Aufgabe", task.getName(), null);
             } else if (task.getState() == TaskState.FAR_OUT_OF_RANGE){
-                handleMessage(pushToken, "Überfällige Aufgabe", task.getName());
+                handleMessage(pushToken, "Überfällige Aufgabe", task.getName(), null);
             }
         }));
     }
 
-    private void handleMessage(PushToken pushToken, String title, String message) {
+    private void handleMessage(PushToken pushToken, String title, String message, String handlerHint) {
 
         LocalDateTime ts = uniqueTimestampService.get();
         if (HomeAppConstants.PUSH_TOKEN_NOT_AVAILABLE_INDICATOR.equals(pushToken.getToken())) {
             LOG.info("Push Message to dummy token: " + title + " - " + message);
             saveNewMessageToDatabase(ts, pushToken, title, message);
         } else {
-            sendNotificationToApns(pushToken, ts, title, message);
+            sendNotificationToApns(pushToken, ts, title, message, handlerHint);
         }
     }
 
-    private void sendNotificationToApns(PushToken pushToken, LocalDateTime ts, String title, String message) {
+    private void sendNotificationToApns(PushToken pushToken, LocalDateTime ts, String title, String message, String handlerHint) {
 
         final ApnsPayloadBuilder payloadBuilder = new SimpleApnsPayloadBuilder();
         payloadBuilder.setAlertTitle(title);
         payloadBuilder.setAlertBody(message);
         payloadBuilder.setSound("default");
         payloadBuilder.setBadgeNumber(0);
+
+        if(handlerHint!=null){
+            payloadBuilder.addCustomProperty("handlerHint", handlerHint);
+        }
 
         PushNotificationFuture<SimpleApnsPushNotification, PushNotificationResponse<SimpleApnsPushNotification>> sendNotificationFuture =
                 apnsClientJwtBased.sendNotification(new SimpleApnsPushNotification(pushToken.getToken(), iOsAppIdentifier, payloadBuilder.build()));
