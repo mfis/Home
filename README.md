@@ -87,4 +87,4 @@ Example: A roller shutter motor has CCU programs to automatically drive up and d
 > No guarantees are made about the suitability of this code for your own use. It is provided as-is, and you are responsible for any damage it may cause. You should not use this code without understanding it first.
 
 # Third-Party Integrations & Trademarks
-All product names, logos, and brands mentioned (including Tasmota, Homematic, BrightSky, Philips Hue, Solarman and others) are property of their respective owners. These names are used in this project for identification and compatibility purposes only. This project is an unofficial integration and is not affiliated with, authorized, or endorsed by any of the aforementioned brand owners.
+All product names and brands mentioned (including Tasmota, Homematic, BrightSky, Philips Hue, Solarman and others) are property of their respective owners. These names are used in this project for identification and compatibility purposes only. This project is an unofficial integration and is not affiliated with, authorized, or endorsed by any of the aforementioned brand owners.
