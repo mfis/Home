@@ -1055,7 +1055,7 @@ public class HouseViewService {
                             long minutesOld = Duration
                                     .between(Instant.ofEpochMilli(msg.getTimestamp())
                                             .atZone(ZoneId.systemDefault()).toLocalDateTime(), LocalDateTime.now()).toMinutes();
-                            return minutesOld < 60 && msg.getUsername().equalsIgnoreCase(user);
+                            return minutesOld < 21 && msg.getUsername().equalsIgnoreCase(user);
                         })
                         .map(msg -> {
                     var ts = StringUtils.capitalize(viewFormatter.formatTimestamp(msg.getTimestamp(), TimestampFormat.DATE_TIME));
