@@ -1,33 +1,26 @@
 package de.fimatas.home.controller.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import de.fimatas.heatpump.roof.driver.api.*;
-import de.fimatas.home.controller.api.ExternalServiceHttpAPI;
+import de.fimatas.home.controller.model.HeatpumpRoofProgram;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.HeatpumpRoof;
 import de.fimatas.home.library.domain.model.HeatpumpRoofModel;
 import de.fimatas.home.library.domain.model.HeatpumpRoofPreset;
 import de.fimatas.home.library.domain.model.Place;
 import de.fimatas.home.library.util.HomeAppConstants;
-import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.apachecommons.CommonsLog;
-import org.apache.commons.lang3.NotImplementedException;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClientException;
 
 import java.time.*;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledFuture;
@@ -44,28 +37,19 @@ public class HeatpumpRoofService {
     private PushService pushService;
 
     @Autowired
-    private ExternalServiceHttpAPI externalServiceHttpAPI;
-
-    @Autowired
     private ThreadPoolTaskScheduler threadPoolTaskScheduler;
 
     @Autowired
     private Environment env;
 
-    @Value("${application.externalServicesEnabled:false}")
-    private boolean externalServicesEnabled;
-
-    @Value("${application.heatpumpRefreshEnabled:false}")
-    private boolean heatpumpRefreshEnabled;
-
     @Value("${heatpump.roof.name:UnbekannteWaermepumpe}")
     private String heatpumpName;
-
-    private boolean isCallError = false; // prevent continous error calls
 
     private Map<Place, String> dictPlaceToRoomNameInDriver;
 
     private Map<Place, Optional<SchedulerData>> placeScheduler;
+
+    private boolean initDone = false;
 
     private final Map<HeatpumpRoofPreset, SchedulerConfig> schedulerConfigMap = Map.of(
             HeatpumpRoofPreset.DRY_TIMER, new SchedulerConfig(HeatpumpRoofPreset.OFF, HeatpumpRoofPreset.FAN_MIN, HomeAppConstants.HEATPUMP_DRY_TIMER_DURATION_MINUTES, null),
@@ -84,8 +68,8 @@ public class HeatpumpRoofService {
             HeatpumpRoofPreset.HEAT_AUTO, List.of(HeatpumpRoofPreset.COOL_AUTO, HeatpumpRoofPreset.COOL_MIN, HeatpumpRoofPreset.COOL_TIMER1, HeatpumpRoofPreset.COOL_TIMER2)
             );
 
-    @PostConstruct
-    public void init() {
+    @EventListener(ApplicationReadyEvent.class)
+    public void doSomethingAfterStartup() {
 
         dictPlaceToRoomNameInDriver = Map.of( //
                 Place.BEDROOM, Place.BEDROOM.getPlaceName(), //
@@ -95,141 +79,16 @@ public class HeatpumpRoofService {
 
         placeScheduler = new EnumMap<>(Place.class);
         dictPlaceToRoomNameInDriver.keySet().forEach(place -> placeScheduler.put(place, Optional.empty()));
+
+        switchModelToUnknown();
+        initDone = true;
     }
 
-    // @Scheduled(cron = "50 4/10 * * * *") // FIXME: HEATPUMP_ROOF
+    @Scheduled(cron = "50 4/10 * * * *")
     public void scheduledRefreshFromDriverCache() {
-        if(!isRestartInTimerangeMinutes(10)) {
-            try {
-                // refreshHeatpumpRoofModel(true); // FIXME: HEATPUMP_ROOF
-            } catch (Exception e) {
-                handleException(e, "Could not call heatpump service (with-cache)");
-            }
+        if(initDone) {
+            uploadService.uploadToClient(ModelObjectDAO.getInstance().readHeatpumpRoofModel());
         }
-    }
-
-    public void scheduledRefreshFromDriverNoCache() {
-        isCallError = false;
-        if(isRestartInTimerangeMinutes(60 * 3)) {
-            // no non-cache call if server restarts within +- three hours (and resets cache)
-            return;
-        }
-        try {
-            refreshHeatpumpRoofModel(false);
-        } catch (Exception e) {
-            handleException(e, "Could not call heatpump service (no-cache!)");
-        }
-    }
-
-    private static void handleException(Exception e, String msg) {
-        if(e instanceof RestClientException && e.getMessage().startsWith(ExternalServiceHttpAPI.MESSAGE_TOO_MANY_CALLS)){
-            log.warn(msg + " - " + e.getMessage());
-            return;
-        }
-        log.error(msg, e);
-    }
-
-    private boolean isRestartInTimerangeMinutes(int minutes){
-        String serverRestartCron = env.getProperty("heatpump.roof.server.restartCron");
-        if(StringUtils.isNotBlank(serverRestartCron)) {
-            CronExpression cronExpression = CronExpression.parse(serverRestartCron);
-            final LocalDateTime next = cronExpression.next(LocalDateTime.now());
-            final LocalDateTime previous = cronExpression.next(LocalDateTime.now().minusDays(1));
-            return Math.abs(ChronoUnit.MINUTES.between(Objects.requireNonNull(next), LocalDateTime.now())) <= minutes
-                    || Math.abs(ChronoUnit.MINUTES.between(Objects.requireNonNull(previous), LocalDateTime.now())) <= minutes ;
-        }
-        return false;
-    }
-
-    private synchronized void refreshHeatpumpRoofModel(boolean cachedData) {
-
-        if(!externalServicesEnabled || !heatpumpRefreshEnabled){
-            return;
-        }
-
-        if(!cachedData && isCallError){
-            return;
-        }
-
-        HeatpumpRequest request = new HeatpumpRequest();
-        request.getReadWithRoomnames().addAll(dictPlaceToRoomNameInDriver.values());
-        request.setHeatpumpUsername(env.getProperty("heatpump.roof.driver.user"));
-        request.setHeatpumpPassword(env.getProperty("heatpump.roof.driver.pass"));
-        request.setReadFromCache(cachedData);
-
-        HeatpumpResponse response = callDriver(request);
-        handleResponse(request, response);
-    }
-
-    private void handleResponse(HeatpumpRequest request, HeatpumpResponse response) {
-
-        if(responseHasError(response)){
-            try {
-                if(response.isCacheNotPresentError()){
-                    log.debug("Error calling heatpump driver: cache not present");
-                }else{
-                    log.warn("Error calling heatpump driver: " + new ObjectMapper().writeValueAsString(response));
-                }
-            } catch (JsonProcessingException e) {
-                log.warn("Error calling heatpump driver....");
-            }
-            if(!request.isReadFromCache() || (request.getWriteWithRoomnameAndProgram() != null && !request.getWriteWithRoomnameAndProgram().isEmpty())){
-                CompletableFuture.runAsync(() -> pushService.sendErrorMessage("Fehler bei Ansteuerung von " + heatpumpName));
-            }
-            switchModelToUnknown();
-            return;
-        }
-
-        HeatpumpRoofModel newModel = getHeatpumpRoofModelWithUnknownPresets();
-        response.getRoomnamesAndStates().forEach((r, s) -> {
-
-            Place place = dictPlaceToRoomNameInDriver.entrySet().stream().filter(e ->
-                    e.getValue().equalsIgnoreCase(r)).findFirst().orElseThrow().getKey();
-
-            HeatpumpRoofPreset preset = lookupPresetFromModeAndSpeed(s);
-
-            // upgrade to scheduled preset
-            if(placeScheduler.get(place).isPresent() && placeScheduler.get(place).get().getBasePreset() == preset) {
-                newModel.getHeatpumpMap().put(place, new HeatpumpRoof(
-                        place, placeScheduler.get(place).get().getSchedulerPreset(), placeScheduler.get(place).get().getScheduledTimeInstant().toEpochMilli()));
-            }else{
-                newModel.getHeatpumpMap().put(place, new HeatpumpRoof(place, preset, null));
-            }
-        });
-
-        ModelObjectDAO.getInstance().write(newModel);
-        uploadService.uploadToClient(newModel);
-    }
-
-    private HeatpumpRoofPreset lookupPresetFromModeAndSpeed(HeatpumpState s) {
-
-        if(!s.getOnOffSwitch()){
-            return HeatpumpRoofPreset.OFF;
-        }else if(s.getMode() == HeatpumpMode.COOLING){
-            if(s.getFanSpeed() == HeatpumpFanSpeed.AUTO){
-                return HeatpumpRoofPreset.COOL_AUTO;
-            }else{
-                return HeatpumpRoofPreset.COOL_MIN;
-            }
-        }else if(s.getMode() == HeatpumpMode.HEATING){
-            if(s.getFanSpeed() == HeatpumpFanSpeed.AUTO){
-                return HeatpumpRoofPreset.HEAT_AUTO;
-            }else{
-                return HeatpumpRoofPreset.HEAT_MIN;
-            }
-        }else if(s.getMode() == HeatpumpMode.FAN){
-            if(s.getFanSpeed() == HeatpumpFanSpeed.AUTO){
-                return HeatpumpRoofPreset.FAN_AUTO;
-            }else{
-                return HeatpumpRoofPreset.FAN_MIN;
-            }
-        }else{
-            return HeatpumpRoofPreset.UNKNOWN;
-        }
-    }
-
-    private boolean responseHasError(HeatpumpResponse response) {
-        return !response.isRemoteConnectionSuccessful() || !response.isDriverRunSuccessful() || StringUtils.isNotBlank(response.getErrorMessage());
     }
 
     public void timerPreset(List<Place> places, HeatpumpRoofPreset preset, Instant scheduledTime) {
@@ -255,9 +114,9 @@ public class HeatpumpRoofService {
 
     private synchronized void startPresetInternal(List<Place> places, HeatpumpRoofPreset preset) {
 
-        Map<String, HeatpumpProgram> programs = new HashMap<>();
+        Map<String, HeatpumpRoofProgram> programs = new HashMap<>();
         places.forEach(p -> {
-            final HeatpumpProgram program = presetToProgram(preset);
+            final HeatpumpRoofProgram program = presetToProgram(preset);
             final Map<Place, HeatpumpRoof> heatpumpMap = ModelObjectDAO.getInstance().readHeatpumpRoofModel().getHeatpumpMap();
             if (program != null && heatpumpMap.containsKey(p) && presetToProgram(heatpumpMap.get(p).getHeatpumpRoofPreset()) != program) {
                 programs.put(dictPlaceToRoomNameInDriver.get(p), program);
@@ -268,50 +127,32 @@ public class HeatpumpRoofService {
             dictPlaceToRoomNameInDriver.keySet().stream().filter(p -> !places.contains(p)).forEach(px -> {
                 if(conflictiongPresets.get(preset).contains(
                         ModelObjectDAO.getInstance().readHeatpumpRoofModel().getHeatpumpMap().get(px).getHeatpumpRoofPreset())){
-                    programs.put(dictPlaceToRoomNameInDriver.get(px), HeatpumpProgram.OFF);
+                    programs.put(dictPlaceToRoomNameInDriver.get(px), HeatpumpRoofProgram.OFF);
                 }
             });
         }
 
-        HeatpumpRequest request = new HeatpumpRequest();
-        request.getReadWithRoomnames().addAll(dictPlaceToRoomNameInDriver.values());
-        request.getWriteWithRoomnameAndProgram().putAll(programs);
-        request.setHeatpumpUsername(env.getProperty("heatpump.roof.driver.user"));
-        request.setHeatpumpPassword(env.getProperty("heatpump.roof.driver.pass"));
-        request.setReadFromCache(false);
+        final boolean responseOK = callAPI(programs);
+        if(responseOK){
+            scheduleNewTimers(places, preset);
 
-        final HeatpumpResponse response = callDriver(request);
-        if(!responseHasError(response)){
-            if(areExpectedModesSet(places, presetToProgram(preset), response)){
-                scheduleNewTimers(places, preset);
-            }else{
-                CompletableFuture.runAsync(() -> pushService.sendErrorMessage(heatpumpName + " befindet sich nicht im erwarteten Modus!"));
-            }
-        }
-
-        handleResponse(request, response);
-    }
-
-    private boolean areExpectedModesSet(List<Place> allPlaces, HeatpumpProgram program, HeatpumpResponse response) {
-
-        if(program==null){
-            return true;
-        }
-
-        for(Map.Entry<String, HeatpumpState> entry : response.getRoomnamesAndStates().entrySet()){
-
-            Place place = dictPlaceToRoomNameInDriver.entrySet().stream().filter(e ->
-                    e.getValue().equalsIgnoreCase(entry.getKey())).findFirst().orElseThrow().getKey();
-
-            if(allPlaces.contains(place)){
-                if(program.isExpectedOnOffState() != entry.getValue().getOnOffSwitch()){
-                    return false;
-                }else if(entry.getValue().getOnOffSwitch() && (entry.getValue().getMode() != program.getExpectedMode())){
-                    return false;
+            HeatpumpRoofModel newModel = SerializationUtils.clone(ModelObjectDAO.getInstance().readHeatpumpRoofModel());
+            places.forEach((place) -> {
+                // upgrade to scheduled preset
+                if(placeScheduler.get(place).isPresent() && placeScheduler.get(place).get().getBasePreset() == preset) {
+                    newModel.getHeatpumpMap().put(place, new HeatpumpRoof(
+                            place, placeScheduler.get(place).get().getSchedulerPreset(), placeScheduler.get(place).get().getScheduledTimeInstant().toEpochMilli()));
+                }else{
+                    newModel.getHeatpumpMap().put(place, new HeatpumpRoof(place, preset, null));
                 }
-            }
+            });
+
+            ModelObjectDAO.getInstance().write(newModel);
+            uploadService.uploadToClient(newModel);
+        }else{
+            switchModelToUnknown();
+            CompletableFuture.runAsync(() -> pushService.sendErrorMessage("Fehler bei Ansteuerung von " + heatpumpName));
         }
-        return true;
     }
 
     private void cancelOldTimers(List<Place> allPlaces) {
@@ -377,49 +218,24 @@ public class HeatpumpRoofService {
         return unknownHeatpumpRoofModel;
     }
 
-    private HeatpumpProgram presetToProgram(HeatpumpRoofPreset preset){
+    private HeatpumpRoofProgram presetToProgram(HeatpumpRoofPreset preset){
         return switch (preset) {
-            case COOL_AUTO, COOL_TIMER1, COOL_TIMER2, COOL_TIMER3 -> HeatpumpProgram.COOLING_AUTO;
-            case COOL_MIN -> HeatpumpProgram.COOLING_MIN;
-            case HEAT_AUTO -> HeatpumpProgram.HEATING_AUTO;
-            case HEAT_MIN, HEAT_TIMER1, HEAT_TIMER2, HEAT_TIMER3 -> HeatpumpProgram.HEATING_MIN;
-            case FAN_AUTO -> HeatpumpProgram.FAN_AUTO;
-            case FAN_MIN -> HeatpumpProgram.FAN_MIN;
-            case DRY_TIMER -> HeatpumpProgram.FAN_DRY;
-            case OFF -> HeatpumpProgram.OFF;
+            case COOL_AUTO, COOL_TIMER1, COOL_TIMER2, COOL_TIMER3 -> HeatpumpRoofProgram.COOLING_AUTO;
+            case COOL_MIN -> HeatpumpRoofProgram.COOLING_MIN;
+            case HEAT_AUTO -> HeatpumpRoofProgram.HEATING_AUTO;
+            case HEAT_MIN, HEAT_TIMER1, HEAT_TIMER2, HEAT_TIMER3 -> HeatpumpRoofProgram.HEATING_MIN;
+            case FAN_AUTO -> HeatpumpRoofProgram.FAN_AUTO;
+            case FAN_MIN -> HeatpumpRoofProgram.FAN_MIN;
+            case DRY_TIMER -> HeatpumpRoofProgram.FAN_DRY;
+            case OFF -> HeatpumpRoofProgram.OFF;
             case UNKNOWN -> null; // refresh only
         };
     }
 
-    private synchronized HeatpumpResponse callDriver(HeatpumpRequest request){
+    private synchronized boolean callAPI(Map<String, HeatpumpRoofProgram> programs){
 
-        if("".isEmpty()){ // FIXME: HEATPUMP_ROOF
-            throw new NotImplementedException("Not implemented yet");
-        }
-
-        try {
-            ResponseEntity<HeatpumpResponse> response = externalServiceHttpAPI.postForHeatpumpRoofEntity(
-                    Objects.requireNonNull(env.getProperty("heatpump.roof.driver.url")), request);
-            HttpStatusCode statusCode = response.getStatusCode();
-
-            if (!statusCode.is2xxSuccessful()) {
-                log.error("Could not call heatpump driver. RC=" + statusCode.value());
-                isCallError = true;
-            }
-            final HeatpumpResponse body = response.getBody();
-            if(body != null){
-                body.setRemoteConnectionSuccessful(true);
-            }
-            return body;
-
-        } catch (RestClientException e) {
-            log.error("Exception calling heatpump driver:" + e.getMessage());
-            isCallError = true;
-            var response = new HeatpumpResponse();
-            response.setRemoteConnectionSuccessful(false);
-            response.setErrorMessage("Exception calling heatpump driver:" + e.getMessage());
-            return response;
-        }
+        // TODO
+        return true;
     }
 
     @Data

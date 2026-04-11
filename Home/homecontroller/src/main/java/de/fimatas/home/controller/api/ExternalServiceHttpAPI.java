@@ -2,9 +2,6 @@ package de.fimatas.home.controller.api;
 
 import de.fimatas.heatpump.basement.driver.api.Request;
 import de.fimatas.heatpump.basement.driver.api.Response;
-import de.fimatas.heatpump.roof.driver.api.HeatpumpProgram;
-import de.fimatas.heatpump.roof.driver.api.HeatpumpRequest;
-import de.fimatas.heatpump.roof.driver.api.HeatpumpResponse;
 import jakarta.annotation.PostConstruct;
 import lombok.SneakyThrows;
 import lombok.extern.apachecommons.CommonsLog;
@@ -27,10 +24,8 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
 
 @Component
 @CommonsLog
@@ -75,34 +70,6 @@ public class ExternalServiceHttpAPI {
     public ResponseEntity<String> postForEntity(String url, @Nullable Object request, Map<String, ?> uriVariables) {
         checkServiceEnabledAndFrequency(url, uriVariables, "POST");
         return restTemplate.postForEntity(url, request, String.class, uriVariables);
-    }
-
-    public synchronized ResponseEntity<HeatpumpResponse> postForHeatpumpRoofEntity(String url, HeatpumpRequest request) throws RestClientException {
-        if(HeatpumpRequest.apiVersion != 4){
-            throw new IllegalStateException("Heatpump API version not supported");
-        }
-        if(!request.isReadFromCache()){
-            var map = new LinkedHashMap<String, String>();
-            for(String readKey : request.getReadWithRoomnames()){
-                map.put("read_roof_" + readKey, readKey);
-            }
-            for (Map.Entry<String, HeatpumpProgram> entry : request.getWriteWithRoomnameAndProgram().entrySet()) {
-                map.put("write_roof_" + entry.getKey(), entry.getValue().name());
-            }
-            map.putAll(request.getWriteWithRoomnameAndProgram().entrySet().stream().collect(Collectors.toMap(e -> "write_" + e.getKey(), e -> e.getValue().name())));
-            Map<String, String> sorted =
-                    map.entrySet().stream()
-                            .sorted(Map.Entry.comparingByKey())
-                            .collect(Collectors.toMap(
-                                    Map.Entry::getKey,
-                                    Map.Entry::getValue,
-                                    (a, b) -> a,
-                                    LinkedHashMap::new
-                            ));
-            checkServiceEnabledAndFrequency(url, sorted, "POST");
-        }
-        HttpEntity<HeatpumpRequest> httpRequest = new HttpEntity<>(request);
-        return restTemplateHeatpumpDriver.postForEntity(url, httpRequest, HeatpumpResponse.class);
     }
 
     public synchronized ResponseEntity<Response> postForHeatpumpBasementEntity(String url, Request request) throws RestClientException {
