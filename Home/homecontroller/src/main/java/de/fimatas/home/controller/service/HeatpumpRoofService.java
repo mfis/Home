@@ -97,7 +97,7 @@ public class HeatpumpRoofService {
         }
 
         initDone = true;
-        scheduledRefreshFromDriverCache();
+        scheduledRefresh();
     }
 
     @PreDestroy
@@ -109,7 +109,7 @@ public class HeatpumpRoofService {
     }
 
     @Scheduled(cron = "50 4/10 * * * *")
-    public void scheduledRefreshFromDriverCache() {
+    public void scheduledRefresh() {
         if(initDone) {
             uploadService.uploadToClient(ModelObjectDAO.getInstance().readHeatpumpRoofModel());
         }

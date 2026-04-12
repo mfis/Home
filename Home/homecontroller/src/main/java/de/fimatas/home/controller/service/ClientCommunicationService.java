@@ -253,7 +253,7 @@ public class ClientCommunicationService {
         }
 
         if (ModelObjectDAO.getInstance().readHeatpumpRoofModel() == null) {
-            heatpumpRoofService.scheduledRefreshFromDriverCache();
+            heatpumpRoofService.scheduledRefresh();
         } else {
             uploadService.uploadToClient(ModelObjectDAO.getInstance().readHeatpumpRoofModel());
         }
