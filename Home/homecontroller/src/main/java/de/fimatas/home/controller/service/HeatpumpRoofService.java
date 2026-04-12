@@ -137,6 +137,7 @@ public class HeatpumpRoofService {
             scheduleNewTimers(places, preset);
 
             HeatpumpRoofModel newModel = SerializationUtils.clone(ModelObjectDAO.getInstance().readHeatpumpRoofModel());
+            newModel.setBusy(false);
             places.forEach((place) -> {
                 // upgrade to scheduled preset
                 if(placeScheduler.get(place).isPresent() && placeScheduler.get(place).get().getBasePreset() == preset) {
@@ -233,7 +234,6 @@ public class HeatpumpRoofService {
     }
 
     private synchronized boolean callAPI(Map<String, HeatpumpRoofProgram> programs){
-
         // TODO
         return true;
     }

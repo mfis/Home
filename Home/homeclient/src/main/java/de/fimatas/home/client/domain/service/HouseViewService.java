@@ -1023,9 +1023,8 @@ public class HouseViewService {
             copy.add("Präsenz Status unbekannt!");
         }
 
-        //noinspection StatementWithEmptyBody
         if(ModelObjectDAO.getInstance().readHeatpumpRoofModel() == null) {
-            // copy.add("Wärmepumpe Dach Status unbekannt!"); // FIXME: HEATPUMP_ROOF
+            copy.add("Wärmepumpe Dach Status unbekannt!");
         }
 
         if(ModelObjectDAO.getInstance().readHeatpumpBasementModel() == null) {
@@ -1658,7 +1657,7 @@ public class HouseViewService {
 
         HeatpumpRoofPreset actualPreset = isUnreachable ? null : heatpumpRoofModel.getHeatpumpMap().get(place).getHeatpumpRoofPreset();
 
-        view.setLinkRefresh(buildHeatpumpPresetLink(place, HeatpumpRoofPreset.UNKNOWN, actualPreset));
+        view.setLinkRefresh(buildHeatpumpPresetLink(place, HeatpumpRoofPreset.OFF, actualPreset));
         if(isUnreachable || actualPreset== HeatpumpRoofPreset.UNKNOWN){
             view.setStateUnknown(true);
             view.setUnreach(Boolean.toString(true));
