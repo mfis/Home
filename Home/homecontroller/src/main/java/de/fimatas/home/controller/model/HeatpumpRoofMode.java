@@ -4,17 +4,17 @@ import lombok.Getter;
 
 @Getter
 public enum HeatpumpRoofMode {
-    COOLING(3), DRYING(2), FAN(7), AUTO(8), HEATING(1);
+    COOLING("Cool"), DRYING("Dry"), FAN("Fan"), AUTO("Auto"), HEATING("Heat");
 
-    private final int value;
+    private final String value;
 
-    HeatpumpRoofMode(int value) {
+    HeatpumpRoofMode(String value) {
         this.value = value;
     }
 
-    public static HeatpumpRoofMode getByValue(int value) {
+    public static HeatpumpRoofMode getByValue(String value) {
         for (HeatpumpRoofMode mode : HeatpumpRoofMode.values()) {
-            if (mode.value == value) {
+            if (mode.value.equals(value)) {
                 return mode;
             }
         }

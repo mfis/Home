@@ -5,17 +5,17 @@ import lombok.Getter;
 @Getter
 public enum HeatpumpRoofFanSpeed {
 
-    ONE(1), TWO(2), THREE(3), FOUR(4), FIVE(5), AUTO(0);
+    ONE("Min"), TWO("Low"), THREE("Med"), FOUR("High"), FIVE("Max"), AUTO("Auto");
 
-    private final int value;
+    private final String value;
 
-    HeatpumpRoofFanSpeed(int value) {
+    HeatpumpRoofFanSpeed(String value) {
         this.value = value;
     }
 
-    public static HeatpumpRoofFanSpeed getByValue(int value) {
+    public static HeatpumpRoofFanSpeed getByValue(String value) {
         for (HeatpumpRoofFanSpeed speed : HeatpumpRoofFanSpeed.values()) {
-            if (speed.value == value) {
+            if (speed.value.equals(value)) {
                 return speed;
             }
         }

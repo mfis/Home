@@ -1,5 +1,6 @@
 package de.fimatas.home.controller.service;
 
+import de.fimatas.home.controller.api.TasmotaAPI;
 import de.fimatas.home.controller.dao.PersistentCacheDAO;
 import de.fimatas.home.controller.model.HeatpumpRoofProgram;
 import de.fimatas.home.library.dao.ModelObjectDAO;
@@ -42,6 +43,9 @@ public class HeatpumpRoofService {
     private ThreadPoolTaskScheduler threadPoolTaskScheduler;
 
     @Autowired
+    private TasmotaAPI tasmotaAPI;
+
+    @Autowired
     private Environment env;
 
     @Value("${heatpump.roof.name:UnbekannteWaermepumpe}")
@@ -56,13 +60,13 @@ public class HeatpumpRoofService {
     private final static String PERSISTENT_CACHE_KEY = "HeatpumpRoofCache";
 
     private final Map<HeatpumpRoofPreset, SchedulerConfig> schedulerConfigMap = Map.of(
-            HeatpumpRoofPreset.DRY_TIMER, new SchedulerConfig(HeatpumpRoofPreset.OFF, HeatpumpRoofPreset.FAN_MIN, HomeAppConstants.HEATPUMP_DRY_TIMER_DURATION_MINUTES, null),
-            HeatpumpRoofPreset.HEAT_TIMER1, new SchedulerConfig(HeatpumpRoofPreset.OFF, HeatpumpRoofPreset.HEAT_AUTO, 60, null),
-            HeatpumpRoofPreset.HEAT_TIMER2, new SchedulerConfig(HeatpumpRoofPreset.OFF, HeatpumpRoofPreset.HEAT_AUTO, 120, null),
-            HeatpumpRoofPreset.HEAT_TIMER3, new SchedulerConfig(HeatpumpRoofPreset.OFF, HeatpumpRoofPreset.HEAT_AUTO, null, LocalTime.of(13,0)),
-            HeatpumpRoofPreset.COOL_TIMER1, new SchedulerConfig(HeatpumpRoofPreset.DRY_TIMER, HeatpumpRoofPreset.COOL_AUTO, 60, null),
-            HeatpumpRoofPreset.COOL_TIMER2, new SchedulerConfig(HeatpumpRoofPreset.DRY_TIMER, HeatpumpRoofPreset.COOL_AUTO, 120, null),
-            HeatpumpRoofPreset.COOL_TIMER3, new SchedulerConfig(HeatpumpRoofPreset.DRY_TIMER, HeatpumpRoofPreset.COOL_AUTO, null, LocalTime.of(19,0))
+            HeatpumpRoofPreset.DRY_TIMER, new SchedulerConfig(HeatpumpRoofPreset.OFF, HeatpumpRoofPreset.DRY_TIMER, HomeAppConstants.HEATPUMP_DRY_TIMER_DURATION_MINUTES, null),
+            HeatpumpRoofPreset.HEAT_TIMER1, new SchedulerConfig(HeatpumpRoofPreset.OFF, HeatpumpRoofPreset.HEAT_TIMER1, 60, null),
+            HeatpumpRoofPreset.HEAT_TIMER2, new SchedulerConfig(HeatpumpRoofPreset.OFF, HeatpumpRoofPreset.HEAT_TIMER2, 120, null),
+            HeatpumpRoofPreset.HEAT_TIMER3, new SchedulerConfig(HeatpumpRoofPreset.OFF, HeatpumpRoofPreset.HEAT_TIMER3, null, LocalTime.of(13,0)),
+            HeatpumpRoofPreset.COOL_TIMER1, new SchedulerConfig(HeatpumpRoofPreset.DRY_TIMER, HeatpumpRoofPreset.COOL_TIMER1, 60, null),
+            HeatpumpRoofPreset.COOL_TIMER2, new SchedulerConfig(HeatpumpRoofPreset.DRY_TIMER, HeatpumpRoofPreset.COOL_TIMER2, 120, null),
+            HeatpumpRoofPreset.COOL_TIMER3, new SchedulerConfig(HeatpumpRoofPreset.DRY_TIMER, HeatpumpRoofPreset.COOL_TIMER3, null, LocalTime.of(19,0))
             );
 
     private final Map<HeatpumpRoofPreset, List<HeatpumpRoofPreset>> conflictiongPresets = Map.of(
@@ -115,7 +119,7 @@ public class HeatpumpRoofService {
         }
     }
 
-    public void timerPreset(List<Place> places, HeatpumpRoofPreset preset, Instant scheduledTime) {
+    private void timerPreset(List<Place> places, HeatpumpRoofPreset preset, Instant scheduledTime) {
 
         final List<Place> validTimerPlaces =
                 places.stream().filter(p -> placeScheduler.get(p).isPresent() && placeScheduler.get(p).get().getScheduledTimeInstant() == scheduledTime).collect(Collectors.toList());
@@ -133,7 +137,13 @@ public class HeatpumpRoofService {
 
         cancelOldTimers(places);
 
-        CompletableFuture.runAsync(() -> startPresetInternal(places, preset));
+        CompletableFuture.runAsync(() -> {
+            try {
+                startPresetInternal(places, preset);
+            } catch (Exception e) {
+                log.error("error while starting preset", e);
+            }
+        });
     }
 
     private synchronized void startPresetInternal(List<Place> places, HeatpumpRoofPreset preset) {
@@ -156,27 +166,41 @@ public class HeatpumpRoofService {
             });
         }
 
-        final boolean responseOK = callAPI(programs);
-        if(responseOK){
-            scheduleNewTimers(places, preset);
+        var responses = callAPI(programs);
 
-            HeatpumpRoofModel newModel = SerializationUtils.clone(ModelObjectDAO.getInstance().readHeatpumpRoofModel());
-            newModel.setBusy(false);
-            places.forEach((place) -> {
-                // upgrade to scheduled preset
-                if(placeScheduler.get(place).isPresent() && placeScheduler.get(place).get().getBasePreset() == preset) {
-                    newModel.getHeatpumpMap().put(place, new HeatpumpRoof(
-                            place, placeScheduler.get(place).get().getSchedulerPreset(), placeScheduler.get(place).get().getScheduledTimeInstant().toEpochMilli()));
-                }else{
-                    newModel.getHeatpumpMap().put(place, new HeatpumpRoof(place, preset, null));
-                }
-            });
+        HeatpumpRoofModel newModel = SerializationUtils.clone(ModelObjectDAO.getInstance().readHeatpumpRoofModel());
+        newModel.setBusy(false);
+        var placesSuccessful = new ArrayList<Place>();
+        var roomnamesForErrorPush = new ArrayList<String>();
 
-            ModelObjectDAO.getInstance().write(newModel);
-            uploadService.uploadToClient(newModel);
-        }else{
-            switchModelToUnknown();
-            CompletableFuture.runAsync(() -> pushService.sendErrorMessage("Fehler bei Ansteuerung von " + heatpumpName));
+        places.forEach((place) -> {
+            var roomname = dictPlaceToRoomNameInDriver.get(place);
+            if(!responses.containsKey(roomname)) {
+                placesSuccessful.add(place); // not changed mode is still successful
+            } else if(responses.get(roomname) == true){
+                placesSuccessful.add(place);
+            } else {
+                roomnamesForErrorPush.add(roomname);
+                newModel.getHeatpumpMap().put(place, new HeatpumpRoof(place, HeatpumpRoofPreset.UNKNOWN, null));
+            }
+        });
+
+        scheduleNewTimers(placesSuccessful, preset);
+        placesSuccessful.forEach((place) -> {
+            // upgrade to scheduled preset
+            if(placeScheduler.get(place).isPresent() && placeScheduler.get(place).get().getBasePreset() == preset) {
+                newModel.getHeatpumpMap().put(place, new HeatpumpRoof(
+                        place, placeScheduler.get(place).get().getSchedulerPreset(), placeScheduler.get(place).get().getScheduledTimeInstant().toEpochMilli()));
+            }else{
+                newModel.getHeatpumpMap().put(place, new HeatpumpRoof(place, preset, null));
+            }
+        });
+
+        ModelObjectDAO.getInstance().write(newModel);
+        uploadService.uploadToClient(newModel);
+
+        if(!roomnamesForErrorPush.isEmpty()){
+            CompletableFuture.runAsync(() -> pushService.sendErrorMessage("Fehler bei Ansteuerung von Wärmepumpe: " + roomnamesForErrorPush));
         }
     }
 
@@ -191,6 +215,10 @@ public class HeatpumpRoofService {
     }
 
     private void scheduleNewTimers(List<Place> places, HeatpumpRoofPreset preset) {
+
+        if(places.isEmpty()){
+            return;
+        }
 
         if(schedulerConfigMap.containsKey(preset)){
             var config = schedulerConfigMap.get(preset);
@@ -257,9 +285,8 @@ public class HeatpumpRoofService {
         };
     }
 
-    private synchronized boolean callAPI(Map<String, HeatpumpRoofProgram> programs){
-        // TODO
-        return true;
+    private synchronized Map<String, Boolean> callAPI(Map<String, HeatpumpRoofProgram> programs){
+        return tasmotaAPI.call(programs);
     }
 
     @Data

@@ -9,10 +9,10 @@ public enum HeatpumpRoofProgram {
     COOLING_MIN(true, HeatpumpRoofMode.COOLING, 20, HeatpumpRoofFanSpeed.ONE), //
     HEATING_AUTO(true, HeatpumpRoofMode.HEATING, 20, HeatpumpRoofFanSpeed.AUTO), //
     HEATING_MIN(true, HeatpumpRoofMode.HEATING, 20, HeatpumpRoofFanSpeed.ONE), //
-    FAN_AUTO(true, HeatpumpRoofMode.FAN, null, HeatpumpRoofFanSpeed.AUTO), //
-    FAN_MIN(true, HeatpumpRoofMode.FAN, null, HeatpumpRoofFanSpeed.ONE), //
-    FAN_DRY(true, HeatpumpRoofMode.FAN, null, HeatpumpRoofFanSpeed.FIVE), //
-    OFF(false, null, null, null) //
+    FAN_AUTO(true, HeatpumpRoofMode.FAN, 20, HeatpumpRoofFanSpeed.AUTO), //
+    FAN_MIN(true, HeatpumpRoofMode.FAN, 20, HeatpumpRoofFanSpeed.ONE), //
+    FAN_DRY(true, HeatpumpRoofMode.FAN, 20, HeatpumpRoofFanSpeed.FIVE), //
+    OFF(false, HeatpumpRoofMode.FAN, 20, HeatpumpRoofFanSpeed.ONE) //
     ;
 
     private final boolean expectedOnOffState;
