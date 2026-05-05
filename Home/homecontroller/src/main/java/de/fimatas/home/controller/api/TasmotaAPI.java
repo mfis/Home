@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.SneakyThrows;
 import lombok.extern.apachecommons.CommonsLog;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -21,8 +22,10 @@ public class TasmotaAPI {
     private final RestClient restClient;
     private final ObjectMapper objectMapper;
 
-    private String hostnamePrefix = "";
-    private String vendor = "";
+    @Value("${heatpump.roof.tasmota.hostnamePrefix}")
+    private String hostnamePrefix;
+    @Value("${heatpump.roof.tasmota.vendor}")
+    private String vendor;
 
     public TasmotaAPI(RestClient.Builder restClientBuilder, ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;

@@ -1650,7 +1650,7 @@ public class HouseViewService {
         view.setId(lookupHeatpumpId(place, false));
         view.setUnreach(Boolean.toString(isUnreachable));
 
-        Stream.of(Place.KIDSROOM_1, Place.KIDSROOM_2, Place.BEDROOM).filter(p -> p != place).forEach(a -> {
+        Stream.of(/* FIXME: HEATPUMP_ROOF Place.KIDSROOM_1, Place.KIDSROOM_2, */ Place.BEDROOM).filter(p -> p != place).forEach(a -> {
             String title = houseModel.getPlaceSubtitles().containsKey(a) ? houseModel.getPlaceSubtitles().get(a) : a.getPlaceName();
             view.getOtherPlaces().add(new ValueWithCaption(a.name(), title, null));
         });
