@@ -258,7 +258,7 @@ public class ModelObjectDAO {
         return settingsContainer.getSettings().stream().anyMatch(model -> model.getToken().equals(pushToken));
     }
 
-    private Map<String, AbstractSystemModel> models() {
+    public Map<String, AbstractSystemModel> models() {
 
         Field[] fields = this.getClass().getDeclaredFields();
         Map<String, AbstractSystemModel> modelList = new LinkedHashMap<>();

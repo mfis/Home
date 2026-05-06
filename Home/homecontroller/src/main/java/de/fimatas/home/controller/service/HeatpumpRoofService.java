@@ -115,7 +115,10 @@ public class HeatpumpRoofService {
     @Scheduled(cron = "50 4/10 * * * *")
     public void scheduledRefresh() {
         if(initDone) {
-            uploadService.uploadToClient(ModelObjectDAO.getInstance().readHeatpumpRoofModel());
+            ModelObjectDAO.getInstance().models().values().stream().filter(model -> model instanceof HeatpumpRoofModel).findFirst().ifPresent(model -> {
+                ModelObjectDAO.getInstance().write((HeatpumpRoofModel) model); // update timestamp
+                uploadService.uploadToClient(ModelObjectDAO.getInstance().readHeatpumpRoofModel());
+            });
         }
     }
 
@@ -129,7 +132,7 @@ public class HeatpumpRoofService {
 
     public void preset(List<Place> places, HeatpumpRoofPreset preset) {
 
-        log.info("preset " + places + " " + preset); // FIXME
+        log.debug("preset " + places + " " + preset);
         if(places.isEmpty() || ModelObjectDAO.getInstance().readHeatpumpRoofModel() == null){
             return;
         }
