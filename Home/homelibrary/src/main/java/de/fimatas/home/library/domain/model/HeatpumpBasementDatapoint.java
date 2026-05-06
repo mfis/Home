@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 @Data
 public class HeatpumpBasementDatapoint extends AbstractSystemModel {
 
-    private String id;
+    private HeatpumpBasementDatapoints datapointsRef;
 
     private String name;
 

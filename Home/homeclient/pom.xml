@@ -21,10 +21,6 @@
 		</dependency>
 		<dependency>
 			<groupId>de.fimatas</groupId>
-			<artifactId>HeatpumpDriverInterface</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>de.fimatas</groupId>
 			<artifactId>users-impl</artifactId>
 		</dependency>
 		<dependency>

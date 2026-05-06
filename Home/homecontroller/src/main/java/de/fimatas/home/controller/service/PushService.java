@@ -7,7 +7,6 @@ import com.eatthepath.pushy.apns.util.LiveActivityEvent;
 import com.eatthepath.pushy.apns.util.SimpleApnsPayloadBuilder;
 import com.eatthepath.pushy.apns.util.SimpleApnsPushNotification;
 import com.eatthepath.pushy.apns.util.concurrent.PushNotificationFuture;
-import de.fimatas.heatpump.basement.driver.api.HeatpumpBasementDatapoints;
 import de.fimatas.home.controller.api.HomematicAPI;
 import de.fimatas.home.controller.dao.LiveActivityDAO;
 import de.fimatas.home.controller.dao.PushMessageDAO;
@@ -326,7 +325,7 @@ public class PushService {
         var liste = new LinkedList<String>();
 
         var preasure = heatpumpBasementModel.getDatapoints().stream()
-                .filter(dp -> dp.getId().equals(HeatpumpBasementDatapoints.ANLAGEN_DRUCK.getId()))
+                .filter(dp -> dp.getDatapointsRef().equals(HeatpumpBasementDatapoints.DRUCK))
                 .findFirst();
 
         if(preasure.isPresent() && preasure.get().getValueWithTendency() != null) {

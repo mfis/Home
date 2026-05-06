@@ -24,7 +24,7 @@ public class HeatpumpBasementModel extends AbstractSystemModel {
 
     private final List<HeatpumpBasementDatapoint> datapoints = new LinkedList<>();
 
-    private Map<String, Device> historyIdsAndDevices = new HashMap<>();
+    private Map<HeatpumpBasementDatapoints, Device> historyDatapointsAndDevices = new HashMap<>();
 
     public HeatpumpBasementModel() {
         timestamp = System.currentTimeMillis();

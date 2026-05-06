@@ -1,6 +1,5 @@
 package de.fimatas.home.client.domain.service;
 
-import de.fimatas.heatpump.basement.driver.api.HeatpumpBasementDatapoints;
 import de.fimatas.home.client.domain.model.*;
 import de.fimatas.home.client.domain.service.ViewFormatter.TimestampFormat;
 import de.fimatas.home.client.model.MessageQueue;
@@ -1576,7 +1575,7 @@ public class HouseViewService {
             state = "Offline";
         }else{
             state += "VL: ";
-            var valueMischerkreis = readHeatpumpBasementDatapoint(heatpumpBasementModel, HeatpumpBasementDatapoints.MISCHERKREIS_PUMPE);
+            var valueMischerkreis = readHeatpumpBasementDatapoint(heatpumpBasementModel, HeatpumpBasementDatapoints.PUMPE);
             if(valueMischerkreis.isPresent() && !valueMischerkreis.get().isStateOff()){
                 var valueVorlauf = readHeatpumpBasementDatapoint(heatpumpBasementModel, HeatpumpBasementDatapoints.VORLAUF_TEMPERATUR);
                 state += valueVorlauf.isPresent() ? valueVorlauf.get().getValueFormattedShort() : "?";
@@ -1606,8 +1605,8 @@ public class HouseViewService {
             }
             tableRow.setValueWithCaption(val);
             var historyModel = ModelObjectDAO.getInstance().readHistoryModel();
-            if(heatpumpBasementModel.getHistoryIdsAndDevices().containsKey(v.getId()) && historyModel != null){
-                var historyDevice = heatpumpBasementModel.getHistoryIdsAndDevices().get(v.getId());
+            if(heatpumpBasementModel.getHistoryDatapointsAndDevices().containsKey(v.getDatapointsRef()) && historyModel != null){
+                var historyDevice = heatpumpBasementModel.getHistoryDatapointsAndDevices().get(v.getDatapointsRef());
                 var pcd = switch(historyDevice) {
                     case ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT -> historyModel.getHeatpumpBasementElectricPowerConsumptionDay();
                     case WARMTH_POWER_PRODUCTION_COUNTER_HEATPUMP_BASEMENT -> historyModel.getHeatpumpBasementWarmthPowerProductionDay();
@@ -1630,7 +1629,7 @@ public class HouseViewService {
 
     private Optional<HeatpumpBasementDatapoint> readHeatpumpBasementDatapoint(HeatpumpBasementModel heatpumpBasementModel, HeatpumpBasementDatapoints datapointToRead) {
         return heatpumpBasementModel.getDatapoints().stream()
-                .filter(dp -> dp.getId().equals(datapointToRead.getId()))
+                .filter(dp -> dp.getDatapointsRef().equals(datapointToRead))
                 .findFirst();
     }
 

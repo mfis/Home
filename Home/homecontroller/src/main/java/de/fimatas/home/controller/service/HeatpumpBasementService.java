@@ -1,12 +1,15 @@
 package de.fimatas.home.controller.service;
 
-import de.fimatas.heatpump.basement.driver.api.*;
+import de.fimatas.heatpump.basement.driver.api.Credentials;
+import de.fimatas.heatpump.basement.driver.api.Request;
+import de.fimatas.heatpump.basement.driver.api.Response;
 import de.fimatas.home.controller.api.ExternalServiceHttpAPI;
 import de.fimatas.home.controller.api.HomematicAPI;
 import de.fimatas.home.controller.command.HomematicCommand;
 import de.fimatas.home.controller.command.HomematicCommandBuilder;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.HeatpumpBasementDatapoint;
+import de.fimatas.home.library.domain.model.HeatpumpBasementDatapoints;
 import de.fimatas.home.library.domain.model.HeatpumpBasementModel;
 import de.fimatas.home.library.domain.model.ValueWithTendency;
 import de.fimatas.home.library.homematic.model.Device;
@@ -26,12 +29,12 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 
+import java.time.Duration;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static de.fimatas.home.library.util.HomeAppConstants.MODEL_HEATPUMP_BASEMENT_UPDATE_INTERVAL_SECONDS;
 
@@ -63,15 +66,11 @@ public class HeatpumpBasementService {
     @Value("${application.heatpumpRefreshEnabled:false}")
     private boolean heatpumpRefreshEnabled;
 
-    @Value("${heatpump.basement.consumption.id:}")
-    private String idConsumption;
-
-    @Value("${heatpump.basement.production.id:}")
-    private String idProduction;
-
     private final CircuitBreaker circuitBreaker;
 
     private final Map<Device, Integer> lastValuesWrote = new HashMap<>();
+
+    private final Map<HeatpumpBasementDatapoints, String> datapointEnumEntryToIdCache = new HashMap<>();
 
     private static final long REFRESH_DELAY_MS = 1000L * MODEL_HEATPUMP_BASEMENT_UPDATE_INTERVAL_SECONDS;
 
@@ -104,6 +103,18 @@ public class HeatpumpBasementService {
         callWithoutCache(true);
     }
 
+    private String idForDatapoint(HeatpumpBasementDatapoints dp) {
+        if(datapointEnumEntryToIdCache.containsKey(dp)){
+            return datapointEnumEntryToIdCache.get(dp);
+        }
+        var id = env.getProperty("heatpump.basement.datapoint.id." + dp.name());
+        if(id == null) {
+            throw new IllegalStateException("unknown datapoint id " + dp.name());
+        }
+        datapointEnumEntryToIdCache.put(dp, id);
+        return id;
+    }
+
     private void callWithoutCache(boolean manual) {
 
         var stateBeforeCall = circuitBreaker.getState();
@@ -114,13 +125,24 @@ public class HeatpumpBasementService {
         } finally {
             var stateAfterCall = circuitBreaker.getState();
             if(stateBeforeCall != stateAfterCall && stateAfterCall == CircuitBreaker.State.OPEN){
-                log.warn("circuit breaker heatpumpBasement now OPEN");
+                logCircuitBreakerOpen(manual);
                 switchModelToUnknown();
                 CompletableFuture.runAsync(() -> pushService.sendErrorMessage("Fehler beim Auslesen der Heizung!"));
             }
             if(manual && ModelObjectDAO.getInstance().readHeatpumpBasementModel() != null && ModelObjectDAO.getInstance().readHeatpumpBasementModel().isBusy()){
                 switchModelToUnknown();
             }
+        }
+    }
+
+    private void logCircuitBreakerOpen(boolean manual) {
+        try {
+            long waitMillis = circuitBreaker.getCircuitBreakerConfig().getWaitIntervalFunctionInOpenState().apply(1);
+            var switchToHalfOpen = LocalTime.now().plus(Duration.ofMillis(waitMillis));
+            String nextRun = manual ? "" : (", nextRun at " + switchToHalfOpen.plus(Duration.ofMillis(REFRESH_DELAY_MS)).format(DateTimeFormatter.ofPattern("HH:mm")));
+            log.warn("circuit breaker heatpumpBasement now OPEN - next switch to halfopen at " + LocalTime.now().plus(Duration.ofMillis(waitMillis)).format(DateTimeFormatter.ofPattern("HH:mm")) + nextRun);
+        } catch (Exception e) {
+            log.warn("error logging bircuit breaker: ", e);
         }
     }
 
@@ -192,8 +214,8 @@ public class HeatpumpBasementService {
         }
 
         HeatpumpBasementModel newModel = emptyModel();
-        newModel.getHistoryIdsAndDevices().put(idConsumption, Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT);
-        newModel.getHistoryIdsAndDevices().put(idProduction, Device.WARMTH_POWER_PRODUCTION_COUNTER_HEATPUMP_BASEMENT);
+        newModel.getHistoryDatapointsAndDevices().put(HeatpumpBasementDatapoints.LEISTUNGSAUFNAHME, Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT);
+        newModel.getHistoryDatapointsAndDevices().put(HeatpumpBasementDatapoints.WAERMELEISTUNG, Device.WARMTH_POWER_PRODUCTION_COUNTER_HEATPUMP_BASEMENT);
         mapResponseToModel(response, newModel);
 
         if(!request.isReadFromCache()){
@@ -212,8 +234,8 @@ public class HeatpumpBasementService {
         }
 
         List<HomematicCommand> commands = new ArrayList<>();
-        createHomematicSysVar(newModel, HeatpumpBasementDatapoints.VERBRAUCH_AKTUELLES_JAHR, Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT, commands);
-        createHomematicSysVar(newModel, HeatpumpBasementDatapoints.ERZEUGTE_WAERME_AKTUELLES_JAHR, Device.WARMTH_POWER_PRODUCTION_COUNTER_HEATPUMP_BASEMENT, commands);
+        createHomematicSysVar(newModel, HeatpumpBasementDatapoints.VERBRAUCH, Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT, commands);
+        createHomematicSysVar(newModel, HeatpumpBasementDatapoints.WAERMEPRODUKTION, Device.WARMTH_POWER_PRODUCTION_COUNTER_HEATPUMP_BASEMENT, commands);
 
         if(!commands.isEmpty()){
             hmApi.executeCommand(commands.toArray(new HomematicCommand[]{}));
@@ -222,15 +244,17 @@ public class HeatpumpBasementService {
 
     private void createHomematicSysVar(HeatpumpBasementModel newModel, HeatpumpBasementDatapoints datapoint, Device device, List<HomematicCommand> commands) {
 
-        var datapointValue = newModel.getDatapoints().stream().filter(dp -> dp.getId().equals(datapoint.getId())).findFirst();
+        var datapointValue = newModel.getDatapoints().stream().filter(dp -> dp.getDatapointsRef().equals(datapoint)).findFirst();
 
         if (datapointValue.isPresent() && datapointValue.get().getValueWithTendency() != null) {
             var valueToWrite = datapointValue.get().getValueWithTendency().getValue();
             var lastValueWrote = lastValuesWrote.get(device);
             if (lastValueWrote != null && lastValueWrote == valueToWrite.intValue()) {
-                log.debug("SAME VALUE " + datapoint.getId() + ": " + valueToWrite);
+                if(log.isDebugEnabled()){
+                    log.debug("SAME VALUE " + idForDatapoint(datapoint) + ": " + valueToWrite);
+                }
             }else{
-                log.debug("WRITE VALUE " + datapoint.getId() + ": " + valueToWrite);
+                log.debug("WRITE VALUE " + idForDatapoint(datapoint) + ": " + valueToWrite);
                 var command = homematicCommandBuilder.write(device,
                         de.fimatas.home.library.homematic.model.Datapoint.SYSVAR_DUMMY,
                         valueToWrite.toString());
@@ -245,35 +269,33 @@ public class HeatpumpBasementService {
         newModel.setApiReadTimestamp(response.getTimestampResponse());
         newModel.setOffline(response.getExitCode() != null && response.getExitCode() == Response.RC_OFFLINE);
 
-        Map<String, Datapoint> idMap = response.getDatapointList().stream()
-                .collect(Collectors.toMap(Datapoint::id, Function.identity()));
-
         var oldModel = ModelObjectDAO.getInstance().readHeatpumpBasementModel();
 
         Arrays.stream(HeatpumpBasementDatapoints.values()).toList().forEach(enumDp -> {
-            var apiDp = idMap.get(enumDp.getId());
+            var id = idForDatapoint(enumDp);
+            var apiDp = response.getDatapointList().stream().filter(dp -> dp.id().equals(id)).findFirst();
             var modelDp = new HeatpumpBasementDatapoint();
-            modelDp.setId(enumDp.getId());
+            modelDp.setDatapointsRef(enumDp);
             modelDp.setName(enumDp.getAlternateLabel());
             modelDp.setGroup(enumDp.getGroup());
             modelDp.setDescription("");
             modelDp.setHide(enumDp.isHidden());
-            if(apiDp==null){
+            if(apiDp.isEmpty()){
                 modelDp.setValueFormattedLong("Unbekannt");
                 modelDp.setValueFormattedLong("?");
                 modelDp.setConditionColor(ConditionColor.RED);
             }else{
-                modelDp.setValueFormattedLong(enumDp.getFormattedValueLong().apply(apiDp.value()));
-                modelDp.setValueFormattedShort(enumDp.getFormattedValueShort().apply(apiDp.value()));
+                modelDp.setValueFormattedLong(enumDp.getFormattedValueLong().apply(apiDp.get().value()));
+                modelDp.setValueFormattedShort(enumDp.getFormattedValueShort().apply(apiDp.get().value()));
                 if(enumDp.getTendencyThreshold() != null){
-                    Optional<HeatpumpBasementDatapoint> oldValue = oldModel == null ? Optional.empty() : oldModel.getDatapoints().stream().filter(dp -> dp.getId().equals(enumDp.getId())).findFirst();
-                    var valueBD = HeatpumpBasementDatapoints.valueAsBigDecimal(enumDp.getFormattedValueLong().apply(apiDp.value()));
+                    Optional<HeatpumpBasementDatapoint> oldValue = oldModel == null ? Optional.empty() : oldModel.getDatapoints().stream().filter(dp -> dp.getDatapointsRef().equals(enumDp)).findFirst();
+                    var valueBD = HeatpumpBasementDatapoints.valueAsBigDecimal(enumDp.getFormattedValueLong().apply(apiDp.get().value()));
                     var valueWithTenency = new ValueWithTendency<>(valueBD);
                     HomeUtils.calculateTendency(response.getTimestampResponse(), oldValue.map(HeatpumpBasementDatapoint::getValueWithTendency).orElse(null), valueWithTenency, enumDp.getTendencyThreshold());
                     modelDp.setValueWithTendency(valueWithTenency);
                 }
-                modelDp.setConditionColor(ConditionColor.valueOf(enumDp.getStateColorBasedByValue().apply(apiDp.value()).name()));
-                modelDp.setStateOff(HeatpumpBasementDatapoints.isValueOff(apiDp.value()));
+                modelDp.setConditionColor(ConditionColor.valueOf(enumDp.getColorBasedByValue().apply(apiDp.get().value()).name()));
+                modelDp.setStateOff(HeatpumpBasementDatapoints.isValueOff(apiDp.get().value()));
             }
             newModel.getDatapoints().add(modelDp);
         });

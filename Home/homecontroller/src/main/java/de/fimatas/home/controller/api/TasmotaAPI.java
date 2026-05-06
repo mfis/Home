@@ -8,9 +8,11 @@ import lombok.SneakyThrows;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
+import java.net.NoRouteToHostException;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,6 +23,7 @@ public class TasmotaAPI {
 
     private final RestClient restClient;
     private final ObjectMapper objectMapper;
+    private final RetryTemplate retryTemplate;
 
     @Value("${heatpump.roof.tasmota.hostnamePrefix}")
     private String hostnamePrefix;
@@ -28,6 +31,7 @@ public class TasmotaAPI {
     private String vendor;
 
     public TasmotaAPI(RestClient.Builder restClientBuilder, ObjectMapper objectMapper) {
+
         this.objectMapper = objectMapper;
 
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
@@ -36,6 +40,12 @@ public class TasmotaAPI {
 
         this.restClient = restClientBuilder
                 .requestFactory(requestFactory)
+                .build();
+
+        this.retryTemplate = RetryTemplate.builder()
+                .maxAttempts(2)
+                .fixedBackoff(1000)
+                .retryOn(NoRouteToHostException.class)
                 .build();
     }
 
@@ -52,7 +62,7 @@ public class TasmotaAPI {
                 request.setTemp(program.getExpectedTemperature() == null? null : program.getExpectedTemperature());
                 request.setFanSpeed(program.getFanSpeed() == null ? null : program.getFanSpeed().getValue());
 
-                var response = sendAcCommand(request, roomname);
+                var response = retryTemplate.execute(context -> sendAcCommand(request, roomname));
                 ok = response != null && response.getIrHvac() != null && response.getIrHvac().equals(request);
                 if(!ok) {
                     log.warn("HeatpumpRoof " + roomname + " command failed: request = " + request + " respronse = " + response);
@@ -67,7 +77,7 @@ public class TasmotaAPI {
     }
 
     @SneakyThrows
-    public TasmotaResponse sendAcCommand(IrHvac requestDto, String roomname) {
+    private TasmotaResponse sendAcCommand(IrHvac requestDto, String roomname) {
 
         String jsonPayload = objectMapper.writeValueAsString(requestDto);
         String command = "IRhvac " + jsonPayload;
