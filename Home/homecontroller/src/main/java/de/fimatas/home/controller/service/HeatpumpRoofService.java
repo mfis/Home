@@ -129,6 +129,7 @@ public class HeatpumpRoofService {
 
     public void preset(List<Place> places, HeatpumpRoofPreset preset) {
 
+        log.info("preset " + places + " " + preset); // FIXME
         if(places.isEmpty() || ModelObjectDAO.getInstance().readHeatpumpRoofModel() == null){
             return;
         }
