@@ -11,7 +11,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.5.12</version>
+		<version>4.0.6</version> <!-- tomcat-embed-core version in users ggf anheben! -->
 		<relativePath />
 	</parent>
 	
@@ -21,14 +21,13 @@
 		<!-- Java -->
 		<java.version>17</java.version>
 		<!-- Dependency versions -->
-		<spring-boot.version>3.5.12</spring-boot.version>
-		<de.fimatas.users.version>1.0.0</de.fimatas.users.version>
+		<de.fimatas.users.version>1.0.1</de.fimatas.users.version>
 		<commons-io.version>2.19.0</commons-io.version>
 		<commons-text.version>1.12.0</commons-text.version>
 		<commons-collections4.version>4.4</commons-collections4.version>
 		<pushy.version>0.15.4</pushy.version>
 		<!-- Webjars versions -->
-		<webjars-locator.version>0.45</webjars-locator.version>
+		<webjars-locator.version>1.1.3</webjars-locator.version>
 		<bootstrap.version>5.3.3</bootstrap.version>
 		<jquery.version>3.7.1</jquery.version>
 		<font-awesome.version>6.5.2</font-awesome.version>
@@ -39,7 +38,7 @@
 		<lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
 		<dependency-check-maven.version>7.0.4</dependency-check-maven.version>
 		<maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
-		<bouncycastle.version>1.83</bouncycastle.version>
+		<bouncycastle.version>1.84</bouncycastle.version> <!-- version in users abgleichen! -->
 		<commons-net.version>3.11.1</commons-net.version>
 		<assertj.version>3.27.7</assertj.version>
 		<hap-java.version>2.0.1</hap-java.version>
@@ -47,7 +46,6 @@
 		<heatpumpdriver.version>5.1.0</heatpumpdriver.version>
 		<resilience4j.version>2.2.0</resilience4j.version>
 		<oshi-core.version>6.6.3</oshi-core.version>
-		<commons-lang.version>3.20.0</commons-lang.version>
 		<commons-compress.version>1.28.0</commons-compress.version>
 	</properties>
 
@@ -59,12 +57,6 @@
 
 	<dependencyManagement>
 		<dependencies>
-			<dependency>
-				<groupId>org.apache.commons</groupId>
-				<artifactId>commons-lang3</artifactId>
-				<version>${commons-lang.version}</version>
-				<scope>compile</scope>
-			</dependency>
 			<dependency>
 				<groupId>de.fimatas</groupId>
 				<artifactId>users-api</artifactId>
@@ -128,7 +120,7 @@
 			</dependency>
 			<dependency>
 				<groupId>org.webjars</groupId>
-				<artifactId>webjars-locator</artifactId>
+				<artifactId>webjars-locator-lite</artifactId>
 				<version>${webjars-locator.version}</version>
 			</dependency>
 			<dependency>
@@ -214,20 +206,29 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-enforcer-plugin</artifactId>
-				<version>3.4.1</version>
+				<version>3.6.2</version>
 				<executions>
 					<execution>
-						<id>enforce</id>
+						<id>enforce-dependency-convergence</id>
 						<goals>
 							<goal>enforce</goal>
 						</goals>
 						<configuration>
 							<rules>
-								<dependencyConvergence/>
+								<dependencyConvergence>
+									<uniqueVersions>true</uniqueVersions>
+								</dependencyConvergence>
 							</rules>
 						</configuration>
 					</execution>
 				</executions>
+				<configuration>
+					<rules>
+						<dependencyConvergence>
+							<uniqueVersions>true</uniqueVersions>
+						</dependencyConvergence>
+					</rules>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
