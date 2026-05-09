@@ -1,6 +1,5 @@
 package de.fimatas.home.client.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fimatas.home.client.domain.service.AppViewService;
 import de.fimatas.home.client.request.AppRequestMapping;
 import de.fimatas.home.client.request.ControllerRequestMapping;
@@ -31,6 +30,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -289,7 +289,7 @@ class LoginInterceptorTest {
         mockMvc.perform(MockMvcRequestBuilders.post(url)
                         .header(LoginInterceptor.USER_AGENT, THE_USER_AGENT)
                         .header(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN, THE_CIENT_COMM_TOKEN)
-                        .content(new ObjectMapper().writeValueAsString(new HouseModel()))
+                        .content(JsonMapper.builder().build().writeValueAsString(new HouseModel()))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk());
     }
@@ -305,7 +305,7 @@ class LoginInterceptorTest {
         mockMvc.perform(MockMvcRequestBuilders.post(url)
                         .header(LoginInterceptor.USER_AGENT, THE_USER_AGENT)
                         .header(HomeAppConstants.CONTROLLER_CLIENT_COMM_TOKEN, "xyz")
-                        .content(new ObjectMapper().writeValueAsString(new HouseModel()))
+                        .content(JsonMapper.builder().build().writeValueAsString(new HouseModel()))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isUnauthorized());
     }

@@ -1,6 +1,5 @@
 package de.fimatas.home.controller.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 import com.luckycatlabs.sunrisesunset.dto.Location;
 import de.fimatas.home.controller.api.BrightSkyAPI;
@@ -17,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.JsonNode;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -94,7 +94,7 @@ public class WeatherService {
         jsonNodes.forEach(entry -> {
 
             try {
-                LocalDateTime dateTime = LocalDateTime.parse(entry.get("timestamp").asText(), ISO_OFFSET_DATE_TIME);
+                LocalDateTime dateTime = LocalDateTime.parse(entry.get("timestamp").asString(), ISO_OFFSET_DATE_TIME);
 
                 if (dateTime.isBefore(DATETIMENOW.truncatedTo(ChronoUnit.HOURS))) {
                     return;
@@ -104,8 +104,8 @@ public class WeatherService {
                     return;
                 }
 
-                var condition = BrightSkyCondition.fromValueString(entry.get("condition").asText());
-                var icon = BrightSkyIcon.fromValueString(entry.get("icon").asText());
+                var condition = BrightSkyCondition.fromValueString(entry.get("condition").asString());
+                var icon = BrightSkyIcon.fromValueString(entry.get("icon").asString());
 
                 var forecast = new WeatherForecast();
                 forecast.setTime(dateTime);
@@ -126,17 +126,17 @@ public class WeatherService {
     }
 
     private BigDecimal nodeToBigDecimal(JsonNode node){
-        if(node == null || StringUtils.isBlank(node.asText())){
+        if(node == null || StringUtils.isBlank(node.asString())){
             return null;
         }
-        return new BigDecimal(node.asText());
+        return new BigDecimal(node.asString());
     }
 
     private Integer nodeToInteger(JsonNode node){
-        if(node == null || StringUtils.isBlank(node.asText())){
+        if(node == null || StringUtils.isBlank(node.asString())){
             return null;
         }
-        return Integer.parseInt(node.asText());
+        return Integer.parseInt(node.asString());
     }
 
     private Set<WeatherConditions> addConditions(BrightSkyCondition condition, BrightSkyIcon icon, WeatherForecast forecast) {

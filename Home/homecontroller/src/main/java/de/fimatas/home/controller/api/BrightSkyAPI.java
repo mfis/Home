@@ -1,7 +1,5 @@
 package de.fimatas.home.controller.api;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +7,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -27,7 +27,8 @@ public class BrightSkyAPI {
     @Autowired
     private Environment env;
 
-    private static final ObjectMapper jsonObjectMapper = new ObjectMapper();
+    @Autowired
+    private JsonMapper jsonMapper;
 
     private Map<LocalDate, List<JsonNode>> cacheFurtherDays = new LinkedHashMap<>();
 
@@ -78,14 +79,14 @@ public class BrightSkyAPI {
 
         ResponseEntity<String> responseEntity = externalServiceHttpAPI.getForEntity(url, uri);
 
-        JsonNode jsonTree = jsonObjectMapper.readTree(responseEntity.getBody());
+        JsonNode jsonTree = jsonMapper.readTree(responseEntity.getBody());
 
         if(responseEntity.getStatusCode() != HttpStatus.OK){
             log.error("RC=" + responseEntity.getStatusCode());
         }
 
         jsonTree.path("weather").forEach(node -> {
-            if(localDate.equals(LocalDateTime.parse(node.get("timestamp").asText(), ISO_OFFSET_DATE_TIME).toLocalDate())){
+            if(localDate.equals(LocalDateTime.parse(node.get("timestamp").asString(), ISO_OFFSET_DATE_TIME).toLocalDate())){
                 forecasts.add(node);
             }
         });

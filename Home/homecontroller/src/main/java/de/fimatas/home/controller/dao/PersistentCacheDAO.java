@@ -1,8 +1,9 @@
 package de.fimatas.home.controller.dao;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.apachecommons.CommonsLog;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -21,7 +22,7 @@ public class PersistentCacheDAO {
     private PersistentCacheDAO() {
         super();
         properties = DaoUtils.getApplicationProperties(PATH);
-        objectMapper = new ObjectMapper();
+        objectMapper = JsonMapper.builder().build();
     }
 
     public static synchronized PersistentCacheDAO getInstance() {
@@ -56,7 +57,7 @@ public class PersistentCacheDAO {
     private String mapToJson(Object instantToWrite) {
         try {
             return objectMapper.writeValueAsString(instantToWrite);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new IllegalArgumentException("error serializing instantToWrite:", e);
         }
     }

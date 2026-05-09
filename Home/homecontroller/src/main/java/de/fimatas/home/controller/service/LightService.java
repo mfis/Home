@@ -1,6 +1,5 @@
 package de.fimatas.home.controller.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import de.fimatas.home.controller.api.HueAPI;
 import de.fimatas.home.controller.domain.service.HouseService;
 import de.fimatas.home.library.dao.ModelObjectDAO;
@@ -15,6 +14,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.JsonNode;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -101,17 +101,17 @@ public class LightService {
 
     private void mapGroup(Entry<String, JsonNode> group, JsonNode allLights, LightsModel model) {
 
-        String groupName = group.getValue().path(JSON_PATH_NAME).asText();
+        String groupName = group.getValue().path(JSON_PATH_NAME).asString();
 
         JsonNode groupLights = group.getValue().get(JSON_PATH_LIGHTS);
         for (JsonNode groupLight : groupLights) {
             Place place;
             if ((place = Place.fromName(groupName))!= null) {
-                model.addLight(mapLight(allLights, groupLight.asText(), place));
+                model.addLight(mapLight(allLights, groupLight.asString(), place));
             } else {
                 List<String> token = List.of(StringUtils.split(groupName, ' '));
                 placesToNameAndSubtitle.entrySet().stream().filter(e -> new HashSet<>(e.getKey()).containsAll(token)).
-                        findAny().ifPresent(e -> model.addLight(mapLight(allLights, groupLight.asText(), e.getValue())));
+                        findAny().ifPresent(e -> model.addLight(mapLight(allLights, groupLight.asString(), e.getValue())));
             }
         }
 
@@ -120,7 +120,7 @@ public class LightService {
     public Light mapLight(JsonNode allLights, String lightId, Place place) {
 
         JsonNode light = allLights.path(lightId);
-        String lightName = light.path(JSON_PATH_NAME).asText();
+        String lightName = light.path(JSON_PATH_NAME).asString();
         JsonNode lightState = light.path(JSON_PATH_STATE);
         boolean lightOn = lightState.path(JSON_PATH_ON).asBoolean();
         boolean lightReachable = lightState.path(JSON_PATH_REACHABLE).asBoolean();

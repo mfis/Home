@@ -1,9 +1,6 @@
 package de.fimatas.home.controller.api;
 
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.Optional;
-
+import de.fimatas.home.library.util.HomeAppConstants;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jakarta.annotation.PostConstruct;
 import org.apache.commons.lang3.StringUtils;
@@ -12,15 +9,21 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.env.Environment;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.web.client.RestTemplate;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import de.fimatas.home.library.util.HomeAppConstants;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ObjectNode;
+
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 
 @Component
 public class HueAPI {
@@ -31,6 +34,9 @@ public class HueAPI {
     @Autowired
     @Qualifier("restTemplateHue")
     private RestTemplate restTemplateHue;
+
+    @Autowired
+    private JsonMapper jsonMapper;
 
     private String host;
 
@@ -45,8 +51,6 @@ public class HueAPI {
     private LocalDateTime currentObjectTimestamp;
 
     //
-
-    private static final ObjectMapper jsonObjectMapper = new ObjectMapper();
 
     private static final String PATH_API = "/api/"; // NOSONAR
 
@@ -108,7 +112,7 @@ public class HueAPI {
         }
 
         try {
-            JsonNode jsonTree = jsonObjectMapper.readTree(responseEntity.getBody());
+            JsonNode jsonTree = jsonMapper.readTree(responseEntity.getBody());
             normalizeTimestamps(jsonTree, refresh);
 
             if (ignoreEqualResponse(refresh, jsonTree)) {
@@ -177,14 +181,14 @@ public class HueAPI {
 
     public void toggleLight(String deviceId, Boolean value) {
 
-        ObjectNode node = jsonObjectMapper.createObjectNode();
+        ObjectNode node = jsonMapper.createObjectNode();
         node.put("on", value);
 
         String path = host + PATH_API + hueUser + "/lights/" + deviceId + "/state";
 
         try {
-            callHueAPI(path, Optional.of(jsonObjectMapper.writeValueAsString(node)), false);
-        } catch (JsonProcessingException jpe) {
+            callHueAPI(path, Optional.of(jsonMapper.writeValueAsString(node)), false);
+        } catch (JacksonException jpe) {
             throw new IllegalStateException("error creating json:", jpe);
         }
     }

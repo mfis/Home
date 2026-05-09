@@ -1,7 +1,5 @@
 package de.fimatas.home.controller.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import de.fimatas.home.controller.api.HomematicAPI;
 import de.fimatas.home.controller.api.SolarmanAPI;
 import de.fimatas.home.controller.command.HomematicCommand;
@@ -21,6 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
 
 import java.io.File;
 import java.io.IOException;
@@ -113,19 +113,18 @@ public class SolarmanService {
         }
 
         List<HomematicCommand> updateCommands = new ArrayList<>();
-        lastCollectionTimeRead = Long.parseLong(currentData.get("collectionTime").asText()) * 1000L;
+        lastCollectionTimeRead = Long.parseLong(currentData.get("collectionTime").asString()) * 1000L;
         var stringAmps = new StringAmps();
         String alarm = null;
         updateCommands.add(homematicCommandBuilder.write(Device.ELECTRIC_POWER_ACTUAL_TIMESTAMP_HOUSE, Datapoint.SYSVAR_DUMMY, Long.toString(lastCollectionTimeRead / 1000)));
         Map<String, String> inverterKeysAndValues = new HashMap<>();
 
         final ArrayNode dataList = (ArrayNode) currentData.get("dataList");
-        Iterator<JsonNode> dataListElements = dataList.elements();
+        Collection<JsonNode> dataListElements = dataList.elements();
         var valuesToWriteToHomematic = new HashMap<Device, String>();
-        while (dataListElements.hasNext()) {
-            JsonNode element = dataListElements.next();
-            String key = element.get("key").asText();
-            String value = element.get("value").asText();
+        for (JsonNode element : dataListElements) {
+            String key = element.get("key").asString();
+            String value = element.get("value").asString();
             if(SOLARMAN_KEY_TO_HM_DEVICE.containsKey(key)){
                 Device device = SOLARMAN_KEY_TO_HM_DEVICE.get(key);
                 log.debug("   " + device + " = " + value);

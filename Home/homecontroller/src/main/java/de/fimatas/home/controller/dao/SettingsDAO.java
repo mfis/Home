@@ -1,16 +1,17 @@
 package de.fimatas.home.controller.dao;
 
+import de.fimatas.home.library.model.SettingsModel;
+import jakarta.annotation.PreDestroy;
+import org.springframework.scheduling.annotation.Async;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import de.fimatas.home.library.model.SettingsModel;
-import org.springframework.scheduling.annotation.Async;
-
-import jakarta.annotation.PreDestroy;
 
 public class SettingsDAO {
 
@@ -26,7 +27,7 @@ public class SettingsDAO {
     private SettingsDAO() {
         super();
         properties = DaoUtils.getApplicationProperties(PATH);
-        objectMapper = new ObjectMapper();
+        objectMapper = JsonMapper.builder().build();
     }
 
     public static synchronized SettingsDAO getInstance() {
@@ -69,7 +70,7 @@ public class SettingsDAO {
     private String mapToJson(SettingsModel settingsModel) {
         try {
             return objectMapper.writeValueAsString(settingsModel);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new IllegalArgumentException("error serializing settingsModel:", e);
         }
     }
@@ -77,7 +78,7 @@ public class SettingsDAO {
     private SettingsModel mapToObject(String json) {
         try {
             return objectMapper.readValue(json, SettingsModel.class);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new IllegalArgumentException("error deserializing settingsModel:", e);
         }
     }
