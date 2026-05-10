@@ -1,20 +1,13 @@
 package de.fimatas.home.client.service;
 
-import org.apache.tomcat.util.http.Rfc6265CookieProcessor;
-import org.apache.tomcat.util.http.SameSiteCookies;
-import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
-import org.springframework.boot.web.server.WebServerFactoryCustomizer;
-import org.springframework.stereotype.Component;
+import org.springframework.boot.web.server.servlet.CookieSameSiteSupplier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-@Component
-public class TomcatCookieProcessor implements WebServerFactoryCustomizer<TomcatServletWebServerFactory> {
-
-    @Override
-    public void customize(TomcatServletWebServerFactory server) {
-        server.getTomcatContextCustomizers().add(context -> {
-            Rfc6265CookieProcessor cookieProcessor = new Rfc6265CookieProcessor();
-            cookieProcessor.setSameSiteCookies(SameSiteCookies.STRICT.getValue());
-            context.setCookieProcessor(cookieProcessor);
-        });
+@Configuration
+public class TomcatCookieProcessor {
+    @Bean
+    public CookieSameSiteSupplier applicationCookieSameSiteSupplier() {
+        return CookieSameSiteSupplier.ofStrict();
     }
 }

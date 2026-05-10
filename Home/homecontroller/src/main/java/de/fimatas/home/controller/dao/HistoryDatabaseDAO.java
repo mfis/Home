@@ -1,23 +1,5 @@
 package de.fimatas.home.controller.dao;
 
-import java.math.BigDecimal;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import jakarta.annotation.PostConstruct;
-
-import lombok.Getter;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
-
 import de.fimatas.home.controller.command.HomematicCommand;
 import de.fimatas.home.controller.database.mapper.BigDecimalRowMapper;
 import de.fimatas.home.controller.database.mapper.LongRowMapper;
@@ -27,6 +9,22 @@ import de.fimatas.home.controller.model.History;
 import de.fimatas.home.controller.model.HistoryElement;
 import de.fimatas.home.controller.model.HistoryValueType;
 import de.fimatas.home.library.domain.model.TimeRange;
+import jakarta.annotation.PostConstruct;
+import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 @SuppressWarnings("SqlSourceToSinkFlow")
 @Repository
@@ -60,7 +58,7 @@ public class HistoryDatabaseDAO {
         for (HistoryElement history : history.list()) {
             var varName = history.getCommand().getCashedVarName();
             jdbcTemplate.update("CREATE CACHED TABLE IF NOT EXISTS " + varName
-                + " (TS DATETIME NOT NULL, TYP CHAR(1) NOT NULL, VAL DOUBLE NOT NULL, PRIMARY KEY (TS));");
+                + " (TS TIMESTAMP NOT NULL, TYP CHAR(1) NOT NULL, VAL DOUBLE NOT NULL, PRIMARY KEY (TS));");
             jdbcTemplate
                 .update("CREATE UNIQUE INDEX IF NOT EXISTS " + "IDX1_" + varName + " ON " + varName + " (TS, TYP);");
 

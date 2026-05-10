@@ -30,7 +30,7 @@ public class TicketDAO {
     public void createTables() {
 
         jdbcTemplate.update("CREATE CACHED TABLE IF NOT EXISTS " + TABLE_NAME
-                + " (TICKET VARCHAR(60) NOT NULL, EVENT VARCHAR(10) NOT NULL, VAL VARCHAR(10) NOT NULL, TS DATETIME NOT NULL, PRIMARY KEY (TICKET));");
+                + " (TICKET VARCHAR(60) NOT NULL, EVENT VARCHAR(10) NOT NULL, VAL VARCHAR(10) NOT NULL, TS TIMESTAMP NOT NULL, PRIMARY KEY (TICKET));");
         jdbcTemplate
                 .update("CREATE UNIQUE INDEX IF NOT EXISTS " + "IDX1_" + TABLE_NAME + " ON " + TABLE_NAME + " (TICKET);");
         jdbcTemplate

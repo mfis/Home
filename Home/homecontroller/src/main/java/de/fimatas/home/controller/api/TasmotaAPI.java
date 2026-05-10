@@ -6,8 +6,9 @@ import lombok.EqualsAndHashCode;
 import lombok.SneakyThrows;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.retry.RetryPolicy;
+import org.springframework.core.retry.RetryTemplate;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import tools.jackson.databind.ObjectMapper;
@@ -42,11 +43,13 @@ public class TasmotaAPI {
                 .requestFactory(requestFactory)
                 .build();
 
-        this.retryTemplate = RetryTemplate.builder()
-                .maxAttempts(2)
-                .fixedBackoff(1000)
-                .retryOn(NoRouteToHostException.class)
+        RetryPolicy retryPolicy = RetryPolicy.builder()
+                .maxRetries(1)
+                .delay(Duration.ofMillis(1000))
+                .includes(NoRouteToHostException.class)
                 .build();
+
+        this.retryTemplate = new RetryTemplate(retryPolicy);
     }
 
     public Map<String, Boolean> call(Map<String, HeatpumpRoofProgram> programs) {
@@ -62,7 +65,7 @@ public class TasmotaAPI {
                 request.setTemp(program.getExpectedTemperature() == null? null : program.getExpectedTemperature());
                 request.setFanSpeed(program.getFanSpeed() == null ? null : program.getFanSpeed().getValue());
 
-                var response = retryTemplate.execute(context -> sendAcCommand(request, roomname));
+                var response = retryTemplate.execute(() -> sendAcCommand(request, roomname));
                 ok = response != null && response.getIrHvac() != null && response.getIrHvac().equals(request);
                 if(!ok) {
                     log.warn("HeatpumpRoof " + roomname + " command failed: request = " + request + " respronse = " + response);

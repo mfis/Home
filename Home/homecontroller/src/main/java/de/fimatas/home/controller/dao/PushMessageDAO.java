@@ -3,13 +3,14 @@ package de.fimatas.home.controller.dao;
 import de.fimatas.home.controller.database.mapper.PushMessageRowMapper;
 import de.fimatas.home.controller.service.UniqueTimestampService;
 import de.fimatas.home.library.domain.model.PushMessage;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import jakarta.annotation.PostConstruct;
+
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -39,7 +40,7 @@ public class PushMessageDAO {
     public void createTables() {
 
         jdbcTemplate.update("CREATE CACHED TABLE IF NOT EXISTS " + TABLE_NAME
-                + " (TS DATETIME NOT NULL, USERNAME VARCHAR(16) NOT NULL, TITLE VARCHAR(64) NOT NULL, TEXTMSG VARCHAR(350) NOT NULL, PRIMARY KEY (TS));");
+                + " (TS TIMESTAMP NOT NULL, USERNAME VARCHAR(16) NOT NULL, TITLE VARCHAR(64) NOT NULL, TEXTMSG VARCHAR(350) NOT NULL, PRIMARY KEY (TS));");
         jdbcTemplate
                 .update("CREATE UNIQUE INDEX IF NOT EXISTS " + "IDX1_" + TABLE_NAME + " ON " + TABLE_NAME + " (TS, USERNAME);");
     }
