@@ -22,7 +22,7 @@ public class HeatpumpBasementModel extends AbstractSystemModel {
 
     private long apiReadTimestamp = 0;
 
-    private final List<HeatpumpBasementDatapoint> datapoints = new LinkedList<>();
+    private List<HeatpumpBasementDatapoint> datapoints = new LinkedList<>();
 
     private Map<HeatpumpBasementDatapoints, Device> historyDatapointsAndDevices = new HashMap<>();
 
