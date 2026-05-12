@@ -2,32 +2,24 @@ package de.fimatas.home.controller.model;
 
 import de.fimatas.home.controller.command.HomematicCommand;
 import de.fimatas.home.library.homematic.model.HistoryStrategy;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
+@Data
+@NoArgsConstructor
 public class HistoryElement {
 
-    private final HomematicCommand command;
+    private HomematicCommand command;
 
-    private final HistoryStrategy strategy;
+    private HistoryStrategy strategy;
 
-    private final BigDecimal valueDifferenceToSave;
+    private BigDecimal valueDifferenceToSave;
 
     public HistoryElement(HomematicCommand command, HistoryStrategy strategy, BigDecimal valueDifferenceToSave) {
         this.command = command;
         this.strategy = strategy;
         this.valueDifferenceToSave = valueDifferenceToSave;
-    }
-
-    public HomematicCommand getCommand() {
-        return command;
-    }
-
-    public HistoryStrategy getStrategy() {
-        return strategy;
-    }
-
-    public BigDecimal getValueDifferenceToSave() {
-        return valueDifferenceToSave;
     }
 }

@@ -9,7 +9,7 @@ import java.util.List;
 @Getter
 public class PushMessageModel extends AbstractSystemModel{
 
-    private final List<PushMessage> list = new LinkedList<>();
+    private List<PushMessage> list = new LinkedList<>();
 
     @Setter
     private boolean additionalEntries;

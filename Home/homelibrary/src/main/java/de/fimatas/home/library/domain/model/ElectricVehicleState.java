@@ -4,7 +4,8 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
 
 @Data
 public class ElectricVehicleState {
@@ -21,7 +22,7 @@ public class ElectricVehicleState {
         this.chargingCapacity = null;
     }
 
-    private final ElectricVehicle electricVehicle;
+    private ElectricVehicle electricVehicle;
 
     private short batteryPercentage;
 
