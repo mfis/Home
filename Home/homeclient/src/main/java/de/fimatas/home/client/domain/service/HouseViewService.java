@@ -320,7 +320,7 @@ public class HouseViewService {
             }
         }
 
-        if(houseModel != null && !houseModel.getFrontDoorLock().isUnreach()){
+        if(houseModel != null && houseModel.getFrontDoorLock() != null && !houseModel.getFrontDoorLock().isUnreach()){
             if(!houseModel.getFrontDoorLock().isLockState()){
                 var v = new View();
                 v.setId("symbols-frontdoor" + lookupGroupitemIdPostfix(true));
@@ -384,6 +384,10 @@ public class HouseViewService {
     }
 
     private void formatFrontDoorLock(Model model, String id, Doorlock doorlock) {
+
+        if(doorlock == null) {
+            return;
+        }
 
         LockView view = new LockView();
         view.setId(id);
