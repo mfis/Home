@@ -67,7 +67,40 @@ public class SpringConfiguration implements WebMvcConfigurer {
     @Bean(name = "restTemplateCCU")
     public RestTemplate restTemplateCCU() throws IOException, GeneralSecurityException {
 
-        try (PEMParser pemParser = new PEMParser(new FileReader(Objects.requireNonNull(env.getProperty("homematic.sslcert"))))) {
+        KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+        keyStore.load(null, null);
+
+        addCertToKeystore("hmccu3", keyStore);
+        addCertToKeystore("openccu", keyStore);
+
+        TrustManager trustManager = TrustManagerUtils.getDefaultTrustManager(keyStore);
+        SSLContext sslContext = SSLContextUtils.createSSLContext("TLS", null, trustManager);
+
+        DefaultClientTlsStrategy tlsStrategy = new DefaultClientTlsStrategy(sslContext);
+
+        RequestConfig config = RequestConfig.custom()
+                .setConnectionRequestTimeout(Timeout.ofMilliseconds(1500))
+                .setResponseTimeout(Timeout.ofSeconds(2))
+                .build();
+
+        HttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+                .setTlsSocketStrategy(tlsStrategy)
+                .build();
+
+        CloseableHttpClient httpClient = HttpClients.custom()
+                .setDefaultRequestConfig(config)
+                .setConnectionManager(connectionManager)
+                .build();
+
+        HttpComponentsClientHttpRequestFactory httpComponentsClientHttpRequestFactory =
+                new HttpComponentsClientHttpRequestFactory(httpClient);
+
+        return new RestTemplate(httpComponentsClientHttpRequestFactory);
+    }
+
+    private void addCertToKeystore(String name, KeyStore keyStore) throws IOException, GeneralSecurityException {
+
+        try (PEMParser pemParser = new PEMParser(new FileReader(Objects.requireNonNull(env.getProperty("homematic.cert." + name))))) {
 
             pemParser.readObject();
             PemObject pemObject = pemParser.readPemObject();
@@ -75,33 +108,7 @@ public class SpringConfiguration implements WebMvcConfigurer {
             X509CertificateHolder holder = new X509CertificateHolder(pemObject.getContent());
             X509Certificate bc = new JcaX509CertificateConverter().setProvider("BC").getCertificate(holder);
 
-            KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-            keyStore.load(null, null);
-            keyStore.setCertificateEntry("ca", bc);
-
-            TrustManager trustManager = TrustManagerUtils.getDefaultTrustManager(keyStore);
-            SSLContext sslContext = SSLContextUtils.createSSLContext("TLS", null, trustManager);
-
-            DefaultClientTlsStrategy tlsStrategy = new DefaultClientTlsStrategy(sslContext);
-
-            RequestConfig config = RequestConfig.custom()
-                    .setConnectionRequestTimeout(Timeout.ofMilliseconds(1500))
-                    .setResponseTimeout(Timeout.ofSeconds(2))
-                    .build();
-
-            HttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
-                    .setTlsSocketStrategy(tlsStrategy)
-                    .build();
-
-            CloseableHttpClient httpClient = HttpClients.custom()
-                    .setDefaultRequestConfig(config)
-                    .setConnectionManager(connectionManager)
-                    .build();
-
-            HttpComponentsClientHttpRequestFactory httpComponentsClientHttpRequestFactory =
-                    new HttpComponentsClientHttpRequestFactory(httpClient);
-
-            return new RestTemplate(httpComponentsClientHttpRequestFactory);
+            keyStore.setCertificateEntry(name, bc);
         }
     }
 
