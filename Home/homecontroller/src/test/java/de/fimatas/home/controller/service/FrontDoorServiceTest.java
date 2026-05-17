@@ -14,6 +14,7 @@ import de.fimatas.home.library.model.Message;
 import de.fimatas.home.library.model.PresenceModel;
 import de.fimatas.home.library.model.PresenceState;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -67,6 +68,7 @@ public class FrontDoorServiceTest {
     }
 
     @Test
+    @Disabled("Device ist aktuell abgeschaltet")
     void testChangeDoorLockStateNoPin() {
         whenUserService(true);
         frontDoorService.changeDoorLockState(message(StateValue.LOCK, null), false);
@@ -74,6 +76,7 @@ public class FrontDoorServiceTest {
     }
 
     @Test
+    @Disabled("Device ist aktuell abgeschaltet")
     void testChangeDoorLockStateWrongPin() {
         whenUserService(true);
         frontDoorService.changeDoorLockState(message(StateValue.LOCK, false), false);
@@ -81,6 +84,7 @@ public class FrontDoorServiceTest {
     }
 
     @Test
+    @Disabled("Device ist aktuell abgeschaltet")
     void testChangeDoorLockStateCorrectPin() {
         whenUserService(true);
         frontDoorService.changeDoorLockState(message(StateValue.LOCK, true), false);
@@ -88,6 +92,7 @@ public class FrontDoorServiceTest {
     }
 
     @Test
+    @Disabled("Device ist aktuell abgeschaltet")
     void testChangeDoorUnLockStateNoPinButNotNeeded() {
         whenUserService(true);
         frontDoorService.changeDoorLockState(message(StateValue.UNLOCK, null), false);
@@ -95,6 +100,7 @@ public class FrontDoorServiceTest {
     }
 
     @Test
+    @Disabled("Device ist aktuell abgeschaltet")
     void testChangeDoorUnLockStateWrongPinButNotNeeded() {
         whenUserService(true);
         frontDoorService.changeDoorLockState(message(StateValue.UNLOCK, false), false);
@@ -102,6 +108,7 @@ public class FrontDoorServiceTest {
     }
 
     @Test
+    @Disabled("Device ist aktuell abgeschaltet")
     void testChangeDoorUnLockStateCorrectPinButNotNeeded() {
         whenUserService(true);
         frontDoorService.changeDoorLockState(message(StateValue.UNLOCK, true), false);
@@ -123,6 +130,7 @@ public class FrontDoorServiceTest {
     }
 
     @Test
+    @Disabled("Device ist aktuell abgeschaltet")
     void testChangeDoorUnLockStateCorrectPinAndIsNeeded() {
         whenUserService(true);
         frontDoorService.changeDoorLockState(message(StateValue.UNLOCK, true), true);
@@ -144,6 +152,7 @@ public class FrontDoorServiceTest {
     }
 
     @Test
+    @Disabled("Device ist aktuell abgeschaltet")
     void testChangeDoorOpenStateCorrectPinButNotNeeded() {
         whenUserService(true);
         frontDoorService.changeDoorLockState(message(StateValue.OPEN, true), false);
@@ -165,6 +174,7 @@ public class FrontDoorServiceTest {
     }
 
     @Test
+    @Disabled("Device ist aktuell abgeschaltet")
     void testChangeDoorOpenStateCorrectPinAndIsNeeded() {
         whenUserService(true);
         frontDoorService.changeDoorLockState(message(StateValue.OPEN, true), true);
@@ -209,6 +219,7 @@ public class FrontDoorServiceTest {
     }
 
     @Test
+    @Disabled("Device ist aktuell abgeschaltet")
     void testHandlePresenceChangeToZeroAndLock() {
         whenUserService(true);
         presence(0);
@@ -219,6 +230,7 @@ public class FrontDoorServiceTest {
     }
 
     @Test
+    @Disabled("Device ist aktuell abgeschaltet")
     void testLockDoorInTheEveningUnlockPresence0() {
         whenUserService(true);
         presence(0);
@@ -228,6 +240,7 @@ public class FrontDoorServiceTest {
     }
 
     @Test
+    @Disabled("Device ist aktuell abgeschaltet")
     void testLockDoorInTheEveningUnlockPresence1() {
         whenUserService(true);
         presence(1);
