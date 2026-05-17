@@ -50,12 +50,18 @@ public class FrontDoorService {
 
     @Scheduled(cron = "04 30 19,21 * * *")
     public void lockDoorInTheEvening() {
+        if(isDoorLockDisabled()){
+            return;
+        }
         if (isDoorLockAutomaticAndNotInState(StateValue.LOCK)) {
             changeDoorLockState(messageForDoorState(StateValue.LOCK, "schedule-" + UUID.randomUUID()), true);
         }
     }
 
     public void handlePresenceChange(String username, PresenceState state) {
+        if(isDoorLockDisabled()){
+            return;
+        }
         if(state == PresenceState.AWAY && isNoOneAtHome() && isDoorLockAutomaticAndNotInState(StateValue.LOCK) ) {
             changeDoorLockState(messageForDoorState(StateValue.LOCK, "presence-" + UUID.randomUUID()), true);
             pushService.doorLock(username);
@@ -63,6 +69,12 @@ public class FrontDoorService {
     }
 
     public void changeDoorLockState(Message message, boolean unlockOnlyWithSecutityPin) {
+
+        if(isDoorLockDisabled()){
+            log.error("doorlock device is disabled");
+            message.setSecurityPin("");
+            return;
+        }
 
         if(StringUtils.isBlank(message.getAdditionalData())){
             log.error("no ticket provided!");
@@ -139,5 +151,9 @@ public class FrontDoorService {
     private boolean isNoOneAtHome() {
         return ModelObjectDAO.getInstance().readPresenceModel().getPresenceStates().entrySet()
                 .stream().noneMatch(e -> e.getValue() == PresenceState.PRESENT);
+    }
+
+    private boolean isDoorLockDisabled() {
+        return DEFAULT_DEVICE.isDisabled();
     }
 }

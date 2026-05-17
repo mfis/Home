@@ -738,20 +738,21 @@ public class HouseService {
 
     private Doorlock readFrontDoorLock(HouseModel oldModel) {
 
-        Doorlock frontDoor = new Doorlock();
+        var device = Device.HAUSTUER_SCHLOSS;
 
-        frontDoor.setDevice(Device.HAUSTUER_SCHLOSS);
-        frontDoor.setUnreach(hmApi.isDeviceUnreachableOrNotSending(Device.HAUSTUER_SCHLOSS));
-        if (frontDoor.isUnreach()) {
+        Doorlock frontDoor = new Doorlock();
+        frontDoor.setDevice(device);
+        frontDoor.setUnreach(hmApi.isDeviceUnreachableOrNotSending(device));
+        if (frontDoor.isUnreach() || device.isDisabled()) {
             return frontDoor;
         }
 
-        boolean newBusy = checkBusyState(Device.HAUSTUER_SCHLOSS);
+        boolean newBusy = checkBusyState(device);
         frontDoor.setBusy(newBusy);
-        frontDoor.setLockState(!hmApi.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, Datapoint.STATE))); // false=verriegelt
+        frontDoor.setLockState(!hmApi.getAsBoolean(homematicCommandBuilder.read(device, Datapoint.STATE))); // false=verriegelt
         frontDoor.setLockStateUncertain(
-            hmApi.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, Datapoint.STATE_UNCERTAIN)));
-        frontDoor.setOpen(hmApi.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, IS_OPENED)));
+            hmApi.getAsBoolean(homematicCommandBuilder.read(device, Datapoint.STATE_UNCERTAIN)));
+        frontDoor.setOpen(hmApi.getAsBoolean(homematicCommandBuilder.read(device, IS_OPENED)));
         frontDoor.setLastOpened(frontDoorService.readLastOpened());
 
         if (oldModel != null && oldModel.getFrontDoorLock().isBusy() && !newBusy &&
@@ -759,14 +760,14 @@ public class HouseService {
             frontDoor.setLockStateUncertain(true);
         }
 
-        BigDecimal errorCode = hmApi.getAsBigDecimal(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, Datapoint.ERROR));
+        BigDecimal errorCode = hmApi.getAsBigDecimal(homematicCommandBuilder.read(device, Datapoint.ERROR));
         frontDoor.setErrorcode(errorCode == null ? 0 : errorCode.intValue());
 
-        frontDoor.setLockAutomation(hmApi.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, AUTOMATIC)));
+        frontDoor.setLockAutomation(hmApi.getAsBoolean(homematicCommandBuilder.read(device, AUTOMATIC)));
         frontDoor
-            .setLockAutomationEvent(hmApi.getAsBoolean(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, AUTOMATIC + EVENT)));
+            .setLockAutomationEvent(hmApi.getAsBoolean(homematicCommandBuilder.read(device, AUTOMATIC + EVENT)));
         frontDoor.setLockAutomationInfoText(
-            hmApi.getAsString(homematicCommandBuilder.read(Device.HAUSTUER_SCHLOSS, AUTOMATIC + "InfoText")));
+            hmApi.getAsString(homematicCommandBuilder.read(device, AUTOMATIC + "InfoText")));
 
         return frontDoor;
     }

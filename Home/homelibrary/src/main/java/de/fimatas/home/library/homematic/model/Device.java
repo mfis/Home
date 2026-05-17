@@ -152,7 +152,7 @@ public enum Device {
     }
 
     public Datapoint lowBatDatapoint() {
-        if (!getType().isHasBattery()) {
+        if (isDisabled() || !getType().isHasBattery()) {
             return null;
         } else if (isHomematic()) {
             return Datapoint.LOWBAT;
@@ -184,7 +184,7 @@ public enum Device {
     }
 
     public boolean isDisabled() {
-        return this == GASZAEHLER;
+        return this == GASZAEHLER || this == HAUSTUER_SCHLOSS;
     }
 
 }
