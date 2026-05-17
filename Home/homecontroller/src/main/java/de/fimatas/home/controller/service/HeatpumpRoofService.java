@@ -93,7 +93,7 @@ public class HeatpumpRoofService {
         if(cachedModel == null) {
             switchModelToUnknown();
         } else {
-            if (Instant.ofEpochMilli(cachedModel.getTimestamp()).isBefore(Instant.now().minus(Duration.ofMinutes(5)))) {
+            if (Instant.ofEpochMilli(cachedModel.getTimestamp()).isBefore(Instant.now().minus(Duration.ofMinutes(20)))) {
                 switchModelToUnknown(); // ignore older models
             } else{
                 ModelObjectDAO.getInstance().write(cachedModel);
