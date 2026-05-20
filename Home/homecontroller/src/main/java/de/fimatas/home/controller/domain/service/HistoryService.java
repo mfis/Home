@@ -1,9 +1,12 @@
 package de.fimatas.home.controller.domain.service;
 
 import de.fimatas.home.controller.api.HomematicAPI;
+import de.fimatas.home.controller.command.AbstractCommand;
 import de.fimatas.home.controller.command.HomematicCommand;
 import de.fimatas.home.controller.command.HomematicCommandBuilder;
+import de.fimatas.home.controller.command.PersistentCacheCommand;
 import de.fimatas.home.controller.dao.HistoryDatabaseDAO;
+import de.fimatas.home.controller.dao.PersistentCacheDAO;
 import de.fimatas.home.controller.database.mapper.TimestampValuePair;
 import de.fimatas.home.controller.database.mapper.TimestampValuePairComparator;
 import de.fimatas.home.controller.model.History;
@@ -14,7 +17,6 @@ import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.homematic.model.Datapoint;
 import de.fimatas.home.library.homematic.model.Device;
-import de.fimatas.home.library.homematic.model.Type;
 import de.fimatas.home.library.util.HomeUtils;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -44,12 +46,15 @@ public class HistoryService {
     private HomematicAPI api;
 
     @Autowired
+    private PersistentCacheDAO persistentCacheDAO;
+
+    @Autowired
     private HomematicCommandBuilder homematicCommandBuilder;
 
     @Autowired
     private History history;
 
-    private final Map<HomematicCommand, List<TimestampValuePair>> entryCache = new HashMap<>();
+    private final Map<AbstractCommand, List<TimestampValuePair>> entryCache = new HashMap<>();
 
     private static final int HOURS_IN_DAY = 24;
 
@@ -73,10 +78,21 @@ public class HistoryService {
 
     public void saveNewValues() {
         for (HistoryElement historyElement : history.list()) {
-            if(!api.isDeviceUnreachableOrNotSending(historyElement.getCommand().getDevice())){
-                addEntry(historyElement.getCommand(), new TimestampValuePair(api.getCurrentValuesTimestamp(),
-                        api.getAsBigDecimal(historyElement.getCommand()), de.fimatas.home.controller.model.HistoryValueType.SINGLE));
+            if(historyElement.getCommand() instanceof HomematicCommand hc) {
+                if(!api.isDeviceUnreachableOrNotSending(hc.getDevice())){
+                    addEntry(hc, new TimestampValuePair(api.getCurrentValuesTimestamp(),
+                            api.getAsBigDecimal(hc), de.fimatas.home.controller.model.HistoryValueType.SINGLE));
+                }
+            } else if(historyElement.getCommand() instanceof PersistentCacheCommand pcc) {
+                var value = persistentCacheDAO.read(pcc.getPersistentCacheKey(), BigDecimal.class);
+                if(value != null) {
+                    addEntry(pcc, new TimestampValuePair(api.getCurrentValuesTimestamp(),
+                            value.getValue(), de.fimatas.home.controller.model.HistoryValueType.SINGLE));
+                }
+            } else {
+                throw new IllegalArgumentException("Unknown command type class: " +  historyElement.getClass().getSimpleName());
             }
+
         }
     }
 
@@ -89,7 +105,7 @@ public class HistoryService {
             return;
         }
 
-        Map<HomematicCommand, List<TimestampValuePair>> toInsert = new HashMap<>();
+        Map<AbstractCommand, List<TimestampValuePair>> toInsert = new HashMap<>();
         for (HistoryElement historyElement : history.list()) {
 
             List<TimestampValuePair> pairs = new LinkedList<>();
@@ -131,25 +147,26 @@ public class HistoryService {
         HistoryModel newModel = new HistoryModel();
 
         calculatePowerConsumption(newModel.getPurchasedElectricPowerConsumptionDay(),
-            newModel.getPurchasedElectricPowerConsumptionMonth(), Device.STROMZAEHLER_BEZUG, null);
+            newModel.getPurchasedElectricPowerConsumptionMonth(), history.get(History.HIST_STROM_BEZUG).getCommand(), null);
         calculatePowerConsumption(newModel.getFeedElectricPowerConsumptionDay(),
-                newModel.getFeedElectricPowerConsumptionMonth(), Device.STROMZAEHLER_EINSPEISUNG, null);
+                newModel.getFeedElectricPowerConsumptionMonth(), history.get(History.HIST_STROM_EINSPEISUNG).getCommand(), null);
 
         calculatePowerConsumption(newModel.getSelfusedElectricPowerConsumptionDay(),
-                newModel.getSelfusedElectricPowerConsumptionMonth(), Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HOUSE, null);
+                newModel.getSelfusedElectricPowerConsumptionMonth(), history.get(History.HIST_STROM_CONSUMPTION).getCommand(), null);
         calculatePowerConsumption(newModel.getProducedElectricPowerDay(),
-                newModel.getProducedElectricPowerMonth(), Device.ELECTRIC_POWER_PRODUCTION_COUNTER_HOUSE, null);
+                newModel.getProducedElectricPowerMonth(), history.get(History.HIST_STROM_PRODUCTION).getCommand(), null);
 
         calculatePowerConsumption(newModel.getHeatpumpBasementElectricPowerConsumptionDay(),
-                newModel.getHeatpumpBasementElectricPowerConsumptionMonth(), Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT, null);
+                newModel.getHeatpumpBasementElectricPowerConsumptionMonth(), history.get(History.HIST_HEATPUMP_BASEMENT_CONSUMPTION).getCommand(), null);
 
         calculatePowerConsumption(newModel.getHeatpumpBasementWarmthPowerProductionDay(),
-                newModel.getHeatpumpBasementWarmthPowerProductionMonth(), Device.WARMTH_POWER_PRODUCTION_COUNTER_HEATPUMP_BASEMENT, null);
+                newModel.getHeatpumpBasementWarmthPowerProductionMonth(), history.get(History.HIST_HEATPUMP_BASEMENT_PRODUCTION).getCommand(), null);
 
         calculatePowerConsumption(newModel.getWallboxElectricPowerConsumptionDay(),
-            newModel.getWallboxElectricPowerConsumptionMonth(), Device.STROMZAEHLER_WALLBOX, null);
+            newModel.getWallboxElectricPowerConsumptionMonth(), history.get(History.HIST_STROM_WALLBOX).getCommand(), null);
+
         calculatePowerConsumption(newModel.getGasConsumptionDay(),
-                newModel.getGasConsumptionMonth(), Device.GASZAEHLER, null);
+                newModel.getGasConsumptionMonth(), history.get(History.HIST_GAS).getCommand(), null);
 
         calculateTemperatureHistory(newModel.getOutsideTemperature(), Device.AUSSENTEMPERATUR, Datapoint.VALUE);
         calculateTemperatureHistory(newModel.getKidsRoom1Temperature(), Device.THERMOMETER_KINDERZIMMER_1,
@@ -179,42 +196,42 @@ public class HistoryService {
         }
 
         calculatePowerConsumption(model.getPurchasedElectricPowerConsumptionDay(),
-            model.getPurchasedElectricPowerConsumptionMonth(), Device.STROMZAEHLER_BEZUG,
+            model.getPurchasedElectricPowerConsumptionMonth(), history.get(History.HIST_STROM_BEZUG).getCommand(),
             model.getPurchasedElectricPowerConsumptionMonth().isEmpty() ? null : model.getPurchasedElectricPowerConsumptionMonth()
                 .get(model.getPurchasedElectricPowerConsumptionMonth().size() - 1).measurePointMaxDateTime());
 
         calculatePowerConsumption(model.getFeedElectricPowerConsumptionDay(),
-                model.getFeedElectricPowerConsumptionMonth(), Device.STROMZAEHLER_EINSPEISUNG,
+                model.getFeedElectricPowerConsumptionMonth(), history.get(History.HIST_STROM_EINSPEISUNG).getCommand(),
                 model.getFeedElectricPowerConsumptionMonth().isEmpty() ? null : model.getFeedElectricPowerConsumptionMonth()
                         .get(model.getFeedElectricPowerConsumptionMonth().size() - 1).measurePointMaxDateTime());
 
         calculatePowerConsumption(model.getSelfusedElectricPowerConsumptionDay(),
-                model.getSelfusedElectricPowerConsumptionMonth(), Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HOUSE,
+                model.getSelfusedElectricPowerConsumptionMonth(), history.get(History.HIST_STROM_CONSUMPTION).getCommand(),
                 model.getSelfusedElectricPowerConsumptionMonth().isEmpty() ? null : model.getSelfusedElectricPowerConsumptionMonth()
                         .get(model.getSelfusedElectricPowerConsumptionMonth().size() - 1).measurePointMaxDateTime());
 
         calculatePowerConsumption(model.getProducedElectricPowerDay(),
-                model.getProducedElectricPowerMonth(), Device.ELECTRIC_POWER_PRODUCTION_COUNTER_HOUSE,
+                model.getProducedElectricPowerMonth(), history.get(History.HIST_STROM_PRODUCTION).getCommand(),
                 model.getProducedElectricPowerMonth().isEmpty() ? null : model.getProducedElectricPowerMonth()
                         .get(model.getProducedElectricPowerMonth().size() - 1).measurePointMaxDateTime());
 
         calculatePowerConsumption(model.getHeatpumpBasementElectricPowerConsumptionDay(),
-                model.getHeatpumpBasementElectricPowerConsumptionMonth(), Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT,
+                model.getHeatpumpBasementElectricPowerConsumptionMonth(), history.get(History.HIST_HEATPUMP_BASEMENT_CONSUMPTION).getCommand(),
                 model.getHeatpumpBasementElectricPowerConsumptionMonth().isEmpty() ? null : model.getHeatpumpBasementElectricPowerConsumptionMonth()
                         .get(model.getHeatpumpBasementElectricPowerConsumptionMonth().size() - 1).measurePointMaxDateTime());
 
         calculatePowerConsumption(model.getHeatpumpBasementWarmthPowerProductionDay(),
-                model.getHeatpumpBasementWarmthPowerProductionMonth(), Device.WARMTH_POWER_PRODUCTION_COUNTER_HEATPUMP_BASEMENT,
+                model.getHeatpumpBasementWarmthPowerProductionMonth(), history.get(History.HIST_HEATPUMP_BASEMENT_PRODUCTION).getCommand(),
                 model.getHeatpumpBasementWarmthPowerProductionMonth().isEmpty() ? null : model.getHeatpumpBasementWarmthPowerProductionMonth()
                         .get(model.getHeatpumpBasementWarmthPowerProductionMonth().size() - 1).measurePointMaxDateTime());
 
         calculatePowerConsumption(model.getWallboxElectricPowerConsumptionDay(),
-            model.getWallboxElectricPowerConsumptionMonth(), Device.STROMZAEHLER_WALLBOX,
+            model.getWallboxElectricPowerConsumptionMonth(), history.get(History.HIST_STROM_WALLBOX).getCommand(),
             model.getWallboxElectricPowerConsumptionMonth().isEmpty() ? null : model.getWallboxElectricPowerConsumptionMonth()
                 .get(model.getWallboxElectricPowerConsumptionMonth().size() - 1).measurePointMaxDateTime());
 
         calculatePowerConsumption(model.getGasConsumptionDay(),
-                model.getGasConsumptionMonth(), Device.GASZAEHLER,
+                model.getGasConsumptionMonth(), history.get(History.HIST_GAS).getCommand(),
                 model.getGasConsumptionMonth().isEmpty() ? null : model.getGasConsumptionMonth()
                         .get(model.getGasConsumptionMonth().size() - 1).measurePointMaxDateTime());
 
@@ -228,9 +245,9 @@ public class HistoryService {
         uploadService.uploadToClient(model);
     }
 
-    private void increaseTimestamps(Map<HomematicCommand, List<TimestampValuePair>> toInsert) {
+    private void increaseTimestamps(Map<AbstractCommand, List<TimestampValuePair>> toInsert) {
 
-        for (Entry<HomematicCommand, List<TimestampValuePair>> entry : toInsert.entrySet()) {
+        for (Entry<AbstractCommand, List<TimestampValuePair>> entry : toInsert.entrySet()) {
             for (TimestampValuePair pair : entry.getValue()) {
                 if (pair != null) {
                     pair.setTimestamp(pair.getTimestamp().plusSeconds(1));
@@ -239,7 +256,7 @@ public class HistoryService {
         }
     }
 
-    private void addEntry(HomematicCommand command, TimestampValuePair pair) {
+    private void addEntry(AbstractCommand command, TimestampValuePair pair) {
         if (pair != null && pair.getValue() != null) {
             if (!entryCache.containsKey(command)) {
                 entryCache.put(command, new LinkedList<>());
@@ -344,21 +361,9 @@ public class HistoryService {
     }
 
     private void calculatePowerConsumption(List<PowerConsumptionDay> day, List<PowerConsumptionMonth> month,
-                                           Device device, LocalDateTime fromDateTime) {
+                                           AbstractCommand command, LocalDateTime fromDateTime) {
 
-        Datapoint datapoint;
-        if(device.getType() == Type.GAS_POWER){
-            datapoint = Datapoint.GAS_ENERGY_COUNTER;
-        }else if(device.getDatapoints().contains(Datapoint.ENERGY_COUNTER)){
-            datapoint = Datapoint.ENERGY_COUNTER;
-        }else if(device.isSysVar()){
-            datapoint = Datapoint.SYSVAR_DUMMY;
-        }else{
-            datapoint = Datapoint.IEC_ENERGY_COUNTER;
-        }
-
-        List<TimestampValuePair> timestampValues =
-            readValuesWithCache(homematicCommandBuilder.read(device, datapoint), fromDateTime);
+        List<TimestampValuePair> timestampValues = readValuesWithCache(command, fromDateTime);
 
         if (timestampValues.isEmpty()) {
             return;
@@ -626,7 +631,7 @@ public class HistoryService {
         return combined.get(combined.size() - 1).getValue();
     }
 
-    protected List<TimestampValuePair> readValuesWithCache(HomematicCommand command, LocalDateTime optionalFromDateTime) {
+    protected List<TimestampValuePair> readValuesWithCache(AbstractCommand command, LocalDateTime optionalFromDateTime) {
 
         List<TimestampValuePair> cacheCopy = new LinkedList<>(entryCache.get(command));
 
@@ -673,7 +678,7 @@ public class HistoryService {
         }
     }
 
-    protected Map<HomematicCommand, List<TimestampValuePair>> getEntryCache() {
+    protected Map<AbstractCommand, List<TimestampValuePair>> getEntryCache() {
         return entryCache;
     }
 }

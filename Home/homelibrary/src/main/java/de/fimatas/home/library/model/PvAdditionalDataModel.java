@@ -1,6 +1,7 @@
 package de.fimatas.home.library.model;
 
 import de.fimatas.home.library.domain.model.AbstractSystemModel;
+import de.fimatas.home.library.domain.model.ValueWithTendency;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -28,9 +29,9 @@ public class PvAdditionalDataModel extends AbstractSystemModel {
 
     private int batteryWattage; // charging/feeding 'pvBatteryState' Watt
 
-    private int productionWattage;
+    private ValueWithTendency<BigDecimal> productionWattage;
 
-    private int consumptionWattage;
+    private ValueWithTendency<BigDecimal> consumptionWattage;
 
     private int maxChargeWattage; // maximum watt to charge
 

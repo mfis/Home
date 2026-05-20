@@ -4,16 +4,16 @@ import de.fimatas.heatpump.basement.driver.api.Credentials;
 import de.fimatas.heatpump.basement.driver.api.Request;
 import de.fimatas.heatpump.basement.driver.api.Response;
 import de.fimatas.home.controller.api.ExternalServiceHttpAPI;
-import de.fimatas.home.controller.api.HomematicAPI;
-import de.fimatas.home.controller.command.HomematicCommand;
 import de.fimatas.home.controller.command.HomematicCommandBuilder;
+import de.fimatas.home.controller.command.PersistentCacheCommand;
+import de.fimatas.home.controller.dao.PersistentCacheDAO;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.HeatpumpBasementDatapoint;
 import de.fimatas.home.library.domain.model.HeatpumpBasementDatapoints;
 import de.fimatas.home.library.domain.model.HeatpumpBasementModel;
 import de.fimatas.home.library.domain.model.ValueWithTendency;
-import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.model.ConditionColor;
+import de.fimatas.home.library.model.PersistentCacheKey;
 import de.fimatas.home.library.util.HomeUtils;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
@@ -52,7 +52,7 @@ public class HeatpumpBasementService {
     private ExternalServiceHttpAPI externalServiceHttpAPI;
 
     @Autowired
-    private HomematicAPI hmApi;
+    private PersistentCacheDAO persistentCacheDAO;
 
     @Autowired
     private HomematicCommandBuilder homematicCommandBuilder;
@@ -68,7 +68,7 @@ public class HeatpumpBasementService {
 
     private final CircuitBreaker circuitBreaker;
 
-    private final Map<Device, Integer> lastValuesWrote = new HashMap<>();
+    private final Map<PersistentCacheKey, Integer> lastValuesWrote = new HashMap<>();
 
     private final Map<HeatpumpBasementDatapoints, String> datapointEnumEntryToIdCache = new HashMap<>();
 
@@ -214,8 +214,8 @@ public class HeatpumpBasementService {
         }
 
         HeatpumpBasementModel newModel = emptyModel();
-        newModel.getHistoryDatapointsAndDevices().put(HeatpumpBasementDatapoints.LEISTUNGSAUFNAHME, Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT);
-        newModel.getHistoryDatapointsAndDevices().put(HeatpumpBasementDatapoints.WAERMELEISTUNG, Device.WARMTH_POWER_PRODUCTION_COUNTER_HEATPUMP_BASEMENT);
+        newModel.getHistoryDatapointsAndDevices().put(HeatpumpBasementDatapoints.LEISTUNGSAUFNAHME, PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT);
+        newModel.getHistoryDatapointsAndDevices().put(HeatpumpBasementDatapoints.WAERMELEISTUNG, PersistentCacheKey.WARMTH_POWER_PRODUCTION_COUNTER_HEATPUMP_BASEMENT);
         mapResponseToModel(response, newModel);
 
         if(!request.isReadFromCache()){
@@ -233,33 +233,31 @@ public class HeatpumpBasementService {
             return;
         }
 
-        List<HomematicCommand> commands = new ArrayList<>();
-        createHomematicSysVar(newModel, HeatpumpBasementDatapoints.VERBRAUCH, Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT, commands);
-        createHomematicSysVar(newModel, HeatpumpBasementDatapoints.WAERMEPRODUKTION, Device.WARMTH_POWER_PRODUCTION_COUNTER_HEATPUMP_BASEMENT, commands);
+        List<PersistentCacheCommand> commands = new ArrayList<>();
+        createCommands(newModel, HeatpumpBasementDatapoints.VERBRAUCH, PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT, commands);
+        createCommands(newModel, HeatpumpBasementDatapoints.WAERMEPRODUKTION, PersistentCacheKey.WARMTH_POWER_PRODUCTION_COUNTER_HEATPUMP_BASEMENT, commands);
 
-        if(!commands.isEmpty()){
-            hmApi.executeCommand(commands.toArray(new HomematicCommand[]{}));
-        }
+        commands.forEach(command -> persistentCacheDAO.write(command));
     }
 
-    private void createHomematicSysVar(HeatpumpBasementModel newModel, HeatpumpBasementDatapoints datapoint, Device device, List<HomematicCommand> commands) {
+    private void createCommands(HeatpumpBasementModel newModel, HeatpumpBasementDatapoints datapoint, PersistentCacheKey persistentCacheKey, List<PersistentCacheCommand> commands) {
 
         var datapointValue = newModel.getDatapoints().stream().filter(dp -> dp.getDatapointsRef().equals(datapoint)).findFirst();
 
         if (datapointValue.isPresent() && datapointValue.get().getValueWithTendency() != null) {
             var valueToWrite = datapointValue.get().getValueWithTendency().getValue();
-            var lastValueWrote = lastValuesWrote.get(device);
+            var lastValueWrote = lastValuesWrote.get(persistentCacheKey);
             if (lastValueWrote != null && lastValueWrote == valueToWrite.intValue()) {
                 if(log.isDebugEnabled()){
                     log.debug("SAME VALUE " + idForDatapoint(datapoint) + ": " + valueToWrite);
                 }
             }else{
                 log.debug("WRITE VALUE " + idForDatapoint(datapoint) + ": " + valueToWrite);
-                var command = homematicCommandBuilder.write(device,
-                        de.fimatas.home.library.homematic.model.Datapoint.SYSVAR_DUMMY,
-                        valueToWrite.toString());
+
+                var command = new PersistentCacheCommand(persistentCacheKey);
+                command.setInstantToWrite(valueToWrite);
                 commands.add(command);
-                lastValuesWrote.put(device, valueToWrite.intValue());
+                lastValuesWrote.put(persistentCacheKey, valueToWrite.intValue());
             }
         }
     }

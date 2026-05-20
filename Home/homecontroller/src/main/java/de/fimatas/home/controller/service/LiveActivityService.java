@@ -126,11 +126,11 @@ public class LiveActivityService {
     }
 
     private FieldValue valuePvProduction(PvAdditionalDataModel pvAdditionalDataModel) {
-        return new FieldValue(new BigDecimal(pvAdditionalDataModel.getProductionWattage()), LiveActivityField.PV_PRODUCTION);
+        return new FieldValue(pvAdditionalDataModel.getProductionWattage().getValue(), LiveActivityField.PV_PRODUCTION);
     }
 
     private FieldValue valueHouseConsumption(PvAdditionalDataModel pvAdditionalDataModel) {
-        return new FieldValue(new BigDecimal(pvAdditionalDataModel.getConsumptionWattage()), LiveActivityField.HOUSE_CONSUMPTION);
+        return new FieldValue(pvAdditionalDataModel.getConsumptionWattage().getValue(), LiveActivityField.HOUSE_CONSUMPTION);
     }
 
     private FieldValue valuePvBattery(PvAdditionalDataModel pvAdditionalDataModel) {

@@ -211,9 +211,9 @@ public class HomematicAPI {
         } else {
             StringBuilder sb = new StringBuilder();
             for (HomematicCommand cmd : currentValues.keySet()) {
-                sb.append(cmd.getCashedVarName()).append("\n");
+                sb.append(cmd.id()).append("\n");
             }
-            LOG.warn("Key/Value unknown: " + command.getCashedVarName() + " / known keys: " + (sb.isEmpty() ? "n/a" : ("\n" + sb.toString().trim())));
+            LOG.warn("Key/Value unknown: " + command.id() + " / known keys: " + (sb.isEmpty() ? "n/a" : ("\n" + sb.toString().trim())));
             return null;
         }
     }
@@ -383,7 +383,7 @@ public class HomematicAPI {
 
         if (rcsOk && eofOK && (callType == CallType.REFRESH || callType == CallType.DEVICE_STATE)) {
             for (HomematicCommand command : commands) {
-                currentValues.put(command, newStringToValues.get(command.getCashedVarName()));
+                currentValues.put(command, newStringToValues.get(command.id()));
             }
             if (callType == CallType.REFRESH) {
                 currentValuesTimestamp = LocalDateTime.now();

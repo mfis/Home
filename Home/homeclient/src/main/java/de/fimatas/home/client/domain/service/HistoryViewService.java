@@ -2,8 +2,10 @@ package de.fimatas.home.client.domain.service;
 
 import de.fimatas.home.client.domain.model.ChartEntry;
 import de.fimatas.home.client.domain.model.HistoryEntry;
+import de.fimatas.home.client.model.GenericDevice;
 import de.fimatas.home.library.domain.model.*;
 import de.fimatas.home.library.homematic.model.Device;
+import de.fimatas.home.library.model.PersistentCacheKey;
 import de.fimatas.home.library.util.HomeUtils;
 import de.fimatas.home.library.util.PhotovoltaicsAutarkyCalculator;
 import lombok.extern.apachecommons.CommonsLog;
@@ -44,51 +46,51 @@ public class HistoryViewService {
     public void fillHistoryViewModel(Model model, HistoryModel history, HouseModel house, String key) {
 
         if (key.equals(Device.STROMZAEHLER_BEZUG.historyKeyPrefix())) {
-            fillPowerHistoryMonthViewModel(model, Device.STROMZAEHLER_BEZUG, history.getPurchasedElectricPowerConsumptionMonth());
+            fillPowerHistoryMonthViewModel(model, GenericDevice.from(Device.STROMZAEHLER_BEZUG), history.getPurchasedElectricPowerConsumptionMonth());
             List<ChartEntry> dayViewModel =
-                    viewFormatter.fillPowerHistoryDayViewModel(Device.STROMZAEHLER_BEZUG, history.getPurchasedElectricPowerConsumptionDay(), true, false);
+                    viewFormatter.fillPowerHistoryDayViewModel(GenericDevice.from(Device.STROMZAEHLER_BEZUG), history.getPurchasedElectricPowerConsumptionDay(), true, false);
             model.addAttribute("chartEntries", dayViewModel);
 
         } else if (key.equals(Device.STROMZAEHLER_EINSPEISUNG.historyKeyPrefix())) {
-            fillPowerHistoryMonthViewModel(model, Device.STROMZAEHLER_EINSPEISUNG, history.getFeedElectricPowerConsumptionMonth());
+            fillPowerHistoryMonthViewModel(model, GenericDevice.from(Device.STROMZAEHLER_EINSPEISUNG), history.getFeedElectricPowerConsumptionMonth());
             List<ChartEntry> dayViewModel =
-                        viewFormatter.fillPowerHistoryDayViewModel(Device.STROMZAEHLER_EINSPEISUNG, history.getFeedElectricPowerConsumptionDay(), true, false);
+                        viewFormatter.fillPowerHistoryDayViewModel(GenericDevice.from(Device.STROMZAEHLER_EINSPEISUNG), history.getFeedElectricPowerConsumptionDay(), true, false);
             model.addAttribute("chartEntries", dayViewModel);
 
-        } else if (key.equals(Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HOUSE.historyKeyPrefix())) {
-            fillPowerHistoryMonthViewModel(model, Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HOUSE, history.getSelfusedElectricPowerConsumptionMonth());
+        } else if (key.equals(GenericDevice.from(PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HOUSE).name())) {
+            fillPowerHistoryMonthViewModel(model, GenericDevice.from(PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HOUSE), history.getSelfusedElectricPowerConsumptionMonth());
             List<ChartEntry> dayViewModel =
-                    viewFormatter.fillPowerHistoryDayViewModel(Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HOUSE, history.getSelfusedElectricPowerConsumptionDay(), true, false);
+                    viewFormatter.fillPowerHistoryDayViewModel(GenericDevice.from(PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HOUSE), history.getSelfusedElectricPowerConsumptionDay(), true, false);
             model.addAttribute("chartEntries", dayViewModel);
 
-        } else if (key.equals(Device.ELECTRIC_POWER_PRODUCTION_COUNTER_HOUSE.historyKeyPrefix())) {
-            fillPowerHistoryMonthViewModel(model, Device.ELECTRIC_POWER_PRODUCTION_COUNTER_HOUSE, history.getProducedElectricPowerMonth());
+        } else if (key.equals(GenericDevice.from(PersistentCacheKey.ELECTRIC_POWER_PRODUCTION_COUNTER_HOUSE).name())) {
+            fillPowerHistoryMonthViewModel(model, GenericDevice.from(PersistentCacheKey.ELECTRIC_POWER_PRODUCTION_COUNTER_HOUSE), history.getProducedElectricPowerMonth());
             List<ChartEntry> dayViewModel =
-                    viewFormatter.fillPowerHistoryDayViewModel(Device.ELECTRIC_POWER_PRODUCTION_COUNTER_HOUSE, history.getProducedElectricPowerDay(), true, false);
+                    viewFormatter.fillPowerHistoryDayViewModel(GenericDevice.from(PersistentCacheKey.ELECTRIC_POWER_PRODUCTION_COUNTER_HOUSE), history.getProducedElectricPowerDay(), true, false);
             model.addAttribute("chartEntries", dayViewModel);
 
         } else if (key.equals(house.getWallboxElectricalPowerConsumption().getDevice().historyKeyPrefix())) {
-            fillPowerHistoryMonthViewModel(model, house.getWallboxElectricalPowerConsumption().getDevice(), history.getWallboxElectricPowerConsumptionMonth());
+            fillPowerHistoryMonthViewModel(model, GenericDevice.from(house.getWallboxElectricalPowerConsumption().getDevice()), history.getWallboxElectricPowerConsumptionMonth());
             List<ChartEntry> dayViewModel =
-                viewFormatter.fillPowerHistoryDayViewModel(house.getWallboxElectricalPowerConsumption().getDevice(), history.getWallboxElectricPowerConsumptionDay(), true, false);
+                viewFormatter.fillPowerHistoryDayViewModel(GenericDevice.from(house.getWallboxElectricalPowerConsumption().getDevice()), history.getWallboxElectricPowerConsumptionDay(), true, false);
             model.addAttribute("chartEntries", dayViewModel);
 
         } else if (key.equals(Device.GASZAEHLER.historyKeyPrefix())) {
-            fillPowerHistoryMonthViewModel(model, Device.GASZAEHLER, history.getGasConsumptionMonth());
+            fillPowerHistoryMonthViewModel(model, GenericDevice.from(Device.GASZAEHLER), history.getGasConsumptionMonth());
             List<ChartEntry> dayViewModel =
-                    viewFormatter.fillPowerHistoryDayViewModel(Device.GASZAEHLER, history.getGasConsumptionDay(), true, false);
+                    viewFormatter.fillPowerHistoryDayViewModel(GenericDevice.from(Device.GASZAEHLER), history.getGasConsumptionDay(), true, false);
             model.addAttribute("chartEntries", dayViewModel);
 
-        } else if (key.equals(Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT.historyKeyPrefix())) {
-            fillPowerHistoryMonthViewModel(model, Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT, history.getHeatpumpBasementElectricPowerConsumptionMonth());
+        } else if (key.equals(GenericDevice.from(PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT).name())) {
+            fillPowerHistoryMonthViewModel(model, GenericDevice.from(PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT), history.getHeatpumpBasementElectricPowerConsumptionMonth());
             List<ChartEntry> dayViewModel =
-                    viewFormatter.fillPowerHistoryDayViewModel(Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT, history.getHeatpumpBasementElectricPowerConsumptionDay(), true, false);
+                    viewFormatter.fillPowerHistoryDayViewModel(GenericDevice.from(PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT), history.getHeatpumpBasementElectricPowerConsumptionDay(), true, false);
             model.addAttribute("chartEntries", dayViewModel);
 
-        } else if (key.equals(Device.WARMTH_POWER_PRODUCTION_COUNTER_HEATPUMP_BASEMENT.historyKeyPrefix())) {
-            fillPowerHistoryMonthViewModel(model, Device.WARMTH_POWER_PRODUCTION_COUNTER_HEATPUMP_BASEMENT, history.getHeatpumpBasementWarmthPowerProductionMonth());
+        } else if (key.equals(GenericDevice.from(PersistentCacheKey.WARMTH_POWER_PRODUCTION_COUNTER_HEATPUMP_BASEMENT).name())) {
+            fillPowerHistoryMonthViewModel(model, GenericDevice.from(PersistentCacheKey.WARMTH_POWER_PRODUCTION_COUNTER_HEATPUMP_BASEMENT), history.getHeatpumpBasementWarmthPowerProductionMonth());
             List<ChartEntry> dayViewModel =
-                    viewFormatter.fillPowerHistoryDayViewModel(Device.WARMTH_POWER_PRODUCTION_COUNTER_HEATPUMP_BASEMENT, history.getHeatpumpBasementWarmthPowerProductionDay(), true, false);
+                    viewFormatter.fillPowerHistoryDayViewModel(GenericDevice.from(PersistentCacheKey.WARMTH_POWER_PRODUCTION_COUNTER_HEATPUMP_BASEMENT), history.getHeatpumpBasementWarmthPowerProductionDay(), true, false);
             model.addAttribute("chartEntries", dayViewModel);
 
         } else if (key.equals(house.getConclusionClimateFacadeMin().getDevice().historyKeyPrefix())) {
@@ -164,7 +166,7 @@ public class HistoryViewService {
         model.addAttribute("historyEntries", listMonth);
     }
 
-    private void fillPowerHistoryMonthViewModel(Model model, Device device, List<PowerConsumptionMonth> pcms) {
+    private void fillPowerHistoryMonthViewModel(Model model, GenericDevice device, List<PowerConsumptionMonth> pcms) {
 
         List<HistoryEntry> list = new LinkedList<>();
         int index = 0;
@@ -200,7 +202,7 @@ public class HistoryViewService {
         model.addAttribute("historyEntries", list);
     }
 
-    private Long calculateProjectedConsumption(HistoryEntry entry, Device device, LocalDateTime dateTime, PowerConsumptionMonth pcm) {
+    private Long calculateProjectedConsumption(HistoryEntry entry, GenericDevice device, LocalDateTime dateTime, PowerConsumptionMonth pcm) {
 
         YearMonth yearMonthObject = YearMonth.of(dateTime.getYear(), dateTime.getMonthValue());
         int daysInMonth = yearMonthObject.lengthOfMonth();

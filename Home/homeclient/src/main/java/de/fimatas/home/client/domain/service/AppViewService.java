@@ -9,7 +9,6 @@ import de.fimatas.home.client.request.HomeRequestMapping;
 import de.fimatas.home.library.domain.model.HeatpumpRoofPreset;
 import de.fimatas.home.library.domain.model.Place;
 import de.fimatas.home.library.domain.model.Tendency;
-import de.fimatas.home.library.homematic.model.Type;
 import de.fimatas.home.library.model.ConditionColor;
 import de.fimatas.home.library.util.ViewFormatterUtils;
 import jakarta.annotation.PostConstruct;
@@ -406,12 +405,7 @@ public class AppViewService {
     private HomeViewValueModel mapTodayPower(PlaceDirectives placeDirectives, PowerView view, Optional<String> direction, String overrideColorClass) {
         HomeViewValueModel hvm = new HomeViewValueModel();
         hvm.setId(view.getId());
-        hvm.setKey(view.getDevice().getType() == Type.GAS_POWER ? "Gas" : "Strom");
-        if(view.getDevice().getType() == Type.GAS_POWER){
-            hvm.setKey("Gas");
-        }else{
-            hvm.setKey("Strom");
-        }
+        hvm.setKey("Strom");
         direction.ifPresent(d -> {
             hvm.setKey(hvm.getKey() + " " + d);
             hvm.setId(hvm.getId() + d);

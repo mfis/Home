@@ -1,9 +1,16 @@
 package de.fimatas.home.library.domain.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
+import java.io.Serial;
 import java.io.Serializable;
 
+@Setter
+@Getter
 public class ValueWithTendency<T extends Serializable> implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     private T value;
@@ -23,35 +30,4 @@ public class ValueWithTendency<T extends Serializable> implements Serializable {
         super();
     }
 
-    public T getValue() {
-        return value;
-    }
-
-    public void setValue(T value) {
-        this.value = value;
-    }
-
-    public T getReferenceValue() {
-        return referenceValue;
-    }
-
-    public void setReferenceValue(T referenceValue) {
-        this.referenceValue = referenceValue;
-    }
-
-    public long getReferenceDateTime() {
-        return referenceDateTime;
-    }
-
-    public void setReferenceDateTime(long referenceDateTime) {
-        this.referenceDateTime = referenceDateTime;
-    }
-
-    public Tendency getTendency() {
-        return tendency;
-    }
-
-    public void setTendency(Tendency tendency) {
-        this.tendency = tendency;
-    }
 }

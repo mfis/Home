@@ -1,19 +1,12 @@
 package de.fimatas.home.controller.command;
 
-import static de.fimatas.home.controller.command.HomematicCommandConstants.BRACKET_CLOSE;
-import static de.fimatas.home.controller.command.HomematicCommandConstants.BRACKET_OPEN;
-import static de.fimatas.home.controller.command.HomematicCommandConstants.EMPTY;
-import static de.fimatas.home.controller.command.HomematicCommandConstants.EQUAL;
-import static de.fimatas.home.controller.command.HomematicCommandConstants.E_O_F;
-import static de.fimatas.home.controller.command.HomematicCommandConstants.POINT;
-import static de.fimatas.home.controller.command.HomematicCommandConstants.QUOTE;
-import static de.fimatas.home.controller.command.HomematicCommandConstants.SEMICOLON;
-import static de.fimatas.home.controller.command.HomematicCommandConstants.VAR;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import de.fimatas.home.controller.service.DeviceQualifier;
 import de.fimatas.home.library.homematic.model.HomematicProtocol;
 import de.fimatas.home.library.util.HomeUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import static de.fimatas.home.controller.command.HomematicCommandConstants.*;
 
 @Component
 public class HomematicCommandProcessor {
@@ -85,8 +78,8 @@ public class HomematicCommandProcessor {
 
     public String buildVarName(HomematicCommand command) {
 
-        if (command.getCashedVarName() != null) {
-            return command.getCashedVarName();
+        if (command.id() != null) {
+            return command.id();
         }
 
         StringBuilder sb = new StringBuilder(60);
@@ -121,8 +114,8 @@ public class HomematicCommandProcessor {
 
         sb.append(HomeUtils.escape(name));
         sb.append(command.getCommandType().getVarNameSuffix());
-        command.setCashedVarName(sb.toString().toUpperCase());
-        return command.getCashedVarName();
+        command.setVarName(sb.toString().toUpperCase());
+        return command.id();
     }
 
     private String datapointAdress(HomematicCommand command) {
@@ -148,7 +141,7 @@ public class HomematicCommandProcessor {
         if (command.getStateToSet() != null) {
             return command.getStateToSet().toString();
         }
-        if (command.getCommandType() == CommandType.EOF) {
+        if (command.getCommandType() == HomematicCommandType.EOF) {
             return QUOTE + E_O_F + QUOTE;
         }
         throw new IllegalArgumentException("no value to set");

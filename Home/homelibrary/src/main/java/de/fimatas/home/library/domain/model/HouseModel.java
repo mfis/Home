@@ -68,12 +68,6 @@ public class HouseModel extends AbstractSystemModel {
 
     private PowerMeter gridElectricalPower;
 
-    private PowerMeter producedElectricalPower;
-
-    private PowerMeter consumedElectricalPower;
-
-    private long pvStatusTime;
-
     private long gridElectricStatusTime;
 
     private PowerMeter wallboxElectricalPowerConsumption;

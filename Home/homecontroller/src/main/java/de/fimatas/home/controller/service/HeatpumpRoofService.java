@@ -1,6 +1,7 @@
 package de.fimatas.home.controller.service;
 
 import de.fimatas.home.controller.api.TasmotaAPI;
+import de.fimatas.home.controller.command.PersistentCacheCommand;
 import de.fimatas.home.controller.dao.PersistentCacheDAO;
 import de.fimatas.home.controller.model.HeatpumpRoofProgram;
 import de.fimatas.home.library.dao.ModelObjectDAO;
@@ -8,6 +9,8 @@ import de.fimatas.home.library.domain.model.HeatpumpRoof;
 import de.fimatas.home.library.domain.model.HeatpumpRoofModel;
 import de.fimatas.home.library.domain.model.HeatpumpRoofPreset;
 import de.fimatas.home.library.domain.model.Place;
+import de.fimatas.home.library.model.PersistentCacheEntry;
+import de.fimatas.home.library.model.PersistentCacheKey;
 import de.fimatas.home.library.util.HomeAppConstants;
 import jakarta.annotation.PreDestroy;
 import lombok.AllArgsConstructor;
@@ -48,6 +51,9 @@ public class HeatpumpRoofService {
     @Autowired
     private Environment env;
 
+    @Autowired
+    private PersistentCacheDAO  persistentCacheDAO;
+
     @Value("${heatpump.roof.name:UnbekannteWaermepumpe}")
     private String heatpumpName;
 
@@ -56,8 +62,6 @@ public class HeatpumpRoofService {
     private Map<Place, Optional<SchedulerData>> placeScheduler;
 
     private boolean initDone = false;
-
-    private final static String PERSISTENT_CACHE_KEY = "HeatpumpRoofCache";
 
     private final Map<HeatpumpRoofPreset, SchedulerConfig> schedulerConfigMap = Map.of(
             HeatpumpRoofPreset.DRY_TIMER, new SchedulerConfig(HeatpumpRoofPreset.OFF, HeatpumpRoofPreset.DRY_TIMER, HomeAppConstants.HEATPUMP_DRY_TIMER_DURATION_MINUTES, null),
@@ -88,15 +92,15 @@ public class HeatpumpRoofService {
         placeScheduler = new EnumMap<>(Place.class);
         dictPlaceToRoomNameInDriver.keySet().forEach(place -> placeScheduler.put(place, Optional.empty()));
 
-        HeatpumpRoofModel cachedModel = PersistentCacheDAO.getInstance().read(PERSISTENT_CACHE_KEY, HeatpumpRoofModel.class);
+        PersistentCacheEntry<HeatpumpRoofModel> cachedModel = persistentCacheDAO.read(PersistentCacheKey.HEATPUMP_ROOF, HeatpumpRoofModel.class);
 
         if(cachedModel == null) {
             switchModelToUnknown();
         } else {
-            if (Instant.ofEpochMilli(cachedModel.getTimestamp()).isBefore(Instant.now().minus(Duration.ofMinutes(20)))) {
+            if (cachedModel.getTimestamp().isBefore(LocalDateTime.now().minus(Duration.ofMinutes(20)))) {
                 switchModelToUnknown(); // ignore older models
             } else{
-                ModelObjectDAO.getInstance().write(cachedModel);
+                ModelObjectDAO.getInstance().write(cachedModel.getValue());
             }
         }
 
@@ -108,7 +112,7 @@ public class HeatpumpRoofService {
     public void preDestroy() {
         HeatpumpRoofModel model = ModelObjectDAO.getInstance().readHeatpumpRoofModel();
         if(model != null) {
-            PersistentCacheDAO.getInstance().write(PERSISTENT_CACHE_KEY, model);
+            persistentCacheDAO.write(new PersistentCacheCommand(PersistentCacheKey.HEATPUMP_ROOF, model));
         }
     }
 

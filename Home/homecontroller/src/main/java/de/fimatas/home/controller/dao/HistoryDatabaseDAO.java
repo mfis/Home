@@ -1,5 +1,6 @@
 package de.fimatas.home.controller.dao;
 
+import de.fimatas.home.controller.command.AbstractCommand;
 import de.fimatas.home.controller.command.HomematicCommand;
 import de.fimatas.home.controller.database.mapper.BigDecimalRowMapper;
 import de.fimatas.home.controller.database.mapper.LongRowMapper;
@@ -56,7 +57,7 @@ public class HistoryDatabaseDAO {
 
         long completeCount = 0;
         for (HistoryElement history : history.list()) {
-            var varName = history.getCommand().getCashedVarName();
+            var varName = history.getCommand().id();
             jdbcTemplate.update("CREATE CACHED TABLE IF NOT EXISTS " + varName
                 + " (TS TIMESTAMP NOT NULL, TYP CHAR(1) NOT NULL, VAL DOUBLE NOT NULL, PRIMARY KEY (TS));");
             jdbcTemplate
@@ -70,14 +71,14 @@ public class HistoryDatabaseDAO {
     }
 
     @Transactional
-    public void persistEntries(Map<HomematicCommand, List<TimestampValuePair>> toInsert) {
+    public void persistEntries(Map<AbstractCommand, List<TimestampValuePair>> toInsert) {
 
         if (setupIsRunning) {
             throw new IllegalStateException("cannot persist entries - setup is still running");
         }
 
-        for (Entry<HomematicCommand, List<TimestampValuePair>> entry : toInsert.entrySet()) {
-            String table = entry.getKey().getCashedVarName();
+        for (Entry<AbstractCommand, List<TimestampValuePair>> entry : toInsert.entrySet()) {
+            String table = entry.getKey().id();
             for (TimestampValuePair pair : entry.getValue()) {
                 if (pair != null) {
                     String ts = formatTimestamp(pair.getTimestamp());
@@ -98,7 +99,7 @@ public class HistoryDatabaseDAO {
         String and = fromDateTime != null && untilDateTime != null ? " and " : "";
 
         String query = "select " + (historyValueType == HistoryValueType.MIN ? "min" : "max") + "(val) as val FROM "
-            + command.getCashedVarName() + where
+            + command.id() + where
             + (fromDateTime != null ? ("ts >= '" + formatTimestamp(fromDateTime) + "'") : "") + and
             + (untilDateTime != null ? ("ts < '" + formatTimestamp(untilDateTime) + "'") : "") + ";";
 
@@ -115,7 +116,7 @@ public class HistoryDatabaseDAO {
             LocalDateTime fromDateTime, LocalDateTime untilDateTime, List<TimeRange> timeranges) {
 
         String query = "select " + (historyValueType == HistoryValueType.MIN ? "min" : "max") + "(val) as val FROM "
-            + command.getCashedVarName() + " where ts >= '" + formatTimestamp(fromDateTime) + "' and ts < '"
+            + command.id() + " where ts >= '" + formatTimestamp(fromDateTime) + "' and ts < '"
             + formatTimestamp(untilDateTime) + "'" + " and hour(ts) " + TimeRange.hoursSqlQueryString(timeranges) + ";";
 
         BigDecimal result = jdbcTemplate.queryForObject(query, new BigDecimalRowMapper(VALUE), new Object[] {});
@@ -130,7 +131,7 @@ public class HistoryDatabaseDAO {
     public TimestampValuePair readFirstValueBefore(HomematicCommand command, LocalDateTime localDateTime, int maxHoursReverse) {
 
         String query =
-            "select val FROM " + command.getCashedVarName() + " where ts <= '" + formatTimestamp(localDateTime) + "' and ts > '"
+            "select val FROM " + command.id() + " where ts <= '" + formatTimestamp(localDateTime) + "' and ts > '"
                 + formatTimestamp(localDateTime.minusHours(maxHoursReverse)) + "' order by ts desc fetch first row only;";
 
         List<BigDecimal> result = jdbcTemplate.query(query, new BigDecimalRowMapper(VALUE), new Object[] {});
@@ -142,9 +143,9 @@ public class HistoryDatabaseDAO {
     }
 
     @Transactional(readOnly = true)
-    public TimestampValuePair readLatestValue(HomematicCommand command) {
+    public TimestampValuePair readLatestValue(AbstractCommand command) {
 
-        var varName = command.getCashedVarName();
+        var varName = command.id();
         String query = "SELECT * FROM " + varName + " where ts = (select max(ts) from " + varName + ");";
 
         List<TimestampValuePair> result = jdbcTemplate.query(query, new TimestampValueRowMapper(), new Object[] {});
@@ -156,14 +157,14 @@ public class HistoryDatabaseDAO {
     }
 
     @Transactional(readOnly = true)
-    public List<TimestampValuePair> readValues(HomematicCommand command, LocalDateTime optionalFromDateTime) {
+    public List<TimestampValuePair> readValues(AbstractCommand command, LocalDateTime optionalFromDateTime) {
 
         String whereClause = StringUtils.EMPTY;
         if (optionalFromDateTime != null) {
             String startTs = formatTimestamp(optionalFromDateTime);
             whereClause = " where ts > '" + startTs + "'";
         }
-        return jdbcTemplate.query("select * FROM " + command.getCashedVarName() + whereClause + " order by ts;",
+        return jdbcTemplate.query("select * FROM " + command.id() + whereClause + " order by ts;",
                 new TimestampValueRowMapper(), new Object[] {});
     }
 

@@ -1,14 +1,14 @@
 package de.fimatas.home.controller.service;
 
-import de.fimatas.home.controller.api.HomematicAPI;
 import de.fimatas.home.controller.api.SolarmanAPI;
-import de.fimatas.home.controller.command.HomematicCommand;
 import de.fimatas.home.controller.command.HomematicCommandBuilder;
+import de.fimatas.home.controller.command.PersistentCacheCommand;
 import de.fimatas.home.controller.dao.DaoUtils;
+import de.fimatas.home.controller.dao.PersistentCacheDAO;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.PvBatteryMinCharge;
-import de.fimatas.home.library.homematic.model.Datapoint;
-import de.fimatas.home.library.homematic.model.Device;
+import de.fimatas.home.library.domain.model.ValueWithTendency;
+import de.fimatas.home.library.model.PersistentCacheKey;
 import de.fimatas.home.library.model.PhotovoltaicsStringsStatus;
 import de.fimatas.home.library.model.PvAdditionalDataModel;
 import de.fimatas.home.library.model.PvBatteryState;
@@ -35,6 +35,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 
+import static de.fimatas.home.library.util.HomeUtils.calculateTendency;
+
 @Component
 @CommonsLog
 public class SolarmanService {
@@ -43,7 +45,7 @@ public class SolarmanService {
     private SolarmanAPI solarmanAPI;
 
     @Autowired
-    private HomematicAPI hmApi;
+    private PersistentCacheDAO persistentCacheDAO;
 
     @Autowired
     private HomematicCommandBuilder homematicCommandBuilder;
@@ -64,18 +66,18 @@ public class SolarmanService {
     private long lastCollectionTimeRead = 0;
 
     private int lastLoggedSOC = Integer.MIN_VALUE;
-    private final HashMap<Device, String> lastWrittenToHomematic = new HashMap<>();
+    private static final BigDecimal POWER_TENDENCY_DIFF = new BigDecimal("99.99");
 
     protected static final String FIELD_PRODUCTION_COUNTER = "Et_ge0";
     protected static final String FIELD_CONSUMPTION_COUNTER = "Et_use1";
     protected static final String FIELD_PRODUCTION_ACTUAL = "PVTP";
     protected static final String FIELD_CONSUMPTION_ACTUAL = "E_Puse_t1";
 
-    private static final Map<String, Device> SOLARMAN_KEY_TO_HM_DEVICE  = new HashMap<>() {{
-        put(FIELD_PRODUCTION_COUNTER, Device.ELECTRIC_POWER_PRODUCTION_COUNTER_HOUSE); // Summe PV
-        put(FIELD_CONSUMPTION_COUNTER, Device.ELECTRIC_POWER_CONSUMPTION_COUNTER_HOUSE); // Summe Verbrauch
-        put(FIELD_PRODUCTION_ACTUAL, Device.ELECTRIC_POWER_PRODUCTION_ACTUAL_HOUSE); // produktion
-        put(FIELD_CONSUMPTION_ACTUAL, Device.ELECTRIC_POWER_CONSUMPTION_ACTUAL_HOUSE); // verbrauch
+    private static final Map<String, PersistentCacheKey> SOLARMAN_KEY_TO_PERSISTENT_CACHE  = new HashMap<>() {{
+        put(FIELD_PRODUCTION_COUNTER, PersistentCacheKey.ELECTRIC_POWER_PRODUCTION_COUNTER_HOUSE); // Summe PV
+        put(FIELD_CONSUMPTION_COUNTER, PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HOUSE); // Summe Verbrauch
+        put(FIELD_PRODUCTION_ACTUAL, PersistentCacheKey.ELECTRIC_POWER_PRODUCTION_ACTUAL_HOUSE); // produktion
+        put(FIELD_CONSUMPTION_ACTUAL, PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_ACTUAL_HOUSE); // verbrauch
     }};
 
     private static final Map<String, String> INVERTER_KEYS  = new HashMap<>() {{
@@ -112,23 +114,23 @@ public class SolarmanService {
             return;
         }
 
-        List<HomematicCommand> updateCommands = new ArrayList<>();
+        var valuesToWriteToPersistentCache = new HashMap<PersistentCacheKey, Object>();
         lastCollectionTimeRead = Long.parseLong(currentData.get("collectionTime").asString()) * 1000L;
         var stringAmps = new StringAmps();
         String alarm = null;
-        updateCommands.add(homematicCommandBuilder.write(Device.ELECTRIC_POWER_ACTUAL_TIMESTAMP_HOUSE, Datapoint.SYSVAR_DUMMY, Long.toString(lastCollectionTimeRead / 1000)));
+        valuesToWriteToPersistentCache.put(PersistentCacheKey.ELECTRIC_POWER_ACTUAL_TIMESTAMP_HOUSE, (lastCollectionTimeRead / 1000));
         Map<String, String> inverterKeysAndValues = new HashMap<>();
 
         final ArrayNode dataList = (ArrayNode) currentData.get("dataList");
         Collection<JsonNode> dataListElements = dataList.elements();
-        var valuesToWriteToHomematic = new HashMap<Device, String>();
+
         for (JsonNode element : dataListElements) {
             String key = element.get("key").asString();
             String value = element.get("value").asString();
-            if(SOLARMAN_KEY_TO_HM_DEVICE.containsKey(key)){
-                Device device = SOLARMAN_KEY_TO_HM_DEVICE.get(key);
-                log.debug("   " + device + " = " + value);
-                valuesToWriteToHomematic.put(device, value);
+            if(SOLARMAN_KEY_TO_PERSISTENT_CACHE.containsKey(key)){
+                PersistentCacheKey persistentCacheKey = SOLARMAN_KEY_TO_PERSISTENT_CACHE.get(key);
+                log.debug("   " + persistentCacheKey + " = " + value);
+                valuesToWriteToPersistentCache.put(persistentCacheKey, value);
             }else if (key.equalsIgnoreCase("DC1")) {
                 stringAmps.string1 = new BigDecimal(value);
             }else if (key.equalsIgnoreCase("DC2")) {
@@ -141,18 +143,36 @@ public class SolarmanService {
             }
         }
 
-        var changedValuesToWriteToHomematic = valuesToWriteToHomematic.entrySet().stream().filter(vtw -> !lastWrittenToHomematic.containsKey(vtw.getKey()) || !vtw.getValue().equals(lastWrittenToHomematic.get(vtw.getKey()))).toList();
-        changedValuesToWriteToHomematic.forEach(cvtw -> updateCommands.add(homematicCommandBuilder.write(cvtw.getKey(), Datapoint.SYSVAR_DUMMY, cvtw.getValue())));
-        hmApi.executeCommand(updateCommands.toArray(new HomematicCommand[0]));
-        changedValuesToWriteToHomematic.forEach(cvtw -> lastWrittenToHomematic.put(cvtw.getKey(), cvtw.getValue()));
+        valuesToWriteToPersistentCache.forEach((key, val) -> persistentCacheDAO.write(new PersistentCacheCommand(key, val)));
 
         PvAdditionalDataModel pvAdditionalDataModel = processPvAdditionalDataModel(inverterKeysAndValues, stringAmps, alarm);
         if(pvAdditionalDataModel != null){
             pvAdditionalDataModel.setLastCollectionTimeReadMillis(lastCollectionTimeRead);
+            calculateTendencies(pvAdditionalDataModel);
             ModelObjectDAO.getInstance().write(pvAdditionalDataModel);
             uploadService.uploadToClient(pvAdditionalDataModel);
             liveActivityService.newModel(PvAdditionalDataModel.class);
         }
+    }
+
+    private void calculateTendencies(PvAdditionalDataModel pvAdditionalDataModel) {
+
+        var oldModel = ModelObjectDAO.getInstance().readPvAdditionalDataModel();
+        ValueWithTendency<BigDecimal> oldProduction;
+        ValueWithTendency<BigDecimal> oldConsumption;
+
+        ValueWithTendency<BigDecimal> referencePower;
+        if (oldModel == null) {
+            oldProduction = pvAdditionalDataModel.getProductionWattage();
+            oldProduction.setReferenceValue(oldProduction.getValue());
+            oldConsumption = pvAdditionalDataModel.getConsumptionWattage();
+            oldConsumption.setReferenceValue(oldConsumption.getValue());
+        } else {
+            oldProduction = oldModel.getProductionWattage();
+            oldConsumption = oldModel.getConsumptionWattage();
+        }
+        calculateTendency(lastCollectionTimeRead, oldProduction, pvAdditionalDataModel.getProductionWattage(), POWER_TENDENCY_DIFF);
+        calculateTendency(lastCollectionTimeRead, oldConsumption, pvAdditionalDataModel.getConsumptionWattage(), POWER_TENDENCY_DIFF);
     }
 
     private PvAdditionalDataModel processPvAdditionalDataModel(Map<String, String> inverterKeysAndValues, StringAmps stringAmps, String alarm) {
@@ -191,8 +211,8 @@ public class SolarmanService {
         pvAdditionalDataModel.setPvBatteryState(solarmanBatteryStateToInternalBatteryState(inverterKeysAndValues.get("B_ST1")));
         pvAdditionalDataModel.setBatteryWattage(Math.abs(new BigDecimal(inverterKeysAndValues.get("B_P1")).intValue()));
 
-        pvAdditionalDataModel.setProductionWattage(new BigDecimal(inverterKeysAndValues.get(FIELD_PRODUCTION_ACTUAL)).intValue());
-        pvAdditionalDataModel.setConsumptionWattage(new BigDecimal(inverterKeysAndValues.get(FIELD_CONSUMPTION_ACTUAL)).intValue());
+        pvAdditionalDataModel.setProductionWattage(new ValueWithTendency<>(new BigDecimal(inverterKeysAndValues.get(FIELD_PRODUCTION_ACTUAL))));
+        pvAdditionalDataModel.setConsumptionWattage(new ValueWithTendency<>(new BigDecimal(inverterKeysAndValues.get(FIELD_CONSUMPTION_ACTUAL))));
 
         // DetailInfo
         pvAdditionalDataModel.getDetailInfos().put("Strom obere Reihe", ONE_DIGIT_FORMAT.format(stringAmps.string2) + " Ampere");

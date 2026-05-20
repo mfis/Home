@@ -2,7 +2,10 @@ package de.fimatas.home.controller.service;
 
 import de.fimatas.home.controller.dao.LiveActivityDAO;
 import de.fimatas.home.library.dao.ModelObjectDAO;
-import de.fimatas.home.library.domain.model.*;
+import de.fimatas.home.library.domain.model.ElectricVehicle;
+import de.fimatas.home.library.domain.model.ElectricVehicleModel;
+import de.fimatas.home.library.domain.model.ElectricVehicleState;
+import de.fimatas.home.library.domain.model.ValueWithTendency;
 import de.fimatas.home.library.model.PvAdditionalDataModel;
 import de.fimatas.home.library.model.PvBatteryState;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,9 +27,9 @@ import java.util.Date;
 import java.util.Map;
 
 import static de.fimatas.home.controller.service.LiveActivityService.EQUAL_MODEL_STALE_PREVENTION_DURATION;
-import static org.mockito.ArgumentMatchers.*;
-
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -234,8 +237,8 @@ class LiveActivityServiceTest {
         pvAdditionalDataModel.setPvBatteryState(pvBatteryState);
         pvAdditionalDataModel.setBatteryWattage(0);
         pvAdditionalDataModel.setBatteryPercentageEmptyForOverflowControl(5);
-        pvAdditionalDataModel.setProductionWattage(production);
-        pvAdditionalDataModel.setConsumptionWattage(consumption);
+        pvAdditionalDataModel.setProductionWattage(new ValueWithTendency<>(new BigDecimal(production)));
+        pvAdditionalDataModel.setConsumptionWattage(new ValueWithTendency<>(new BigDecimal(consumption)));
         return pvAdditionalDataModel;
     }
 

@@ -2,10 +2,9 @@ package de.fimatas.home.client.domain.service;
 
 import de.fimatas.home.client.domain.model.ChartEntry;
 import de.fimatas.home.client.domain.model.ValueWithCaption;
+import de.fimatas.home.client.model.GenericDevice;
 import de.fimatas.home.library.domain.model.PowerConsumptionDay;
 import de.fimatas.home.library.domain.model.TimeRange;
-import de.fimatas.home.library.homematic.model.Device;
-import de.fimatas.home.library.homematic.model.Type;
 import de.fimatas.home.library.util.HomeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
@@ -54,16 +53,16 @@ public class ViewFormatter {
 
     private static final String M_3 = " m³";
 
-    public static String actualPowerUnit(Device device){
-        return device.getType() == Type.GAS_POWER ? M_3_H : WATT;
+    public static String actualPowerUnit(GenericDevice device){
+        return WATT;
     }
 
-    public static String powerConsumptionUnit(Device device){
-        return device.getType() == Type.GAS_POWER ? M_3 : K_W_H;
+    public static String powerConsumptionUnit(GenericDevice device){
+        return K_W_H;
     }
 
-    private static BigDecimal powerConsumptionValue(Device device, BigDecimal value){
-        return device.getType() == Type.ELECTRIC_POWER ? value.divide(KWH_FACTOR, new MathContext(3, RoundingMode.HALF_UP)) : value;
+    private static BigDecimal powerConsumptionValue(GenericDevice device, BigDecimal value){
+        return value.divide(KWH_FACTOR, new MathContext(3, RoundingMode.HALF_UP));
     }
 
     public static String powerInWattToKiloWatt(BigDecimal value){
@@ -72,13 +71,13 @@ public class ViewFormatter {
 
     }
 
-    public static String powerConsumptionValueForView(Device device, BigDecimal value){
-        var decimalFormat = device.getType() == Type.GAS_POWER ? buildDecimalFormat("0.0") : buildDecimalFormat("0");
+    public static String powerConsumptionValueForView(GenericDevice device, BigDecimal value){
+        var decimalFormat = buildDecimalFormat("0");
         return decimalFormat.format(powerConsumptionValue(device, value));
     }
 
-    public static String actualPowerConsumptionValueForView(Device device, BigDecimal value){
-        var decimalFormat = device.getType() == Type.GAS_POWER ? buildDecimalFormat("0.0") : buildDecimalFormat("0");
+    public static String actualPowerConsumptionValueForView(GenericDevice device, BigDecimal value){
+        var decimalFormat = buildDecimalFormat("0");
         return decimalFormat.format(value);
     }
 
@@ -177,7 +176,7 @@ public class ViewFormatter {
         return frmt;
     }
 
-    public List<ChartEntry> fillPowerHistoryDayViewModel(Device device, List<PowerConsumptionDay> days, boolean historyView, boolean onlyToday) {
+    public List<ChartEntry> fillPowerHistoryDayViewModel(GenericDevice device, List<PowerConsumptionDay> days, boolean historyView, boolean onlyToday) {
 
         DecimalFormat decimalFormat = buildDecimalFormat("0.#");
         LocalDateTime today = LocalDateTime.now();
@@ -212,7 +211,7 @@ public class ViewFormatter {
         return chartEntries;
     }
 
-    private void chartEntryLabels(Device device, boolean historyView, PowerConsumptionDay pcd, ChartEntry chartEntry, String sumCaption) {
+    private void chartEntryLabels(GenericDevice device, boolean historyView, PowerConsumptionDay pcd, ChartEntry chartEntry, String sumCaption) {
         if (historyView) {
             chartEntry
                 .setLabel(StringUtils.capitalize(formatTimestamp(pcd.getMeasurePointMax(), TimestampFormat.DATE)));
@@ -242,7 +241,7 @@ public class ViewFormatter {
         return maxSum;
     }
 
-    private BigDecimal handleAllTimeRangesForOneDay(Device device, DecimalFormat decimalFormat, TimeRange actualRange, PowerConsumptionDay pcd,
+    private BigDecimal handleAllTimeRangesForOneDay(GenericDevice device, DecimalFormat decimalFormat, TimeRange actualRange, PowerConsumptionDay pcd,
             boolean isToday, BigDecimal chartValuePerPowerValue, ChartEntry chartEntry, BigDecimal daySum) {
 
         for (Map.Entry<TimeRange, BigDecimal> entry : pcd.getValues().entrySet()) {
@@ -286,7 +285,7 @@ public class ViewFormatter {
         chartEntry.getValuesWithCaptions().add(spacer);
     }
 
-    private BigDecimal handlePreviousOrActualTimeRange(Device device, DecimalFormat decimalFormat, TimeRange actualRange, boolean isToday,
+    private BigDecimal handlePreviousOrActualTimeRange(GenericDevice device, DecimalFormat decimalFormat, TimeRange actualRange, boolean isToday,
             Map.Entry<TimeRange, BigDecimal> entry, ValueWithCaption vwc) {
 
         BigDecimal kwh;

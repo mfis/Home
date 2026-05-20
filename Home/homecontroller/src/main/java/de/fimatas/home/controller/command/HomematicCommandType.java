@@ -2,19 +2,10 @@ package de.fimatas.home.controller.command;
 
 import lombok.Getter;
 
-import static de.fimatas.home.controller.command.HomematicCommandConstants.DATAPOINT_METHOD;
-import static de.fimatas.home.controller.command.HomematicCommandConstants.DOM_METHOD;
-import static de.fimatas.home.controller.command.HomematicCommandConstants.EMPTY;
-import static de.fimatas.home.controller.command.HomematicCommandConstants.SEND_TIMESTAMP;
-import static de.fimatas.home.controller.command.HomematicCommandConstants.PREFIX_RC;
-import static de.fimatas.home.controller.command.HomematicCommandConstants.PREFIX_VAR;
-import static de.fimatas.home.controller.command.HomematicCommandConstants.PROGRAM_EXECUTE;
-import static de.fimatas.home.controller.command.HomematicCommandConstants.STATE;
-import static de.fimatas.home.controller.command.HomematicCommandConstants.SUFFIX_TS;
-import static de.fimatas.home.controller.command.HomematicCommandConstants.VALUE;
+import static de.fimatas.home.controller.command.HomematicCommandConstants.*;
 
 @Getter
-public enum CommandType {
+public enum HomematicCommandType {
 
     GET_DEVICE_VALUE(PREFIX_VAR, EMPTY, DATAPOINT_METHOD, VALUE, false), //
     GET_DEVICE_VALUE_TS(PREFIX_VAR, SUFFIX_TS, DATAPOINT_METHOD, SEND_TIMESTAMP, false), //
@@ -37,8 +28,8 @@ public enum CommandType {
 
     private final boolean hasDataFunctionParam;
 
-    CommandType(String varNamePrefix, String varNameSuffix, String accessMethod, String dataFunction,
-            boolean hasDataFunctionParam) {
+    HomematicCommandType(String varNamePrefix, String varNameSuffix, String accessMethod, String dataFunction,
+                         boolean hasDataFunctionParam) {
         this.varNamePrefix = varNamePrefix;
         this.varNameSuffix = varNameSuffix;
         this.accessMethod = accessMethod;

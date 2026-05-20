@@ -1,7 +1,7 @@
 package de.fimatas.home.library.domain.model;
 
-import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.model.ConditionColor;
+import de.fimatas.home.library.model.PersistentCacheKey;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -24,7 +24,7 @@ public class HeatpumpBasementModel extends AbstractSystemModel {
 
     private List<HeatpumpBasementDatapoint> datapoints = new LinkedList<>();
 
-    private Map<HeatpumpBasementDatapoints, Device> historyDatapointsAndDevices = new HashMap<>();
+    private Map<HeatpumpBasementDatapoints, PersistentCacheKey> historyDatapointsAndDevices = new HashMap<>();
 
     public HeatpumpBasementModel() {
         timestamp = System.currentTimeMillis();

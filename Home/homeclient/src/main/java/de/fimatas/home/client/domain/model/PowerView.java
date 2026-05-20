@@ -1,6 +1,6 @@
 package de.fimatas.home.client.domain.model;
 
-import de.fimatas.home.library.homematic.model.Device;
+import de.fimatas.home.client.model.GenericDevice;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -18,6 +18,6 @@ public class PowerView extends View {
 
     private ChartEntry todayConsumption;
 
-    private Device device;
+    private GenericDevice device;
 
 }
