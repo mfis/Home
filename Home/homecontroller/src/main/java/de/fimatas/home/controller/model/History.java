@@ -79,10 +79,10 @@ public class History {
         elements.put(HIST_STROM_EINSPEISUNG, new HistoryElement(homematicCommandBuilder.read(Device.STROMZAEHLER_EINSPEISUNG, Datapoint.IEC_ENERGY_COUNTER),
                 HistoryStrategy.MAX, new BigDecimal("0.5")));
 
-        elements.put(HIST_STROM_PRODUCTION, new HistoryElement(new PersistentCacheCommand(de.fimatas.home.library.model.PersistentCacheKey.ELECTRIC_POWER_PRODUCTION_COUNTER_HOUSE),
+        elements.put(HIST_STROM_PRODUCTION, new HistoryElement(new PersistentCacheCommand(de.fimatas.home.library.model.PersistentCacheKey.ELECTRIC_POWER_PRODUCTION_COUNTER_HAUS),
                 HistoryStrategy.MAX, new BigDecimal("0.5")));
 
-        elements.put(HIST_STROM_CONSUMPTION, new HistoryElement(new PersistentCacheCommand(de.fimatas.home.library.model.PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HOUSE),
+        elements.put(HIST_STROM_CONSUMPTION, new HistoryElement(new PersistentCacheCommand(de.fimatas.home.library.model.PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HAUD),
                 HistoryStrategy.MAX, new BigDecimal("0.1")));
 
         elements.put(HIST_STROM_WALLBOX, new HistoryElement(homematicCommandBuilder.read(Device.STROMZAEHLER_WALLBOX, Datapoint.ENERGY_COUNTER),
@@ -91,10 +91,10 @@ public class History {
         elements.put(HIST_GAS, new HistoryElement(homematicCommandBuilder.read(Device.GASZAEHLER, Datapoint.GAS_ENERGY_COUNTER),
                 HistoryStrategy.MAX, new BigDecimal("0.2")));
 
-        elements.put(HIST_HEATPUMP_BASEMENT_CONSUMPTION, new HistoryElement(new PersistentCacheCommand(de.fimatas.home.library.model.PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT),
+        elements.put(HIST_HEATPUMP_BASEMENT_CONSUMPTION, new HistoryElement(new PersistentCacheCommand(de.fimatas.home.library.model.PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_KELLER),
                 HistoryStrategy.MAX, new BigDecimal("0.5")));
 
-        elements.put(HIST_HEATPUMP_BASEMENT_PRODUCTION, new HistoryElement(new PersistentCacheCommand(de.fimatas.home.library.model.PersistentCacheKey.WARMTH_POWER_PRODUCTION_COUNTER_HEATPUMP_BASEMENT),
+        elements.put(HIST_HEATPUMP_BASEMENT_PRODUCTION, new HistoryElement(new PersistentCacheCommand(de.fimatas.home.library.model.PersistentCacheKey.WARMTH_POWER_PRODUCTION_COUNTER_HEATPUMP_KELLER),
                 HistoryStrategy.MAX, new BigDecimal("1.0")));
     }
 

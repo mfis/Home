@@ -6,13 +6,13 @@ import lombok.Getter;
 public enum PersistentCacheKey {
 
     HEATPUMP_ROOF(Place.ROOF, "Status Wärmepumpe Dach"),
-    ELECTRIC_POWER_CONSUMPTION_COUNTER_HOUSE(Place.HOUSE, "Stromverbrauch Haus gesamt"),
-    ELECTRIC_POWER_PRODUCTION_COUNTER_HOUSE(Place.HOUSE, "Stromproduktion Haus gesamt"),
-    ELECTRIC_POWER_PRODUCTION_ACTUAL_HOUSE(Place.HOUSE, "Stromproduktion Haus aktuell"),
-    ELECTRIC_POWER_CONSUMPTION_ACTUAL_HOUSE(Place.HOUSE, "Stromverbrauch Haus aktuell"),
-    ELECTRIC_POWER_ACTUAL_TIMESTAMP_HOUSE(Place.HOUSE, "Stromverbrauch Zeitpunkt"),
-    ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT(Place.BASEMENT, "Wärmepumpe Keller Verbrauch gesamt"),
-    WARMTH_POWER_PRODUCTION_COUNTER_HEATPUMP_BASEMENT(Place.BASEMENT, "Wärmepumpe Keller Wärmeproduktion gesamt"),
+    ELECTRIC_POWER_CONSUMPTION_COUNTER_HAUD(Place.HOUSE, "Stromverbrauch Haus gesamt"),
+    ELECTRIC_POWER_PRODUCTION_COUNTER_HAUS(Place.HOUSE, "Stromproduktion Haus gesamt"),
+    ELECTRIC_POWER_PRODUCTION_ACTUAL_HAUS(Place.HOUSE, "Stromproduktion Haus aktuell"),
+    ELECTRIC_POWER_CONSUMPTION_ACTUAL_HAUS(Place.HOUSE, "Stromverbrauch Haus aktuell"),
+    ELECTRIC_POWER_ACTUAL_TIMESTAMP_HAUS(Place.HOUSE, "Stromverbrauch Zeitpunkt"),
+    ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_KELLER(Place.BASEMENT, "Wärmepumpe Keller Verbrauch gesamt"),
+    WARMTH_POWER_PRODUCTION_COUNTER_HEATPUMP_KELLER(Place.BASEMENT, "Wärmepumpe Keller Wärmeproduktion gesamt"),
     ;
 
     @Getter

@@ -729,13 +729,13 @@ public class HouseViewService {
         // sources / targets
         overallElectricPowerHouseView.setGridPurchase(formatPowerView(GenericDevice.from(houseModel.getGridElectricalPower().getDevice()), houseModel.getGridElectricalPower().getActualConsumption(), historyModel==null?null:historyModel.getPurchasedElectricPowerConsumptionDay(), BigDecimal.ZERO, false, false));
         overallElectricPowerHouseView.setGridFeed(formatPowerView(GenericDevice.from(houseModel.getGridElectricalPower().getDevice()), houseModel.getGridElectricalPower().getActualConsumption(), historyModel==null?null:historyModel.getFeedElectricPowerConsumptionDay(), BigDecimal.ZERO, true, false));
-        overallElectricPowerHouseView.setPv(formatPowerView(GenericDevice.from(PersistentCacheKey.ELECTRIC_POWER_PRODUCTION_COUNTER_HOUSE), pvAdditionalDataModel.getProductionWattage(), historyModel==null?null:historyModel.getProducedElectricPowerDay(), offsetConsumption, false, pvDataUnreachable));
-        overallElectricPowerHouseView.setConsumption(formatPowerView(GenericDevice.from(PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HOUSE), pvAdditionalDataModel.getConsumptionWattage(), historyModel==null?null:historyModel.getSelfusedElectricPowerConsumptionDay(), offsetConsumption, false, pvDataUnreachable));
+        overallElectricPowerHouseView.setPv(formatPowerView(GenericDevice.from(PersistentCacheKey.ELECTRIC_POWER_PRODUCTION_COUNTER_HAUS), pvAdditionalDataModel.getProductionWattage(), historyModel==null?null:historyModel.getProducedElectricPowerDay(), offsetConsumption, false, pvDataUnreachable));
+        overallElectricPowerHouseView.setConsumption(formatPowerView(GenericDevice.from(PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HAUD), pvAdditionalDataModel.getConsumptionWattage(), historyModel==null?null:historyModel.getSelfusedElectricPowerConsumptionDay(), offsetConsumption, false, pvDataUnreachable));
         if(overallElectricPowerHouseView.getConsumption().getTodayConsumption()==null && pvDataUnreachable){
             // whole day no consumption data - use grid instead
             overallElectricPowerHouseView.setConsumption(formatPowerView(GenericDevice.from(houseModel.getGridElectricalPower().getDevice()), houseModel.getGridElectricalPower().getActualConsumption(), historyModel==null?null:historyModel.getPurchasedElectricPowerConsumptionDay(), offsetConsumption, false, false));
             overallElectricPowerHouseView.getConsumption().setIcon("fa-solid fa-plug");
-            overallElectricPowerHouseView.getConsumption().setHistoryKey(PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HOUSE.name());
+            overallElectricPowerHouseView.getConsumption().setHistoryKey(PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HAUD.name());
         }
 
         // consumption pv percentage
@@ -752,8 +752,8 @@ public class HouseViewService {
         // history keys
         overallElectricPowerHouseView.getGridPurchase().setHistoryKey(Device.STROMZAEHLER_BEZUG.historyKeyPrefix());
         overallElectricPowerHouseView.getGridFeed().setHistoryKey(Device.STROMZAEHLER_EINSPEISUNG.historyKeyPrefix());
-        overallElectricPowerHouseView.getConsumption().setHistoryKey(PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HOUSE.name());
-        overallElectricPowerHouseView.getPv().setHistoryKey(PersistentCacheKey.ELECTRIC_POWER_PRODUCTION_COUNTER_HOUSE.name());
+        overallElectricPowerHouseView.getConsumption().setHistoryKey(PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HAUD.name());
+        overallElectricPowerHouseView.getPv().setHistoryKey(PersistentCacheKey.ELECTRIC_POWER_PRODUCTION_COUNTER_HAUS.name());
 
         // grid direction
         overallElectricPowerHouseView.getGridPurchase().setDirectionIcon("fa-solid fa-angles-left");
@@ -945,11 +945,11 @@ public class HouseViewService {
         } else if (device.name().equals(Device.STROMZAEHLER_BEZUG.name())
                 || device.name().equals(Device.STROMZAEHLER_EINSPEISUNG.name())){
             power.setIcon("fas fa-bolt");
-        } else if (device.name().equals(PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HOUSE.name())
-                || device.name().equals(PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_ACTUAL_HOUSE.name())) {
+        } else if (device.name().equals(PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HAUD.name())
+                || device.name().equals(PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_ACTUAL_HAUS.name())) {
             power.setIcon("fa-solid fa-plug");
-        } else if (device.name().equals(PersistentCacheKey.ELECTRIC_POWER_PRODUCTION_COUNTER_HOUSE.name())
-                || device.name().equals(PersistentCacheKey.ELECTRIC_POWER_PRODUCTION_ACTUAL_HOUSE.name())) {
+        } else if (device.name().equals(PersistentCacheKey.ELECTRIC_POWER_PRODUCTION_COUNTER_HAUS.name())
+                || device.name().equals(PersistentCacheKey.ELECTRIC_POWER_PRODUCTION_ACTUAL_HAUS.name())) {
             power.setIcon("fa-solid fa-solar-panel");
         }
     }
@@ -1604,8 +1604,8 @@ public class HouseViewService {
             if(heatpumpBasementModel.getHistoryDatapointsAndDevices().containsKey(v.getDatapointsRef()) && historyModel != null){
                 var historyDevice = heatpumpBasementModel.getHistoryDatapointsAndDevices().get(v.getDatapointsRef());
                 var pcd = switch(historyDevice) {
-                    case ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT -> historyModel.getHeatpumpBasementElectricPowerConsumptionDay();
-                    case WARMTH_POWER_PRODUCTION_COUNTER_HEATPUMP_BASEMENT -> historyModel.getHeatpumpBasementWarmthPowerProductionDay();
+                    case ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_KELLER -> historyModel.getHeatpumpBasementElectricPowerConsumptionDay();
+                    case WARMTH_POWER_PRODUCTION_COUNTER_HEATPUMP_KELLER -> historyModel.getHeatpumpBasementWarmthPowerProductionDay();
                     default -> null;
                 };
                 if (pcd != null && !pcd.isEmpty()) {

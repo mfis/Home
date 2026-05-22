@@ -74,10 +74,10 @@ public class SolarmanService {
     protected static final String FIELD_CONSUMPTION_ACTUAL = "E_Puse_t1";
 
     private static final Map<String, PersistentCacheKey> SOLARMAN_KEY_TO_PERSISTENT_CACHE  = new HashMap<>() {{
-        put(FIELD_PRODUCTION_COUNTER, PersistentCacheKey.ELECTRIC_POWER_PRODUCTION_COUNTER_HOUSE); // Summe PV
-        put(FIELD_CONSUMPTION_COUNTER, PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HOUSE); // Summe Verbrauch
-        put(FIELD_PRODUCTION_ACTUAL, PersistentCacheKey.ELECTRIC_POWER_PRODUCTION_ACTUAL_HOUSE); // produktion
-        put(FIELD_CONSUMPTION_ACTUAL, PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_ACTUAL_HOUSE); // verbrauch
+        put(FIELD_PRODUCTION_COUNTER, PersistentCacheKey.ELECTRIC_POWER_PRODUCTION_COUNTER_HAUS); // Summe PV
+        put(FIELD_CONSUMPTION_COUNTER, PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HAUD); // Summe Verbrauch
+        put(FIELD_PRODUCTION_ACTUAL, PersistentCacheKey.ELECTRIC_POWER_PRODUCTION_ACTUAL_HAUS); // produktion
+        put(FIELD_CONSUMPTION_ACTUAL, PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_ACTUAL_HAUS); // verbrauch
     }};
 
     private static final Map<String, String> INVERTER_KEYS  = new HashMap<>() {{
@@ -118,7 +118,7 @@ public class SolarmanService {
         lastCollectionTimeRead = Long.parseLong(currentData.get("collectionTime").asString()) * 1000L;
         var stringAmps = new StringAmps();
         String alarm = null;
-        valuesToWriteToPersistentCache.put(PersistentCacheKey.ELECTRIC_POWER_ACTUAL_TIMESTAMP_HOUSE, (lastCollectionTimeRead / 1000));
+        valuesToWriteToPersistentCache.put(PersistentCacheKey.ELECTRIC_POWER_ACTUAL_TIMESTAMP_HAUS, (lastCollectionTimeRead / 1000));
         Map<String, String> inverterKeysAndValues = new HashMap<>();
 
         final ArrayNode dataList = (ArrayNode) currentData.get("dataList");

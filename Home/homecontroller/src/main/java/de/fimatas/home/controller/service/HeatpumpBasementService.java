@@ -214,8 +214,8 @@ public class HeatpumpBasementService {
         }
 
         HeatpumpBasementModel newModel = emptyModel();
-        newModel.getHistoryDatapointsAndDevices().put(HeatpumpBasementDatapoints.LEISTUNGSAUFNAHME, PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT);
-        newModel.getHistoryDatapointsAndDevices().put(HeatpumpBasementDatapoints.WAERMELEISTUNG, PersistentCacheKey.WARMTH_POWER_PRODUCTION_COUNTER_HEATPUMP_BASEMENT);
+        newModel.getHistoryDatapointsAndDevices().put(HeatpumpBasementDatapoints.LEISTUNGSAUFNAHME, PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_KELLER);
+        newModel.getHistoryDatapointsAndDevices().put(HeatpumpBasementDatapoints.WAERMELEISTUNG, PersistentCacheKey.WARMTH_POWER_PRODUCTION_COUNTER_HEATPUMP_KELLER);
         mapResponseToModel(response, newModel);
 
         if(!request.isReadFromCache()){
@@ -234,8 +234,8 @@ public class HeatpumpBasementService {
         }
 
         List<PersistentCacheCommand> commands = new ArrayList<>();
-        createCommands(newModel, HeatpumpBasementDatapoints.VERBRAUCH, PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_BASEMENT, commands);
-        createCommands(newModel, HeatpumpBasementDatapoints.WAERMEPRODUKTION, PersistentCacheKey.WARMTH_POWER_PRODUCTION_COUNTER_HEATPUMP_BASEMENT, commands);
+        createCommands(newModel, HeatpumpBasementDatapoints.VERBRAUCH, PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HEATPUMP_KELLER, commands);
+        createCommands(newModel, HeatpumpBasementDatapoints.WAERMEPRODUKTION, PersistentCacheKey.WARMTH_POWER_PRODUCTION_COUNTER_HEATPUMP_KELLER, commands);
 
         commands.forEach(command -> persistentCacheDAO.write(command));
     }
