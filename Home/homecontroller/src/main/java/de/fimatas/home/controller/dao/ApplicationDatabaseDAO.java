@@ -12,13 +12,17 @@ import de.fimatas.home.controller.model.HistoryValueType;
 import de.fimatas.home.library.domain.model.TimeRange;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
+import lombok.SneakyThrows;
+import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.sql.*;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -28,8 +32,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 @SuppressWarnings("SqlSourceToSinkFlow")
-@Repository
-public class HistoryDatabaseDAO {
+@Repository(ApplicationDatabaseDAO.APPLICATION_DATABASE_DAO)
+@CommonsLog
+public class ApplicationDatabaseDAO {
+
+    public static final String APPLICATION_DATABASE_DAO = "applicationDatabaseDAO";
 
     private static final String VALUE = "VAL";
 
@@ -41,41 +48,77 @@ public class HistoryDatabaseDAO {
     @Autowired
     private History history;
 
-    @Getter
-    private long countOnStartup = -1;
+    @Value("${spring.datasource.url}")
+    private String dbUrl;
+    @Value("${spring.datasource.username}")
+    private String dbUser;
+    @Value("${spring.datasource.password:}")
+    private String password;
 
     @Getter
-    private boolean setupIsRunning = true;
-
-    public void completeInit(){
-        setupIsRunning = false;
-    }
+    private boolean databaseIsEmpty = false;
 
     @Transactional
     @PostConstruct
-    public void createTables() {
+    public void postConstruct() {
+        postConstructCheckDatabasePassword();
+        postConstructCheckDatabaseTables();
+    }
+
+    @SneakyThrows
+    private void postConstructCheckDatabasePassword() {
+
+        if(StringUtils.isBlank(password)) {
+            throw new IllegalArgumentException("database password is empty!");
+        }
+
+        try {
+            jdbcTemplate.execute((Connection con) -> con.getMetaData().getURL());
+        } catch (Exception e) {
+            Throwable cause = e;
+            while (cause != null) {
+                if (cause instanceof org.h2.jdbc.JdbcSQLInvalidAuthorizationSpecException) {
+                    try (Connection fallbackCon = DriverManager.getConnection(dbUrl, dbUser, "");
+                        Statement stmt = fallbackCon.createStatement()) {
+                        stmt.execute("ALTER USER " + dbUser + " SET PASSWORD '" + password + "'");
+                        log.info("database password is now set!");
+                    }
+                    return;
+                }
+                cause = cause.getCause();
+            }
+            throw e;
+        }
+    }
+
+    private void postConstructCheckDatabaseTables() {
 
         long completeCount = 0;
+        // check for existence of necessary tables
         for (HistoryElement history : history.list()) {
             var varName = history.getCommand().id();
-            jdbcTemplate.update("CREATE CACHED TABLE IF NOT EXISTS " + varName
-                + " (TS TIMESTAMP NOT NULL, TYP CHAR(1) NOT NULL, VAL DOUBLE NOT NULL, PRIMARY KEY (TS));");
-            jdbcTemplate
-                .update("CREATE UNIQUE INDEX IF NOT EXISTS " + "IDX1_" + varName + " ON " + varName + " (TS, TYP);");
-
-            String countQuery = "SELECT COUNT(TS) AS CNT FROM " + varName + ";";
-            Long result = jdbcTemplate.queryForObject(countQuery, new LongRowMapper("CNT"), new Object[] {});
-            completeCount += (result == null ? 0 : result);
+            boolean tableExists = Boolean.TRUE.equals(jdbcTemplate.execute((Connection con) -> {
+                DatabaseMetaData metaData = con.getMetaData();
+                try (ResultSet rs = metaData.getTables(null, null, varName.toUpperCase(), new String[] {"TABLE"})) {
+                    return rs.next();
+                }
+            }));
+            if (tableExists) {
+                String countQuery = "SELECT COUNT(TS) AS CNT FROM " + varName + ";";
+                Long result = jdbcTemplate.queryForObject(countQuery, new LongRowMapper("CNT"), new Object[] {});
+                completeCount += (result == null ? 0 : result);
+            } else {
+                jdbcTemplate.update("CREATE CACHED TABLE " + varName
+                        + " (TS TIMESTAMP NOT NULL, TYP CHAR(1) NOT NULL, VAL DOUBLE NOT NULL, PRIMARY KEY (TS));");
+                log.warn("database table was NOT existent: " + varName);
+            }
         }
-        countOnStartup = completeCount;
+        log.info("database row count: " + completeCount);
+        databaseIsEmpty = completeCount == 0;
     }
 
     @Transactional
     public void persistEntries(Map<AbstractCommand, List<TimestampValuePair>> toInsert) {
-
-        if (setupIsRunning) {
-            throw new IllegalStateException("cannot persist entries - setup is still running");
-        }
 
         for (Entry<AbstractCommand, List<TimestampValuePair>> entry : toInsert.entrySet()) {
             String table = entry.getKey().id();

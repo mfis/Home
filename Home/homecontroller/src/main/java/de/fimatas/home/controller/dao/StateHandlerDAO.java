@@ -4,9 +4,9 @@ import de.fimatas.home.controller.database.mapper.StateRowMapper;
 import de.fimatas.home.controller.model.State;
 import de.fimatas.home.controller.service.UniqueTimestampService;
 import jakarta.annotation.PostConstruct;
-import lombok.Getter;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
@@ -17,6 +17,7 @@ import static de.fimatas.home.controller.dao.DaoUtils.cleanSqlValue;
 
 @Component
 @CommonsLog
+@DependsOn(ApplicationDatabaseDAO.APPLICATION_DATABASE_DAO)
 public class StateHandlerDAO {
 
     private final String TABLE_NAME = "STATES";
@@ -26,13 +27,6 @@ public class StateHandlerDAO {
 
     @Autowired
     private UniqueTimestampService uniqueTimestampService;
-
-    @Getter
-    private boolean setupIsRunning = true;
-
-    public void completeInit(){
-        setupIsRunning = false;
-    }
 
     @PostConstruct
     @Transactional(propagation = Propagation.REQUIRED)
@@ -71,10 +65,6 @@ public class StateHandlerDAO {
 
     @Transactional
     public void writeState(String groupname, String statename, String value){
-
-        if (setupIsRunning) {
-            throw new IllegalStateException("setup is still running");
-        }
 
         jdbcTemplate
                 .update("MERGE INTO " + TABLE_NAME + " KEY (GROUPNAME, STATENAME) VALUES (?, ?, ?, ?)",

@@ -3,7 +3,7 @@ package de.fimatas.home.controller.domain.service;
 import de.fimatas.home.controller.command.HomematicCommand;
 import de.fimatas.home.controller.command.HomematicCommandBuilder;
 import de.fimatas.home.controller.command.HomematicCommandProcessor;
-import de.fimatas.home.controller.dao.HistoryDatabaseDAO;
+import de.fimatas.home.controller.dao.ApplicationDatabaseDAO;
 import de.fimatas.home.controller.database.mapper.TimestampValuePair;
 import de.fimatas.home.controller.model.HistoryElement;
 import de.fimatas.home.controller.model.HistoryValueType;
@@ -22,7 +22,9 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -42,7 +44,7 @@ public class HistoryServiceTest {
     private HomematicCommandProcessor processor;
 
     @Mock
-    private HistoryDatabaseDAO dao;
+    private ApplicationDatabaseDAO dao;
 
     @Mock
     private DeviceQualifier deviceQualifier;

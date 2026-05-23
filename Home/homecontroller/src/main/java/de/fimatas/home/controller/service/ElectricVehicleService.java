@@ -98,10 +98,6 @@ public class ElectricVehicleService {
     @Scheduled(cron = "10 59 * * * *")
     public void refreshModel() {
 
-        if(evChargingDAO.isSetupIsRunning()){
-            return;
-        }
-
         final List<State> states = stateHandlerDAO.readStates(STATEHANDLER_GROUPNAME_BATTERY);
 
         var newModel = new ElectricVehicleModel();

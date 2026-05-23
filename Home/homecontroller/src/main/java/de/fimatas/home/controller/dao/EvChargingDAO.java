@@ -7,9 +7,9 @@ import de.fimatas.home.controller.service.UniqueTimestampService;
 import de.fimatas.home.library.domain.model.ElectricVehicle;
 import de.fimatas.home.library.domain.model.EvChargePoint;
 import jakarta.annotation.PostConstruct;
-import lombok.Getter;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
@@ -24,6 +24,7 @@ import java.util.Map;
 
 @Component
 @CommonsLog
+@DependsOn(ApplicationDatabaseDAO.APPLICATION_DATABASE_DAO)
 public class EvChargingDAO {
 
     private final String TABLE_NAME = "EVCHARGING";
@@ -35,13 +36,6 @@ public class EvChargingDAO {
 
     @Autowired
     private UniqueTimestampService uniqueTimestampService;
-
-    @Getter
-    private boolean setupIsRunning = true;
-
-    public void completeInit(){
-        setupIsRunning = false;
-    }
 
     @PostConstruct
     @Transactional(propagation = Propagation.REQUIRED)
@@ -114,10 +108,6 @@ public class EvChargingDAO {
 
     @Transactional
     public synchronized void write(ElectricVehicle ev, BigDecimal counter, EvChargePoint chargePoint){
-
-        if (setupIsRunning) {
-            throw new IllegalStateException("setup is still running");
-        }
 
         final List<EvChargeDatabaseEntry> entryList = jdbcTemplate.query(
                 "select * FROM " + TABLE_NAME + " where EVNAME = ? and ENDTS is null;",

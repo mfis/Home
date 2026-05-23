@@ -6,6 +6,7 @@ import de.fimatas.home.library.domain.model.PushMessage;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
@@ -19,6 +20,7 @@ import static de.fimatas.home.controller.dao.DaoUtils.cleanSqlValue;
 
 @Component
 @CommonsLog
+@DependsOn(ApplicationDatabaseDAO.APPLICATION_DATABASE_DAO)
 public class PushMessageDAO {
 
     private final String TABLE_NAME = "PUSHMESSAGE";
@@ -28,12 +30,6 @@ public class PushMessageDAO {
 
     @Autowired
     private UniqueTimestampService uniqueTimestampService;
-
-    private boolean setupIsRunning = true;
-
-    public void completeInit(){
-        setupIsRunning = false;
-    }
 
     @PostConstruct
     @Transactional(propagation = Propagation.REQUIRED)
@@ -66,10 +62,6 @@ public class PushMessageDAO {
     @Transactional
     public PushMessage writeMessage(LocalDateTime ts, String user, String title, String textMessage){
 
-        if (setupIsRunning) {
-            throw new IllegalStateException("setup is still running");
-        }
-
         final PushMessage message = new PushMessage(ts.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli(), cleanSqlValue(user), cleanSqlValue(title), cleanSqlValue(textMessage));
         jdbcTemplate
                 .update("INSERT INTO " + TABLE_NAME + " (TS, USERNAME, TITLE, TEXTMSG) VALUES (?, ?, ?, ?)",
@@ -79,10 +71,6 @@ public class PushMessageDAO {
 
     @Transactional
     public void deleteMessagesOlderAsNDays(int days){
-
-        if (setupIsRunning) {
-            throw new IllegalStateException("setup is still running");
-        }
 
         final String ts = UniqueTimestampService.getAsStringWithMillis(uniqueTimestampService.get().minusDays(days));
         jdbcTemplate

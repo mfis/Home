@@ -397,9 +397,8 @@ public class PhotovoltaicsOverflowService {
         if(state != null){
             return Integer.parseInt(state.getValue());
         }
-        int writeDelaySeconds = stateHandlerDAO.isSetupIsRunning()? 30 : 0;
         scheduler.schedule(() -> stateHandlerDAO.writeState(
-                STATEHANDLER_GROUPNAME_PV_OVERFLOW, shortName, Integer.toString(0)), writeDelaySeconds, TimeUnit.SECONDS);
+                STATEHANDLER_GROUPNAME_PV_OVERFLOW, shortName, Integer.toString(0)), 0, TimeUnit.SECONDS);
         return 0;
     }
 
@@ -408,9 +407,8 @@ public class PhotovoltaicsOverflowService {
         if(state != null){
             return PvBatteryMinCharge.valueOf(state.getValue());
         }
-        int writeDelaySeconds = stateHandlerDAO.isSetupIsRunning()? 30 : 0;
         scheduler.schedule(() -> stateHandlerDAO.writeState(
-                STATEHANDLER_GROUPNAME_PV_MIN_BATTERY, shortName, PvBatteryMinCharge.getLowest().name()), writeDelaySeconds, TimeUnit.SECONDS);
+                STATEHANDLER_GROUPNAME_PV_MIN_BATTERY, shortName, PvBatteryMinCharge.getLowest().name()), 0, TimeUnit.SECONDS);
         return PvBatteryMinCharge.getLowest();
     }
 

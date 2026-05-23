@@ -47,6 +47,7 @@
 		<resilience4j.version>2.2.0</resilience4j.version>
 		<oshi-core.version>6.6.3</oshi-core.version>
 		<commons-compress.version>1.28.0</commons-compress.version>
+		<archjunit.version>1.4.2</archjunit.version>
 	</properties>
 
 	<modules>
@@ -164,6 +165,18 @@
 				<groupId>org.tukaani</groupId>
 				<artifactId>xz</artifactId>
 				<version>1.11</version>
+			</dependency>
+			<dependency>
+				<groupId>com.tngtech.archunit</groupId>
+				<artifactId>archunit-junit5</artifactId>
+				<version>${archjunit.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>com.tngtech.archunit</groupId>
+				<artifactId>archunit-junit5-api</artifactId>
+				<version>${archjunit.version}</version>
+				<scope>test</scope>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

@@ -1,13 +1,13 @@
 package de.fimatas.home.controller.service;
 
 import de.fimatas.home.controller.dao.*;
-import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -23,6 +23,7 @@ import java.util.stream.Stream;
 
 @Component
 @CommonsLog
+@DependsOn(ApplicationDatabaseDAO.APPLICATION_DATABASE_DAO)
 /*
     Restore Database:
     - stop homecontroller
@@ -36,7 +37,7 @@ import java.util.stream.Stream;
 public class BackupService {
 
     @Autowired
-    private HistoryDatabaseDAO historyDatabaseDAO;
+    private ApplicationDatabaseDAO applicationDatabaseDAO;
 
     @Autowired
     private EvChargingDAO evChargingDAO;
@@ -63,40 +64,10 @@ public class BackupService {
 
     private final String BACKUP_FILENAME_SUFFIX = ".7z";
 
-    private int restoreRunCounter = 0;
-
-    @PostConstruct
-    public void noRestore() {
-
-        long completeCount = historyDatabaseDAO.getCountOnStartup();
-
-        if(completeCount == -1) {
-            log.warn("!! COULD NOT CHECK DATABASE ROW COUNT");
-        } else //noinspection StatementWithEmptyBody
-            if (completeCount > 0) {
-            log.info("database row count: " + completeCount);
-            historyDatabaseDAO.completeInit();
-            evChargingDAO.completeInit();
-            pushMessageDAO.completeInit();
-            stateHandlerDAO.completeInit();
-            restoreRunCounter++;
-        } else {
-            // waiting for restoreTables() ...
-        }
-    }
-
     @Scheduled(initialDelay = 30_000L, fixedDelay=Long.MAX_VALUE)
-    public void restoreTables() throws IOException {
+    public synchronized void restoreTables() throws IOException {
 
-        if(restoreRunCounter > 0){
-            return;
-        }
-
-        long completeCount = historyDatabaseDAO.getCountOnStartup();
-
-        if(completeCount == -1) {
-            log.warn("!! COULD NOT CHECK DATABASE ROW COUNT");
-        } else if (completeCount == 0) {
+        if (applicationDatabaseDAO.isDatabaseIsEmpty()) {
             File importFile = new File(lookupLocalBackupPath() + "import.7z");
             if (importFile.exists()) {
                 log.info("!! AUTO-IMPORT DATABASE FROM: " + importFile.getAbsolutePath());
@@ -107,16 +78,7 @@ public class BackupService {
             }else{
                 log.warn("!! DATABASE EMPTY - NO AUTO-IMPORT FILE FOUND");
             }
-        } else {
-            log.info("database row count: " + completeCount);
         }
-
-        historyDatabaseDAO.completeInit();
-        evChargingDAO.completeInit();
-        pushMessageDAO.completeInit();
-        stateHandlerDAO.completeInit();
-
-        restoreRunCounter++;
     }
 
     @PreDestroy

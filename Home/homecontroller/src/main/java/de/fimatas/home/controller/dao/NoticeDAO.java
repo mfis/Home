@@ -5,6 +5,7 @@ import de.fimatas.home.library.model.Notice;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -20,6 +21,7 @@ import static de.fimatas.home.controller.dao.DaoUtils.cleanSqlValue;
 
 @Component
 @CommonsLog
+@DependsOn(ApplicationDatabaseDAO.APPLICATION_DATABASE_DAO)
 public class NoticeDAO {
 
     private final String TABLE_NAME = "NOTICE";

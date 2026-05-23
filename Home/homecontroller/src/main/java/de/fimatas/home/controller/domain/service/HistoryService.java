@@ -5,7 +5,7 @@ import de.fimatas.home.controller.command.AbstractCommand;
 import de.fimatas.home.controller.command.HomematicCommand;
 import de.fimatas.home.controller.command.HomematicCommandBuilder;
 import de.fimatas.home.controller.command.PersistentCacheCommand;
-import de.fimatas.home.controller.dao.HistoryDatabaseDAO;
+import de.fimatas.home.controller.dao.ApplicationDatabaseDAO;
 import de.fimatas.home.controller.dao.PersistentCacheDAO;
 import de.fimatas.home.controller.database.mapper.TimestampValuePair;
 import de.fimatas.home.controller.database.mapper.TimestampValuePairComparator;
@@ -23,6 +23,7 @@ import jakarta.annotation.PreDestroy;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -34,10 +35,11 @@ import java.util.*;
 import java.util.Map.Entry;
 
 @Component
+@DependsOn(ApplicationDatabaseDAO.APPLICATION_DATABASE_DAO)
 public class HistoryService {
 
     @Autowired
-    private HistoryDatabaseDAO historyDAO;
+    private ApplicationDatabaseDAO historyDAO;
 
     @Autowired
     private UploadService uploadService;
@@ -99,11 +101,6 @@ public class HistoryService {
     @PreDestroy
     @Scheduled(cron = "0 0 * * * *")
     public synchronized void persistCashedValues() {
-
-        if(historyDAO.isSetupIsRunning()){
-            LOG.warn("Could not run 'persistCashedValues()' because DB-setup is already running.");
-            return;
-        }
 
         Map<AbstractCommand, List<TimestampValuePair>> toInsert = new HashMap<>();
         for (HistoryElement historyElement : history.list()) {
