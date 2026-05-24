@@ -85,6 +85,9 @@ public class ClientCommunicationService {
     private ControllerStateService controllerStateService;
 
     @Autowired
+    private MetadataService metadataService;
+
+    @Autowired
     @Qualifier("restTemplateLongPolling")
     private RestTemplate restTemplateLongPolling;
 
@@ -300,6 +303,7 @@ public class ClientCommunicationService {
         }
 
         settingsService.refreshSettingsModelsComplete();
+        metadataService.refresh();
     }
 
     private Message pollForMessage() {

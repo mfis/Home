@@ -188,7 +188,6 @@ public class HouseService {
         }
 
         ckeckWarnings(newModel);
-        readSubtitles(newModel);
 
         return newModel;
     }
@@ -573,21 +572,6 @@ public class HouseService {
             roomClimate.setSubType(Type.THERMOMETER);
         }
         return roomClimate;
-    }
-
-    private void readSubtitles(HouseModel houseModel) {
-        for (Place place : Place.values()) {
-            Optional<String> subtitle = readSubtitleFor(place);
-            subtitle.ifPresent(s -> houseModel.getPlaceSubtitles().put(place, s));
-        }
-    }
-
-    public Optional<String> readSubtitleFor(Place place){
-        var key = "place." + place.name() + ".subtitle";
-        if(env.containsProperty(key)){
-            return Optional.ofNullable(env.getProperty(key));
-        }
-        return Optional.empty();
     }
 
     private Heating readHeating(Device heating) {

@@ -80,8 +80,6 @@ public class HouseModel extends AbstractSystemModel {
 
     private List<String> warnings;
 
-    private Map<Place, String> placeSubtitles;
-
     // ----------
 
     @EnableHomekit(accessoryId = 1008)
@@ -96,7 +94,6 @@ public class HouseModel extends AbstractSystemModel {
         timestamp = new Date().getTime();
         lowBatteryDevices = new LinkedList<>();
         warnings = new LinkedList<>();
-        placeSubtitles = new LinkedHashMap<>();
     }
 
     @SuppressWarnings("unchecked")

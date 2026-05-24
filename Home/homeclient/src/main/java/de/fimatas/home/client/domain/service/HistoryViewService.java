@@ -57,10 +57,10 @@ public class HistoryViewService {
                         viewFormatter.fillPowerHistoryDayViewModel(GenericDevice.from(Device.STROMZAEHLER_EINSPEISUNG), history.getFeedElectricPowerConsumptionDay(), true, false);
             model.addAttribute("chartEntries", dayViewModel);
 
-        } else if (key.equals(GenericDevice.from(PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HAUD).name())) {
-            fillPowerHistoryMonthViewModel(model, GenericDevice.from(PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HAUD), history.getSelfusedElectricPowerConsumptionMonth());
+        } else if (key.equals(GenericDevice.from(PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HAUS).name())) {
+            fillPowerHistoryMonthViewModel(model, GenericDevice.from(PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HAUS), history.getSelfusedElectricPowerConsumptionMonth());
             List<ChartEntry> dayViewModel =
-                    viewFormatter.fillPowerHistoryDayViewModel(GenericDevice.from(PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HAUD), history.getSelfusedElectricPowerConsumptionDay(), true, false);
+                    viewFormatter.fillPowerHistoryDayViewModel(GenericDevice.from(PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HAUS), history.getSelfusedElectricPowerConsumptionDay(), true, false);
             model.addAttribute("chartEntries", dayViewModel);
 
         } else if (key.equals(GenericDevice.from(PersistentCacheKey.ELECTRIC_POWER_PRODUCTION_COUNTER_HAUS).name())) {

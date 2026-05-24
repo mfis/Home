@@ -31,6 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static de.fimatas.home.client.util.NullUtil.safeGet;
 import static de.fimatas.home.library.util.HomeUtils.buildDecimalFormat;
 import static de.fimatas.home.library.util.WeatherForecastConclusionTextFormatter.*;
 
@@ -105,41 +106,36 @@ public class HouseViewService {
         formatWarnings(model, house, lightsModel, weatherForecastModel, historyModel, pvAdditionalDataModel);
         formatPushMessages(model, username, pushMessageModel);
 
-        model.addAttribute("houseModelAvailable", house != null);
-        if(house == null) {
-            return;
-        }
-
         formatViewCorrelations(model);
 
-        formatClimate(model, "tempBathroom", house.getClimateBathRoom(), house.getHeatingBathRoom(), false);
-        formatClimate(model, "tempKids1", house.getClimateKidsRoom1(), null, true);
-        formatClimate(model, "tempKids2", house.getClimateKidsRoom2(), null, true);
-        formatClimate(model, "tempLivingroom", house.getClimateLivingRoom(), null, false);
-        formatClimate(model, "tempBedroom", house.getClimateBedRoom(), null, true);
-        formatClimate(model, "tempLaundry", house.getClimateLaundry(), null, true);
-        formatClimate(model, "tempGuestroom", house.getClimateGuestRoom(), house.getHeatingGuestRoom(), false);
-        formatClimate(model, "tempWorkshop", house.getClimateWorkshop(), null, false);
-        formatClimate(model, "tempRoof", house.getClimateRoof(), null, false);
+        formatClimate(model, "tempBathroom", safeGet(house, HouseModel::getClimateBathRoom), safeGet(house, HouseModel::getHeatingBathRoom), false);
+        formatClimate(model, "tempKids1", safeGet(house, HouseModel::getClimateKidsRoom1), null, true);
+        formatClimate(model, "tempKids2", safeGet(house, HouseModel::getClimateKidsRoom2), null, true);
+        formatClimate(model, "tempLivingroom", safeGet(house, HouseModel::getClimateLivingRoom), null, false);
+        formatClimate(model, "tempBedroom", safeGet(house, HouseModel::getClimateBedRoom), null, true);
+        formatClimate(model, "tempLaundry", safeGet(house, HouseModel::getClimateLaundry), null, true);
+        formatClimate(model, "tempGuestroom", safeGet(house, HouseModel::getClimateGuestRoom), safeGet(house, HouseModel::getHeatingGuestRoom), false);
+        formatClimate(model, "tempWorkshop", safeGet(house, HouseModel::getClimateWorkshop), null, false);
+        formatClimate(model, "tempRoof", safeGet(house, HouseModel::getClimateRoof), null, false);
 
         formatFacadeTemperatures(model, "tempMinHouse", "tempMaxHouse", house);
 
-        formatWindowSensor(model, "windowSensorGuestroom", house.getGuestRoomWindowSensor());
-        formatWindowSensor(model, "windowSensorWorkshop", house.getWorkshopWindowSensor());
-        formatWindowSensor(model, "windowSensorLaundry", house.getLaundryWindowSensor());
+        formatWindowSensor(model, "windowSensorGuestroom", safeGet(house, HouseModel::getGuestRoomWindowSensor));
+        formatWindowSensor(model, "windowSensorWorkshop", safeGet(house, HouseModel::getWorkshopWindowSensor));
+        formatWindowSensor(model, "windowSensorLaundry", safeGet(house, HouseModel::getLaundryWindowSensor));
 
-        formatSwitch(model, "switchKitchen", house.getKitchenWindowLightSwitch());
-        formatSwitch(model, "switchWorkshopVentilation", house.getWorkshopVentilationSwitch());
-        formatSwitch(model, "infraredHeaterGuestroom", house.getGuestRoomInfraredHeater());
-        formatSwitch(model, "switchWorkshopLight", house.getWorkshopLightSwitch());
+        formatSwitch(model, "switchKitchen", safeGet(house, HouseModel::getKitchenWindowLightSwitch));
+        formatSwitch(model, "switchWorkshopVentilation", safeGet(house, HouseModel::getWorkshopVentilationSwitch));
+        formatSwitch(model, "infraredHeaterGuestroom", safeGet(house, HouseModel::getGuestRoomInfraredHeater));
+        formatSwitch(model, "switchWorkshopLight", safeGet(house, HouseModel::getWorkshopLightSwitch));
 
-        formatFrontDoorBell(model, "frontDoor", house.getFrontDoorBell());
-        formatFrontDoorLock(model, "frontDoorLock", house.getFrontDoorLock());
+        formatFrontDoorBell(model, "frontDoor", safeGet(house, HouseModel::getFrontDoorBell));
+        formatFrontDoorLock(model, "frontDoorLock", safeGet(house, HouseModel::getFrontDoorLock));
 
         formatOverallElectricPowerHouse(model, house, historyModel, pvAdditionalDataModel);
-        formatWallboxSwitch(model, lookupWallboxId(), house.getWallboxSwitch(), house.getWallboxElectricalPowerConsumption(), electricVehicleModel);
-        formatPower(model, house.getWallboxElectricalPowerConsumption(), historyModel==null?null:historyModel.getWallboxElectricPowerConsumptionDay());
-        formatEVCharge(model, electricVehicleModel, house.getWallboxElectricalPowerConsumption());
+        formatWallboxSwitch(model, lookupWallboxId(), safeGet(house, HouseModel::getWallboxSwitch), safeGet(house, HouseModel::getWallboxElectricalPowerConsumption), electricVehicleModel);
+        formatPower(model, "StromWallbox", safeGet(house, HouseModel::getWallboxElectricalPowerConsumption), historyModel==null?null:historyModel.getWallboxElectricPowerConsumptionDay());
+        formatEVCharge(model, electricVehicleModel, safeGet(house, HouseModel::getWallboxElectricalPowerConsumption));
 
         formatHeatpumpRoof(model, heatpumpRoofModel, Place.BEDROOM);
         formatHeatpumpRoof(model, heatpumpRoofModel, Place.KIDSROOM_1);
@@ -147,7 +143,7 @@ public class HouseViewService {
 
         formatHeatpumpBasement(username, model, heatpumpBasementModel);
 
-        formatLowBattery(model, house.getLowBatteryDevices());
+        formatLowBattery(model, safeGet(house, HouseModel::getLowBatteryDevices));
 
         formatPlaceSubtitles(model);
 
@@ -160,7 +156,6 @@ public class HouseViewService {
         formatTasks(model, tasksModel);
 
         formatNotices(model, noticeModel, username);
-
         // widget
         formatUpperFloorGroup(model, "widgetUpperFloor", Place.WIDGET_UPPER_FLOOR_TEMPERATURE, house);
         formatGridsGroup(model, "widgetGrids", Place.WIDGET_GRIDS, house, pvAdditionalDataModel, historyModel==null?null:historyModel.getPurchasedElectricPowerConsumptionDay(), historyModel==null?null:historyModel.getGasConsumptionDay());
@@ -170,23 +165,24 @@ public class HouseViewService {
 
     private void formatUpperFloorGroup(Model model, String viewKey, Place place, HouseModel house) {
 
-        var subPlaces = house.lookupFields(RoomClimate.class).values().stream()
+        var subPlaces = house == null ? null : house.lookupFields(RoomClimate.class).values().stream()
                 .filter(c -> place.getSubPlaces().contains(c.getDevice().getPlace())).collect(Collectors.toList());
+
+        WidgetGroupView view = new WidgetGroupView(viewKey, place, subPlaces);
+        model.addAttribute(viewKey, view);
+        if (house == null || view.isUnreach()) {
+            return;
+        }
 
         if (subPlaces.stream().anyMatch(AbstractDeviceModel::isUnreach)) {
             return;
         }
 
-        WidgetGroupView view = new WidgetGroupView(viewKey, place, subPlaces);
-        model.addAttribute(viewKey, view);
-        if (view.isUnreach()) {
-            return;
-        }
-
+        var metadataModel = ModelObjectDAO.getInstance().readMetadataModel();
         subPlaces.forEach(sp -> {
             if(!sp.isBusy() && !sp.isUnreach()){
                 var singlePlace = sp.getDevice().getPlace();
-                var key = house.getPlaceSubtitles().containsKey(singlePlace) ? house.getPlaceSubtitles().get(singlePlace) : singlePlace.getPlaceName();
+                var key = metadataModel.getPlaceSubtitles().containsKey(singlePlace) ? metadataModel.getPlaceSubtitles().get(singlePlace) : singlePlace.getPlaceName();
                 key = lookupShortenedRoomName(key);
                 var sv = new View();
                 sv.setId(lookupClimateId(singlePlace, true));
@@ -201,7 +197,7 @@ public class HouseViewService {
 
         WidgetGroupView view = new WidgetGroupView(viewKey, pseudo, pcdElectric);
         model.addAttribute(viewKey, view);
-        if (view.isUnreach()) {
+        if (house == null || view.isUnreach()) {
             return;
         }
 
@@ -353,8 +349,8 @@ public class HouseViewService {
 
         FrontDoorView frontDoorView = new FrontDoorView();
         frontDoorView.setId(id);
-        frontDoorView.setUnreach(Boolean.toString(doorbell.isUnreach()));
-        if (doorbell.isUnreach()) {
+        frontDoorView.setUnreach(Boolean.toString(doorbell == null || doorbell.isUnreach()));
+        if (doorbell == null || doorbell.isUnreach()) {
             model.addAttribute(id, frontDoorView);
             return;
         }
@@ -386,11 +382,12 @@ public class HouseViewService {
 
     private void formatFrontDoorLock(Model model, String id, Doorlock doorlock) {
 
-        if(doorlock == null) {
+        LockView view = new LockView();
+        if(doorlock == null || doorlock.isUnreach()) {
+            view.setUnreach(Boolean.toString(doorlock == null || doorlock.isUnreach()));
             return;
         }
 
-        LockView view = new LockView();
         view.setId(id);
         view.setName(doorlock.getDevice().getType().getTypeName());
         view.setCaption(doorlock.getDevice().getPlace().getPlaceName());
@@ -509,12 +506,15 @@ public class HouseViewService {
     private ClimateView formatClimate(Climate climate, Heating heating, boolean history) {
 
         ClimateView view = new ClimateView();
+
+        if (climate == null || climate.isUnreach() || (heating != null && heating.isUnreach())) {
+            view.setUnreach(Boolean.toString(true));
+            return view;
+        }
+
         view.setId(lookupClimateId(climate.getDevice().getPlace(), false));
         view.setPlaceEnum(climate.getDevice().getPlace());
         view.setUnreach(Boolean.toString(climate.isUnreach() || (heating != null && heating.isUnreach())));
-        if (climate.isUnreach() || (heating != null && heating.isUnreach())) {
-            return view;
-        }
 
         if (climateStateUnknown(climate)) {
             view.setStateTemperature(UNBEKANNT);
@@ -666,9 +666,19 @@ public class HouseViewService {
 
     private void formatFacadeTemperatures(Model model, String viewKeyMin, String viewKeyMax, HouseModel house) {
 
-        ClimateView viewMin = formatClimate(house.getConclusionClimateFacadeMin(), null, false);
+        ClimateView viewMin = new ClimateView();
         ClimateView viewMax = new ClimateView();
+
+        if(house == null) {
+            viewMin.setUnreach(Boolean.toString(true));
+            viewMax.setUnreach(Boolean.toString(true));
+            model.addAttribute(viewKeyMin, viewMin);
+            model.addAttribute(viewKeyMax, viewMax);
+            return;
+        }
+
         viewMax.setId(viewKeyMax);
+        viewMin = formatClimate(house.getConclusionClimateFacadeMin(), null, false);
 
         if (!house.getConclusionClimateFacadeMin().isUnreach()) {
             viewMin
@@ -712,11 +722,23 @@ public class HouseViewService {
         Device baseDevice = Device.STROMZAEHLER_BEZUG;
         overallElectricPowerHouseView.setId(lookupTodayPowerId(GenericDevice.from(baseDevice), false));
         overallElectricPowerHouseView.setPlaceEnum(baseDevice.getPlace());
-        boolean unreach = houseModel.getGridElectricalPower().isUnreach() || pvAdditionalDataModel == null;
-        boolean pvDataUnreachable = ModelObjectDAO.getInstance().readPvAdditionalDataModel() == null;
-        overallElectricPowerHouseView.setUnreach(Boolean.toString(unreach));
-        if (unreach) {
+        boolean unreachPV = pvAdditionalDataModel == null;
+        boolean unreachGrid = houseModel == null || houseModel.getGridElectricalPower() == null;
+        overallElectricPowerHouseView.setUnreach(Boolean.toString(unreachPV && unreachGrid));
+        if (unreachPV && unreachGrid) {
             model.addAttribute("overallElectricPowerHouse", overallElectricPowerHouseView);
+            return;
+        }
+
+        var gridElectricalPower = houseModel != null ? houseModel.getGridElectricalPower() : null;
+        if(!unreachGrid) {
+            overallElectricPowerHouseView.setGridPurchase(formatPowerView(gridElectricalPower == null ? null : GenericDevice.from(gridElectricalPower.getDevice()), gridElectricalPower == null ? null : gridElectricalPower.getActualConsumption(), historyModel==null?null:historyModel.getPurchasedElectricPowerConsumptionDay(), BigDecimal.ZERO, false, gridElectricalPower == null));
+            overallElectricPowerHouseView.setGridFeed(formatPowerView(gridElectricalPower == null ? null : GenericDevice.from(gridElectricalPower.getDevice()), gridElectricalPower == null ? null : gridElectricalPower.getActualConsumption(), historyModel==null?null:historyModel.getFeedElectricPowerConsumptionDay(), BigDecimal.ZERO, true, gridElectricalPower == null));
+        }
+
+        if(unreachPV) {
+            overallElectricPowerHouseView.setPv(formatPowerView(null, null, historyModel==null?null:historyModel.getProducedElectricPowerDay(), BigDecimal.ZERO, false, true));
+            overallElectricPowerHouseView.setConsumption(formatPowerView(null, null, historyModel==null?null:historyModel.getSelfusedElectricPowerConsumptionDay(), BigDecimal.ZERO, false, true));
             return;
         }
 
@@ -727,16 +749,8 @@ public class HouseViewService {
         }
 
         // sources / targets
-        overallElectricPowerHouseView.setGridPurchase(formatPowerView(GenericDevice.from(houseModel.getGridElectricalPower().getDevice()), houseModel.getGridElectricalPower().getActualConsumption(), historyModel==null?null:historyModel.getPurchasedElectricPowerConsumptionDay(), BigDecimal.ZERO, false, false));
-        overallElectricPowerHouseView.setGridFeed(formatPowerView(GenericDevice.from(houseModel.getGridElectricalPower().getDevice()), houseModel.getGridElectricalPower().getActualConsumption(), historyModel==null?null:historyModel.getFeedElectricPowerConsumptionDay(), BigDecimal.ZERO, true, false));
-        overallElectricPowerHouseView.setPv(formatPowerView(GenericDevice.from(PersistentCacheKey.ELECTRIC_POWER_PRODUCTION_COUNTER_HAUS), pvAdditionalDataModel.getProductionWattage(), historyModel==null?null:historyModel.getProducedElectricPowerDay(), offsetConsumption, false, pvDataUnreachable));
-        overallElectricPowerHouseView.setConsumption(formatPowerView(GenericDevice.from(PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HAUD), pvAdditionalDataModel.getConsumptionWattage(), historyModel==null?null:historyModel.getSelfusedElectricPowerConsumptionDay(), offsetConsumption, false, pvDataUnreachable));
-        if(overallElectricPowerHouseView.getConsumption().getTodayConsumption()==null && pvDataUnreachable){
-            // whole day no consumption data - use grid instead
-            overallElectricPowerHouseView.setConsumption(formatPowerView(GenericDevice.from(houseModel.getGridElectricalPower().getDevice()), houseModel.getGridElectricalPower().getActualConsumption(), historyModel==null?null:historyModel.getPurchasedElectricPowerConsumptionDay(), offsetConsumption, false, false));
-            overallElectricPowerHouseView.getConsumption().setIcon("fa-solid fa-plug");
-            overallElectricPowerHouseView.getConsumption().setHistoryKey(PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HAUD.name());
-        }
+        overallElectricPowerHouseView.setPv(formatPowerView(GenericDevice.from(PersistentCacheKey.ELECTRIC_POWER_PRODUCTION_COUNTER_HAUS), pvAdditionalDataModel.getProductionWattage(), historyModel==null?null:historyModel.getProducedElectricPowerDay(), offsetConsumption, false, false));
+        overallElectricPowerHouseView.setConsumption(formatPowerView(GenericDevice.from(PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HAUS), pvAdditionalDataModel.getConsumptionWattage(), historyModel==null?null:historyModel.getSelfusedElectricPowerConsumptionDay(), offsetConsumption, false, false));
 
         // consumption pv percentage
         var consumptionDay = overallElectricPowerHouseView.getConsumption() != null
@@ -752,15 +766,15 @@ public class HouseViewService {
         // history keys
         overallElectricPowerHouseView.getGridPurchase().setHistoryKey(Device.STROMZAEHLER_BEZUG.historyKeyPrefix());
         overallElectricPowerHouseView.getGridFeed().setHistoryKey(Device.STROMZAEHLER_EINSPEISUNG.historyKeyPrefix());
-        overallElectricPowerHouseView.getConsumption().setHistoryKey(PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HAUD.name());
+        overallElectricPowerHouseView.getConsumption().setHistoryKey(PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HAUS.name());
         overallElectricPowerHouseView.getPv().setHistoryKey(PersistentCacheKey.ELECTRIC_POWER_PRODUCTION_COUNTER_HAUS.name());
 
         // grid direction
         overallElectricPowerHouseView.getGridPurchase().setDirectionIcon("fa-solid fa-angles-left");
         overallElectricPowerHouseView.getGridPurchase().setDirectionArrowClass("135");
         overallElectricPowerHouseView.getGridPurchase().setColorClass(ConditionColor.ORANGE.getUiClass());
-        if(houseModel.getGridElectricalPower().getActualConsumption().getValue() != null){
-            int val = houseModel.getGridElectricalPower().getActualConsumption().getValue().intValue();
+        if(gridElectricalPower != null && gridElectricalPower.getActualConsumption().getValue() != null){
+            int val = gridElectricalPower.getActualConsumption().getValue().intValue();
             if(val <= 0){
                 overallElectricPowerHouseView.getGridFeed().setColorClass(ConditionColor.GREEN.getUiClass());
                 overallElectricPowerHouseView.setGridActualDirection(overallElectricPowerHouseView.getGridFeed());
@@ -779,17 +793,14 @@ public class HouseViewService {
                         ConditionColor.DEFAULT.getUiClass() : ConditionColor.DEFAULT.getUiClass());
 
         // hide grid arrow
-        if(houseModel.getGridElectricalPower().getActualConsumption().getValue() != null) {
-            int val = houseModel.getGridElectricalPower().getActualConsumption().getValue().intValue();
+        if(gridElectricalPower != null && gridElectricalPower.getActualConsumption().getValue() != null) {
+            int val = gridElectricalPower.getActualConsumption().getValue().intValue();
             if(Math.abs(val) < MAX_GRID_CONSUMPTION_WATTAGE_IN_PV_MODE.intValue()){
                 overallElectricPowerHouseView.getGridActualDirection().setDirectionArrowClass("#");
             }
         }
 
-        if(pvAdditionalDataModel.getProductionWattage() != null
-                && pvAdditionalDataModel.getProductionWattage().getValue() != null
-                && pvAdditionalDataModel.getProductionWattage().getValue().compareTo(BigDecimal.TEN) > 0
-                && !pvDataUnreachable){
+        if(pvAdditionalDataModel.getProductionWattage() != null && pvAdditionalDataModel.getProductionWattage().getValue() != null && pvAdditionalDataModel.getProductionWattage().getValue().compareTo(BigDecimal.TEN) > 0){
             overallElectricPowerHouseView.getPv().setColorClass(ConditionColor.GREEN.getUiClass());
             overallElectricPowerHouseView.getPv().setDirectionArrowClass("225");
             if(isFeedingPowerConsumptionByPvBattery(pvAdditionalDataModel)) {
@@ -810,9 +821,9 @@ public class HouseViewService {
                 pvAdditionalDataModel.getProductionWattage().getValue().compareTo(BigDecimal.ZERO) <= 0 &&
                 !isFeedingPowerConsumptionByPvBattery(pvAdditionalDataModel)){
             overallElectricPowerHouseView.getConsumption().setColorClass(ConditionColor.ORANGE.getUiClass());
-        }else if (houseModel.getGridElectricalPower().getActualConsumption() != null
-                && houseModel.getGridElectricalPower().getActualConsumption().getValue() != null
-                && houseModel.getGridElectricalPower().getActualConsumption().getValue().compareTo(MAX_GRID_CONSUMPTION_WATTAGE_IN_PV_MODE) < 0) {
+        }else if (gridElectricalPower != null && gridElectricalPower.getActualConsumption() != null
+                && gridElectricalPower.getActualConsumption().getValue() != null
+                && gridElectricalPower.getActualConsumption().getValue().compareTo(MAX_GRID_CONSUMPTION_WATTAGE_IN_PV_MODE) < 0) {
             if(isFeedingPowerConsumptionByPvBattery(pvAdditionalDataModel)){
                 overallElectricPowerHouseView.getConsumption().setColorClass(ConditionColor.GREEN.getUiClass());
             }else{
@@ -831,7 +842,7 @@ public class HouseViewService {
             var timestampPV = Instant.ofEpochMilli(pvAdditionalDataModel.getTimestamp());
             overallElectricPowerHouseView.setTimestampStatePV(HomeUtils.durationSinceFormatted(timestampPV, false, true, true));
         }
-        if(houseModel.getGridElectricStatusTime() > 0){
+        if(houseModel != null && houseModel.getGridElectricStatusTime() > 0){
             var timestampGrid = Instant.ofEpochMilli(houseModel.getGridElectricStatusTime());
             overallElectricPowerHouseView.setTimestampStateGrid(HomeUtils.durationSinceFormatted(timestampGrid, false, true, true));
         }
@@ -891,14 +902,20 @@ public class HouseViewService {
                 pvAdditionalDataModel.getBatteryWattage() >= 10;
     }
 
-    private void formatPower(Model model, PowerMeter powerMeter, List<PowerConsumptionDay> pcd) {
-        PowerView power = formatPowerView(GenericDevice.from(powerMeter.getDevice()), powerMeter.getActualConsumption(), pcd, BigDecimal.ZERO, false, false);
-        model.addAttribute(powerMeter.getDevice().programNamePrefix(), power);
+    private void formatPower(Model model, String viewKey, PowerMeter powerMeter, List<PowerConsumptionDay> pcd) {
+        PowerView power = formatPowerView(powerMeter == null ? null : GenericDevice.from(powerMeter.getDevice()), powerMeter == null ? null : powerMeter.getActualConsumption(), pcd, BigDecimal.ZERO, false, powerMeter == null);
+        model.addAttribute(viewKey, power);
     }
 
     private PowerView formatPowerView(GenericDevice device, ValueWithTendency<BigDecimal> actualPower, List<PowerConsumptionDay> pcd, BigDecimal valueOffset, boolean abs, boolean unreach) {
 
         PowerView power = new PowerView();
+        if (unreach) {
+            power.setState("Leistung unbekannt");
+            power.setUnreach(Boolean.toString(true));
+            return power;
+        }
+
         power.setId(lookupTodayPowerId(device, false));
         power.setPlaceEnum(device.place());
         power.setDevice(device);
@@ -907,10 +924,6 @@ public class HouseViewService {
         power.setHistoryKey(device.name());
         setPowerViewIcon(device, power);
         power.setUnreach(Boolean.toString(unreach));
-        if (unreach) {
-            power.setState("Leistung unbekannt");
-            return power;
-        }
 
         BigDecimal val = actualPower.getValue() == null? BigDecimal.ZERO : actualPower.getValue().add(valueOffset);
         if(abs){
@@ -945,7 +958,7 @@ public class HouseViewService {
         } else if (device.name().equals(Device.STROMZAEHLER_BEZUG.name())
                 || device.name().equals(Device.STROMZAEHLER_EINSPEISUNG.name())){
             power.setIcon("fas fa-bolt");
-        } else if (device.name().equals(PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HAUD.name())
+        } else if (device.name().equals(PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HAUS.name())
                 || device.name().equals(PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_ACTUAL_HAUS.name())) {
             power.setIcon("fa-solid fa-plug");
         } else if (device.name().equals(PersistentCacheKey.ELECTRIC_POWER_PRODUCTION_COUNTER_HAUS.name())
@@ -965,80 +978,87 @@ public class HouseViewService {
     }
 
     private void formatLowBattery(Model model, List<String> lowBatteryDevices) {
-        model.addAttribute("lowBattery", lowBatteryDevices);
+        model.addAttribute("lowBattery", lowBatteryDevices == null ? List.of() : lowBatteryDevices);
     }
 
     private void formatWarnings(Model model, HouseModel houseModel, LightsModel lightsModel, WeatherForecastModel weatherForecastModel, HistoryModel historyModel, PvAdditionalDataModel pvAdditionalDataModel) {
 
-        List<String> copy = new ArrayList<>(houseModel==null? new LinkedList<>() : houseModel.getWarnings());
+        List<String> newWarnings = new ArrayList<>(houseModel==null? new LinkedList<>() : houseModel.getWarnings());
 
         if(houseModel==null){
-            copy.add("Homematic Status unbekannt!");
+            newWarnings.add("Homematic Status unbekannt!");
         }else{
             long diffHm = new Date().getTime() - houseModel.getTimestamp();
             if (diffHm > 1000 * HomeAppConstants.MODEL_UPDATE_WARNING_SECONDS) {
-                copy.add("Letzte Homematic Aktualisierung vor " + (diffHm / 1000 / 60) + " Min.");
+                newWarnings.add("Letzte Homematic Aktualisierung vor " + (diffHm / 1000 / 60) + " Min.");
             }
         }
 
         if(lightsModel==null){
-            copy.add("Hue Status unbekannt!");
+            newWarnings.add("Hue Status unbekannt!");
         }else{
             long diffHue = new Date().getTime() - lightsModel.getTimestamp();
             if (diffHue > 1000 * HomeAppConstants.MODEL_UPDATE_WARNING_SECONDS) {
-                copy.add("Letzte Hue Aktualisierung vor " + (diffHue / 1000 / 60) + " Min.");
+                newWarnings.add("Letzte Hue Aktualisierung vor " + (diffHue / 1000 / 60) + " Min.");
             }
         }
 
         if(weatherForecastModel==null){
-            copy.add("Wettervorhersage Status unbekannt!");
+            newWarnings.add("Wettervorhersage Status unbekannt!");
         }else if(weatherForecastModel.getFurtherDaysForecasts().isEmpty()){
-            copy.add("Wettervorhersage eingeschränkt!");
+            newWarnings.add("Wettervorhersage eingeschränkt!");
         }
 
         if(historyModel==null){
-            copy.add("Historiendaten unbekannt!");
+            newWarnings.add("Historiendaten unbekannt!");
         }
 
         if(pvAdditionalDataModel==null){
-            copy.add("PV Produktion- und Speicher-Status unbekannt!");
+            newWarnings.add("PV Produktion- und Speicher-Status unbekannt!");
         }else{
             if(pvAdditionalDataModel.getStringsStatus() == PhotovoltaicsStringsStatus.ERROR_DETECTING){
-                copy.add("Status der Photovoltaikanlage konnte nicht geprüft werden.");
+                newWarnings.add("Status der Photovoltaikanlage konnte nicht geprüft werden.");
             } else if(pvAdditionalDataModel.getStringsStatus() == PhotovoltaicsStringsStatus.ONE_FAULTY){
-                copy.add("Teilausfall der Photovoltaikanlage erkannt.");
+                newWarnings.add("Teilausfall der Photovoltaikanlage erkannt.");
             }
 
             if (pvAdditionalDataModel.getAlarm() != null) {
-                copy.add("Photovoltaikanlage meldet Fehler: " + pvAdditionalDataModel.getAlarm());
+                newWarnings.add("Photovoltaikanlage meldet Fehler: " + pvAdditionalDataModel.getAlarm());
             }
         }
 
         if(ModelObjectDAO.getInstance().readPresenceModel() == null) {
-            copy.add("Präsenz Status unbekannt!");
+            newWarnings.add("Präsenz Status unbekannt!");
         }
 
         if(ModelObjectDAO.getInstance().readHeatpumpRoofModel() == null) {
-            copy.add("Wärmepumpe Dach Status unbekannt!");
+            newWarnings.add("Wärmepumpe Dach Status unbekannt!");
         }
 
         if(ModelObjectDAO.getInstance().readHeatpumpBasementModel() == null) {
-            copy.add("Wärmepumpe Keller Status unbekannt!");
+            newWarnings.add("Wärmepumpe Keller Status unbekannt!");
         }
 
         if(ModelObjectDAO.getInstance().readTasksModel() == null) {
-            copy.add("Aufgaben Status unbekannt!");
+            newWarnings.add("Aufgaben Status unbekannt!");
         }
 
         if(ModelObjectDAO.getInstance().readNoticeModel() == null) {
-            copy.add("Notizen unbekannt!");
+            newWarnings.add("Notizen unbekannt!");
         }
 
         if(ModelObjectDAO.getInstance().readElectricVehicleModel() == null) {
-            copy.add("E-Auto Status unbekannt!");
+            newWarnings.add("E-Auto Status unbekannt!");
         }
 
-        model.addAttribute("warnings", copy);
+        List<String> allWarnings = new LinkedList<>();
+        if(houseModel!=null){
+            allWarnings.addAll(houseModel.getWarnings());
+        }
+        allWarnings.addAll(newWarnings);
+
+        model.addAttribute("allModelsAvailable", newWarnings.isEmpty());
+        model.addAttribute("warnings", allWarnings);
     }
 
     private void formatPushMessages(Model model, String user, PushMessageModel pushMessageModel) {
@@ -1060,7 +1080,8 @@ public class HouseViewService {
     }
 
     private void formatPlaceSubtitles(Model model) {
-        for (Map.Entry<Place, String> entry : ModelObjectDAO.getInstance().readHouseModelIgnoringAge().getPlaceSubtitles().entrySet()) {
+        var metadataModel = ModelObjectDAO.getInstance().readMetadataModel();
+        for (Map.Entry<Place, String> entry : metadataModel.getPlaceSubtitles().entrySet()) {
             model.addAttribute(PLACE_SUBTITLE_PREFIX + entry.getKey().name(), entry.getValue());
         }
     }
@@ -1068,15 +1089,16 @@ public class HouseViewService {
     private void formatWindowSensor(Model model, String viewKey, WindowSensor windowSensor) {
 
         WindowSensorView view = new WindowSensorView();
+        view.setUnreach(Boolean.toString(windowSensor == null || windowSensor.isUnreach()));
+        if (windowSensor == null || windowSensor.isUnreach()) {
+            model.addAttribute(viewKey, view);
+            return;
+        }
+
         view.setId(viewKey);
         view.setName(windowSensor.getDevice().getType().getTypeName());
         view.setShortName(windowSensor.getDevice().getType().getShortName());
         view.setPlaceEnum(windowSensor.getDevice().getPlace());
-        view.setUnreach(Boolean.toString(windowSensor.isUnreach()));
-        if (windowSensor.isUnreach()) {
-            model.addAttribute(viewKey, view);
-            return;
-        }
 
         String stateSuffix = StringUtils.EMPTY;
         String stateDelimiter = StringUtils.EMPTY;
@@ -1111,7 +1133,7 @@ public class HouseViewService {
 
         WallboxSwitchView view = new WallboxSwitchView();
         formatSwitchInternal(model, viewKey, switchModel, view);
-        if(wallboxElectricalPowerConsumption.isUnreach() || switchModel.isUnreach()){
+        if(wallboxElectricalPowerConsumption == null || wallboxElectricalPowerConsumption.isUnreach() || switchModel == null || switchModel.isUnreach()){
             view.setUnreach(Boolean.toString(true));
         }
         Arrays.stream(ElectricVehicle.values()).forEach(ev -> {
@@ -1130,11 +1152,15 @@ public class HouseViewService {
     private void formatSwitchInternal(Model model, String viewKey, Switch switchModel, SwitchView view) {
 
         model.addAttribute(viewKey, view);
+        view.setUnreach(Boolean.toString(switchModel == null || switchModel.isUnreach()));
+        if(switchModel == null || switchModel.isUnreach()){
+            return;
+        }
+
         view.setId(viewKey);
         view.setName(switchModel.getDevice().getType().getShortName());
         view.setShortName(switchModel.getDevice().getType().getShortName());
         view.setPlaceEnum(switchModel.getDevice().getPlace());
-        view.setUnreach(Boolean.toString(switchModel.isUnreach()));
 
         view.setShowOverflowRange(Boolean.toString(switchModel.isPvOverflowConfigured()));
         if(switchModel.isPvOverflowConfigured()){
@@ -1634,19 +1660,19 @@ public class HouseViewService {
         var isUnreachable = heatpumpRoofModel == null ||
                 heatpumpRoofModel.getHeatpumpMap() == null || heatpumpRoofModel.getHeatpumpMap().get(place) == null;
 
-        var houseModel = ModelObjectDAO.getInstance().readHouseModelIgnoringAge();
+        var metadataModel = ModelObjectDAO.getInstance().readMetadataModel();
 
         var view = new HeatpumpRoofView();
         model.addAttribute("heatpump" + place.name(), view);
         view.setName(heatpumpRoofModel == null ? "UnbekannteWaermepumpe" : heatpumpRoofModel.getName());
         view.setIcon("aircon.png");
         view.setPlaceEnum(place);
-        view.setPlaceSubtitle(houseModel.getPlaceSubtitles().containsKey(place) ? houseModel.getPlaceSubtitles().get(place) : place.getPlaceName());
+        view.setPlaceSubtitle(metadataModel.getPlaceSubtitles().containsKey(place) ? metadataModel.getPlaceSubtitles().get(place) : place.getPlaceName());
         view.setId(lookupHeatpumpId(place, false));
         view.setUnreach(Boolean.toString(isUnreachable));
 
         Stream.of(Place.KIDSROOM_1, Place.KIDSROOM_2, Place.BEDROOM).filter(p -> p != place).forEach(a -> {
-            String title = houseModel.getPlaceSubtitles().containsKey(a) ? houseModel.getPlaceSubtitles().get(a) : a.getPlaceName();
+            String title = metadataModel.getPlaceSubtitles().containsKey(a) ? metadataModel.getPlaceSubtitles().get(a) : a.getPlaceName();
             view.getOtherPlaces().add(new ValueWithCaption(a.name(), title, null));
         });
 
@@ -1769,7 +1795,7 @@ public class HouseViewService {
         var etsLimit = "Limit " + state.getChargeLimit().getCaption();
         view.setElementTitleState(etsTimestamp + " " + etsPercent  + ", " + etsLimit); // collapsed top right
         if(state.isActiveCharging()){
-            if(wallboxPowerMeter.isUnreach()){
+            if(wallboxPowerMeter == null || wallboxPowerMeter.isUnreach()){
                 view.setState("Unbekannt...");
             } else if(wallboxPowerMeter.getActualConsumption() != null && wallboxPowerMeter.getActualConsumption().getValue().intValue() > 0){
                 view.setState("Lädt gerade");

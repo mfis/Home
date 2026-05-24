@@ -82,7 +82,7 @@ public class History {
         elements.put(HIST_STROM_PRODUCTION, new HistoryElement(new PersistentCacheCommand(de.fimatas.home.library.model.PersistentCacheKey.ELECTRIC_POWER_PRODUCTION_COUNTER_HAUS),
                 HistoryStrategy.MAX, new BigDecimal("0.5")));
 
-        elements.put(HIST_STROM_CONSUMPTION, new HistoryElement(new PersistentCacheCommand(de.fimatas.home.library.model.PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HAUD),
+        elements.put(HIST_STROM_CONSUMPTION, new HistoryElement(new PersistentCacheCommand(de.fimatas.home.library.model.PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HAUS),
                 HistoryStrategy.MAX, new BigDecimal("0.1")));
 
         elements.put(HIST_STROM_WALLBOX, new HistoryElement(homematicCommandBuilder.read(Device.STROMZAEHLER_WALLBOX, Datapoint.ENERGY_COUNTER),

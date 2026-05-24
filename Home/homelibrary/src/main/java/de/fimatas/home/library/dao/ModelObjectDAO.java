@@ -43,6 +43,8 @@ public class ModelObjectDAO {
 
     private ControllerStateModel controllerStateModel;
 
+    private MetadataModel metadataModel;
+
     @Getter
     private String lastHouseModelState;
 
@@ -130,6 +132,10 @@ public class ModelObjectDAO {
 
     public void write(SettingsContainer newSettingsContainer) {
         settingsContainer = newSettingsContainer;
+    }
+
+    public void write(MetadataModel newMetadataModel) {
+        metadataModel = newMetadataModel;
     }
 
     public HouseModel readHouseModel() {
@@ -241,6 +247,10 @@ public class ModelObjectDAO {
 
     public ControllerStateModel readControllerStateModel() {
         return controllerStateModel;
+    }
+
+    public MetadataModel readMetadataModel() {
+        return metadataModel;
     }
 
     public long calculateModelTimestamp(){

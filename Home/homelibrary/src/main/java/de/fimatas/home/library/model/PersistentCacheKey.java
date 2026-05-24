@@ -6,7 +6,7 @@ import lombok.Getter;
 public enum PersistentCacheKey {
 
     HEATPUMP_ROOF(Place.ROOF, "Status Wärmepumpe Dach"),
-    ELECTRIC_POWER_CONSUMPTION_COUNTER_HAUD(Place.HOUSE, "Stromverbrauch Haus gesamt"),
+    ELECTRIC_POWER_CONSUMPTION_COUNTER_HAUS(Place.HOUSE, "Stromverbrauch Haus gesamt"),
     ELECTRIC_POWER_PRODUCTION_COUNTER_HAUS(Place.HOUSE, "Stromproduktion Haus gesamt"),
     ELECTRIC_POWER_PRODUCTION_ACTUAL_HAUS(Place.HOUSE, "Stromproduktion Haus aktuell"),
     ELECTRIC_POWER_CONSUMPTION_ACTUAL_HAUS(Place.HOUSE, "Stromverbrauch Haus aktuell"),

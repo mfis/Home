@@ -13,6 +13,7 @@ import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.env.Environment;
@@ -87,6 +88,8 @@ public class HomematicAPI {
 
     private final Map<HomematicCommand, String> currentValues = new HashMap<>();
 
+    private long allValuesTargetCount;
+
     //
 
     private boolean ccuInitState;
@@ -126,6 +129,8 @@ public class HomematicAPI {
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance(); // NOSONAR
         dbFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, Boolean.TRUE);
         documentBuilder = dbFactory.newDocumentBuilder();
+
+        allValuesTargetCount = lookupDeviceStateCommands().size() + lookupDeviceCommands().size();
     }
 
     public void runProgramWithBusyState(Device device, String programSuffix) {
@@ -134,6 +139,10 @@ public class HomematicAPI {
     }
 
     public boolean isDeviceUnreachableOrNotSending(Device device) {
+
+        if(!hasCurrentValues()) {
+            return true;
+        }
 
         if(device.isSysVar()){
             return false;
@@ -197,8 +206,7 @@ public class HomematicAPI {
     }
 
     public boolean hasCurrentValues() {
-        //noinspection ConstantValue
-        return currentValues != null && !currentValues.isEmpty();
+        return currentValues.size() >= allValuesTargetCount;
     }
 
     public boolean isPresent(HomematicCommand command) {
@@ -260,8 +268,20 @@ public class HomematicAPI {
             }
         }
 
+        final List<HomematicCommand> commands = lookupDeviceCommands();
+        boolean refreshed = executeCommands(CallType.REFRESH, commands.toArray(new HomematicCommand[0]));
+
+        if (refreshed) {
+            refreshed = hasChangedValues();
+        }
+
+        lookupInitState();
+        logRuntime("refresh", timeStart);
+        return refreshed;
+    }
+
+    private @NonNull List<HomematicCommand> lookupDeviceCommands() {
         List<HomematicCommand> commands = new LinkedList<>();
-        commands.add(homematicCommandBuilder.read(VAR_CCU_REBOOT));
         for (Device device : Device.values()) {
             if(!device.isDisabled()){
                 for (Datapoint datapoint : device.getDatapoints()) {
@@ -274,16 +294,7 @@ public class HomematicAPI {
                 }
             }
         }
-
-        boolean refreshed = executeCommands(CallType.REFRESH, commands.toArray(new HomematicCommand[0]));
-
-        if (refreshed) {
-            refreshed = hasChangedValues();
-        }
-
-        lookupInitState();
-        logRuntime("refresh", timeStart);
-        return refreshed;
+        return commands;
     }
 
     @SuppressWarnings("unused") // used by resilience4j
@@ -318,6 +329,15 @@ public class HomematicAPI {
     public synchronized void readDeviceState() {
 
         long timeStart = System.nanoTime();
+        final List<HomematicCommand> commands = lookupDeviceStateCommands();
+        if (executeCommands(CallType.DEVICE_STATE, commands.toArray(new HomematicCommand[0]))) {
+            lookupInitState();
+            logRuntime("readDeviceState", timeStart);
+            isInitialDeviceStateSet = true;
+        }
+    }
+
+    private @NonNull List<HomematicCommand> lookupDeviceStateCommands() {
         List<HomematicCommand> commands = new LinkedList<>();
         for (Device device : Device.values()) {
             if(!device.isDisabled()){
@@ -335,12 +355,7 @@ public class HomematicAPI {
         }
         commands.add(homematicCommandBuilder.read(VAR_CCU_REBOOT));
         commands.add(homematicCommandBuilder.read(VAR_CCU_UPTIME));
-
-        if (executeCommands(CallType.DEVICE_STATE, commands.toArray(new HomematicCommand[0]))) {
-            lookupInitState();
-            logRuntime("readDeviceState", timeStart);
-            isInitialDeviceStateSet = true;
-        }
+        return commands;
     }
 
     private void lookupInitState() {

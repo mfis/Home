@@ -31,6 +31,9 @@ public class LightService {
     @Autowired
     private HouseService houseService;
 
+    @Autowired
+    private MetadataService metadataService;
+
     private Map<List<String>, Place> placesToNameAndSubtitle;
 
     private static final String JSON_PATH_REACHABLE = "reachable";
@@ -55,7 +58,7 @@ public class LightService {
     private void prepareSubtitleMap(){
         placesToNameAndSubtitle = new LinkedHashMap<>();
         Arrays.stream(Place.values()).forEach(
-                p -> houseService.readSubtitleFor(p).ifPresent(s -> placesToNameAndSubtitle.put(List.of(p.getPlaceName(), s), p)));
+                p -> metadataService.readSubtitleFor(p).ifPresent(s -> placesToNameAndSubtitle.put(List.of(p.getPlaceName(), s), p)));
     }
 
     @Scheduled(cron = "7/10 * * * * *")

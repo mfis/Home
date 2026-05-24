@@ -47,11 +47,7 @@ public class TasksService {
         refresh();
     }
 
-    public void refresh() {
-
-        if(ModelObjectDAO.getInstance().readHouseModel() == null) {
-            return;
-        }
+    public synchronized void refresh() {
 
         var idList = Objects.requireNonNull(env.getProperty("tasks.id.list.active"));
         var ids = Arrays.stream(StringUtils.split(idList, ',')).map(String::trim).toList();
@@ -116,8 +112,10 @@ public class TasksService {
     }
 
     private LocalDateTime readLastExecutionTimestampFromDevice(String id){
+        var houseModel = ModelObjectDAO.getInstance().readHouseModel();
+        if(houseModel == null) return null;
         var fieldname = Objects.requireNonNull(env.getProperty(String.format("tasks.%s.field", id)));
-        final var abstractDeviceModel = ModelObjectDAO.getInstance().readHouseModel().lookupField(fieldname, AbstractDeviceModel.class);
+        final var abstractDeviceModel = houseModel.lookupField(fieldname, AbstractDeviceModel.class);
         if (abstractDeviceModel instanceof WindowSensor){
             if(((WindowSensor)abstractDeviceModel).getStateTimestamp() == null){
                 return null;

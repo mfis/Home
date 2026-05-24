@@ -75,7 +75,7 @@ public class SolarmanService {
 
     private static final Map<String, PersistentCacheKey> SOLARMAN_KEY_TO_PERSISTENT_CACHE  = new HashMap<>() {{
         put(FIELD_PRODUCTION_COUNTER, PersistentCacheKey.ELECTRIC_POWER_PRODUCTION_COUNTER_HAUS); // Summe PV
-        put(FIELD_CONSUMPTION_COUNTER, PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HAUD); // Summe Verbrauch
+        put(FIELD_CONSUMPTION_COUNTER, PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_COUNTER_HAUS); // Summe Verbrauch
         put(FIELD_PRODUCTION_ACTUAL, PersistentCacheKey.ELECTRIC_POWER_PRODUCTION_ACTUAL_HAUS); // produktion
         put(FIELD_CONSUMPTION_ACTUAL, PersistentCacheKey.ELECTRIC_POWER_CONSUMPTION_ACTUAL_HAUS); // verbrauch
     }};

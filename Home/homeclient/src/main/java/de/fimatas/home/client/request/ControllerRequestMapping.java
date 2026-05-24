@@ -123,6 +123,12 @@ public class ControllerRequestMapping {
         return new ActionModel("OK");
     }
 
+    @PostMapping(value = UPLOAD_METHOD_PREFIX + "MetadataModel")
+    public ActionModel uploadMetadataModel(@RequestBody MetadataModel metadataModel) {
+        ModelObjectDAO.getInstance().write(metadataModel);
+        return new ActionModel("OK");
+    }
+
     @PostMapping(value = UPLOAD_METHOD_PREFIX + "BackupFileMultipart", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ActionModel uploadBackupFile(@RequestParam("file") MultipartFile backupFile) throws IOException {
         String path = env.getProperty("backup.location");

@@ -43,7 +43,7 @@ public class RequestMapping {
 
     @GetMapping(value = "/controller/testStartLiveActivity")
     public ActionModel testStartLiveActivity() {
-        liveActivityService.start(LiveActivityService.TEST_LOKEN_ONLY_LOGGING, "USER", "DEVICE");
+        // liveActivityService.start(LiveActivityService.TEST_LOKEN_ONLY_LOGGING, "USER", "DEVICE");
         return new ActionModel("OK");
     }
 }
