@@ -16,7 +16,7 @@
 							<table width="100%" style=" border: 0">
 								<tr align="center">
 									<td th:class="'text-' + ${model.consumption.colorClass}">
-										<th:block th:replace="~{basics :: symbolWithStyle (name=${model.consumption.icon}, style='font-size: 150%;')}"/>
+										<th:block th:replace="~{basics :: symbolWithStyle (name='fa-solid fa-plug', style='font-size: 150%;')}"/>
 									</td>
 								</tr>
 								<tr align="center">
@@ -59,7 +59,7 @@
 										<table width="50%" border="0">
 											<tr>
 												<td th:class="'text-' + ${model.pv.colorClass}" style="padding-right: 7px;">
-													<th:block th:replace="~{basics :: symbolWithStyle (name=${model.pv.icon}, style='font-size: 150%;')}"/>
+													<th:block th:replace="~{basics :: symbolWithStyle (name='fa-solid fa-solar-panel', style='font-size: 150%;')}"/>
 												</td>
 												<td th:class="'text-' + ${model.batteryColorClass}" width="65%">
 													<th:block th:replace="~{basics :: symbolWithStyle (name=${model.batteryIcon}, style='font-size: 150%;')}"/>
@@ -130,9 +130,11 @@
 									</td>
 								</tr>
 								<tr>
-									<td th:class="'text-' + ${model.batteryColorClass}">
+									<td th:class="'text-' + ${model.batteryState}">
+										<th:block th:if="${model.pv.todayConsumption != null}">
 										<span><th:block th:replace="~{basics :: symbol (name=${model.batteryIcon})}"/></span>
 										<span th:text="${model.batteryState} + ${model.batteryStateOfCharge}"></span>
+										</th:block>
 									</td>
 								</tr>
 							</table>

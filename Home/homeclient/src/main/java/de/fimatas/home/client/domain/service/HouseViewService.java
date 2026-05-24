@@ -719,21 +719,23 @@ public class HouseViewService {
         var MAX_GRID_CONSUMPTION_WATTAGE_IN_PV_MODE = new BigDecimal(25);
 
         OverallElectricPowerHouseView overallElectricPowerHouseView = new OverallElectricPowerHouseView();
+        model.addAttribute("overallElectricPowerHouse", overallElectricPowerHouseView);
+
         Device baseDevice = Device.STROMZAEHLER_BEZUG;
         overallElectricPowerHouseView.setId(lookupTodayPowerId(GenericDevice.from(baseDevice), false));
         overallElectricPowerHouseView.setPlaceEnum(baseDevice.getPlace());
+        overallElectricPowerHouseView.setName("Strom");
+        overallElectricPowerHouseView.setIcon("fas fa-bolt");
         boolean unreachPV = pvAdditionalDataModel == null;
         boolean unreachGrid = houseModel == null || houseModel.getGridElectricalPower() == null;
         overallElectricPowerHouseView.setUnreach(Boolean.toString(unreachPV && unreachGrid));
-        if (unreachPV && unreachGrid) {
-            model.addAttribute("overallElectricPowerHouse", overallElectricPowerHouseView);
-            return;
-        }
 
         var gridElectricalPower = houseModel != null ? houseModel.getGridElectricalPower() : null;
-        if(!unreachGrid) {
-            overallElectricPowerHouseView.setGridPurchase(formatPowerView(gridElectricalPower == null ? null : GenericDevice.from(gridElectricalPower.getDevice()), gridElectricalPower == null ? null : gridElectricalPower.getActualConsumption(), historyModel==null?null:historyModel.getPurchasedElectricPowerConsumptionDay(), BigDecimal.ZERO, false, gridElectricalPower == null));
-            overallElectricPowerHouseView.setGridFeed(formatPowerView(gridElectricalPower == null ? null : GenericDevice.from(gridElectricalPower.getDevice()), gridElectricalPower == null ? null : gridElectricalPower.getActualConsumption(), historyModel==null?null:historyModel.getFeedElectricPowerConsumptionDay(), BigDecimal.ZERO, true, gridElectricalPower == null));
+
+        overallElectricPowerHouseView.setGridPurchase(formatPowerView(gridElectricalPower == null ? null : GenericDevice.from(gridElectricalPower.getDevice()), gridElectricalPower == null ? null : gridElectricalPower.getActualConsumption(), historyModel==null?null:historyModel.getPurchasedElectricPowerConsumptionDay(), BigDecimal.ZERO, false, gridElectricalPower == null));
+        overallElectricPowerHouseView.setGridFeed(formatPowerView(gridElectricalPower == null ? null : GenericDevice.from(gridElectricalPower.getDevice()), gridElectricalPower == null ? null : gridElectricalPower.getActualConsumption(), historyModel==null?null:historyModel.getFeedElectricPowerConsumptionDay(), BigDecimal.ZERO, true, gridElectricalPower == null));
+        if(unreachGrid) {
+            overallElectricPowerHouseView.setGridActualDirection(overallElectricPowerHouseView.getGridPurchase());
         }
 
         if(unreachPV) {
@@ -855,8 +857,6 @@ public class HouseViewService {
 
         // indicators
         overallElectricPowerHouseView.setState("");
-        overallElectricPowerHouseView.setName("Strom");
-        overallElectricPowerHouseView.setIcon("fas fa-bolt");
         overallElectricPowerHouseView.setElementTitleState(ets);
 
         // battery
@@ -893,8 +893,6 @@ public class HouseViewService {
             overallElectricPowerHouseView.getPvDetails().add(valueWithCaption);
         });
 
-        // set model
-        model.addAttribute("overallElectricPowerHouse", overallElectricPowerHouseView);
     }
 
     private static boolean isFeedingPowerConsumptionByPvBattery(PvAdditionalDataModel pvAdditionalDataModel) {
