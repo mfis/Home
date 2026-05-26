@@ -197,14 +197,14 @@ public class HouseViewService {
 
         WidgetGroupView view = new WidgetGroupView(viewKey, pseudo, pcdElectric);
         model.addAttribute(viewKey, view);
-        if (house == null || view.isUnreach() || pvAdditionalDataModel == null) {
+        if (house == null || view.isUnreach()) {
             return;
         }
 
         var pv = new View();
         pv.setId(lookupTodayPowerId(GenericDevice.from(Device.STROMZAEHLER_BEZUG), true) + "2");
         pv.setState("?");
-        if(pvAdditionalDataModel.getProductionWattage() != null && house.getGridElectricalPower() != null
+        if(pvAdditionalDataModel != null && pvAdditionalDataModel.getProductionWattage() != null && house.getGridElectricalPower() != null
                 && !house.getGridElectricalPower().isUnreach() && ModelObjectDAO.getInstance().readPvAdditionalDataModel() != null){
             BigDecimal grid = house.getGridElectricalPower().getActualConsumption().getValue();
             if(grid.compareTo(BigDecimal.ZERO) > 0){
