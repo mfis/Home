@@ -197,7 +197,7 @@ public class HouseViewService {
 
         WidgetGroupView view = new WidgetGroupView(viewKey, pseudo, pcdElectric);
         model.addAttribute(viewKey, view);
-        if (house == null || view.isUnreach()) {
+        if (house == null || view.isUnreach() || pvAdditionalDataModel == null) {
             return;
         }
 
@@ -909,7 +909,10 @@ public class HouseViewService {
 
         PowerView power = new PowerView();
         if (unreach) {
+            power.setId(lookupTodayPowerId(device, false));
+            power.setName("Stromzähler");
             power.setState("Leistung unbekannt");
+            power.setPlaceNameOnly("Stromzähler");
             power.setUnreach(Boolean.toString(true));
             return power;
         }
@@ -1087,13 +1090,14 @@ public class HouseViewService {
     private void formatWindowSensor(Model model, String viewKey, WindowSensor windowSensor) {
 
         WindowSensorView view = new WindowSensorView();
+        view.setId(viewKey);
         view.setUnreach(Boolean.toString(windowSensor == null || windowSensor.isUnreach()));
         if (windowSensor == null || windowSensor.isUnreach()) {
+            view.setName("Fenster");
             model.addAttribute(viewKey, view);
             return;
         }
 
-        view.setId(viewKey);
         view.setName(windowSensor.getDevice().getType().getTypeName());
         view.setShortName(windowSensor.getDevice().getType().getShortName());
         view.setPlaceEnum(windowSensor.getDevice().getPlace());
@@ -1133,6 +1137,7 @@ public class HouseViewService {
         formatSwitchInternal(model, viewKey, switchModel, view);
         if(wallboxElectricalPowerConsumption == null || wallboxElectricalPowerConsumption.isUnreach() || switchModel == null || switchModel.isUnreach()){
             view.setUnreach(Boolean.toString(true));
+            return;
         }
         Arrays.stream(ElectricVehicle.values()).forEach(ev -> {
             ElectroVehicleView evView = new ElectroVehicleView();
@@ -1150,12 +1155,13 @@ public class HouseViewService {
     private void formatSwitchInternal(Model model, String viewKey, Switch switchModel, SwitchView view) {
 
         model.addAttribute(viewKey, view);
+        view.setId(viewKey);
         view.setUnreach(Boolean.toString(switchModel == null || switchModel.isUnreach()));
         if(switchModel == null || switchModel.isUnreach()){
+            view.setName("Schalter");
             return;
         }
 
-        view.setId(viewKey);
         view.setName(switchModel.getDevice().getType().getShortName());
         view.setShortName(switchModel.getDevice().getType().getShortName());
         view.setPlaceEnum(switchModel.getDevice().getPlace());
@@ -1723,6 +1729,9 @@ public class HouseViewService {
     }
 
     private static String lookupTodayPowerId(GenericDevice device, boolean isGroupItem) {
+        if(device == null) {
+            return UUID.randomUUID().toString();
+        }
         return device.name() + "_" + device.place().name() + "_todayPowerSum" + lookupGroupitemIdPostfix(isGroupItem);
     }
 

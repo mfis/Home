@@ -83,6 +83,10 @@ public class View { private String id = "";
         this.placeID = p.name();
     }
 
+    public void setPlaceNameOnly(String name) {
+        this.place = name;
+    }
+
     public String getPlaceID() {
         return placeID;
     }
