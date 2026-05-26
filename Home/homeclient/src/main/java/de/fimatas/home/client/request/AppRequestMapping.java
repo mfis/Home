@@ -101,14 +101,10 @@ public class AppRequestMapping {
 
         HouseModel houseModel = ModelObjectDAO.getInstance().readHouseModel();
         try {
-            if (houseModel == null) {
-                throw new IllegalStateException("State error - " + ModelObjectDAO.getInstance().getLastHouseModelState());
-            } else {
-                Model model = new ExtendedModelMap();
-                houseView.fillViewModel(model, null, houseModel, ModelObjectDAO.getInstance().readHistoryModel(),
-                    ModelObjectDAO.getInstance().readLightsModel(), ModelObjectDAO.getInstance().readWeatherForecastModel(), ModelObjectDAO.getInstance().readPresenceModel(), ModelObjectDAO.getInstance().readHeatpumpRoofModel(), ModelObjectDAO.getInstance().readHeatpumpBasementModel(), ModelObjectDAO.getInstance().readElectricVehicleModel(), null, null, null, ModelObjectDAO.getInstance().readPvAdditionalDataModel());
-                return appViewService.mapAppModel(model, AppViewService.AppViewTarget.valueOf(viewTarget.toUpperCase()));
-            }
+            Model model = new ExtendedModelMap();
+            houseView.fillViewModel(model, null, houseModel, ModelObjectDAO.getInstance().readHistoryModel(),
+                ModelObjectDAO.getInstance().readLightsModel(), ModelObjectDAO.getInstance().readWeatherForecastModel(), ModelObjectDAO.getInstance().readPresenceModel(), ModelObjectDAO.getInstance().readHeatpumpRoofModel(), ModelObjectDAO.getInstance().readHeatpumpBasementModel(), ModelObjectDAO.getInstance().readElectricVehicleModel(), null, null, null, ModelObjectDAO.getInstance().readPvAdditionalDataModel());
+            return appViewService.mapAppModel(model, AppViewService.AppViewTarget.valueOf(viewTarget.toUpperCase()));
         } catch (Exception e) {
             log.error("sending empty app model due to exception while mapping.", e);
             return appViewService.newEmptyModel();
