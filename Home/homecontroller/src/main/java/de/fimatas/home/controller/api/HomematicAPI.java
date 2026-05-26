@@ -130,7 +130,14 @@ public class HomematicAPI {
         dbFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, Boolean.TRUE);
         documentBuilder = dbFactory.newDocumentBuilder();
 
-        allValuesTargetCount = lookupDeviceStateCommands().size() + lookupDeviceCommands().size();
+        var allCommands = lookupDeviceStateCommands();
+        allCommands.addAll(lookupDeviceCommands());
+        var allUniqueCommandStrings = new HashSet<>();
+        allCommands.forEach(command -> {
+            allUniqueCommandStrings.add(homematicCommandProcessor.buildCommand(command));
+        });
+
+        allValuesTargetCount = allUniqueCommandStrings.size();
     }
 
     public void runProgramWithBusyState(Device device, String programSuffix) {
