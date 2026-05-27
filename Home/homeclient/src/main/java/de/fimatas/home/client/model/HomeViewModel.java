@@ -60,4 +60,32 @@ public class HomeViewModel implements Serializable {
 
         private String link;
     }
+
+    public void sanitizeData() {
+
+        for (HomeViewPlaceModel place : places) {
+
+            if (place.getValues() != null) {
+                for (HomeViewValueModel valueModel : place.getValues()) {
+                    if (valueModel.getKey() == null || valueModel.getKey().isEmpty()) {
+                        valueModel.setKey("???");
+                    }
+                    if (valueModel.getValue() == null || valueModel.getValue().isEmpty()) {
+                        valueModel.setValue("???");
+                    }
+                }
+            }
+
+            if (place.getActions() != null) {
+                for (List<HomeViewActionModel> actionList : place.getActions()) {
+                    if (actionList != null) {
+                        actionList.removeIf(action ->
+                                action.getName() == null || action.getName().isEmpty() ||
+                                        action.getLink() == null || action.getLink().isEmpty()
+                        );
+                    }
+                }
+            }
+        }
+    }
 }

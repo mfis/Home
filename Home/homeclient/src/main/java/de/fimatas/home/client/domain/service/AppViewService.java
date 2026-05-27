@@ -77,6 +77,8 @@ public class AppViewService {
             }
         }
 
+        appModel.sanitizeData();
+
         return appModel;
     }
 
