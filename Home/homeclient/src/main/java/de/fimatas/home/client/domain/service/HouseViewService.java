@@ -178,11 +178,11 @@ public class HouseViewService {
             return;
         }
 
-        var metadataModel = ModelObjectDAO.getInstance().readMetadataModel();
+        var placeSubtitles = readMetadataPlaceSubtitles();
         subPlaces.forEach(sp -> {
             if(!sp.isBusy() && !sp.isUnreach()){
                 var singlePlace = sp.getDevice().getPlace();
-                var key = metadataModel.getPlaceSubtitles().containsKey(singlePlace) ? metadataModel.getPlaceSubtitles().get(singlePlace) : singlePlace.getPlaceName();
+                var key = placeSubtitles.containsKey(singlePlace) ? placeSubtitles.get(singlePlace) : singlePlace.getPlaceName();
                 key = lookupShortenedRoomName(key);
                 var sv = new View();
                 sv.setId(lookupClimateId(singlePlace, true));
@@ -1052,6 +1052,10 @@ public class HouseViewService {
             newWarnings.add("E-Auto Status unbekannt!");
         }
 
+        if(ModelObjectDAO.getInstance().readMetadataModel() == null) {
+            newWarnings.add("Metamodell unbekannt!");
+        }
+
         List<String> allWarnings = new LinkedList<>();
         if(houseModel!=null){
             allWarnings.addAll(houseModel.getWarnings());
@@ -1080,9 +1084,20 @@ public class HouseViewService {
         model.addAttribute("pushMessages", list);
     }
 
-    private void formatPlaceSubtitles(Model model) {
+    private Map<Place, String> readMetadataPlaceSubtitles() {
         var metadataModel = ModelObjectDAO.getInstance().readMetadataModel();
-        for (Map.Entry<Place, String> entry : metadataModel.getPlaceSubtitles().entrySet()) {
+        if(metadataModel==null) {
+            return new HashMap<>();
+        }
+        return metadataModel.getPlaceSubtitles();
+    }
+
+    private void formatPlaceSubtitles(Model model) {
+        // defaults
+        model.addAttribute(PLACE_SUBTITLE_PREFIX + Place.KIDSROOM_1, "1");
+        model.addAttribute(PLACE_SUBTITLE_PREFIX + Place.KIDSROOM_2, "2");
+        // actual values
+        for (Map.Entry<Place, String> entry : readMetadataPlaceSubtitles().entrySet()) {
             model.addAttribute(PLACE_SUBTITLE_PREFIX + entry.getKey().name(), entry.getValue());
         }
     }
@@ -1664,19 +1679,19 @@ public class HouseViewService {
         var isUnreachable = heatpumpRoofModel == null ||
                 heatpumpRoofModel.getHeatpumpMap() == null || heatpumpRoofModel.getHeatpumpMap().get(place) == null;
 
-        var metadataModel = ModelObjectDAO.getInstance().readMetadataModel();
+        var placeSubtitles = readMetadataPlaceSubtitles();
 
         var view = new HeatpumpRoofView();
         model.addAttribute("heatpump" + place.name(), view);
         view.setName(heatpumpRoofModel == null ? "UnbekannteWaermepumpe" : heatpumpRoofModel.getName());
         view.setIcon("aircon.png");
         view.setPlaceEnum(place);
-        view.setPlaceSubtitle(metadataModel.getPlaceSubtitles().containsKey(place) ? metadataModel.getPlaceSubtitles().get(place) : place.getPlaceName());
+        view.setPlaceSubtitle(placeSubtitles.containsKey(place) ? placeSubtitles.get(place) : place.getPlaceName());
         view.setId(lookupHeatpumpId(place, false));
         view.setUnreach(Boolean.toString(isUnreachable));
 
         Stream.of(Place.KIDSROOM_1, Place.KIDSROOM_2, Place.BEDROOM).filter(p -> p != place).forEach(a -> {
-            String title = metadataModel.getPlaceSubtitles().containsKey(a) ? metadataModel.getPlaceSubtitles().get(a) : a.getPlaceName();
+            String title = placeSubtitles.containsKey(a) ? placeSubtitles.get(a) : a.getPlaceName();
             view.getOtherPlaces().add(new ValueWithCaption(a.name(), title, null));
         });
 
