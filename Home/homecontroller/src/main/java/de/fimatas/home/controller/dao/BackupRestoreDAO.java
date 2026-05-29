@@ -1,13 +1,13 @@
 package de.fimatas.home.controller.dao;
 
 import lombok.SneakyThrows;
-import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
-import org.apache.commons.compress.archivers.sevenz.SevenZFile;
-import org.apache.commons.compress.archivers.sevenz.SevenZOutputFile;
+import lombok.extern.apachecommons.CommonsLog;
+import org.apache.commons.compress.archivers.sevenz.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.BadSqlGrammarException;
@@ -15,14 +15,15 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import org.tukaani.xz.LZMA2Options;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.StringTokenizer;
 
 @Repository
+@CommonsLog
 public class BackupRestoreDAO {
 
     @Autowired
@@ -38,19 +39,42 @@ public class BackupRestoreDAO {
     public void backupDatabase(File outputFile)  {
 
         List<String> scriptQueries = jdbcTemplate.query("SCRIPT;", new SingleColumnRowMapper<>(String.class));
-
         try (SevenZOutputFile sevenZOutput = new SevenZOutputFile(outputFile, password.toCharArray())) {
+
+            LZMA2Options lzma2Options = new LZMA2Options(2);
+            sevenZOutput.setContentMethods(List.of(
+                    new SevenZMethodConfiguration(SevenZMethod.LZMA2, lzma2Options)
+            ));
 
             SevenZArchiveEntry entry = sevenZOutput.createArchiveEntry(new File("backup.sql"), "backup.sql");
             sevenZOutput.putArchiveEntry(entry);
 
-            for (String line : scriptQueries) {
-                String trimmedLine = StringUtils.trimToEmpty(line);
-                if (isNotCreateOrAlterStatement(trimmedLine)) {
-                    byte[] data = trimmedLine.concat("\n").getBytes(StandardCharsets.UTF_8);
-                    sevenZOutput.write(data);
+            OutputStream outWrapper = new OutputStream() {
+                @Override
+                public void write(int b) throws IOException {
+                    sevenZOutput.write(b);
                 }
+                @Override
+                public void write(byte @NonNull [] b) throws IOException {
+                    sevenZOutput.write(b);
+                }
+                @Override
+                public void write(byte @NonNull [] b, int off, int len) throws IOException {
+                    sevenZOutput.write(b, off, len);
+                }
+            };
+
+            try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outWrapper, StandardCharsets.UTF_8), 65536)) {
+                for (String line : scriptQueries) {
+                    String trimmedLine = StringUtils.trimToEmpty(line);
+                    if (isNotCreateOrAlterStatement(trimmedLine)) {
+                        writer.write(trimmedLine);
+                        writer.write("\n");
+                    }
+                }
+                writer.flush();
             }
+
             sevenZOutput.closeArchiveEntry();
         } catch (IOException e) {
             LOG.error("error processing backup file:", e);
