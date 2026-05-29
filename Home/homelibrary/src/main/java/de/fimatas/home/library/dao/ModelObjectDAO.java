@@ -290,12 +290,14 @@ public class ModelObjectDAO {
         int maxLength = models.keySet().stream().mapToInt(String::length).max().orElse(0);
         models.keySet().forEach(m -> {
             sb.append(StringUtils.rightPad(m, maxLength, '.')).append(": ");
+            String val;
             if(models.get(m) != null){
                 Instant givenTime = Instant.ofEpochMilli(models.get(m).getTimestamp());
-                sb.append(HomeUtils.durationSinceFormatted(givenTime, true, false, false));
+                val = HomeUtils.durationSinceFormatted(givenTime, true, false, false);
             }else {
-                sb.append("null");
+                val = "null";
             }
+            sb.append(StringUtils.leftPad(val, 15));
             sb.append("\n");
         });
         return sb.toString();

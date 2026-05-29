@@ -19,7 +19,7 @@
 		<!-- Encoding -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<!-- Java -->
-		<java.version>17</java.version>
+		<java.version>25</java.version>
 		<!-- Dependency versions -->
 		<de.fimatas.users.version>1.0.2</de.fimatas.users.version>
 		<commons-io.version>2.19.0</commons-io.version>
@@ -45,7 +45,7 @@
 		<zxing.version>3.5.3</zxing.version>
 		<heatpumpdriver.version>5.1.0</heatpumpdriver.version>
 		<resilience4j.version>2.2.0</resilience4j.version>
-		<oshi-core.version>6.6.3</oshi-core.version>
+		<oshi-core-ffm.version>7.2.1</oshi-core-ffm.version>
 		<commons-compress.version>1.28.0</commons-compress.version>
 		<archjunit.version>1.4.2</archjunit.version>
 	</properties>
@@ -152,8 +152,8 @@
 			</dependency>
 			<dependency>
 				<groupId>com.github.oshi</groupId>
-				<artifactId>oshi-core</artifactId>
-				<version>${oshi-core.version}</version>
+				<artifactId>oshi-core-ffm</artifactId>
+				<version>${oshi-core-ffm.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.commons</groupId>

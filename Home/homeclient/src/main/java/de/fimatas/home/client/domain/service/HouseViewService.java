@@ -1062,7 +1062,6 @@ public class HouseViewService {
         }
         allWarnings.addAll(newWarnings);
 
-        model.addAttribute("allModelsAvailable", newWarnings.isEmpty());
         model.addAttribute("warnings", allWarnings);
     }
 

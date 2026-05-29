@@ -111,7 +111,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.github.oshi</groupId>
-			<artifactId>oshi-core</artifactId>
+			<artifactId>oshi-core-ffm</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.httpcomponents.client5</groupId>

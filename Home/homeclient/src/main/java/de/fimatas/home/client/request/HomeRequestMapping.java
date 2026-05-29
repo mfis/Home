@@ -209,7 +209,8 @@ public class HomeRequestMapping {
         });
         model.addAttribute("maintenanceLinks", list);
         model.addAttribute("modelState", ModelObjectDAO.getInstance().printModelState());
-        model.addAttribute("controllerState", ModelObjectDAO.getInstance().readControllerStateModel().print());
+        var controllerStateModel = ModelObjectDAO.getInstance().readControllerStateModel();
+        model.addAttribute("controllerState", controllerStateModel == null ? "unbekannt" : controllerStateModel.print());
         return "maintenance";
     }
 

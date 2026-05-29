@@ -17,11 +17,6 @@
 
 			<div th:replace="~{fragments :: pushMessages (model=${pushMessages})}"></div>
 			<div th:replace="~{fragments :: generalWarning (model=${warnings})}"></div>
-			<th:block th:unless="${allModelsAvailable}">
-				<div class="d-flex justify-content-end">
-					<button type="button" onclick="window.location.href='/maintenance'" class="btn btn-sm btn-danger " th:text="'Wartung'"></button>
-				</div>
-			</th:block>
 
 			<!-- Hinweise -->
 			<div th:replace="~{fragments :: deviceBatterieWarning (model=${lowBattery})}"></div>

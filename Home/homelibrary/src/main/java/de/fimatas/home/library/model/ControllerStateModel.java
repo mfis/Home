@@ -18,10 +18,10 @@ public class ControllerStateModel extends AbstractSystemModel {
         StringBuilder sb = new StringBuilder();
         int maxLength = 21;
         sb.append(StringUtils.rightPad("System-Uptime", maxLength, '.')).append(": ");
-        sb.append(systemUptime);
+        sb.append(StringUtils.leftPad(systemUptime, 15));
         sb.append("\n");
         sb.append(StringUtils.rightPad("Application-Uptime", maxLength, '.')).append(": ");
-        sb.append(appUptime);
+        sb.append(StringUtils.leftPad(appUptime, 15));
         sb.append("\n");
         return sb.toString();
     }
