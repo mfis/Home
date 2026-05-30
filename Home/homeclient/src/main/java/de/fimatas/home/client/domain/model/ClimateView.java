@@ -21,9 +21,9 @@ public class ClimateView extends View {
 
     private String tendencyIconHumidity = "";
 
-    private String colorClassHumidity = "secondary";
+    private String colorClassHumidity = "default";
 
-    private String colorClassHeating = "secondary";
+    private String colorClassHeating = "default";
 
     private String linkBoost = "";
 

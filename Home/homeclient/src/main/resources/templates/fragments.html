@@ -499,18 +499,17 @@
 	<!-- AllgemeineWarnung -->
 	<th:block th:fragment="generalWarning (model)">
 		<th:block th:if="${#lists.size(model) &gt; 0}">
-			<div th:replace="~{fragments :: title (name='Achtung!')}"></div>
-		</th:block>
-		<div th:class="'alert alert-danger callout callout-danger classHomeWarning'">
-			<th:block th:each="entry : ${model}">
-				<h4>
-					<span><th:block th:replace="~{basics :: symbol (name='fas fa-exclamation-triangle')}"/></span> <span th:text="${entry}"></span>
-				</h4>
-			</th:block>
-			<div class="d-flex justify-content-end">
-				<button type="button" onclick="window.location.href='/maintenance'" class="btn btn-sm btn-danger " th:text="'Wartung'"></button>
+			<div th:class="'alert alert-danger callout callout-danger classHomeWarning'" style="margin-top: 10px;">
+				<th:block th:each="entry : ${model}">
+					<h4>
+						<span><th:block th:replace="~{basics :: symbol (name='fas fa-exclamation-triangle')}"/></span> <span th:text="${entry}"></span>
+					</h4>
+				</th:block>
+				<div class="d-flex justify-content-end">
+					<button type="button" onclick="window.location.href='/maintenance'" class="btn btn-sm btn-danger " th:text="'Wartung'"></button>
+				</div>
 			</div>
-		</div>
+		</th:block>
 	</th:block>
 
 	<!-- Batterie-Warnung -->

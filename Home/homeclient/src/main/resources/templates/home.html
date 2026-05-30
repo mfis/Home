@@ -12,14 +12,12 @@
 		<div th:replace="~{fragments :: viewCorrelations (model=${viewCorrelations})}"></div>
 
 		<div class="container">
-		
-			<th:block th:if="${!#strings.isEmpty(userErrorMessageText)}"><th:block th:replace="~{basics :: userErrorMessage (text=${userErrorMessageText})}"></th:block></th:block>
 
-			<div th:replace="~{fragments :: pushMessages (model=${pushMessages})}"></div>
+			<!-- Meldungen und Hinweise -->
 			<div th:replace="~{fragments :: generalWarning (model=${warnings})}"></div>
-
-			<!-- Hinweise -->
 			<div th:replace="~{fragments :: deviceBatterieWarning (model=${lowBattery})}"></div>
+			<th:block th:if="${!#strings.isEmpty(userErrorMessageText)}"><th:block th:replace="~{basics :: userErrorMessage (text=${userErrorMessageText})}"></th:block></th:block>
+			<div th:replace="~{fragments :: pushMessages (model=${pushMessages})}"></div>
 
 			<!-- Draussen -->
 			<div th:replace="~{fragments :: title (name='Draußen')}"></div>
