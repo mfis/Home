@@ -18,6 +18,8 @@ public class HeatpumpBasementModel extends AbstractSystemModel {
 
     private boolean offline;
 
+    private boolean standby;
+
     private ConditionColor conditionColor;
 
     private long apiReadTimestamp = 0;

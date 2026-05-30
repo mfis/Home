@@ -298,6 +298,11 @@ public class HeatpumpBasementService {
             newModel.getDatapoints().add(modelDp);
         });
 
+        var program = newModel.getDatapoints().stream()
+                .filter(dp -> dp.getDatapointsRef().equals(HeatpumpBasementDatapoints.PROGRAMM))
+                .findFirst();
+        newModel.setStandby(program.isPresent() && program.get().getValueFormattedLong().equals(HeatpumpBasementDatapoints.VAL_STANDBY));
+
         if(newModel.isOffline()){
             newModel.setConditionColor(ConditionColor.RED);
         }else{

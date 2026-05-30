@@ -1611,8 +1611,10 @@ public class HouseViewService {
         view.setTimestamp(HomeUtils.durationSinceFormatted(timestamp, false, true, true));
 
         String state = "";
-        if(heatpumpBasementModel.isOffline()){
+        if(heatpumpBasementModel.isOffline()) {
             state = "Offline";
+        }else if(heatpumpBasementModel.isStandby()){
+            state = "Standby";
         }else{
             state += "VL: ";
             var valueMischerkreis = readHeatpumpBasementDatapoint(heatpumpBasementModel, HeatpumpBasementDatapoints.PUMPE);

@@ -142,7 +142,7 @@ public enum HeatpumpBasementDatapoints {
             val -> val,
             HeatpumpBasementDatapoints::formattedValueShort,
             new BigDecimal("0.02"),
-            val -> valueAsBigDecimal(val).compareTo(new BigDecimal("1.30")) < 1 ? ConditionColor.RED : ConditionColor.GREEN
+            val -> valueAsBigDecimal(val).compareTo(new BigDecimal("1.30")) < 1 ? ConditionColor.RED : ConditionColor.DEFAULT
     ),
 
     ;
@@ -156,7 +156,7 @@ public enum HeatpumpBasementDatapoints {
     private final Function<String, ConditionColor> colorBasedByValue;
 
     private static final String AUS = "Aus";
-    private final static String VAL_STANDBY = "Standby";
+    public final static String VAL_STANDBY = "Standby";
     private final static String VAL_OFF = AUS;
     private final static String VAL_AUTO_OFF = "Automatik aus";
     private final static String VAL_INACTIVE = "Deaktiviert";
@@ -180,7 +180,6 @@ public enum HeatpumpBasementDatapoints {
             AUTOMATIK + " ein", AUTOMATIK,
             VAL_AUTO_OFF, AUSGESCHALTET,
             VAL_OFF, AUSGESCHALTET,
-            VAL_STANDBY, AUSGESCHALTET,
             VAL_INACTIVE, AUSGESCHALTET,
             SPERRZEIT, AUSGESCHALTET,
             EIN, EINGESCHALTET,
@@ -192,7 +191,6 @@ public enum HeatpumpBasementDatapoints {
             AUTOMATIK + " ein", AUTO,
             VAL_AUTO_OFF, AUS,
             VAL_OFF, AUS,
-            VAL_STANDBY, AUS,
             VAL_INACTIVE, AUS,
             SPERRZEIT, AUS,
             EIN, EIN,
