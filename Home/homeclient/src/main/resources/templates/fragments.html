@@ -488,10 +488,10 @@
 			<div th:replace="~{fragments :: title (name='Push-Benachrichtigungen')}"></div>
 		</th:block>
 		<th:block th:each="entry : ${model}">
-			<div th:class="'alert alert-dark callout callout-dark classHomeWarning'">
+			<div th:class="'alert alert-warning callout callout-warning text-warning'">
 				<h5 class="card-title"><span><th:block th:replace="~{basics :: symbol (name='fa-regular fa-envelope')}"/></span> <span th:text="${entry.title}"></span></h5>
-				<h6 class="card-subtitle mb-2 text-muted" th:text="${entry.timestamp}"></h6>
-				<p class="card-text" th:text="${entry.message}"></p>
+				<a th:text="${entry.timestamp}"></a><br>
+				<a th:text="${entry.message}"></a>
 			</div>
 		</th:block>
 	</th:block>
@@ -499,14 +499,15 @@
 	<!-- AllgemeineWarnung -->
 	<th:block th:fragment="generalWarning (model)">
 		<th:block th:if="${#lists.size(model) &gt; 0}">
-			<div th:class="'alert alert-danger callout callout-danger classHomeWarning'" style="margin-top: 10px;">
+			<div th:replace="~{fragments :: title (name='Fehler:')}"></div>
+			<div th:class="'alert alert-danger callout callout-danger classHomeWarning'">
 				<th:block th:each="entry : ${model}">
 					<h4>
 						<span><th:block th:replace="~{basics :: symbol (name='fas fa-exclamation-triangle')}"/></span> <span th:text="${entry}"></span>
 					</h4>
 				</th:block>
 				<div class="d-flex justify-content-end">
-					<button type="button" onclick="window.location.href='/maintenance'" class="btn btn-sm btn-danger " th:text="'Wartung'"></button>
+					<button type="button" onclick="window.location.href='/maintenance'" class="btn btn-sm btn-danger me-2" th:text="'Wartung'"></button>
 				</div>
 			</div>
 		</th:block>
