@@ -9,10 +9,7 @@ public enum ConditionColor {
     GREEN("success"),
     LIGHT("light"),
     DEFAULT("default"),
-    GRAY("secondary"),
     ACTIVE_BUTTON("active-primary"),
-    ROW_STRIPE_DEFAULT("default"),
-    ROW_STRIPE_ACCENT("accent"),
     ;
 
     private final String uiClass;

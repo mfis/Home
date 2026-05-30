@@ -240,7 +240,7 @@ public class HouseViewService {
         var battery = new View();
         battery.setId(lookupTodayPowerId(GenericDevice.from(Device.STROMZAEHLER_BEZUG), true) + "3");
         battery.setState("?");
-        battery.setColorClass(lookupPvBatteryColor(ModelObjectDAO.getInstance().readPvAdditionalDataModel(), ConditionColor.GRAY).getUiClass());
+        battery.setColorClass(lookupPvBatteryColor(ModelObjectDAO.getInstance().readPvAdditionalDataModel(), ConditionColor.DEFAULT).getUiClass());
         if(ModelObjectDAO.getInstance().readPvAdditionalDataModel() != null){
             battery.setState(ModelObjectDAO.getInstance().readPvAdditionalDataModel().getBatteryStateOfCharge() + "%");
         }
@@ -1132,7 +1132,7 @@ public class HouseViewService {
         if (windowSensor.isState()) {
             view.setColorClass(ConditionColor.ORANGE.getUiClass());
         }else{
-            view.setColorClass(ConditionColor.GRAY.getUiClass());
+            view.setColorClass(ConditionColor.DEFAULT.getUiClass());
         }
         //noinspection ConditionalExpressionWithIdenticalBranches
         view.setIcon(windowSensor.isState() ? "window.png" : "window.png");
@@ -1519,7 +1519,7 @@ public class HouseViewService {
             lightView.setId("light_" + place.name() + "_" + light.getId());
             lightView.setName(light.getName());
             lightView.setStateShort(light.getState().getCaption());
-            lightView.setColorClass(light.getState() == LightState.ON ? ConditionColor.ORANGE.getUiClass() : ConditionColor.GRAY.getUiClass());
+            lightView.setColorClass(light.getState() == LightState.ON ? ConditionColor.ORANGE.getUiClass() : ConditionColor.DEFAULT.getUiClass());
             if (light.getState() == LightState.ON) {
                 lightView.setLinkOff(TOGGLE_LIGHT + light.getId() + AND_VALUE_IS + Boolean.FALSE);
             } else if (light.getState() == LightState.OFF) {
@@ -1529,7 +1529,7 @@ public class HouseViewService {
             lights.getLights().add(lightView);
         }
 
-        lights.setColorClass(countLightsOn > 0 ? ConditionColor.ORANGE.getUiClass() : ConditionColor.GRAY.getUiClass());
+        lights.setColorClass(countLightsOn > 0 ? ConditionColor.ORANGE.getUiClass() : ConditionColor.DEFAULT.getUiClass());
         lights.setName("Licht");
         lights.setIcon(countLightsOn > 0 ? "fas fa-lightbulb" : "far fa-lightbulb");
 
@@ -1599,7 +1599,7 @@ public class HouseViewService {
         view.setBusy(Boolean.toString(isBusy));
 
         if(isUnreachable){
-            view.setColorClass(ConditionColor.GRAY.getUiClass());
+            view.setColorClass(ConditionColor.DEFAULT.getUiClass());
             return;
         }
 

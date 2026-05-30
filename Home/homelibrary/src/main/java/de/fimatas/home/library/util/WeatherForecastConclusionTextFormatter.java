@@ -110,7 +110,7 @@ public class WeatherForecastConclusionTextFormatter {
                 firstElementOf(conditionsSortedBySignificance).getColor() == null ?
                 null : firstElementOf(conditionsSortedBySignificance).getColor();
 
-        if(colorByCondition != null && colorByCondition != ConditionColor.DEFAULT && colorByCondition != ConditionColor.GRAY) {
+        if(colorByCondition != null && colorByCondition != ConditionColor.DEFAULT) {
             texts.put(SIGNIFICANT_CONDITION_COLOR_CODE_UI_CLASS, colorByCondition.getUiClass());
             return;
         }

@@ -19,8 +19,8 @@ public enum HeatpumpRoofPreset {
     FAN_AUTO("Gebläse", "Automatisch", "Gebläse+", ConditionColor.GREEN), //
     FAN_MIN("Gebläse", "Leise", "Gebläse-", ConditionColor.GREEN), //
     DRY_TIMER("Trocknen", "Timer", "Trocknen", ConditionColor.GREEN), //
-    OFF("Aus", null, "Aus", ConditionColor.GRAY), //
-    UNKNOWN("Unbekannt", null, "", ConditionColor.GRAY), //
+    OFF("Aus", null, "Aus", ConditionColor.DEFAULT), //
+    UNKNOWN("Unbekannt", null, "", ConditionColor.DEFAULT), //
     ;
 
     private final String mode;
