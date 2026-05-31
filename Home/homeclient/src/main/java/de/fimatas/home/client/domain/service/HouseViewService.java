@@ -1839,8 +1839,10 @@ public class HouseViewService {
 
         view.setChargeLimitLink(MESSAGEPATH + TYPE_IS + MessageType.CHARGELIMIT + AND_DEVICE_ID_IS + e.name() + AND_VALUE_IS);
         Stream.of(ChargeLimit.values()).forEach(cl -> {
-            var value = cl== state.getChargeLimit() ? "#" : cl.name();
-            view.getChargeLimits().add(new ValueWithCaption(value, cl.getCaption(), null));
+            if(cl.isShow()){
+                var value = cl== state.getChargeLimit() ? "#" : cl.name();
+                view.getChargeLimits().add(new ValueWithCaption(value, cl.getCaption(), cl.getColor().getUiClass()));
+            }
         });
 
         state.getChargingTime().forEach(ct -> {

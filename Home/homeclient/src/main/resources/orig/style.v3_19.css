@@ -95,6 +95,24 @@ button{
 .callout-cold {
 	border-color: rgb(244,190,238) !important;
 }
+.back-secondary {
+	background-color: rgb(119,119,119) !important;
+}
+.back-primary {
+	background-color: rgb(66,139,202) !important;
+}
+.back-success {
+	background-color: rgb(92,184,92) !important;
+}
+.back-danger {
+	background-color: rgb(217,83,79) !important;
+}
+.back-warning {
+	background-color: rgb(240,173,78) !important;
+}
+.back-info {
+	background-color: rgb(91,192,222) !important;
+}
 body{
 	background-color:#000 !important;
 	/* overflow-y: scroll; */

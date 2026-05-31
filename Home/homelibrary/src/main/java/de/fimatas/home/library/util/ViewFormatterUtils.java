@@ -1,8 +1,11 @@
 package de.fimatas.home.library.util;
 
+import de.fimatas.home.library.domain.model.ChargeLimit;
 import de.fimatas.home.library.domain.model.ElectricVehicleState;
 import de.fimatas.home.library.model.ConditionColor;
 import de.fimatas.home.library.model.PvAdditionalDataModel;
+
+import java.util.Arrays;
 
 public class ViewFormatterUtils {
 
@@ -32,7 +35,12 @@ public class ViewFormatterUtils {
     }
 
     public static ConditionColor calculateViewConditionColorEv(short percentage) {
-        return percentage > 89 ? ConditionColor.ORANGE:percentage<21?ConditionColor.RED:ConditionColor.GREEN; // TODO: constant
+        for(ChargeLimit cl : Arrays.stream(ChargeLimit.values()).toList()) {
+            if(percentage <= cl.getPercentage()){
+                return cl.getColor();
+            }
+        }
+        return ConditionColor.RED;
     }
 
     public static String mapAppColorAccent(String colorClass) {
