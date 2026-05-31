@@ -2,6 +2,7 @@ package de.fimatas.home.controller.service;
 
 import de.fimatas.home.controller.dao.LiveActivityDAO;
 import de.fimatas.home.controller.model.LiveActivityField;
+import de.fimatas.home.controller.model.LiveActivityFieldValue;
 import de.fimatas.home.controller.model.LiveActivityModel;
 import de.fimatas.home.controller.model.LiveActivityType;
 import de.fimatas.home.library.dao.ModelObjectDAO;
@@ -10,9 +11,7 @@ import de.fimatas.home.library.domain.model.ElectricVehicleModel;
 import de.fimatas.home.library.model.PvAdditionalDataModel;
 import de.fimatas.home.library.util.ViewFormatterUtils;
 import jakarta.annotation.PreDestroy;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +26,6 @@ import java.time.Instant;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Stream;
 
 @Component
 @CommonsLog
@@ -59,17 +57,20 @@ public class LiveActivityService {
             return;
         }
 
-        getActualModels().stream().filter(model -> model.getClass().equals(clazz)).findFirst().ifPresent(this::processModel);
+        getActualModels().entrySet().stream()
+                .filter(entry -> entry.getKey().equals(clazz))
+                .findFirst()
+                .ifPresent(entry -> processModel(entry.getKey(), entry.getValue()));
     }
 
-    protected void processModel(AbstractSystemModel model) {
+    protected void processModel(Class<?> clazz, AbstractSystemModel model) {
         if(model == null) {
             return;
         }
         LiveActivityDAO.getInstance().getActiveLiveActivities().forEach((token, liveActivity) -> {
             synchronized (LiveActivityDAO.getInstance().getActiveLiveActivities().get(token)){
                 if(liveActivity.getEndTimestamp().isAfter(Instant.now())){
-                    List<MessagePriority> messagePriorityList = processNewModelForSingleUser(model, liveActivity);
+                    List<MessagePriority> messagePriorityList = processNewModelForSingleUser(clazz, model, liveActivity);
                     sendToApns(liveActivity.getToken(), MessagePriority.getHighestPriority(messagePriorityList));
                 }
             }
@@ -92,68 +93,80 @@ public class LiveActivityService {
         getActualModels().forEach(this::processModel);
     }
 
-    private List<AbstractSystemModel> getActualModels(){
-        return Stream.of(
-                        ModelObjectDAO.getInstance().readPvAdditionalDataModel(),
-                        ModelObjectDAO.getInstance().readElectricVehicleModel()
-                ).filter(Objects::nonNull).toList();
+    private Map<Class<?>, AbstractSystemModel> getActualModels(){
+        LinkedHashMap<Class<?>, AbstractSystemModel> map = new LinkedHashMap<>();
+        map.put(PvAdditionalDataModel.class, ModelObjectDAO.getInstance().readPvAdditionalDataModel());
+        map.put(ElectricVehicleModel.class, ModelObjectDAO.getInstance().readElectricVehicleModel());
+        return map;
     }
 
-    private List<MessagePriority> processNewModelForSingleUser(Object model, LiveActivityModel liveActivity) {
+    private List<MessagePriority> processNewModelForSingleUser(Class<?> clazz, Object model, LiveActivityModel liveActivity) {
 
         List<MessagePriority> priorities = new ArrayList<>();
 
-        if(model instanceof PvAdditionalDataModel pvAdditionalDataModel) {
-            priorities.add(processValue(valuePvBattery(pvAdditionalDataModel), liveActivity));
-            priorities.add(processValue(valuePvProduction(pvAdditionalDataModel), liveActivity));
-            priorities.add(processValue(valueHouseConsumption(pvAdditionalDataModel), liveActivity));
+        if(clazz.equals(PvAdditionalDataModel.class)) {
+            var instance = (PvAdditionalDataModel) model;
+            priorities.add(processValue(valuePvBattery(instance), liveActivity));
+            priorities.add(processValue(valuePvProduction(instance), liveActivity));
+            priorities.add(processValue(valueHouseConsumption(instance), liveActivity));
         }
 
-        if(model instanceof ElectricVehicleModel electricVehicleModel) {
-            priorities.add(processValue(valueElectricVehicle(electricVehicleModel), liveActivity));
+        if(clazz.equals(ElectricVehicleModel.class)) {
+            var instance = (ElectricVehicleModel) model;
+            priorities.add(processValue(valueElectricVehicleCharge(instance), liveActivity));
         }
 
         return priorities;
     }
 
-    private MessagePriority processValue(FieldValue fieldValue, LiveActivityModel liveActivityModel) {
-        if(fieldValue.getValue() == null){
-            liveActivityModel.getActualValues().remove(fieldValue.getField());
+    private MessagePriority processValue(LiveActivityFieldValue liveActivityFieldValue, LiveActivityModel liveActivityModel) {
+        if(liveActivityFieldValue.getValue() == null && !liveActivityFieldValue.isUnknown()){
+            liveActivityModel.getActualValues().remove(liveActivityFieldValue.getField());
             return MessagePriority.IGNORE;
         }
-        liveActivityModel.getActualValues().put(fieldValue.getField(), fieldValue.getValue());
-        return calculateValueChangeEvaluation(fieldValue, liveActivityModel);
+        liveActivityModel.getActualValues().put(liveActivityFieldValue.getField(), liveActivityFieldValue);
+        return calculateValueChangeEvaluation(liveActivityFieldValue, liveActivityModel);
     }
 
-    private FieldValue valuePvProduction(PvAdditionalDataModel pvAdditionalDataModel) {
-        return new FieldValue(pvAdditionalDataModel.getProductionWattage().getValue(), LiveActivityField.PV_PRODUCTION);
+    private LiveActivityFieldValue valuePvProduction(PvAdditionalDataModel pvAdditionalDataModel) {
+        var val = pvAdditionalDataModel == null ? null : pvAdditionalDataModel.getProductionWattage().getValue();
+        return new LiveActivityFieldValue(val, LiveActivityField.PV_PRODUCTION, val == null);
     }
 
-    private FieldValue valueHouseConsumption(PvAdditionalDataModel pvAdditionalDataModel) {
-        return new FieldValue(pvAdditionalDataModel.getConsumptionWattage().getValue(), LiveActivityField.HOUSE_CONSUMPTION);
+    private LiveActivityFieldValue valueHouseConsumption(PvAdditionalDataModel pvAdditionalDataModel) {
+        var val = pvAdditionalDataModel == null ? null : pvAdditionalDataModel.getConsumptionWattage().getValue();
+        return new LiveActivityFieldValue(val, LiveActivityField.HOUSE_CONSUMPTION, val == null);
     }
 
-    private FieldValue valuePvBattery(PvAdditionalDataModel pvAdditionalDataModel) {
-        return new FieldValue(new BigDecimal(ViewFormatterUtils.calculateViewPercentagePvBattery(pvAdditionalDataModel)), LiveActivityField.PV_BATTERY);
+    private LiveActivityFieldValue valuePvBattery(PvAdditionalDataModel pvAdditionalDataModel) {
+        var val = pvAdditionalDataModel == null ? null : new BigDecimal(ViewFormatterUtils.calculateViewPercentagePvBattery(pvAdditionalDataModel));
+        return new LiveActivityFieldValue(val, LiveActivityField.PV_BATTERY, val == null);
     }
 
-    private FieldValue valueElectricVehicle(ElectricVehicleModel electricVehicleModel) {
+    private LiveActivityFieldValue valueElectricVehicleCharge(ElectricVehicleModel electricVehicleModel) {
+        if(electricVehicleModel == null) {
+            return new LiveActivityFieldValue(null, LiveActivityField.EV_CHARGE, true);
+        }
         return electricVehicleModel.getEvMap().values().stream()
             .filter(evs -> evs.isActiveCharging() && evs.isConnectedToWallbox()).findFirst()
-                .map(evs -> new FieldValue(new BigDecimal(ViewFormatterUtils.calculateViewPercentageEv(evs)), LiveActivityField.EV_CHARGE))
-                .orElse(new FieldValue(null, LiveActivityField.EV_CHARGE));
+                .map(evs -> new LiveActivityFieldValue(new BigDecimal(ViewFormatterUtils.calculateViewPercentageEv(evs)), LiveActivityField.EV_CHARGE, false))
+                .orElse(new LiveActivityFieldValue(null, LiveActivityField.EV_CHARGE, false));
     }
 
-    private MessagePriority calculateValueChangeEvaluation(FieldValue fieldValue, LiveActivityModel model) {
-        var highestPriority = fieldValue.getField().isAllowsHighPriority() ? MessagePriority.HIGH_PRIORITY : MessagePriority.LOW_PRIORITY;
-        if (model.getLiveActivityType().fields().contains(fieldValue.getField())) {
+    private MessagePriority calculateValueChangeEvaluation(LiveActivityFieldValue liveActivityFieldValue, LiveActivityModel model) {
+        var highestPriority = liveActivityFieldValue.getField().isAllowsHighPriority() ? MessagePriority.HIGH_PRIORITY : MessagePriority.LOW_PRIORITY;
+        if (model.getLiveActivityType().fields().contains(liveActivityFieldValue.getField())) {
             // check for first value
-            if (model.getLastValuesSentWithHighPriotity().get(fieldValue.getField()) == null) {
+            if (model.getLastValuesSentWithHighPriotity().get(liveActivityFieldValue.getField()) == null) {
                 // log.info("LiveActivity calc: " + highestPriority.name() + " #1: " + fieldValue.field.name() + " = "  + fieldValue.getValue());
                 return highestPriority;
             }
+            // check for chenged unknown state
+            if(model.getLastValuesSentWithHighPriotity().get(liveActivityFieldValue.getField()).isUnknown() != liveActivityFieldValue.isUnknown()) {
+                return MessagePriority.HIGH_PRIORITY;
+            }
             // check for equal value
-            if (model.getLastValuesSentWithHighPriotity().get(fieldValue.getField()).compareTo(fieldValue.getValue()) == 0) {
+            if (model.getLastValuesSentWithHighPriotity().get(liveActivityFieldValue.getField()).getValue().compareTo(liveActivityFieldValue.getValue()) == 0) {
                 if(model.getLastValTimestampHighPriority().plus(EQUAL_MODEL_STALE_PREVENTION_DURATION).isBefore(uniqueTimestampService.getNonUnique())){
                     // log.info("LiveActivity STALE VERHINDERN");
                     return MessagePriority.HIGH_PRIORITY; // stale verhindern
@@ -161,21 +174,21 @@ public class LiveActivityService {
                 return MessagePriority.IGNORE;
             }
             // check for different signs
-            BigDecimal product = model.getLastValuesSentWithHighPriotity().get(fieldValue.getField()).multiply(fieldValue.getValue());
+            BigDecimal product = model.getLastValuesSentWithHighPriotity().get(liveActivityFieldValue.getField()).getValue().multiply(liveActivityFieldValue.getValue());
             if(product.compareTo(BigDecimal.ZERO) < 0){
                 // log.info("LiveActivity calc: " + highestPriority.name() + " #2: " + fieldValue.field.name() + " = "  + fieldValue.getValue());
                 return highestPriority;
             }
             // check for threshold
-            BigDecimal diff = model.getLastValuesSentWithHighPriotity().get(fieldValue.getField()).subtract(fieldValue.getValue()).abs();
-            if (diff.compareTo(fieldValue.getField().getThresholdMin()) >= 0) {
+            BigDecimal diff = model.getLastValuesSentWithHighPriotity().get(liveActivityFieldValue.getField()).getValue().subtract(liveActivityFieldValue.getValue()).abs();
+            if (diff.compareTo(liveActivityFieldValue.getField().getThresholdMin()) >= 0) {
                 // log.info("LiveActivity calc: " + highestPriority.name() + " #3: " + fieldValue.field.name() + " = "  + fieldValue.getValue());
                 return highestPriority;
             }
 
             // check for equal value with low priority
-            if (model.getLastValuesSentWithLowPriotity().containsKey(fieldValue.getField()) &&
-                    model.getLastValuesSentWithLowPriotity().get(fieldValue.getField()).compareTo(fieldValue.getValue()) == 0) {
+            if (model.getLastValuesSentWithLowPriotity().containsKey(liveActivityFieldValue.getField()) &&
+                    model.getLastValuesSentWithLowPriotity().get(liveActivityFieldValue.getField()).getValue().compareTo(liveActivityFieldValue.getValue()) == 0) {
                 return MessagePriority.IGNORE;
             }
 
@@ -220,7 +233,7 @@ public class LiveActivityService {
         liveActivity.setLiveActivityType(LiveActivityType.ELECTRICITY);
         LiveActivityDAO.getInstance().getActiveLiveActivities().put(token, liveActivity);
 
-        getActualModels().forEach(model -> processNewModelForSingleUser(model, liveActivity));
+        getActualModels().forEach((key, value) -> processNewModelForSingleUser(key, value, liveActivity));
 
         sendToApns(liveActivity.getToken(), MessagePriority.HIGH_PRIORITY);
     }
@@ -243,7 +256,8 @@ public class LiveActivityService {
             log.info("TEST_LIVE_ACTIVITY: prio=" + highPriority + ", map=" + buildContentStateMap(token, true));
         }else{
             //noinspection UnnecessaryUnicodeEscape
-            // log.info("LiveActivity PUSH to: " + liveActivityModel.getUsername() + ", prio=" + messagePriority);
+            // FIXME: remove logging
+            log.info("LiveActivity PUSH to: " + liveActivityModel.getUsername() + ", prio=" + messagePriority);
             pushService.sendLiveActivityToApns(token, highPriority, false, STALE_DURATION, liveActivityModel.getEndTimestamp(), buildContentStateMap(token, true));
         }
 
@@ -295,18 +309,23 @@ public class LiveActivityService {
 
     private SingleState singleStateValues(String token, LiveActivityField field) {
 
-        final BigDecimal value = LiveActivityDAO.getInstance().getActiveLiveActivities().get(token).getActualValues().get(field);
-        if(value==null){
+        final var val = LiveActivityDAO.getInstance().getActiveLiveActivities().get(token).getActualValues().get(field);
+        if(val == null || val.getValue()==null && !val.isUnknown()){
             return singleStateEmpty();
         }
 
         var state = new SingleState();
         state.label = field.getLabel();
-        state.val = field.formatValue(value);
-        state.valShort = field.formatShort(value);
-        state.symbolName = field.getSymbolName().apply(value);
         state.symbolType = field.getSymbolType();
-        state.color = field.color(value);
+        state.symbolName = field.getSymbolName().apply(val.getValue());
+        state.color = field.color(val.getValue());
+        if(val.isUnknown()){
+            state.val = "?";
+            state.valShort = "?";
+        }else {
+            state.val = field.formatValue(val.getValue());
+            state.valShort = field.formatShort(val.getValue());
+        }
         return state;
     }
 
@@ -365,13 +384,6 @@ public class LiveActivityService {
         private String val;
         private String valShort;
         private String color;
-    }
-
-    @Getter
-    @AllArgsConstructor
-    private static class FieldValue {
-        private BigDecimal value;
-        private LiveActivityField field;
     }
 
     private enum MessagePriority {

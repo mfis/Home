@@ -34,7 +34,13 @@ public enum LiveActivityField {
             true,
             val -> buildDecimalFormat("0.0").format(val.abs().divide(new BigDecimal(1000), new MathContext(3, RoundingMode.HALF_UP))) + "kW",
             val -> buildDecimalFormat("0.0").format(val.abs().divide(new BigDecimal(1000), new MathContext(3, RoundingMode.HALF_UP))),
-            val -> ViewFormatterUtils.mapAppColorAccent(val.compareTo(BigDecimal.ZERO) > 0 ? ConditionColor.GREEN.getUiClass() : ConditionColor.DEFAULT.getUiClass())
+            val -> {
+                if(val == null){
+                    return ViewFormatterUtils.mapAppColorAccent(ConditionColor.DEFAULT.getUiClass());
+                }else {
+                    return ViewFormatterUtils.mapAppColorAccent(val.compareTo(BigDecimal.ZERO) > 0 ? ConditionColor.GREEN.getUiClass() : ConditionColor.DEFAULT.getUiClass());
+                }
+            }
     ), //
 
     EV_CHARGE(
@@ -45,13 +51,22 @@ public enum LiveActivityField {
             true,
             val -> val.intValue() + "%",
             val -> val.intValue() + "%",
-            val -> ViewFormatterUtils.mapAppColorAccent(ViewFormatterUtils.calculateViewConditionColorEv(val.shortValue()).getUiClass())
+            val -> {
+                if(val == null){
+                    return ViewFormatterUtils.mapAppColorAccent(ConditionColor.DEFAULT.getUiClass());
+                }else {
+                    return ViewFormatterUtils.mapAppColorAccent(ViewFormatterUtils.calculateViewConditionColorEv(val.shortValue()).getUiClass());
+                }
+            }
     ), //
 
     PV_BATTERY(
             "Bat",
             val -> {
-                final int soc = ModelObjectDAO.getInstance().readPvAdditionalDataModel().getBatteryStateOfCharge();
+                if(val == null) {
+                    return "battery.0percent";
+                }
+                final int soc = val.intValue();
                 if(soc < 15){
                     return "battery.0percent";
                 } else if(soc < 40){
@@ -70,6 +85,9 @@ public enum LiveActivityField {
             val -> val.intValue() + "%",
             val -> val.intValue() + "%",
             val -> {
+                if(ModelObjectDAO.getInstance().readPvAdditionalDataModel() == null) {
+                    return ViewFormatterUtils.mapAppColorAccent(ConditionColor.DEFAULT.getUiClass());
+                }
                 switch (ModelObjectDAO.getInstance().readPvAdditionalDataModel().getPvBatteryState()){
                     case CHARGING -> {
                         return ViewFormatterUtils.mapAppColorAccent(ConditionColor.BLUE.getUiClass());

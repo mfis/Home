@@ -83,6 +83,23 @@ class LiveActivityServiceTest {
     }
 
     @Test
+    void testStartWithNullModel() {
+        liveActivityService.start("test", "user", "device");
+
+        verify(pushService, times(1))
+                .sendLiveActivityToApns(eq("test"), argCaptorHighPriority.capture(), eq(false), any(Duration.class), any(Instant.class), argCaptorValueMap.capture());
+
+        assertNotNull(argCaptorValueMap.getValue());
+        assertNotNull(argCaptorValueMap.getValue().get("timestamp"));
+        assertTrue(getSinglePriorityHigh(0));
+        assertEquals("?", getSingleVal(0, "primary", "val"));
+        assertEquals(".white", getSingleVal(0, "primary", "color"));
+        assertEquals("?", getSingleVal(0, "primary", "valShort"));
+        assertEquals("solarpanel", getSingleVal(0, "primary", "symbolName"));
+        assertEquals("?", getSingleVal(0, "secondary", "val"));
+    }
+
+    @Test
     void testStartNotEnabled() {
 
         lenient().when(env.getProperty("liveactivity.enabled")).thenReturn("false");
@@ -120,7 +137,7 @@ class LiveActivityServiceTest {
         ModelObjectDAO.getInstance().write(pvAdditionalDataModel(0, PvBatteryState.STABLE, 100, 0));
         liveActivityService.start("test", "user", "device");
 
-        liveActivityService.processModel(pvAdditionalDataModel(0, PvBatteryState.STABLE, 1000, 0));
+        liveActivityService.processModel(PvAdditionalDataModel.class, pvAdditionalDataModel(0, PvBatteryState.STABLE, 1000, 0));
 
         verify(pushService, times(2))
                 .sendLiveActivityToApns(eq("test"), argCaptorHighPriority.capture(), eq(false), any(Duration.class), any(Instant.class), argCaptorValueMap.capture());
@@ -138,7 +155,7 @@ class LiveActivityServiceTest {
 
         lenient().when(uniqueTimestampService.getNonUnique()).thenReturn(DEFAULT_LOCAL_DATE_TIME.plusMinutes(1));
 
-        liveActivityService.processModel(pvAdditionalDataModel(0, PvBatteryState.STABLE, 500, 0));
+        liveActivityService.processModel(PvAdditionalDataModel.class, pvAdditionalDataModel(0, PvBatteryState.STABLE, 500, 0));
 
         verify(pushService, times(1))
                 .sendLiveActivityToApns(eq("test"), argCaptorHighPriority.capture(), eq(false), any(Duration.class), any(Instant.class), argCaptorValueMap.capture());
@@ -156,7 +173,7 @@ class LiveActivityServiceTest {
         lenient().when(uniqueTimestampService.getNonUnique())
                 .thenReturn(DEFAULT_LOCAL_DATE_TIME.plus(EQUAL_MODEL_STALE_PREVENTION_DURATION).plusSeconds(1));
 
-        liveActivityService.processModel(pvAdditionalDataModel(0, PvBatteryState.STABLE, 500, 0));
+        liveActivityService.processModel(PvAdditionalDataModel.class, pvAdditionalDataModel(0, PvBatteryState.STABLE, 500, 0));
 
         verify(pushService, times(2))
                 .sendLiveActivityToApns(eq("test"), argCaptorHighPriority.capture(), eq(false), any(Duration.class), any(Instant.class), argCaptorValueMap.capture());
@@ -170,9 +187,9 @@ class LiveActivityServiceTest {
         ModelObjectDAO.getInstance().write(pvAdditionalDataModel(0, PvBatteryState.STABLE, 500, 0));
         liveActivityService.start("test", "user", "device");
 
-        liveActivityService.processModel(pvAdditionalDataModel(0, PvBatteryState.STABLE, 510, 0));
-        liveActivityService.processModel(pvAdditionalDataModel(0, PvBatteryState.STABLE, 490, 0));
-        liveActivityService.processModel(pvAdditionalDataModel(0, PvBatteryState.STABLE, 500, 0));
+        liveActivityService.processModel(PvAdditionalDataModel.class, pvAdditionalDataModel(0, PvBatteryState.STABLE, 510, 0));
+        liveActivityService.processModel(PvAdditionalDataModel.class, pvAdditionalDataModel(0, PvBatteryState.STABLE, 490, 0));
+        liveActivityService.processModel(PvAdditionalDataModel.class, pvAdditionalDataModel(0, PvBatteryState.STABLE, 500, 0));
 
         verify(pushService, times(3))
                 .sendLiveActivityToApns(eq("test"), argCaptorHighPriority.capture(), eq(false), any(Duration.class), any(Instant.class), argCaptorValueMap.capture());
@@ -190,7 +207,7 @@ class LiveActivityServiceTest {
         ModelObjectDAO.getInstance().write(pvAdditionalDataModel(0, PvBatteryState.STABLE, 5, 0));
         liveActivityService.start("test", "user", "device");
 
-        liveActivityService.processModel(pvAdditionalDataModel(0, null, -2, 0));
+        liveActivityService.processModel(PvAdditionalDataModel.class, pvAdditionalDataModel(0, null, -2, 0));
 
         verify(pushService, times(2))
                 .sendLiveActivityToApns(eq("test"), argCaptorHighPriority.capture(), eq(false), any(Duration.class), any(Instant.class), argCaptorValueMap.capture());
