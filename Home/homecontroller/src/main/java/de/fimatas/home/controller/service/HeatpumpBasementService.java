@@ -127,6 +127,8 @@ public class HeatpumpBasementService {
             if(stateBeforeCall != stateAfterCall && stateAfterCall == CircuitBreaker.State.OPEN){
                 logCircuitBreakerOpen(manual);
                 switchModelToUnknown();
+            }
+            if(stateBeforeCall == CircuitBreaker.State.HALF_OPEN && stateAfterCall == CircuitBreaker.State.OPEN){
                 CompletableFuture.runAsync(() -> pushService.sendErrorMessage("Fehler beim Auslesen der Heizung!"));
             }
             if(manual && ModelObjectDAO.getInstance().readHeatpumpBasementModel() != null && ModelObjectDAO.getInstance().readHeatpumpBasementModel().isBusy()){

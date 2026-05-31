@@ -48,7 +48,7 @@ public class HomeAppConstants {
 
     public static final int MODEL_TASKS_OUTDATED_SECONDS = 60 * 10;
 
-    public static final int MODEL_PV_OUTDATED_SECONDS = 60 * 15;
+    public static final int MODEL_PV_OUTDATED_SECONDS = 60 * 11;
 
     public static final int MODEL_NOTOCE_OUTDATED_SECONDS = 60 * 20;
 
