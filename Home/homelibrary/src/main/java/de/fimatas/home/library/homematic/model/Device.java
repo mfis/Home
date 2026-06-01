@@ -170,7 +170,9 @@ public enum Device {
     }
 
     public boolean isDisabled() {
-        return this == GASZAEHLER || this == HAUSTUER_SCHLOSS;
+        return List.of(
+                GASZAEHLER, HAUSTUER_SCHLOSS, THERMOSTAT_GAESTEZIMMER, THERMOMETER_GAESTEZIMMER
+        ).contains(this);
     }
 
 }

@@ -133,11 +133,9 @@ public class HomematicAPI {
         var allCommands = lookupDeviceStateCommands();
         allCommands.addAll(lookupDeviceCommands());
         var allUniqueCommandStrings = new HashSet<>();
-        allCommands.forEach(command -> {
-            allUniqueCommandStrings.add(homematicCommandProcessor.buildCommand(command));
-        });
-
+        allCommands.forEach(command -> allUniqueCommandStrings.add(homematicCommandProcessor.buildCommand(command)));
         allValuesTargetCount = allUniqueCommandStrings.size();
+        LOG.info("allValuesTargetCount: " +  allValuesTargetCount);
     }
 
     public void runProgramWithBusyState(Device device, String programSuffix) {
@@ -212,6 +210,7 @@ public class HomematicAPI {
         }
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean hasCurrentValues() {
         return currentValues.size() >= allValuesTargetCount;
     }
