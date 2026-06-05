@@ -257,7 +257,7 @@ public class HeatpumpBasementService {
                 log.debug("WRITE VALUE " + idForDatapoint(datapoint) + ": " + valueToWrite);
 
                 var command = new PersistentCacheCommand(persistentCacheKey);
-                command.setInstantToWrite(valueToWrite);
+                command.setInstantToWrite(valueToWrite.toString());
                 commands.add(command);
                 lastValuesWrote.put(persistentCacheKey, valueToWrite.intValue());
             }
