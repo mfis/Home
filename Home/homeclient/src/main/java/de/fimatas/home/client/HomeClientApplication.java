@@ -18,8 +18,7 @@ import java.lang.invoke.MethodHandles;
 @ComponentScan(basePackages = {"de.fimatas.home", "de.fimatas.users"})
 @CommonsLog
 @PropertySource(value = "classpath:application.properties")
-@PropertySource(value = "file:/Users/mfi/documents/config/homeapp.properties", ignoreResourceNotFound = true)
-@PropertySource(value = "file:/home/homeapp/documents/config/homeapp.properties", ignoreResourceNotFound = true)
+@PropertySource(value = "file:${user.home}/Documents/base/config/homeapp.properties")
 public class HomeClientApplication {
     public static void main(String[] args) {
         SpringApplication app = new SpringApplication(HomeClientApplication.class);

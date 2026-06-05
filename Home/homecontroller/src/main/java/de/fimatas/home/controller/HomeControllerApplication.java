@@ -22,10 +22,8 @@ import java.lang.invoke.MethodHandles;
 @ComponentScan(basePackages = {"de.fimatas.home"})
 @CommonsLog
 @PropertySource(value = "classpath:application.properties", encoding = "UTF-8")
-@PropertySource(value = "file:/Users/mfi/documents/config/homecontroller/homecontroller.properties", encoding = "UTF-8", ignoreResourceNotFound = true)
-@PropertySource(value = "file:/opt/homecontroller/homecontroller.properties", encoding = "UTF-8", ignoreResourceNotFound = true)
-@PropertySource(value = "file:/Users/mfi/documents/config/homecontroller/homecontrollercredentials.properties", encoding = "UTF-8", ignoreResourceNotFound = true)
-@PropertySource(value = "file:/opt/homecontroller/homecontrollercredentials.properties", encoding = "UTF-8", ignoreResourceNotFound = true)
+@PropertySource(value = "file:${user.home}/Documents/base/config/homecontroller/homecontroller.properties", encoding = "UTF-8")
+@PropertySource(value = "file:${user.home}/Documents/base/config/homecontroller/homecontrollercredentials.properties", encoding = "UTF-8")
 public class HomeControllerApplication { // NOSONAR
     public static void main(String[] args) {
         SpringApplication app = new SpringApplication(HomeControllerApplication.class);

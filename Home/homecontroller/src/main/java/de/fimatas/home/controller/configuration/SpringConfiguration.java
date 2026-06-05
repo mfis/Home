@@ -70,7 +70,7 @@ public class SpringConfiguration implements WebMvcConfigurer {
         KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
         keyStore.load(null, null);
 
-        addCertToKeystore("hmccu3", keyStore);
+        // addCertToKeystore("hmccu3", keyStore);
         addCertToKeystore("openccu", keyStore);
 
         TrustManager trustManager = TrustManagerUtils.getDefaultTrustManager(keyStore);

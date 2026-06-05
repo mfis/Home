@@ -31,10 +31,6 @@ public class DaoUtils {
     }
 
     public static String getConfigRoot(){
-        if(new File("/opt/homecontroller").exists()){
-            return "/opt/homecontroller/";
-        }else{
-            return System.getProperty("user.home") + "/documents/config/homecontroller/";
-        }
+        return System.getProperty("user.home") + "/Documents/base/config/homecontroller/";
     }
 }
