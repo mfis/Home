@@ -6,6 +6,7 @@ import de.fimatas.home.library.model.PersistentCacheKey;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.apachecommons.CommonsLog;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JavaType;
@@ -34,7 +35,8 @@ public class PersistentCacheDAO {
     }
 
     @PreDestroy
-    public void preDestroy() {
+    @Scheduled(cron = "45 7 0/6 * * *")
+    public void preDestroyAndScheduled() {
         persist();
     }
 
