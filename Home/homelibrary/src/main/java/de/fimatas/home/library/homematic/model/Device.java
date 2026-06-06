@@ -171,7 +171,7 @@ public enum Device {
 
     public boolean isDisabled() {
         return List.of(
-                GASZAEHLER, HAUSTUER_SCHLOSS, THERMOSTAT_GAESTEZIMMER, THERMOMETER_GAESTEZIMMER
+                GASZAEHLER, HAUSTUER_SCHLOSS
         ).contains(this);
     }
 
