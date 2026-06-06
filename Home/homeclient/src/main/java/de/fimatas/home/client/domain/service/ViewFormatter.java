@@ -5,6 +5,7 @@ import de.fimatas.home.client.domain.model.ValueWithCaption;
 import de.fimatas.home.client.model.GenericDevice;
 import de.fimatas.home.library.domain.model.PowerConsumptionDay;
 import de.fimatas.home.library.domain.model.TimeRange;
+import de.fimatas.home.library.homematic.model.Device;
 import de.fimatas.home.library.util.HomeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
@@ -62,7 +63,7 @@ public class ViewFormatter {
     }
 
     private static BigDecimal powerConsumptionValue(GenericDevice device, BigDecimal value){
-        return value.divide(KWH_FACTOR, new MathContext(3, RoundingMode.HALF_UP));
+        return device.name().equals(Device.STROMZAEHLER_WALLBOX.name()) ? value.divide(KWH_FACTOR, new MathContext(3, RoundingMode.HALF_UP)) : value;
     }
 
     public static String powerInWattToKiloWatt(BigDecimal value){

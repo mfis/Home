@@ -130,7 +130,7 @@
 									</td>
 								</tr>
 								<tr>
-									<td th:class="'text-' + ${model.batteryState}">
+									<td th:class="'text-' + ${model.batteryColorClass}">
 										<th:block th:if="${model.pv.todayConsumption != null}">
 										<span><th:block th:replace="~{basics :: symbol (name=${model.batteryIcon})}"/></span>
 										<span th:text="${model.batteryState} + ${model.batteryStateOfCharge}"></span>

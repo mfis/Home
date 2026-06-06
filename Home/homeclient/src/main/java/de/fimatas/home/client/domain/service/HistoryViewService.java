@@ -69,7 +69,7 @@ public class HistoryViewService {
                     viewFormatter.fillPowerHistoryDayViewModel(GenericDevice.from(PersistentCacheKey.ELECTRIC_POWER_PRODUCTION_COUNTER_HAUS), history.getProducedElectricPowerDay(), true, false);
             model.addAttribute("chartEntries", dayViewModel);
 
-        } else if (key.equals(house.getWallboxElectricalPowerConsumption().getDevice().historyKeyPrefix())) {
+        } else if (key.equals(house.getWallboxElectricalPowerConsumption().getDevice().name())) {
             fillPowerHistoryMonthViewModel(model, GenericDevice.from(house.getWallboxElectricalPowerConsumption().getDevice()), history.getWallboxElectricPowerConsumptionMonth());
             List<ChartEntry> dayViewModel =
                 viewFormatter.fillPowerHistoryDayViewModel(GenericDevice.from(house.getWallboxElectricalPowerConsumption().getDevice()), history.getWallboxElectricPowerConsumptionDay(), true, false);
