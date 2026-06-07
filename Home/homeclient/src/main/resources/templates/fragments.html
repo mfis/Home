@@ -499,7 +499,7 @@
 	<!-- AllgemeineWarnung -->
 	<th:block th:fragment="generalWarning (model)">
 		<th:block th:if="${#lists.size(model) &gt; 0}">
-			<div th:replace="~{fragments :: title (name='Fehler:')}"></div>
+			<div th:replace="~{fragments :: title (name='Achtung:')}"></div>
 			<div th:class="'alert alert-danger callout callout-danger classHomeWarning'">
 				<th:block th:each="entry : ${model}">
 					<h4>
