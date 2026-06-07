@@ -8,6 +8,7 @@ import de.fimatas.home.library.model.Notice;
 import de.fimatas.home.library.model.NoticeModel;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -43,14 +44,23 @@ public class NoticesService {
         uploadService.uploadToClient(model);
     }
 
-    public void createNew(Message message) {
+    public synchronized void createNew(Message message) {
 
-        var uuid = UUID.randomUUID().toString();
-        long version = noticeDAO.createNew(uuid, message.getUser(), false,"");
-        message.setDeviceId(uuid);
-        message.setAdditionalData(Boolean.toString(false));
-        message.setKey(Long.toString(version));
-        message.setValue("");
+        var notice = ModelObjectDAO.getInstance().readNoticeModel().getNotices().stream()
+                .filter(n -> Strings.CS.equals(n.getUser(), message.getUser()) && StringUtils.isBlank(n.getText())).findFirst();
+        if(notice.isPresent()){
+            message.setDeviceId(notice.get().getId());
+            message.setAdditionalData(Boolean.toString(notice.get().isMultiUser()));
+            message.setKey(Long.toString(notice.get().getVersion()));
+            message.setValue(notice.get().getText());
+        } else {
+            var uuid = UUID.randomUUID().toString();
+            long version = noticeDAO.createNew(uuid, message.getUser(), false,"");
+            message.setDeviceId(uuid);
+            message.setAdditionalData(Boolean.toString(false));
+            message.setKey(Long.toString(version));
+            message.setValue("");
+        }
 
         refresh();
     }
