@@ -44,7 +44,7 @@ function submitContentWithPin(target, pin){
             etag = document.getElementById('modelTimestamp').value;
         }
         let httpRequest = new XMLHttpRequest();
-        httpRequest.open('GET', target);
+        httpRequest.open('POST', target);
         httpRequest.setRequestHeader('Cache-Control', 'no-cache');
         httpRequest.setRequestHeader('ETag', etag);
         httpRequest.setRequestHeader('clientName', clientName);

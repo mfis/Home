@@ -95,7 +95,7 @@ public class HomeRequestMapping {
     @Value("${appdistribution.web.url}")
     private String appdistributionWebUrl;
 
-    @GetMapping(URI_MESSAGE)
+    @PostMapping(URI_MESSAGE)
     public String message(
             @CookieValue(name = LoginInterceptor.COOKIE_NAME, required = false) String userCookie, //
             @RequestParam(name = "type") String type, //
@@ -107,7 +107,10 @@ public class HomeRequestMapping {
             @RequestHeader(name = LoginInterceptor.APP_USER_NAME, required = false) String appUserName, //
             @RequestHeader(name = "CSRF") String csrf, //
             @RequestHeader(name = "pin", required = false) String securityPin, //
+            @RequestAttribute(LoginInterceptor.LOGIN_INTERCEPTOR_CHECKED_USER_NAME) String loginInterceptorCheckedUserName,
             HttpServletResponse httpServletResponse) {
+
+        doubleCkeckUser(loginInterceptorCheckedUserName);
 
         if (!Boolean.parseBoolean(csrf)) {
             throw new IllegalStateException("CSRF Header not set properly");
@@ -143,33 +146,11 @@ public class HomeRequestMapping {
         return lookupMessageReturnValue(isNativeApp, responseMessage.getMessageType().getTargetSite());
     }
 
-    private void prepareErrorMessage(boolean isApp, String message, String userCookie,
-            HttpServletResponse httpServletResponse) {
-        if (isApp) {
-            httpServletResponse.setStatus(HttpStatus.CONFLICT.value());
-        } else {
-            ViewAttributesDAO.getInstance().push(userCookie, ViewAttributesDAO.MESSAGE, message);
-        }
-        if (log.isInfoEnabled()) {
-            log.info("message - error=" + message);
-        }
-    }
-
-    private String lookupMessageReturnValue(boolean isApp, String template) {
-        if (isApp) {
-            return "empty";
-        } else {
-            return REDIRECT + template;
-        }
-    }
-
-    private boolean isPinBlankOrSetAndCorrect(String userName, String securityPin) {
-        return StringUtils.isBlank(securityPin) || userAPI.checkPin(userName, securityPin);
-    }
-
     @GetMapping(URI_HISTORY)
     public String history(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
+            @RequestAttribute(LoginInterceptor.LOGIN_INTERCEPTOR_CHECKED_USER_NAME) String loginInterceptorCheckedUserName,
             @RequestParam(name = "key") String key) {
+        doubleCkeckUser(loginInterceptorCheckedUserName);
         fillUserAttributes(model, userCookie);
         historyViewService.fillHistoryViewModel(model, ModelObjectDAO.getInstance().readHistoryModel(),
             ModelObjectDAO.getInstance().readHouseModel(), key);
@@ -177,7 +158,9 @@ public class HomeRequestMapping {
     }
 
     @GetMapping(URI_SETTINGS)
-    public String settings(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie) {
+    public String settings(Model model, @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
+        @RequestAttribute(LoginInterceptor.LOGIN_INTERCEPTOR_CHECKED_USER_NAME) String loginInterceptorCheckedUserName) {
+        doubleCkeckUser(loginInterceptorCheckedUserName);
         fillUserAttributes(model, userCookie);
         model.addAttribute("pushsettings", settingsViewService.allSettingsAsString());
         return "settings";
@@ -185,7 +168,9 @@ public class HomeRequestMapping {
 
     @GetMapping(URI_APP_INSTALLATION)
     public String appInstallation(Model model,
-                                  @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, HttpServletResponse response) {
+                @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, HttpServletResponse response,
+                @RequestAttribute(LoginInterceptor.LOGIN_INTERCEPTOR_CHECKED_USER_NAME) String loginInterceptorCheckedUserName) {
+        doubleCkeckUser(loginInterceptorCheckedUserName);
         fillMenu(Pages.PATH_APP, model, response, false);
         fillUserAttributes(model, userCookie);
         String itmsLink = "itms-services://?action=download-manifest&url=" + appdistributionWebUrl + "manifest.plist";
@@ -195,7 +180,9 @@ public class HomeRequestMapping {
 
     @GetMapping(URI_MAINTENANCE)
     public String repair(Model model, @RequestHeader(name = "User-Agent", required = false) String userAgent,
-                         @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, HttpServletResponse response) {
+                         @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, HttpServletResponse response,
+                         @RequestAttribute(LoginInterceptor.LOGIN_INTERCEPTOR_CHECKED_USER_NAME) String loginInterceptorCheckedUserName) {
+        doubleCkeckUser(loginInterceptorCheckedUserName);
         boolean isWebViewApp = Strings.CS.equals(userAgent, ControllerUtil.USER_AGENT_APP_WEB_VIEW);
         fillMenu(Pages.PATH_MAINTENANCE, model, response, isWebViewApp);
         fillUserAttributes(model, userCookie);
@@ -217,7 +204,9 @@ public class HomeRequestMapping {
     @GetMapping(URI_TEXTEDIT_VIEW)
     public String textedit(Model model, @RequestHeader(name = "User-Agent", required = false) String userAgent,
                          @RequestParam(name = "id", required = false) String id,
-                         @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, HttpServletResponse response) {
+                         @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, HttpServletResponse response,
+                         @RequestAttribute(LoginInterceptor.LOGIN_INTERCEPTOR_CHECKED_USER_NAME) String loginInterceptorCheckedUserName) {
+        doubleCkeckUser(loginInterceptorCheckedUserName);
         boolean isWebViewApp = Strings.CS.equals(userAgent, ControllerUtil.USER_AGENT_APP_WEB_VIEW);
         fillMenu(Pages.PATH_MAINTENANCE, model, response, isWebViewApp);
         fillUserAttributes(model, userCookie);
@@ -266,7 +255,9 @@ public class HomeRequestMapping {
                                        @RequestParam(name = "id") String id, @RequestParam(name = "version") String version,
                                        @RequestParam(name = "multiUser") String multiUser, @RequestBody(required = false) String text,
                                        @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie,
-                                                       HttpServletResponse response, HttpServletRequest request) {
+                                       @RequestAttribute(LoginInterceptor.LOGIN_INTERCEPTOR_CHECKED_USER_NAME) String loginInterceptorCheckedUserName,
+                                       HttpServletResponse response, HttpServletRequest request) {
+        doubleCkeckUser(loginInterceptorCheckedUserName);
         boolean isWebViewApp = Strings.CS.equals(userAgent, ControllerUtil.USER_AGENT_APP_WEB_VIEW);
         fillMenu(Pages.PATH_MAINTENANCE, model, response, isWebViewApp);
         fillUserAttributes(model, userCookie);
@@ -300,9 +291,10 @@ public class HomeRequestMapping {
             @RequestHeader(name = "ETag", required = false) String etag,
             @RequestHeader(name = "User-Agent", required = false) String userAgent,
             @RequestHeader(name = CLIENT_NAME, required = false) String clientName,
-            @RequestHeader(name = LoginInterceptor.APP_PUSH_TOKEN, required = false) String appPushToken) {
+            @RequestHeader(name = LoginInterceptor.APP_PUSH_TOKEN, required = false) String appPushToken,
+            @RequestAttribute(LoginInterceptor.LOGIN_INTERCEPTOR_CHECKED_USER_NAME) String loginInterceptorCheckedUserName) {
 
-        long l1 = System.nanoTime();
+        doubleCkeckUser(loginInterceptorCheckedUserName);
         boolean isWebViewApp = Strings.CS.equals(userAgent, ControllerUtil.USER_AGENT_APP_WEB_VIEW);
 
         if (isWebViewApp) {
@@ -337,11 +329,6 @@ public class HomeRequestMapping {
                     "home=" + response.getStatus() + ": isWebViewApp=" + isWebViewApp + ", clientName=" + clientName + ", etag=" + etag);
         }
 
-        long l2 = System.nanoTime();
-        long ldiff = (l2 - l1) / 1000000; // ms
-        if(ldiff > 1500){
-            log.warn("HomeRequestMapping#homePage slow response: " + ldiff + " ms!");
-        }
         return returnTemplate;
     }
 
@@ -370,7 +357,37 @@ public class HomeRequestMapping {
         }
     }
 
-    public void mappingErrorAttributes(Model model, HttpServletResponse response, String message, Exception exception) {
+    private static void doubleCkeckUser(String loginInterceptorCheckedUserName) {
+        if(StringUtils.isBlank(loginInterceptorCheckedUserName)) {
+            throw new IllegalStateException("loginInterceptorCheckedUserName is empty");
+        }
+    }
+
+    private void prepareErrorMessage(boolean isApp, String message, String userCookie,
+                                     HttpServletResponse httpServletResponse) {
+        if (isApp) {
+            httpServletResponse.setStatus(HttpStatus.CONFLICT.value());
+        } else {
+            ViewAttributesDAO.getInstance().push(userCookie, ViewAttributesDAO.MESSAGE, message);
+        }
+        if (log.isInfoEnabled()) {
+            log.info("message - error=" + message);
+        }
+    }
+
+    private String lookupMessageReturnValue(boolean isApp, String template) {
+        if (isApp) {
+            return "empty";
+        } else {
+            return REDIRECT + template;
+        }
+    }
+
+    private boolean isPinBlankOrSetAndCorrect(String userName, String securityPin) {
+        return StringUtils.isBlank(securityPin) || userAPI.checkPin(userName, securityPin);
+    }
+
+    private void mappingErrorAttributes(Model model, HttpServletResponse response, String message, Exception exception) {
         model.addAttribute("timestamp", LocalDateTime.now().toString());
         model.addAttribute("status", response.getStatus());
         model.addAttribute("error", "n/a");

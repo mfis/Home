@@ -28,7 +28,12 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,6 +41,8 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 public class LoginInterceptor implements HandlerInterceptor {
+
+    public static final String LOGIN_INTERCEPTOR_CHECKED_USER_NAME = "LoginInterceptorCheckedUserName";
 
     public static final String COOKIE_NAME = "HomeLoginCookie";
 
@@ -93,11 +100,11 @@ public class LoginInterceptor implements HandlerInterceptor {
     private final Log log = LogFactory.getLog(LoginInterceptor.class);
 
     @PostConstruct
-    public void postConstruct() throws MalformedURLException {
+    public void postConstruct() throws MalformedURLException, URISyntaxException {
         if(StringUtils.isBlank(appdistributionWebUrl)) {
             throw new MalformedURLException("appdistributionWebUrl is empty");
         }
-        URL appdistributionUrl = new URL(appdistributionWebUrl);
+        URL appdistributionUrl = new URI(appdistributionWebUrl).toURL();
         WHITELIST_DISTRIBUTION_URIS = Set.of(appdistributionUrl.getPath() + "homeClient.ipa", appdistributionUrl.getPath() + "manifest.plist");
     }
 
@@ -174,7 +181,7 @@ public class LoginInterceptor implements HandlerInterceptor {
         // Token hat hoehere Prio als Cookie
         if (StringUtils.isNotBlank(request.getHeader(APP_USER_TOKEN))
                 || StringUtils.isNotBlank(request.getHeader(APP_USER_NAME))) {
-            return checkUser(tokenLogin(request, response));
+            return checkUser(request, tokenLogin(request, response));
         }
 
         if (params.containsKey(LOGIN_USERNAME)) {
@@ -185,21 +192,25 @@ public class LoginInterceptor implements HandlerInterceptor {
                 }
                 return false;
             } else {
-                return checkUser(credentialsBrowserLogin(params, request, response));
+                return checkUser(request, credentialsBrowserLogin(params, request, response));
             }
         } else {
-            return checkUser(cookieBrowserLogin(request, response));
+            return checkUser(request, cookieBrowserLogin(request, response));
         }
     }
 
-    private boolean checkUser(String userName) {
-        return StringUtils.isNotBlank(userName);
+    private boolean checkUser(HttpServletRequest request, String userName) {
+        var userOK = StringUtils.isNotBlank(userName);
+        if(userOK) {
+            request.setAttribute(LOGIN_INTERCEPTOR_CHECKED_USER_NAME, StringUtils.trimToNull(userName));
+        }
+        return userOK;
     }
 
     private void logoff(HttpServletRequest request, HttpServletResponse response) {
 
         String oldCookie = cookieRead(request);
-        if (checkUser(oldCookie)) {
+        if (checkUser(request, oldCookie)) {
             userAPI.deleteToken(userAPI.userNameFromLoginCookie(oldCookie), applicationIdentifier, request.getHeader(USER_AGENT));
             cookieDelete(response);
         }
@@ -376,15 +387,20 @@ public class LoginInterceptor implements HandlerInterceptor {
         Cookie cookie = new Cookie(COOKIE_NAME, StringUtils.EMPTY);
         cookie.setHttpOnly(true);
         cookie.setMaxAge(0);
+        cookie.setAttribute("SameSite", "Lax");
+        cookie.setSecure(Boolean.parseBoolean(cookieSecure));
         response.addCookie(cookie);
     }
 
     private void cookieWrite(HttpServletResponse response, String value) {
 
+        final int DAYS = 90;
         Cookie cookie = new Cookie(COOKIE_NAME, value);
         cookie.setHttpOnly(true);
-        cookie.setMaxAge(60 * 60 * 24 * 92);
+        cookie.setMaxAge(60 * 60 * 24 * DAYS);
         cookie.setSecure(Boolean.parseBoolean(cookieSecure));
+        cookie.setAttribute("Expires", DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now(ZoneId.of("GMT")).plusDays(DAYS)));
+        cookie.setAttribute("SameSite", "Lax");
         response.addCookie(cookie);
     }
 
