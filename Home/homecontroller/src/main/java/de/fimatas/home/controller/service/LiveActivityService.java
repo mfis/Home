@@ -256,8 +256,7 @@ public class LiveActivityService {
             log.info("TEST_LIVE_ACTIVITY: prio=" + highPriority + ", map=" + buildContentStateMap(token, true));
         }else{
             //noinspection UnnecessaryUnicodeEscape
-            // FIXME: remove logging
-            log.info("LiveActivity PUSH to: " + liveActivityModel.getUsername() + ", prio=" + messagePriority);
+            log.debug("LiveActivity PUSH to: " + liveActivityModel.getUsername() + ", prio=" + messagePriority);
             pushService.sendLiveActivityToApns(token, highPriority, false, STALE_DURATION, liveActivityModel.getEndTimestamp(), buildContentStateMap(token, true));
         }
 

@@ -167,7 +167,7 @@ public class PushService {
         }
     }
 
-    @Scheduled(cron = "0 31 08,14,20 * * *")
+    @Scheduled(cron = "0 00 14 * * *")
     public void sendHeatingAlert() {
 
         try {
@@ -329,7 +329,7 @@ public class PushService {
                 .findFirst();
 
         if(preasure.isPresent() && preasure.get().getValueWithTendency() != null) {
-            if (preasure.get().getValueWithTendency().getValue().compareTo(new BigDecimal("1.40")) < 0) {
+            if (preasure.get().getValueWithTendency().getValue().compareTo(new BigDecimal("1.35")) < 0) {
                 liste.add("Heizkreislauf Druck gering: " + preasure.get().getValueWithTendency().getValue() + " Bar");
             }
         }
