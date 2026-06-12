@@ -56,6 +56,14 @@ function submitContentWithPin(target, pin){
         httpRequest.send();
         httpRequest.onreadystatechange=(e)=>{
             if (httpRequest.readyState === 4) {
+                if (httpRequest.responseURL) {
+                    const reqURL = new URL(target);
+                    const resURL = new URL(httpRequest.responseURL);
+                    // redirect?
+                    if ((reqURL.origin + reqURL.pathname) !== (resURL.origin + resURL.pathname)) {
+                        window.location.href = resURL.origin + resURL.pathname;
+                    }
+                }
                 if(target===window.location.href && !isViewStatePermittingRefresh()){
                     /* do not replace content while gui transition is running */
                     showCheck();
