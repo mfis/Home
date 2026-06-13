@@ -183,8 +183,7 @@ public class HomeRequestMapping {
                          @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, HttpServletResponse response,
                          @RequestAttribute(LoginInterceptor.LOGIN_INTERCEPTOR_CHECKED_USER_NAME) String loginInterceptorCheckedUserName) {
         doubleCkeckUser(loginInterceptorCheckedUserName);
-        boolean isWebViewApp = Strings.CS.equals(userAgent, ControllerUtil.USER_AGENT_APP_WEB_VIEW);
-        fillMenu(Pages.PATH_MAINTENANCE, model, response, isWebViewApp);
+        fillMenu(Pages.PATH_MAINTENANCE, model, response, ControllerUtil.isWebViewApp(userAgent));
         fillUserAttributes(model, userCookie);
         List<ValueWithCaption> list = new LinkedList<>();
         Arrays.stream(MaintenanceOptions.values()).forEach(mo -> {
@@ -207,8 +206,7 @@ public class HomeRequestMapping {
                          @CookieValue(LoginInterceptor.COOKIE_NAME) String userCookie, HttpServletResponse response,
                          @RequestAttribute(LoginInterceptor.LOGIN_INTERCEPTOR_CHECKED_USER_NAME) String loginInterceptorCheckedUserName) {
         doubleCkeckUser(loginInterceptorCheckedUserName);
-        boolean isWebViewApp = Strings.CS.equals(userAgent, ControllerUtil.USER_AGENT_APP_WEB_VIEW);
-        fillMenu(Pages.PATH_MAINTENANCE, model, response, isWebViewApp);
+        fillMenu(Pages.PATH_MAINTENANCE, model, response, ControllerUtil.isWebViewApp(userAgent));
         fillUserAttributes(model, userCookie);
 
         Notice notice = null;
@@ -258,8 +256,7 @@ public class HomeRequestMapping {
                                        @RequestAttribute(LoginInterceptor.LOGIN_INTERCEPTOR_CHECKED_USER_NAME) String loginInterceptorCheckedUserName,
                                        HttpServletResponse response, HttpServletRequest request) {
         doubleCkeckUser(loginInterceptorCheckedUserName);
-        boolean isWebViewApp = Strings.CS.equals(userAgent, ControllerUtil.USER_AGENT_APP_WEB_VIEW);
-        fillMenu(Pages.PATH_MAINTENANCE, model, response, isWebViewApp);
+        fillMenu(Pages.PATH_MAINTENANCE, model, response, ControllerUtil.isWebViewApp(userAgent));
         fillUserAttributes(model, userCookie);
         var notice = ModelObjectDAO.getInstance().readNoticeModel().getNotices().stream().filter(n -> n.getId().equals(id)).findFirst().orElse(null);
         if(notice == null) {
@@ -295,7 +292,7 @@ public class HomeRequestMapping {
             @RequestAttribute(LoginInterceptor.LOGIN_INTERCEPTOR_CHECKED_USER_NAME) String loginInterceptorCheckedUserName) {
 
         doubleCkeckUser(loginInterceptorCheckedUserName);
-        boolean isWebViewApp = Strings.CS.equals(userAgent, ControllerUtil.USER_AGENT_APP_WEB_VIEW);
+        boolean isWebViewApp = ControllerUtil.isWebViewApp(userAgent);
 
         if (isWebViewApp) {
             handlePushToken(appPushToken, userAPI.userNameFromLoginCookie(userCookie), clientName);

@@ -287,7 +287,7 @@ public class LoginInterceptor implements HandlerInterceptor {
         }
 
         boolean isAjaxRequest = BooleanUtils.toBoolean(request.getHeader("isAjaxRequest"));
-        boolean isWebViewApp = Strings.CS.equals(request.getHeader(USER_AGENT), ControllerUtil.USER_AGENT_APP_WEB_VIEW);
+        boolean isWebViewApp = ControllerUtil.isWebViewApp(request.getHeader(USER_AGENT));
         boolean loginTokenRefresh = !isAjaxRequest && (!isWebViewApp || doLoginTokenRefreshForNativeApps);
 
         TokenResult tokenResult = userAPI.checkToken(userAPI.userNameFromLoginCookie(token), token, applicationIdentifier,
