@@ -244,12 +244,13 @@ label, legend{
 	background-color: rgb(238,238,238,0.6) !important
 }
 .widebutton {
-	width: 63px !important;
-	padding-bottom: 5px !important;
+	width: 85px !important;
+	padding-bottom: 10px !important;
+	padding-right: 3px !important;
 }
 .prefixbutton {
-	width:25px;
-	padding-bottom: 5px;
+	width:75px;
+	padding-bottom: 10px;
 	padding-left: 3px;
 }
 input[type="checkbox"] {
