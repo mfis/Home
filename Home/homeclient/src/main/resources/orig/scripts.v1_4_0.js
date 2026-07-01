@@ -22,13 +22,11 @@ function registerOnFocusAutoRefresh(){
     }
 }
 
+// called from native client
 function setPushToken(newTokenValue, newClientName){
     clientName = newClientName;
-    let oldValue = pushToken;
     pushToken = newTokenValue;
-    if(newTokenValue !== oldValue){
-        refreshContent();
-    }
+    // send token with regular timer-based refresh
 }
 
 function showUserErrorMessage(){
@@ -38,7 +36,8 @@ function showUserErrorMessage(){
 }
 
 function submitContentWithPin(target, pin){
-    if(navigator.onLine){
+
+    if(navigator.onLine && window.location.pathname === '/'){
         let etag = "";
         if(document.getElementById('modelTimestamp')){
             etag = document.getElementById('modelTimestamp').value;
@@ -57,10 +56,12 @@ function submitContentWithPin(target, pin){
         httpRequest.onreadystatechange=(e)=>{
             if (httpRequest.readyState === 4) {
                 if (httpRequest.responseURL) {
-                    const reqURL = new URL(target);
+                    const reqURL = new URL(target, window.location.origin);
                     const resURL = new URL(httpRequest.responseURL);
                     // redirect?
-                    if ((reqURL.origin + reqURL.pathname) !== (resURL.origin + resURL.pathname)) {
+                    if (reqURL.origin !== resURL.origin) {
+                        window.location.href = resURL.origin + resURL.pathname;
+                    } else if (resURL.pathname !== '/') {
                         window.location.href = resURL.origin + resURL.pathname;
                     }
                 }
