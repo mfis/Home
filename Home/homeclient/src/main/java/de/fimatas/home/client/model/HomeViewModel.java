@@ -80,8 +80,7 @@ public class HomeViewModel implements Serializable {
                 for (List<HomeViewActionModel> actionList : place.getActions()) {
                     if (actionList != null) {
                         actionList.removeIf(action ->
-                                action.getName() == null || action.getName().isEmpty() ||
-                                        action.getLink() == null || action.getLink().isEmpty()
+                                action.getName() == null || action.getLink() == null
                         );
                     }
                 }

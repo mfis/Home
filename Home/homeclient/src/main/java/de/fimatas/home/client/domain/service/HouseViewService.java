@@ -1703,16 +1703,15 @@ public class HouseViewService {
             view.setStateUnknown(true);
             view.setUnreach(Boolean.toString(true));
         }else{
-            view.setLinkCoolAuto(buildHeatpumpPresetLink(place, HeatpumpRoofPreset.COOL_AUTO, actualPreset));
-            view.setLinkCoolMin(buildHeatpumpPresetLink(place, HeatpumpRoofPreset.COOL_MIN, actualPreset));
-            view.setLinkCoolTimer1(buildHeatpumpPresetLink(place, HeatpumpRoofPreset.COOL_TIMER1, actualPreset));
-            view.setLinkCoolTimer2(buildHeatpumpPresetLink(place, HeatpumpRoofPreset.COOL_TIMER2, actualPreset));
-            view.setLinkCoolTimer3(buildHeatpumpPresetLink(place, HeatpumpRoofPreset.COOL_TIMER3, actualPreset));
+            view.setLinkCool1Auto(buildHeatpumpPresetLink(place, HeatpumpRoofPreset.COOL1_AUTO, actualPreset));
+            view.setLinkCool1Timer1(buildHeatpumpPresetLink(place, HeatpumpRoofPreset.COOL1_TIMER1, actualPreset));
+            view.setLinkCool1Timer2(buildHeatpumpPresetLink(place, HeatpumpRoofPreset.COOL1_TIMER2, actualPreset));
+            view.setLinkCool2Auto(buildHeatpumpPresetLink(place, HeatpumpRoofPreset.COOL2_AUTO, actualPreset));
+            view.setLinkCool2Timer1(buildHeatpumpPresetLink(place, HeatpumpRoofPreset.COOL2_TIMER1, actualPreset));
+            view.setLinkCool2Timer2(buildHeatpumpPresetLink(place, HeatpumpRoofPreset.COOL2_TIMER2, actualPreset));
             view.setLinkHeatAuto(buildHeatpumpPresetLink(place, HeatpumpRoofPreset.HEAT_AUTO, actualPreset));
-            view.setLinkHeatMin(buildHeatpumpPresetLink(place, HeatpumpRoofPreset.HEAT_MIN, actualPreset));
             view.setLinkHeatTimer1(buildHeatpumpPresetLink(place, HeatpumpRoofPreset.HEAT_TIMER1, actualPreset));
             view.setLinkHeatTimer2(buildHeatpumpPresetLink(place, HeatpumpRoofPreset.HEAT_TIMER2, actualPreset));
-            view.setLinkHeatTimer3(buildHeatpumpPresetLink(place, HeatpumpRoofPreset.HEAT_TIMER3, actualPreset));
             view.setLinkFanAuto(buildHeatpumpPresetLink(place, HeatpumpRoofPreset.FAN_AUTO, actualPreset));
             view.setLinkFanMin(buildHeatpumpPresetLink(place, HeatpumpRoofPreset.FAN_MIN, actualPreset));
             view.setLinkDryTimer(buildHeatpumpPresetLink(place, HeatpumpRoofPreset.DRY_TIMER, actualPreset));

@@ -3,7 +3,6 @@ package de.fimatas.home.controller.service;
 import de.fimatas.home.controller.api.TasmotaAPI;
 import de.fimatas.home.controller.command.PersistentCacheCommand;
 import de.fimatas.home.controller.dao.PersistentCacheDAO;
-import de.fimatas.home.controller.model.HeatpumpRoofProgram;
 import de.fimatas.home.library.dao.ModelObjectDAO;
 import de.fimatas.home.library.domain.model.HeatpumpRoof;
 import de.fimatas.home.library.domain.model.HeatpumpRoofModel;
@@ -64,24 +63,48 @@ public class HeatpumpRoofService {
     private boolean initDone = false;
 
     private final Map<HeatpumpRoofPreset, SchedulerConfig> schedulerConfigMap = Map.of(
-            HeatpumpRoofPreset.DRY_TIMER, new SchedulerConfig(HeatpumpRoofPreset.OFF, HeatpumpRoofPreset.DRY_TIMER, HomeAppConstants.HEATPUMP_DRY_TIMER_DURATION_MINUTES, null),
-            HeatpumpRoofPreset.HEAT_TIMER1, new SchedulerConfig(HeatpumpRoofPreset.OFF, HeatpumpRoofPreset.HEAT_TIMER1, 60, null),
-            HeatpumpRoofPreset.HEAT_TIMER2, new SchedulerConfig(HeatpumpRoofPreset.OFF, HeatpumpRoofPreset.HEAT_TIMER2, 120, null),
-            HeatpumpRoofPreset.HEAT_TIMER3, new SchedulerConfig(HeatpumpRoofPreset.OFF, HeatpumpRoofPreset.HEAT_TIMER3, null, LocalTime.of(13,0)),
-            HeatpumpRoofPreset.COOL_TIMER1, new SchedulerConfig(HeatpumpRoofPreset.DRY_TIMER, HeatpumpRoofPreset.COOL_TIMER1, 60, null),
-            HeatpumpRoofPreset.COOL_TIMER2, new SchedulerConfig(HeatpumpRoofPreset.DRY_TIMER, HeatpumpRoofPreset.COOL_TIMER2, 120, null),
-            HeatpumpRoofPreset.COOL_TIMER3, new SchedulerConfig(HeatpumpRoofPreset.DRY_TIMER, HeatpumpRoofPreset.COOL_TIMER3, null, LocalTime.of(19,0))
-            );
 
-    private final Map<HeatpumpRoofPreset, List<HeatpumpRoofPreset>> conflictiongPresets = Map.of(
-            HeatpumpRoofPreset.COOL_MIN, List.of(HeatpumpRoofPreset.HEAT_AUTO, HeatpumpRoofPreset.HEAT_MIN, HeatpumpRoofPreset.HEAT_TIMER1, HeatpumpRoofPreset.HEAT_TIMER2),
-            HeatpumpRoofPreset.COOL_AUTO, List.of(HeatpumpRoofPreset.HEAT_AUTO, HeatpumpRoofPreset.HEAT_MIN, HeatpumpRoofPreset.HEAT_TIMER1, HeatpumpRoofPreset.HEAT_TIMER2),
-            HeatpumpRoofPreset.HEAT_MIN, List.of(HeatpumpRoofPreset.COOL_AUTO, HeatpumpRoofPreset.COOL_MIN, HeatpumpRoofPreset.COOL_TIMER1, HeatpumpRoofPreset.COOL_TIMER2),
-            HeatpumpRoofPreset.HEAT_AUTO, List.of(HeatpumpRoofPreset.COOL_AUTO, HeatpumpRoofPreset.COOL_MIN, HeatpumpRoofPreset.COOL_TIMER1, HeatpumpRoofPreset.COOL_TIMER2)
-            );
+            HeatpumpRoofPreset.DRY_TIMER, new SchedulerConfig(HeatpumpRoofPreset.OFF, HeatpumpRoofPreset.DRY_TIMER, HomeAppConstants.HEATPUMP_DRY_TIMER_DURATION_MINUTES, null),
+
+            HeatpumpRoofPreset.HEAT_TIMER1, new SchedulerConfig(HeatpumpRoofPreset.OFF, HeatpumpRoofPreset.HEAT_TIMER1, 120, null),
+            HeatpumpRoofPreset.HEAT_TIMER2, new SchedulerConfig(HeatpumpRoofPreset.OFF, HeatpumpRoofPreset.HEAT_TIMER2, null, LocalTime.of(13,0)),
+
+            HeatpumpRoofPreset.COOL1_TIMER1, new SchedulerConfig(HeatpumpRoofPreset.DRY_TIMER, HeatpumpRoofPreset.COOL1_TIMER1, null, LocalTime.of(19,30)),
+            HeatpumpRoofPreset.COOL1_TIMER2, new SchedulerConfig(HeatpumpRoofPreset.DRY_TIMER, HeatpumpRoofPreset.COOL1_TIMER2, null, LocalTime.of(22,0)),
+
+            HeatpumpRoofPreset.COOL2_TIMER1, new SchedulerConfig(HeatpumpRoofPreset.DRY_TIMER, HeatpumpRoofPreset.COOL2_TIMER1, null, LocalTime.of(19,30)),
+            HeatpumpRoofPreset.COOL2_TIMER2, new SchedulerConfig(HeatpumpRoofPreset.DRY_TIMER, HeatpumpRoofPreset.COOL2_TIMER2, null, LocalTime.of(22,0))
+    );
+
+    private final Map<HeatpumpRoofPreset, List<HeatpumpRoofPreset>> conflictiongPresetsCool1 = Map.of(
+
+            HeatpumpRoofPreset.COOL1_AUTO, List.of(HeatpumpRoofPreset.HEAT_AUTO, HeatpumpRoofPreset.HEAT_TIMER1, HeatpumpRoofPreset.HEAT_TIMER2),
+            HeatpumpRoofPreset.COOL1_TIMER1, List.of(HeatpumpRoofPreset.HEAT_AUTO, HeatpumpRoofPreset.HEAT_TIMER1, HeatpumpRoofPreset.HEAT_TIMER2),
+            HeatpumpRoofPreset.COOL1_TIMER2, List.of(HeatpumpRoofPreset.HEAT_AUTO, HeatpumpRoofPreset.HEAT_TIMER1, HeatpumpRoofPreset.HEAT_TIMER2)
+    );
+
+    private final Map<HeatpumpRoofPreset, List<HeatpumpRoofPreset>> conflictiongPresetsCool2 = Map.of(
+
+            HeatpumpRoofPreset.COOL2_AUTO, List.of(HeatpumpRoofPreset.HEAT_AUTO, HeatpumpRoofPreset.HEAT_TIMER1, HeatpumpRoofPreset.HEAT_TIMER2),
+            HeatpumpRoofPreset.COOL2_TIMER1, List.of(HeatpumpRoofPreset.HEAT_AUTO, HeatpumpRoofPreset.HEAT_TIMER1, HeatpumpRoofPreset.HEAT_TIMER2),
+            HeatpumpRoofPreset.COOL2_TIMER2, List.of(HeatpumpRoofPreset.HEAT_AUTO, HeatpumpRoofPreset.HEAT_TIMER1, HeatpumpRoofPreset.HEAT_TIMER2)
+    );
+
+    private final Map<HeatpumpRoofPreset, List<HeatpumpRoofPreset>> conflictiongPresetsHeat = Map.of(
+
+            HeatpumpRoofPreset.HEAT_AUTO, List.of(HeatpumpRoofPreset.COOL1_AUTO, HeatpumpRoofPreset.COOL1_TIMER1, HeatpumpRoofPreset.COOL1_TIMER2, HeatpumpRoofPreset.COOL1_TIMER2),
+            HeatpumpRoofPreset.HEAT_TIMER1, List.of(HeatpumpRoofPreset.COOL1_AUTO, HeatpumpRoofPreset.COOL1_TIMER1, HeatpumpRoofPreset.COOL1_TIMER2, HeatpumpRoofPreset.COOL1_TIMER2),
+            HeatpumpRoofPreset.HEAT_TIMER2, List.of(HeatpumpRoofPreset.COOL1_AUTO, HeatpumpRoofPreset.COOL1_TIMER1, HeatpumpRoofPreset.COOL1_TIMER2, HeatpumpRoofPreset.COOL1_TIMER2)
+    );
+
+    private final Map<HeatpumpRoofPreset, List<HeatpumpRoofPreset>> conflictiongPresets = new HashMap<>();
 
     @EventListener(ApplicationReadyEvent.class)
     public void startup() {
+
+        conflictiongPresets.putAll(conflictiongPresetsCool1);
+        conflictiongPresets.putAll(conflictiongPresetsCool2);
+        conflictiongPresets.putAll(conflictiongPresetsHeat);
 
         dictPlaceToRoomNameInDriver = Map.of( //
                 Place.BEDROOM, Place.BEDROOM.getPlaceName(), //
@@ -156,12 +179,11 @@ public class HeatpumpRoofService {
 
     private synchronized void startPresetInternal(List<Place> places, HeatpumpRoofPreset preset) {
 
-        Map<String, HeatpumpRoofProgram> programs = new HashMap<>();
+        Map<String, HeatpumpRoofPreset> programs = new HashMap<>();
         places.forEach(p -> {
-            final HeatpumpRoofProgram program = presetToProgram(preset);
             final Map<Place, HeatpumpRoof> heatpumpMap = ModelObjectDAO.getInstance().readHeatpumpRoofModel().getHeatpumpMap();
-            if (program != null && heatpumpMap.containsKey(p) && presetToProgram(heatpumpMap.get(p).getHeatpumpRoofPreset()) != program) {
-                programs.put(dictPlaceToRoomNameInDriver.get(p), program);
+            if (preset != null && heatpumpMap.containsKey(p) && heatpumpMap.get(p).getHeatpumpRoofPreset() != preset) {
+                programs.put(dictPlaceToRoomNameInDriver.get(p), preset);
             }
         });
 
@@ -169,7 +191,7 @@ public class HeatpumpRoofService {
             dictPlaceToRoomNameInDriver.keySet().stream().filter(p -> !places.contains(p)).forEach(px -> {
                 if(conflictiongPresets.get(preset).contains(
                         ModelObjectDAO.getInstance().readHeatpumpRoofModel().getHeatpumpMap().get(px).getHeatpumpRoofPreset())){
-                    programs.put(dictPlaceToRoomNameInDriver.get(px), HeatpumpRoofProgram.OFF);
+                    programs.put(dictPlaceToRoomNameInDriver.get(px), HeatpumpRoofPreset.OFF);
                 }
             });
         }
@@ -236,14 +258,7 @@ public class HeatpumpRoofService {
             }else{
                 scheduledTime = LocalDateTime.of(LocalDate.now(), config.localTime);
                 if(scheduledTime.isBefore(LocalDateTime.now()) && config.getLocalTime() != null){
-                    if(preset == HeatpumpRoofPreset.HEAT_TIMER3){
-                        scheduleNewTimers(places, HeatpumpRoofPreset.HEAT_TIMER2);
-                        return;
-                    }else if(preset == HeatpumpRoofPreset.COOL_TIMER3) {
-                        scheduleNewTimers(places, HeatpumpRoofPreset.COOL_TIMER2);
-                        return;
-                    }
-                    scheduledTime = LocalDateTime.now().plusMinutes(120);
+                    scheduledTime = LocalDateTime.now().plusMinutes(120); // fallback
                 }
             }
             var scheduledTimeInstant = scheduledTime.atZone(ZoneId.systemDefault()).toInstant();
@@ -279,21 +294,7 @@ public class HeatpumpRoofService {
         return unknownHeatpumpRoofModel;
     }
 
-    private HeatpumpRoofProgram presetToProgram(HeatpumpRoofPreset preset){
-        return switch (preset) {
-            case COOL_AUTO, COOL_TIMER1, COOL_TIMER2, COOL_TIMER3 -> HeatpumpRoofProgram.COOLING_AUTO;
-            case COOL_MIN -> HeatpumpRoofProgram.COOLING_MIN;
-            case HEAT_AUTO -> HeatpumpRoofProgram.HEATING_AUTO;
-            case HEAT_MIN, HEAT_TIMER1, HEAT_TIMER2, HEAT_TIMER3 -> HeatpumpRoofProgram.HEATING_MIN;
-            case FAN_AUTO -> HeatpumpRoofProgram.FAN_AUTO;
-            case FAN_MIN -> HeatpumpRoofProgram.FAN_MIN;
-            case DRY_TIMER -> HeatpumpRoofProgram.FAN_DRY;
-            case OFF -> HeatpumpRoofProgram.OFF;
-            case UNKNOWN -> null; // refresh only
-        };
-    }
-
-    private synchronized Map<String, Boolean> callAPI(Map<String, HeatpumpRoofProgram> programs){
+    private synchronized Map<String, Boolean> callAPI(Map<String, HeatpumpRoofPreset> programs){
         return tasmotaAPI.call(programs);
     }
 

@@ -15,13 +15,7 @@ public class HeatpumpRoofView extends View {
 
     private String placeSubtitle = "";
 
-    private String linkCoolAuto = "#";
-
-    private String linkCoolMin = "#";
-
     private String linkHeatAuto = "#";
-
-    private String linkHeatMin = "#";
 
     private String linkFanAuto = "#";
 
@@ -33,13 +27,17 @@ public class HeatpumpRoofView extends View {
 
     private String linkHeatTimer2 = "#";
 
-    private String linkHeatTimer3 = "#";
+    private String linkCool1Auto = "#";
 
-    private String linkCoolTimer1 = "#";
+    private String linkCool1Timer1 = "#";
 
-    private String linkCoolTimer2 = "#";
+    private String linkCool1Timer2 = "#";
 
-    private String linkCoolTimer3 = "#";
+    private String linkCool2Auto = "#";
+
+    private String linkCool2Timer1 = "#";
+
+    private String linkCool2Timer2 = "#";
 
     private String linkOff = "#";
 

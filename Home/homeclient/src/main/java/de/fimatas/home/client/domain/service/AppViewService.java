@@ -12,6 +12,7 @@ import de.fimatas.home.library.domain.model.Tendency;
 import de.fimatas.home.library.model.ConditionColor;
 import de.fimatas.home.library.util.ViewFormatterUtils;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
@@ -25,6 +26,7 @@ import java.util.stream.Stream;
 
 @SuppressWarnings({"unused", "ExtractMethodRecommender"})
 @Component
+@CommonsLog
 public class AppViewService {
 
     private final Map<AppViewTarget, Set<PlaceDirectives>> targetPlaceDirectives = new HashMap<>();
@@ -597,10 +599,8 @@ public class AppViewService {
         actionSwitchCaption.setLink(Strings.EMPTY);
         actionsDirect.add(actionSwitchCaption);
 
-        actionsDirect.add(mapHeatpumpRoofActionSinglePreset(placeDirectives, view, other, HeatpumpRoofPreset.COOL_AUTO, idSuffix));
-        actionsDirect.add(mapHeatpumpRoofActionSinglePreset(placeDirectives, view, other, HeatpumpRoofPreset.COOL_MIN, idSuffix));
+        actionsDirect.add(mapHeatpumpRoofActionSinglePreset(placeDirectives, view, other, HeatpumpRoofPreset.COOL1_AUTO, idSuffix));
         actionsDirect.add(mapHeatpumpRoofActionSinglePreset(placeDirectives, view, other, HeatpumpRoofPreset.HEAT_AUTO, idSuffix));
-        actionsDirect.add(mapHeatpumpRoofActionSinglePreset(placeDirectives, view, other, HeatpumpRoofPreset.HEAT_MIN, idSuffix));
         actionsDirect.add(mapHeatpumpRoofActionSinglePreset(placeDirectives, view, other, HeatpumpRoofPreset.DRY_TIMER, idSuffix));
         actionsDirect.add(mapHeatpumpRoofActionSinglePreset(placeDirectives, view, other, HeatpumpRoofPreset.OFF, idSuffix));
 
@@ -613,10 +613,8 @@ public class AppViewService {
         hpActionSwitch.setId(placeDirectives.place.name() + "-hpSwitch-" + preset + "-" + idSuffix);
         hpActionSwitch.setName(preset.getShortText());
         var link = switch (preset) {
-            case COOL_AUTO -> view.getLinkCoolAuto();
-            case COOL_MIN -> view.getLinkCoolMin();
+            case COOL1_AUTO -> view.getLinkCool1Auto();
             case HEAT_AUTO -> view.getLinkHeatAuto();
-            case HEAT_MIN -> view.getLinkHeatMin();
             case DRY_TIMER -> view.getLinkDryTimer();
             case OFF -> view.getLinkOff();
             default -> "#";

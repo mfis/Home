@@ -1,9 +1,10 @@
 package de.fimatas.home.controller.api;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import de.fimatas.home.controller.model.HeatpumpRoofProgram;
+import de.fimatas.home.library.domain.model.HeatpumpRoofPreset;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.SneakyThrows;
+import lombok.ToString;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.retry.RetryPolicy;
@@ -30,6 +31,8 @@ public class TasmotaAPI {
     private String hostnamePrefix;
     @Value("${heatpump.roof.tasmota.vendor}")
     private String vendor;
+    @Value("${heatpump.roof.mock:false}")
+    private boolean mock;
 
     public TasmotaAPI(RestClient.Builder restClientBuilder, ObjectMapper objectMapper) {
 
@@ -52,10 +55,10 @@ public class TasmotaAPI {
         this.retryTemplate = new RetryTemplate(retryPolicy);
     }
 
-    public Map<String, Boolean> call(Map<String, HeatpumpRoofProgram> programs) {
+    public Map<String, Boolean> call(Map<String, HeatpumpRoofPreset> preset) {
 
         var responses = new HashMap<String, Boolean>();
-        programs.forEach((roomname, program) -> {
+        preset.forEach((roomname, program) -> {
             boolean ok;
             try {
                 var request = new IrHvac();
@@ -65,11 +68,18 @@ public class TasmotaAPI {
                 request.setTemp(program.getExpectedTemperature() == null? null : program.getExpectedTemperature());
                 request.setFanSpeed(program.getFanSpeed() == null ? null : program.getFanSpeed().getValue());
 
-                var response = retryTemplate.execute(() -> sendAcCommand(request, roomname));
-                ok = response != null && response.getIrHvac() != null && response.getIrHvac().equals(request);
-                if(!ok) {
-                    log.warn("HeatpumpRoof " + roomname + " command failed: request = " + request + " respronse = " + response);
+                if(mock){
+                    log.info("CALL MOCK: " + request);
+                    Thread.sleep(2000L);
+                    ok = true;
+                }else{
+                    var response = retryTemplate.execute(() -> sendAcCommand(request, roomname));
+                    ok = response != null && response.getIrHvac() != null && response.getIrHvac().equals(request);
+                    if(!ok) {
+                        log.warn("HeatpumpRoof " + roomname + " command failed: request = " + request + " respronse = " + response);
+                    }
                 }
+
             }catch(Exception ex){
                 ok = false;
                 log.error("error calling tasmota: ", ex);
@@ -98,6 +108,7 @@ public class TasmotaAPI {
 
     @Data
     @EqualsAndHashCode
+    @ToString
     public static class IrHvac {
         @JsonProperty("Vendor")
         private String vendor;

@@ -92,7 +92,6 @@ public class AppRequestMapping {
         AppTokenCreationModel model = new AppTokenCreationModel();
         model.setSuccess(result.isCheckOk());
         model.setToken(StringUtils.trimToEmpty(result.getNewToken()));
-        log.debug("NEW TOKEN: " + StringUtils.substring(result.getNewToken(), 0, 50));
         return model;
     }
 

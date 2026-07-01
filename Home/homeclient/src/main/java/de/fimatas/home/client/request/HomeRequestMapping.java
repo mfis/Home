@@ -335,7 +335,7 @@ public class HomeRequestMapping {
     }
 
     private void handlePushToken(String appPushToken, String userName, String client) {
-        
+
         if(!settingsViewService.isValidPushToken(appPushToken)) {
             return;
         }

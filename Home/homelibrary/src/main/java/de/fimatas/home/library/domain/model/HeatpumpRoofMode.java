@@ -1,4 +1,4 @@
-package de.fimatas.home.controller.model;
+package de.fimatas.home.library.domain.model;
 
 import lombok.Getter;
 
