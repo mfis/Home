@@ -5,6 +5,7 @@ import de.fimatas.home.controller.model.PushToken;
 import de.fimatas.home.library.domain.model.PushNotifications;
 import de.fimatas.home.library.model.SettingsContainer;
 import de.fimatas.home.library.model.SettingsModel;
+import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -15,6 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 @Component
+@CommonsLog
 public class SettingsService {
 
     @Autowired
@@ -88,7 +90,7 @@ public class SettingsService {
 
         refreshSettingsModelsComplete();
 
-        return oldToken.isEmpty();
+        return true;
     }
 
     public void resetSettingsForToken(String token) {

@@ -49,6 +49,8 @@ public class AppRequestMapping {
 
     public static final String URI_SET_PUSH_SETTING = "/setPushSetting";
 
+    public static final String URI_SET_PUSH_TOKEN = "/setPushToken";
+
     public static final String URI_SET_PRESENCE = "/setPresence";
 
     public static final String URI_LIVE_START = "/liveActivityStart";
@@ -56,7 +58,7 @@ public class AppRequestMapping {
     public static final String URI_LIVE_END = "/liveActivityEnd";
 
     public static Set<String> ALL_NON_LOGIN_APP_URIS = Set.of(
-            URI_GET_APP_MODEL, URI_GET_PUSH_MESSAGE_MODEL, URI_GET_PUSH_SETTINGS, URI_SET_PUSH_SETTING,  URI_SET_PRESENCE, URI_LIVE_START, URI_LIVE_END
+            URI_GET_APP_MODEL, URI_GET_PUSH_MESSAGE_MODEL, URI_GET_PUSH_SETTINGS, URI_SET_PUSH_SETTING,  URI_SET_PRESENCE, URI_LIVE_START, URI_LIVE_END, URI_SET_PUSH_TOKEN
     );
 
     @Autowired
@@ -161,8 +163,37 @@ public class AppRequestMapping {
         return getPushSettings(token);
     }
 
-    @PostMapping(value = URI_SET_PRESENCE)
-    public void setPushSetting(@RequestHeader(name = LoginInterceptor.APP_USER_NAME) String appUserName, @RequestParam("value") String value) {
+    @PostMapping(value = URI_SET_PUSH_TOKEN)
+    public void setPushToken(
+            @RequestParam("token") String token,
+            @RequestParam("device")String device,
+            @RequestAttribute(LoginInterceptor.LOGIN_INTERCEPTOR_CHECKED_USER_NAME) String loginInterceptorCheckedUserName) {
+
+        if(StringUtils.isBlank(loginInterceptorCheckedUserName)) {
+            throw new IllegalStateException("setPushToken - loginInterceptorCheckedUserName is empty");
+        }
+
+        final Collection<SettingsModel> settingsModels = ModelObjectDAO.getInstance().readAllSettings();
+        if(settingsModels == null){
+            return;
+        }
+
+        final Optional<SettingsModel> settingsModel = settingsModels.stream()
+                .filter(settings -> settings.getToken().equals(lookupToken(token))).findFirst();
+        if(settingsModel.isPresent()) {
+            return;
+        }
+
+        Message message = new Message();
+        message.setMessageType(MessageType.SETTINGS_NEW);
+        message.setToken(token);
+        message.setUser(loginInterceptorCheckedUserName);
+        message.setClient(device);
+        MessageQueue.getInstance().request(message, true);
+    }
+
+        @PostMapping(value = URI_SET_PRESENCE)
+    public void setPresence(@RequestHeader(name = LoginInterceptor.APP_USER_NAME) String appUserName, @RequestParam("value") String value) {
 
         Message message = new Message();
         message.setMessageType(MessageType.PRESENCE_EDIT);
