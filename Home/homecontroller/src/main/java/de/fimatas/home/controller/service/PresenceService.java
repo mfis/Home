@@ -24,7 +24,7 @@ public class PresenceService {
 
     private final String STATEHANDLER_GROUPNAME_PERSONS = "presence-persons";
 
-    @Scheduled(cron = "20 4/16 * * * *")
+    @Scheduled(cron = "20 4/14 * * * *")
     public void scheduledRefresh() {
         refresh();
     }
